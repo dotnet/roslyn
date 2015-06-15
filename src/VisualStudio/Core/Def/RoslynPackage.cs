@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             // Initialize the PortableShim linekd into the Compilers layer via reflection.
             var compilerPortableShim = compilerAssembly.GetType("Roslyn.Utilities.PortableShim", throwOnError: false);
-            var initializeMethod = compilerPortableShim?.GetMethod("Initialize", BindingFlags.Static | BindingFlags.NonPublic);
+            var initializeMethod = compilerPortableShim?.GetMethod(nameof(Roslyn.Utilities.PortableShim.Initialize), BindingFlags.Static | BindingFlags.NonPublic);
             initializeMethod?.Invoke(null, null);
         }
 

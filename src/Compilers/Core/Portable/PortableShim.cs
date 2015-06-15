@@ -36,6 +36,11 @@ namespace Roslyn.Utilities
     {
         internal static void Initialize()
         {
+            // This method provides a way to force the static initializers of each type below
+            // to run. This ensures that the static field values will be computed eagerly
+            // rather than lazily on demand. If you add a new nested class below to access API
+            // surface area, be sure to "touch" the Type field here.
+
             Touch(Assembly.Type);
             Touch(Directory.Type);
             Touch(Encoding.Type);
