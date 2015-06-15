@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal sealed class AssemblyNamePrefixWhiteList : IAssemblyWhiteList
+    internal sealed class IgnorableAssemblyNamePrefixList : IIgnorableAssemblyList
     {
         private readonly string _prefix;
 
-        public AssemblyNamePrefixWhiteList(string prefix)
+        public IgnorableAssemblyNamePrefixList(string prefix)
         {
             Debug.Assert(prefix != null);
 
