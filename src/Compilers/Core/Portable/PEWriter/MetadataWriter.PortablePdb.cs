@@ -387,22 +387,6 @@ namespace Microsoft.Cci
             Debug.Assert(_importScopeTable.Count == ModuleImportScopeRid);
         }
 
-        private void DefineEntryPointCustomDebugInformation(int entryPointToken)
-        {
-            Debug.Assert(entryPointToken != 0);
-
-            MemoryStream blob = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(blob);
-            writer.WriteCompressedUInt((uint)(entryPointToken & 0x00ffffff));
-
-            _customDebugInformationTable.Add(new CustomDebugInformationRow
-            {
-                Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.Assembly, 1),
-                Kind = debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EntryPoint),
-                Value = debugHeapsOpt.GetBlobIndex(blob)
-            });
-        }
-
         private int GetImportScopeIndex(IImportScope scope, Dictionary<IImportScope, int> scopeIndex)
         {
             int scopeRid;
