@@ -35,12 +35,9 @@ The #Pdb stream has the following structure:
  
 | Offset | Size | Field          | Description                                                    |
 |:-------|:-----|:---------------|----------------------------------------------------------------|
-| 0      | 1    | MajorVersion   | Major version of the Portable PDB format; shall be 0.          |
-| 1      | 1    | MinorVersion   | Minor version of the Portable PDB format; shall be 1.          | 
-| 2      | 2    | Reserved       | Shall be 0.                                                    |
-| 4      | 4    | EntryPoint     | Entry point MethodDef token, or 0 if not applicable. The same value as stored in CLI header of the PE file. See ECMA-335-II 15.4.1.2. |
-| 8      | 8    | ReferencedTypeSystemTables | Bit vector of referenced type system metadata tables, let n be the number of bits that are 1. |
-| 16     | 4*n  | TypeSystemTableRows     | Array of n 4-byte unsigned integers indicating the number of rows for each referenced type system metadata table. |
+| 0      | 4    | EntryPoint     | Entry point MethodDef token, or 0 if not applicable. The same value as stored in CLI header of the PE file. See ECMA-335-II 15.4.1.2. |
+| 4      | 8    | ReferencedTypeSystemTables | Bit vector of referenced type system metadata tables, let n be the number of bits that are 1. |
+| 12     | 4*n  | TypeSystemTableRows     | Array of n 4-byte unsigned integers indicating the number of rows for each referenced type system metadata table. |
 
 #### #~ stream 
 
