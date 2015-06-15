@@ -3256,8 +3256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 ' This point should not be reachable.
-                Debug.Assert(False)
-                Return -1
+                Throw ExceptionUtilities.Unreachable
             End If
 
             Dim syntaxOffset As Integer
@@ -3267,8 +3266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
             ' so the variable has to be declared in a member initializer.
-            Debug.Assert(False)
-            Return -1
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Calculates a syntax offset of a syntax position that is contained in a property or field initializer (if it is in fact contained in one).

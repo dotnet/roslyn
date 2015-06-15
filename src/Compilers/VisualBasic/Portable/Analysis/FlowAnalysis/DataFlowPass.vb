@@ -1884,7 +1884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BoundKind.EventAccess
-                    Debug.Assert(False)  ' TODO: is this reachable at all?
+                    Throw ExceptionUtilities.UnexpectedValue(expr.Kind) ' TODO: is this reachable at all?
 
                 Case BoundKind.MeReference,
                      BoundKind.MyClassReference,

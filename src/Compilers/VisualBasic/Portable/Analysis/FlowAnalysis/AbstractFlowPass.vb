@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.YieldStatement
                     Return Nothing
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(branch.Kind)
             End Select
             Return Nothing
         End Function

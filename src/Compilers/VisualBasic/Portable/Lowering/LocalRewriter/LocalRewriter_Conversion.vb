@@ -709,8 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' This point should not be reachable, because if there is no constructor in the 
             ' loaded value type, we should have generated a synthesized constructor.
-            Debug.Assert(False)
-            Return node
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Private Function RewriteReferenceTypeToCharArrayRankOneConversion(node As BoundConversion, typeFrom As TypeSymbol, typeTo As TypeSymbol) As BoundExpression
