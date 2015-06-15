@@ -3768,11 +3768,6 @@ namespace Microsoft.Cci
         {
             uint startPosition = writer.BaseStream.Position;
 
-            // TODO: Portable PDB format version
-            writer.WriteByte(0);
-            writer.WriteByte(1);
-
-            writer.WriteShort(0); // reserved
             writer.WriteUint(entryPointToken);
 
             writer.WriteUlong(metadataSizes.ExternalTablesMask);

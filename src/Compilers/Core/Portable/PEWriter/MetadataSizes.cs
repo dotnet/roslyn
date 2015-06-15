@@ -394,10 +394,7 @@ namespace Microsoft.Cci
 
         internal int CalculateStandalonePdbStreamSize()
         {
-            int result = sizeof(byte) +       // MajorVersion
-                         sizeof(byte) +       // MinorVersion
-                         sizeof(short) +      // Reserved
-                         sizeof(int) +        // EntryPoint
+            int result = sizeof(int) +        // EntryPoint
                          sizeof(long);        // ReferencedTypeSystemTables
 
             // external table row counts
