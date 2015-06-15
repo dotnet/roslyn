@@ -34,6 +34,32 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class PortableShim
     {
+        internal static void Initialize()
+        {
+            Touch(Assembly.Type);
+            Touch(Directory.Type);
+            Touch(Encoding.Type);
+            Touch(Environment.Type);
+            Touch(File.Type);
+            Touch(FileAccess.Type);
+            Touch(FileMode.Type);
+            Touch(FileOptions.Type);
+            Touch(FileShare.Type);
+            Touch(FileStream.Type);
+            Touch(FileVersionInfo.Type);
+            Touch(MemoryStream.Type);
+            Touch(Path.Type);
+            Touch(RuntimeHelpers.Type);
+            Touch(SearchOption.Type);
+            Touch(Thread.Type);
+            Touch(XPath.Extensions.Type);
+        }
+
+        private static void Touch(Type type)
+        {
+            // Do nothing.
+        }
+
         private static class CoreNames
         {
             internal const string System_Diagnostics_FileVersionInfo = "System.Diagnostics.FileVersionInfo, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
