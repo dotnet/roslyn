@@ -17,7 +17,6 @@ The ECMA-335-II standard is amended by an addition of the following tables to th
 * [ImportScope](#ImportScopeTable)
 * [AsyncMethod](#AsyncMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
-    * [EntryPoint](#EntryPoint)
     * [StateMachineHoistedLocalScopes](#StateMachineHoistedLocalScopes)
     * [DynamicLocalVariables](#DynamicLocalVariables)
     * [DefaultNamespace](#DefaultNamespace)
@@ -39,7 +38,7 @@ The #Pdb stream has the following structure:
 | 0      | 1    | MajorVersion   | Major version of the Portable PDB format; shall be 0.          |
 | 1      | 1    | MinorVersion   | Minor version of the Portable PDB format; shall be 1.          | 
 | 2      | 2    | Reserved       | Shall be 0.                                                    |
-| 4      | 4    | EntryPoint     | MethodDef token that designates an entry point of the program. The same value as  specified in COR Header of the corresponding PE file. |
+| 4      | 4    | EntryPoint     | MethodDef row id of the program entry point, or 0 if not applicable. See ECMA-335-II 15.4.1.2 |
 | 8      | 8    | ReferencedTypeSystemTables | Bit vector of referenced type system metadata tables, let n be the number of bits that are 1. |
 | 16     | 4*n  | TypeSystemTableRows     | Array of n 4-byte unsigned integers indicating the number of rows for each referenced type system metadata table. |
 
@@ -410,23 +409,6 @@ Kind is an id defined by the tool producing the information.
 #### Language Specific Custom Debug Information Records
 
 The following _Custom Debug Information_ records are currently produced by C#, VB and F# compilers. In future the compilers and other tools may define new records. Once specified they may not change. If a change is needed the owner has to define a new record with a new kind (GUID).
-
-##### <a name="EntryPoint"></a>Entry Point (C# & VB compilers)
-Parent: Assembly
-
-Kind: {22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1}
-
-Specifies the entry-point MethodDef.
-
-Structure:
-
-    Blob ::= method
-
-| terminal  | encoding                    | description       |
-|:----------|:----------------------------|:------------------|
-| _method_  | Compressed unsigned integer | MethodDef row id. |
-
-The value shall be the same as the entry point value in COR header, if applicable.
 
 ##### <a name="StateMachineHoistedLocalScopes"></a>State Machine Hoisted Local Scopes (C# & VB compilers)
 Parent: MethodDef
