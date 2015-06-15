@@ -534,24 +534,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            var text = syntaxTree.GetText(cancellationToken);
-            var lineContainingPosition = text.Lines.IndexOf(position);
             if (token.Kind() == SyntaxKind.EndOfFileToken)
             {
+                var text = syntaxTree.GetText(cancellationToken);
+                var lineContainingPosition = text.Lines.IndexOf(position);
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
                 {
-                    if (triviaTok.HasStructure)
+                    var triviaLine = text.Lines.IndexOf(triviaTok.SpanStart);
+                    if (triviaLine <= lineContainingPosition)
                     {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
                         var structure = triviaTok.GetStructure();
                         if (structure is BranchingDirectiveTriviaSyntax)
                         {
-                            var triviaLine = text.Lines.IndexOf(triviaTok.SpanStart);
-                            if (triviaLine < lineContainingPosition)
-                            {
-                                var branch = (BranchingDirectiveTriviaSyntax)structure;
-                                return !branch.IsActive || !branch.BranchTaken;
-                            }
+                            var branch = (BranchingDirectiveTriviaSyntax)structure;
+                            return !branch.IsActive || !branch.BranchTaken;
                         }
                     }
                 }

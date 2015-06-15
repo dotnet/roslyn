@@ -282,6 +282,7 @@
     <Compile Include="Extensions\ContextQuery\AbstractContextTests.cs" />
     <Compile Include="Extensions\ContextQuery\NamespaceContextTests.cs" />
     <Compile Include="Extensions\ContextQuery\TypeContextTests.cs" />
+    <Compile Include="Extensions\SyntaxTreeExtensionsTests.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceTests.cs" />
     <Compile Include="ExtractMethod\ExtractMethodBase.cs" />
     <Compile Include="ExtractMethod\ExtractMethodTests.cs" />
