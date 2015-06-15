@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using System.Linq;
 
 namespace Microsoft.AnalyzerPowerPack.CSharp.Design
 {
@@ -53,8 +54,19 @@ namespace Microsoft.AnalyzerPowerPack.CSharp.Design
             SyntaxToken staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
             modifiers = modifiers.Add(staticKeyword);
 
-            var newDeclaration = classDeclaration.WithModifiers(modifiers);
-            var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
+            SyntaxList<MemberDeclarationSyntax> members = classDeclaration.Members;
+            MemberDeclarationSyntax defaultConstructor = members.FirstOrDefault(m => m.IsDefaultConstructor());
+            if (defaultConstructor != null)
+            {
+                members = members.Remove(defaultConstructor);
+            }
+
+            ClassDeclarationSyntax newDeclaration = classDeclaration
+                .WithMembers(members)
+                .WithModifiers(modifiers)
+                .WithAdditionalAnnotations(Formatter.Annotation);
+
+            SyntaxNode newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
             return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
@@ -66,4 +78,24 @@ namespace Microsoft.AnalyzerPowerPack.CSharp.Design
             }
         }
     }
+
+    internal static class CA1052CSharpCodeFixProviderExtensions
+    {
+        internal static bool IsDefaultConstructor(this MemberDeclarationSyntax member)
+        {
+            if (member.Kind() != SyntaxKind.ConstructorDeclaration)
+            {
+                return false;
+            }
+
+            var constructor = (ConstructorDeclarationSyntax)member;
+            if (constructor.Modifiers.Any(m => m.Kind() == SyntaxKind.StaticKeyword))
+            {
+                return false;
+            }
+
+            return constructor.ParameterList.Parameters.Count == 0;
+        }
+    }
+
 }

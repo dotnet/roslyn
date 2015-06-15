@@ -73,14 +73,13 @@ public static class C
             VerifyCSharpFix(Code, FixedCode);
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesNonStaticClassWithPublicDefaultConstructorAndStaticMethodCSharp()
         {
             const string Code = @"
 public class C
 {
     public C() { }
-
     public static void Foo() { }
 }
 ";
@@ -95,14 +94,13 @@ public static class C
             VerifyCSharpFix(Code, FixedCode);
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesNonStaticClassWithProtectedDefaultConstructorAndStaticMethodCSharp()
         {
             const string Code = @"
 public class C
 {
     protected C() { }
-
     public static void Foo() { }
 }
 ";
@@ -117,14 +115,13 @@ public static class C
             VerifyCSharpFix(Code, FixedCode);
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesNonStaticClassWithPrivateDefaultConstructorAndStaticMethodCSharp()
         {
             const string Code = @"
 public class C
 {
     private C() { }
-
     public static void Foo() { }
 }
 ";
@@ -190,7 +187,7 @@ public static class C
             VerifyCSharpFix(Code, FixedCode);
         }
 
-        [Fact(Skip = "NYI"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1052FixesNonStaticClassWithStaticConstructorAndInstanceConstructorCSharp()
         {
             const string Code = @"
