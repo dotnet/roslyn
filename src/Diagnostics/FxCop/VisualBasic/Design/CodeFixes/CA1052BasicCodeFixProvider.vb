@@ -21,7 +21,11 @@ Namespace Design
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId)
+                ' TODO: Re-implement the VB fix by turning the Class into a Module.
+                ' For now, leave this fixer in place but don't declare it to fix anything.
+                ' Return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId)
+                Dim diagnosticIDs() As String = {}
+                Return ImmutableArray.Create(diagnosticIDs)
             End Get
         End Property
 
