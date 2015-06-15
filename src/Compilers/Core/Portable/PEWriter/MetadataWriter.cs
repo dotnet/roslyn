@@ -4208,7 +4208,7 @@ namespace Microsoft.Cci
                     if (body != null)
                     {
                         localSignatureRid = this.SerializeLocalVariablesSignature(body);
-                        uint localSignatureToken = (uint)(0x11000000 | localSignatureRid);
+                        uint localSignatureToken = (localSignatureRid != 0) ? (uint)(0x11000000 | localSignatureRid) : 0;
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
