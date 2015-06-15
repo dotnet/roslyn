@@ -1780,9 +1780,9 @@ End Module]]>)
 Dim x = <?xml version="1.0" standalone=''?><doc/>
 End Module
  ]]>,
- <erors>
+ <errors>
      <error id="31182"/>
- </erors>)
+ </errors>)
     End Sub
 
     <WorkItem(930757, "DevDiv/Personal")>

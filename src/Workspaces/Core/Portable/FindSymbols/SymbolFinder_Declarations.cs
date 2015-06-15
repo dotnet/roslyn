@@ -90,13 +90,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static string GetMetadataReferenceFilePath(MetadataReference metadataReference)
         {
-            var executabeReference = metadataReference as PortableExecutableReference;
-            if (executabeReference == null)
+            var executableReference = metadataReference as PortableExecutableReference;
+            if (executableReference == null)
             {
                 return null;
             }
 
-            return executabeReference.FilePath;
+            return executableReference.FilePath;
         }
 
         /// <summary>

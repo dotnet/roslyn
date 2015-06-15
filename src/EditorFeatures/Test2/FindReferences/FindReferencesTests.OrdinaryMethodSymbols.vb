@@ -1087,7 +1087,7 @@ End Interface
         void I<U>.{|Definition:F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:F|}()
         {
@@ -1119,7 +1119,7 @@ End Interface
         void I<U>.{|Definition:$$F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:F|}()
         {
@@ -1151,7 +1151,7 @@ End Interface
         void I<U>.{|Definition:F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:$$F|}()
         {
@@ -1183,7 +1183,7 @@ End Interface
         void I<U>.{|Definition:F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:F|}()
         {

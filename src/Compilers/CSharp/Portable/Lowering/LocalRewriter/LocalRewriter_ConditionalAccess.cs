@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            var previousConditionalAccesTarget = _currentConditionalAccessTarget;
+            var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++this._currentConditionalAccessID;
 
             LocalSymbol temp = null;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.VisitExpression(node.AccessExpression) :
                         this.VisitUnusedExpression(node.AccessExpression);
 
-            _currentConditionalAccessTarget = previousConditionalAccesTarget;
+            _currentConditionalAccessTarget = previousConditionalAccessTarget;
 
             TypeSymbol type = this.VisitType(node.Type);
 

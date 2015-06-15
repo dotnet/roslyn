@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Collections
     /// A set of ints that is small, thread-safe and lock free.
     /// Several assumptions have been made that allow it to be small and fast:
     /// 1. Deletes never happen.
-    /// 2. The size is small. In dogfooding experiements, 89% had 4 or fewer elements and
+    /// 2. The size is small. In dogfooding experiments, 89% had 4 or fewer elements and
     ///    98% had 8 or fewer elements. The largest size was 17.
     /// 3. As a result of assumption 2, linear look-up is good enough.
     /// 4. One value, in this case int.MinValue, is used as a sentinel and may never appear in the set.

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             If tree.IsInNonUserCode(position, cancellationToken) OrElse tree.IsInSkippedText(position, cancellationToken) Then
                 Return Nothing
             End If
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Async Function CreateItemsAsync(document As Document, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(False)
 
             ' Unless the enclosing symbol is already the global namespace, we want to get it's enclosing symbol
             ' in order to suggest partial types in our namespace.

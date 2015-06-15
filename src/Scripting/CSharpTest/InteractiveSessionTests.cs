@@ -2172,7 +2172,7 @@ public static T bar<T>(T i)
         }
 
         /// <summary>
-        /// Tests that we emit ldftn and ldvirtftn instructions corectly.
+        /// Tests that we emit ldftn and ldvirtftn instructions correctly.
         /// </summary>
         [Fact]
         public void CompilationChain_Ldftn()
@@ -2207,7 +2207,7 @@ new System.Func<int>(new C().gh<bool>)()
         }
 
         /// <summary>
-        /// Tests that we emit ldftn and ldvirtftn instructions corectly.
+        /// Tests that we emit ldftn and ldvirtftn instructions correctly.
         /// </summary>
         [Fact]
         public void CompilationChain_Ldftn_GenericType()
@@ -2332,7 +2332,7 @@ int Foo() { return 2;}
         }
 
         [Fact]
-        public void ArithmeticOperators_IdentiferAddition()
+        public void ArithmeticOperators_IdentifierAddition()
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
@@ -2582,13 +2582,13 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()
             var session = engine.CreateSession();
             session.AddReference(TestReferences.NetFx.v4_0_30319.System_Core);
 
-            ScriptingTestHelpers.AssertCompilationError(session, "static void E(this object o) { }",
-                // error CS1106: Extension methods must be defined in a non-generic static class
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "E"));
+            // No error for extension method defined in interactive session.
+            session.Execute("static void E(this object o) { }");
 
             ScriptingTestHelpers.AssertCompilationError(session, "void F(this object o) { }",
-                // (1,6): error CS1106: Extension method must be defined in a non-generic static class
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "F").WithLocation(1, 6));
+                // (1,6): error CS1105: Extension method must be static
+                // void F(this object o) { }
+                Diagnostic(ErrorCode.ERR_BadExtensionMeth, "F").WithLocation(1, 6));
 
             ScriptingTestHelpers.AssertCompilationError(session, "static void G(this dynamic o) { }",
                 // error CS1103: The first parameter of an extension method cannot be of type 'dynamic'
@@ -2613,7 +2613,7 @@ new object[] { x, y, z }
         }
 
         /// <summary>
-        /// Name of PrivateImplementationDetails type needs to be unique accross submissions.
+        /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
         [WorkItem(949559)]

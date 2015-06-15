@@ -120,14 +120,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestImplicitCacheMonitoring()
         {
             var cacheService = new ProjectCacheHostServiceFactory.ProjectCacheService(null, 10, forceCleanup: true);
-            var instance = new object();
-            var weak = new WeakReference(instance);
-            cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
-            instance = null;
-            Thread.Sleep(100);
-            CollectGarbage();
+            var weak = PutObjectInImplicitCache(cacheService);
+
+            var timeout = TimeSpan.FromSeconds(10);
+            var current = DateTime.UtcNow;
+            do
+            {
+                Thread.Sleep(100);
+                CollectGarbage();
+
+                if (DateTime.UtcNow - current > timeout)
+                {
+                    break;
+                }
+            }
+            while (weak.IsAlive);
+
             Assert.False(weak.IsAlive);
             GC.KeepAlive(cacheService);
+        }
+
+        private static WeakReference PutObjectInImplicitCache(ProjectCacheHostServiceFactory.ProjectCacheService cacheService)
+        {
+            var instance = new object();
+            var weak = new WeakReference(instance);
+
+            cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, instance);
+            instance = null;
+
+            return weak;
         }
 
         [Fact]
@@ -224,9 +245,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static void CollectGarbage()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            for (var i = 0; i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
         }
     }
 }

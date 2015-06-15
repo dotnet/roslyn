@@ -396,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             ''' <summary>
-            ''' Lookup an immediate (without decending into modules) member name in a namespace, 
+            ''' Lookup an immediate (without descending into modules) member name in a namespace, 
             ''' returning a LookupResult that summarizes the results of the lookup. 
             ''' See LookupResult structure for a detailed discussion of the meaning of the results. 
             ''' The supplied binder is used for accessibility checks and base class suppression.

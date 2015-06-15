@@ -57,7 +57,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework"><Private>false</Private></Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>

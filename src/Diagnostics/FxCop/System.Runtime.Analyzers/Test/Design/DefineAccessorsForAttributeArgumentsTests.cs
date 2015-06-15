@@ -2452,7 +2452,7 @@ public class ParentProtectedAccessorAttribute : Attribute
 }
 
 // I should be firing on this but I should be firing the default resolution instead of 
-// the IncreaseVisiblity resolution because I can't assume the user can modify the parent class
+// the IncreaseVisibility resolution because I can't assume the user can modify the parent class
 [AttributeUsage(AttributeTargets.All)]
 public class ChildProtectedAccessorAttribute : ParentProtectedAccessorAttribute
 {
@@ -2483,7 +2483,7 @@ public class ParentPrivateAccessorAttribute : Attribute
 }
 
 // I should be firing on this but I should be firing the default resolution instead of 
-// the IncreaseVisiblity resolution because I can't assume the user can modify the parent class
+// the IncreaseVisibility resolution because I can't assume the user can modify the parent class
 [AttributeUsage(AttributeTargets.All)]
 public class ChildPrivateAccessorAttribute : ParentPrivateAccessorAttribute
 {
@@ -2624,7 +2624,7 @@ Public Class ParentProtectedAccessorAttribute
 End Class
 
 ' I should be firing on this but I should be firing the default resolution instead of 
-' the IncreaseVisiblity resolution because I can't assume the user can modify the parent class
+' the IncreaseVisibility resolution because I can't assume the user can modify the parent class
 <AttributeUsage(AttributeTargets.All)> _
 Public Class ChildProtectedAccessorAttribute
 	Inherits ParentProtectedAccessorAttribute
@@ -2655,7 +2655,7 @@ Public Class ParentPrivateAccessorAttribute
 End Class
 
 ' I should be firing on this but I should be firing the default resolution instead of 
-' the IncreaseVisiblity resolution because I can't assume the user can modify the parent class
+' the IncreaseVisibility resolution because I can't assume the user can modify the parent class
 <AttributeUsage(AttributeTargets.All)> _
 Public Class ChildPrivateAccessorAttribute
 	Inherits ParentPrivateAccessorAttribute

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         /// <summary>
         /// Gets the options to use with this code action.
-        /// This method is gauranteed to be called on the UI thread.
+        /// This method is guaranteed to be called on the UI thread.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>An implementation specific object instance that holds options for applying the code action.</returns>

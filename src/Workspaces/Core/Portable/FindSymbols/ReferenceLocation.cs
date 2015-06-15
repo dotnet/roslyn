@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool IsImplicit { get; }
 
         /// <summary>
-        /// Inidicates if this is a location where the reference is written to.
+        /// Indicates if this is a location where the reference is written to.
         /// </summary>
         internal bool IsWrittenTo { get; }
 

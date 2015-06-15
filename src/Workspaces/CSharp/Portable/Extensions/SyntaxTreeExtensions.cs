@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLitera, "token");
+                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLiteral, "token");
             }
 
             int startLength = 1;

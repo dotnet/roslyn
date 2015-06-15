@@ -49,9 +49,9 @@ End Structure
         End Sub
 
         <Fact()>
-        Public Sub InitResourceWithFunctonCall()
+        Public Sub InitResourceWithFunctionCall()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="InitResourceWithFunctonCall">
+<compilation>
     <file name="a.vb">
 Option Infer On
 Imports System

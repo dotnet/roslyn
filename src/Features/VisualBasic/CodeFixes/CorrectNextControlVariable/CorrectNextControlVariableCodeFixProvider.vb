@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
         End Property
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
-            Dim root = Await context.Document.GetVisualBasicSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
+            Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
 
             Dim node = root.FindNode(context.Span, getInnermostNodeForTie:=True)
             Dim nextStatement = node.FirstAncestorOrSelf(Of NextStatementSyntax)()
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
             ' A Next statement could have multiple control variables. Find the index of the variable so that we 
             ' can find the correct nested ForBlock and it's control variable.
 
-            ' The span of the diagnostic could be over just part of the controlvariable in case of unbound indentifiers
+            ' The span of the diagnostic could be over just part of the controlvariable in case of unbound identifiers
             ' and so find the full expression for the control variable to be replaced.
             Dim indexOfControlVariable = nextStatement.ControlVariables.IndexOf(Function(n) n.Span.Contains(context.Span))
             If indexOfControlVariable = -1 Then

@@ -195,7 +195,7 @@ class C
         {
             // Here we cannot report that "no overload of M takes two arguments" because of course
             // M(1, 2) is legal. We cannot report that any argument does not correspond to a formal;
-            // all of them do. We cannot report that named arguments preceed positional arguments.
+            // all of them do. We cannot report that named arguments precede positional arguments.
             // We cannot report that any argument is not convertible to its corresponding formal;
             // all of them are convertible. The only error we can report here is that a formal 
             // parameter has no corresponding argument.

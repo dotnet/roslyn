@@ -758,13 +758,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim methodSym = DirectCast(implementingMember, SourceMemberMethodSymbol)
 
                     Dim diagbag = DiagnosticBag.GetInstance()
-                    Dim boundClause = methodSym.BindSingleHandlesClause(handlesClause,
-                                                                        binder,
-                                                                        diagbag,
-                                                                        eventSymbolBuilder,
-                                                                        containerSymbolBuilder,
-                                                                        propertySymbolBuilder,
-                                                                        resultKind)
+                    methodSym.BindSingleHandlesClause(handlesClause,
+                                                      binder,
+                                                      diagbag,
+                                                      eventSymbolBuilder,
+                                                      containerSymbolBuilder,
+                                                      propertySymbolBuilder,
+                                                      resultKind)
 
                     diagbag.Free()
                 End If
@@ -850,7 +850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Checks all symbol locations against the syntax provided and rreturn symbol if any of the locations is 
+        ''' Checks all symbol locations against the syntax provided and return symbol if any of the locations is 
         ''' inside the syntax span. Returns Nothing otherwise.
         ''' </summary>
         Private Function CheckSymbolLocationsAgainstSyntax(symbol As NamedTypeSymbol, nodeToCheck As VisualBasicSyntaxNode) As NamedTypeSymbol

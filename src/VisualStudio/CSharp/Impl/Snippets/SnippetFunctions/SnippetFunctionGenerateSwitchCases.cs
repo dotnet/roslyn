@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
 
             var expressionSpan = subjectBufferFieldSpan.Span.ToTextSpan();
 
-            var syntaxTree = document.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var token = syntaxTree.FindTokenOnRightOfPosition(expressionSpan.Start, cancellationToken);
             var expressionNode = token.GetAncestor(n => n.Span == expressionSpan);
 
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
                 return false;
             }
 
-            SemanticModel model = document.GetCSharpSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            SemanticModel model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             typeSymbol = model.GetTypeInfo(expressionNode, cancellationToken).Type;
 
             return typeSymbol != null;
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
             var documentWithCaseAdded = document.WithText(textWithCaseAdded);
 
-            var syntaxRoot = documentWithCaseAdded.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxRoot = documentWithCaseAdded.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var nodeToReplace = syntaxRoot.DescendantNodes().FirstOrDefault(n => n.Span == typeSpanToAnnotate);
 
             if (nodeToReplace == null)
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var documentWithAnnotations = documentWithCaseAdded.WithSyntaxRoot(updatedRoot);
 
             var simplifiedDocument = Simplifier.ReduceAsync(documentWithAnnotations, cancellationToken: cancellationToken).Result;
-            simplifiedTypeName = simplifiedDocument.GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
+            simplifiedTypeName = simplifiedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).GetAnnotatedNodesAndTokens(typeAnnotation).Single().ToString();
             return true;
         }
     }

@@ -13848,18 +13848,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to &apos;Catch&apos; block never reached, because &apos;{0}&apos; inherits from &apos;{1}&apos;..
         '''</summary>
-        Friend ReadOnly Property WRN_OverlapingCatch() As String
+        Friend ReadOnly Property WRN_OverlappingCatch() As String
             Get
-                Return ResourceManager.GetString("WRN_OverlapingCatch", resourceCulture)
+                Return ResourceManager.GetString("WRN_OverlappingCatch", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type&apos;s base type handled above in the same Try statement.
         '''</summary>
-        Friend ReadOnly Property WRN_OverlapingCatch_Title() As String
+        Friend ReadOnly Property WRN_OverlappingCatch_Title() As String
             Get
-                Return ResourceManager.GetString("WRN_OverlapingCatch_Title", resourceCulture)
+                Return ResourceManager.GetString("WRN_OverlappingCatch_Title", resourceCulture)
             End Get
         End Property
         
@@ -14388,18 +14388,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to Namespace or type specified in the project-level Imports &apos;{0}&apos; doesn&apos;t contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn&apos;t use any aliases..
         '''</summary>
-        Friend ReadOnly Property WRN_UndefinedOrEmpyProjectNamespaceOrClass1() As String
+        Friend ReadOnly Property WRN_UndefinedOrEmptyProjectNamespaceOrClass1() As String
             Get
-                Return ResourceManager.GetString("WRN_UndefinedOrEmpyProjectNamespaceOrClass1", resourceCulture)
+                Return ResourceManager.GetString("WRN_UndefinedOrEmptyProjectNamespaceOrClass1", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Namespace or type imported at project level doesn&apos;t contain any public member or cannot be found.
         '''</summary>
-        Friend ReadOnly Property WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title() As String
+        Friend ReadOnly Property WRN_UndefinedOrEmptyProjectNamespaceOrClass1_Title() As String
             Get
-                Return ResourceManager.GetString("WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title", resourceCulture)
+                Return ResourceManager.GetString("WRN_UndefinedOrEmptyProjectNamespaceOrClass1_Title", resourceCulture)
             End Get
         End Property
         

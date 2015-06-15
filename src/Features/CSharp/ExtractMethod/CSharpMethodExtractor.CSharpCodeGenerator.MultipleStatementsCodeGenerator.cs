@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return blockNode.Statements;
                     }
 
-                    var switchSecionNode = node as SwitchSectionSyntax;
-                    if (switchSecionNode != null)
+                    var switchSectionNode = node as SwitchSectionSyntax;
+                    if (switchSectionNode != null)
                     {
-                        return switchSecionNode.Statements;
+                        return switchSectionNode.Statements;
                     }
 
                     return Contract.FailWithReturn<SyntaxList<StatementSyntax>>("unknown statements container!");

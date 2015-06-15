@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     ///                      non-viable results.
     ///    a non-viable result - a result that means that the search continues into further scopes of lower priority for
     ///                          a viable or non-accessible result. An error is attached with the error that indicates
-    ///                          why the result is non-viable.  A typical readon would be that it is the wrong kind of symbol.
+    ///                          why the result is non-viable.  A typical reason would be that it is the wrong kind of symbol.
     /// 
     /// Note that the class is poolable so its instances can be obtained from a pool vai GetInstance.
     /// Also it is a good idea to call Free on instances after they no longer needed.

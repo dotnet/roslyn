@@ -752,7 +752,7 @@ End Class
 Enum EI : AI : BI : End Enum
 Enum EB As Byte : AB : BB : End Enum
 
-Class ClazzWithEnumes
+Class ClazzWithEnums
     Public Const F1 = CType(CType(CType(CType(Nothing, EI), Object), Object), Object)
     Public Const F3 = CType(CType(CType(CType(Nothing, EB), Object), Object), Object)
 End Class

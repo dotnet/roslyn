@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             //public Outer<dynamic>.Inner<dynamic, dynamic>.InnerInner<dynamic> field14 = null;
             var field14 = _derivedClass.GetMember<FieldSymbol>("field14");
             // Outer<dynamic>.Inner<dynamic, dynamic>
-            var innerOfDynamicDymanicWithOuterOfDynamic = outerClassOfDynamic.GetTypeMember("Inner").Construct(s_dynamicType, s_dynamicType);
-            complicatedInnerInner = innerOfDynamicDymanicWithOuterOfDynamic.GetTypeMember("InnerInner").Construct(s_dynamicType);
+            var innerOfDynamicDynamicWithOuterOfDynamic = outerClassOfDynamic.GetTypeMember("Inner").Construct(s_dynamicType, s_dynamicType);
+            complicatedInnerInner = innerOfDynamicDynamicWithOuterOfDynamic.GetTypeMember("InnerInner").Construct(s_dynamicType);
             Assert.Equal(complicatedInnerInner, field14.Type);
 
             //public Outer<dynamic>.Inner<Outer<dynamic>, T>.InnerInner<dynamic>[] field15 = null;

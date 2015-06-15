@@ -286,8 +286,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = GetProjectName(_factory._workspace, item.ProjectId);
                                 return content != null;
                             case StandardTableKeyNames.ProjectGuid:
-                                content = GetProjectGuid(_factory._workspace, item.ProjectId);
-                                return ProjectGuid != Guid.Empty;
+                                var guid = GetProjectGuid(_factory._workspace, item.ProjectId);
+                                content = guid;
+                                return guid != Guid.Empty;
                             default:
                                 content = null;
                                 return false;

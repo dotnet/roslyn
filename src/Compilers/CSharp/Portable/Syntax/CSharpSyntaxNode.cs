@@ -963,9 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxNodeRemover.RemoveNodes(this, nodes.Cast<CSharpSyntaxNode>(), options);
         }
 
-        protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, bool elasticTrivia)
+        protected internal override SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia)
         {
-            return SyntaxNormalizer.Normalize(this, indentation, elasticTrivia);
+            return SyntaxNormalizer.Normalize(this, indentation, eol, elasticTrivia);
         }
 
         protected override bool IsEquivalentToCore(SyntaxNode node, bool topLevel = false)

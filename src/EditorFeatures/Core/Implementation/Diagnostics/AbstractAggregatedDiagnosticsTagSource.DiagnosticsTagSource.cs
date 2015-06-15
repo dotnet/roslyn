@@ -111,11 +111,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
 
                 // only follow minimum length for live diagnostic. otherwise, let it be zero length.
-                var minimumLegnth = _id is ISupportLiveUpdate ? _owner.MinimumLength : 0;
+                var minimumLength = _id is ISupportLiveUpdate ? _owner.MinimumLength : 0;
 
                 foreach (var data in result)
                 {
-                    var span = data.GetSnapshotSpan(introspector.Snapshot, minimumLegnth);
+                    var span = data.GetSnapshotSpan(introspector.Snapshot, minimumLength);
                     if (span.Length == 0)
                     {
                         continue;

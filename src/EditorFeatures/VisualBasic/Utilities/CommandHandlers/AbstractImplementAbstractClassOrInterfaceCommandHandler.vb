@@ -8,7 +8,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
@@ -116,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim syntaxRoot = document.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim token = syntaxRoot.FindTokenOnLeftOfPosition(caretPosition)
 
             If text.Lines.IndexOf(token.SpanStart) <> text.Lines.IndexOf(caretPosition) Then

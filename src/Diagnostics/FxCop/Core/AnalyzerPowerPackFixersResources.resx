@@ -145,7 +145,7 @@
     <value>Add the 'NonSerialized' attribute to this field.</value>
   </data>
   <data name="AbstractTypesShouldNotHavePublicConstructorsCodeFix" xml:space="preserve">
-    <value>Change the accessibility of all public contructors in this class to protected.</value>
+    <value>Change the accessibility of all public constructors in this class to protected.</value>
   </data>
   <data name="AbstractTypesShouldNotHavePublicConstructors" xml:space="preserve">
     <value>Abstract classes should not have public constructors</value>

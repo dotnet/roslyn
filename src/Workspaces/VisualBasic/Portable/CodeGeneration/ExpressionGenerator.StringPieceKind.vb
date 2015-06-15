@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Back
             FormFeed
             Tab
-            VeriticalTab
+            VerticalTab
         End Enum
     End Module
 End Namespace

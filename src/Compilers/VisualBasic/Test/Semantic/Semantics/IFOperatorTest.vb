@@ -240,9 +240,9 @@ End Module
 
         ' Function call in return expression
         <Fact>
-        Public Sub FuntionCallAsArgument()
+        Public Sub FunctionCallAsArgument()
             Dim compilation1 = CreateCompilationWithMscorlib(
-<compilation name="FuntionCallAsArgument">
+<compilation>
     <file name="a.vb">
 imports System
 Module Program

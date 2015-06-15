@@ -162,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         protected override ITypeSymbol CanGenerateMethodForSimpleNameOrMemberAccessExpression(
             ITypeInferenceService typeInferenceService,
             SemanticModel semanticModel,
-            ExpressionSyntax expresion,
+            ExpressionSyntax expression,
             CancellationToken cancellationToken)
         {
-            if (semanticModel.SyntaxTree.IsNameOfContext(expresion.SpanStart, semanticModel, cancellationToken))
+            if (semanticModel.SyntaxTree.IsNameOfContext(expression.SpanStart, semanticModel, cancellationToken))
             {
-                return typeInferenceService.InferType(semanticModel, expresion, true, cancellationToken);
+                return typeInferenceService.InferType(semanticModel, expression, true, cancellationToken);
             }
 
             return null;

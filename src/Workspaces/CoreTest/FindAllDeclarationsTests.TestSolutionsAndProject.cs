@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     return GetMultipleProjectSolution(SingleClassWithSingleField, SingleClassWithSingleField);
                 case WorkspaceKind.NestedClass:
                     return GetSingleProjectSolution(NestedClass);
-                case WorkspaceKind.TwoNamespacesWithIdenticalClases:
+                case WorkspaceKind.TwoNamespacesWithIdenticalClasses:
                     return GetSingleProjectSolution(Namespace1, Namespace2);
                 default:
                     return null;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TwoProjectsEachWithASingleClassWithSingleProperty,
             TwoProjectsEachWithASingleClassWithSingleField,
             NestedClass,
-            TwoNamespacesWithIdenticalClases
+            TwoNamespacesWithIdenticalClasses
         }
 
         private const string SingleClass =

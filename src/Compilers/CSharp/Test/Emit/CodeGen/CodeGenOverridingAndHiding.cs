@@ -1152,7 +1152,7 @@ class Test
 }
 ";
             // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overriden. As far as I can tell, the output won't change from build to build / machine to machine
+            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
             // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
             // the test flaky, we can delete this test.
 

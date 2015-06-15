@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="isPublic">True if the resource is public.</param>
         /// <remarks>
-        /// Function returning a stream of the recource content (used to calculate hash).
+        /// Function returning a stream of the resource content (used to calculate hash).
         /// </remarks>
         public ResourceDescription(string resourceName, string fileName, Func<Stream> dataProvider, bool isPublic)
             : this(resourceName, fileName, dataProvider, isPublic, isEmbedded: false, checkArgs: true)

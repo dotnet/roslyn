@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Roslyn.Utilities;
 
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                     if (workspace != null)
                     {
                         var window = workspace.Engine.CurrentWindow;
-                        var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                         if (tree.IsBeforeFirstToken(position, cancellationToken) &&
                             tree.IsPreProcessorKeywordContext(position, cancellationToken))

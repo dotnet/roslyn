@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function CreateNestedType(declaration As MergedTypeDeclaration) As NamedTypeSymbol
 #If DEBUG Then
             ' Ensure that the type declaration is either from user code or embedded
-            ' code, but not merged accross embedded code/user code boundary.
+            ' code, but not merged across embedded code/user code boundary.
             Dim embedded = EmbeddedSymbolKind.Unset
             For Each ref In declaration.SyntaxReferences
                 Dim refKind = ref.SyntaxTree.GetEmbeddedKind()
@@ -2077,7 +2077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' is non-deterministic (depends on the order of symbols in a hash table).
         ''' 
         ''' Moreover, Dev10 analyzes the type graph and reports only one error in case S1 --> S2 --> S1 even if 
-        ''' there are two fields referensing S2 from S1.
+        ''' there are two fields referencing S2 from S1.
         ''' 
         ''' Example:
         '''    Structure S2

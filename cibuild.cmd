@@ -12,13 +12,11 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 call :Usage && exit /b 1
 :DoneParsing
 
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86
+call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
 REM Build the compiler so we can self host it for the full build
 src\.nuget\NuGet.exe restore %RoslynRoot%/src/Toolset.sln -packagesdirectory packages
-msbuild /nologo /v:m /m %RoslynRoot%/src/Compilers/Core/VBCSCompiler/VBCSCompiler.csproj /p:Configuration=%BuildConfiguration%
-msbuild /nologo /v:m /m %RoslynRoot%/src/Compilers/CSharp/csc2/csc2.csproj /p:Configuration=%BuildConfiguration%
-msbuild /nologo /v:m /m %RoslynRoot%/src/Compilers/VisualBasic/vbc2/vbc2.csproj /p:Configuration=%BuildConfiguration%
+msbuild /nologo /v:m /m %RoslynRoot%/src/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%\Binaries\Bootstrap
 move Binaries\%BuildConfiguration%\* %RoslynRoot%\Binaries\Bootstrap
@@ -26,6 +24,13 @@ msbuild /v:m /t:Clean src/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
 msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /p:CIBuild=true /p:Configuration=%BuildConfiguration%
+if ERRORLEVEL 1 (
+    taskkill /F /IM vbcscompiler.exe
+    echo Build failed
+    exit /b 1
+)
+
+msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap src/Samples/Samples.sln /p:CIBuild=true /p:Configuration=%BuildConfiguration%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
     echo Build failed
@@ -44,8 +49,4 @@ exit /b 0
 @echo Usage: cibuild.cmd [/debug^|/release]
 @echo   /debug 	Perform debug build.  This is the default.
 @echo   /release Perform release build
-<<<<<<< HEAD
 @goto :eof
-=======
-@goto :eof
->>>>>>> origin/stabilization

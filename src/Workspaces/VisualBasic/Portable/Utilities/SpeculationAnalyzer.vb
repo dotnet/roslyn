@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         ''' Creates a semantic analyzer for speculative syntax replacement.
         ''' </summary>
         ''' <param name="expression">Original expression to be replaced.</param>
-        ''' <param name="newExpression">New expession to replace the orginal expression.</param>
+        ''' <param name="newExpression">New expression to replace the original expression.</param>
         ''' <param name="semanticModel">Semantic model of <paramref name="expression"/> node's syntax tree.</param>
         ''' <param name="cancellationToken">Cancellation token.</param>
         ''' <param name="skipVerificationForReplacedNode">

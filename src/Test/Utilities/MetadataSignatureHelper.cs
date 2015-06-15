@@ -485,10 +485,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (property.Attributes.HasFlag(PropertyAttributes.SpecialName)) sb.Append("specialname ");
             if (property.Attributes.HasFlag(PropertyAttributes.RTSpecialName)) sb.Append("rtspecialname ");
 
-            var propertyAccesors = property.GetAccessors();
-            if (propertyAccesors.Length > 0)
+            var propertyAccessors = property.GetAccessors();
+            if (propertyAccessors.Length > 0)
             {
-                sb.Append(propertyAccesors[0].IsStatic ? "static " : "instance ");
+                sb.Append(propertyAccessors[0].IsStatic ? "static " : "instance ");
             }
             AppendType(property.PropertyType, sb);
             sb.Append(" ");

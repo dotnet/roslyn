@@ -534,7 +534,7 @@ class Program
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var spans = new CSharpLineSeparatorService().GetLineSeparatorsAsync(document, document.GetSyntaxTreeAsync().Result.GetRoot().FullSpan, CancellationToken.None).Result;
-                var tokens = document.GetCSharpSyntaxRootAsync(CancellationToken.None).Result.DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
+                var tokens = document.GetSyntaxRootAsync(CancellationToken.None).Result.DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
 
                 Assert.Equal(tokenIndices.Length, spans.Count());
 

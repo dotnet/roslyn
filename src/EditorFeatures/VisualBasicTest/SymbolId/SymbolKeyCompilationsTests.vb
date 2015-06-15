@@ -180,7 +180,7 @@ Namespace N1.N2
 
             Private Structure SFOO ' modifier
 
-                Public Enum efoo As Long ' chnage base, case
+                Public Enum efoo As Long ' change base, case
                     Zero
                     ONE
                 End Enum

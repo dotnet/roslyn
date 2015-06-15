@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if ((parentNode is PrefixUnaryExpressionSyntax || parentNode is PostfixUnaryExpressionSyntax) &&
                 !semanticModel.GetConversion(expression).IsUserDefined)
             {
-                var parentEpression = (ExpressionSyntax)parentNode;
-                return GetOuterCastType(parentEpression, semanticModel, out parentIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentEpression).ConvertedType;
+                var parentExpression = (ExpressionSyntax)parentNode;
+                return GetOuterCastType(parentExpression, semanticModel, out parentIsOrAsExpression) ?? semanticModel.GetTypeInfo(parentExpression).ConvertedType;
             }
 
             return null;

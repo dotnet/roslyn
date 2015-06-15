@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
         /// <summary>
         /// Set to true if you want a tool window that behaves and has a lifetime like a document.
         /// The tool window will only be MDI or floating and will remain visible in its position across all layout changes
-        /// until manualy closed by the user at which point it will be destroyed.  
+        /// until manually closed by the user at which point it will be destroyed.  
         /// This flag implies DontForceCreate and destructive multi instance.
         /// </summary>
         public bool DocumentLikeTool { get; set; }

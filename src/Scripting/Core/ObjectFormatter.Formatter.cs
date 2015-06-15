@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
                 catch (InsufficientExecutionStackException)
                 {
-                    return ScriptingResources.StackOverflowWhileEvaluat;
+                    return ScriptingResources.StackOverflowWhileEvaluating;
                 }
             }
 

@@ -147,8 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             Dim nameBinding = context.SemanticModel.GetSymbolInfo(node.Left, cancellationToken)
             Dim symbol = TryCast(nameBinding.Symbol, INamespaceOrTypeSymbol)
-            Dim couldBeMergedNamepsace = CouldBeMergedNamespace(nameBinding)
-            If symbol Is Nothing AndAlso Not couldBeMergedNamepsace Then
+            Dim couldBeMergedNamespace = VisualBasicRecommendationService.CouldBeMergedNamespace(nameBinding)
+            If symbol Is Nothing AndAlso Not couldBeMergedNamespace Then
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim symbols As IEnumerable(Of ISymbol)
-            If couldBeMergedNamepsace Then
+            If couldBeMergedNamespace Then
                 symbols = nameBinding.CandidateSymbols.OfType(Of INamespaceSymbol)() _
                     .SelectMany(Function(n) context.SemanticModel.LookupNamespacesAndTypes(node.SpanStart, n))
             Else

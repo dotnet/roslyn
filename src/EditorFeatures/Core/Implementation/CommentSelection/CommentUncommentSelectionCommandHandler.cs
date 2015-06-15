@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                                                        : EditorFeaturesResources.UncommentSelection;
 
             var message = operation == Operation.Comment ? EditorFeaturesResources.CommentingCurrentlySelected
-                                                         : EditorFeaturesResources.UncommentingCurrentlySelecte;
+                                                         : EditorFeaturesResources.UncommentingCurrentlySelected;
 
             _waitIndicator.Wait(
                 title,

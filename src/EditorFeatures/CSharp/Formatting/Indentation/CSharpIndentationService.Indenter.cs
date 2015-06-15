@@ -490,10 +490,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 var text = currentLine.GetText();
                 Contract.Requires(!string.IsNullOrWhiteSpace(text));
 
-                var trimedText = text.Trim();
+                var trimmedText = text.Trim();
 
                 Contract.Assert(SyntaxFacts.GetText(SyntaxKind.HashToken).Length == 1);
-                return trimedText[0] == SyntaxFacts.GetText(SyntaxKind.HashToken)[0];
+                return trimmedText[0] == SyntaxFacts.GetText(SyntaxKind.HashToken)[0];
             }
 
             private int GetCurrentPositionNotBelongToEndOfFileToken(int position)

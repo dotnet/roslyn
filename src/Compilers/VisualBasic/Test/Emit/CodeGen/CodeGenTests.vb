@@ -1904,7 +1904,7 @@ S1
         End Sub
 
         <Fact()>
-        Public Sub EmitCallToOverridenToStringOnStruct()
+        Public Sub EmitCallToOverriddenToStringOnStruct()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1945,7 +1945,7 @@ expectedOutput:=<![CDATA[
         End Sub
 
         <Fact()>
-        Public Sub EmitIntefaceMethodOnStruct()
+        Public Sub EmitInterfaceMethodOnStruct()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -4976,7 +4976,7 @@ c c
 
         <WorkItem(538660, "DevDiv")>
         <Fact()>
-        Public Sub ArrayOneDimention()
+        Public Sub ArrayOneDimension()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -5027,7 +5027,7 @@ XXX
         <WorkItem(538660, "DevDiv")>
         <WorkItem(529849, "DevDiv")>
         <Fact>
-        Public Sub ArrayOneDimentionWitStaticLocals()
+        Public Sub ArrayOneDimensionWithStaticLocals()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

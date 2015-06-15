@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We need to emit this function to compute the hash value into the compiler generate
         // <PrivateImplementationDetails> class. 
         // If we have at least one string switch statement in a module that needs a
-        // hash table based jump table, we generate a single public string hash sythesized method
+        // hash table based jump table, we generate a single public string hash synthesized method
         // that is shared across the module.
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)

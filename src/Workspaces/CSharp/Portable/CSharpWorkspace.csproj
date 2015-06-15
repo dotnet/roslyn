@@ -116,6 +116,7 @@
     <Compile Include="CodeGeneration\UsingDirectivesAdder.cs" />
     <Compile Include="CodeGeneration\UsingDirectivesAdder.Rewriter.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="LanguageServices\CSharpHostBuildDataFactory.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -141,8 +142,6 @@
     <Compile Include="Extensions\DocumentationCommentExtensions.cs" />
     <Compile Include="Extensions\ExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\ForEachStatementSyntaxExtensions.cs" />
-    <Compile Include="Extensions\IDocumentExtensions.cs" />
-    <Compile Include="Extensions\ISemanticModelExtensions.cs" />
     <Compile Include="Extensions\ITypeParameterSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.ExpressionSyntaxGeneratorVisitor.cs" />

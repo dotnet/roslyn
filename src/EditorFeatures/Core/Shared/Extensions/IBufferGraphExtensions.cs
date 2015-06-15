@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 case BufferMapDirection.Down:
                     {
-                        return bufferGraph.MapDownToBuffer(point, PointTrackingMode.Positive, targetBuffer, PositionAffinity.Predecessor);
+                        return bufferGraph.MapDownToInsertionPoint(point, PointTrackingMode.Positive, s => s == targetBuffer.CurrentSnapshot);
                     }
 
                 case BufferMapDirection.Up:

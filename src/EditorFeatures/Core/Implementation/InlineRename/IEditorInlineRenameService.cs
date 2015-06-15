@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 case RelatedLocationType.UnresolvedConflict:
                     return InlineRenameReplacementKind.UnresolvedConflict;
                 default:
-                case RelatedLocationType.PossibilyResolvableConflict:
+                case RelatedLocationType.PossiblyResolvableConflict:
                     throw ExceptionUtilities.Unreachable;
             }
         }

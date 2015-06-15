@@ -131,7 +131,7 @@ namespace Microsoft.Internal.Performance
                         }
                         else
                         {
-                            // if CodeMarkers are explictly enabled in the registry then try to
+                            // if CodeMarkers are explicitly enabled in the registry then try to
                             // use the test DLL, otherwise fall back to trying to use the product DLL
                             _shouldUseTestDll = UsePrivateCodeMarkers(_regroot, _registryView);
                         }

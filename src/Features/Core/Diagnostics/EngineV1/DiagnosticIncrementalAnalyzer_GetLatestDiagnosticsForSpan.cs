@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var semanticVersion = await _document.Project.GetDependentSemanticVersionAsync(_cancellationToken).ConfigureAwait(false);
 
                     var containsFullResult = true;
-                    foreach (var stateSet in _owner._stateManger.GetOrCreateStateSets(_document.Project))
+                    foreach (var stateSet in _owner._stateManager.GetOrCreateStateSets(_document.Project))
                     {
                         containsFullResult &= await TryGetDocumentDiagnosticsAsync(
                             stateSet, StateType.Syntax, (t, d) => t.Equals(textVersion) && d.Equals(syntaxVersion), GetSyntaxDiagnosticsAsync).ConfigureAwait(false);
