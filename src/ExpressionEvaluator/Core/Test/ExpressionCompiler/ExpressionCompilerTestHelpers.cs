@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (diagnostics.HasAnyErrors())
             {
                 bool useReferencedModulesOnly;
-                error = context.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+                error = context.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, EvaluationContextBase.SystemCoreIdentity, out useReferencedModulesOnly, out missingAssemblyIdentities);
             }
             else
             {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (diagnostics.HasAnyErrors())
             {
                 bool useReferencedModulesOnly;
-                error = evaluationContext.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
+                error = evaluationContext.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, EvaluationContextBase.SystemCoreIdentity, out useReferencedModulesOnly, out missingAssemblyIdentities);
             }
             else
             {

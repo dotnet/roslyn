@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -250,23 +251,23 @@ End Class
 
             Dim expectedIdentity = New AssemblyIdentity("Windows.Storage", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
 
-            Dim actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Windows.Storage"}, globalNamespace).Single()
+            Dim actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.Storage"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
 
-            actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage"}, globalNamespace).Single()
+            actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
 
-            actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage.Additional"}, globalNamespace).Single()
+            actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Global.Windows.Storage.Additional"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
 
 
             expectedIdentity = New AssemblyIdentity("Windows.UI.Xaml", contentType:=Reflection.AssemblyContentType.WindowsRuntime)
 
-            actualIdentity = EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
+            actualIdentity = GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml"}, globalNamespace).Single()
             Assert.Equal(expectedIdentity, actualIdentity)
 
 
-            Assert.True(EvaluationContext.GetMissingAssemblyIdentitiesHelper(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
+            Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_UndefinedType1, {"Windows.UI.Xaml(Of T)"}, globalNamespace).IsDefault)
         End Sub
 
         <WorkItem(1151888, "DevDiv")>
@@ -514,6 +515,58 @@ End Class
             Assert.Equal($"error BC30652: Reference required to assembly '{missingIdentity}' containing the type 'MissingType'. Add one to your project.", errorMessage)
         End Sub
 
+        <WorkItem(2547)>
+        <Fact>
+        Public Sub TryDifferentLinqLibraryOnRetry()
+            Dim source = "
+Imports System.Linq
+Class C
+    Shared Sub Main(args() As String)
+    End Sub
+End Class
+Class UseLinq
+    Dim b = Enumerable.Any(Of Integer)(Nothing)
+End Class"
+
+            Dim compilation = CreateCompilationWithMscorlib({source}, references:={SystemCoreRef})
+            Dim exeBytes() As Byte = Nothing, pdbBytes() As Byte = Nothing
+            Dim references As ImmutableArray(Of MetadataReference) = Nothing
+            compilation.EmitAndGetReferences(exeBytes, pdbBytes, references)
+            Dim systemCore = SystemCoreRef.ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)
+            Dim referencesWithoutSystemCore = references.Where(Function(r) r IsNot SystemCoreRef).ToImmutableArray()
+            Dim runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), referencesWithoutSystemCore.AddIntrinsicAssembly(), exeBytes, symReader:=Nothing)
+            Dim context = CreateMethodContext(runtime, "C.Main")
+            Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").EmitToImageReference().ToModuleInstance(fullImage:=Nothing, symReader:=Nothing)
+
+            Dim errorMessage As String = Nothing
+            Dim testData As CompilationTestData = Nothing
+            Dim retryCount = 0
+            Dim compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
+                "args.Where(Function(a) a.Length > 0)",
+                Function(_1, _2) context, ' ignore new blocks and just keep using the same failed context...
+                Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
+                    retryCount += 1
+                    Dim block As MetadataBlock
+                    Select Case retryCount
+                        Case 1
+                            Assert.Equal(EvaluationContextBase.SystemLinqIdentity, assemblyIdentity)
+                            block = fakeSystemLinq.MetadataBlock
+                        Case 2
+                            Assert.Equal(EvaluationContextBase.SystemCoreIdentity, assemblyIdentity)
+                            block = systemCore.MetadataBlock
+                        Case Else
+                            Throw ExceptionUtilities.Unreachable
+                    End Select
+                    uSize = CUInt(block.Size)
+                    Return block.Pointer
+                End Function,
+                errorMessage:=errorMessage,
+                testData:=testData)
+
+            Assert.Equal(2, retryCount)
+        End Sub
+
         Private Function CreateMethodContextWithReferences(comp As Compilation, methodName As String, ParamArray references As MetadataReference()) As EvaluationContext
             Return CreateMethodContextWithReferences(comp, methodName, ImmutableArray.CreateRange(references))
         End Function
@@ -529,8 +582,13 @@ End Class
             Return CreateMethodContext(runtime, methodName)
         End Function
 
-        Private Shared Function GetMissingAssemblyIdentities(code As ERRID, ParamArray arguments As Object()) As ImmutableArray(Of AssemblyIdentity)
-            Return EvaluationContext.GetMissingAssemblyIdentitiesHelper(code, arguments, globalNamespace:=Nothing)
+        Private Shared Function GetMissingAssemblyIdentities(code As ERRID, ParamArray arguments() As Object) As ImmutableArray(Of AssemblyIdentity)
+            Return GetMissingAssemblyIdentities(code, arguments, globalNamespace:=Nothing)
         End Function
+
+        Private Shared Function GetMissingAssemblyIdentities(code As ERRID, arguments() As Object, globalNamespace As NamespaceSymbol) As ImmutableArray(Of AssemblyIdentity)
+            Return EvaluationContext.GetMissingAssemblyIdentitiesHelper(code, arguments, globalNamespace, linqLibrary:=EvaluationContextBase.SystemCoreIdentity)
+        End Function
+
     End Class
 End Namespace
