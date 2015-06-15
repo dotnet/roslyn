@@ -231,11 +231,6 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return _previousGeneration.EncId; }
         }
 
-        protected override bool CompressMetadataStream
-        {
-            get { return false; }
-        }
-
         protected override uint GetEventDefIndex(IEventDefinition def)
         {
             return _eventDefs[def];

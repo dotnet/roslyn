@@ -111,11 +111,6 @@ namespace Microsoft.Cci
             get { return Guid.Empty; }
         }
 
-        protected override bool CompressMetadataStream
-        {
-            get { return true; }
-        }
-
         protected override bool TryGetTypeDefIndex(ITypeDefinition def, out uint index)
         {
             return _typeDefs.TryGetValue(def, out index);
