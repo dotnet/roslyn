@@ -146,6 +146,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
                 }
+                else if (((NamedTypeSymbol)_container).IsScriptClass)
+                {
+                    for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                    {
+                        var scriptClass = submission.ScriptClass;
+                        if ((object)scriptClass != null)
+                        {
+                            scriptClass.GetExtensionMethods(methods, name, arity, options);
+                        }
+                    }
+                }
             }
         }
 
