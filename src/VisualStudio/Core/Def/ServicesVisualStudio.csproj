@@ -32,12 +32,12 @@
     <Compile Include="Implementation\AnalyzerDependencyChecker.cs" />
     <Compile Include="Implementation\AnalyzerDependencyCheckingService.cs" />
     <Compile Include="Implementation\AnalyzerDependencyConflict.cs" />
-    <Compile Include="Implementation\AssemblyIdentityWhiteList.cs" />
-    <Compile Include="Implementation\AssemblyNamePrefixWhiteList.cs" />
+    <Compile Include="Implementation\IgnorableAssemblyIdentityList.cs" />
+    <Compile Include="Implementation\IgnorableAssemblyNamePrefixList.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
-    <Compile Include="Implementation\IAssemblyWhiteList.cs" />
+    <Compile Include="Implementation\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />

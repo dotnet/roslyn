@@ -3671,5 +3671,46 @@ namespace ConsoleApplication22
             Assert.Contains("GetEnumerableDisposable2", symbols);
             Assert.Contains("GetEnumerableDisposable1", symbols);
         }
+
+        [Fact]
+        public void ScriptExtensionMethods()
+        {
+            var source =
+@"static object F(this object o) { return null; }
+class C
+{
+    void M() { this.F(); }
+}
+var o = new object();
+o.F();";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+        }
+
+        [ClrOnlyFact]
+        public void InteractiveExtensionMethods()
+        {
+            var parseOptions = TestOptions.Interactive;
+            var references = new[] { MscorlibRef, SystemCoreRef };
+            var source0 =
+@"static object F(this object o) { return 0; }
+var o = new object();
+o.F();";
+            var source1 =
+@"static object G(this object o) { return 1; }
+var o = new object();
+o.G().F();";
+            var s0 = CSharpCompilation.CreateSubmission(
+                "s0.dll",
+                syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: parseOptions),
+                references: references);
+            s0.VerifyDiagnostics();
+            var s1 = CSharpCompilation.CreateSubmission(
+                "s1.dll",
+                syntaxTree: SyntaxFactory.ParseSyntaxTree(source1, options: parseOptions),
+                previousSubmission: s0,
+                references: references);
+            s1.VerifyDiagnostics();
+        }
     }
 }

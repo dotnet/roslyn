@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis
             public abstract bool IsLinked { get; }
 
             public abstract bool DeclaresTheObjectClass { get; }
+
+            /// <summary>
+            /// Get the source compilation backing this assembly, if one exists.
+            /// Returns null otherwise.
+            /// </summary>
+            public abstract Compilation SourceCompilation { get; }
         }
     }
 }
