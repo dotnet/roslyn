@@ -55,10 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             {
                 if (_solutionId != solution.Id)
                 {
-                    _size = 0;
-                    _map.Clear();
+                    Interlocked.Exchange(ref _solutionId, solution.Id);
+                    Interlocked.Exchange(ref _size, 0);
 
-                    _solutionId = solution.Id;
+                    _map.Clear();
                 }
 
                 return SpecializedTasks.EmptyTask;
@@ -70,22 +70,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var length = tree.Length;
 
-                // remove old size
-                long size;
-                if (_map.TryGetValue(document.Id, out size))
+                _map.AddOrUpdate(document.Id, id =>
                 {
-                    // quick bail out.
-                    if (size == length)
+                    // add new value
+                    Interlocked.Add(ref _size, length);
+                    return length;
+                }, (id, existing) =>
+                {
+                    // update existing value
+                    if (length != existing)
                     {
-                        return;
+                        Interlocked.Add(ref _size, length - existing);
                     }
 
-                    _size -= size;
-                }
-
-                // add new size
-                _map[document.Id] = length;
-                _size += tree.Length;
+                    return length;
+                });
             }
 
             public void RemoveDocument(DocumentId documentId)
@@ -93,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 long size;
                 if (_map.TryRemove(documentId, out size))
                 {
-                    _size -= size;
+                    Interlocked.Add(ref _size, -size);
                 }
             }
 

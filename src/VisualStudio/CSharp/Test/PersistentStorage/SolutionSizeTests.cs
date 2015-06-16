@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize;
 using Xunit;
 
@@ -23,6 +24,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var size = analyzer.GetSolutionSize(solution.Id);
             Assert.Equal(expected, size);
+        }
+
+        [Fact]
+        public void Test_SolutionSize_Update()
+        {
+            var expected = 12345;
+            var solution = CreateSolution(expected);
+
+            var analyzer = new SolutionSizeTracker.IncrementalAnalyzer();
+
+            // initialize
+            analyzer.NewSolutionSnapshotAsync(solution, CancellationToken.None).Wait();
+            AddSolution(analyzer, solution);
+
+            // update document
+            var document = solution.Projects.First().Documents.First();
+            var length = document.GetSyntaxTreeAsync().Result.Length;
+
+            var text = SourceText.From(new string('2', 1000));
+            var newDocument = document.WithText(text);
+
+            analyzer.AnalyzeSyntaxAsync(newDocument, CancellationToken.None).Wait();
+
+            var size = analyzer.GetSolutionSize(solution.Id);
+            Assert.Equal(expected - length + text.Length, size);
         }
 
         [Fact]
