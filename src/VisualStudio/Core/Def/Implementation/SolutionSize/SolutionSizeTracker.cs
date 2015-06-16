@@ -21,6 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 
+        /// <summary>
+        /// Get approximate solution size at the point of call.
+        /// 
+        /// This API is not supposed to return 100% accurate size. 
+        /// 
+        /// if a feature require 100% accurate size, use Solution to calculate it. this API is supposed to
+        /// lazy and very cheap on answering that question.
+        /// </summary>
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
         {
             return workspace is VisualStudioWorkspaceImpl ? _tracker.GetSolutionSize(solutionId) : -1;
@@ -60,16 +68,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             {
                 // getting tree is cheap since tree always stays in memory
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var length = tree.Length;
 
                 // remove old size
                 long size;
                 if (_map.TryGetValue(document.Id, out size))
                 {
+                    // quick bail out.
+                    if (size == length)
+                    {
+                        return;
+                    }
+
                     _size -= size;
                 }
 
                 // add new size
-                _map[document.Id] = tree.Length;
+                _map[document.Id] = length;
                 _size += tree.Length;
             }
 
