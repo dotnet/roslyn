@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         GlobalNamespace
         NullPropagatingOperator
         NameOfExpressions
+        InterpolatedStrings
     End Enum
 
     Friend Module FeatureExtensions
@@ -39,7 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic11
 
                 Case Feature.NullPropagatingOperator,
-                     Feature.NameOfExpressions
+                     Feature.NameOfExpressions,
+                     Feature.InterpolatedStrings
                     Return LanguageVersion.VisualBasic14
 
                 Case Else
