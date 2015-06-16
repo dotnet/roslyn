@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.AnalyzerPowerPack.CSharp.Design
 {
@@ -36,38 +37,25 @@ namespace Microsoft.AnalyzerPowerPack.CSharp.Design
             if (classDeclaration != null)
             {
                 var title = string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text);
-                var codeAction = new MyCodeAction(title, ct => MakeClassStatic(document, root, classDeclaration));
+                var codeAction = new MyCodeAction(title, ct => MakeClassStatic(document, root, classDeclaration, ct));
                 context.RegisterCodeFix(codeAction, context.Diagnostics);
             }
         }
 
-        private Task<Document> MakeClassStatic(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration)
+        private async Task<Document> MakeClassStatic(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration, CancellationToken ct)
         {
-
-            SyntaxTokenList modifiers = classDeclaration.Modifiers;
-            int sealedIndex = modifiers.IndexOf(SyntaxKind.SealedKeyword);
-            if (sealedIndex != -1)
-            {
-                modifiers = modifiers.RemoveAt(sealedIndex);
-            }
-
-            SyntaxToken staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
-            modifiers = modifiers.Add(staticKeyword);
+            var editor = await DocumentEditor.CreateAsync(document, ct).ConfigureAwait(false);
+            var modifiers = editor.Generator.GetModifiers(classDeclaration);
+            editor.SetModifiers(classDeclaration, modifiers - DeclarationModifiers.Sealed + DeclarationModifiers.Static);
 
             SyntaxList<MemberDeclarationSyntax> members = classDeclaration.Members;
             MemberDeclarationSyntax defaultConstructor = members.FirstOrDefault(m => m.IsDefaultConstructor());
             if (defaultConstructor != null)
             {
-                members = members.Remove(defaultConstructor);
+                editor.RemoveNode(defaultConstructor);
             }
 
-            ClassDeclarationSyntax newDeclaration = classDeclaration
-                .WithMembers(members)
-                .WithModifiers(modifiers)
-                .WithAdditionalAnnotations(Formatter.Annotation);
-
-            SyntaxNode newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return editor.GetChangedDocument();
         }
 
         private class MyCodeAction : DocumentChangeAction

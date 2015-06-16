@@ -11,6 +11,34 @@ using Microsoft.AnalyzerPowerPack.Utilities;
 
 namespace Microsoft.AnalyzerPowerPack.Design
 {
+    /// <summary>
+    /// CA1052: Static holder classes should be marked static, and should not have default
+    /// constructors.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This analyzer combines FxCop rules 1052 and 1053, with updated guidance. It detects
+    /// "static holder types": types whose only members are static, except possibly for a
+    /// default constructor. In C#, such a type should be marked static, and the default
+    /// constructor removed. In VB, such a type should be replaced with a module.
+    /// </para>
+    /// <para>
+    /// This analyzer behaves as similarly as possible to the existing implementations of the FxCop
+    /// rules, even when those implementations appear to conflict with the MSDN documentation of
+    /// those rules. For example, like FxCop, this analyzer emits a diagnostic when it detects a
+    /// static holder class that is declared "sealed", even though the documentation of CA1052
+    /// says that the cause of the diagnostic is that the class was not declared sealed. Like
+    /// FxCop, this analyzer does not emit a diagnostic when a non-default constructor is declared,
+    /// even though the title of CA1053 is "Static holder types should not have constructors".
+    /// Like FxCop, this analyzer does emit a diagnostic when the type has a private default
+    /// constructor, even though the documentation of CA1053 says it should only trigger for public
+    /// or protected default constructor.
+    /// </para>
+    /// <para>
+    /// The rationale for all of this is to facilitate a smooth transition from FxCop rules to the
+    /// corresponding Roslyn-based analyzers.
+    /// </para>
+    /// </remarks>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CA1052DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {

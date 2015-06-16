@@ -23,6 +23,9 @@ Namespace Design
             Get
                 ' TODO: Re-implement the VB fix by turning the Class into a Module.
                 ' For now, leave this fixer in place but don't declare it to fix anything.
+                '
+                ' This is tracked by https://github.com/dotnet/roslyn/issues/3546.
+                '
                 ' Return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId)
                 Dim diagnosticIDs() As String = {}
                 Return ImmutableArray.Create(diagnosticIDs)
