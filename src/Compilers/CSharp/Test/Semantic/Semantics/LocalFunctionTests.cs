@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LocalFunctionTests : CSharpTestBase
     {
-        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithFeatures(new SmallDictionary<string, string> { { "localFunctions", "true" } });
+        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
         [Fact]
         public void EndToEnd()
@@ -141,11 +141,20 @@ class Program
 }
 ";
             // TODO: SourceComplexParameterSymbol reports to AddDeclarationDiagnostics, which is frozen at the time local functions are bound.
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+            var option = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlib45(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,21): error CS0225: The params parameter must be a single dimensional array
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(9, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(9, 21),
+    // (13,21): error CS1741: A ref or out parameter cannot have a default value
+    //         void RefOut(ref int x = 2)
+    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(13, 21),
+    // (17,35): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+    //         void NamedOptional(string x = 2)
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("int", "string").WithLocation(17, 35),
+    // (21,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+    //         void CallerMemberName([CallerMemberName] int s = 2)
+    Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(21, 32)
                 );
         }
 
@@ -582,6 +591,22 @@ class Program
             return await Task.FromResult(2);
         }
         Console.WriteLine(Local().Result);
+        async Task<int> LocalParam(int x)
+        {
+            return await Task.FromResult(x);
+        }
+        Console.WriteLine(LocalParam(2).Result);
+        async Task<T> LocalGeneric<T>(T x)
+        {
+            return await Task.FromResult(x);
+        }
+        Console.WriteLine(LocalGeneric(2).Result);
+        // had bug with parser where 'async [keyword]' didn't parse.
+        async void LocalVoid()
+        {
+            Console.WriteLine(2);
+        }
+        LocalVoid();
     }
 }
 ";
@@ -590,33 +615,8 @@ class Program
                 parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
-");
-        }
-
-        [Fact]
-        public void AsyncParam()
-        {
-            var source = @"
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        async Task<int> Local(int x)
-        {
-            return await Task.FromResult(x);
-        }
-        Console.WriteLine(Local(2).Result);
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source,
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
-                parseOptions: _parseOptions);
-            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
 2
 ");
         }
@@ -1368,7 +1368,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (15,9): error CS0103: The name 'Local' does not exist in the current context
     //         Local();
@@ -1438,7 +1438,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -1468,14 +1467,14 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
+            var option = TestOptions.ReleaseExe.WithAllowUnsafe(true);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (12,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
     //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(12, 32),
-    // (21,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32),
+    // (20,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
     //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(21, 32)
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(20, 32)
                 );
         }
 
@@ -1484,7 +1483,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -1530,17 +1528,17 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (16,9): error CS0165: Use of unassigned local variable 'Local'
+    // (15,9): error CS0165: Use of unassigned local variable 'Local'
     //         Local();
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(16, 9),
-    // (27,22): error CS0165: Use of unassigned local variable 'Local'
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(15, 9),
+    // (26,22): error CS0165: Use of unassigned local variable 'Local'
     //         Action foo = Local;
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(27, 22),
-    // (38,19): error CS0165: Use of unassigned local variable 'Local'
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(26, 22),
+    // (37,19): error CS0165: Use of unassigned local variable 'Local'
     //         var bar = new Action(Local);
-    Diagnostic(ErrorCode.ERR_UseDefViolation, "new Action(Local)").WithArguments("Local").WithLocation(38, 19)
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "new Action(Local)").WithArguments("Local").WithLocation(37, 19)
                 );
         }
 
@@ -1552,7 +1550,7 @@ using System;
 
 class Program
 {
-    int _a;
+    int _a = 0;
 
     static void A(ref int x)
     {
@@ -1595,7 +1593,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (12,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
     //             Console.WriteLine(x);
@@ -1635,7 +1633,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,40): error CS1623: Iterators cannot have ref or out parameters
     //         IEnumerable<int> Local(ref int x)
@@ -1648,7 +1646,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -1662,11 +1659,11 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,13): error CS1106: Extension method must be defined in a non-generic static class
+    // (8,13): error CS1106: Extension method must be defined in a non-generic static class
     //         int Local(this int x)
-    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(9, 13)
+    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(8, 13)
                 );
         }
 
@@ -1674,9 +1671,6 @@ class Program
         public void BadModifiers()
         {
             var source = @"
-using System;
-using System.Collections.Generic;
-
 class Program
 {
     static void Main(string[] args)
@@ -1696,20 +1690,20 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,9): error CS0106: The modifier 'const' is not valid for this item
+    // (6,9): error CS0106: The modifier 'const' is not valid for this item
     //         const void LocalConst()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(9, 9),
-    // (12,9): error CS0106: The modifier 'static' is not valid for this item
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+    // (9,9): error CS0106: The modifier 'static' is not valid for this item
     //         static void LocalStatic()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(12, 9),
-    // (15,9): error CS0106: The modifier 'readonly' is not valid for this item
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(9, 9),
+    // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
     //         readonly void LocalReadonly()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(15, 9),
-    // (18,9): error CS0106: The modifier 'volatile' is not valid for this item
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+    // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
     //         volatile void LocalVolatile()
-    Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(18, 9)
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9)
                 );
         }
 
@@ -1718,7 +1712,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -1733,11 +1726,11 @@ class Program
 }
 ";
             // message is temporary
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    // (8,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
     //         var Local()
-    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(9, 9)
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(8, 9)
                 );
         }
 
@@ -1760,7 +1753,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,26): error CS1636: __arglist is not allowed in the parameter list of iterators
     //         IEnumerable<int> Local(__arglist)
@@ -1773,7 +1766,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -1784,11 +1776,11 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,27): error CS0841: Cannot use local variable 'Local' before it is declared
+    // (8,27): error CS0841: Cannot use local variable 'Local' before it is declared
     //         Console.WriteLine(Local());
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(9, 27)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(8, 27)
                 );
         }
     }

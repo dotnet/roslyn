@@ -260,12 +260,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="lazyCustomAttributesBag"></param>
         /// <param name="symbolPart">Specific part of the symbol to which the attributes apply, or <see cref="AttributeLocation.None"/> if the attributes apply to the symbol itself.</param>
         /// <param name="earlyDecodingOnly">Indicates that only early decoding should be performed.  WARNING: the resulting bag will not be sealed.</param>
+        /// <param name="addToDiagnostics">Diagnostic bag to report into. If null, diagnostics will be reported into <see cref="AddDeclarationDiagnostics"/></param>
         /// <returns>Flag indicating whether lazyCustomAttributes were stored on this thread. Caller should check for this flag and perform NotePartComplete if true.</returns>
         internal bool LoadAndValidateAttributes(
             OneOrMany<SyntaxList<AttributeListSyntax>> attributesSyntaxLists,
             ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag,
             AttributeLocation symbolPart = AttributeLocation.None,
-            bool earlyDecodingOnly = false)
+            bool earlyDecodingOnly = false,
+            DiagnosticBag addToDiagnostics = null)
         {
             var diagnostics = DiagnosticBag.GetInstance();
             var compilation = this.DeclaringCompilation;
@@ -349,7 +351,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lazyCustomAttributesBag.SetAttributes(boundAttributes))
             {
                 this.RecordPresenceOfBadAttributes(boundAttributes);
-                this.AddDeclarationDiagnostics(diagnostics);
+                if (addToDiagnostics == null)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                else
+                {
+                    addToDiagnostics.AddRange(diagnostics);
+                }
                 lazyAttributesStoredOnThisThread = true;
                 if (lazyCustomAttributesBag.IsEmpty) lazyCustomAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
             }

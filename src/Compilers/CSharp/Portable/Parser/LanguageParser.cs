@@ -6555,8 +6555,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // declaration or as an expression statement. In the old
             // compiler it would simple call IsLocalDeclaration.
 
-            var tk = this.CurrentToken.Kind;
-            if ((SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken) || IsDeclarationModifier(tk) || IsAdditionalLocalFunctionModifier(tk))
+            var tk = this.CurrentToken.ContextualKind;
+            if ((SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken) || IsDeclarationModifier(tk) || IsAdditionalLocalFunctionModifier(tk) &&
+                (tk != SyntaxKind.AsyncKeyword || (this.PeekToken(1).Kind != SyntaxKind.DelegateKeyword && !ScanAsyncLambda(0))))
             {
                 return true;
             }
@@ -8100,7 +8101,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private LocalFunctionStatementSyntax TryParseLocalFunctionStatementBody(SyntaxList<SyntaxToken> modifiers, TypeSyntax type, SyntaxToken identifier)
         {
+            // This may potentially be an ambiguous parse until very far into the token stream, so we may have to backtrack.
+            // For example, "await x()" is ambiguous at the current point of parsing (right now we're right after the x).
+            // The point at which it becomes unambiguous is after the argument list. A "=>" or "{" means its a local function
+            // (with return type @await), a ";" or other expression-y token means its an await of a function call.
+
+            // Note that we could just check if we're in an async context, but that breaks some analyzers, because
+            // "await f();" would be parsed as a local function statement when really we want a parse error so we can say
+            // "did you mean to make this method be an async method?" (it's invalid either way, so the spec doesn't care)
             var resetPoint = this.GetResetPoint();
+
+            // if forceAccept is true, then the parse is okay to return a local function statement even if a body doesn't follow the declaration.
+            var forceAccept = false;
 
             bool parentScopeIsInAsync = IsInAsync;
             IsInAsync = false;
@@ -8111,8 +8123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     case SyntaxKind.AsyncKeyword:
                         IsInAsync = true;
+                        forceAccept = true;
                         break;
                     case SyntaxKind.UnsafeKeyword:
+                        forceAccept = true;
                         break;
                     case SyntaxKind.StaticKeyword:
                     case SyntaxKind.ReadOnlyKeyword:
@@ -8135,7 +8149,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
+            // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+            // "await x()" is ambiguous (see note at start of this method), but "await x(int y)" is not.
+            if (!forceAccept)
+            {
+                var paramListSyntax = paramList.Parameters;
+                for (int i = 0; i < paramListSyntax.Count; i++)
+                {
+                    // "await x(y)" still parses as a parameter list, so check to see if it's a valid parameter (like "x(t y)")
+                    forceAccept |= !paramListSyntax[i].ContainsDiagnostics;
+                    if (forceAccept)
+                        break;
+                }
+            }
 
             BlockSyntax blockBody;
             ArrowExpressionClauseSyntax expressionBody;
@@ -8144,7 +8171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             IsInAsync = parentScopeIsInAsync;
 
-            if (blockBody == null && expressionBody == null)
+            if (!forceAccept && blockBody == null && expressionBody == null)
             {
                 this.Reset(ref resetPoint);
                 this.Release(ref resetPoint);

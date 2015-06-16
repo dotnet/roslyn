@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
-            _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics);
+            _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
             _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
