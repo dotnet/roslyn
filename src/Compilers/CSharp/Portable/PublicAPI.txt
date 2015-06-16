@@ -2446,34 +2446,6 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.Name.get -> Mic
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.XmlAttributeSyntax.StartQuoteToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo.GetHashCode() -> int
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.CompilationOptionsCore.get -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCommandLineArguments.ParseOptionsCore.get -> Microsoft.CodeAnalysis.ParseOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.AppendDefaultVersionResource(System.IO.Stream resourceStream) -> void
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonAddSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonClone() -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonContainsSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree syntaxTree) -> bool
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonCreateArrayTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol elementType, int rank) -> Microsoft.CodeAnalysis.IArrayTypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonCreatePointerTypeSymbol(Microsoft.CodeAnalysis.ITypeSymbol elementType) -> Microsoft.CodeAnalysis.IPointerTypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonDynamicType.get -> Microsoft.CodeAnalysis.ITypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetAssemblyOrModuleSymbol(Microsoft.CodeAnalysis.MetadataReference reference) -> Microsoft.CodeAnalysis.ISymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetCompilationNamespace(Microsoft.CodeAnalysis.INamespaceSymbol namespaceSymbol) -> Microsoft.CodeAnalysis.INamespaceSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetEntryPoint(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IMethodSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetMetadataReference(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> Microsoft.CodeAnalysis.MetadataReference
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree syntaxTree, bool ignoreAccessibility) -> Microsoft.CodeAnalysis.SemanticModel
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetSpecialType(Microsoft.CodeAnalysis.SpecialType specialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGetTypeByMetadataName(string metadataName) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonGlobalNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonObjectType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonOptions.get -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonRemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonRemoveSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree> trees) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree oldTree, Microsoft.CodeAnalysis.SyntaxTree newTree) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonSourceModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonSyntaxTrees.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree>
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithAssemblyName(string assemblyName) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithOptions(Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Compilation
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CommonWithReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> newReferences) -> Microsoft.CodeAnalysis.Compilation
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ContainsSymbolsWithName(System.Func<string, bool> predicate, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateErrorTypeSymbol(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol container, string name, int arity) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.DirectiveReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
@@ -2486,45 +2458,15 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.IsCaseSensitive.get -> 
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Language.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ReferencedAssemblyNames.get -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.AssemblyIdentity>
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ToMetadataReference(System.Collections.Immutable.ImmutableArray<string> aliases = default(System.Collections.Immutable.ImmutableArray<string>), bool embedInteropTypes = false) -> Microsoft.CodeAnalysis.CompilationReference
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithAssemblyIdentityComparer(Microsoft.CodeAnalysis.AssemblyIdentityComparer comparer) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithFeatures(System.Collections.Immutable.ImmutableArray<string> features) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithGeneralDiagnosticOption(Microsoft.CodeAnalysis.ReportDiagnostic value) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithMetadataReferenceResolver(Microsoft.CodeAnalysis.MetadataReferenceResolver resolver) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithOptimizationLevel(Microsoft.CodeAnalysis.OptimizationLevel value) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithOutputKind(Microsoft.CodeAnalysis.OutputKind kind) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithPlatform(Microsoft.CodeAnalysis.Platform platform) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithSourceReferenceResolver(Microsoft.CodeAnalysis.SourceReferenceResolver resolver) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithSpecificDiagnosticOptions(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, Microsoft.CodeAnalysis.ReportDiagnostic>> specificDiagnosticOptions) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithSpecificDiagnosticOptions(System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic> specificDiagnosticOptions) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithStrongNameProvider(Microsoft.CodeAnalysis.StrongNameProvider provider) -> Microsoft.CodeAnalysis.CompilationOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithXmlReferenceResolver(Microsoft.CodeAnalysis.XmlReferenceResolver resolver) -> Microsoft.CodeAnalysis.CompilationOptions
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.GetHashCode() -> int
-override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.ParseOptions
-override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithFeatures(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>> features) -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Features.get -> System.Collections.Generic.IReadOnlyDictionary<string, string>
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.PreprocessorSymbolNames.get -> System.Collections.Generic.IEnumerable<string>
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ChildThatContainsPosition(int position) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.EquivalentToCore(Microsoft.CodeAnalysis.SyntaxNode other) -> bool
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.FindTokenCore(int position, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, bool> stepInto) -> Microsoft.CodeAnalysis.SyntaxToken
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.FindTokenCore(int position, bool findInsideTrivia) -> Microsoft.CodeAnalysis.SyntaxToken
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.FindTriviaCore(int position, bool findInsideTrivia) -> Microsoft.CodeAnalysis.SyntaxTrivia
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.InsertNodesInListCore(Microsoft.CodeAnalysis.SyntaxNode nodeInList, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> nodesToInsert, bool insertBefore) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.InsertTokensInListCore(Microsoft.CodeAnalysis.SyntaxToken originalToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken> newTokens, bool insertBefore) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.InsertTriviaInListCore(Microsoft.CodeAnalysis.SyntaxTrivia originalTrivia, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> newTrivia, bool insertBefore) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.IsEquivalentToCore(Microsoft.CodeAnalysis.SyntaxNode node, bool topLevel = false) -> bool
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.KindText.get -> string
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Language.get -> string
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.NormalizeWhitespaceCore(string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.RemoveNodesCore(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> nodes, Microsoft.CodeAnalysis.SyntaxRemoveOptions options) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ReplaceCore<TNode>(System.Collections.Generic.IEnumerable<TNode> nodes = null, System.Func<TNode, TNode, Microsoft.CodeAnalysis.SyntaxNode> computeReplacementNode = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken> tokens = null, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken> computeReplacementToken = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> trivia = null, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia> computeReplacementTrivia = null) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ReplaceNodeInListCore(Microsoft.CodeAnalysis.SyntaxNode originalNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> replacementNodes) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ReplaceTokenInListCore(Microsoft.CodeAnalysis.SyntaxToken originalToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken> newTokens) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.ReplaceTriviaInListCore(Microsoft.CodeAnalysis.SyntaxTrivia originalTrivia, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia> newTrivia) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SerializeTo(System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.SyntaxTreeCore.get -> Microsoft.CodeAnalysis.SyntaxTree
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.WriteTo(System.IO.TextWriter writer) -> void
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.Visit(Microsoft.CodeAnalysis.SyntaxNode node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAccessorDeclaration(Microsoft.CodeAnalysis.CSharp.Syntax.AccessorDeclarationSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
