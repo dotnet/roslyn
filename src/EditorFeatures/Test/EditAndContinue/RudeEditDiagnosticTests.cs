@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
             {
                 RudeEditKind.ActiveStatementUpdate,
                 RudeEditKind.PartiallyExecutedActiveStatementUpdate,
+                RudeEditKind.PartiallyExecutedActiveStatementDelete,
                 RudeEditKind.DeleteActiveStatement,
                 RudeEditKind.UpdateExceptionHandlerOfActiveTry,
                 RudeEditKind.UpdateTryOrCatchWithActiveFinally,

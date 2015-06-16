@@ -1079,11 +1079,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     newSpan = GetDeletedNodeActiveSpan(match.Matches, oldStatementSyntax);
 
-                    if (!isLeaf)
+                    if (!isLeaf || isPartiallyExecuted)
                     {
                         // rude edit: internal active statement deleted
                         diagnostics.Add(
-                            new RudeEditDiagnostic(RudeEditKind.DeleteActiveStatement,
+                            new RudeEditDiagnostic(isLeaf ? RudeEditKind.PartiallyExecutedActiveStatementDelete : RudeEditKind.DeleteActiveStatement,
                             GetDeletedNodeDiagnosticSpan(match.Matches, oldStatementSyntax)));
                     }
                 }
