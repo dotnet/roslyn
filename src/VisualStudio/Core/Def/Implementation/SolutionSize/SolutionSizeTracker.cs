@@ -2,8 +2,6 @@
 
 using System.Collections.Concurrent;
 using System.Composition;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -33,9 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             return workspace is VisualStudioWorkspaceImpl ? _tracker : null;
         }
 
-        private class IncrementalAnalyzer : IIncrementalAnalyzer
+        internal class IncrementalAnalyzer : IIncrementalAnalyzer
         {
-            private readonly ConcurrentDictionary<ProjectId, long> _map = new ConcurrentDictionary<ProjectId, long>(concurrencyLevel: 2, capacity: 10);
+            private readonly ConcurrentDictionary<DocumentId, long> _map = new ConcurrentDictionary<DocumentId, long>(concurrencyLevel: 2, capacity: 10);
 
             private SolutionId _solutionId;
             private long _size;
@@ -49,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             {
                 if (_solutionId != solution.Id)
                 {
+                    _size = 0;
                     _map.Clear();
 
                     _solutionId = solution.Id;
@@ -57,89 +56,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return SpecializedTasks.EmptyTask;
             }
 
-            public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
-                var sum = await GetProjectSizeAsync(project, cancellationToken).ConfigureAwait(false);
+                // getting tree is cheap since tree always stays in memory
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-                _map.AddOrUpdate(project.Id, sum, (id, existing) => sum);
+                // remove old size
+                long size;
+                if (_map.TryGetValue(document.Id, out size))
+                {
+                    _size -= size;
+                }
 
-                _size = _map.Values.Sum();
+                // add new size
+                _map[document.Id] = tree.Length;
+                _size += tree.Length;
             }
 
-            public void RemoveProject(ProjectId projectId)
+            public void RemoveDocument(DocumentId documentId)
             {
-                long unused;
-                _map.TryRemove(projectId, out unused);
-
-                _size = _map.Values.Sum();
-            }
-
-            private static async Task<long> GetProjectSizeAsync(Project project, CancellationToken cancellationToken)
-            {
-                if (project == null)
+                long size;
+                if (_map.TryRemove(documentId, out size))
                 {
-                    return 0;
-                }
-
-                var sum = 0L;
-                foreach (var document in project.Documents)
-                {
-                    sum += await GetDocumentSizeAsync(document, cancellationToken).ConfigureAwait(false);
-                }
-
-                return sum;
-            }
-
-            private static async Task<long> GetDocumentSizeAsync(Document document, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (document == null)
-                {
-                    return 0;
-                }
-
-                var result = GetFileSize(document.FilePath);
-                if (result >= 0)
-                {
-                    return result;
-                }
-
-                // not a physical file, in that case, use text as a fallback.
-                var text = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
-                return text.Length;
-            }
-
-            private static long GetFileSize(string filepath)
-            {
-                if (filepath == null)
-                {
-                    return -1;
-                }
-
-                try
-                {
-                    // just to reduce exception thrown
-                    if (!File.Exists(filepath))
-                    {
-                        return -1;
-                    }
-
-                    return new FileInfo(filepath).Length;
-                }
-                catch
-                {
-                    return -1;
+                    _size -= size;
                 }
             }
 
             #region Not Used
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.EmptyTask;
-            }
-
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
@@ -164,7 +108,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return false;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            public void RemoveProject(ProjectId projectId)
             {
             }
             #endregion
