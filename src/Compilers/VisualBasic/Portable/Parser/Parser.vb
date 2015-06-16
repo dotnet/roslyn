@@ -6000,8 +6000,14 @@ checkNullable:
                 Return node
             End If
 
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            If feature = Feature.InterpolatedStrings Then
+                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
+                ' an unlocalized string and fix this to be localized in the next release.
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+            Else
+                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            End If
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean

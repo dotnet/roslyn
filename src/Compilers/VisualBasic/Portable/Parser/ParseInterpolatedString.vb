@@ -89,10 +89,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 skipped = Nothing
             End If
 
-            Return SyntaxFactory.InterpolatedStringExpression(dollarSignDoubleQuoteToken,
+            Dim node = SyntaxFactory.InterpolatedStringExpression(dollarSignDoubleQuoteToken,
                                                               _pool.ToListAndFree(contentBuilder),
                                                               doubleQuoteToken)
-
+            Return CheckFeatureAvailability(Feature.InterpolatedStrings, node)
         End Function
 
         Private Function ParseInterpolatedStringInterpolation() As InterpolationSyntax
