@@ -57,17 +57,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Dim count As UInteger
             IsOK(Function() list.GetItemCount(count))
 
-            Dim itemIndeces = New List(Of UInteger)
+            Dim itemIndices = New List(Of UInteger)
             For i = 0UI To CUInt(count - 1)
                 If itemPredicate(list, i) Then
-                    itemIndeces.Add(i)
+                    itemIndices.Add(i)
                 End If
             Next
 
-            Assert.Equal(verificationActions.Length, itemIndeces.Count)
+            Assert.Equal(verificationActions.Length, itemIndices.Count)
 
             For i = 0 To verificationActions.Length - 1
-                Dim index = itemIndeces(i)
+                Dim index = itemIndices(i)
                 verificationActions(i)(list, CUInt(index))
             Next
         End Sub

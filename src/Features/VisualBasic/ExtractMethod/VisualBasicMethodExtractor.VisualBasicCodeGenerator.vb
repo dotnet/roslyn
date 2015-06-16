@@ -351,12 +351,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides Function CreateDeclarationStatement(variable As VariableInfo,
                                                                     cancellationToken As CancellationToken,
-                                                                    Optional givenInitalizer As ExpressionSyntax = Nothing) As StatementSyntax
+                                                                    Optional givenInitializer As ExpressionSyntax = Nothing) As StatementSyntax
 
                 Dim shouldInitializeWithNothing = (variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.MoveOut OrElse variable.GetDeclarationBehavior(cancellationToken) = DeclarationBehavior.SplitOut) AndAlso
                                                   (variable.ParameterModifier = ParameterBehavior.Out)
 
-                Dim initializer = If(givenInitalizer, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
+                Dim initializer = If(givenInitializer, If(shouldInitializeWithNothing, SyntaxFactory.NothingLiteralExpression(SyntaxFactory.Token(SyntaxKind.NothingKeyword)), Nothing))
 
                 Dim variableType = variable.GetVariableType(Me.SemanticDocument)
                 Dim typeNode = variableType.GenerateTypeSyntax()

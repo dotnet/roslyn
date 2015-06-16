@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public SyntaxToken GetFirstTokenInSelection()
         {
-            return this.SemanticDocument.GetTokenWithAnnotaton(this.FirstTokenAnnotation);
+            return this.SemanticDocument.GetTokenWithAnnotation(this.FirstTokenAnnotation);
         }
 
         public SyntaxToken GetLastTokenInSelection()
         {
-            return this.SemanticDocument.GetTokenWithAnnotaton(this.LastTokenAnnotation);
+            return this.SemanticDocument.GetTokenWithAnnotation(this.LastTokenAnnotation);
         }
 
         public TNode GetContainingScopeOf<TNode>() where TNode : SyntaxNode

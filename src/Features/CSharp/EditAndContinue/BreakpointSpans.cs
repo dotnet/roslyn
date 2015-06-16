@@ -157,8 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return (operatorDeclaration.Body != null) ? CreateSpanForBlock(operatorDeclaration.Body, position) : operatorDeclaration.ExpressionBody?.Expression.Span;
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    var covnersionDeclaration = (ConversionOperatorDeclarationSyntax)node;
-                    return (covnersionDeclaration.Body != null) ? CreateSpanForBlock(covnersionDeclaration.Body, position) : covnersionDeclaration.ExpressionBody?.Expression.Span;
+                    var conversionDeclaration = (ConversionOperatorDeclarationSyntax)node;
+                    return (conversionDeclaration.Body != null) ? CreateSpanForBlock(conversionDeclaration.Body, position) : conversionDeclaration.ExpressionBody?.Expression.Span;
 
                 case SyntaxKind.DestructorDeclaration:
                     return TryCreateSpanForNode(((DestructorDeclarationSyntax)node).Body, position);

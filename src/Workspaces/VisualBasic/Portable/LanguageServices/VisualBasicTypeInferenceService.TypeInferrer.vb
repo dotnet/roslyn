@@ -128,12 +128,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInTypeOfExpressionSyntax(typeOfExpression As TypeOfExpressionSyntax) As IEnumerable(Of ITypeSymbol)
-                Dim expresionType = typeOfExpression.Type
-                If expresionType Is Nothing Then
+                Dim expressionType = typeOfExpression.Type
+                If expressionType Is Nothing Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
-                Dim typeSymbol = _semanticModel.GetTypeInfo(expresionType).Type
+                Dim typeSymbol = _semanticModel.GetTypeInfo(expressionType).Type
                 If TypeOf typeSymbol IsNot INamedTypeSymbol Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If

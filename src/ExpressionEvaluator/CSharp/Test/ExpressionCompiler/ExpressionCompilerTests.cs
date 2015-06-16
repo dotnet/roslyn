@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int localSignatureToken;
             GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader);
             var context = EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
                 blocks,
@@ -373,12 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             endOffset = outerScope.EndOffset - 1;
 
             // At start of outer scope.
-            var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken);
+            var context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)startOffset, localSignatureToken);
             Assert.Equal(default(CSharpMetadataContext), previous);
             previous = new CSharpMetadataContext(methodBlocks, context);
 
             // At end of outer scope - not reused because of the nested scope.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext); // Not required, just documentary.
 
             // At type context.
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.Equal(scope == previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset));
                 }
 
-                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken);
+                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)offset, localSignatureToken);
                 if (scope == previousScope)
                 {
                     Assert.Equal(context, previous.EvaluationContext);
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             GetContextState(runtime, "C.F", out methodBlocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
             // Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken);
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, symReader, moduleVersionId, methodToken, methodVersion, (uint)endOffset, localSignatureToken);
             Assert.NotEqual(context, previous.EvaluationContext);
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset));
             Assert.NotEqual(context.Compilation, previous.Compilation);
@@ -6167,6 +6167,109 @@ class C
   IL_001a:  callvirt   ""void C.M(System.Func<int>)""
   IL_001f:  ret
 }");
+        }
+
+        [WorkItem(3309, "https://github.com/dotnet/roslyn/issues/3309")]
+        [Fact]
+        public void NullAnonymousTypeInstance()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+    }
+}";
+            var testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "false ? new { P = 1 } : null");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            var returnType = (NamedTypeSymbol)methodData.Method.ReturnType;
+            Assert.True(returnType.IsAnonymousType);
+            methodData.VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  ret
+}");
+        }
+
+        /// <summary>
+        /// DkmClrInstructionAddress.ILOffset is set to uint.MaxValue
+        /// if the instruction does not map to an IL offset.
+        /// </summary>
+        [WorkItem(1185315)]
+        [Fact]
+        public void NoILOffset()
+        {
+            var source =
+@"class C
+{
+    static void M(int x)
+    {
+        int y;
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+
+            ImmutableArray<MetadataBlock> blocks;
+            Guid moduleVersionId;
+            ISymUnmanagedReader symReader;
+            int methodToken;
+            int localSignatureToken;
+            GetContextState(runtime, "C.M", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
+
+            var context = EvaluationContext.CreateMethodContext(
+                blocks.ToCompilation(),
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ExpressionCompilerTestHelpers.NoILOffset,
+                localSignatureToken: localSignatureToken);
+
+            string error;
+            var testData = new CompilationTestData();
+            var result = context.CompileExpression("x + y", out error, testData);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  .locals init (int V_0) //y
+  IL_0000:  ldarg.0
+  IL_0001:  ldloc.0
+  IL_0002:  add
+  IL_0003:  ret
+}");
+
+            // Verify the context is re-used for ILOffset == 0.
+            var previous = context;
+            context = EvaluationContext.CreateMethodContext(
+                new CSharpMetadataContext(blocks, previous),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: 0,
+                localSignatureToken: localSignatureToken);
+            Assert.Same(previous, context);
+
+            // Verify the context is re-used for NoILOffset.
+            previous = context;
+            context = EvaluationContext.CreateMethodContext(
+                new CSharpMetadataContext(blocks, previous),
+                blocks,
+                symReader,
+                moduleVersionId,
+                methodToken: methodToken,
+                methodVersion: 1,
+                ilOffset: ExpressionCompilerTestHelpers.NoILOffset,
+                localSignatureToken: localSignatureToken);
+            Assert.Same(previous, context);
         }
     }
 }

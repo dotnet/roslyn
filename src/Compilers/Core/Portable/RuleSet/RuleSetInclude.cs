@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis
                 path = GetIncludePath(parent);
                 ruleSet = RuleSetProcessor.LoadFromFile(path);
             }
+            catch (FileNotFoundException)
+            {
+                // The compiler uses the same rule set files as FxCop, but doesn't have all of
+                // the same logic for resolving included files. For the moment, just ignore any
+                // includes we can't resolve.
+            }
             catch (Exception e)
             {
                 throw new InvalidRuleSetException(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, path, e.Message));

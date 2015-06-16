@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 .Select(Function(loc) DirectCast(syntaxRoot.FindToken(loc.Location.SourceSpan.Start).Parent, IdentifierNameSyntax)) _
                 .Where(Function(ident) Not HasConflict(ident, modifiedIdentifier, expressionToInline, semanticModel))
 
-            ' Add referenceAnnotions to identifier nodes being replaced.
+            ' Add referenceAnnotations to identifier nodes being replaced.
             updatedDocument = Await updatedDocument.ReplaceNodesAsync(
                 nonConflictingIdentifierNodes,
                 Function(o, n) n.WithAdditionalAnnotations(s_referenceAnnotation),
@@ -474,10 +474,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 ' We have annotated the inner initializer with a special syntax annotation "_initializerAnnotation".
                 ' Get this annotated node and compute the symbol info for this node in the inlined document.
                 Dim innerInitializerInInlineNode = DirectCast(inlinedNode.GetAnnotatedNodesAndTokens(s_initializerAnnotation).Single().AsNode, ExpressionSyntax)
-                Dim newInializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken)
+                Dim newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken)
 
                 ' Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
-                If Not SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInializerSymbolInfo, performEquivalenceCheck:=True) Then
+                If Not SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck:=True) Then
                     If replacementNodesWithChangedSemantics Is Nothing Then
                         replacementNodesWithChangedSemantics = New Dictionary(Of SyntaxNode, SyntaxNode)
                     End If

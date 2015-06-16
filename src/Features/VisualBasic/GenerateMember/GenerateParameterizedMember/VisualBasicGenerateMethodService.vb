@@ -155,8 +155,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Return New VisualBasicGenerateParameterizedMemberService(Of VisualBasicGenerateMethodService).InvocationExpressionInfo(document, state)
         End Function
 
-        Protected Overrides Function CanGenerateMethodForSimpleNameOrMemberAccessExpression(typeInferenceService As ITypeInferenceService, semanticModel As SemanticModel, expresion As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
-            Return typeInferenceService.InferType(semanticModel, expresion, True, cancellationToken)
+        Protected Overrides Function CanGenerateMethodForSimpleNameOrMemberAccessExpression(typeInferenceService As ITypeInferenceService, semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
+            Return typeInferenceService.InferType(semanticModel, expression, True, cancellationToken)
         End Function
     End Class
 End Namespace

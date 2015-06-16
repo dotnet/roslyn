@@ -791,7 +791,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         End Sub
 
         <Fact>
-        Public Sub TestOverridenMethod2()
+        Public Sub TestOverriddenMethod2()
             Dim workspace =
     <Workspace>
         <Project Language="Visual Basic" CommonReferences="true">

@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Synthesized parameterlesss constructors in structs chain to the "default" constructor
+        /// Synthesized parameterless constructors in structs chain to the "default" constructor
         /// </summary>
         private BoundStatement ChainImplicitStructConstructor(MethodSymbol methodSymbol, SourceMemberContainerTypeSymbol containingType)
         {
@@ -1329,7 +1329,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (optimizations == OptimizationLevel.Debug && stateMachineTypeOpt != null)
                 {
                     Debug.Assert(method.IsAsync || method.IsIterator);
-                    GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), out stateMachineHoistedLocalSlots, out stateMachineAwaiterSlots);
+                    GetStateMachineSlotDebugInfo(moduleBuilder, moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), variableSlotAllocatorOpt, diagnosticsForThisMethod, out stateMachineHoistedLocalSlots, out stateMachineAwaiterSlots);
+                    Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
                 return new MethodBody(
@@ -1365,7 +1366,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void GetStateMachineSlotDebugInfo(
+            PEModuleBuilder moduleBuilder,
             IEnumerable<Cci.IFieldDefinition> fieldDefs,
+            VariableSlotAllocator variableSlotAllocatorOpt,
+            DiagnosticBag diagnostics,
             out ImmutableArray<EncHoistedLocalInfo> hoistedVariableSlots,
             out ImmutableArray<Cci.ITypeReference> awaiterSlots)
         {
@@ -1385,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         awaiters.Add(null);
                     }
 
-                    awaiters[index] = (Cci.ITypeReference)field.Type;
+                    awaiters[index] = moduleBuilder.EncTranslateLocalVariableType(field.Type, diagnostics);
                 }
                 else if (!field.SlotDebugInfo.Id.IsNone)
                 {
@@ -1397,7 +1401,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hoistedVariables.Add(new EncHoistedLocalInfo(true));
                     }
 
-                    hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, (Cci.ITypeReference)field.Type);
+                    hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, moduleBuilder.EncTranslateLocalVariableType(field.Type, diagnostics));
+                }
+            }
+
+            // Fill in empty slots for variables deleted during EnC that are not followed by an existing variable:
+            if (variableSlotAllocatorOpt != null)
+            {
+                int previousAwaiterCount = variableSlotAllocatorOpt.PreviousAwaiterSlotCount;
+                while (awaiters.Count < previousAwaiterCount)
+                {
+                    awaiters.Add(null);
+                }
+
+                int previousAwaiterSlotCount = variableSlotAllocatorOpt.PreviousHoistedLocalSlotCount;
+                while (hoistedVariables.Count < previousAwaiterSlotCount)
+                {
+                    hoistedVariables.Add(new EncHoistedLocalInfo(true));
                 }
             }
 

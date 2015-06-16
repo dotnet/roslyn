@@ -127,18 +127,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Private Class NavigationBarItemNavigationSymbolComparer
             Implements IEqualityComparer(Of NavigationBarSymbolItem)
 
-            Private ReadOnly _symboIdComparer As IEqualityComparer(Of SymbolKey)
+            Private ReadOnly _symbolIdComparer As IEqualityComparer(Of SymbolKey)
 
             Public Sub New(ignoreCase As Boolean)
-                _symboIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
+                _symbolIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
             End Sub
 
             Public Function IEqualityComparer_Equals(x As NavigationBarSymbolItem, y As NavigationBarSymbolItem) As Boolean Implements IEqualityComparer(Of NavigationBarSymbolItem).Equals
-                Return _symboIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
+                Return _symbolIdComparer.Equals(x.NavigationSymbolId, y.NavigationSymbolId) AndAlso x.NavigationSymbolIndex.Value = y.NavigationSymbolIndex.Value
             End Function
 
             Public Function IEqualityComparer_GetHashCode(obj As NavigationBarSymbolItem) As Integer Implements IEqualityComparer(Of NavigationBarSymbolItem).GetHashCode
-                Return _symboIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex.Value
+                Return _symbolIdComparer.GetHashCode(obj.NavigationSymbolId) Xor obj.NavigationSymbolIndex.Value
             End Function
         End Class
 

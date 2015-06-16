@@ -97,7 +97,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void AddHigherPriorityDocument(DocumentId id)
                     {
-                        _higherPriorityDocumentsNotProcessed[id] = Processor.EnableCaching(id.ProjectId);
+                        var cache = Processor.EnableCaching(id.ProjectId);
+                        if (!_higherPriorityDocumentsNotProcessed.TryAdd(id, cache))
+                        {
+                            // we already have the document in the queue.
+                            cache.Dispose();
+                        }
 
                         SolutionCrawlerLogger.LogHigherPriority(this.Processor._logAggregator, id.Id);
                     }
@@ -283,19 +288,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 WorkItem workItem;
                                 if (!_workItemQueue.TryTake(documentId, out workItem, out documentCancellation))
                                 {
+                                    RemoveHigherPriorityDocument(documentId);
                                     continue;
                                 }
 
                                 // okay now we have work to do
                                 await ProcessDocumentAsync(this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
 
-                                // remove opened document processed
-                                IDisposable projectCache;
-                                if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache))
-                                {
-                                    DisposeProjectCache(projectCache);
-                                }
-
+                                RemoveHigherPriorityDocument(documentId);
                                 return true;
                             }
 
@@ -304,6 +304,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
+                        }
+                    }
+
+                    private void RemoveHigherPriorityDocument(DocumentId documentId)
+                    {
+                        // remove opened document processed
+                        IDisposable projectCache;
+                        if (_higherPriorityDocumentsNotProcessed.TryRemove(documentId, out projectCache))
+                        {
+                            DisposeProjectCache(projectCache);
                         }
                     }
 

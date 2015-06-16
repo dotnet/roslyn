@@ -193,6 +193,6 @@
   </ImportGroup>
   <Target Name="AfterBuild">
     <Message Text="AfterBuild" />
-    <Exec Command="$(SolutionDir)..\..\packages\NuGet.CommandLine.$(NuGetCommandLineVersion)\tools\NuGet.exe pack Diagnostic.nuspec -NoPackageAnalysis -OutputDirectory $(OutDir)" />
+    <Exec Condition="'$(CIBuild)' != 'true'" Command="$(SolutionDir)..\..\packages\NuGet.CommandLine.$(NuGetCommandLineVersion)\tools\NuGet.exe pack Diagnostic.nuspec -NoPackageAnalysis -OutputDirectory $(OutDir)" />
   </Target>
 </Project>

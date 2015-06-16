@@ -77,6 +77,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(5, compReferences.Count);
         }
 
+        [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
+        [Fact(Skip ="Needs target file update. Activate when we move to new base drop.")]
+        public void Test_OpenProjectReferencingPortableProject()
+        {
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { @"CSharpProject\ReferencesPortableProject.csproj", GetResourceText("CSharpProject_ReferencesPortableProject.csproj") },
+                { @"CSharpProject\Program.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
+                { @"CSharpProject\PortableProject.csproj", GetResourceText("CSharpProject_PortableProject.csproj") },
+                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") }
+
+            });
+
+            CreateFiles(files);
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"CSharpProject\ReferencesPortableProject.csproj")).Result;
+            var hasFacades = project.MetadataReferences.OfType<PortableExecutableReference>().Any(r => r.FilePath.Contains("Facade"));
+            Assert.True(hasFacades);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void Test_SharedMetadataReferences()
         {
@@ -2709,7 +2729,7 @@ class C { }";
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
                 var project = solution.Projects.First();
 
-                var mref = MetadataReference.CreateFromAssembly(typeof(System.Xaml.XamlObjectReader).Assembly);
+                var mref = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlObjectReader).Assembly.Location);
 
                 // add reference to System.Xaml
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
@@ -2776,7 +2796,7 @@ class C { }";
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(true, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
 
-                // remove reference MyAnalzyer.dll
+                // remove reference MyAnalyzer.dll
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveAnalyzerReference(aref).Solution);
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));

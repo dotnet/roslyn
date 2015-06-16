@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     Namespace DataTipInfoGetter
         Friend Module DataTipInfoGetterModule
             Friend Async Function GetInfoAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of DebugDataTipInfo)
-                Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim token = root.FindToken(position)
 
                 If token.IsKind(SyntaxKind.CommaToken) Then

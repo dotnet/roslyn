@@ -1075,7 +1075,7 @@ Module Module1
         Inherits base1
     End Class
 
-    ' Expect no ocmpiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Foo5 and base2 are abstract
 
     MustInherit Class Foo5
         Inherits base2
@@ -1286,7 +1286,7 @@ Module Module1
         Inherits base1
     End Class
 
-    ' Expect no ocmpiler error, since both Foo5 and base2 are abstract
+    ' Expect no compiler error, since both Foo5 and base2 are abstract
 
     MustInherit Class Foo5
         Inherits base2
@@ -2100,5 +2100,114 @@ End Structure
 }
 ]]>)
         End Sub
+
+        <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
+        Public Sub HandlesInAnInterface()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Interface I
+    Event E()
+    Sub M() Handles Me.E
+End Interface
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim expected = <expected>
+BC30270: 'Handles' is not valid on an interface method declaration.
+    Sub M() Handles Me.E
+            ~~~~~~~~~~~~
+                           </expected>
+
+            compilation.AssertTheseDiagnostics(expected)
+            compilation.AssertTheseEmitDiagnostics(expected)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "E").Single()
+
+            Assert.Equal("Me.E", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("Event I.E()", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
+        Public Sub HandlesInAStruct()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Structure S
+    Event E()
+    Sub M() Handles Me.E
+    End Sub
+End Structure
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim expected = <expected>
+BC30728: Methods declared in structures cannot have 'Handles' clauses.
+    Sub M() Handles Me.E
+        ~
+                           </expected>
+
+            compilation.AssertTheseDiagnostics(expected)
+            compilation.AssertTheseEmitDiagnostics(expected)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "E").Single()
+
+            Assert.Equal("Me.E", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Equal("Event S.E()", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(3448, "https://github.com/dotnet/roslyn/issues/3448")>
+        Public Sub HandlesInAnEnum()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Enum E1
+    'Event E()
+    Sub M() Handles Me.E
+    End Sub
+End Enum
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            Dim expected = <expected>
+BC30185: 'Enum' must end with a matching 'End Enum'.
+Enum E1
+~~~~~~~
+BC30280: Enum 'E1' must contain at least one member.
+Enum E1
+     ~~
+BC30619: Statement cannot appear within an Enum body. End of Enum assumed.
+    Sub M() Handles Me.E
+    ~~~~~~~~~~~~~~~~~~~~
+BC30590: Event 'E' cannot be found.
+    Sub M() Handles Me.E
+                       ~
+BC30184: 'End Enum' must be preceded by a matching 'Enum'.
+End Enum
+~~~~~~~~
+                           </expected>
+
+            compilation.AssertTheseDiagnostics(expected)
+            compilation.AssertTheseEmitDiagnostics(expected)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "E").Single()
+
+            Assert.Equal("Me.E", node.Parent.ToString())
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+        End Sub
+
     End Class
 End Namespace

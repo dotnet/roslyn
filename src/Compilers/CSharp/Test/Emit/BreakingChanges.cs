@@ -621,7 +621,7 @@ public class Test
         }
 
         [Fact, WorkItem(529362, "DevDiv")]
-        public void TestNullCoalescingOverImplicitExplictUDC()
+        public void TestNullCoalescingOverImplicitExplicitUDC()
         {
             string source = @"using System;
 
@@ -655,12 +655,12 @@ class Program
     }
 }
 ";
-            // Native compiler picks explict conversion - print 3
+            // Native compiler picks explicit conversion - print 3
             CompileAndVerify(source, expectedOutput: "2");
         }
 
         [Fact, WorkItem(529362, "DevDiv")]
-        public void TestNullCoalescingOverImplicitExplictUDC_2()
+        public void TestNullCoalescingOverImplicitExplicitUDC_2()
         {
             string source = @"using System;
 
@@ -689,7 +689,7 @@ class Program
     }
 }
 ";
-            // Native compiler picks explict conversion
+            // Native compiler picks explicit conversion
             CompileAndVerify(source, expectedOutput: "Implicit");
         }
 

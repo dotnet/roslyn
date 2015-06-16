@@ -1096,7 +1096,7 @@ class AllMembers
         bool contains = m.Contains(new KeyValuePair<int, int>(3, 4));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_Lookup);
         ValidateValue(contains, true);
-        //non-existant pair
+        //non-existent pair
         m.ClearFlag();
         contains = m.Contains(new KeyValuePair<int, int>(8, 9));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_HasKey);
@@ -1570,7 +1570,7 @@ class AllMembers
         bool contains = m.Contains(new KeyValuePair<int, int>(3, 4));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_Lookup);
         ValidateValue(contains, true);
-        //non-existant pair
+        //non-existent pair
         m.ClearFlag();
         contains = m.Contains(new KeyValuePair<int, int>(8, 9));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_HasKey);
@@ -1662,7 +1662,7 @@ class AllMembers
         bool contains = m.Contains(new KeyValuePair<int, UserDefinedStruct>(1, ud));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_Lookup);
         ValidateValue(contains, true);
-        //non-existant pair
+        //non-existent pair
         m.ClearFlag();
         contains = m.Contains(new KeyValuePair<int, UserDefinedStruct>(8, new UserDefinedStruct()));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_HasKey);
@@ -1771,7 +1771,7 @@ class AllMembers
         bool contains = m.Contains(new KeyValuePair<int, UserDefinedStruct>(1, ud));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_Lookup);
         ValidateValue(contains, true);
-        //non-existant pair
+        //non-existent pair
         m.ClearFlag();
         contains = m.Contains(new KeyValuePair<int, UserDefinedStruct>(8, new UserDefinedStruct()));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_HasKey);
@@ -2941,7 +2941,7 @@ class AllMembers
         bool contains = m.Contains(new KeyValuePair<int, int>(3, 4));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_Lookup);
         ValidateValue(contains, true);
-        //non-existant pair
+        //non-existent pair
         m.ClearFlag();
         contains = m.Contains(new KeyValuePair<int, int>(8, 9));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_HasKey);
@@ -3131,7 +3131,7 @@ class AllMembers
         bool contains = m.Contains(new KeyValuePair<int, UserDefinedStruct>(1, ud));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_Lookup);
         ValidateValue(contains, true);
-        //non-existant pair
+        //non-existent pair
         m.ClearFlag();
         contains = m.Contains(new KeyValuePair<int, UserDefinedStruct>(8, new UserDefinedStruct()));
         ValidateMethod(m.GetFlagState(), TestMethodCalled.IMap_HasKey);

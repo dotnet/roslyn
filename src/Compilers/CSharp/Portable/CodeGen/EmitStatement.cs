@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         };
 
         /// <summary>
-        /// Produces opcode for a jump that corresponds to given opearation and sense.
+        /// Produces opcode for a jump that corresponds to given operation and sense.
         /// Also produces a reverse opcode - opcode for the same condition with inverted sense.
         /// </summary>
         private static ILOpCode CodeForJump(BoundBinaryOperator op, bool sense, out ILOpCode revOpCode)
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //   ldloc  $ReturnValue // sequence point
             //   ret
             //
-            // Do not emit this pattern if the method doesn't include user code or doesn't have a block blody.
+            // Do not emit this pattern if the method doesn't include user code or doesn't have a block body.
             return _optimizations == OptimizationLevel.Debug && _method.GenerateDebugInfo && _methodBodySyntaxOpt?.IsKind(SyntaxKind.Block) == true || 
                    _builder.InExceptionHandler;
         }
@@ -678,6 +678,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
+                    if (expressionOpt != null)
+                    {
+                        // Ensure the return type has been translated. (Necessary
+                        // for cases of untranslated anonymous types.)
+                        var returnType = expressionOpt.Type;
+                        var byRefType = returnType as ByRefReturnErrorTypeSymbol;
+                        if ((object)byRefType != null)
+                        {
+                            returnType = byRefType.ReferencedType;
+                        }
+                        _module.Translate(returnType, boundReturnStatement.Syntax, _diagnostics);
+                    }
                     _builder.EmitRet(expressionOpt == null);
                 }
             }

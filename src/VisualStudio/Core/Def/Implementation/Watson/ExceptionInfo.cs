@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// <param name="exception">[Required] Exception that triggered this non-fatal error</param>
         /// <param name="implementationName">
         ///     [Required] Name of the component / implementation that triggered the error. 
-        ///     This paramater is included in the watson bucket parameters to uniquely identify this error.
+        ///     This parameter is included in the watson bucket parameters to uniquely identify this error.
         /// </param>
         public ExceptionInfo(Exception exception, string implementationName)
         {

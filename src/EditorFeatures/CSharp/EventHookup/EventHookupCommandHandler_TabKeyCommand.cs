@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var formattedDocument = Formatter.FormatAsync(simplifiedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
             plusEqualTokenEndPosition = formattedDocument
-                .GetCSharpSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                .GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
                 .GetAnnotatedNodesAndTokens(plusEqualsTokenAnnotation)
                 .Single().Span.End;
 
@@ -203,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var newText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
             var documentWithNameAdded = document.WithText(newText);
 
-            var syntaxTree = documentWithNameAdded.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = documentWithNameAdded.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var plusEqualsToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
 
@@ -287,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 if (document != null)
                 {
                     // In the middle of a user action, cannot cancel.
-                    var syntaxTree = document.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
                     var token = syntaxTree.FindTokenOnRightOfPosition(plusEqualTokenEndPosition, cancellationToken);
 
                     _inlineRenameService.StartInlineSession(document, token.Span, cancellationToken);

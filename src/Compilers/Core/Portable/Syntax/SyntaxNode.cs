@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 
-        protected internal abstract SyntaxNode NormalizeWhitespaceCore(string indentation, bool elasticTrivia);
+        protected internal abstract SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia);
 
         /// <summary>
         /// Determines if two nodes are the same, disregarding trivia differences.

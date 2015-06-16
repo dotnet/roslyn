@@ -115,7 +115,7 @@ namespace Microsoft.Cci
     internal interface IMarshallingInformation
     {
         /// <summary>
-        /// <see cref="ITypeReference"/> or a string (ususally a fully-qualified type name of a type implementing the custom marshaller, but Dev11 allows any string).
+        /// <see cref="ITypeReference"/> or a string (usually a fully-qualified type name of a type implementing the custom marshaller, but Dev11 allows any string).
         /// </summary>
         object GetCustomMarshaller(EmitContext context);
 
@@ -137,7 +137,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Specifies the index of the parameter that contains the value of the Inteface Identifier (IID) of the marshalled object.
+        /// Specifies the index of the parameter that contains the value of the Interface Identifier (IID) of the marshalled object.
         /// -1 if it should be omitted from the marshal blob.
         /// </summary>
         int IidParameterIndex

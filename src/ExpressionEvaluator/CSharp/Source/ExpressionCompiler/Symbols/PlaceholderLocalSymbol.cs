@@ -72,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         return new ReturnValueLocalSymbol(containingMethod, name, displayName, type, index);
                     }
                 case DkmClrAliasKind.ObjectId:
-                    Debug.Assert(name.Length > 0 && name[0] != '$');
-                    return new ObjectIdLocalSymbol(containingMethod, type, "$" + name, displayName, isWritable: false);
+                    return new ObjectIdLocalSymbol(containingMethod, type, name, displayName, isWritable: false);
                 case DkmClrAliasKind.Variable:
                     return new ObjectIdLocalSymbol(containingMethod, type, name, displayName, isWritable: true);
                 default:

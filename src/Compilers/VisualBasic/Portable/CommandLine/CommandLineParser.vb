@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Case "12", "12.0"
                                         languageVersion = LanguageVersion.VisualBasic12
                                     Case "14", "14.0"
-                                        languageVersion = LanguageVersion.VisualBasic12
+                                        languageVersion = LanguageVersion.VisualBasic14
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select

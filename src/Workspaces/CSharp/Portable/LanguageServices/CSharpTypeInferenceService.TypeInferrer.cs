@@ -265,17 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 token = token.GetPreviousTokenIfTouchingWord(position);
                 var parent = token.Parent;
 
-                // A strange broken code scenario:
-                // new Form
-                // {
-                //     Location = new $$
-                //     StartPosition = FormStartPosition.CenterParent
-                // };
-                // The 'new' token is part of an assignment of the assignment to StartPosition,
-                // but the user is really trying to assign to Location.
-                // In this case, we need to detect that the 'new' token is on the left side of 
-                // its parent assignment and on the right side of its grandparent assignment and
-                // return the inferred type of the grandparent.
+                // A couple of broken code scenarios where the new keyword in objectcreationexpression
+                // appears to be a part of a subsequent assignment.
                 if (token.Kind() == SyntaxKind.NewKeyword &&
                     token.Parent.IsKind(SyntaxKind.ObjectCreationExpression) &&
                     token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
@@ -283,12 +274,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parentAssignment = token.Parent.Parent as AssignmentExpressionSyntax;
                     if (token.Parent == parentAssignment.Left)
                     {
-                        var grandparentAssignment = parentAssignment.Parent as AssignmentExpressionSyntax;
-                        if (grandparentAssignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
-                            parentAssignment == grandparentAssignment.Right)
+                        // case 1:
+                        //      new Form
+                        //      {
+                        //          Location = new $$
+                        //          StartPosition = FormStartPosition.CenterParent
+                        //      };
+                        // The 'new' token is part of an assignment of the assignment to StartPosition,
+                        // but the user is really trying to assign to Location.
+                        // In this case, we need to detect that the 'new' token is on the left side of 
+                        // its parent assignment and on the right side of its grandparent assignment and
+                        // return the inferred type of the grandparent.
+                        if (parentAssignment.Parent is AssignmentExpressionSyntax)
                         {
-                            parent = grandparentAssignment;
-                            token = grandparentAssignment.OperatorToken;
+                            var grandparentAssignment = (AssignmentExpressionSyntax)parentAssignment.Parent;
+                            if (grandparentAssignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
+                                parentAssignment == grandparentAssignment.Right)
+                            {
+                                parent = grandparentAssignment;
+                                token = grandparentAssignment.OperatorToken;
+                            }
+                        }
+                        // case 2:
+                        //      bool b;
+                        //      Task task = new $$
+                        //      b = false;
+                        // The 'new' token is part of an assignment of the assignment to b,
+                        // but the user is really trying to assign to task.
+                        // In this case, we need to detect that the 'new' token is on the left side of 
+                        // its parent assignment and on the right side of its grandparent assignment and
+                        // return the inferred type of the grandparent.
+                        else if (parentAssignment.Parent is EqualsValueClauseSyntax)
+                        {
+                            var grandParentAssignment = (EqualsValueClauseSyntax)parentAssignment.Parent;
+                            if (parentAssignment == grandParentAssignment.Value)
+                            {
+                                parent = grandParentAssignment;
+                                token = grandParentAssignment.EqualsToken;
+                            }
                         }
                     }
                 }

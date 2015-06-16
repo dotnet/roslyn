@@ -937,7 +937,7 @@ class $$C
                 workspaceAndFileCodeModel.VisualStudioWorkspace.CloseDocument(documentId)
                 Dim newSolution = workspaceAndFileCodeModel.VisualStudioWorkspace.CurrentSolution.RemoveDocument(documentId)
                 workspaceAndFileCodeModel.VisualStudioWorkspace.TryApplyChanges(newSolution)
-                ' throws COMExpection with HResult = E_FAIL
+                ' throws COMException with HResult = E_FAIL
                 Assert.Throws(Of System.Runtime.InteropServices.COMException)(
                     Sub()
                         Dim count = codeClass.Members.OfType(Of EnvDTE80.CodeFunction2)().Count()

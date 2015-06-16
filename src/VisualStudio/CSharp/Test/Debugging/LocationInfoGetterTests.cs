@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             return null;$$
         }
     }
-}", "Class.Property", 2);
+}", "Class.Property", 4);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             string s = $$value;
         }
     }
-}", "Class.Property", 2);
+}", "Class.Property", 9);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
@@ -293,7 +293,7 @@ class C1
         }
     }
 }
-", "C1.this[int x]", 2);
+", "C1.this[int x]", 4);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

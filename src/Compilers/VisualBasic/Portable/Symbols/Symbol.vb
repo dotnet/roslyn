@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns true if this symbol was declared as requiring an override; i.e., declared
         ''' with the "MustOverride" modifier. Never returns true for types. 
-        ''' Also methods, properties and events declared in interface are considered to have MustOveride.
+        ''' Also methods, properties and events declared in interface are considered to have MustOverride.
         ''' </summary>
         Public MustOverride ReadOnly Property IsMustOverride As Boolean
 
@@ -453,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' NOTE: there are scenarios in which ImplicitlyDefinedBy is called while bound members 
         '''       are not yet published. Ths typically happens if ImplicitlyDefinedBy while binding members.
-        '''       In such case, if calee needs to refer to a member of enclosing type it must 
+        '''       In such case, if callee needs to refer to a member of enclosing type it must 
         '''       do that in the context of unpublished members that caller provides 
         '''       (asking encompassing type for members will cause infinite recursion).
         ''' 

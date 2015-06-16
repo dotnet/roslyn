@@ -283,12 +283,12 @@ End Class"
             endOffset = outerScope.EndOffset
 
             ' At start of outer scope.
-            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, startOffset, localSignatureToken)
+            Dim context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(startOffset, UInteger), localSignatureToken)
             Assert.Equal(Nothing, previous)
             previous = New VisualBasicMetadataContext(methodBlocks, context)
 
             ' At end of outer scope - not reused because of the nested scope.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset, localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset, UInteger), localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext) ' Not required, just documentary.
 
             ' At type context.
@@ -307,7 +307,7 @@ End Class"
                     Assert.Equal(scope Is previousScope, constraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
                 End If
 
-                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, offset, localSignatureToken)
+                context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(offset, UInteger), localSignatureToken)
                 If scope Is previousScope Then
                     Assert.Equal(context, previous.EvaluationContext)
                 Else
@@ -334,7 +334,7 @@ End Class"
             GetContextState(runtime, "C.F", methodBlocks, moduleVersionId, symReader, methodToken, localSignatureToken)
 
             ' Different references. No reuse.
-            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, endOffset - 1, localSignatureToken)
+            context = EvaluationContext.CreateMethodContext(previous, methodBlocks, MakeDummyLazyAssemblyReaders(), symReader, moduleVersionId, methodToken, methodVersion, CType(endOffset - 1, UInteger), localSignatureToken)
             Assert.NotEqual(context, previous.EvaluationContext)
             Assert.True(previous.EvaluationContext.MethodContextReuseConstraints.Value.AreSatisfied(moduleVersionId, methodToken, methodVersion, endOffset - 1))
             Assert.NotEqual(context.Compilation, previous.Compilation)
@@ -2496,7 +2496,7 @@ End Class
             Dim context = CreateMethodContext(
                 runtime,
                 methodName:="C.M")
-            
+
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
             context.CompileExpression("e.HasValue", errorMessage, testData)
@@ -4480,6 +4480,104 @@ End Class"
   IL_0039:  conv.ovf.i4
   IL_003a:  ret
 }")
+        End Sub
+
+        <Fact>
+        Public Sub NullAnonymousTypeInstance()
+            Const source =
+"Class C
+    Shared Sub Main()
+    End Sub
+End Class"
+            Dim testData = Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "If(False, New With {.P = 1}, Nothing)")
+            Dim methodData = testData.GetMethodData("<>x.<>m0")
+            Dim returnType = DirectCast(methodData.Method.ReturnType, NamedTypeSymbol)
+            Assert.True(returnType.IsAnonymousType)
+            methodData.VerifyIL(
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  ret
+}")
+        End Sub
+
+        ''' <summary>
+        ''' DkmClrInstructionAddress.ILOffset is set to UInteger.MaxValue
+        ''' if the instruction does not map to an IL offset.
+        ''' </summary>
+        <WorkItem(1185315)>
+        <Fact>
+        Public Sub NoILOffset()
+            Const source =
+"Class C
+    Shared Sub M(x As Integer)
+        Dim y As Integer
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim runtime = CreateRuntimeInstance(comp)
+
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim symReader As ISymUnmanagedReader = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, "C.M", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
+
+            Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader)
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion:=1,
+                ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
+                localSignatureToken:=localSignatureToken)
+
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            Dim result = context.CompileExpression("x + y", errorMessage, testData)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size        4 (0x4)
+  .maxstack  2
+  .locals init (Integer V_0) //y
+  IL_0000:  ldarg.0
+  IL_0001:  ldloc.0
+  IL_0002:  add.ovf
+  IL_0003:  ret
+}")
+
+            ' Verify the context is re-used for ILOffset == 0.
+            Dim previous = context
+            context = EvaluationContext.CreateMethodContext(
+                New VisualBasicMetadataContext(blocks, previous),
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion:=1,
+                ilOffset:=0,
+                localSignatureToken:=localSignatureToken)
+            Assert.Same(previous, context)
+
+            ' Verify the context is re-used for NoILOffset.
+            previous = context
+            context = EvaluationContext.CreateMethodContext(
+                New VisualBasicMetadataContext(blocks, previous),
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion:=1,
+                ilOffset:=ExpressionCompilerTestHelpers.NoILOffset,
+                localSignatureToken:=localSignatureToken)
+            Assert.Same(previous, context)
         End Sub
 
     End Class

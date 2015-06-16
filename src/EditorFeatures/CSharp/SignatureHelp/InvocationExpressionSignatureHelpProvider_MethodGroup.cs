@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 var throughExpression = ((MemberAccessExpressionSyntax)invocationExpression.Expression).Expression;
                 var throughSymbol = semanticModel.GetSymbolInfo(throughExpression, cancellationToken).GetAnySymbol();
 
-                // if it is via a base expession "base.", we know the "throughType" is the base class but
+                // if it is via a base expression "base.", we know the "throughType" is the base class but
                 // we need to be able to tell between "base.M()" and "new Base().M()".
                 // currently, Access check methods do not differentiate between them.
                 // so handle "base." primary-expression here by nulling out "throughType"

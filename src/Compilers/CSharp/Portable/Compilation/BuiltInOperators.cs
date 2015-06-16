@@ -11,8 +11,8 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Internal cahe of built-in operators.
-    /// Cache is compilation-specific becuse it uses compilation-specific SpecialTypes.
+    /// Internal cache of built-in operators.
+    /// Cache is compilation-specific because it uses compilation-specific SpecialTypes.
     /// </summary>
     internal class BuiltInOperators
     {

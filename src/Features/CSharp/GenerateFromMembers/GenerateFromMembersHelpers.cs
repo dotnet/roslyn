@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateFromMembers
         internal static async Task<IList<MemberDeclarationSyntax>> GetSelectedMembersAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             return tree.GetMembersInSpan(textSpan, cancellationToken);
         }
 

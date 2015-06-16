@@ -49,6 +49,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
+      <Link>Collections\ArrayBuilderExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\BitVector.cs">
       <Link>InternalUtilities\BitVector.cs</Link>
     </Compile>
@@ -57,6 +60,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
+      <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataReference\MetadataFileReferenceProvider.cs">
       <Link>MetadataReference\MetadataFileReferenceProvider.cs</Link>
@@ -405,7 +411,16 @@
     <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
+    <Compile Include="Shared\Extensions\AccessibilityUtilities.cs" />
     <Compile Include="Shared\Extensions\FileLinePositionSpanExtensions.cs" />
+    <Compile Include="Shared\Extensions\LocationExtensions.cs" />
+    <Compile Include="Shared\Extensions\MethodKindExtensions.cs" />
+    <Compile Include="Shared\Extensions\SymbolInfoExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxNodeExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxNodeOrTokenExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTokenExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTreeExtensions.cs" />
+    <Compile Include="Shared\Extensions\SyntaxTriviaExtensions.cs" />
     <Compile Include="Shared\Extensions\TextDocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.ReplaceTypeParameterBasedOnTypeConstraintVisitor.cs" />
     <Compile Include="Shared\Utilities\SymbolEquivalenceComparer.AssemblyComparers.cs" />
@@ -664,15 +679,6 @@
     <Compile Include="Shared\Collections\SimpleIntervalTree`1.cs" />
     <Compile Include="Shared\Collections\TextSpanIntervalIntrospector.cs" />
     <Compile Include="Shared\Extensions\ArrayExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonAccessibilityUtilities.cs" />
-    <Compile Include="Shared\Extensions\CommonLocationExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonMethodKindExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSymbolInfoExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxNodeExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxNodeOrTokenExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxTokenExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxTreeExtensions.cs" />
-    <Compile Include="Shared\Extensions\CommonSyntaxTriviaExtensions.cs" />
     <Compile Include="Shared\Extensions\ContextQuery\AbstractSyntaxContext.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\IAssemblySymbolExtensions.cs" />

@@ -110,12 +110,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 // Ensure that we're not overly exposing a type.
                 var containingTypeAccessibility = state.TypeToGenerateIn.DetermineMinimalAccessibility();
-                var effectiveAccessibility = CommonAccessibilityUtilities.Minimum(
+                var effectiveAccessibility = AccessibilityUtilities.Minimum(
                     containingTypeAccessibility, accessibility);
 
                 var returnTypeAccessibility = state.TypeMemberType.DetermineMinimalAccessibility();
 
-                if (CommonAccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
+                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
                     effectiveAccessibility)
                 {
                     return returnTypeAccessibility;

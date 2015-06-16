@@ -1153,10 +1153,10 @@ class D { [@return:@X] void M() { } }  // Fine, binds to X
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,19): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
                 // class A { [return:X] void M() { } }  // Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "X").WithArguments("X", "X", "XAttribute"),
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "X").WithArguments("X", "X", "XAttribute"),
                 // (8,20): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
                 // class B { [@return:X] void M() { } }  // Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "X").WithArguments("X", "X", "XAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "X").WithArguments("X", "X", "XAttribute"));
         }
     }
 }

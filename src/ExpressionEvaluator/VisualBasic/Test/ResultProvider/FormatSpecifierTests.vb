@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                    EvalResult("s", "a" & vbNullChar & "b", "String", "s", editableValue:="""a"" & vbNullChar & ""b""", flags:=DkmEvaluationResultFlags.RawString))
 
             ' " " with alias
-            value = CreateDkmClrValue(" ", type:=stringType, [alias]:="1", evalFlags:=DkmEvaluationResultFlags.HasObjectId)
+            value = CreateDkmClrValue(" ", type:=stringType, [alias]:="$1", evalFlags:=DkmEvaluationResultFlags.HasObjectId)
             result = FormatResult("s", value, inspectionContext:=inspectionContext)
             Verify(result,
                    EvalResult("s", "  {$1}", "String", "s", editableValue:=""" """, flags:=DkmEvaluationResultFlags.RawString Or DkmEvaluationResultFlags.HasObjectId))

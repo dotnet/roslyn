@@ -120,6 +120,7 @@ namespace Roslyn.Test.Utilities
             {
                 mapLocal = local => new LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
             }
+
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
             var visualizer = new ILBuilderVisualizer(builder.module);
 
@@ -143,6 +144,24 @@ namespace Roslyn.Test.Utilities
                 sb.AppendLine("}");
             }
 
+            return sb.ToString();
+        }
+
+        internal static string LocalSignatureToString(
+            ILBuilder builder,
+            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null)
+        {
+            var sb = new StringBuilder();
+
+            if (mapLocal == null)
+            {
+                mapLocal = local => new LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference);
+            }
+
+            var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
+            var visualizer = new ILBuilderVisualizer(builder.module);
+
+            visualizer.VisualizeHeader(sb, -1, -1, locals);
             return sb.ToString();
         }
 

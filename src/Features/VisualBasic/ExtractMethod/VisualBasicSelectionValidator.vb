@@ -485,7 +485,7 @@ result.ReadOutside().Any(Function(s) s Is local) Then
             If commonRoot Is Nothing Then
                 Return New SelectionInfo With
                        {
-                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.NoCommonRootNodeForExtrac),
+                           .Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.NoCommonRootNodeForExtraction),
                            .OriginalSpan = adjustedSpan,
                            .FirstTokenInOriginalSpan = firstTokenInSelection,
                            .LastTokenInOriginalSpan = lastTokenInSelection

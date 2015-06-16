@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="fullKey">True if the full public key should be included in the name. Otherwise public key token is used.</param>
         /// <returns>The display name.</returns>
         /// <remarks>
-        /// Characters ',', '=', '"', '\'', '\' occuring in the simple name are escaped by backslash in the display name.
+        /// Characters ',', '=', '"', '\'', '\' occurring in the simple name are escaped by backslash in the display name.
         /// Any character '\t' is replaced by two characters '\' and 't',
         /// Any character '\n' is replaced by two characters '\' and 'n',
         /// Any character '\r' is replaced by two characters '\' and 'r',

@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 foreach (var arg in symbol.TypeArguments)
                 {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
+                    accessibility = AccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
                 }
 
                 if (symbol.ContainingType != null)
                 {
-                    accessibility = CommonAccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
+                    accessibility = AccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
                 }
 
                 return accessibility;

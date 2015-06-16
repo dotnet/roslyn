@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var fixService = new CodeFixService(
                     diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
-                var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
+                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
                 // register diagnostic engine to solution crawler
-                var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+                var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
 
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
-                var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+                var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
                 var reference = new MockAnalyzerReference(codefix);
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 document = project.Documents.Single();
@@ -156,10 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(TestDiagnosticAnalyzerService diagnosticService, TestWorkspace workspace, out Document document, out EditorLayerExtensionManager.ExtensionManager extensionManager)
         {
-            var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
             // register diagnostic engine to solution crawler
-            var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
 
             var reference = new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);

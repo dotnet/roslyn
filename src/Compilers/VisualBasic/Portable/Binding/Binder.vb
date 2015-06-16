@@ -758,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Disallow additonal local variable declaration and report delayed shadowing diagnostics.
+        ''' Disallow additional local variable declaration and report delayed shadowing diagnostics.
         ''' </summary>
         ''' <remarks></remarks>
         Public Overridable Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As DiagnosticBag)
@@ -1035,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a placeholder substitute for a With statement placeholder specified or Nothing if not found
         '''
         ''' Note: 'placeholder' is needed to make sure the binder can check that the placeholder is
-        ''' associated with the stement.
+        ''' associated with the statement.
         ''' </summary>
         Friend Overridable Function GetWithStatementPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase) As BoundExpression
             Return m_containingBinder.GetWithStatementPlaceholderSubstitute(placeholder)

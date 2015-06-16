@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.Options
 {
     public struct OptionKey : IEquatable<OptionKey>
     {
-        public readonly IOption Option;
-        public readonly string Language;
+        public IOption Option { get; }
+        public string Language { get; }
 
         public OptionKey(IOption option, string language = null)
         {

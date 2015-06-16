@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -1778,7 +1778,7 @@ class D : I
         }
 
         [WorkItem(528898, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void GenericTypeWithObsoleteBangAritySuffixIsNotAvailable()
         {
             var ilSource =
@@ -2113,7 +2113,7 @@ class Derived2 : Base2, Interface
         }
 
         [WorkItem(718115, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ExplicitlyImplementedAccessorsWithoutEvent()
         {
             var il = @"
@@ -2312,7 +2312,7 @@ public class Derived : Base, I
         }
 
         [WorkItem(943542, "DevDiv"), WorkItem(137, "CodePlex")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug943542()
         {
             var il = @"

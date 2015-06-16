@@ -248,7 +248,7 @@ End Class
 
         <WorkItem(734596)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub OptionExplictOffStatementLevel1()
+        Public Sub OptionExplicitOffStatementLevel1()
             Dim markup = <a> 
 Option Explicit Off
 Class C1
@@ -262,7 +262,7 @@ End Class
 
         <WorkItem(734596)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub OptionExplictOffStatementLevel2()
+        Public Sub OptionExplicitOffStatementLevel2()
             Dim markup = <a> 
 Option Explicit Off
 Class C1

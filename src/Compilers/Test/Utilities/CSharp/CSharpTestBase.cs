@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <param name="compilation"></param>
         /// <param name="treeIndex">which tree</param>
         /// <param name="which">
-        ///     * if which &lt; 0, find ALL wrpaaed nodes
+        ///     * if which &lt; 0, find ALL wrapped nodes
         ///     * if which &gt;=0, find a specific binding node wrapped by /*&lt;bind#&gt;*/ &amp; /*&lt;/bind#&gt;*/
         ///       e.g. if which = 1, find node wrapped by /*&lt;bind1&gt;*/ &amp; /*&lt;/bind1&gt;*/
         /// </param>
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// </summary>
         /// <remarks>
         /// Currently unsupported IL decoding:
-        /// - multidimentional arrays
+        /// - multidimensional arrays
         /// - vararg calls
         /// - winmd
         /// - global methods

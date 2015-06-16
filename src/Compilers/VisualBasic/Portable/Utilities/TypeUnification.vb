@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="substitution">
         ''' Substitutions performed so far (or null for none).
         ''' Keys are type parameters, values are types (possibly type parameters).
-        ''' Will be updated with new subsitutions by the callee.
+        ''' Will be updated with new substitutions by the callee.
         ''' Irrelevant if false is returned.
         ''' </param>
         ''' <returns>True if there exists a type map such that Map(LHS) == Map(RHS).</returns>

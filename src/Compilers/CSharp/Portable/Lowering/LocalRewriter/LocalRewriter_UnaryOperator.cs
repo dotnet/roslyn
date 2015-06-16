@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// would bind x++ as "X temp = x; x = (X)(short)((int)(short)temp + 1); return temp;"
         /// </summary>
         /// <param name="node">The unary operator expression representing the increment/decrement.</param>
-        /// <returns>A bound sequence that uses a temp to acheive the correct side effects and return value.</returns>
+        /// <returns>A bound sequence that uses a temp to achieve the correct side effects and return value.</returns>
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             bool isPrefix = IsPrefix(node);

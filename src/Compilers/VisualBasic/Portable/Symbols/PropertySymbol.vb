@@ -378,12 +378,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property IsWithEvents As Boolean Implements IPropertySymbol.IsWithEvents
             Get
-                Dim overriden = Me.OverriddenProperty
-                If overriden Is Nothing Then
+                Dim overridden = Me.OverriddenProperty
+                If overridden Is Nothing Then
                     Return False
                 End If
 
-                Return overriden.IsWithEvents
+                Return overridden.IsWithEvents
             End Get
         End Property
 

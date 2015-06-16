@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 if (names != null)
                 {
-                    return new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.AssingingToReadonlyFields, string.Join(", ", names)));
+                    return new OperationStatus(OperationStatusFlag.BestEffort, string.Format(FeaturesResources.AssigningToReadonlyFields, string.Join(", ", names)));
                 }
 
                 return OperationStatus.Succeeded;

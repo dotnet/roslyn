@@ -563,8 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
-                    ' Good result from derived class shouldn't be overriden by an ambiguous result from the base class.
-                    ' Ambiguous result from derived class shouldn't be overriden by a good result from the base class.
+                    ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
+                    ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
             ElseIf other.Kind > Me.Kind Then
@@ -603,8 +603,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
-                    ' Good result from derived class shouldn't be overriden by an ambiguous result from the base class.
-                    ' Ambiguous result from derived class shouldn't be overriden by a good result from the base class.
+                    ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
+                    ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
             ElseIf other.Kind > Me.Kind Then
@@ -706,7 +706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Me.IsAmbiguous)
                 ' This function guarantees that accessibility of all ambiguous symbols,
                 ' even those dropped from the list by MergeAmbiguous is the same.
-                ' So, it is sufficient to test accesibility of the only symbol we have. 
+                ' So, it is sufficient to test Accessibility of the only symbol we have. 
                 Dim accessibilityCmp As Integer = CompareAccessibilityOfSymbolsConflictingInSameContainer(_symList(0), other.Symbol)
 
                 If accessibilityCmp < 0 Then

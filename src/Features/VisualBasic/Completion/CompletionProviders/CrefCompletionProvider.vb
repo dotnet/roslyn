@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -44,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim span = CompletionUtilities.GetTextChangeSpan(text, position)
@@ -62,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' To get a Speculative SemanticModel (which is much faster), we need to 
             ' walk up to the node the DocumentationTrivia is attached to.
             Dim parentNode = token.GetAncestor(Of DocumentationCommentTriviaSyntax)().ParentTrivia.Token.Parent
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             If IsXmlStringContext(touchingToken) OrElse

@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // initializer. Since we don't know which the user will use, we'll be non-exclusive, so
             // the other providers can help the user write the collection initializer, if they want
             // to.
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(expression, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(expression, cancellationToken).ConfigureAwait(false);
             var initializedType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (initializedType == null)
             {

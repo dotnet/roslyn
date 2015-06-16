@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Update the accessibility modifiers for the given declaration node, retaining the trivia of the existing modifiers.
         /// </summary>
-        TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccesibility, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode;
+        TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode;
 
         /// <summary>
         /// Update the type for the given declaration node.

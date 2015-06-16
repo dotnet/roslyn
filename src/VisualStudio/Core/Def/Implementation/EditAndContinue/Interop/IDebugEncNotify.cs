@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         void NotifyEncEditAttemptedAtInvalidStopState();
 
         // This allows the Lang Service or project to tell the package that it prevented
-        // an edit from occuring.
+        // an edit from occurring.
         // The package is responsible for asking the ENC manager why ENC would not be 
         // allowed at this point.
         void NotifyEncEditDisallowedByProject([MarshalAs(UnmanagedType.IUnknown)]object pProject);

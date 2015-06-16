@@ -187,7 +187,7 @@
     <value>Use properties where appropriate.</value>
   </data>
   <data name="AbstractTypesShouldNotHavePublicConstructorsCodeFix" xml:space="preserve">
-    <value>Change the accessibility of all public contructors in this class to protected.</value>
+    <value>Change the accessibility of all public constructors in this class to protected.</value>
   </data>
   <data name="IdentifiersShouldDifferByMoreThanCase" xml:space="preserve">
     <value>Identifier names should differ by more than case</value>

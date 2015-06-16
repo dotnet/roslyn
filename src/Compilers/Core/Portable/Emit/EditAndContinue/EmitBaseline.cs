@@ -56,6 +56,21 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private static readonly ImmutableArray<int> s_emptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
 
+        internal sealed class MetadataSymbols
+        {
+            public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
+            public readonly object MetadataDecoder;
+
+            public MetadataSymbols(IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes, object metadataDecoder)
+            {
+                Debug.Assert(anonymousTypes != null);
+                Debug.Assert(metadataDecoder != null);
+
+                this.AnonymousTypes = anonymousTypes;
+                this.MetadataDecoder = metadataDecoder;
+            }
+        }
+
         /// <summary>
         /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
         /// and from a function that maps from a method to an array of local names. 
@@ -138,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public ModuleMetadata OriginalMetadata { get; }
 
-        // Anonymous types extracted from metadata. Lazy since we don't know the language at the time the baseline is constructed.
-        internal IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> LazyOriginalMetadataAnonymousTypeMap;
+        // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
+        internal MetadataSymbols LazyMetadataSymbols;
         
         internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder PEModuleBuilder;
@@ -344,8 +359,8 @@ namespace Microsoft.CodeAnalysis.Emit
                     return _anonymousTypeMap;
                 }
 
-                Debug.Assert(LazyOriginalMetadataAnonymousTypeMap != null);
-                return LazyOriginalMetadataAnonymousTypeMap;
+                Debug.Assert(LazyMetadataSymbols != null);
+                return LazyMetadataSymbols.AnonymousTypes;
             }
         }
 

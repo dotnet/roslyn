@@ -82,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                     Return value
                 End If
 
-                Dim xName = If(ShouldCompareByName(x), x.GetNameToken(), Nothing)
-                Dim yName = If(ShouldCompareByName(x), y.GetNameToken(), Nothing)
+                Dim xName = If(ShouldCompareByName(x), TryCast(x, DeclarationStatementSyntax).GetNameToken(), Nothing)
+                Dim yName = If(ShouldCompareByName(x), TryCast(y, DeclarationStatementSyntax).GetNameToken(), Nothing)
 
                 value = TokenComparer.NormalInstance.Compare(xName, yName)
                 If value <> 0 Then

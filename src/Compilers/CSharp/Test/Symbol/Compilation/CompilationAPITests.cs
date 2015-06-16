@@ -605,7 +605,7 @@ class D
         }
 
         [WorkItem(713356, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MissedModuleA()
         {
             var netModule1 = CreateCompilationWithMscorlib(
@@ -1461,7 +1461,7 @@ public class TestClass
                 compilation.GetDiagnostics().Verify(
                     // (8,2): error CS1614: 'MyAttribute' is ambiguous between 'MyAttribute2Attribute' and 'MyAttributeAttribute'; use either '@MyAttribute' or 'MyAttributeAttribute'
                     // [MyAttribute]
-                    Diagnostic(ErrorCode.ERR_AmbigousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
+                    Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
             }
 
             // Ask for compilation diagnostics first.
@@ -1474,7 +1474,7 @@ public class TestClass
                 compilation.GetDiagnostics().Verify(
                     // (10,2): error CS1614: 'MyAttribute' is ambiguous between 'MyAttribute2Attribute' and 'MyAttributeAttribute'; use either '@MyAttribute' or 'MyAttributeAttribute'
                     // [MyAttribute]
-                    Diagnostic(ErrorCode.ERR_AmbigousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
+                    Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "MyAttribute").WithArguments("MyAttribute", "MyAttribute2Attribute", "MyAttributeAttribute"));
                 model2.GetDiagnostics().Verify(); // None, since the file is empty.
             }
         }

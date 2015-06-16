@@ -352,7 +352,7 @@ class Program
         }
 
         [Fact]
-        public void EmitIntefaceMethodOnStruct()
+        public void EmitInterfaceMethodOnStruct()
         {
             string source = @"
 using System;

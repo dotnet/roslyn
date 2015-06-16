@@ -74,7 +74,7 @@ class 123 { }
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                Assert.Equal(PredefinedBuildTools.Compiler, buildTool)
+                Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Sub
 
@@ -96,7 +96,7 @@ End Class
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                Assert.Equal(PredefinedBuildTools.Compiler, buildTool)
+                Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Sub
 

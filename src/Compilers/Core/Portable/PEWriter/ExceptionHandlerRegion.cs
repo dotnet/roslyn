@@ -42,7 +42,7 @@ namespace Microsoft.Cci
         public abstract ExceptionRegionKind HandlerKind { get; }
 
         /// <summary>
-        /// If HandlerKind == HandlerKind.Catch, this is the type of expection to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
+        /// If HandlerKind == HandlerKind.Catch, this is the type of exception to catch. If HandlerKind == HandlerKind.Filter, this is System.Object.
         /// Otherwise this is a Dummy.TypeReference.
         /// </summary>
         public virtual ITypeReference ExceptionType

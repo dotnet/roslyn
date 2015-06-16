@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 if (token.HasTrailingTrivia)
                 {
-                    ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
+                    ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType: ClassificationTypeNames.XmlDocCommentText);
                 }
             }
         }

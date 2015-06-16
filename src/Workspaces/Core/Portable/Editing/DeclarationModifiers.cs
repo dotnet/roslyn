@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -215,21 +214,21 @@ namespace Microsoft.CodeAnalysis.Editing
             WriteOnly = 0x1000
         }
 
-        public static readonly DeclarationModifiers None = default(DeclarationModifiers);
+        public static DeclarationModifiers None => default(DeclarationModifiers);
 
-        public static readonly DeclarationModifiers Static = new DeclarationModifiers(Modifiers.Static);
-        public static readonly DeclarationModifiers Abstract = new DeclarationModifiers(Modifiers.Abstract);
-        public static readonly DeclarationModifiers New = new DeclarationModifiers(Modifiers.New);
-        public static readonly DeclarationModifiers Unsafe = new DeclarationModifiers(Modifiers.Unsafe);
-        public static readonly DeclarationModifiers ReadOnly = new DeclarationModifiers(Modifiers.ReadOnly);
-        public static readonly DeclarationModifiers Virtual = new DeclarationModifiers(Modifiers.Virtual);
-        public static readonly DeclarationModifiers Override = new DeclarationModifiers(Modifiers.Override);
-        public static readonly DeclarationModifiers Sealed = new DeclarationModifiers(Modifiers.Sealed);
-        public static readonly DeclarationModifiers Const = new DeclarationModifiers(Modifiers.Const);
-        public static readonly DeclarationModifiers WithEvents = new DeclarationModifiers(Modifiers.WithEvents);
-        public static readonly DeclarationModifiers Partial = new DeclarationModifiers(Modifiers.Partial);
-        public static readonly DeclarationModifiers Async = new DeclarationModifiers(Modifiers.Async);
-        public static readonly DeclarationModifiers WriteOnly = new DeclarationModifiers(Modifiers.WriteOnly);
+        public static DeclarationModifiers Static => new DeclarationModifiers(Modifiers.Static);
+        public static DeclarationModifiers Abstract => new DeclarationModifiers(Modifiers.Abstract);
+        public static DeclarationModifiers New => new DeclarationModifiers(Modifiers.New);
+        public static DeclarationModifiers Unsafe => new DeclarationModifiers(Modifiers.Unsafe);
+        public static DeclarationModifiers ReadOnly => new DeclarationModifiers(Modifiers.ReadOnly);
+        public static DeclarationModifiers Virtual => new DeclarationModifiers(Modifiers.Virtual);
+        public static DeclarationModifiers Override => new DeclarationModifiers(Modifiers.Override);
+        public static DeclarationModifiers Sealed => new DeclarationModifiers(Modifiers.Sealed);
+        public static DeclarationModifiers Const => new DeclarationModifiers(Modifiers.Const);
+        public static DeclarationModifiers WithEvents => new DeclarationModifiers(Modifiers.WithEvents);
+        public static DeclarationModifiers Partial => new DeclarationModifiers(Modifiers.Partial);
+        public static DeclarationModifiers Async => new DeclarationModifiers(Modifiers.Async);
+        public static DeclarationModifiers WriteOnly => new DeclarationModifiers(Modifiers.WriteOnly);
 
         public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
         {

@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             moduleVersionId As Guid,
             methodToken As Integer,
             methodVersion As Integer,
-            ilOffset As Integer,
+            ilOffset As UInteger,
             localSignatureToken As Integer,
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
