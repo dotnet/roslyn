@@ -16,21 +16,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
-
             // we support active document tracking only for visual studio workspace host.
             if (workspaceServices.Workspace is VisualStudioWorkspace)
             {
-                return GetVisualStudioProjectCache(workspaceServices, projectCacheService);
+                return GetVisualStudioProjectCache(workspaceServices);
             }
 
-            GetMiscProjectCache(workspaceServices, projectCacheService);
-
-            return projectCacheService;
+            return GetMiscProjectCache(workspaceServices);
         }
 
-        private static void GetMiscProjectCache(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)
+        private static IWorkspaceService GetMiscProjectCache(HostWorkspaceServices workspaceServices)
         {
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+
             var workspaceCacheService = workspaceServices.GetService<IWorkspaceCacheService>();
             if (workspaceCacheService != null)
             {
@@ -45,10 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                     projectCacheService.ClearImplicitCache();
                 }
             };
+
+            return projectCacheService;
         }
 
-        private static IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)
+        private static IWorkspaceService GetVisualStudioProjectCache(HostWorkspaceServices workspaceServices)
         {
+            var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+
             var documentTrackingService = workspaceServices.GetService<IDocumentTrackingService>();
 
             // Subscribe to events so that we can cache items from the active document's project
