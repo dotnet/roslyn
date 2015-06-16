@@ -536,13 +536,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
             if (token.Kind() == SyntaxKind.EndOfFileToken)
             {
-                var text = syntaxTree.GetText(cancellationToken);
-                var lineContainingPosition = text.Lines.IndexOf(position);
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
                 {
-                    var triviaLine = text.Lines.IndexOf(triviaTok.SpanStart);
-                    if (triviaLine <= lineContainingPosition)
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
                     {
                         if (!triviaTok.HasStructure)
                         {
