@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal interface IAssemblyWhiteList
+    internal interface IIgnorableAssemblyList
     {
         bool Includes(AssemblyIdentity assemblyIdentity);
     }

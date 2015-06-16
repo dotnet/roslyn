@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         internal AsyncLazy<ImmutableArray<SymbolDisplayPart>> LazyDescription;
 
+        internal bool HasAsyncDescription { get; }
+
         /// <summary>
         /// An appropriate icon to present to the user for this completion item.
         /// </summary>
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Completion
             bool shouldFormatOnCommit = false)
             : this(completionProvider, displayText, filterSpan,
                    description.IsDefault ? (Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>>)null : c => Task.FromResult(description),
-                   glyph, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
+                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
         {
         }
 
@@ -112,6 +114,23 @@ namespace Microsoft.CodeAnalysis.Completion
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
             Glyph? glyph,
+            string sortText = null,
+            string filterText = null,
+            bool preselect = false,
+            bool isBuilder = false,
+            bool showsWarningIcon = false,
+            bool shouldFormatOnCommit = false) :
+                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
+        {
+        }
+
+        private CompletionItem(
+            ICompletionProvider completionProvider,
+            string displayText,
+            TextSpan filterSpan,
+            Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
+            Glyph? glyph,
+            bool hasAsyncDescription,
             string sortText = null,
             string filterText = null,
             bool preselect = false,
@@ -129,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.IsBuilder = isBuilder;
             this.ShowsWarningIcon = showsWarningIcon;
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
+            this.HasAsyncDescription = hasAsyncDescription;
 
             if (descriptionFactory != null)
             {
