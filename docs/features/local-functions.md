@@ -1,0 +1,32 @@
+- [ ] Parser ambiguity research
+	- Some thought done, not complete
+	- Currently thought to be unambiguous past the parameter list (starting at `{` or `=>`), but that requires lots of lookahead.
+- [x] N-level nested local functions
+- [ ] Capture
+	- [x] Initial implementation
+	- [ ] Tests
+	- [x] IDE integration
+	- Works alongside lambdas and behaves very similarly
+	- No optimized closures (by-ref parameters instead of closure class)
+- [x] Standard parameter features
+	- params
+	- ref/out
+	- named/optional
+- [x] Visibility
+	- May revisit design (currently shadows, may do overloads)
+- [ ] Generics
+	- [x] Nongeneric local functions in generic methods (same as lambdas).
+	- [x] Generic local functions in nongeneric methods.
+	- [x] Generic local functions in generic methods.
+	- [x] Arbitrary nesting of generic local functions.
+		- [x] Initial implementation
+		- [ ] Tests
+		- [x] IDE integration
+	- [ ] Generic local functions with constraints.
+- [ ] Inferred return type
+- [x] Iterators
+- [x] Async
+- [ ] API
+- [ ] Editor
+	- [x] Basic features (variable highlight, rename, etc.)
+	- [ ] Advanced features (refactorings, analyzers)
