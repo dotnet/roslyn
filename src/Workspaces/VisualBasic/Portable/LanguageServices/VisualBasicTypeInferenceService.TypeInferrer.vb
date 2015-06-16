@@ -217,6 +217,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             index = GetArgumentListIndex(argumentList, previousToken)
                         End If
 
+                        If index < 0 Then
+                            Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                        End If
+
                         Dim info = _semanticModel.GetSymbolInfo(invocation)
                         ' Check all the methods that have at least enough arguments to support being
                         ' called with argument at this position.  Note: if they're calling an extension
@@ -259,6 +263,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Else
                                     index = GetArgumentListIndex(argumentList, previousToken)
                                 End If
+
+                                If index < 0 Then
+                                    Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                                End If
+
                                 Dim constructors = namedType.InstanceConstructors.Where(Function(m) m.Parameters.Length > index)
                                 Return InferTypeInArgument(argumentOpt, index, constructors)
                             End If
@@ -277,6 +286,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             index = attribute.ArgumentList.Arguments.IndexOf(argumentOpt)
                         Else
                             index = GetArgumentListIndex(argumentList, previousToken)
+                        End If
+
+                        If index < 0 Then
+                            Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                         End If
 
                         Dim info = _semanticModel.GetSymbolInfo(attribute)
@@ -838,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim index = argumentList.Arguments.GetWithSeparators().IndexOf(previousToken)
-                Return (index + 1) \ 2
+                Return If(index >= 0, (index + 1) \ 2, -1)
             End Function
 
             Private Function InferTypeInCollectionInitializerExpression(

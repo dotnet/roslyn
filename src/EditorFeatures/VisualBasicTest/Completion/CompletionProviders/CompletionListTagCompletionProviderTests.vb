@@ -342,6 +342,32 @@ End Class
             VerifyItemIsAbsent(markup, "e As E")
         End Sub
 
+        <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotAfterInvocationWithCompletionListTagTypeAsFirstParameter()
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub Test()
+        M(Type2.A)
+        $$
+    End Sub
+
+    Private Sub M(a As Type1)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+''' <completionlist cref="Type2"/>
+Public Class Type1
+End Class
+
+Public Class Type2
+    Public Shared A As Type1
+    Public Shared B As Type1
+End Class
+]]></Text>.Value
+            VerifyNoItemsExist(markup)
+        End Sub
+
         Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
             Return New CompletionListTagCompletionProvider()
         End Function
