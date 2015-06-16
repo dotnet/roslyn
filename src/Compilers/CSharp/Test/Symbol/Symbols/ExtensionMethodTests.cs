@@ -3687,7 +3687,7 @@ o.F();";
             compilation.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void InteractiveExtensionMethods()
         {
             var parseOptions = TestOptions.Interactive;
