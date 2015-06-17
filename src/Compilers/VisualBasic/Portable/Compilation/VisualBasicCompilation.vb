@@ -59,9 +59,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Holds onto data related to reference binding.
         ''' The manager is shared among multiple compilations that we expect to have the same result of reference binding.
-        ''' In most cases this can be determined without performing the binding. If the compilation however contains a circular 
+        ''' In most cases this can be determined without performing the binding. If the compilation however contains a circular
         ''' metadata reference (a metadata reference that refers back to the compilation) we need to avoid sharing of the binding results.
-        ''' We do so by creating a new reference manager for such compilation. 
+        ''' We do so by creating a new reference manager for such compilation.
         ''' </summary>
         Private _referenceManager As ReferenceManager
 
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _syntaxTrees As ImmutableArray(Of SyntaxTree)
 
         ''' <summary>
-        ''' The syntax trees of this compilation plus all 'hidden' trees 
+        ''' The syntax trees of this compilation plus all 'hidden' trees
         ''' added to the compilation by compiler, e.g. Vb Core Runtime.
         ''' </summary>
         Private _lazyAllSyntaxTrees As ImmutableArray(Of SyntaxTree)
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' It doesn't feel like it should be managed by EmbeddedSymbolManager
         ''' because MyTemplate is treated as user code, i.e. can be extended via
         ''' partial declarations, doesn't require "on-demand" metadata generation, etc.
-        ''' 
+        '''
         ''' SyntaxTree.Dummy means uninitialized.
         ''' </summary>
         Private _lazyMyTemplate As SyntaxTree = VisualBasicSyntaxTree.Dummy
@@ -317,8 +317,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           isSubmission:=False)
         End Function
 
-        ''' <summary> 
-        ''' Creates a new compilation that can be used in scripting. 
+        ''' <summary>
+        ''' Creates a new compilation that can be used in scripting.
         ''' </summary>
         Public Shared Function CreateSubmission(
             assemblyName As String,
@@ -519,8 +519,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shadows Function WithAssemblyName(assemblyName As String) As VisualBasicCompilation
             CheckAssemblyName(assemblyName)
 
-            ' Can't reuse references since the source assembly name changed and the referenced symbols might 
-            ' have internals-visible-to relationship with this compilation or they might had a circular reference 
+            ' Can't reuse references since the source assembly name changed and the referenced symbols might
+            ' have internals-visible-to relationship with this compilation or they might had a circular reference
             ' to this compilation.
 
             Return New VisualBasicCompilation(
@@ -548,9 +548,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Creates a new compilation with the specified references.
         ''' </summary>
         ''' <remarks>
-        ''' The new <see cref="VisualBasicCompilation"/> will query the given <see cref="MetadataReference"/> for the underlying 
-        ''' metadata as soon as the are needed. 
-        ''' 
+        ''' The new <see cref="VisualBasicCompilation"/> will query the given <see cref="MetadataReference"/> for the underlying
+        ''' metadata as soon as the are needed.
+        '''
         ''' The New compilation uses whatever metadata is currently being provided by the <see cref="MetadataReference"/>.
         ''' E.g. if the current compilation references a metadata file that has changed since the creation of the compilation
         ''' the New compilation is going to use the updated version, while the current compilation will be using the previous (it doesn't change).
@@ -593,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim declMap = Me._rootNamespaces
 
             If Not String.Equals(Me.Options.RootNamespace, newOptions.RootNamespace, StringComparison.Ordinal) Then
-                ' If the root namespace was updated we have to update declaration table 
+                ' If the root namespace was updated we have to update declaration table
                 ' entries for all the syntax trees of the compilation
                 '
                 ' NOTE: we use case-sensitive comparison so that the new compilation
@@ -636,11 +636,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns a new compilation with the given compilation set as the previous submission. 
+        ''' Returns a new compilation with the given compilation set as the previous submission.
         ''' </summary>
         Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
             If Not IsSubmission Then
-                Throw New NotSupportedException("Can't have a " & NameOf(newPreviousSubmission) & " when not a submission")
+                Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
@@ -700,7 +700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns the type of the submission return value.
         ''' </summary>
         ''' <param name="hasValue">
-        ''' Whether the submission is considered to have a value. 
+        ''' Whether the submission is considered to have a value.
         ''' This information can be used for example in a REPL implementation to determine whether to print out the result of a submission execution.
         ''' </param>
         ''' <returns>
@@ -817,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me
             End If
 
-            ' We're using a try-finally for this builder because there's a test that 
+            ' We're using a try-finally for this builder because there's a test that
             ' specifically checks for one or more of the argument exceptions below
             ' and we don't want to see console spew (even though we don't generally
             ' care about pool "leaks" in exceptional cases).  Alternatively, we
@@ -993,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectivesChanged = False
 
             ' TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
-            ' This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke 
+            ' This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke
             ' that replaces the tree with a new one.
 
             RemoveSyntaxTreeFromDeclarationMapAndTable(vbOldTree, declMap, declTable, referenceDirectivesChanged)
@@ -1098,7 +1098,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function IncludeInternalXmlHelper() As Boolean
             ' In new flavors of the framework, types, that XML helpers depend upon, are
-            ' defined in assemblies with different names. Let's not hardcode these names, 
+            ' defined in assemblies with different names. Let's not hardcode these names,
             ' let's check for presence of types instead.
             Return Not Me.Options.SuppressEmbeddedDeclarations AndAlso
                    InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Linq_Enumerable) AndAlso
@@ -1127,11 +1127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        ' TODO: This comparison probably will change to compiler command line order, or at least needs 
+        ' TODO: This comparison probably will change to compiler command line order, or at least needs
         ' TODO: to be resolved. See bug 8520.
 
         ''' <summary>
-        ''' Compare two source locations, using their containing trees, and then by Span.First within a tree. 
+        ''' Compare two source locations, using their containing trees, and then by Span.First within a tree.
         ''' Can be used to get a total ordering on declarations, for example.
         ''' </summary>
         Friend Overrides Function CompareSourceLocations(first As Location, second As Location) As Integer
@@ -1178,7 +1178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <returns><see cref="AssemblySymbol"/> or <see cref="ModuleSymbol"/> corresponding to the given reference or Nothing if there is none.</returns>
         ''' <remarks>
-        ''' Uses object identity when comparing two references. 
+        ''' Uses object identity when comparing two references.
         ''' </remarks>
         Friend Shadows Function GetAssemblyOrModuleSymbol(reference As MetadataReference) As Symbol
             If (reference Is Nothing) Then
@@ -1279,7 +1279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Get a ModuleSymbol that refers to the module being created by compiling all of the code. By
-        ''' getting the GlobalNamespace property of that module, all of the namespace and types defined in source code 
+        ''' getting the GlobalNamespace property of that module, all of the namespace and types defined in source code
         ''' can be obtained.
         ''' </summary>
         Friend Shadows ReadOnly Property SourceModule As ModuleSymbol
@@ -1289,7 +1289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Gets the merged root namespace that contains all namespaces and types defined in source code or in 
+        ''' Gets the merged root namespace that contains all namespaces and types defined in source code or in
         ''' referenced metadata, merged into a single namespace hierarchy. This namespace hierarchy is how the compiler
         ''' binds types that are referenced in code.
         ''' </summary>
@@ -1304,8 +1304,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Get the "root" or default namespace that all source types are declared inside. This may be the 
-        ''' global namespace or may be another namespace. 
+        ''' Get the "root" or default namespace that all source types are declared inside. This may be the
+        ''' global namespace or may be another namespace.
         ''' </summary>
         Friend ReadOnly Property RootNamespace As NamespaceSymbol
             Get
@@ -1315,9 +1315,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Given a namespace symbol, returns the corresponding namespace symbol with Compilation extent
-        ''' that refers to that namespace in this compilation. Returns Nothing if there is no corresponding 
+        ''' that refers to that namespace in this compilation. Returns Nothing if there is no corresponding
         ''' namespace. This should not occur if the namespace symbol came from an assembly referenced by this
-        ''' compilation. 
+        ''' compilation.
         ''' </summary>
         Friend Shadows Function GetCompilationNamespace(namespaceSymbol As INamespaceSymbol) As NamespaceSymbol
             If namespaceSymbol Is Nothing Then
@@ -1508,7 +1508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' First determine the Sub Main using pre-async rules, and give the pre-async errors if there were 0 or >1 results
                         ' If there was exactly one result, but it was async, then give an error. Otherwise proceed.
                         ' This doesn't follow the same pattern as "error due to being generic". That's because
-                        ' maybe one day we'll want to allow Async Sub Main but without breaking back-compat.                    
+                        ' maybe one day we'll want to allow Async Sub Main but without breaking back-compat.
                         Dim sourceMethod = TryCast(entryPoint, SourceMemberMethodSymbol)
                         Debug.Assert(sourceMethod IsNot Nothing)
 
@@ -1702,7 +1702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' where a user can find the other.
 
         ''' <summary>
-        ''' Determine what kind of conversion, if any, there is between the types 
+        ''' Determine what kind of conversion, if any, there is between the types
         ''' "source" and "destination".
         ''' </summary>
         Public Shadows Function ClassifyConversion(source As ITypeSymbol, destination As ITypeSymbol) As Conversion
@@ -1749,9 +1749,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Resolves a symbol that represents script container (Script class). 
+        ''' Resolves a symbol that represents script container (Script class).
         ''' Uses the full name of the container class stored in <see cref="CompilationOptions.ScriptClassName"/>  to find the symbol.
-        ''' </summary> 
+        ''' </summary>
         ''' <returns>
         ''' The Script class symbol or null if it is not defined.
         ''' </returns>
@@ -1787,7 +1787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="fullyQualifiedMetadataName">
         ''' </param>
         ''' <returns>
-        ''' Symbol for the type or null if type cannot be found or is ambiguous. 
+        ''' Symbol for the type or null if type cannot be found or is ambiguous.
         ''' </returns>
         Friend Shadows Function GetTypeByMetadataName(fullyQualifiedMetadataName As String) As NamedTypeSymbol
             Return Me.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences:=True, isWellKnownType:=False)
@@ -1811,11 +1811,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Binding"
 
-        '''<summary> 
+        '''<summary>
         ''' Get a fresh SemanticModel.  Note that each invocation gets a fresh SemanticModel, each of
         ''' which has a cache.  Therefore, one effectively clears the cache by discarding the
         ''' SemanticModel.
-        '''</summary> 
+        '''</summary>
         Public Shadows Function GetSemanticModel(syntaxTree As SyntaxTree, Optional ignoreAccessibility As Boolean = False) As SemanticModel
             Return New SyntaxTreeSemanticModel(Me, DirectCast(Me.SourceModule, SourceModuleSymbol), syntaxTree, ignoreAccessibility)
         End Function
@@ -1867,7 +1867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Get method body diagnostics for the entire compilation. This includes diagnostics only from 
+        ''' Get method body diagnostics for the entire compilation. This includes diagnostics only from
         ''' the bodies of methods and initializers. These diagnostics are NOT cached, so calling this method a second time
         ''' repeats significant work.
         ''' </summary>
@@ -1915,7 +1915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Add method body compilation errors.
             If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
-                ' Note: this phase does not need to be parallelized because 
+                ' Note: this phase does not need to be parallelized because
                 '       it is already implemented in method compiler
                 Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
                 GetDiagnosticsForAllMethodBodies(builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
@@ -2290,7 +2290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            ' Add debug documents for all directives. 
+            ' Add debug documents for all directives.
             ' If there are clashes with already processed directives, report warnings.
             ' If there are clashes with debug documents that came from actual trees, ignore the directive.
             For Each tree In Me.SyntaxTrees

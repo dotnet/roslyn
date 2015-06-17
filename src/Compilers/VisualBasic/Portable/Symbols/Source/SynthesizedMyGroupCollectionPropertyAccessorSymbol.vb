@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' Note, Dev11 emits DebuggerNonUserCodeAttribute, but we are using DebuggerHiddenAttribute instead.
@@ -58,11 +58,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim fieldName As String = PropertyOrEvent.AssociatedField.Name
 
-            Dim codeToParse As String = _
+            Dim codeToParse As String =
 $"Partial Class {containingTypeName}
-Property {propertyName}
-{GetMethodBlock(fieldName, MakeSafeName(_createOrDisposeMethod), targetTypeName)}
-End Property
+    Property {propertyName}
+        {GetMethodBlock(fieldName, MakeSafeName(_createOrDisposeMethod), targetTypeName)}
+    End Property
 End Class
 "
 
@@ -89,7 +89,7 @@ End Class
             Dim propertyBlock = DirectCast(classBlock.Members(0), PropertyBlockSyntax)
             Dim accessorBlock As AccessorBlockSyntax = propertyBlock.Accessors(0)
 
-            Dim boundStatement As BoundStatement
+            Dim boundStatement As boundStatement
 
             If hasErrors Then
                 boundStatement = New BoundBadStatement(accessorBlock, ImmutableArray(Of BoundNode).Empty)
@@ -120,7 +120,7 @@ End Class
                 End If
             End If
 
-            Return New BoundBlock(accessorBlock, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundStatement)(boundStatement))
+            Return New BoundBlock(accessorBlock, Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of boundStatement)(boundStatement))
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean
@@ -170,7 +170,7 @@ End Class
             '    return <backingField>
             ' End Get
 
-            Return _ 
+            Return _
 $"Get
 {fieldName} = {createMethodName}(Of {targetTypeName})({fieldName})
 Return {fieldName}
@@ -232,13 +232,13 @@ End Get
 
             Return _
  $"Set(ByVal {StringConstants.ValueParameterName} As {targetTypeName})
-If {StringConstants.ValueParameterName} Is {fieldName}
-Return
-End If
-If {StringConstants.ValueParameterName} IsNot Nothing Then
-Throw New Global.System.ArgumentException(""Property can only be set to Nothing"")
-End If
-{disposeMethodName}(Of {targetTypeName})({fieldName})
+    If {StringConstants.ValueParameterName} Is {fieldName}
+        Return
+    End If
+    If {StringConstants.ValueParameterName} IsNot Nothing Then
+        Throw New Global.System.ArgumentException(""Property can only be set to Nothing"")
+    End If
+    {disposeMethodName}(Of {targetTypeName})({fieldName})
 End Set
 "
         End Function

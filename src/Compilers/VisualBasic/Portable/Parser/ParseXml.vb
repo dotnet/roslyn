@@ -510,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim lessThan As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken(ScannerState.Element)
 
-            ' /* AllowExpr */' /* IsBracketed */' 
+            ' /* AllowExpr */' /* IsBracketed */'
             Dim Name = ParseXmlQualifiedName(False, True, ScannerState.Element, ScannerState.Element)
 
             Dim nameIsFollowedByWhitespace = Name.HasTrailingTrivia
@@ -906,7 +906,7 @@ LessThanSlashTokenCase:
             End If
 
             If CurrentToken.Kind = SyntaxKind.XmlNameToken Then
-                ' /* AllowExpr */' /* IsBracketed */' 
+                ' /* AllowExpr */' /* IsBracketed */'
                 name = DirectCast(ParseXmlQualifiedName(False, False, ScannerState.EndElement, ScannerState.EndElement), XmlNameSyntax)
             End If
 
@@ -969,7 +969,7 @@ LessThanSlashTokenCase:
                 CurrentToken.Kind = SyntaxKind.SingleQuoteToken OrElse
                 CurrentToken.Kind = SyntaxKind.DoubleQuoteToken Then
 
-                ' /* AllowExpr */' /* IsBracketed */' 
+                ' /* AllowExpr */' /* IsBracketed */'
                 Dim Name = ParseXmlQualifiedName(requireLeadingWhitespace, True, ScannerState.Element, ScannerState.Element)
 
                 If CurrentToken.Kind = SyntaxKind.EqualsToken Then
@@ -1053,7 +1053,7 @@ LessThanSlashTokenCase:
                 Return False
             End If
 
-            ' NOTE: we don't check the parent, seems 'cref' attribute is supported 
+            ' NOTE: we don't check the parent, seems 'cref' attribute is supported
             ' NOTE: for any nodes even user-defined ones
 
             Dim state As ScannerState
@@ -1069,7 +1069,7 @@ LessThanSlashTokenCase:
                 Return False
             End If
 
-            ' If we have any problems with parsing the name we want to restore the scanner and 
+            ' If we have any problems with parsing the name we want to restore the scanner and
             ' fall back to a regular attribute scenario
             Dim restorePoint As Scanner.RestorePoint = Me._scanner.CreateRestorePoint()
 
@@ -1098,7 +1098,7 @@ LessThanSlashTokenCase:
             If SyntaxFacts.IsPredefinedTypeKeyword(Me.CurrentToken.Kind) Then
                 Dim type As PredefinedTypeSyntax = SyntaxFactory.PredefinedType(DirectCast(CurrentToken, KeywordSyntax))
 
-                ' We need to move to the next token as ParseName(...) does 
+                ' We need to move to the next token as ParseName(...) does
                 GetNextToken()
 
                 crefReference = SyntaxFactory.CrefReference(type, Nothing, Nothing)
@@ -1111,8 +1111,8 @@ LessThanSlashTokenCase:
                 GoTo lFailed
             End If
 
-            ' We need to reset the current token and possibly peeked tokens because those 
-            ' were created using default scanner state, but we want to see from this 
+            ' We need to reset the current token and possibly peeked tokens because those
+            ' were created using default scanner state, but we want to see from this
             ' point tokens received using custom scanner state saved in 'state'
             Me.ResetCurrentToken(state)
 
@@ -1184,7 +1184,7 @@ lFailed:
 
             Dim result As CrefReferenceSyntax = SyntaxFactory.CrefReference(name, signature, asClause)
 
-            ' Even if there are diagnostcis in name we don't report them, they will be 
+            ' Even if there are diagnostcis in name we don't report them, they will be
             ' reported later in Documentation comment binding
             If result.ContainsDiagnostics Then
                 result.ClearFlags(GreenNode.NodeFlags.ContainsDiagnostics)
@@ -1206,8 +1206,8 @@ lFailed:
                 Dim currToken As SyntaxToken = Me.CurrentToken
 
                 If currToken.Kind <> SyntaxKind.CloseParenToken AndAlso currToken.Kind <> SyntaxKind.CommaToken AndAlso Not firstType Then
-                    ' In case we expect ')' or ',' but don't find one, we consider this an end of 
-                    ' the signature, add a missing '(' and exit parsing 
+                    ' In case we expect ')' or ',' but don't find one, we consider this an end of
+                    ' the signature, add a missing '(' and exit parsing
                     currToken = InternalSyntaxFactory.MissingToken(SyntaxKind.CloseParenToken)
                 End If
 
@@ -1289,9 +1289,9 @@ lFailed:
                 GetNextToken()
 
             ElseIf CurrentToken.Kind = SyntaxKind.ObjectKeyword Then
-                ' Dev11 treats type 'object' quite in a weird way, thus [cref="object"] and 
-                ' [cref="system.object"] will both be resolved into "T:System.Object", but 
-                ' while [cref="system.object.tostring"] is resolved into "M:System.Object.ToString", 
+                ' Dev11 treats type 'object' quite in a weird way, thus [cref="object"] and
+                ' [cref="system.object"] will both be resolved into "T:System.Object", but
+                ' while [cref="system.object.tostring"] is resolved into "M:System.Object.ToString",
                 ' [cref="object.tostring"] produces an error. We fix this in Roslyn
                 result = SyntaxFactory.IdentifierName(
                             Me._scanner.MakeIdentifier(
@@ -1392,7 +1392,7 @@ lFailed:
                 Return False
             End If
 
-            ' If we have any problems with parsing the name we want to restore the scanner and 
+            ' If we have any problems with parsing the name we want to restore the scanner and
             ' fall back to a regular attribute scenario
             Dim restorePoint As Scanner.RestorePoint = Me._scanner.CreateRestorePoint()
 
@@ -1439,7 +1439,7 @@ lFailed:
 
         ''' <summary>
         ''' Checks if the resulting Cref or Name attribute value has valid trivia
-        ''' Note, this may be applicable not only to regular trivia, but also to syntax 
+        ''' Note, this may be applicable not only to regular trivia, but also to syntax
         ''' nodes added to trivia when the parser was recovering from errors
         ''' </summary>
         Private Class TriviaChecker
@@ -1604,7 +1604,7 @@ lFailed:
             ' so that the colon appears as a normal token. A colon may come after the identifier if and only if it is the only
             ' trivia following the identifier.  If there is any trivia before the colon then the colon should stay as trivia
             ' and be interpreted as a colon token terminator.  If there is any trivia following the colon, this is an error.
-            ' Note that only the COLON (U+003A) character, but not the FULLWIDTH COLON (U+FF1A), may be a part of an XML name, 
+            ' Note that only the COLON (U+003A) character, but not the FULLWIDTH COLON (U+FF1A), may be a part of an XML name,
             ' although they both may be represented by a node with kind SyntaxKind.ColonTrivia.
 
             Dim trailingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(localName.GetTrailingTrivia())
@@ -2084,7 +2084,7 @@ TryResync:
             If anyChanges Then
                 Return New XmlDeclarationSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, lessThanQuestionToken, xmlKeyword, node.Version, node.Encoding, node.Standalone, node.QuestionGreaterThanToken)
             End If
-            Return node     
+            Return node
         End Function
 
         Public Overrides Function VisitXmlElementStartTag(node As XmlElementStartTagSyntax) As VisualBasicSyntaxNode
@@ -2191,9 +2191,9 @@ TryResync:
                                                           nameNew,
                                                           node.TextTokens.Node,
                                                           node.QuestionGreaterThanToken)
+            Else
+                Return node
             End If
-            Return node
-          
         End Function
 
         Public Overrides Function VisitXmlNameAttribute(node As XmlNameAttributeSyntax) As VisualBasicSyntaxNode
@@ -2225,9 +2225,9 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlCrefAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.StartQuoteToken, node.Reference, node.EndQuoteToken)
+            Else
+                Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlAttribute(node As XmlAttributeSyntax) As VisualBasicSyntaxNode
@@ -2242,9 +2242,9 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.Value)
+            Else
+                Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlBracketedName(node As XmlBracketedNameSyntax) As VisualBasicSyntaxNode
@@ -2268,9 +2268,9 @@ TryResync:
 
             If anyChanges Then
                 Return InternalSyntaxFactory.XmlBracketedName(lessThanToken, DirectCast(name, XmlNameSyntax), greaterThanToken)
+            Else
+                Return node
             End If
-
-            Return node
         End Function
 
         Public Overrides Function VisitXmlName(node As XmlNameSyntax) As VisualBasicSyntaxNode
@@ -2311,8 +2311,9 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlNameSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, prefix, localName)
-            End If
-            Return node
+            Else
+                Return node
+            End IF
         End Function
 
         Public Overrides Function VisitXmlPrefix(node As XmlPrefixSyntax) As VisualBasicSyntaxNode
