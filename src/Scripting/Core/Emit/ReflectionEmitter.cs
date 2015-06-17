@@ -894,14 +894,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
             return result;
         }
 
-        public static MethodInfo ResolveEntryPoint(Assembly assembly, Cci.IMethodReference method, EmitContext context)
-        {
-            var containingType = method.GetContainingType(context);
-            Debug.Assert(containingType is Cci.INamespaceTypeReference);
-            var type = ResolveType(assembly, (Cci.INamespaceTypeReference)containingType);
-            return type.GetMethod(method.Name, BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-        }
-
         private MethodBase ResolveRuntimeMethodOrConstructor(Type declaringType, Cci.IMethodReference methodRef, bool isConstructor)
         {
             // GetMember does a pattern match if the last character is *
