@@ -62,18 +62,21 @@
       <Name>CodeAnalysisDiagnosticAnalyzers</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\CSharp\CSharpCodeAnalysisDiagnosticAnalyzers.csproj">
       <Project>{921b412a-5551-4853-82b4-46ad5a05a03e}</Project>
       <Name>CSharpCodeAnalysisDiagnosticAnalyzers</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\BasicCodeAnalysisDiagnosticAnalyzers.vbproj">
       <Project>{b1a6a74b-e484-48fb-8745-7a30a06db631}</Project>
       <Name>BasicCodeAnalysisDiagnosticAnalyzers</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
