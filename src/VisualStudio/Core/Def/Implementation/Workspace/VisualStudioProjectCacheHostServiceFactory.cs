@@ -29,12 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
             var projectCacheService = new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
 
-            var workspaceCacheService = workspaceServices.GetService<IWorkspaceCacheService>();
-            if (workspaceCacheService != null)
-            {
-                workspaceCacheService.CacheFlushRequested += (s, e) => projectCacheService.ClearImplicitCache();
-            }
-
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
             {
