@@ -165,7 +165,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly.
         /// </summary>
-        IEnumerable<ITypeExport> GetExportedTypes(EmitContext context);
+        IEnumerable<ITypeReference> GetExportedTypes(EmitContext context);
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata

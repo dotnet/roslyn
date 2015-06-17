@@ -693,9 +693,8 @@ namespace Microsoft.Cci
 
             if (this.IsFullMetadata)
             {
-                foreach (ITypeExport alias in this.module.GetExportedTypes(Context))
+                foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
                 {
-                    ITypeReference exportedType = alias.ExportedType;
                     if (!_exportedTypeIndex.ContainsKey(exportedType))
                     {
                         _exportedTypeList.Add(exportedType);
@@ -2835,9 +2834,8 @@ namespace Microsoft.Cci
             {
                 _exportedTypeTable.Capacity = this.NumberOfTypeDefsEstimate;
 
-                foreach (ITypeExport typeExport in this.module.GetExportedTypes(Context))
+                foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
                 {
-                    ITypeReference exportedType = typeExport.ExportedType;
                     INestedTypeReference nestedRef;
                     INamespaceTypeReference namespaceTypeRef;
                     ExportedTypeRow r = new ExportedTypeRow();
