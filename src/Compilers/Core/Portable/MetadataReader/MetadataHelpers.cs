@@ -27,13 +27,6 @@ namespace Microsoft.CodeAnalysis
         public const char MangledNameRegionStartChar = '<';
         public const char MangledNameRegionEndChar = '>';
 
-        public const char SubstitutionIndicatorChar = 'Q';
-        public const char UnderscoreChar = '_';
-        public const char DotChar = '.';
-        public const string SubstitutionEscapeFormat = "{0}{0}";
-        public const string EscapeFormat = "{0}{1}";
-        public const string UnicodeEscapeFormat = "{0}{1:X}";
-
         internal struct AssemblyQualifiedTypeName
         {
             internal readonly string TopLevelType;
@@ -1056,145 +1049,33 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns true if the Unicode character can be a part of a C# identifier.
-        /// </summary>
-        /// <param name="ch">The Unicode character.</param>
-        private static bool IsIdentifierPartCharacter(char ch)
-        {
-            // identifier-part-character:
-            //   letter-character
-            //   decimal-digit-character
-            //   connecting-character
-            //   combining-character
-            //   formatting-character
-
-            if (ch < 'a') // '\u0061'
-            {
-                if (ch < 'A') // '\u0041'
-                {
-                    return ch >= '0'  // '\u0030'
-                        && ch <= '9'; // '\u0039'
-                }
-
-                return ch <= 'Z'  // '\u005A'
-                    || ch == '_'; // '\u005F'
-            }
-
-            if (ch <= 'z') // '\u007A'
-            {
-                return true;
-            }
-
-            if (ch <= '\u007F') // max ASCII
-            {
-                return false;
-            }
-
-            UnicodeCategory cat = CharUnicodeInfo.GetUnicodeCategory(ch);
-            return IsLetterChar(cat)
-                || IsDecimalDigitChar(cat)
-                || IsConnectingChar(cat)
-                || IsCombiningChar(cat)
-                || IsFormattingChar(cat);
-        }
-
-
-        private static bool IsLetterChar(UnicodeCategory cat)
-        {
-            // letter-character:
-            //   A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl 
-            //   A Unicode-escape-sequence representing a character of classes Lu, Ll, Lt, Lm, Lo, or Nl
-
-            switch (cat)
-            {
-                case UnicodeCategory.UppercaseLetter:
-                case UnicodeCategory.LowercaseLetter:
-                case UnicodeCategory.TitlecaseLetter:
-                case UnicodeCategory.ModifierLetter:
-                case UnicodeCategory.OtherLetter:
-                case UnicodeCategory.LetterNumber:
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsCombiningChar(UnicodeCategory cat)
-        {
-            // combining-character:
-            //   A Unicode character of classes Mn or Mc 
-            //   A Unicode-escape-sequence representing a character of classes Mn or Mc
-
-            switch (cat)
-            {
-                case UnicodeCategory.NonSpacingMark:
-                case UnicodeCategory.SpacingCombiningMark:
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsDecimalDigitChar(UnicodeCategory cat)
-        {
-            // decimal-digit-character:
-            //   A Unicode character of the class Nd 
-            //   A unicode-escape-sequence representing a character of the class Nd
-
-            return cat == UnicodeCategory.DecimalDigitNumber;
-        }
-
-        private static bool IsConnectingChar(UnicodeCategory cat)
-        {
-            // connecting-character:  
-            //   A Unicode character of the class Pc
-            //   A unicode-escape-sequence representing a character of the class Pc
-
-            return cat == UnicodeCategory.ConnectorPunctuation;
-        }
-
-        /// <summary>
-        /// Returns true if the Unicode character is a formatting character (Unicode class Cf).
-        /// </summary>
-        /// <param name="cat">The Unicode character.</param>
-        private static bool IsFormattingChar(UnicodeCategory cat)
-        {
-            // formatting-character:  
-            //   A Unicode character of the class Cf
-            //   A unicode-escape-sequence representing a character of the class Cf
-
-            return cat == UnicodeCategory.Format;
-        }
-
-        /// <summary>
         /// Given an input string changes it to be acceptable as a part of a type name.
-        /// See Github #1428 for discussion
         /// </summary>
         internal static string MangleForTypeNameIfNeeded(string moduleName)
-        {
+        {            
             var s = new StringBuilder();
             foreach (var c in moduleName)
             {
                 //Any character that can appear in an identifier maps to itself, except Q and _
-                var qOr_ = (c == SubstitutionIndicatorChar || c == UnderscoreChar);
-                if ((!qOr_) && IsIdentifierPartCharacter(c))
+                var qOr_ = (c == 'Q' || c == '_');
+                if ((!qOr_) && char.IsLetterOrDigit(c))
                 {
                     s.Append(c);
                     continue;
                 }
                 switch (c)
                 {
-                    case (SubstitutionIndicatorChar): //Q maps to QQ
-                        s.AppendFormat(SubstitutionEscapeFormat, SubstitutionIndicatorChar);
+                    case ('Q'): //Q maps to QQ
+                        s.Append("QQ");
                         break;
-                    case (UnderscoreChar): //_ maps to Q_
-                        s.AppendFormat(EscapeFormat, SubstitutionIndicatorChar, UnderscoreChar);
+                    case ('_'): //_ maps to Q_
+                        s.Append("Q_");
                         break;
                     case (DotChar): //. maps to _
-                        s.Append(UnderscoreChar);
+                        s.Append('_');
                         break;
                     default: //any other character maps to Q followed by four hex digits for its unicode value.
-                        s.AppendFormat(UnicodeEscapeFormat, SubstitutionIndicatorChar, c);
+                        s.AppendFormat("{0}{1:X}", 'Q', c);
                         break;
                 }
             }
