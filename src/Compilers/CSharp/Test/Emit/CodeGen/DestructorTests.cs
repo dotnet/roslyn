@@ -590,7 +590,7 @@ public class A
     ~A() { }
 }
 ";
-            CompileAndVerify(text, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(text, assemblyValidator: (assembly) =>
             {
                 var peFileReader = assembly.GetMetadataReader();
 

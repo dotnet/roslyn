@@ -997,8 +997,7 @@ class Override : MetadataModifiers
                         Assert.False(true, "Unexpected enum value " + expectedVirtualness);
                         break;
                 }
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         // Note that not all combinations are possible.

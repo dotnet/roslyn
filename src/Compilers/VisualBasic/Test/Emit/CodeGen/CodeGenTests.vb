@@ -1122,7 +1122,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ClassesWithReadWriteProperties.Value, TestOptions.ReleaseDll).
             VerifyIL("D3.Test",
             <![CDATA[
 {
@@ -1449,7 +1449,6 @@ End Module
 </compilation>
 
             CompileWithCustomILSource(vbSource, AttributesWithReadWriteProperties.Value,
-                                      emitters:=TestEmitters.RefEmitBug,
                                       options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                                       expectedOutput:=<![CDATA[
 Void .ctor()(..0..)
@@ -1583,7 +1582,7 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("M.Main",
             <![CDATA[
                                                {
@@ -1664,7 +1663,7 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.S",
             <![CDATA[
 {
@@ -1737,7 +1736,7 @@ End Module
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("M.Main",
             <![CDATA[
 {
@@ -8184,7 +8183,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(vbSource, emitters:=TestEmitters.RefEmitBug).
+            CompileAndVerify(vbSource).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8258,7 +8257,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(vbSource, emitters:=TestEmitters.RefEmitBug).
+            CompileAndVerify(vbSource).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8420,7 +8419,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(vbSource, emitters:=TestEmitters.RefEmitBug).
+            CompileAndVerify(vbSource).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8482,7 +8481,7 @@ End Class
 </compilation>
 
             ' NOTE: Current implementation does not support optimization for constructor calls with side effects
-            CompileAndVerify(vbSource, emitters:=TestEmitters.RefEmitBug).
+            CompileAndVerify(vbSource).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8569,7 +8568,7 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(vbSource, emitters:=TestEmitters.RefEmitBug).
+            CompileAndVerify(vbSource).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8646,7 +8645,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8725,7 +8724,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8801,7 +8800,7 @@ End Class
 </compilation>
 
             ' TODO (tomat): verification fails
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8868,7 +8867,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -8941,7 +8940,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -9006,7 +9005,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.M",
             <![CDATA[
 {
@@ -9077,7 +9076,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9146,7 +9145,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9215,7 +9214,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9285,7 +9284,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9348,7 +9347,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -9554,7 +9553,7 @@ End Class
             ' CONSIDER: This is the dev10 behavior.
             ' Shouldn't there be an error for trying to call an inaccessible ctor?
             ' NOTE: Current behaviour is to skip private constructor and use 'initobj'
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, emitters:=TestEmitters.RefEmitBug).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
 {
@@ -10102,7 +10101,7 @@ End Namespace
 </compilation>
 
             Dim comp = CompileAndVerify(source, options:=TestOptions.ReleaseDll.WithRootNamespace("Project"), validator:=
-                Sub(a, _omitted)
+                Sub(a)
                     AssertEx.SetEqual({"<Module>",
                                        "PROJEcT.Quuz.A",
                                        "Project.FOO.C",
@@ -10865,7 +10864,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, optParameterSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, optParameterSource)
         End Sub
 
         <Fact()>

@@ -1945,8 +1945,8 @@ class D
             CSharpCompilation s11 = CSharpCompilation.CreateSubmission("s11", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 1", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
             CSharpCompilation s12 = CSharpCompilation.CreateSubmission("s12", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 2", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
 
-            CompileAndVerify(s11, emitters: TestEmitters.CCI);
-            CompileAndVerify(s12, emitters: TestEmitters.CCI);
+            CompileAndVerify(s11);
+            CompileAndVerify(s12);
         }
 
         /// <summary>
