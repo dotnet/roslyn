@@ -118,9 +118,9 @@
     </Reference>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(OutDir)' == ''">
-    <!-- If we don't already have an OutDir, set one-->
-    <OutDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\$(Configuration)'))\</OutDir>
+  <PropertyGroup>
+    <OutDir Condition="'$(OutDire)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\$(Configuration)'))\</OutDir>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <PropertyGroup>
