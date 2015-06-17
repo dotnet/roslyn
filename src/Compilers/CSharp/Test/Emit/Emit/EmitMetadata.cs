@@ -196,61 +196,6 @@ public class Test : Class2
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
-        [Fact]
-        public void AssemblyRefs_DuplicateRows()
-        {
-            var compilation = CreateCompilationWithMscorlib(
-                "class C : C1 { }; class D { }",
-                new[] { TestReferences.SymbolsTests.Methods.CSMethods });
-
-            PEAssemblyBuilder assembly = new PEAssemblyBuilder(
-                (SourceAssemblySymbol)compilation.Assembly,
-                EmitOptions.Default,
-                compilation.Options.OutputKind,
-                GetDefaultModulePropertiesForSerialization(),
-                Enumerable.Empty<ResourceDescription>(),
-                // map all references to a single name:
-                assemblySymbol => new AssemblyIdentity("foo")
-            );
-
-            // Don't attempt to emit if there were any syntax, declaration, semantic, or emitted errors previously.
-            DiagnosticBag diagnostics = new DiagnosticBag();
-
-            MethodCompiler.CompileMethodBodies(
-                compilation: compilation,
-                moduleBeingBuiltOpt: assembly,
-                generateDebugInfo: false,
-                hasDeclarationErrors: false,
-                diagnostics: diagnostics,
-                filterOpt: null,
-                cancellationToken: default(CancellationToken));
-
-            diagnostics.Verify();
-            var context = new EmitContext(assembly, null, new DiagnosticBag());
-            ImmutableArray<byte> image;
-            using (var stream = new MemoryStream())
-            {
-                Cci.PeWriter.WritePeToStream(
-                    context,
-                    compilation.MessageProvider,
-                    () => stream,
-                    nativePdbWriterOpt: null,
-                    pdbPathOpt: null,
-                    allowMissingMethodBodies: false,
-                    deterministic: false,
-                    cancellationToken: CancellationToken.None);
-
-                image = stream.ToImmutable();
-            }
-            context.Diagnostics.Verify();
-
-            // check that there are no duplicate rows in AssemblyRef table:
-            PEAssembly emittedAssembly = AssemblyMetadata.CreateFromImage(image).GetAssembly();
-            var emittedReferences = emittedAssembly.Modules[0].ReferencedAssemblies;
-            Assert.Equal(1, emittedReferences.Length);
-            Assert.Equal("foo", emittedReferences[0].Name);
-        }
-
         [Fact, WorkItem(529006, "DevDiv")]
         public void AddModule()
         {

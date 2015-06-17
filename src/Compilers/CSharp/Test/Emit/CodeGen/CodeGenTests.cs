@@ -12563,8 +12563,7 @@ expectedOutput: "-100");
                 EmitOptions.Default,
                 options.OutputKind,
                 GetDefaultModulePropertiesForSerialization(),
-                new ResourceDescription[0],
-                null);
+                new ResourceDescription[0]);
 
             var methodBodyCompiler = new MethodCompiler(
                 compilation: compilation,

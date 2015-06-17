@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Emit
             var moduleBeingBuilt = compilation.CreateModuleBuilder(
                 emitOptions: EmitOptions.Default,
                 manifestResources: null,
-                assemblySymbolMapper: null,
                 testData: null,
                 diagnostics: diagnostics,
                 cancellationToken: cancellationToken);

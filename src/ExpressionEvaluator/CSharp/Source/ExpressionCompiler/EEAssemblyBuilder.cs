@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                   outputKind: OutputKind.DynamicallyLinkedLibrary,
                   serializationProperties: serializationProperties,
                   manifestResources: SpecializedCollections.EmptyEnumerable<ResourceDescription>(),
-                  assemblySymbolMapper: null,
                   additionalTypes: additionalTypes)
         {
             Methods = ImmutableHashSet.CreateRange(methods);

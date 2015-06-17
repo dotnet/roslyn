@@ -51,14 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitOptions emitOptions,
             OutputKind outputKind,
             ModulePropertiesForSerialization serializationProperties,
-            IEnumerable<ResourceDescription> manifestResources,
-            Func<AssemblySymbol, AssemblyIdentity> assemblySymbolMapper)
+            IEnumerable<ResourceDescription> manifestResources)
             : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
                    sourceModule,
                    serializationProperties,
                    manifestResources,
                    outputKind,
-                   assemblySymbolMapper,
                    emitOptions,
                    new ModuleCompilationState())
         {
@@ -707,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return (Cci.IAssemblyReference)reference;
             }
 
-            AssemblyReference asmRef = new AssemblyReference(assembly, assemblySymbolMapper);
+            AssemblyReference asmRef = new AssemblyReference(assembly);
 
             AssemblyReference cachedAsmRef = (AssemblyReference)AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(assembly, asmRef);
 
@@ -753,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if ((object)container != null && ReferenceEquals(container.Modules[0], module))
             {
-                Cci.IModuleReference moduleRef = new AssemblyReference(container, assemblySymbolMapper);
+                Cci.IModuleReference moduleRef = new AssemblyReference(container);
                 Cci.IModuleReference cachedModuleRef = AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(container, moduleRef);
 
                 if (cachedModuleRef == moduleRef)
