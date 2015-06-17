@@ -3306,17 +3306,9 @@ End Module
                                            allReferences:=NoVbRuntimeReferences,
                                            expectedOutput:=expectedOutput,
                                            sourceSymbolValidator:=sourceSymbolValidator,
-                                           validator:=Translate(validator),
+                                           validator:=validator,
                                            symbolValidator:=symbolValidator,
                                            options:=options)
-        End Function
-
-        Private Function Translate(action As Action(Of PEAssembly)) As Action(Of PEAssembly, TestEmitters)
-            If action IsNot Nothing Then
-                Return Sub(a, _omitted) action(a)
-            Else
-                Return Nothing
-            End If
         End Function
 
 #End Region

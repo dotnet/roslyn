@@ -693,7 +693,7 @@ End Class
     </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(3, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(3, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -771,8 +771,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     ' ModuleRef:
@@ -929,7 +929,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -962,7 +962,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     Assert.Equal(1, peFileReader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, peFileReader.GetTableRowCount(TableIndex.ImplMap))
@@ -997,7 +997,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -1214,7 +1214,7 @@ Public Class C
             Dim code = <compilation><file name="attr.vb"><%= sb.ToString() %></file></compilation>
 
             CompileAndVerify(code, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(cases.Length, reader.GetTableRowCount(TableIndex.ImplMap))
                     Dim j = 0
@@ -1313,9 +1313,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, options)
-                    Dim isRefEmit = options = TestEmitters.RefEmit
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim peReader = assembly.GetMetadataReader()
 
                     For Each methodDef In peReader.MethodDefinitions
@@ -1334,12 +1333,10 @@ End Class
                                 expectedFlags = MethodImplAttributes.Synchronized
 
                             Case "InternalCallStatic", "InternalCallInstance", "InternalCallAbstract"
-                                ' workaround for a bug in ref.emit:
-                                expectedFlags = If(isRefEmit, MethodImplAttributes.Runtime Or MethodImplAttributes.InternalCall, MethodImplAttributes.InternalCall)
+                                expectedFlags = MethodImplAttributes.InternalCall
 
                             Case "ForwardRef"
-                                ' workaround for a bug in ref.emit:
-                                expectedFlags = If(isRefEmit, Nothing, MethodImplAttributes.ForwardRef)
+                                expectedFlags = MethodImplAttributes.ForwardRef
 
                             Case ".ctor"
                                 expectedFlags = MethodImplAttributes.IL
@@ -1605,7 +1602,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peReader = assembly.GetMetadataReader()
                     For Each methodDef In peReader.MethodDefinitions
                         Dim row = peReader.GetMethodDefinition(methodDef)
@@ -1763,8 +1760,8 @@ End Module
 ]]>
     </file>
 </compilation>
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Const implFlags As MethodImplAttributes = MethodImplAttributes.IL Or MethodImplAttributes.Managed Or MethodImplAttributes.NoInlining Or MethodImplAttributes.NoOptimization
                     DisableJITOptimizationTestHelper(assembly, {"Main", "Main2"}, {implFlags, 0})
                 End Sub
@@ -1794,8 +1791,8 @@ End Class
     </file>
 </compilation>
 
-            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(source, validator:=
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ImplMap))
@@ -1824,8 +1821,8 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(source, validator:=
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     Assert.Equal(1, reader.GetTableRowCount(TableIndex.ModuleRef))
@@ -1927,8 +1924,8 @@ End Class
 ]]>
     </file>
 </compilation>
-            CompileAndVerify(source, emitters:=TestEmitters.CCI, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(source, validator:=
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
                         Dim row = peFileReader.GetTypeDefinition(typeDef)
@@ -1974,7 +1971,7 @@ End Class
                                                                      references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                      options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             CompileAndVerify(c, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     For Each typeDef In peFileReader.TypeDefinitions
                         Dim row = peFileReader.GetTypeDefinition(typeDef)
@@ -2009,8 +2006,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     ' ModuleRef:
@@ -2061,8 +2058,8 @@ End Class
 </compilation>
             Const declareFlags = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
                     Assert.Equal(4, peFileReader.GetTableRowCount(TableIndex.ModuleRef))
                     Assert.Equal(4, peFileReader.GetTableRowCount(TableIndex.ImplMap))
@@ -2222,7 +2219,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(12, reader.GetTableRowCount(TableIndex.Param))
 
@@ -2279,7 +2276,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
 
                     ' property parameters are copied for both getter and setter
@@ -2450,7 +2447,7 @@ End Structure
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
@@ -2575,7 +2572,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim peFileReader = assembly.GetMetadataReader()
 
                     For Each ca In peFileReader.CustomAttributes
@@ -2909,7 +2906,7 @@ end structure
                     typeAttribute.VerifyNamedArgumentValue(0, "MayLeakOnAbort", TypedConstantKind.Primitive, True)
                 End Sub
 
-            CompileAndVerify(source, emitters:=TestEmitters.RefEmitBug, sourceSymbolValidator:=attributeValidator)
+            CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
         End Sub
 
         <Fact()>
@@ -3460,7 +3457,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source, validator:=
-                Sub(m, _omitted)
+                Sub(m)
                     Dim reader = m.GetMetadataReader()
                     For Each methodDef In reader.MethodDefinitions
                         Dim row = reader.GetMethodDefinition(methodDef)
@@ -4308,7 +4305,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, emitters:=TestEmitters.CCI, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
+            Dim validator = CompileAndVerify(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

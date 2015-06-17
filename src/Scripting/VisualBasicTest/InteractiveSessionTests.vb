@@ -253,7 +253,7 @@ Next
 </text>.Value
 
             Dim engine = New VisualBasicScriptEngine()
-            Dim result = engine.CreateCollectibleSession().Execute(source)
+            Dim result = engine.CreateSession().Execute(source)
             Assert.Equal(result, 1)
         End Sub
 
@@ -264,7 +264,7 @@ Next
 </text>.Value
 
             Dim engine = New VisualBasicScriptEngine()
-            Dim result = engine.CreateCollectibleSession().Execute(source)
+            Dim result = engine.CreateSession().Execute(source)
             Assert.Equal(result, 1)
         End Sub
 

@@ -94,8 +94,7 @@ b
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput,
-                allReferences:=WinRtRefs,
-                emitters:=TestEmitters.RefEmitBug)
+                allReferences:=WinRtRefs)
 
             verifier.VerifyIL("A.Main", <![CDATA[
 {
@@ -199,8 +198,7 @@ End Class]]></file>
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput:=expectedOut,
-                allReferences:=WinRtRefs,
-                emitters:=TestEmitters.RefEmitBug)
+                allReferences:=WinRtRefs)
 
             verifier.VerifyIL("A.Main",
             <![CDATA[
@@ -329,8 +327,7 @@ testKey2testValue3]]>
             Dim verifier = CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput:=expectedOut,
-                allReferences:=WinRtRefs,
-                emitters:=TestEmitters.RefEmitBug)
+                allReferences:=WinRtRefs)
 
             verifier.VerifyIL("A.Main", <![CDATA[
 {
@@ -515,7 +512,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIIterableMembers", <![CDATA[
@@ -1590,7 +1586,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             verifier.VerifyIL("AllMembers.TestIMapIntIntMembers", <![CDATA[
 {
@@ -2498,7 +2493,6 @@ End Class
                 </compilation>
 
             Dim verifier = CompileAndVerify(source,
-                emitters:=TestEmitters.RefEmitBug,
                 additionalRefs:=LegacyRefs,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -3707,7 +3701,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestISimpleInterfaceImplMembers", <![CDATA[
@@ -4045,7 +4038,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestCollectionInitializers", <![CDATA[
@@ -4216,7 +4208,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler", <![CDATA[
@@ -4387,7 +4378,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 options:=TestOptions.ReleaseExe.WithModuleName("MODULE"),
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -4619,7 +4609,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestNamedArguments", <![CDATA[
@@ -4741,7 +4730,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestNullableArgs", <![CDATA[
@@ -4977,7 +4965,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableVectorMembers", <![CDATA[
@@ -5198,7 +5185,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableIterableMembers", <![CDATA[
@@ -5353,7 +5339,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableVectorIVectorIntMembers", <![CDATA[
@@ -5705,7 +5690,6 @@ End Class
 
             Dim verifier = CompileAndVerify(source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestIBindableIterableIIterableMembers", <![CDATA[
@@ -5837,7 +5821,6 @@ End Class
             Dim verifier = CompileAndVerify(
                 source,
                 additionalRefs:=LegacyRefs,
-                emitters:=TestEmitters.RefEmitBug,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.INotifyCollectionAndBindableVectorMembers", <![CDATA[
@@ -6096,7 +6079,6 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                emitters:=TestEmitters.RefEmitBug,
                 additionalRefs:=LegacyRefs,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -6199,7 +6181,6 @@ End Class
 
             Dim verifier = CompileAndVerify(
                 source,
-                emitters:=TestEmitters.RefEmitBug,
                 additionalRefs:=LegacyRefs,
                 verify:=False)
             AssertNoErrorsOrWarnings(verifier)
@@ -6259,7 +6240,6 @@ End Class
 
             Dim comp = CompileAndVerify(src,
                                         additionalRefs:=LegacyRefs,
-                                        emitters:=TestEmitters.RefEmitBug,
                                         verify:=False,
                                         options:=TestOptions.ReleaseExe)
 
@@ -6307,7 +6287,6 @@ End Namespace
 
             Dim verifier As CompilationVerifier = CompileAndVerify(source,
                 options:=TestOptions.ReleaseWinMD,
-                emitters:=TestEmitters.RefEmitBug,
                 additionalRefs:=WinRtRefs)
 
             AssertNoErrorsOrWarnings(verifier)
@@ -6346,7 +6325,6 @@ End Namespace
                 </compilation>
 
             verifier = CompileAndVerify(source,
-                emitters:=TestEmitters.RefEmitBug,
                 additionalRefs:=allRefs.ToArray())
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("Test2.D.Main", <![CDATA[

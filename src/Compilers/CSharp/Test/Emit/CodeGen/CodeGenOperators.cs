@@ -2751,7 +2751,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, emitters: TestEmitters.CCI, expectedOutput: "Pass");
+            var verifier = CompileAndVerify(source: source, expectedOutput: "Pass");
 
             verifier.VerifyIL("Program.Main", @"
 {

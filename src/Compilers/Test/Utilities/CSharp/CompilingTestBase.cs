@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     EmitOptions.Default,
                     OutputKind.ConsoleApplication,
                     GetDefaultModulePropertiesForSerialization(),
-                    Enumerable.Empty<ResourceDescription>(),
-                    assemblySymbolMapper: null);
+                    Enumerable.Empty<ResourceDescription>());
 
                 TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 

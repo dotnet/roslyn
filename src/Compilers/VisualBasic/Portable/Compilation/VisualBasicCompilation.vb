@@ -2133,7 +2133,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             manifestResources As IEnumerable(Of ResourceDescription),
-            assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
@@ -2141,7 +2140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateModuleBuilder(
                 emitOptions,
                 manifestResources,
-                assemblySymbolMapper,
                 testData,
                 diagnostics,
                 ImmutableArray(Of NamedTypeSymbol).Empty,
@@ -2151,7 +2149,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overloads Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             manifestResources As IEnumerable(Of ResourceDescription),
-            assemblySymbolMapper As Func(Of IAssemblySymbol, AssemblyIdentity),
             testData As CompilationTestData,
             diagnostics As DiagnosticBag,
             additionalTypes As ImmutableArray(Of NamedTypeSymbol),
@@ -2191,7 +2188,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         kind,
                         moduleSerializationProperties,
                         manifestResources,
-                        assemblySymbolMapper,
                         additionalTypes)
             End If
 

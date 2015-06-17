@@ -34,15 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
-                       manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
+                       manifestResources As IEnumerable(Of ResourceDescription))
 
             MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
                        sourceModule,
                        serializationProperties,
                        manifestResources,
                        outputKind,
-                       assemblySymbolMapper,
                        emitOptions,
                        New ModuleCompilationState())
 
