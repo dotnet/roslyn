@@ -1071,7 +1071,7 @@ namespace Microsoft.CodeAnalysis
                     case ('_'): //_ maps to Q_
                         s.Append("Q_");
                         break;
-                    case (DotChar): //. maps to _
+                    case ('.'): //. maps to _
                         s.Append('_');
                         break;
                     default: //any other character maps to Q followed by four hex digits for its unicode value.
