@@ -15,5 +15,6 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.AnalyzerPowerPack.CSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.AnalyzerPowerPack.VisualBasic.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.AnalyzerPowerPack.Common.dll" />
   </Assets>
 </PackageManifest>
