@@ -43,7 +43,7 @@ The #Pdb stream has the following structure:
 
 "#~" stream shall only contain debugging information tables defined above and a copy of the Module table from the type system metadata but no other type system metadata table. The Module table effectively links the debugging metadata to the corresponding type system metadata.
  
-References to heaps (strings, blobs, guids) are references to heaps of the debugging metadata. The sizes of references to type system tables are determined using the algorithm described in ECMA-335-II Chapter 24.2.6, except for their respective row counts are found in _TypeSystemTableRows_ field of the #Pdb stream.
+References to heaps (strings, blobs, guids) are references to heaps of the debugging metadata. The sizes of references to type system tables are determined using the algorithm described in ECMA-335-II Chapter 24.2.6, except their respective row counts are found in _TypeSystemTableRows_ field of the #Pdb stream.
 
 ### <a name="DocumentTable"></a>Document Table: 0x30
 
@@ -135,9 +135,7 @@ _Method body blob_ has the following structure:
 | _LocalSignature_ | StandAloneSig table row id    | unsigned compressed    |
 | _Document_       | Document table row id         | unsigned compressed    |
 
-_LocalSignature_ stores the row id of the local signature fo the method. 
-
-This information is somewhat redundant since it can be retrieved from the IL stream. However in some scenarios the IL stream is not available or loading it would unnecessary page in memory that might not otherwise be needed.
+_LocalSignature_ stores the row id of the local signature of the method. This information is somewhat redundant since it can be retrieved from the IL stream. However in some scenarios the IL stream is not available or loading it would unnecessary page in memory that might not otherwise be needed.
 
 #####sequence-point-record
 | component      | value stored                                         | integer representation                      |
