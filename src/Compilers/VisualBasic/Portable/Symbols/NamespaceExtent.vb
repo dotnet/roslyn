@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function ToString() As String
-            Return String.Format("{0}: {1}", Kind.ToString(), _symbolOrCompilation.ToString())
+            Return $"{Kind.ToString}: {_symbolOrCompilation.ToString}"
         End Function
 
         ''' <summary>

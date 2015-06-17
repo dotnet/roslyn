@@ -40,10 +40,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Sub New(valueExpression As BoundExpression, valueDiagnostics As DiagnosticBag, typeExpression As BoundExpression, typeDiagnostics As DiagnosticBag)
-            Debug.Assert(valueExpression IsNot Nothing, "Field 'valueExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(valueDiagnostics IsNot Nothing, "Field 'valueDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(typeExpression IsNot Nothing, "Field 'typeExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(typeDiagnostics IsNot Nothing, "Field 'typeDiagnostics' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(valueExpression IsNot Nothing, $"Field '{NameOf(valueExpression)}' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(valueDiagnostics IsNot Nothing,$"Field '{NameOf(valueDiagnostics)}' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(typeExpression IsNot Nothing, $"Field '{NameOf(typeExpression)}' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(typeDiagnostics IsNot Nothing, $"Field '{NameOf(typeDiagnostics)}' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._valueExpression = valueExpression
             Me._valueDiagnostics = valueDiagnostics

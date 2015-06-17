@@ -58,12 +58,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim fieldName As String = PropertyOrEvent.AssociatedField.Name
 
-            Dim codeToParse As String =
-                "Partial Class " & containingTypeName & vbCrLf &
-                    "Property " & propertyName & vbCrLf &
-                        GetMethodBlock(fieldName, MakeSafeName(_createOrDisposeMethod), targetTypeName) &
-                    "End Property" & vbCrLf &
-                "End Class" & vbCrLf
+            Dim codeToParse As String = _
+$"Partial Class {containingTypeName}
+Property {propertyName}
+{GetMethodBlock(fieldName, MakeSafeName(_createOrDisposeMethod), targetTypeName)}
+End Property
+End Class
+"
 
             ' TODO: It looks like Dev11 respects project level conditional compilation here.
             Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
@@ -169,10 +170,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '    return <backingField>
             ' End Get
 
-            Return "Get" & vbCrLf &
-                       fieldName & " = " & createMethodName & "(Of " & targetTypeName & ")(" & fieldName & ")" & vbCrLf &
-                       "Return " & fieldName & vbCrLf &
-                   "End Get" & vbCrLf
+            Return _ 
+$"Get
+{fieldName} = {createMethodName}(Of {targetTypeName})({fieldName})
+Return {fieldName}
+End Get
+"
         End Function
     End Class
 
@@ -227,15 +230,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '    <DisposeMethod>(Of <TargetType>)(<backingField>)
             ' End Set
 
-            Return "Set(ByVal " & StringConstants.ValueParameterName & " As " & targetTypeName & ")" & vbCrLf &
-                       "If " & StringConstants.ValueParameterName & " Is " & fieldName & vbCrLf &
-                           "Return" & vbCrLf &
-                       "End If" & vbCrLf &
-                       "If " & StringConstants.ValueParameterName & " IsNot Nothing Then" & vbCrLf &
-                           "Throw New Global.System.ArgumentException(""Property can only be set to Nothing"")" & vbCrLf &
-                       "End If" & vbCrLf &
-                       disposeMethodName & "(Of " & targetTypeName & ")(" & fieldName & ")" & vbCrLf &
-                   "End Set" & vbCrLf
+            Return _
+ $"Set(ByVal {StringConstants.ValueParameterName} As {targetTypeName})
+If {StringConstants.ValueParameterName} Is {fieldName}
+Return
+End If
+If {StringConstants.ValueParameterName} IsNot Nothing Then
+Throw New Global.System.ArgumentException(""Property can only be set to Nothing"")
+End If
+{disposeMethodName}(Of {targetTypeName})({fieldName})
+End Set
+"
         End Function
     End Class
 

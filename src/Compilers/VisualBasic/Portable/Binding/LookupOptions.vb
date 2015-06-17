@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension()>
         Friend Sub ThrowIfInvalid(options As LookupOptions)
             If Not options.IsValid Then
-                Throw New ArgumentException("LookupOptions has an invalid combination of options")
+                Throw New ArgumentException(NameOf(LookupOptions) & " has an invalid combination of options")
             End If
         End Sub
 

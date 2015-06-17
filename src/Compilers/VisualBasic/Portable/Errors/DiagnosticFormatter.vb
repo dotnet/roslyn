@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Overrides Function FormatSourceSpan(span As LinePositionSpan, formatter As IFormatProvider) As String
-            Return String.Format("({0}) ", span.Start.Line + 1)
+            Return $"({span.Start.Line + 1}) "
         End Function
 
         ''' <summary>

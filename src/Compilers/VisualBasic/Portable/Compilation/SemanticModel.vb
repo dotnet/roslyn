@@ -1809,7 +1809,7 @@ _Default:
                  options As LookupOptions,
                  useBaseReferenceAccessibility As Boolean) As ImmutableArray(Of Symbol)
 
-            Debug.Assert((options And LookupOptions.UseBaseReferenceAccessibility) = 0, "Use the useBaseReferenceAccessibility parameter.")
+            Debug.Assert((options And LookupOptions.UseBaseReferenceAccessibility) = 0, "Use the " & NameOf(useBaseReferenceAccessibility) & " parameter.")
             If useBaseReferenceAccessibility Then
                 options = options Or LookupOptions.UseBaseReferenceAccessibility
             End If
@@ -1827,8 +1827,7 @@ _Default:
                 Dim containingType = binder.ContainingType
                 Dim baseType = If(containingType Is Nothing, Nothing, containingType.BaseTypeNoUseSiteDiagnostics)
                 If baseType Is Nothing Then
-                    Throw New ArgumentException(NameOf(position),
-                            "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)")
+                    Throw New ArgumentException(NameOf(position), $"Not a valid position for a call to {NameOf(LookupBaseMembers)} (must be in a type with a base type)")
                 End If
                 container = baseType
             End If
@@ -3442,50 +3441,50 @@ _Default:
         ' case we decide we need more verbose logging in certain cases for debugging.
 
         Friend Function GetMessage(position As Integer) As String
-            Return String.Format("{0}: at {1}", Me.SyntaxTree.FilePath, position)
+            Return $"{Me.SyntaxTree.FilePath}: at {position}"
         End Function
 
         Friend Function GetMessage(node As VisualBasicSyntaxNode) As String
             If node Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2})", Me.SyntaxTree.FilePath, node.Kind.ToString(), node.Position)
+            Return $"{Me.SyntaxTree.FilePath}: {node.Kind.ToString} ({node.Position})"
         End Function
 
         Friend Function GetMessage(node As VisualBasicSyntaxNode, position As Integer) As String
             If node Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) at {3}", Me.SyntaxTree.FilePath, node.Kind.ToString(), node.Position, position)
+            Return $"{Me.SyntaxTree.FilePath}: {node.Kind.ToString()} ({node.Position}) at {position}"
         End Function
 
         Friend Function GetMessage(firstStatement As StatementSyntax, lastStatement As StatementSyntax) As String
             If firstStatement Is Nothing OrElse lastStatement Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} to {2}", Me.SyntaxTree.FilePath, firstStatement.Position, lastStatement.EndPosition)
+            Return $"{Me.SyntaxTree.FilePath}: {firstStatement.Position} to {lastStatement.EndPosition}"
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, type As TypeSymbol) As String
             If expression Is Nothing OrElse type Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) -> {3} {4}", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name)
+            Return $"{Me.SyntaxTree.FilePath}: {expression.Kind.ToString()} ({expression.Position}) -> {type.TypeKind.ToString()} {type.Name}"
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, type As TypeSymbol, position As Integer) As String
             If expression Is Nothing OrElse type Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) -> {3} {4} at {5}", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, type.TypeKind.ToString(), type.Name, position)
+            Return $"{Me.SyntaxTree.FilePath}: {expression.Kind.ToString()} ({expression.Position}) -> { type.TypeKind.ToString()} {type.Name} at {position}"
         End Function
 
         Friend Function GetMessage(expression As ExpressionSyntax, [option] As SpeculativeBindingOption, position As Integer) As String
             If expression Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} ({2}) at {3} ({4})", Me.SyntaxTree.FilePath, expression.Kind.ToString(), expression.Position, position, [option].ToString())
+            Return $"{Me.SyntaxTree.FilePath}: {expression.Kind.ToString()} ({expression.Position}) at {position} ({[option].ToString()})"
         End Function
 
         Friend Function GetMessage(name As String, [option] As LookupOptions, position As Integer) As String
-            Return String.Format("{0}: {1} at {2} ({3})", Me.SyntaxTree.FilePath, name, position, [option].ToString())
+            Return $"{Me.SyntaxTree.FilePath}: {name} at {position} ({[option].ToString()})"
         End Function
 
         Friend Function GetMessage(symbol As Symbol, position As Integer) As String
             If symbol Is Nothing Then Return Me.SyntaxTree.FilePath
-            Return String.Format("{0}: {1} {2} at {3}", Me.SyntaxTree.FilePath, symbol.Kind.ToString(), symbol.Name, position)
+            Return $"{Me.SyntaxTree.FilePath}: {symbol.Kind.ToString()} {symbol.Name} at {position}"
         End Function
 
         Friend Function GetMessage(stage As CompilationStage) As String
-            Return String.Format("{0} ({1})", Me.SyntaxTree.FilePath, stage.ToString())
+            Return $"{Me.SyntaxTree.FilePath} ({stage.ToString()})"
         End Function
 #End Region
     End Class

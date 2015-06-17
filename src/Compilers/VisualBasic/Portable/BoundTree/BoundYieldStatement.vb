@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Sub New(syntax As VisualBasicSyntaxNode, expression As BoundExpression, hasErrors As Boolean, returnTypeIsBeingInferred As Boolean)
             MyBase.New(BoundKind.YieldStatement, syntax, hasErrors OrElse expression.NonNullAndHasErrors())
 
-            Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(expression IsNot Nothing, $"Field '{NameOf(expression)}") ' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
 

@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function HasAcceptableAttributeConstructor(attributeType As NamedTypeSymbol) As Boolean
             For Each constructor In attributeType.InstanceConstructors
                 If IsTrue(GetDeclaredOrInheritedCompliance(constructor)) AndAlso IsAccessibleIfContainerIsAccessible(constructor) Then
-                    Debug.Assert(IsAccessibleOutsideAssembly(constructor), "Should be implied by IsAccessibleIfContainerIsAccessible")
+                    Debug.Assert(IsAccessibleOutsideAssembly(constructor), "Should be implied by " & NameOf(IsAccessibleIfContainerIsAccessible))
                     Dim hasUnacceptableParameterType As Boolean = False
                     For Each paramType In GetParameterTypes(constructor)
                         If paramType.TypeKind = TypeKind.Array OrElse TypedConstant.GetTypedConstantKind(paramType, Me._compilation) = TypedConstantKind.Error Then

@@ -772,11 +772,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Else
                 If (leftValue > 0 AndAlso rightValue > 0 AndAlso ResultValue <= 0) OrElse
-                    (leftValue < 0 AndAlso rightValue < 0 AndAlso ResultValue <= 0) OrElse
-                    (leftValue > 0 AndAlso rightValue < 0 AndAlso ResultValue >= 0) OrElse
-                    (leftValue < 0 AndAlso rightValue > 0 AndAlso ResultValue >= 0) OrElse
-                    (rightValue <> 0 AndAlso ResultValue / rightValue <> leftValue) Then
-
+                   (leftValue < 0 AndAlso rightValue < 0 AndAlso ResultValue <= 0) OrElse
+                   (leftValue > 0 AndAlso rightValue < 0 AndAlso ResultValue >= 0) OrElse
+                   (leftValue < 0 AndAlso rightValue > 0 AndAlso ResultValue >= 0) OrElse
+                   (rightValue <> 0 AndAlso ResultValue / rightValue <> leftValue) Then
                     integerOverflow = True
                 End If
             End If

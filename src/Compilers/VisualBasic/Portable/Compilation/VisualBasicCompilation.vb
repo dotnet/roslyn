@@ -640,7 +640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
             If Not IsSubmission Then
-                Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
+                Throw New NotSupportedException("Can't have a " & NameOf(newPreviousSubmission) & " when not a submission")
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
