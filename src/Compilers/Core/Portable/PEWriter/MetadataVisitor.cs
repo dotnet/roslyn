@@ -20,21 +20,6 @@ namespace Microsoft.Cci
             this.Context = context;
         }
 
-        public void Visit(IEnumerable<ITypeExport> typeExports)
-        {
-            foreach (ITypeExport typeExport in typeExports)
-            {
-                this.Visit(typeExport);
-            }
-        }
-
-        public virtual void Visit(ITypeExport typeExport)
-        {
-            this.Visit(typeExport.ExportedType);
-            this.Visit(typeExport.GetAttributes(Context));
-            typeExport.Dispatch(this);
-        }
-
         public virtual void Visit(IArrayTypeReference arrayTypeReference)
         {
             this.Visit(arrayTypeReference.GetElementType(Context));

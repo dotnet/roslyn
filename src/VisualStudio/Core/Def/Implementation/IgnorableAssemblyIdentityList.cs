@@ -6,11 +6,11 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal sealed class AssemblyIdentityWhiteList : IAssemblyWhiteList
+    internal sealed class IgnorableAssemblyIdentityList : IIgnorableAssemblyList
     {
         private readonly HashSet<AssemblyIdentity> _assemblyIdentities;
 
-        public AssemblyIdentityWhiteList(IEnumerable<AssemblyIdentity> assemblyIdentities)
+        public IgnorableAssemblyIdentityList(IEnumerable<AssemblyIdentity> assemblyIdentities)
         {
             Debug.Assert(assemblyIdentities != null);
 
