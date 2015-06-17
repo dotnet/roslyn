@@ -138,11 +138,6 @@ namespace Microsoft.Cci
         protected abstract Guid EncBaseId { get; }
 
         /// <summary>
-        /// Returns true if the metadata stream should be compressed.
-        /// </summary>
-        protected abstract bool CompressMetadataStream { get; }
-
-        /// <summary>
         /// Returns true and the 1-based index of the type definition
         /// if the type definition is recognized. Otherwise returns false.
         /// The index is into the full metadata.
@@ -425,7 +420,14 @@ namespace Microsoft.Cci
         private ReferenceIndexer _referenceVisitor;
 
         protected readonly MetadataHeapsBuilder heaps;
+
+        // A heap builder distinct from heaps if we are emitting debug information into a separate Portable PDB stream.
+        // Shared heap builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
+        // Null otherwise.
         private readonly MetadataHeapsBuilder debugHeapsOpt;
+
+        private bool EmitStandaloneDebugMetadata => debugHeapsOpt != null && heaps != debugHeapsOpt;
+
         private readonly Dictionary<ICustomAttribute, uint> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, uint>();
         private readonly Dictionary<ITypeReference, uint> _typeSpecSignatureIndex = new Dictionary<ITypeReference, uint>();
         private readonly Dictionary<ITypeReference, uint> _exportedTypeIndex;
@@ -447,63 +449,57 @@ namespace Microsoft.Cci
 
         internal const int MappedFieldDataAlignment = 8;
 
-        private ImmutableArray<int> GetRowCounts(bool includeTypeSystemTables, bool includeDebugTables)
+        private ImmutableArray<int> GetRowCounts()
         {
             var rowCounts = new int[MetadataTokens.TableCount];
 
             // module row is in both debug and regular metadata
             rowCounts[(int)TableIndex.Module] = 1;
 
-            if (includeTypeSystemTables)
-            {
-                rowCounts[(int)TableIndex.Assembly] = (this.module.AsAssembly != null) ? 1 : 0;
-                rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
-                rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
-                rowCounts[(int)TableIndex.Constant] = _constantTable.Count;
-                rowCounts[(int)TableIndex.CustomAttribute] = _customAttributeTable.Count;
-                rowCounts[(int)TableIndex.DeclSecurity] = _declSecurityTable.Count;
-                rowCounts[(int)TableIndex.EncLog] = _encLogTable.Count;
-                rowCounts[(int)TableIndex.EncMap] = _encMapTable.Count;
-                rowCounts[(int)TableIndex.EventMap] = _eventMapTable.Count;
-                rowCounts[(int)TableIndex.Event] = _eventTable.Count;
-                rowCounts[(int)TableIndex.ExportedType] = _exportedTypeTable.Count;
-                rowCounts[(int)TableIndex.FieldLayout] = _fieldLayoutTable.Count;
-                rowCounts[(int)TableIndex.FieldMarshal] = _fieldMarshalTable.Count;
-                rowCounts[(int)TableIndex.FieldRva] = _fieldRvaTable.Count;
-                rowCounts[(int)TableIndex.Field] = _fieldDefTable.Count;
-                rowCounts[(int)TableIndex.File] = _fileTable.Count;
-                rowCounts[(int)TableIndex.GenericParamConstraint] = _genericParamConstraintTable.Count;
-                rowCounts[(int)TableIndex.GenericParam] = _genericParamTable.Count;
-                rowCounts[(int)TableIndex.ImplMap] = _implMapTable.Count;
-                rowCounts[(int)TableIndex.InterfaceImpl] = _interfaceImplTable.Count;
-                rowCounts[(int)TableIndex.ManifestResource] = _manifestResourceTable.Count;
-                rowCounts[(int)TableIndex.MemberRef] = _memberRefTable.Count;
-                rowCounts[(int)TableIndex.MethodImpl] = _methodImplTable.Count;
-                rowCounts[(int)TableIndex.MethodSemantics] = _methodSemanticsTable.Count;
-                rowCounts[(int)TableIndex.MethodSpec] = _methodSpecTable.Count;
-                rowCounts[(int)TableIndex.MethodDef] = _methodTable.Length;
-                rowCounts[(int)TableIndex.ModuleRef] = _moduleRefTable.Count;
-                rowCounts[(int)TableIndex.NestedClass] = _nestedClassTable.Count;
-                rowCounts[(int)TableIndex.Param] = _paramTable.Count;
-                rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
-                rowCounts[(int)TableIndex.Property] = _propertyTable.Count;
-                rowCounts[(int)TableIndex.StandAloneSig] = GetStandAloneSignatures().Count;
-                rowCounts[(int)TableIndex.TypeDef] = _typeDefTable.Count;
-                rowCounts[(int)TableIndex.TypeRef] = _typeRefTable.Count;
-                rowCounts[(int)TableIndex.TypeSpec] = _typeSpecTable.Count;
-            }
-            
-            if (includeDebugTables)
-            {
-                rowCounts[(int)TableIndex.Document] = _documentTable.Count;
-                rowCounts[(int)TableIndex.MethodBody] = _methodBodyTable.Count;
-                rowCounts[(int)TableIndex.LocalScope] = _localScopeTable.Count;
-                rowCounts[(int)TableIndex.LocalVariable] = _localVariableTable.Count;
-                rowCounts[(int)TableIndex.LocalConstant] = _localConstantTable.Count;
-                rowCounts[(int)TableIndex.AsyncMethod] = _asyncMethodTable.Count;
-                rowCounts[(int)TableIndex.ImportScope] = _importScopeTable.Count;
-                rowCounts[(int)TableIndex.CustomDebugInformation] = _customDebugInformationTable.Count;
-            }
+            rowCounts[(int)TableIndex.Assembly] = (this.module.AsAssembly != null) ? 1 : 0;
+            rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
+            rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
+            rowCounts[(int)TableIndex.Constant] = _constantTable.Count;
+            rowCounts[(int)TableIndex.CustomAttribute] = _customAttributeTable.Count;
+            rowCounts[(int)TableIndex.DeclSecurity] = _declSecurityTable.Count;
+            rowCounts[(int)TableIndex.EncLog] = _encLogTable.Count;
+            rowCounts[(int)TableIndex.EncMap] = _encMapTable.Count;
+            rowCounts[(int)TableIndex.EventMap] = _eventMapTable.Count;
+            rowCounts[(int)TableIndex.Event] = _eventTable.Count;
+            rowCounts[(int)TableIndex.ExportedType] = _exportedTypeTable.Count;
+            rowCounts[(int)TableIndex.FieldLayout] = _fieldLayoutTable.Count;
+            rowCounts[(int)TableIndex.FieldMarshal] = _fieldMarshalTable.Count;
+            rowCounts[(int)TableIndex.FieldRva] = _fieldRvaTable.Count;
+            rowCounts[(int)TableIndex.Field] = _fieldDefTable.Count;
+            rowCounts[(int)TableIndex.File] = _fileTable.Count;
+            rowCounts[(int)TableIndex.GenericParamConstraint] = _genericParamConstraintTable.Count;
+            rowCounts[(int)TableIndex.GenericParam] = _genericParamTable.Count;
+            rowCounts[(int)TableIndex.ImplMap] = _implMapTable.Count;
+            rowCounts[(int)TableIndex.InterfaceImpl] = _interfaceImplTable.Count;
+            rowCounts[(int)TableIndex.ManifestResource] = _manifestResourceTable.Count;
+            rowCounts[(int)TableIndex.MemberRef] = _memberRefTable.Count;
+            rowCounts[(int)TableIndex.MethodImpl] = _methodImplTable.Count;
+            rowCounts[(int)TableIndex.MethodSemantics] = _methodSemanticsTable.Count;
+            rowCounts[(int)TableIndex.MethodSpec] = _methodSpecTable.Count;
+            rowCounts[(int)TableIndex.MethodDef] = _methodTable.Length;
+            rowCounts[(int)TableIndex.ModuleRef] = _moduleRefTable.Count;
+            rowCounts[(int)TableIndex.NestedClass] = _nestedClassTable.Count;
+            rowCounts[(int)TableIndex.Param] = _paramTable.Count;
+            rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
+            rowCounts[(int)TableIndex.Property] = _propertyTable.Count;
+            rowCounts[(int)TableIndex.StandAloneSig] = GetStandAloneSignatures().Count;
+            rowCounts[(int)TableIndex.TypeDef] = _typeDefTable.Count;
+            rowCounts[(int)TableIndex.TypeRef] = _typeRefTable.Count;
+            rowCounts[(int)TableIndex.TypeSpec] = _typeSpecTable.Count;
+
+            rowCounts[(int)TableIndex.Document] = _documentTable.Count;
+            rowCounts[(int)TableIndex.MethodBody] = _methodBodyTable.Count;
+            rowCounts[(int)TableIndex.LocalScope] = _localScopeTable.Count;
+            rowCounts[(int)TableIndex.LocalVariable] = _localVariableTable.Count;
+            rowCounts[(int)TableIndex.LocalConstant] = _localConstantTable.Count;
+            rowCounts[(int)TableIndex.AsyncMethod] = _asyncMethodTable.Count;
+            rowCounts[(int)TableIndex.ImportScope] = _importScopeTable.Count;
+            rowCounts[(int)TableIndex.CustomDebugInformation] = _customDebugInformationTable.Count;
 
             return ImmutableArray.CreateRange(rowCounts);
         }
@@ -1946,45 +1942,66 @@ namespace Microsoft.Cci
             writer.WriteCompressedUInt(this.GetTypeDefOrRefCodedIndex(customModifier.GetModifier(Context), true));
         }
 
-        private void SerializeMetadataHeader(BinaryWriter writer, MetadataSizes metadataSizes, bool isPortablePdb)
+        private void SerializeMetadataHeader(BinaryWriter writer, MetadataSizes metadataSizes)
         {
             uint startOffset = writer.BaseStream.Position;
 
-            // Storage signature
-            writer.WriteUint(0x424A5342); // Signature 4
-            writer.WriteUshort(1); // metadata version major 6
-            writer.WriteUshort(1); // metadata version minor 8
-            writer.WriteUint(0); // reserved 12
+            // signature
+            writer.WriteUint(0x424A5342);
 
-            writer.WriteUint(12); // version must be 12 chars long (TODO: this observation is not supported by the standard or the ILAsm book). 16
-            string targetRuntimeVersion = isPortablePdb ? "PDB v0.1" : this.module.TargetRuntimeVersion;
+            // major version
+            writer.WriteUshort(1); 
 
-            int n = targetRuntimeVersion.Length;
-            for (int i = 0; i < 12 && i < n; i++)
+            // minor version
+            writer.WriteUshort(1);
+
+            // reserved
+            writer.WriteUint(0);
+
+            // metadata version length
+            writer.WriteUint(MetadataSizes.MetadataVersionPaddedLength); 
+
+            string targetRuntimeVersion = metadataSizes.IsStandaloneDebugMetadata ? "PDB v0.1" : module.TargetRuntimeVersion;
+
+            int n = Math.Min(MetadataSizes.MetadataVersionPaddedLength, targetRuntimeVersion.Length);
+            for (int i = 0; i < n; i++)
             {
                 writer.WriteByte((byte)targetRuntimeVersion[i]);
             }
 
-            for (int i = n; i < 12; i++)
+            for (int i = n; i < MetadataSizes.MetadataVersionPaddedLength; i++)
             {
-                writer.WriteByte(0); // 28
+                writer.WriteByte(0);
             }
 
-            // Storage header
-            writer.WriteByte(0); // flags 29
-            writer.WriteByte(0); // padding 30
-            writer.WriteUshort((ushort)(this.IsMinimalDelta ? 6 : 5)); // number of streams 32
+            // reserved
+            writer.WriteUshort(0);
 
-            // Stream headers
+            // number of streams
+            writer.WriteUshort((ushort)(5 + (metadataSizes.IsMinimalDelta ? 1 : 0) + (metadataSizes.IsStandaloneDebugMetadata ? 1 : 0)));
+
+            // stream headers
             int offsetFromStartOfMetadata = metadataSizes.MetadataHeaderSize;
-            SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.MetadataTableStreamSize, (this.CompressMetadataStream ? "#~" : "#-"), writer);
+
+            // Spec: Some compilers store metadata in a #- stream, which holds an uncompressed, or non-optimized, representation of metadata tables;
+            // this includes extra metadata -Ptr tables. Such PE files do not form part of ECMA-335 standard.
+            //
+            // Note: EnC delta is stored as uncompressed metadata stream.
+            SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.MetadataTableStreamSize, (metadataSizes.IsMetadataTableStreamCompressed ? "#~" : "#-"), writer);
+
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.String), "#Strings", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.UserString), "#US", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.Guid), "#GUID", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.Blob), "#Blob", writer);
-            if (this.IsMinimalDelta)
+
+            if (metadataSizes.IsMinimalDelta)
             {
                 SerializeStreamHeader(ref offsetFromStartOfMetadata, 0, "#JTD", writer);
+            }
+
+            if (metadataSizes.IsStandaloneDebugMetadata)
+            {
+                SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.StandalonePdbStreamSize, "#Pdb", writer);
             }
 
             uint endOffset = writer.BaseStream.Position;
@@ -1994,7 +2011,7 @@ namespace Microsoft.Cci
         private static void SerializeStreamHeader(ref int offsetFromStartOfMetadata, int alignedStreamSize, string streamName, BinaryWriter writer)
         {
             // 4 for the first uint (offset), 4 for the second uint (padded size), length of stream name + 1 for null terminator (then padded)
-            int sizeOfStreamHeader = 8 + BitArithmeticUtilities.Align(streamName.Length + 1, 4);
+            int sizeOfStreamHeader = MetadataSizes.GetMetadataStreamHeaderSize(streamName);
             writer.WriteInt(offsetFromStartOfMetadata);
             writer.WriteInt(alignedStreamSize);
             foreach (char ch in streamName)
@@ -2072,9 +2089,6 @@ namespace Microsoft.Cci
             out uint entryPointToken,
             out MetadataSizes metadataSizes)
         {
-            bool emitSeparateDebugMetadata = debugHeapsOpt != null;
-            bool emitEmbeddedDebugMetadata = heaps == debugHeapsOpt;
-
             // Extract information from object model into tables, indices and streams
             CreateIndices();
 
@@ -2098,12 +2112,11 @@ namespace Microsoft.Cci
             if (IsFullMetadata && entryPoint?.GetResolvedMethod(Context) != null)
             {
                 entryPointToken = GetMethodToken(entryPoint);
-                nativePdbWriterOpt?.SetEntryPoint(entryPointToken);
 
-                if (debugHeapsOpt != null)
-                {
-                    DefineEntryPointCustomDebugInformation((int)entryPointToken);
-                }
+                // entry point can only be a MethodDef:
+                Debug.Assert((entryPointToken & 0xff000000) == 0x06000000);
+
+                nativePdbWriterOpt?.SetEntryPoint(entryPointToken);
             }
             else
             {
@@ -2112,22 +2125,26 @@ namespace Microsoft.Cci
 
             heaps.Complete();
 
+            var tableRowCounts = GetRowCounts();
+
             metadataSizes = new MetadataSizes(
-                GetRowCounts(includeTypeSystemTables: true, includeDebugTables: emitEmbeddedDebugMetadata),
-                heaps.GetHeapSizes(),
+                rowCounts: tableRowCounts,
+                heapSizes: heaps.GetHeapSizes(),
                 ilStreamSize: (int)ilWriter.BaseStream.Length,
                 mappedFieldDataSize: (int)mappedFieldDataWriter.BaseStream.Length,
                 resourceDataSize: (int)managedResourceDataWriter.BaseStream.Length,
-                isMinimalDelta: IsMinimalDelta);
+                isMinimalDelta: IsMinimalDelta,
+                emitStandaloneDebugMetadata: EmitStandaloneDebugMetadata,
+                isStandaloneDebugMetadata: false);
 
             int methodBodyStreamRva = calculateMethodBodyStreamRva(metadataSizes);
             int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
 
             uint guidHeapStartOffset;
-            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, out guidHeapStartOffset, isPortablePdb: false);
+            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, entryPointToken, out guidHeapStartOffset);
             moduleVersionIdOffsetInMetadataStream = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
 
-            if (!emitSeparateDebugMetadata)
+            if (!EmitStandaloneDebugMetadata)
             {
                 return;
             }
@@ -2138,14 +2155,16 @@ namespace Microsoft.Cci
             debugHeapsOpt.Complete();
 
             var debugMetadataSizes = new MetadataSizes(
-                GetRowCounts(includeTypeSystemTables: false, includeDebugTables: true),
-                debugHeapsOpt.GetHeapSizes(),
+                rowCounts: tableRowCounts,
+                heapSizes: debugHeapsOpt.GetHeapSizes(),
                 ilStreamSize: 0,
                 mappedFieldDataSize: 0,
                 resourceDataSize: 0,
-                isMinimalDelta: IsMinimalDelta);
+                isMinimalDelta: IsMinimalDelta,
+                emitStandaloneDebugMetadata: true,
+                isStandaloneDebugMetadata: true);
 
-            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, out guidHeapStartOffset, isPortablePdb: true);
+            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, entryPointToken, out guidHeapStartOffset);
         }
 
         private void SerializeMetadata(
@@ -2153,8 +2172,8 @@ namespace Microsoft.Cci
             MetadataSizes metadataSizes, 
             int methodBodyStreamRva, 
             int mappedFieldDataStreamRva,
-            out uint guidHeapStartOffset,
-            bool isPortablePdb)
+            uint entryPointToken,
+            out uint guidHeapStartOffset)
         {
             uint metadataStartOffset = metadataWriter.BaseStream.Position;
 
@@ -2163,16 +2182,22 @@ namespace Microsoft.Cci
             metadataWriter.BaseStream.Position = metadataStartOffset + (uint)metadataSizes.MetadataHeaderSize;
 
             // #~ or #- stream:
-            this.SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, isPortablePdb);
+            SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
-            (isPortablePdb ? debugHeapsOpt : heaps).WriteTo(metadataWriter.BaseStream, out guidHeapStartOffset);
-            
+            (metadataSizes.IsStandaloneDebugMetadata ? debugHeapsOpt : heaps).WriteTo(metadataWriter.BaseStream, out guidHeapStartOffset);
+
+            // #Pdb stream
+            if (metadataSizes.IsStandaloneDebugMetadata)
+            {
+                SerializeStandalonePdbStream(metadataWriter, metadataSizes, entryPointToken);
+            }
+
             uint metadataSize = metadataWriter.BaseStream.Position;
 
             // write header at the start of the metadata stream:
             metadataWriter.BaseStream.Position = 0;
-            this.SerializeMetadataHeader(metadataWriter, metadataSizes, isPortablePdb);
+            SerializeMetadataHeader(metadataWriter, metadataSizes);
 
             metadataWriter.BaseStream.Position = metadataSize;
         }
@@ -2192,15 +2217,14 @@ namespace Microsoft.Cci
             BinaryWriter writer, 
             MetadataSizes metadataSizes, 
             int methodBodyStreamRva, 
-            int mappedFieldDataStreamRva,
-            bool isPortablePdb)
+            int mappedFieldDataStreamRva)
         {
             uint startPosition = writer.BaseStream.Position;
 
             this.SerializeTablesHeader(writer, metadataSizes);
 
-            Debug.Assert(!metadataSizes.IsEmpty(TableIndex.Module));
-            if (isPortablePdb)
+            Debug.Assert(metadataSizes.IsPresent(TableIndex.Module));
+            if (metadataSizes.IsStandaloneDebugMetadata)
             {
                 SerializeModuleTable(writer, metadataSizes, debugHeapsOpt, ref _debugModuleRow);
             }
@@ -2209,219 +2233,219 @@ namespace Microsoft.Cci
                 SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.TypeRef))
+            if (metadataSizes.IsPresent(TableIndex.TypeRef))
             {
                 this.SerializeTypeRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.TypeDef))
+            if (metadataSizes.IsPresent(TableIndex.TypeDef))
             {
                 this.SerializeTypeDefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Field))
+            if (metadataSizes.IsPresent(TableIndex.Field))
             {
                 this.SerializeFieldTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodDef))
+            if (metadataSizes.IsPresent(TableIndex.MethodDef))
             {
                 this.SerializeMethodDefTable(writer, metadataSizes, methodBodyStreamRva);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Param))
+            if (metadataSizes.IsPresent(TableIndex.Param))
             {
                 this.SerializeParamTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.InterfaceImpl))
+            if (metadataSizes.IsPresent(TableIndex.InterfaceImpl))
             {
                 this.SerializeInterfaceImplTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MemberRef))
+            if (metadataSizes.IsPresent(TableIndex.MemberRef))
             {
                 this.SerializeMemberRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Constant))
+            if (metadataSizes.IsPresent(TableIndex.Constant))
             {
                 this.SerializeConstantTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.CustomAttribute))
+            if (metadataSizes.IsPresent(TableIndex.CustomAttribute))
             {
                 this.SerializeCustomAttributeTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.FieldMarshal))
+            if (metadataSizes.IsPresent(TableIndex.FieldMarshal))
             {
                 this.SerializeFieldMarshalTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.DeclSecurity))
+            if (metadataSizes.IsPresent(TableIndex.DeclSecurity))
             {
                 this.SerializeDeclSecurityTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ClassLayout))
+            if (metadataSizes.IsPresent(TableIndex.ClassLayout))
             {
                 this.SerializeClassLayoutTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.FieldLayout))
+            if (metadataSizes.IsPresent(TableIndex.FieldLayout))
             {
                 this.SerializeFieldLayoutTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.StandAloneSig))
+            if (metadataSizes.IsPresent(TableIndex.StandAloneSig))
             {
                 this.SerializeStandAloneSigTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.EventMap))
+            if (metadataSizes.IsPresent(TableIndex.EventMap))
             {
                 this.SerializeEventMapTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Event))
+            if (metadataSizes.IsPresent(TableIndex.Event))
             {
                 this.SerializeEventTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.PropertyMap))
+            if (metadataSizes.IsPresent(TableIndex.PropertyMap))
             {
                 this.SerializePropertyMapTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Property))
+            if (metadataSizes.IsPresent(TableIndex.Property))
             {
                 this.SerializePropertyTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodSemantics))
+            if (metadataSizes.IsPresent(TableIndex.MethodSemantics))
             {
                 this.SerializeMethodSemanticsTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodImpl))
+            if (metadataSizes.IsPresent(TableIndex.MethodImpl))
             {
                 this.SerializeMethodImplTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ModuleRef))
+            if (metadataSizes.IsPresent(TableIndex.ModuleRef))
             {
                 this.SerializeModuleRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.TypeSpec))
+            if (metadataSizes.IsPresent(TableIndex.TypeSpec))
             {
                 this.SerializeTypeSpecTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ImplMap))
+            if (metadataSizes.IsPresent(TableIndex.ImplMap))
             {
                 this.SerializeImplMapTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.FieldRva))
+            if (metadataSizes.IsPresent(TableIndex.FieldRva))
             {
                 this.SerializeFieldRvaTable(writer, metadataSizes, mappedFieldDataStreamRva);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.EncLog))
+            if (metadataSizes.IsPresent(TableIndex.EncLog))
             {
                 this.SerializeEncLogTable(writer);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.EncMap))
+            if (metadataSizes.IsPresent(TableIndex.EncMap))
             {
                 this.SerializeEncMapTable(writer);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Assembly))
+            if (metadataSizes.IsPresent(TableIndex.Assembly))
             {
                 this.SerializeAssemblyTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.AssemblyRef))
+            if (metadataSizes.IsPresent(TableIndex.AssemblyRef))
             {
                 this.SerializeAssemblyRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.File))
+            if (metadataSizes.IsPresent(TableIndex.File))
             {
                 this.SerializeFileTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ExportedType))
+            if (metadataSizes.IsPresent(TableIndex.ExportedType))
             {
                 this.SerializeExportedTypeTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ManifestResource))
+            if (metadataSizes.IsPresent(TableIndex.ManifestResource))
             {
                 this.SerializeManifestResourceTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.NestedClass))
+            if (metadataSizes.IsPresent(TableIndex.NestedClass))
             {
                 this.SerializeNestedClassTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.GenericParam))
+            if (metadataSizes.IsPresent(TableIndex.GenericParam))
             {
                 this.SerializeGenericParamTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodSpec))
+            if (metadataSizes.IsPresent(TableIndex.MethodSpec))
             {
                 this.SerializeMethodSpecTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.GenericParamConstraint))
+            if (metadataSizes.IsPresent(TableIndex.GenericParamConstraint))
             {
                 this.SerializeGenericParamConstraintTable(writer, metadataSizes);
             }
 
             // debug tables
 
-            if (!metadataSizes.IsEmpty(TableIndex.Document))
+            if (metadataSizes.IsPresent(TableIndex.Document))
             {
                 this.SerializeDocumentTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodBody))
+            if (metadataSizes.IsPresent(TableIndex.MethodBody))
             {
                 this.SerializeMethodBodyTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.LocalScope))
+            if (metadataSizes.IsPresent(TableIndex.LocalScope))
             {
                 this.SerializeLocalScopeTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.LocalVariable))
+            if (metadataSizes.IsPresent(TableIndex.LocalVariable))
             {
                 this.SerializeLocalVariableTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.LocalConstant))
+            if (metadataSizes.IsPresent(TableIndex.LocalConstant))
             {
                 this.SerializeLocalConstantTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ImportScope))
+            if (metadataSizes.IsPresent(TableIndex.ImportScope))
             {
                 this.SerializeImportScopeTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.AsyncMethod))
+            if (metadataSizes.IsPresent(TableIndex.AsyncMethod))
             {
                 this.SerializeAsyncMethodTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.CustomDebugInformation))
+            if (metadataSizes.IsPresent(TableIndex.CustomDebugInformation))
             {
                 this.SerializeCustomDebugInformationTable(writer, metadataSizes);
             }
@@ -2471,7 +2495,7 @@ namespace Microsoft.Cci
             // This table is populated after the others because it depends on the order of the entries of the generic parameter table.
             this.PopulateCustomAttributeTableRows();
 
-            ImmutableArray<int> rowCounts = GetRowCounts(includeTypeSystemTables: true, includeDebugTables: true);
+            ImmutableArray<int> rowCounts = GetRowCounts();
             Debug.Assert(rowCounts[(int)TableIndex.EncLog] == 0 && rowCounts[(int)TableIndex.EncMap] == 0);
 
             this.PopulateEncLogTableRows(_encLogTable, rowCounts);
@@ -3725,48 +3749,45 @@ namespace Microsoft.Cci
                 heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
             }
 
-            ulong validTables;
-            ulong sortedTables;
-            ComputeValidAndSortedMasks(metadataSizes, out validTables, out sortedTables);
+            const ulong sortedTables = 0x16003301fa00;
 
             writer.WriteUint(0); // reserved
-            writer.WriteByte(this.module.MetadataFormatMajorVersion);
-            writer.WriteByte(this.module.MetadataFormatMinorVersion);
+            writer.WriteByte(module.MetadataFormatMajorVersion);
+            writer.WriteByte(module.MetadataFormatMinorVersion);
             writer.WriteByte((byte)heapSizes);
             writer.WriteByte(1); // reserved
-            writer.WriteUlong(validTables);
+            writer.WriteUlong(metadataSizes.PresentTablesMask);
             writer.WriteUlong(sortedTables);
-            SerializeRowCounts(writer, metadataSizes);
+            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.PresentTablesMask);
 
             uint endPosition = writer.BaseStream.Position;
             Debug.Assert(metadataSizes.CalculateTableStreamHeaderSize() == endPosition - startPosition);
         }
 
-        private static void ComputeValidAndSortedMasks(MetadataSizes metadataSizes, out ulong validTables, out ulong sortedTables)
+        private static void SerializeStandalonePdbStream(BinaryWriter writer, MetadataSizes metadataSizes, uint entryPointToken)
         {
-            validTables = 0;
-            ulong validBit = 1;
+            uint startPosition = writer.BaseStream.Position;
 
-            foreach (int rowCount in metadataSizes.RowCounts)
-            {
-                if (rowCount > 0)
-                {
-                    validTables |= validBit;
-                }
+            writer.WriteUint(entryPointToken);
 
-                validBit <<= 1;
-            }
+            writer.WriteUlong(metadataSizes.ExternalTablesMask);
+            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.ExternalTablesMask);
 
-            sortedTables = 0x16003301fa00/* & validTables*/;
+            uint endPosition = writer.BaseStream.Position;
+            Debug.Assert(metadataSizes.CalculateStandalonePdbStreamSize() == endPosition - startPosition);
         }
 
-        private static void SerializeRowCounts(BinaryWriter writer, MetadataSizes tableSizes)
+        private static void SerializeRowCounts(BinaryWriter writer, ImmutableArray<int> rowCounts, ulong includeTables)
         {
-            foreach (int rowCount in tableSizes.RowCounts)
+            for (int i = 0; i < rowCounts.Length; i++)
             {
-                if (rowCount > 0)
+                if (((1UL << i) & includeTables) != 0)
                 {
-                    writer.WriteInt(rowCount);
+                    int rowCount = rowCounts[i];
+                    if (rowCount > 0)
+                    {
+                        writer.WriteInt(rowCount);
+                    }
                 }
             }
         }
@@ -4171,6 +4192,7 @@ namespace Microsoft.Cci
                 _cancellationToken.ThrowIfCancellationRequested();
                 uint rva;
                 IMethodBody body;
+                int localSignatureRid;
 
                 if (method.HasBody())
                 {
@@ -4179,7 +4201,8 @@ namespace Microsoft.Cci
 
                     if (body != null)
                     {
-                        uint localSignatureToken = this.SerializeLocalVariablesSignature(body);
+                        localSignatureRid = this.SerializeLocalVariablesSignature(body);
+                        uint localSignatureToken = (localSignatureRid != 0) ? (uint)(0x11000000 | localSignatureRid) : 0;
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
@@ -4189,6 +4212,7 @@ namespace Microsoft.Cci
                     else
                     {
                         rva = 0;
+                        localSignatureRid = 0;
                     }
                 }
                 else
@@ -4196,11 +4220,12 @@ namespace Microsoft.Cci
                     // 0 is actually written to metadata when the row is serialized
                     rva = uint.MaxValue;
                     body = null;
+                    localSignatureRid = 0;
                 }
 
                 if (debugHeapsOpt != null)
                 {
-                    SerializeMethodDebugInfo(body, methodRid);
+                    SerializeMethodDebugInfo(body, methodRid, localSignatureRid);
                 }
 
                 rvas[methodRid - 1] = rva;
@@ -4270,7 +4295,7 @@ namespace Microsoft.Cci
         /// Serialize the method local signature to the blob.
         /// </summary>
         /// <returns>Standalone signature token</returns>
-        protected virtual uint SerializeLocalVariablesSignature(IMethodBody body)
+        protected virtual int SerializeLocalVariablesSignature(IMethodBody body)
         {
             Debug.Assert(!_tableIndicesAreComplete);
 
@@ -4290,10 +4315,10 @@ namespace Microsoft.Cci
             }
 
             uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
-            uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
+            int signatureIndex = (int)this.GetOrAddStandAloneSignatureIndex(blobIndex);
             stream.Free();
 
-            return 0x11000000 | signatureIndex;
+            return signatureIndex;
         }
 
         protected void SerializeLocalVariableSignature(BinaryWriter writer, ILocalDefinition local)

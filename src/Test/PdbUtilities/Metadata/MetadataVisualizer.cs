@@ -599,6 +599,23 @@ namespace Roslyn.Test.MetadataUtilities
             return $"IL_{sequencePoint.Offset:X4}: " + range;
         }
 
+        public void VisualizeHeaders()
+        {
+            _reader = _readers[0];
+
+            _writer.WriteLine("MetadataVersion: {0}", _reader.MetadataVersion);
+
+            if (_reader.DebugMetadataHeader != null)
+            {
+                if (!_reader.DebugMetadataHeader.EntryPoint.IsNil)
+                {
+                    _writer.WriteLine("EntryPoint: {0}", Token(_reader.DebugMetadataHeader.EntryPoint));
+                }
+            }
+
+            _writer.WriteLine();
+        }
+
         private void WriteModule()
         {
             var def = _reader.GetModuleDefinition();

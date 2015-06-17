@@ -6,7 +6,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class PortableCustomDebugInfoKinds
     {
-        public static readonly Guid EntryPoint = new Guid("22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1");
         public static readonly Guid StateMachineHoistedLocalScopes = new Guid("6DA9A61E-F8C7-4874-BE62-68BC5630DF71"); 
         public static readonly Guid DynamicLocalVariables = new Guid("83C563C4-B4F3-47D5-B824-BA5441477EA8");
         public static readonly Guid DefaultNamespace = new Guid("58b2eab6-209f-4e4e-a22c-b2d0f910c782");
