@@ -253,17 +253,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetUserEntryPoint(out int methodToken)
         {
-            var mdReader = MetadataReader;
-
-            foreach (var cdiHandle in mdReader.GetCustomDebugInformation(Handle.AssemblyDefinition))
+            var handle = MetadataReader.DebugMetadataHeader.EntryPoint;
+            if (!handle.IsNil)
             {
-                var cdi = mdReader.GetCustomDebugInformation(cdiHandle);
-                if (mdReader.GetGuid(cdi.Kind) == MetadataUtilities.CdiKindEntryPoint)
-                {
-                    var blobReader = mdReader.GetBlobReader(cdi.Value);
-                    methodToken = MetadataUtilities.MethodDefToken(blobReader.ReadCompressedInteger());
-                    return HResult.S_OK;
-                }
+                methodToken = MetadataTokens.GetToken(handle);
+                return HResult.S_OK;
             }
 
             methodToken = 0;
