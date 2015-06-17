@@ -70,21 +70,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var length = tree.Length;
 
-                _map.AddOrUpdate(document.Id, id =>
+                while (true)
                 {
-                    // add new value
-                    Interlocked.Add(ref _size, length);
-                    return length;
-                }, (id, existing) =>
-                {
-                    // update existing value
-                    if (length != existing)
+                    if (_map.TryAdd(document.Id, length))
                     {
-                        Interlocked.Add(ref _size, length - existing);
+                        Interlocked.Add(ref _size, length);
+                        return;
                     }
 
-                    return length;
-                });
+                    long size;
+                    if (_map.TryGetValue(document.Id, out size))
+                    {
+                        if (size == length)
+                        {
+                            return;
+                        }
+
+                        if (_map.TryUpdate(document.Id, length, size))
+                        {
+                            Interlocked.Add(ref _size, length - size);
+                            return;
+                        }
+                    }
+                }
             }
 
             public void RemoveDocument(DocumentId documentId)
