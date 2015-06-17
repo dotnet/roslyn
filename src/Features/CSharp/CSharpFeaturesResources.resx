@@ -356,6 +356,9 @@
   <data name="AnonymousMethod" xml:space="preserve">
     <value>anonymous method</value>
   </data>
+  <data name="LocalFunction" xml:space="preserve">
+    <value>local function</value>
+  </data>
   <data name="FromClause" xml:space="preserve">
     <value>from clause</value>
   </data>

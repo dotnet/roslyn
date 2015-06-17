@@ -511,6 +511,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to local function.
+        /// </summary>
+        internal static string LocalFunction {
+            get {
+                return ResourceManager.GetString("LocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to lock statement.
         /// </summary>
         internal static string LockStatement {
