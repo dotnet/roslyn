@@ -10,18 +10,17 @@ namespace BoundTreeGenerator
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
-            var nonSwitches = args.Where(a => !a.StartsWith("/", StringComparison.Ordinal)).ToArray();
             string language;
             string infilename;
             string outfilename;
             TargetLanguage targetLanguage;
 
-            if (nonSwitches.Length != 3)
+            if (args.Length != 3)
             {
-                Console.WriteLine("Usage: \"{0} <language> <input> <output>\", where <language> is \"VB\" or \"CSharp\"", Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]));
-                return;
+                Console.Error.WriteLine("Usage: \"{0} <language> <input> <output>\", where <language> is \"VB\" or \"CSharp\"", Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0]));
+                return 1;
             }
 
             language = args[0];
@@ -38,8 +37,8 @@ namespace BoundTreeGenerator
                     targetLanguage = TargetLanguage.CSharp;
                     break;
                 default:
-                    Console.WriteLine("Language must be \"VB\" or \"CSharp\"");
-                    return;
+                    Console.Error.WriteLine("Language must be \"VB\" or \"CSharp\"");
+                    return 1;
             }
 
             var serializer = new XmlSerializer(typeof(Tree));
@@ -58,6 +57,8 @@ namespace BoundTreeGenerator
             {
                 BoundNodeClassWriter.Write(outfile, tree, targetLanguage);
             }
+
+            return 0;
         }
 
         private static void serializer_UnreferencedObject(object sender, UnreferencedObjectEventArgs e)
