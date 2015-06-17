@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Dim ch = text(index)
 
                     If spanStart IsNot Nothing AndAlso Char.IsWhiteSpace(ch) Then
-                        Dim span = TextSpan.FromBounds(spanStart.Value, spanStart.Value + index)
+                        Dim span = TextSpan.FromBounds(spanStart.Value, trivia.Span.Start + index)
                         _worker.AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter)
                         spanStart = Nothing
                     ElseIf spanStart Is Nothing AndAlso Not Char.IsWhiteSpace(ch) Then
