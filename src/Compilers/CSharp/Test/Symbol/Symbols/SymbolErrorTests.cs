@@ -5345,11 +5345,10 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-    // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
-                );
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+                // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util"));
 
             comp = CreateCompilationWithMscorlib(text,
                 new List<MetadataReference>()
@@ -5358,11 +5357,10 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
-    // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
-                );
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+                // (9,38): warning CS0436: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util"));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
@@ -5404,7 +5402,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("ErrTestMod02.netmodule", "NS.Util.A", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util.A")
@@ -5417,7 +5415,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,43): warning CS0436: The type 'NS.Util.A' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util.A' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("ErrTestMod02.netmodule", "NS.Util.A", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util.A")
@@ -5463,7 +5461,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("ErrTestMod02.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5476,7 +5474,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod02.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0435: The namespace 'NS.Util' in 'ErrTestMod02.netmodule' conflicts with the imported type 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'ErrTestMod02.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "Util").WithArguments("ErrTestMod02.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5522,7 +5520,7 @@ namespace NS
                     new CSharpCompilationReference(lib)
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5535,7 +5533,7 @@ namespace NS
                     MetadataReference.CreateFromImage(lib.EmitToArray())
                 }, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
+            CompileAndVerify(comp, expectedOutput: "ErrTestMod01.netmodule").VerifyDiagnostics(
     // (9,38): warning CS0437: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the imported namespace 'NS.Util' in 'Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'ErrTestMod01.netmodule'.
     //             Console.WriteLine(typeof(Util.A).Module);   
     Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NS.Util")
@@ -5676,7 +5674,7 @@ namespace NS
                     s_mod2.GetReference(),
                 });
 
-            CompileAndVerify(comp, emitters: TestEmitters.CCI).VerifyDiagnostics();
+            CompileAndVerify(comp).VerifyDiagnostics();
         }
 
         [Fact()]
@@ -6524,7 +6522,7 @@ public static int AT = (new { field = 2 }).field;
             Assert.Equal(1, comp.Assembly.Modules[2].GlobalNamespace.GetTypeMembers("<ModuleB01>f__AnonymousType0", 1).Length);
 
             CompileAndVerify(comp, expectedOutput: @"1 + 1 = 2
-2 = 2", emitters: TestEmitters.RefEmitBug);
+2 = 2");
         }
 
         [Fact]
@@ -6740,11 +6738,10 @@ public class CF3<T>
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8006: Forwarded type 'ns.CF2' conflicts with type declared in primary module of this assembly.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("ns.CF2"),
-    // error CS8006: Forwarded type 'CF1' conflicts with type declared in primary module of this assembly.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("CF1")
-                );
+                // error CS8006: Forwarded type 'ns.CF2' conflicts with type declared in primary module of this assembly.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("ns.CF2"),
+                // error CS8006: Forwarded type 'CF1' conflicts with type declared in primary module of this assembly.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("CF1"));
 
             compilation = CreateCompilationWithMscorlib(modSource,
                 new List<MetadataReference>()
@@ -6754,7 +6751,7 @@ public class CF3<T>
                 }, TestOptions.ReleaseDll);
 
             // Exported types in .Net modules cause PEVerify to fail.
-            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
                 new List<MetadataReference>()
@@ -6763,7 +6760,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib(modSource,
                 new List<MetadataReference>()
@@ -6774,11 +6771,10 @@ public class CF3<T>
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-    // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+                // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
             compilation = CreateCompilationWithMscorlib(
 @"
@@ -6794,11 +6790,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"),
-    // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule")
-                );
+                // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"),
+                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"));
 
             compilation = CreateCompilationWithMscorlib("",
                 new List<MetadataReference>()
@@ -6809,11 +6804,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
-    // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule")
-                );
+                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
+                // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"));
 
             compilation = CreateCompilationWithMscorlib("",
                 new List<MetadataReference>()
@@ -6824,11 +6818,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
-    // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule")
-                );
+                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
+                // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"));
 
             compilation = CreateCompilationWithMscorlib("",
                 new List<MetadataReference>()
@@ -6838,7 +6831,7 @@ extern alias FT1;
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug, verify: false).VerifyDiagnostics();
+            CompileAndVerify(compilation, verify: false).VerifyDiagnostics();
 
             compilation = CreateCompilationWithMscorlib("",
                 new List<MetadataReference>()
@@ -6850,11 +6843,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-    // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
-                );
+                // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
         [Fact]
@@ -17162,7 +17154,7 @@ public class B : A
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: false, emitters: TestEmitters.RefEmitBug).
+            var verifier = CompileAndVerify(comp, verify: false).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();

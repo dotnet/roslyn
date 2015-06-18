@@ -8116,7 +8116,7 @@ class Program
 
 }
 ";
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitters: TestEmitters.RefEmitBug); //expectedOutput: @"TrueFalseTrue"
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
 
             compilation.VerifyIL("Program.Store", @"{
   // Code size       36 (0x24)
@@ -8236,7 +8236,7 @@ class Program
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
             // This will compile without warning but runtime behaviour is unpredictable.
 
-            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, emitters: TestEmitters.RefEmitBug);
+            var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyIL("Program.Load", @"
 {
   // Code size       49 (0x31)
@@ -8399,11 +8399,10 @@ namespace ConsoleApplication30
 
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, emitters: TestEmitters.RefEmitBug).Compilation;
+            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll).Compilation;
 
             var comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
-                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) },
                 expectedOutput: "TrueFalse").Compilation;
 
@@ -8456,7 +8455,6 @@ namespace ConsoleApplication30
             // this doesnt warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll,
-                emitters: TestEmitters.RefEmitBug,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }
 

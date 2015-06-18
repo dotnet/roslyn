@@ -699,7 +699,7 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, emitters: TestEmitters.CCI, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
                 var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
@@ -2040,7 +2040,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, emitters: TestEmitters.CCI, symbolValidator: module =>
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -8445,7 +8445,7 @@ public class C
     public void m(ref object a, out object b) { b = null; }
 }
 ";
-            CompileAndVerify(source, expectedOutput: "", emitters: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, expectedOutput: "", additionalRefs: new[] { SystemCoreRef, CSharpRef });
         }
 
         /// <summary>

@@ -569,7 +569,7 @@ System.Nullable`1[ELong]: one
 System.Nullable`1[ELong]: <null>
 System.Nullable`1[ELong]: <null>";
 
-            CompileAndVerify(source, expectedOutput: expected, emitters: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact]
@@ -2060,7 +2060,7 @@ public struct S
             };
 
             // TODO: RefEmit doesn't emit the default value of M1's parameter.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -2302,7 +2302,7 @@ public class C
             };
 
             // TODO: Guess - RefEmit doesn't like DateTime constants.
-            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false), emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { SystemRef }, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
     }
 }

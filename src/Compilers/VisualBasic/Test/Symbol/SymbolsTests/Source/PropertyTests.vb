@@ -391,7 +391,7 @@ End Class
                     </file>
                 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <Fact>
@@ -4787,7 +4787,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <WorkItem(528038, "DevDiv")>
@@ -4927,7 +4927,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <WorkItem(527660, "DevDiv")>
@@ -4966,7 +4966,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <Fact>
@@ -4984,7 +4984,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <WorkItem(527656, "DevDiv")>
@@ -5021,7 +5021,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <Fact>
@@ -5039,7 +5039,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         ''' <summary>

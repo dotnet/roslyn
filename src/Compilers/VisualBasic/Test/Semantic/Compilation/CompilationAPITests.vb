@@ -612,7 +612,7 @@ End Class
 </compilation>, additionalRefs:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics()
 
-            CompileAndVerify(assembly, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(assembly)
         End Sub
 
         <WorkItem(713356, "DevDiv")>
