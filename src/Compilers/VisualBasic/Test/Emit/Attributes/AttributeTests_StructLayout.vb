@@ -62,7 +62,7 @@ End Class
             Const typeDefMask As TypeAttributes = TypeAttributes.StringFormatMask Or TypeAttributes.LayoutMask
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(9, reader.GetTableRowCount(TableIndex.ClassLayout))
 
@@ -340,8 +340,8 @@ End Class
     </file>
 </compilation>
 
-            Dim validator As Action(Of PEAssembly, TestEmitters) =
-                Sub(assembly, _omitted)
+            Dim validator As Action(Of PEAssembly) =
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     For Each typeHandle In reader.TypeDefinitions
                         Dim type = reader.GetTypeDefinition(typeHandle)
@@ -388,7 +388,7 @@ End Class
 
             CompileAndVerify(verifiable, validator:=validator)
             CompileAndVerify(unverifiable, validator:=validator, verify:=False)
-            CompileAndVerify(unloadable, emitters:=TestEmitters.CCI, validator:=validator, verify:=False)
+            CompileAndVerify(unloadable, validator:=validator, verify:=False)
         End Sub
 
         <Fact>
@@ -564,7 +564,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, emitters:=TestEmitters.CCI, verify:=False)
+            CompileAndVerify(source, verify:=False)
         End Sub
 
         <Fact>
@@ -590,7 +590,7 @@ End Class
 </compilation>
 
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout))
 
@@ -754,7 +754,7 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
 
         Private Sub VerifyStructLayout(source As System.Xml.Linq.XElement, hasInstanceFields As Boolean)
             CompileAndVerify(source, validator:=
-                Sub(assembly, _omitted)
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Dim type = reader.TypeDefinitions _
                         .Select(Function(handle) reader.GetTypeDefinition(handle)) _

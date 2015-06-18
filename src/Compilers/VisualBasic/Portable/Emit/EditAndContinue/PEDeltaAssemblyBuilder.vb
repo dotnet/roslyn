@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        edits As IEnumerable(Of SemanticEdit),
                        isAddedSymbol As Func(Of ISymbol, Boolean))
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim initialBaseline = previousGeneration.InitialBaseline
 

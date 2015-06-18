@@ -10,18 +10,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class AssemblyReference
         Implements Cci.IAssemblyReference
 
-        ' Assembly identity used in metadata to refer to the target assembly.
-        ' NOTE: this could be different from assemblySymbol.AssemblyName due to mapping.
-        ' For example, multiple assembly symbols might be emitted into a single dynamic assembly whose identity is stored here.
-        Public ReadOnly MetadataIdentity As AssemblyIdentity
-
         Private ReadOnly _targetAssembly As AssemblySymbol
 
-        Public Sub New(assemblySymbol As AssemblySymbol, symbolMapper As Func(Of AssemblySymbol, AssemblyIdentity))
+        Public Sub New(assemblySymbol As AssemblySymbol)
             Debug.Assert(assemblySymbol IsNot Nothing)
-            MetadataIdentity = If(symbolMapper IsNot Nothing, symbolMapper(assemblySymbol), assemblySymbol.Identity)
             _targetAssembly = assemblySymbol
         End Sub
+
+        Public ReadOnly Property MetadataIdentity As AssemblyIdentity
+            Get
+                Return _targetAssembly.Identity
+            End Get
+        End Property
 
         Private Sub IReferenceDispatch(visitor As Cci.MetadataVisitor) Implements Cci.IReference.Dispatch
             visitor.Visit(DirectCast(Me, Cci.IAssemblyReference))

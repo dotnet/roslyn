@@ -369,8 +369,8 @@ End Class
                 {SystemCoreRef, SystemDataRef},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
 
-            CompileAndVerify(comp, emitters:=TestEmitters.CCI, validator:=
-                Sub(peAssembly, emitters)
+            CompileAndVerify(comp, validator:=
+                Sub(peAssembly)
                     Dim reader = peAssembly.ManifestModule.MetadataReader
 
                     Assert.Equal(
