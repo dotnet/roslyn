@@ -81,20 +81,20 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, other.Assembly.Identity.PublicKey));
 
             CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
+            {
+                bool haveAttribute = false;
+
+                foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    bool haveAttribute = false;
-
-                    foreach (var attrData in m.ContainingAssembly.GetAttributes())
+                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyFileAttribute))
                     {
-                        if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyFileAttribute))
-                        {
-                            haveAttribute = true;
-                            break;
-                        }
+                        haveAttribute = true;
+                        break;
                     }
+                }
 
-                    Assert.True(haveAttribute);
-                }, emitters: TestEmitters.CCI);
+                Assert.True(haveAttribute);
+            });
         }
 
         [Fact]
@@ -206,7 +206,7 @@ public class Test
                 }
 
                 Assert.True(haveAttribute);
-            }, emitters: TestEmitters.CCI);
+            });
         }
 
         [Fact]
@@ -1292,7 +1292,7 @@ public class C : B
             comp3.VerifyDiagnostics();
 
             // Note: calls B.M, not A.M, since asm1 is not accessible.
-            var verifier = CompileAndVerify(comp3, emitters: TestEmitters.CCI);
+            var verifier = CompileAndVerify(comp3);
 
             verifier.VerifyIL("C.Test", @"
 {
@@ -1414,7 +1414,7 @@ public class D : C
 
             // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
             // Confirmed in Dev11.
-            var verifier = CompileAndVerify(comp4, emitters: TestEmitters.CCI);
+            var verifier = CompileAndVerify(comp4);
 
             verifier.VerifyIL("D.Test", @"
 {
@@ -1604,11 +1604,9 @@ public class C
 }
 ", options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultProvider));
 
-            CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new CSharpCompilationReference(unsigned) }),
-                             emitters: TestEmitters.CCI).VerifyDiagnostics();
+            CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), new CSharpCompilationReference(unsigned) })).VerifyDiagnostics();
 
-            CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) }),
-                             emitters: TestEmitters.CCI).VerifyDiagnostics();
+            CompileAndVerify(other.WithReferences(new[] { other.References.ElementAt(0), MetadataReference.CreateFromStream(unsigned.EmitToStream()) })).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1927,7 +1925,7 @@ class B
             CompileAndVerify(ca);
 
             var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
-            CompileAndVerify(cb, expectedOutput: "42", emitters: TestEmitters.CCI).Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1072339, "DevDiv")]
@@ -1953,7 +1951,7 @@ class B
             CompileAndVerify(ca);
 
             var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca) });
-            CompileAndVerify(cb, expectedOutput: "42", emitters: TestEmitters.CCI).Diagnostics.Verify();
+            CompileAndVerify(cb, expectedOutput: "42").Diagnostics.Verify();
         }
 
         [Fact, WorkItem(1095618, "DevDiv")]

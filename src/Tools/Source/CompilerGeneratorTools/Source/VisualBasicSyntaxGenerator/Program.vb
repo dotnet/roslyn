@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Collections.Generic
 Imports System.Console
 Imports System.Runtime.InteropServices
 
@@ -15,18 +16,27 @@ Friend Module Program
               exitWithoutErrors = 0
 
         Try
+            Dim outputKind As String = Nothing
+            Dim paths As New List(Of String)()
 
-            Dim paths = From arg In args Where Not arg.StartsWith("/", StringComparison.Ordinal)
+            For Each arg in args 
+                Dim c = arg.ToLowerInvariant()
+                If c = "/test" OrElse c = "/source" OrElse c = "/gettext" Then
+                    If outputKind IsNot Nothing Then
+                        PrintUsage()
+                        Return exitWithErrors
+                    End If
+                    outputKind = c
+                Else If c = "/?" Then
+                    PrintUsage()
+                    Return exitWithErrors
+                Else
+                    paths.Add(arg)
+                End If
+            Next
 
-            Dim switches = From arg In args Where arg.StartsWith("/", StringComparison.Ordinal)
-
-            ' Write usage.
-            If switches.Contains("/?") OrElse paths.Count <> 2 OrElse switches.Count > 1 Then
-                WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
-                WriteLine("  /source        Generates syntax model source code.")
-                WriteLine("  /test          Generates syntax model unit tests.")
-                WriteLine("  /gettext       Generates GetText method only.")
-
+            If paths.Count <> 2 Then
+                PrintUsage()
                 Return exitWithErrors
             End If
 
@@ -44,10 +54,10 @@ Friend Module Program
                 Return exitWithErrors
             End If
 
-            Dim outputKind = If(switches.Any(), switches(0).ToLowerInvariant(), Nothing)
             WriteOutput(outputFile, definition, outputKind)
 
             Return exitWithoutErrors
+
         Catch ex As Exception
             Console.Error.WriteLine("FATAL ERROR: {0}", ex.Message)
             Console.Error.WriteLine(ex.StackTrace)
@@ -56,6 +66,13 @@ Friend Module Program
         End Try
 
     End Function
+
+    Private Sub PrintUsage()
+        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
+        WriteLine("  /source        Generates syntax model source code.")
+        WriteLine("  /test          Generates syntax model unit tests.")
+        WriteLine("  /gettext       Generates GetText method only.")
+    End Sub
 
     Public Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
         If Not TryReadTheTree(inputFile, definition) Then

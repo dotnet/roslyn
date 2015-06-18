@@ -2408,7 +2408,6 @@ B");
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 additionalRefs: new[] { SystemCoreRef },
                 sourceSymbolValidator: validator(true),
                 symbolValidator: validator(false),
@@ -2494,7 +2493,7 @@ static class S
                     "void S.M3<T, U>(U u, IEnumerable<T> t)");
             };
 
-            CompileAndVerify(compilation, emitters: TestEmitters.CCI, sourceSymbolValidator: validator, symbolValidator: validator);
+            CompileAndVerify(compilation, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         private void CheckExtensionMethod(
@@ -2553,7 +2552,7 @@ internal static class C
                 Assert.Equal(extensionAttrCtor.ContainingType, attr.GetType(context));
                 context.Diagnostics.Verify();
             };
-            CompileAndVerify(source, emitters: TestEmitters.CCI, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
+            CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, sourceSymbolValidator: validator, symbolValidator: null);
         }
 
         [WorkItem(541327, "DevDiv")]
@@ -2703,7 +2702,6 @@ class Program
         {
             return CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 additionalRefs: new[] { SystemCoreRef },
                 expectedOutput: expectedOutput,
                 sourceSymbolValidator: validator,
@@ -2988,7 +2986,7 @@ static class Program
             var libCompilation = CreateCompilationWithMscorlibAndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
-            CompileAndVerify(consumer, additionalRefs: new[] { libReference }, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(consumer, additionalRefs: new[] { libReference });
         }
 
         [Fact, WorkItem(545800, "DevDiv")]
@@ -3180,7 +3178,7 @@ End Module";
 }";
             var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
@@ -3193,7 +3191,7 @@ namespace NB
 }";
             var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "B");
             compilation2.VerifyDiagnostics();
-            compilationVerifier = CompileAndVerify(compilation2, emitters: TestEmitters.CCI);
+            compilationVerifier = CompileAndVerify(compilation2);
             var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"using NB;

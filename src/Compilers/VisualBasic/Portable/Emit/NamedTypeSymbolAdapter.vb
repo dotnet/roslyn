@@ -812,7 +812,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 'Debug.Assert(((ITypeReference)this).AsNamespaceTypeDefinition != null);
                 CheckDefinitionInvariant()
-                Return Me.DeclaredAccessibility = Accessibility.Public
+                Return PEModuleBuilder.MemberVisibility(Me) = Cci.TypeMemberVisibility.Public
             End Get
         End Property
 
