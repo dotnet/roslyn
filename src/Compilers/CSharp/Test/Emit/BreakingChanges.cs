@@ -557,7 +557,7 @@ partial class C
     }
 }";
             // Dev12 would emit "2, 1 | T1, T2 | x, y".
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "2, 1 | T, U | x, y");
+            CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
         }
 
         [Fact, WorkItem(529279, "DevDiv")]
@@ -1344,7 +1344,7 @@ public class Program
 @"public class CS3 : CS2<CS1> {}",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
-            var cs3Verifier = CompileAndVerify(cs3Compilation, emitters: TestEmitters.RefEmitBug);
+            var cs3Verifier = CompileAndVerify(cs3Compilation);
             cs3Verifier.VerifyDiagnostics();
 
             var cs4Compilation = CreateCSharpCompilation("CS4",

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EmitOptions emitOptions,
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources)
-            : base(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper: null)
+            : base(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources)
         {
         }
 

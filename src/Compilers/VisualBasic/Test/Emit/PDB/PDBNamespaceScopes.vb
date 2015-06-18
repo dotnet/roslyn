@@ -534,7 +534,7 @@ End Class
             Dim libRef2 = CreateCompilationWithMscorlibAndReferences(sourceLib2, {libRef1}).EmitToImageReference()
             Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef2})
 
-            Dim v = CompileAndVerify(compilation, emitters:=TestEmitters.CCI)
+            Dim v = CompileAndVerify(compilation)
 
             v.Diagnostics.Verify(
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports X = N.B"))

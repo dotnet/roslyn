@@ -155,13 +155,13 @@ public class Test : C107
 }
 ";
 
-            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { metadataTestLib1, metadataTestLib2 }, assemblyValidator: (assembly) =>
             {
                 var refs = assembly.Modules[0].ReferencedAssemblies.OrderBy(r => r.Name).ToArray();
                 Assert.Equal(2, refs.Length);
                 Assert.Equal(refs[0].Name, "MDTestLib1", StringComparer.OrdinalIgnoreCase);
                 Assert.Equal(refs[1].Name, "mscorlib", StringComparer.OrdinalIgnoreCase);
-            }, emitters: TestEmitters.CCI); // TODO(tomat): Ref.Emit infrastructure can't locate the dependent assemblies
+            });
         }
 
         [Fact]
@@ -172,7 +172,7 @@ public class Test : Class2
 {
 }
 ";
-            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(sources, new[] { TestReferences.SymbolsTests.MultiModule.Assembly }, assemblyValidator: (assembly) =>
             {
                 var refs2 = assembly.Modules[0].ReferencedAssemblies.Select(r => r.Name);
                 Assert.Equal(2, refs2.Count());
@@ -196,61 +196,6 @@ public class Test : Class2
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.NetModule));
         }
 
-        [Fact]
-        public void AssemblyRefs_DuplicateRows()
-        {
-            var compilation = CreateCompilationWithMscorlib(
-                "class C : C1 { }; class D { }",
-                new[] { TestReferences.SymbolsTests.Methods.CSMethods });
-
-            PEAssemblyBuilder assembly = new PEAssemblyBuilder(
-                (SourceAssemblySymbol)compilation.Assembly,
-                EmitOptions.Default,
-                compilation.Options.OutputKind,
-                GetDefaultModulePropertiesForSerialization(),
-                Enumerable.Empty<ResourceDescription>(),
-                // map all references to a single name:
-                assemblySymbol => new AssemblyIdentity("foo")
-            );
-
-            // Don't attempt to emit if there were any syntax, declaration, semantic, or emitted errors previously.
-            DiagnosticBag diagnostics = new DiagnosticBag();
-
-            MethodCompiler.CompileMethodBodies(
-                compilation: compilation,
-                moduleBeingBuiltOpt: assembly,
-                generateDebugInfo: false,
-                hasDeclarationErrors: false,
-                diagnostics: diagnostics,
-                filterOpt: null,
-                cancellationToken: default(CancellationToken));
-
-            diagnostics.Verify();
-            var context = new EmitContext(assembly, null, new DiagnosticBag());
-            ImmutableArray<byte> image;
-            using (var stream = new MemoryStream())
-            {
-                Cci.PeWriter.WritePeToStream(
-                    context,
-                    compilation.MessageProvider,
-                    () => stream,
-                    nativePdbWriterOpt: null,
-                    pdbPathOpt: null,
-                    allowMissingMethodBodies: false,
-                    deterministic: false,
-                    cancellationToken: CancellationToken.None);
-
-                image = stream.ToImmutable();
-            }
-            context.Diagnostics.Verify();
-
-            // check that there are no duplicate rows in AssemblyRef table:
-            PEAssembly emittedAssembly = AssemblyMetadata.CreateFromImage(image).GetAssembly();
-            var emittedReferences = emittedAssembly.Modules[0].ReferencedAssemblies;
-            Assert.Equal(1, emittedReferences.Length);
-            Assert.Equal("foo", emittedReferences[0].Name);
-        }
-
         [Fact, WorkItem(529006, "DevDiv")]
         public void AddModule()
         {
@@ -263,7 +208,7 @@ public class Test : Class1
 }
 ";
             // modules not supported in ref emit
-            CompileAndVerify(source, new[] { netModule1, netModule2 }, emitters: TestEmitters.RefEmitBug, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { netModule1, netModule2 }, assemblyValidator: (assembly) =>
             {
                 Assert.Equal(3, assembly.Modules.Length);
 
@@ -427,7 +372,7 @@ abstract public class A
     public abstract void M5<T, S>(T p17, S p18);
 }";
 
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitters: TestEmitters.CCI, symbolValidator: module =>
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
                 var classA = module.GlobalNamespace.GetTypeMembers("A").Single();
 
@@ -535,7 +480,7 @@ static class C
                     Assert.Equal(5, peModuleSymbol.Module.GetMetadataReader().TypeReferences.Count);
                 }
             };
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, emitters: TestEmitters.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1734,7 +1679,7 @@ public class E
   }
   N2 n2; 
 }
-", emitters: TestEmitters.RefEmitUnsupported_646042);
+");
         }
 
         // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
@@ -1759,7 +1704,7 @@ public class E
   }
 }";
 
-            CompileAndVerify(source, expectedOutput: @"1234", emitters: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: @"1234");
         }
 
         [Fact]
@@ -1768,7 +1713,7 @@ public class E
             CompileAndVerify(@"
 class B<T> where T : A {}
 class A : B<A> {}
-", emitters: TestEmitters.RefEmitUnsupported_646042);
+");
         }
 
         [Fact]
@@ -1841,7 +1786,7 @@ public class B : I<C> { }
 public class C : I<B> { }
 public interface I<T> { }
 ";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source);
         }
 
         [Fact]
