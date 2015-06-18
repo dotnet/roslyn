@@ -37,7 +37,21 @@ namespace Microsoft.CodeAnalysis
         {
             _languageServices = languageServices;
             _options = options;
-            _treeSource = treeSource;
+
+            // If this is document that doesn't support syntax, then don't even bother holding
+            // onto any tree source.  It will never be used to get a tree, and can only hurt us
+            // by possibly holding onto data that might cause a slow memory leak.
+            _treeSource = this.SupportsSyntaxTree
+                ? treeSource
+                : ValueSource<TreeAndVersion>.Empty;
+        }
+
+        internal bool SupportsSyntaxTree
+        {
+            get
+            {
+                return this._languageServices.SyntaxTreeFactory != null;
+            }
         }
 
         public static DocumentState Create(
@@ -320,7 +334,14 @@ namespace Microsoft.CodeAnalysis
             // always chain incremental parsing request, it will internally put 
             // appropriate request such as full parsing request if there are too many pending 
             // incremental parsing requests hanging around.
-            var newTreeSource = CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
+            //
+            // However, don't bother with the chaining if this is a document that doesn't support
+            // syntax trees.  The chaininig will keep old data alive (like the old tree source,
+            // which itself is keeping an old tree source which itself is keeping a ... alive),
+            // causing a slow memory leak.
+            var newTreeSource = this.SupportsSyntaxTree
+                ? CreateLazyIncrementallyParsedTree(_treeSource, newTextSource)
+                : ValueSource<TreeAndVersion>.Empty;
 
             return new DocumentState(
                 this.LanguageServices,
@@ -517,7 +538,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
             TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion))
+            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
             {
                 version = treeAndVersion.Version;
                 return true;
@@ -531,16 +552,15 @@ namespace Microsoft.CodeAnalysis
 
         public override async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
-            TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion))
-            {
-                return treeAndVersion.Version;
-            }
-
-            var syntaxTreeFactory = this.LanguageServices.GetService<ISyntaxTreeFactoryService>();
-            if (syntaxTreeFactory == null)
+            if (!this.SupportsSyntaxTree)
             {
                 return await this.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            TreeAndVersion treeAndVersion;
+            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
+            {
+                return treeAndVersion.Version;
             }
 
             treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
