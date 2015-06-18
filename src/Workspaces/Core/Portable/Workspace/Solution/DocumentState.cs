@@ -363,14 +363,19 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: true)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: true);
 
-            var newTreeSource = CreateLazyFullyParsedTree(
-                newTextSource,
-                this.Id.ProjectId,
-                GetSyntaxTreeFilePath(this.info),
-                _options,
-                _languageServices,
-                this.solutionServices,
-                mode);
+            // Only create the ValueSource for creating the SyntaxTree if this is a Document that
+            // supports SyntaxTrees.  There's no point in creating the async lazy and holding onto
+            // this data otherwise.
+            var newTreeSource = !this.SupportsSyntaxTree
+                ? ValueSource<TreeAndVersion>.Empty
+                : CreateLazyFullyParsedTree(
+                    newTextSource,
+                    this.Id.ProjectId,
+                    GetSyntaxTreeFilePath(this.info),
+                    _options,
+                    _languageServices,
+                    this.solutionServices,
+                    mode);
 
             return new DocumentState(
                 this.LanguageServices,
