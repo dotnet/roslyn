@@ -339,9 +339,9 @@ namespace Microsoft.CodeAnalysis
             // syntax trees.  The chaininig will keep old data alive (like the old tree source,
             // which itself is keeping an old tree source which itself is keeping a ... alive),
             // causing a slow memory leak.
-            var newTreeSource = this.SupportsSyntaxTree
-                ? CreateLazyIncrementallyParsedTree(_treeSource, newTextSource)
-                : ValueSource<TreeAndVersion>.Empty;
+            var newTreeSource = !this.SupportsSyntaxTree
+                ? ValueSource<TreeAndVersion>.Empty
+                : CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
 
             return new DocumentState(
                 this.LanguageServices,
