@@ -73,9 +73,9 @@ namespace Microsoft.AnalyzerPowerPack.Design
             AnalyzerOptions options,
             CancellationToken cancellationToken)
         {
-            if (symbol.IsStaticHolderType()
-                && !symbol.IsStatic
-                && (symbol.IsPublic() || symbol.IsProtected()))
+            if (!symbol.IsStatic
+                && (symbol.IsPublic() || symbol.IsProtected())
+                && symbol.IsStaticHolderType())
             {
                 addDiagnostic(symbol.CreateDiagnostic(Rule, symbol.Name));
             }
@@ -102,24 +102,14 @@ namespace Microsoft.AnalyzerPowerPack.Design
         /// </remarks>
         internal static bool IsStaticHolderType(this INamedTypeSymbol symbol)
         {
-            if (!symbol.IsReferenceType)
+            if (symbol.TypeKind != TypeKind.Class)
             {
                 return false;
             }
 
-            List<ISymbol> declaredMembers = symbol.GetMembers()
-                .Where(m => !m.IsImplicitlyDeclared)
-                .ToList();
+            IEnumerable<ISymbol> declaredMembers = symbol.GetMembers().Where(m => !m.IsImplicitlyDeclared);
 
-            List<ISymbol> qualifyingMembers = declaredMembers
-                .Where(IsQualifyingMember)
-                .ToList();
-
-            List<ISymbol> disqualifyingMembers = declaredMembers
-                .Where(IsDisqualifyingMember)
-                .ToList();
-
-            return qualifyingMembers.Count > 0 && disqualifyingMembers.Count == 0;
+            return declaredMembers.Any(IsQualifyingMember) && !declaredMembers.Any(IsDisqualifyingMember);
         }
 
         /// <summary>
