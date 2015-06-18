@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 Option Compare Binary
 
@@ -298,7 +298,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeBeginEndElementToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(NextAre("</"))
-
             AdvanceChar(2)
             Dim followingTrivia = scanTrailingTrivia()
             Return MakePunctuationToken(SyntaxKind.LessThanSlashToken, "</", precedingTrivia, followingTrivia)
@@ -306,7 +305,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeEndEmptyElementToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As PunctuationSyntax
             Debug.Assert(NextAre("/>"))
-
             AdvanceChar(2)
             Return MakePunctuationToken(SyntaxKind.SlashGreaterThanToken, "/>", precedingTrivia, Nothing)
         End Function
@@ -319,11 +317,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function XmlMakeEndEmbeddedToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
-            Debug.Assert(Peek() = "%"c OrElse Peek() = FULLWIDTH_PERCENT_SIGN)
+            Dim c = Peek
+            Debug.Assert(c.IsFrom("%"c, FULLWIDTH_PERCENT_SIGN))
             Debug.Assert(Peek(1) = ">"c)
 
             Dim spelling As String
-            If Peek() = "%"c Then
+            If c = "%"c Then
                 AdvanceChar(2)
                 spelling = "%>"
             Else
@@ -354,7 +353,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function XmlMakeCloseBracketToken(state As ScannerState, precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As BadTokenSyntax
             Debug.Assert(Peek() = "]"c)
-
             Return XmlMakeBadToken(SyntaxSubKind.CloseBracketToken, precedingTrivia, 1, If(state = ScannerState.DocType, ERRID.ERR_DTDNotSupported, ERRID.ERR_IllegalXmlNameChar))
         End Function
 #End Region
@@ -413,7 +411,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "CData"
         Private Function XmlMakeBeginCDataToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(NextAre("<![CDATA["))
- 
             AdvanceChar(9)
             Dim followingTrivia = scanTrailingTrivia()
             Return MakePunctuationToken(SyntaxKind.BeginCDataToken, "<![CDATA[", precedingTrivia, followingTrivia)

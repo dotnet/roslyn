@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Public kdIsQueryClause As Boolean
 
             '// Note: "CanFollowExpr" says whether this token can come after an expression.
-            '// e.g. "Dim x = From i In <expression> Select i" is valid, therefore "Select" can come follow an expression.           
+            '// e.g. "Dim x = From i In <expression> Select i" is valid, therefore "Select" can come follow an expression.
             '// The complete list was discovered through the tool in vb\Language\Tools\VBGrammarAnalyzer\vbgrammar.html
             '// If you add keywords, then make sure that they're added to the official language grammar, and re-run the tool.
             Public kdCanFollowExpr As Boolean
@@ -304,9 +304,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Shared Function EnsureHalfWidth(s As String) As String
             Dim result As Char() = Nothing
-
             For i As Integer = 0 To s.Length - 1
-                Dim ch = s(i)
+                Dim ch As Char = s(i)
 
                 If SyntaxFacts.IsFullWidth(ch) Then
                     ch = SyntaxFacts.MakeHalfWidth(ch)

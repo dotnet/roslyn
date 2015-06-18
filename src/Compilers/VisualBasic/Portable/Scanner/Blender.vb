@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 Option Compare Binary
 Option Strict On
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return node.GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia)
                 Case SyntaxKind.SingleLineIfStatement,
                      SyntaxKind.SingleLineElseClause
-                    ' Steer clear of single-line if's because they they have custom handling of statement 
+                    ' Steer clear of single-line if's because they they have custom handling of statement
                     ' terminators that may make it difficult to reuse sub-statements.
                     Return False
                 Case Else
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Function ShouldCrumble(node As VisualBasicSyntaxNode) As Boolean
             If TypeOf node Is StructuredTriviaSyntax Then
                 ' Do not crumble into structured trivia content.
-                ' we will not use any of the parts anyways and 
+                ' we will not use any of the parts anyways and
                 ' evaluation of directives may go out of sync.
                 Return False
             End If
@@ -516,14 +516,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _currentToken = _currentToken.With(nextPreprocessorState)
             End If
 
-            ' this will discard any prefetched tokens, including current. 
+            ' this will discard any prefetched tokens, including current.
             ' We do not need them since we moved to completely new node.
             MyBase.MoveToNextSyntaxNode()
 
             TryPopNode()
 
             ' at this point, all three pointers (position in old tree, position in text, position in parser)
-            ' and all preprocessor state (_currentPreprocessorState, _scannerPreprocessorState, _currentToken.PreprocessorState) 
+            ' and all preprocessor state (_currentPreprocessorState, _scannerPreprocessorState, _currentToken.PreprocessorState)
             ' should point to same position (in sync)
         End Sub
 
@@ -537,7 +537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' just move forward
             _lineBufferOffset = _lineBufferOffset + _curNodeLength
 
-            ' this will just verify that we do not have any prefetched tokens, including current. 
+            ' this will just verify that we do not have any prefetched tokens, including current.
             ' otherwise advancing linebuffer offeset could go out of sync with token stream.
             MyBase.MoveToNextSyntaxNodeInTrivia()
 
