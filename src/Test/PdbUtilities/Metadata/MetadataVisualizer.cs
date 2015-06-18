@@ -1329,7 +1329,57 @@ namespace Roslyn.Test.MetadataUtilities
                 }
             }
 
-            _writer.WriteLine();
+            // don't calculate statistics for EnC delta, it's not interesting
+            if (_aggregator == null)
+            {
+                _writer.WriteLine();
+                _writer.WriteLine("CustomAttribute sizes by constructor:");
+                foreach (var grouping in from caHandle in _reader.CustomAttributes
+                                         let ca = _reader.GetCustomAttribute(caHandle)
+                                         group ca.Constructor by ca.Value into values   // blob -> { ctor1, ctor2, ... }
+                                         group values.Key by values.First() into g      // ctor1 -> { blob1, ... }
+                                         select new { Ctor = g.Key, Size = g.Sum(ca => _reader.GetBlobReader(ca).Length) } into ctorAndSize
+                                         orderby ctorAndSize.Size descending
+                                         select ctorAndSize)
+                {
+                    string typeStr = null;
+                    switch (grouping.Ctor.Kind)
+                    {
+                        case HandleKind.MemberReference:
+                            var memberRef = _reader.GetMemberReference((MemberReferenceHandle)grouping.Ctor);
+
+                            switch (memberRef.Parent.Kind)
+                            {
+                                case HandleKind.TypeReference:
+                                    var typeRef = _reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                                    typeStr = typeRef.Namespace.IsNil ? _reader.GetString(typeRef.Name) : _reader.GetString(typeRef.Namespace) + "." + _reader.GetString(typeRef.Name);
+                                    break;
+
+                                case HandleKind.TypeDefinition:
+                                    var typeDef = _reader.GetTypeDefinition((TypeDefinitionHandle)memberRef.Parent);
+                                    typeStr = typeDef.Namespace.IsNil ? _reader.GetString(typeDef.Name) : _reader.GetString(typeDef.Namespace) + "." + _reader.GetString(typeDef.Name);
+                                    break;
+
+                                case HandleKind.MethodDefinition:
+                                case HandleKind.ModuleReference:
+                                case HandleKind.TypeSpecification:
+                                    break;
+                            }
+
+                            break;
+
+                        case HandleKind.MethodDefinition:
+                            // TODO
+                            break;
+                    }
+
+
+                    // grouping.Key
+                    _writer.WriteLine($"  {typeStr ?? Token(grouping.Ctor)}: {grouping.Size} bytes");
+                }
+
+                _writer.WriteLine();
+            }
         }
 
         private void WriteGuids()

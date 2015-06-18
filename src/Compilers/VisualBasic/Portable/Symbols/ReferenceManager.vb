@@ -869,6 +869,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return _assembly.DeclaresTheObjectClass
                     End Get
                 End Property
+
+                Public Overrides ReadOnly Property SourceCompilation As Compilation
+                    Get
+                        Return Nothing
+                    End Get
+                End Property
             End Class
 
             Private NotInheritable Class AssemblyDataForCompilation
@@ -953,6 +959,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Overrides ReadOnly Property DeclaresTheObjectClass As Boolean
                     Get
                         Return _compilation.DeclaresTheObjectClass
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property SourceCompilation As Compilation
+                    Get
+                        Return _compilation
                     End Get
                 End Property
             End Class
