@@ -2344,7 +2344,6 @@ void M()
             var expectedText = @"
 class C
 {
-
 #region Fred
 #endregion
 }";
@@ -2379,7 +2378,6 @@ void M()
             var expectedText = @"
 class C
 {
-
 #region Fred
 #if true
 #endif
@@ -2394,6 +2392,66 @@ class C
             var text = cu2.ToFullString();
 
             Assert.Equal(expectedText, text);
+        }
+
+        [Fact]
+        public void TestRemoveNode_StructuredTrivia()
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+// xxx
+///<summary>
+/// this is a documentation comment
+///</summary>
+// yyy
+class C
+{
+}
+");
+
+            var expected = @"
+// xxx
+// yyy
+class C
+{
+}
+";
+
+            var dc = cu.DescendantNodes(descendIntoTrivia: true).OfType<DocumentationCommentTriviaSyntax>().FirstOrDefault();
+            Assert.NotNull(dc);
+
+            // remove node should ignore the remove options for a structured trivia node
+            var cu2 = cu.RemoveNode(dc, SyntaxRemoveOptions.KeepLeadingTrivia);
+
+            var actual = cu2.ToFullString();
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestRemoveNode_StructuredTrivia2()
+        {
+            var cu = SyntaxFactory.ParseCompilationUnit(@"
+#if true
+class C
+{
+} // foo
+#endif
+");
+
+            var expected = @"
+#if true
+ // foo
+#endif
+";
+
+            var cls = cu.DescendantNodes(descendIntoTrivia: true).OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            Assert.NotNull(cls);
+
+            // residual trivia should accrue to the EndOfFileToken and not be embedded within the following structured trivia
+            var cu2 = cu.RemoveNode(cls, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.KeepTrailingTrivia);
+
+            var actual = cu2.ToFullString();
+            Assert.Equal(expected, actual);
+            Assert.Equal(6, cu2.EndOfFileToken.LeadingTrivia.Count);
         }
 
         [Fact]
@@ -2539,7 +2597,7 @@ public class Test1
         {
             string code = @"class c1
 {
-    #r
+#r
     void m1()
     {
     }

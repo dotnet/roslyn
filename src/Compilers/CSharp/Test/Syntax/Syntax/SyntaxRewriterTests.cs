@@ -616,5 +616,48 @@ class C { }
         }
 
         #endregion Helper Types
+
+        class RedBottomUpNodeReplacer : CSharpBottomUpSyntaxRewriter
+        {
+            private readonly SyntaxNode nodeToReplace;
+            private readonly SyntaxNode newNode;
+
+            private RedBottomUpNodeReplacer(SyntaxNode nodeToReplace, SyntaxNode newNode)
+            {
+                this.nodeToReplace = nodeToReplace;
+                this.newNode = newNode;
+            }
+
+            public static SyntaxNode Replace(SyntaxNode root, SyntaxNode nodeToReplace, SyntaxNode newNode)
+            {
+                var replacer = new RedBottomUpNodeReplacer(nodeToReplace, newNode);
+                return replacer.RewriteNode(root);
+            }
+
+            public override SyntaxNode VisitNode(SyntaxNode original, SyntaxNode rewritten)
+            {
+                if (this.nodeToReplace == original)
+                {
+                    return this.newNode;
+                }
+
+                return rewritten;
+            }
+        }
+
+        [Fact]
+        public void TestBottomUpReplacer()
+        {
+            TestReplaceIdentifier("a + b + c", "c", "C", "a + b + C");
+            TestReplaceIdentifier("a + b + c", "a", "A", "A + b + c");
+        }
+
+        private void TestReplaceIdentifier(string expression, string identifier, string newIdentifier, string expected)
+        {
+            var expr = SyntaxFactory.ParseExpression(expression);
+            var node = expr.DescendantNodes().OfType<IdentifierNameSyntax>().First(n => n.Identifier.Text == identifier);
+            var newRoot = RedBottomUpNodeReplacer.Replace(expr, node, SyntaxFactory.IdentifierName(newIdentifier).WithTriviaFrom(node));
+            Assert.Equal(expected, newRoot.ToFullString());
+        }
     }
 }
