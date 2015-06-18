@@ -13,7 +13,7 @@
 | ------------------- |--------------------|
 | Add methods, fields, constructors, properties, events, indexers, field and property initializers, nested types and top-level types (including delegates, enums, interfaces, abstract and generic types, and anonymous types) to an existing type  | The existing type cannot be a generic or an interface. <br/> <br/> Adding or modifying [enum members](https://msdn.microsoft.com/en-us/library/sbbt4032.aspx) within an existing enum is not supported. |
 | Add and modify iterators  | Changing a regular method to an iterator method *is* supported |
-| Add async/await expressions  |  Adding an await expression into an existing async method is not supported. Changing a regular method to async *is* supported. |
+| Add async/await expressions  |  Adding an await expression into an existing async method is not supported. <br/><br/> Adding an await expression around an active statement is not supported. <br/><br/> Changing a regular method to async *is* supported. |
 | Modify async/await expressions  |  Modifying await expressions wrapped inside other expressions (e.g. ```G(await F());```) is not supported |
 | Add and modify operations with dynamic objects | - |
 | Add and modify C# 6.0 language features like string interpolation and null-conditional operators | - |
