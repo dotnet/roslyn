@@ -120,6 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
             _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            if (diagnostics.IsEmptyWithoutResolution)
+            {
+                SourceMemberMethodSymbol.ReportAsyncParameterErrors(this, diagnostics, this.Locations[0]);
+            }
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
 
@@ -146,6 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // TODO: Add a better message for this
                 diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                 _returnType = _binder.CreateErrorType("var");
+            }
+            if (this.IsAsync && !this.IsGenericTaskReturningAsync(_binder.Compilation) && !this.IsTaskReturningAsync(_binder.Compilation) && !this.IsVoidReturningAsync())
+            {
+                // The return type of an async method must be void, Task or Task<T>
+                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }

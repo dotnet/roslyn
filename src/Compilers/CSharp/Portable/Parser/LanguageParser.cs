@@ -8052,8 +8052,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (IsDeclarationModifier(k = this.CurrentToken.ContextualKind) || IsAdditionalLocalFunctionModifier(k))
             {
                 SyntaxToken mod;
-                if (this.CurrentToken.Kind != k)
+                if (k == SyntaxKind.AsyncKeyword)
                 {
+                    // check for things like "async async()" where async is the type and/or the function name
+                    {
+                        var resetPoint = this.GetResetPoint();
+
+                        var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().Kind) &&
+                            !IsDeclarationModifier(this.CurrentToken.Kind) && !IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) &&
+                            (ScanType() == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken);
+
+                        this.Reset(ref resetPoint);
+                        this.Release(ref resetPoint);
+
+                        if (invalid)
+                        {
+                            break;
+                        }
+                    }
+
                     mod = this.EatContextualToken(k);
                     if (k == SyntaxKind.AsyncKeyword)
                     {

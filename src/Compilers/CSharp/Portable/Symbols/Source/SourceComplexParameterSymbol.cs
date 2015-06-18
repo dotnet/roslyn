@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers;
         }
 
+        protected virtual Binder ParameterBinder
+        {
+            get { return null; }
+        }
+
         internal override SyntaxReference SyntaxReference
         {
             get
@@ -203,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    if (Interlocked.CompareExchange(ref _lazyDefaultSyntaxValue, MakeDefaultExpression(diagnostics, null), ConstantValue.Unset) == ConstantValue.Unset)
+                    if (Interlocked.CompareExchange(ref _lazyDefaultSyntaxValue, MakeDefaultExpression(diagnostics, ParameterBinder), ConstantValue.Unset) == ConstantValue.Unset)
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
@@ -447,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var attributeSyntax = this.GetAttributeDeclarations();
-                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt);
+                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt, binderOpt: ParameterBinder);
                 }
 
                 if (bagCreatedOnThisThread)

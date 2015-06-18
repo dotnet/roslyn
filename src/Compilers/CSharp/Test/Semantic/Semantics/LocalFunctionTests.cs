@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -391,6 +393,204 @@ class Program
         }
 
         [Fact]
+        public void ClosureTripleNested()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Print(int a)
+    {
+        Console.Write(' ');
+        Console.Write(a);
+    }
+
+    static void A()
+    {
+        int a = 0;
+        void M1()
+        {
+            int b = a;
+            void M2()
+            {
+                int c = b;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+                b = 2;
+            }
+            M2();
+            Print(b);
+            a = 2;
+        }
+        M1();
+        Print(a);
+    }
+
+    static void B()
+    {
+        int a = 0;
+        void M1()
+        {
+            int b = a;
+            void M2()
+            {
+                void M3()
+                {
+                    b = 2;
+                }
+                M3();
+                Print(b);
+            }
+            M2();
+            Print(b);
+            a = 2;
+        }
+        M1();
+        Print(a);
+    }
+
+    static void C()
+    {
+        int a = 0;
+        void M1()
+        {
+            void M2()
+            {
+                int c = a;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+                a = 2;
+            }
+            M2();
+            Print(a);
+        }
+        M1();
+        Print(a);
+    }
+
+    static void D()
+    {
+        void M1()
+        {
+            int b = 0;
+            void M2()
+            {
+                int c = b;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+                b = 2;
+            }
+            M2();
+            Print(b);
+        }
+        M1();
+    }
+
+    static void E()
+    {
+        int a = 0;
+        void M1()
+        {
+            void M2()
+            {
+                void M3()
+                {
+                    a = 2;
+                }
+                M3();
+                Print(a);
+            }
+            M2();
+            Print(a);
+        }
+        M1();
+        Print(a);
+    }
+
+    static void F()
+    {
+        void M1()
+        {
+            int b = 0;
+            void M2()
+            {
+                void M3()
+                {
+                    b = 2;
+                }
+                M3();
+                Print(b);
+            }
+            M2();
+            Print(b);
+        }
+        M1();
+    }
+
+    static void G()
+    {
+        void M1()
+        {
+            void M2()
+            {
+                int c = 0;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+            }
+            M2();
+        }
+        M1();
+    }
+
+    static void Main(string[] args)
+    {
+        A();
+        Console.WriteLine();
+        B();
+        Console.WriteLine();
+        C();
+        Console.WriteLine();
+        D();
+        Console.WriteLine();
+        E();
+        Console.WriteLine();
+        F();
+        Console.WriteLine();
+        G();
+        Console.WriteLine();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+ 2 2 2
+ 2 2 2
+ 2 2 2
+ 2 2
+ 2 2 2
+ 2 2
+ 2
+");
+        }
+
+        [Fact]
         public void InstanceClosure()
         {
             var source = @"
@@ -616,6 +816,104 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
 2
+2
+2
+");
+        }
+
+        [Fact]
+        public void AsyncKeyword()
+        {
+            var source = @"
+using System;
+
+struct async
+{
+    public override string ToString() => ""2"";
+}
+
+class Program
+{
+    static string A()
+    {
+        async async()
+        {
+            return new async();
+        }
+        return async().ToString();
+    }
+    static string B()
+    {
+        string async()
+        {
+            return ""2"";
+        }
+        return async();
+    }
+    static string C()
+    {
+        async Foo()
+        {
+            return new async();
+        }
+        return Foo().ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+        Console.WriteLine(C());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void AsyncUnsafeKeyword()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static string A()
+    {
+        async unsafe Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+    static string B()
+    {
+        unsafe async Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true).WithWarningLevel(0),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
 2
 ");
@@ -1614,30 +1912,35 @@ class Program
         }
 
         [Fact]
-        public void ByRefIterator()
+        public void BadStateMachine()
         {
             var source = @"
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 class Program
 {
     static void Main(string[] args)
     {
-        IEnumerable<int> Local(ref int x)
+        IEnumerable<int> RefEnumerable(ref int x)
         {
             yield return x;
         }
-        int y = 2;
-        Console.WriteLine(string.Join("","", Local(ref y)));
+        async Task<int> RefAsync(ref int x)
+        {
+            return await Task.FromResult(x);
+        }
     }
 }
 ";
             var option = TestOptions.ReleaseExe;
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,40): error CS1623: Iterators cannot have ref or out parameters
-    //         IEnumerable<int> Local(ref int x)
-    Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(9, 40)
+            CreateCompilationWithMscorlib45(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (13,42): error CS1988: Async methods cannot have ref or out parameters
+    //         async Task<int> RefAsync(ref int x)
+    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(13, 42),
+    // (9,48): error CS1623: Iterators cannot have ref or out parameters
+    //         IEnumerable<int> RefEnumerable(ref int x)
+    Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(9, 48)
                 );
         }
 

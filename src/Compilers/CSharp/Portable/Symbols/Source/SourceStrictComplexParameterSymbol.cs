@@ -4,6 +4,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal class SourceStrictComplexParameterSymbol : SourceComplexParameterSymbol
     {
+        private readonly Binder _tempBinder;
+
         internal SourceStrictComplexParameterSymbol(
             DiagnosticBag diagnostics,
             Binder binder,
@@ -33,8 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             isParams,
             isExtensionMethodThis)
         {
+            _tempBinder = binder;
             var unused = GetAttributesBag(diagnostics);
             _lazyDefaultSyntaxValue = MakeDefaultExpression(diagnostics, binder);
+            _tempBinder = null; // no need to keep it around anymore, just uses up a lot of memory
         }
+
+        protected override Binder ParameterBinder => _tempBinder;
     }
 }
