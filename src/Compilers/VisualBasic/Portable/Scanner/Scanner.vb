@@ -1063,7 +1063,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If TrySkipFollowingEquals(lengthWithMaybeEquals) Then
                         Return MakePlusEqualsToken(precedingTrivia, lengthWithMaybeEquals)
                     Else
-                        Return MakePlusToken(precedingTrivia, False)
+                        Return MakePlusToken(precedingTrivia, fullWidth)
                     End If
 
                 Case "-"c
