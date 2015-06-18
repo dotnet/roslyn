@@ -112,6 +112,56 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 8})
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WorkItem(2858, "https://github.com/dotnet/roslyn/issues/2858")>
+        Public Sub AddParenthesesToArgumentListOnReturn_1()
+            Dim code = <code>Public Class C
+    Public Sub M(arg As String)
+        M ""
+    End Sub
+End Class</code>.Value.Replace(vbLf, vbCrLf)
+
+            Dim expected = <code>Public Class C
+    Public Sub M(arg As String)
+        M ("")
+
+    End Sub
+End Class</code>.Value.Replace(vbLf, vbCrLf)
+
+            VerifyAppliedAfterReturnUsingCommandHandler(code, {2, -1}, expected, {3, 8})
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WorkItem(2858, "https://github.com/dotnet/roslyn/issues/2858")>
+        Public Sub AddParenthesesToArgumentListOnReturn_2()
+            Dim code = <code>Public Class C
+    Public Sub M(arg1 As String, arg2 as String)
+        M arg1,arg2
+    End Sub
+End Class</code>.Value.Replace(vbLf, vbCrLf)
+
+            Dim expected = <code>Public Class C
+    Public Sub M(arg1 As String, arg2 as String)
+        M (arg1,arg2)
+
+    End Sub
+End Class</code>.Value.Replace(vbLf, vbCrLf)
+
+            VerifyAppliedAfterReturnUsingCommandHandler(code, {2, -1}, expected, {3, 8})
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WorkItem(2858, "https://github.com/dotnet/roslyn/issues/2858")>
+        Public Sub AddParenthesesToArgumentListOnReturn_3()
+            Dim code = <code>Public Class C
+    Public Sub M(arg1 As String, arg2 as String)
+        M2 arg1,arg2
+    End Sub
+End Class</code>.Value.Replace(vbLf, vbCrLf)
+
+            VerifyStatementEndConstructNotApplied({code}, {2, -1})
+        End Sub
+
         <WorkItem(628656)>
         <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub EndConstruct_NotOnLineFollowingToken()

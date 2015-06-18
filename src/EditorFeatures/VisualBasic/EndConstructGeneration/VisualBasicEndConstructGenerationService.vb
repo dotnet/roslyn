@@ -110,6 +110,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Return False
         End Function
 
+        Private Shared Function IsMissingParentheses([error] As String) As Boolean
+            Return [error] = "BC30800"
+        End Function
+
         Private Shared Function IsExpectedXmlNameError([error] As String) As Boolean
             Return [error] = "BC31146"
         End Function
@@ -261,7 +265,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     End If
 
                     Dim errors = state.SyntaxTree.GetDiagnostics(statement)
-                    If errors.Any(Function(e) Not IsMissingStatementError(statement, e.Id)) Then
+                    If errors.Any(Function(e) Not IsMissingStatementError(statement, e.Id) AndAlso
+                                      Not (IsMissingParentheses(e.Id) AndAlso IsBindableInvocation(statement, state))) Then
                         If statement.Kind = SyntaxKind.SingleLineIfStatement Then
                             Dim asSingleLine = DirectCast(statement, SingleLineIfStatementSyntax)
 
@@ -294,6 +299,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End Using
 
             Return True
+        End Function
+
+        Private Function IsBindableInvocation(statement As SyntaxNode, state As EndConstructState) As Boolean
+            Dim expressionStatement = TryCast(statement, ExpressionStatementSyntax)
+            If expressionStatement IsNot Nothing AndAlso
+                expressionStatement.Expression IsNot Nothing AndAlso
+                TypeOf expressionStatement.Expression Is InvocationExpressionSyntax Then
+                Dim invocationExpression = DirectCast(expressionStatement.Expression, InvocationExpressionSyntax)
+
+                If invocationExpression.Expression Is Nothing Then
+                    Return False
+                End If
+                Dim symbol = state.SemanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol
+                If symbol IsNot Nothing AndAlso symbol.Kind <> SymbolKind.ErrorType Then
+                    Return True
+                End If
+            End If
+
+            Return False
         End Function
 
         Private Sub InsertBlankLineBetweenXmlTags(state As EndConstructState, textView As ITextView, subjectBuffer As ITextBuffer, nodeToReplace As XmlElementSyntax)
