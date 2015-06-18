@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An assembly is loaded into CLR’s Load Context if it is in the GAC, otherwise it's loaded into No Context via <see cref="Assembly.LoadFile(string)"/>.
+    /// An assembly is loaded into CLR's Load Context if it is in the GAC, otherwise it's loaded into No Context via <see cref="Assembly.LoadFile(string)"/>.
     /// <see cref="Assembly.LoadFile(string)"/> automatically redirects to GAC if the assembly has a strong name and there is an equivalent assembly in GAC. 
     /// </para>
     /// <para>

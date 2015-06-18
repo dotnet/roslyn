@@ -1416,8 +1416,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, if MP has more specific parameter types than MQ, then MP is better than
             // MQ. Let {R1, R2, …, RN} and {S1, S2, …, SN} represent the uninstantiated and
-            // unexpanded parameter types of MP and MQ. MP’s parameter types are more specific than
-            // MQ’s if, for each parameter, RX is not less specific than SX, and, for at least one
+            // unexpanded parameter types of MP and MQ. MP's parameter types are more specific than
+            // MQ's if, for each parameter, RX is not less specific than SX, and, for at least one
             // parameter, RX is more specific than SX
 
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols

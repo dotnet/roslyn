@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.Subtraction:
                         return BindEventAssignment(node, (BoundEventAccess)left, right, kindOperator, diagnostics);
 
-                        // fallthrough for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
+                        // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                 }
             }
 

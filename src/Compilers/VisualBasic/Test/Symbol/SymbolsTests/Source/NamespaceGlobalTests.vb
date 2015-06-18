@@ -78,7 +78,7 @@ Class A
      </errors>)
         End Sub
 
-        ' Set the root namespace of compilation to ‘Global’
+        ' Set the root namespace of compilation to 'Global'
         <Fact>
         Public Sub RootNSIsGlobal()
             Dim opt = TestOptions.ReleaseDll.WithRootNamespace("Global")

@@ -2285,7 +2285,7 @@ class Derived : Base2<int>
         {
             // Tests:
             // Hide base virtual member with a virtual new / abstract new member 
-            // Test that we don’t override the hidden base member on further derived classes
+            // Test that we don't override the hidden base member on further derived classes
 
             var source = @"
 using System;

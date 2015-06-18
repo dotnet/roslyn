@@ -449,7 +449,7 @@ namespace Microsoft.Cci
         private string TryEncodeImport(UsedNamespaceOrType import, HashSet<string> declaredExternAliasesOpt, bool isProjectLevel)
         {
             // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
-            // but they were probably implementation details that do not affect roslyn.
+            // but they were probably implementation details that do not affect Roslyn.
 
             if (Module.GenerateVisualBasicStylePdb)
             {
@@ -875,7 +875,7 @@ namespace Microsoft.Cci
 
             // Retrieve the timestamp the PDB writer generates when creating a new PDB stream.
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
-            // we need to go thru IPdbWriter interface to get it.
+            // we need to go through IPdbWriter interface to get it.
             uint stamp;
             uint age;
             ((IPdbWriter)_symWriter).GetSignatureAge(out stamp, out age);
