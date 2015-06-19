@@ -559,8 +559,8 @@ End Class
             main.VerifyDiagnostics()
 
             ' Disable PE verification, it would need .config file with Lib v1 -> Lib v2 binding redirect.
-            CompileAndVerify(main, emitters:=TestEmitters.CCI, verify:=False, validator:=
-                Sub(assembly, _omitted)
+            CompileAndVerify(main, verify:=False, validator:=
+                Sub(assembly)
                     Dim reader = assembly.GetMetadataReader()
                     Dim refs As List(Of String) = New List(Of String)()
 

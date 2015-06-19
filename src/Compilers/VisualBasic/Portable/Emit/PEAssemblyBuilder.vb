@@ -29,15 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
                        additionalTypes As ImmutableArray(Of NamedTypeSymbol))
 
             MyBase.New(DirectCast(sourceAssembly.Modules(0), SourceModuleSymbol),
                        emitOptions,
                        outputKind,
                        serializationProperties,
-                       manifestResources,
-                       assemblySymbolMapper)
+                       manifestResources)
 
             Debug.Assert(sourceAssembly IsNot Nothing)
             Debug.Assert(manifestResources IsNot Nothing)
@@ -192,10 +190,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       Optional assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity) = Nothing,
                        Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing)
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes)
         End Sub
 
         Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean

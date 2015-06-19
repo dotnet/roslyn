@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                serializationProperties As ModulePropertiesForSerialization,
                manifestResources As IEnumerable(Of ResourceDescription))
 
-            MyBase.New(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing)
+            MyBase.New(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources)
         End Sub
 
         Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)

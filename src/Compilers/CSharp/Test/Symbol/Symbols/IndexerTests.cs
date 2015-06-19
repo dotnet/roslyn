@@ -61,7 +61,6 @@ struct S
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator,
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
@@ -428,8 +427,7 @@ class C : I1, I2
 
                 Assert.True(interface1Getter == interface1GetterImpl ^ interface1Getter == interface2GetterImpl);
                 Assert.True(interface2Getter == interface1GetterImpl ^ interface2Getter == interface2GetterImpl);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         /// <summary>
@@ -489,8 +487,7 @@ class C : I1
 
                 Assert.Equal(interfaceIndexers[0].GetMethod, synthesizedExplicitImplementation.ExplicitInterfaceImplementations.Single());
                 Assert.Equal(interfaceIndexers[1].GetMethod, synthesizedExplicitImplementation.ExplicitInterfaceImplementations.Single());
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         /// <summary>
@@ -669,8 +666,7 @@ class Derived : Base
                 Assert.NotEqual(baseIndexer.MetadataName, derivedIndexer.MetadataName);
 
                 Assert.Equal(baseIndexer, derivedIndexer.OverriddenProperty);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1166,7 +1162,7 @@ class C : I
                 Assert.False(classIndexer.CanBeReferencedByName);
             };
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -1228,7 +1224,7 @@ public class C : I
                 Assert.False(classCIndexer.IsIndexer()); //not the default member of C
             };
 
-            CompileAndVerify(text, emitters: TestEmitters.RefEmitBug, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(text, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact]

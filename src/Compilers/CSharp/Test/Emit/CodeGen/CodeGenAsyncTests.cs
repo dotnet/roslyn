@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib45(source, options: options, references: references);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, TestEmitters emitters = TestEmitters.All, CSharpCompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
             var compilation = this.CreateCompilation(source, references: references, options: options);
-            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitters: emitters);
+            return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]

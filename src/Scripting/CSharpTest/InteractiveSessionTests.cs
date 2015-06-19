@@ -805,7 +805,7 @@ class C { }
 
 typeof(C)
 ";
-            Type c = engine.CreateCollectibleSession().Execute<Type>(source);
+            Type c = engine.CreateSession().Execute<Type>(source);
             var m = c.DeclaringType.GetMethod("M");
             Assert.Equal(MethodImplAttributes.PreserveSig, m.GetMethodImplementationFlags());
 
@@ -1622,7 +1622,7 @@ abstract public class C : I<int>
         public void GenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var engine = new CSharpScriptEngine();
-            engine.CreateCollectibleSession().Execute(@"
+            engine.CreateSession().Execute(@"
 public interface I<T>
 {
     void m(byte x);
@@ -1684,7 +1684,7 @@ abstract public class D : C<int>.I
         public void NestedGenericInterfaceImplementation_Explicit()
         {
             var engine = new CSharpScriptEngine();
-            engine.CreateCollectibleSession().Execute(@"
+            engine.CreateSession().Execute(@"
 class C<T>
 {
     public interface I
@@ -1705,7 +1705,7 @@ abstract public class D : C<int>.I
         {
             var engine = new CSharpScriptEngine();
 
-            engine.CreateCollectibleSession().Execute(@"
+            engine.CreateSession().Execute(@"
 using System.Collections;
 using System.Collections.Generic;
 
@@ -1945,8 +1945,8 @@ class D
             CSharpCompilation s11 = CSharpCompilation.CreateSubmission("s11", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 1", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
             CSharpCompilation s12 = CSharpCompilation.CreateSubmission("s12", syntaxTree: SyntaxFactory.ParseSyntaxTree("a + 2", options: TestOptions.Interactive), previousSubmission: s0, references: references, returnType: typeof(object));
 
-            CompileAndVerify(s11, emitters: TestEmitters.CCI);
-            CompileAndVerify(s12, emitters: TestEmitters.CCI);
+            CompileAndVerify(s11);
+            CompileAndVerify(s12);
         }
 
         /// <summary>
@@ -2136,7 +2136,7 @@ InnerClass<int> iC = new InnerClass<int>();
 
             // TODO: compiler should report an error (see Metadata spec 9.2 Generics and recursive inheritance graphs)
 
-            engine.CreateCollectibleSession().Execute(@"
+            engine.CreateSession().Execute(@"
 class A<T> { }
 class B<T> : A<B<B<T>>> { }
 ");
@@ -2148,7 +2148,7 @@ class B<T> : A<B<B<T>>> { }
             var engine = new CSharpScriptEngine();
 
             // need MethodSpec token
-            Assert.Equal(0, engine.CreateCollectibleSession().Execute(@"System.Activator.CreateInstance<int>()"));
+            Assert.Equal(0, engine.CreateSession().Execute(@"System.Activator.CreateInstance<int>()"));
         }
 
         [WorkItem(5378, "DevDiv_Projects/Roslyn")]
@@ -2249,7 +2249,7 @@ new System.Func<int>(new C<byte>().gh<bool>)()
         public void AbstractAccessors()
         {
             var engine = new CSharpScriptEngine();
-            engine.CreateCollectibleSession().Execute(@"
+            engine.CreateSession().Execute(@"
 public abstract class C
 {
     public abstract event System.Action vEv;
@@ -2265,7 +2265,7 @@ public abstract class C
             Assert.Throws<CompilationErrorException>(() =>
             {
                 var engine = new CSharpScriptEngine();
-                object result = engine.CreateCollectibleSession().Execute(@"
+                object result = engine.CreateSession().Execute(@"
 delegate bool D();
 D del;
 public static void Foo(int input)
@@ -2312,10 +2312,10 @@ x
         public void ExprStmtParenthesesUsedToOverrideDefaultEval()
         {
             var engine = new CSharpScriptEngine();
-            int i = engine.CreateCollectibleSession().Execute<int>(@"(4 + 5) * 2");
+            int i = engine.CreateSession().Execute<int>(@"(4 + 5) * 2");
             Assert.Equal(18, i);
 
-            long l = engine.CreateCollectibleSession().Execute<long>(@"6 / (2 * 3)");
+            long l = engine.CreateSession().Execute<long>(@"6 / (2 * 3)");
             Assert.Equal(1, l);
         }
 
@@ -2420,7 +2420,7 @@ TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
         {
             var engine = new CSharpScriptEngine();
 
-            var f = engine.CreateCollectibleSession().Execute<Func<int, int>>(@"
+            var f = engine.CreateSession().Execute<Func<int, int>>(@"
 int Foo(int arg) { return arg + 1; }
 
 System.Func<int, int> f = (arg) =>
@@ -2438,7 +2438,7 @@ f
         {
             var engine = new CSharpScriptEngine();
 
-            var result = engine.CreateCollectibleSession().Execute<List<string>>(@"
+            var result = engine.CreateSession().Execute<List<string>>(@"
 #r ""System.Core""
 using System;
 using System.Linq;
@@ -2492,7 +2492,7 @@ arr_2[0] = 5;
         public void FieldInitializers()
         {
             var engine = new CSharpScriptEngine();
-            var result = (List<int>)engine.CreateCollectibleSession().Execute(@"
+            var result = (List<int>)engine.CreateSession().Execute(@"
 using System.Collections.Generic;
 static List<int> result = new List<int>();
 int b = 2;
@@ -2517,7 +2517,7 @@ result
         public void FieldInitializersWithBlocks()
         {
             var engine = new CSharpScriptEngine();
-            var result = (List<int>)engine.CreateCollectibleSession().Execute(@"
+            var result = (List<int>)engine.CreateSession().Execute(@"
 using System.Collections.Generic;
 static List<int> result = new List<int>();
 const int constant = 1;
@@ -2599,7 +2599,7 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()
         public void ImplicitlyTypedFields()
         {
             var engine = new CSharpScriptEngine();
-            var result = engine.CreateCollectibleSession().Execute<object[]>(@"
+            var result = engine.CreateSession().Execute<object[]>(@"
 var x = 1;
 var y = x;
 var z = foo(x);
@@ -2623,10 +2623,10 @@ new object[] { x, y, z }
         public void PrivateImplementationDetailsType()
         {
             var engine = new CSharpScriptEngine();
-            object result = engine.CreateCollectibleSession().Execute(@"new int[] { 1,2,3,4 }");
+            object result = engine.CreateSession().Execute(@"new int[] { 1,2,3,4 }");
             Assert.IsType<int[]>(result);
 
-            result = engine.CreateCollectibleSession().Execute(@"new int[] { 1,2,3,4,5 }");
+            result = engine.CreateSession().Execute(@"new int[] { 1,2,3,4,5 }");
             Assert.IsType<int[]>(result);
         }
 
@@ -2926,31 +2926,11 @@ System.Collections.IEnumerable w = new Window();
         [Fact]
         public void AssemblyResolution()
         {
-            // uncollectible:
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
             var instance = session.Execute("var x = new { a = 3 }; x");
             var type = session.Execute("System.Type.GetType(x.GetType().AssemblyQualifiedName, true)");
             Assert.Equal(instance.GetType(), type);
-
-            // collectible:
-            // - This is a little bit tricky because using session implies uncollectibility.
-            //   We rely on the fact that multiple snippets are emitted in the same dynamic assembly.
-            var foo = engine.CreateCollectibleSession().Execute("class Foo { }; new Foo()");
-
-            object fooType = null;
-            try
-            {
-                fooType = engine.CreateCollectibleSession().Execute("System.Type.GetType(\"" + foo.GetType().AssemblyQualifiedName + "\", true)");
-            }
-            catch (FileLoadException e)
-            {
-                // TODO (tomat): Type.GetType API currently doesn't support collectible assemblies  
-                Assert.IsType<NotSupportedException>(e.InnerException);
-            }
-
-            //Assert.Equal(foo.GetType(), fooType);
-            Assert.Null(fooType);
         }
 
         [Fact]
@@ -3090,15 +3070,15 @@ d
         public void Submission_HostConversions()
         {
             var engine = new CSharpScriptEngine();
-            int value = engine.CreateCollectibleSession().Execute<int>(@"1+1");
+            int value = engine.CreateSession().Execute<int>(@"1+1");
             Assert.Equal(2, value);
 
-            string str = engine.CreateCollectibleSession().Execute<string>(@"null");
+            string str = engine.CreateSession().Execute<string>(@"null");
             Assert.Equal(null, str);
 
             try
             {
-                engine.CreateCollectibleSession().Execute<C<int>>(@"null");
+                engine.CreateSession().Execute<C<int>>(@"null");
                 Assert.True(false, "Expected an exception");
             }
             catch (CompilationErrorException e)
@@ -3119,7 +3099,7 @@ d
 
             try
             {
-                engine.CreateCollectibleSession().Execute<int>(@"null");
+                engine.CreateSession().Execute<int>(@"null");
                 Assert.True(false, "Expected an exception");
             }
             catch (CompilationErrorException e)
@@ -3132,7 +3112,7 @@ d
 
             try
             {
-                engine.CreateCollectibleSession().Execute<string>(@"1+1");
+                engine.CreateSession().Execute<string>(@"1+1");
                 Assert.True(false, "Expected an exception");
             }
             catch (CompilationErrorException e)
