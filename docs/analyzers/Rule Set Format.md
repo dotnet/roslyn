@@ -1,7 +1,7 @@
 Introduction
 ============
 
-This document, in conjunction with the [Rule Set Schema](https://github.com/dotnet/roslyn/blob/master/src/Compilers/Core/Portable/RuleSet/RuleSetSchema.xsd "Rule Set Schema"), describes the structure of .ruleset files used by the C# and Visual Basic compilers to turn diagnostic analyzers on and off and to control their severity.
+This document, in conjunction with the [Rule Set Schema](..//..//src//Compilers//Core//Portable//RuleSet//RuleSetSchema.xsd), describes the structure of .ruleset files used by the C# and Visual Basic compilers to turn diagnostic analyzers on and off and to control their severity.
 
 This document only discusses the required and common parts of .ruleset files; for a full set, please see the schema file.
 
