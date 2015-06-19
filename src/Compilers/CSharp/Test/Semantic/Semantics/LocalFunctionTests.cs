@@ -47,11 +47,14 @@ class Program
     {
         int Local() => 2;
         Console.WriteLine(Local());
+        void VoidLocal() => Console.WriteLine(2);
+        VoidLocal();
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
+2
 2
 ");
         }
@@ -2024,16 +2027,74 @@ class Program
         {
             return 2;
         }
+        var LocalIf(bool cond)
+        {
+            if (cond)
+            {
+                return 2;
+            }
+            else
+            {
+                return 3;
+            }
+        }
+        var LocalNest()
+        {
+            var Inner()
+            {
+                return 2;
+            }
+            return Inner();
+        }
         Console.WriteLine(Local());
+        Console.WriteLine(LocalIf(true));
+        Console.WriteLine(LocalNest());
     }
 }
 ";
-            // message is temporary
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void BadInferredReturn()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var Local()
+        {
+            return Local() + 1;
+        }
+        var LocalRec()
+        {
+            var Inner()
+            {
+                return LocalRec();
+            }
+            return Inner();
+        }
+        Console.WriteLine(Local());
+        Console.WriteLine(LocalRec());
+    }
+}
+";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (8,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
     //         var Local()
-    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(8, 9)
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(8, 9),
+    // (12,9): error CS7019: Type of 'LocalRec()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    //         var LocalRec()
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("LocalRec()").WithLocation(12, 9)
                 );
         }
 
@@ -2084,6 +2145,30 @@ class Program
     // (8,27): error CS0841: Cannot use local variable 'Local' before it is declared
     //         Console.WriteLine(Local());
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        public void NoFeatureSwitch()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+        }
+    }
+}
+";
+            var option = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+    // (6,9): error CS8058: Feature 'local functions' is only available in 'experimental' language version.
+    //         void Local()
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
+        {
+        }").WithArguments("local functions").WithLocation(6, 9)
                 );
         }
     }

@@ -427,8 +427,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
-            localSymbol.GrabDiagnostics(diagnostics);
-
             var binder = this.GetBinder(node);
 
             // Binder could be null in error scenarios (as above)
@@ -453,6 +451,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (block != null)
                 {
+                    localSymbol.ComputeReturnType(block, true);
+
                     // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
                     // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
@@ -476,6 +476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 block = null;
                 hasErrors = true;
             }
+
+            localSymbol.GrabDiagnostics(diagnostics);
 
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
@@ -2903,6 +2905,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual TypeSymbol GetCurrentReturnType()
         {
+            // Local functions usually report an error when their return type is used recursively. (symbol.ReturnType creates an error type named "var")
+            // We actually want to return null here instead of an error type + diagnostic (for return type inference)
+            var containingLocalFunction = this.ContainingMemberOrLambda as LocalFunctionSymbol;
+            if (containingLocalFunction != null)
+            {
+                return containingLocalFunction.ReturnTypeNoForce;
+            }
+
             return (this.ContainingMemberOrLambda as MethodSymbol)?.ReturnType;
         }
 
