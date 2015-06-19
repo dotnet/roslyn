@@ -1294,6 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.AnonymousObjectCreationExpression:
                     return ((AnonymousObjectCreationExpressionSyntax)node).NewKeyword.Span;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    return GetDiagnosticSpan(localFunction.Modifiers, localFunction.ReturnType, localFunction.ParameterList);
+
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)node).ParameterList.Span;
 
