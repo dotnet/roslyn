@@ -1002,7 +1002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
 
                 Case NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
-                    If Not FullWidth Then
+                    If Not fullWidth Then
                         Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
                     End If
 
@@ -1137,7 +1137,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case "I"c
                     If NextAre(1, "f ") Then
-
                         ' TODO: do we allow widechars in keywords?
                         AdvanceChar(2)
                         Return MakeKeyword(SyntaxKind.IfKeyword, "If", precedingTrivia)
@@ -1174,7 +1173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return MakeQuestionToken(precedingTrivia, fullWidth)
 
                 Case "%"c
-                    If NextIs(1,">"c) Then
+                    If NextIs(1, ">"c) Then
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
 
@@ -1190,7 +1189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(Not IsNewLine(ch))
             If fullWidth Then
                 Debug.Assert(Not IsDoubleQuote(ch))
-               Return nothing
+                Return Nothing
             End If
             If IsDoubleQuote(ch) Then
                 Return ScanStringLiteral(precedingTrivia)
@@ -1204,14 +1203,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' at this point it is very likely that we are located at the beginning of a token
         Private Function TryScanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            If CanGet Then Return ScanTokenCommon(precedingTrivia, Peek(), False)
+            If CanGet() Then
+                Return ScanTokenCommon(precedingTrivia, Peek(), False)
+            End If
             Return MakeEofToken(precedingTrivia)
         End Function
 
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
             Return ScanTokenCommon(precedingTrivia, ch, True)
-         End Function
-
+        End Function
 
         ' // Allow whitespace between the characters of a two-character token.
         Private Function TrySkipFollowingEquals(ByRef Index As Integer) As Boolean
