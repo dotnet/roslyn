@@ -61,10 +61,15 @@
 
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
-    <ToolsetCompilerPackageName>Microsoft.Net.ToolsetCompilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-rc3-20150510-01\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc3-20150510-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.Compilers.1.0.0-rc3-20150616-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc3-20150616-02\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <!-- Use the compiler server -->
+    <UseSharedCompilation>true</UseSharedCompilation>
   </PropertyGroup>
 
   <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
@@ -76,7 +81,7 @@
   </ImportGroup>
 
   <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
-    <Error Condition="!$(CscToolPath.Contains('$(ToolsetCompilerPackageName)'))"
+    <Error Condition="!Exists('$(ToolsetCompilerPropsFilePath)')"
            Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
   </Target>
 
