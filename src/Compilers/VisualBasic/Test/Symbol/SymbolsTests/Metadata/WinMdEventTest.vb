@@ -218,8 +218,7 @@ End Class
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
                     _eventLibRef,
-                    dynamicCommonRef},
-                emitters:=TestEmitters.RefEmitBug)
+                    dynamicCommonRef})
             verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
@@ -584,8 +583,7 @@ Public Partial Class A
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
-                    _eventLibRef},
-                emitters:=TestEmitters.RefEmitBug)
+                    _eventLibRef})
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {

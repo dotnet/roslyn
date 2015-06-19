@@ -733,7 +733,7 @@ class Test
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 references: new[] { CSharpRef, SystemCoreRef });
 
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, expectedOutput: "Bug813305.M",
+            CompileAndVerify(comp, expectedOutput: "Bug813305.M",
                 symbolValidator: m =>
                 {
                     var Bug813305 = m.GlobalNamespace.GetTypeMember("Bug813305");

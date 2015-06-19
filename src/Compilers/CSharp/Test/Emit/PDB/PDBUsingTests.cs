@@ -2108,7 +2108,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
-            var v = CompileAndVerify(comp, emitters: TestEmitters.CCI, validator: (peAssembly, emitters) =>
+            var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
 
@@ -2309,7 +2309,7 @@ class C
             var libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference();
             var libRef2 = CreateCompilationWithMscorlib(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
             var compilation = CreateCompilationWithMscorlib(source, new[] { libRef2 });
-            var v = CompileAndVerify(compilation, emitters: TestEmitters.CCI);
+            var v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
                 // (3,1): hidden CS8019: Unnecessary using directive.

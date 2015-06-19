@@ -243,13 +243,13 @@ public class Test
         {
             // Same source file
             string testSource = condDefs + s_commonTestSource_ConditionalAttrDefs + s_commonTestSource_ConditionalAttributesApplied;
-            CompileAndVerify(testSource, emitters: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(testSource, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
 
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
             var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, emitters: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(compilation, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
         private void TestConditionAttributeType_DifferentSource(string condDefsSrcFile1, string condDefsSrcFile2)
@@ -261,11 +261,11 @@ using System;
 
             // Different source files, same compilation
             var testSources = new[] { source1, source2 };
-            CompileAndVerify(testSources, emitOptions: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(testSources, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
 
             // Different source files, different compilation
             var comp1 = CreateCompilationWithMscorlib(source1);
-            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, emitters: TestEmitters.CCI, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
+            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
         #endregion
@@ -454,13 +454,13 @@ Z.PreservedCalls_MultipleConditional_Method";
         {
             // Same source file
             string testSource = condDefs + s_commonTestSource_ConditionalMethodDefs + s_commonTestSource_ConditionalMethodCalls;
-            CompileAndVerify(testSource, emitters: TestEmitters.CCI, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(testSource, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
 
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
             var syntaxTree = SyntaxFactory.SyntaxTree(root);
             var compilation = CreateCompilationWithMscorlib(syntaxTree, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, emitters: TestEmitters.CCI, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(compilation, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
         private void TestConditionMethods_DifferentSource(string condDefsSrcFile1, string condDefsSrcFile2)
@@ -472,11 +472,11 @@ using System;
 
             // Different source files, same compilation
             var testSources = new[] { source1, source2 };
-            CompileAndVerify(testSources, emitOptions: TestEmitters.CCI, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(testSources, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
 
             // Different source files, different compilation
             var comp1 = CreateCompilationWithMscorlib(source1, assemblyName: Guid.NewGuid().ToString());
-            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, emitters: TestEmitters.CCI, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
+            CompileAndVerify(source2, additionalRefs: new[] { comp1.ToMetadataReference() }, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
         #endregion
@@ -641,7 +641,7 @@ class Bar
                 }
             };
 
-            CompileAndVerify(source, emitters: TestEmitters.CCI, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: "");
+            CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: "");
         }
 
         [Fact]

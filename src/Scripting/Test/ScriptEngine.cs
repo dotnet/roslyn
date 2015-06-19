@@ -62,11 +62,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _options.AssemblyResolver.Provider; }
         }
 
-        public AssemblyLoader AssemblyLoader
-        {
-            get { return _builder.AssemblyLoader; }
-        }
-
         internal ScriptBuilder Builder
         {
             get { return _builder; }
@@ -99,20 +94,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         #endregion
 
         #region Session
-
-        // for testing only:
-        // TODO (tomat): Sessions generate uncollectible code since we don't know whether they would execute just one submissions or multiple.
-        // We need to address code collectibility of multi-submission sessions at some point (the CLR needs to be fixed). Meanwhile use this helper 
-        // to force collectible code generation in order to keep test coverage.
-        internal Session CreateCollectibleSession()
-        {
-            return new Session(this, _options.WithIsCollectible(true), null);
-        }
-
-        internal Session CreateCollectibleSession<THostObject>(THostObject hostObject)
-        {
-            return new Session(this, _options.WithIsCollectible(true), hostObject, typeof(THostObject));
-        }
 
         public Session CreateSession()  // TODO (tomat): bool isCancellable = false
         {

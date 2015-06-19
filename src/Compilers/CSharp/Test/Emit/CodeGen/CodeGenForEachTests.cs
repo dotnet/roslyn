@@ -785,8 +785,7 @@ class Enumerable
             var compilation = CreateCompilationWithCustomILSource(csharp, il);
 
             // We specifically ignore user-defined conversions to interfaces, even from metadata.
-            // TODO (tomat): Ref.Emit test infrastructure issue
-            CompileAndVerify(compilation, emitters: TestEmitters.CCI).VerifyIL("C.Test", @"{
+            CompileAndVerify(compilation).VerifyIL("C.Test", @"{
   // Code size       35 (0x23)
   .maxstack  1
   .locals init (Enumerator V_0)

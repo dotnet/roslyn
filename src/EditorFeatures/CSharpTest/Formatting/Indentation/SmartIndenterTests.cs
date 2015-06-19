@@ -52,6 +52,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EndOfFileInactive()
+        {
+            var code = @"
+    // Line 1
+#if false
+#endif
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 4);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void EndOfFileInactive2()
+        {
+            var code = @"
+    // Line 1
+#if false
+#endif
+// Line 2
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 0);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Comments()
         {
             var code = @"using System;

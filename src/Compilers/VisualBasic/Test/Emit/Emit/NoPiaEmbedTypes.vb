@@ -1484,7 +1484,7 @@ End Class
                 options:=TestOptions.DebugExe,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
 
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("UsePia4.M5", expected_M5)
             verifier.VerifyIL("UsePia4.M6", expected_M6)
@@ -1494,7 +1494,7 @@ End Class
                 options:=TestOptions.DebugExe,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("UsePia4.M5", expected_M5)
             verifier.VerifyIL("UsePia4.M6", expected_M6)
@@ -1599,13 +1599,13 @@ End Interface
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=False)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=False)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -1739,7 +1739,7 @@ End Structure
             Dim compilation1 = CreateCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
 {
@@ -1759,7 +1759,7 @@ End Structure
             compilation1 = CreateCompilationWithReferences(
                 sources1,
                 references:={MscorlibRef_v4_0_30316_17626, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[
 {
@@ -2050,7 +2050,7 @@ End Class
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("C.Add", expectedAdd)
             verifier.VerifyIL("C.Remove(Of T)", expectedRemove)
@@ -2058,7 +2058,7 @@ End Class
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("C.Add", expectedAdd)
             verifier.VerifyIL("C.Remove(Of T)", expectedRemove)
@@ -2128,13 +2128,13 @@ End Class
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2402,12 +2402,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2456,12 +2456,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2501,12 +2501,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2549,12 +2549,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2599,12 +2599,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2647,12 +2647,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2695,12 +2695,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2751,7 +2751,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Date)'.
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2809,7 +2809,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M2(x As Decimal)'.
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2863,7 +2863,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2902,12 +2902,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -2951,12 +2951,12 @@ End Structure
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -3168,22 +3168,22 @@ End Class
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -3246,22 +3246,22 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
             compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources2,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
-            verifier = CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, errors)
         End Sub
 
@@ -3314,11 +3314,11 @@ End Interface
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation1, symbolValidator:=validator)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation2, symbolValidator:=validator)
         End Sub
 
         ' See C# ImplementedInterfacesAndTheirMembers_2
@@ -3374,11 +3374,11 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation1, symbolValidator:=validator)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation2, symbolValidator:=validator)
         End Sub
 
         <Fact()>
@@ -3431,11 +3431,11 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation1, symbolValidator:=validator)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            CompileAndVerify(compilation2, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation2, symbolValidator:=validator)
         End Sub
 
         <Fact()>
@@ -3480,12 +3480,12 @@ End Class
             Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, emitters:=TestEmitters.RefEmitBug)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -3532,7 +3532,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
-            CompileAndVerify(piaCompilation2, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(piaCompilation2)
 
             Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
@@ -3590,7 +3590,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
-            CompileAndVerify(piaCompilation2, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(piaCompilation2)
 
             Dim fullName = MetadataTypeName.FromFullName("I1")
             Dim isNoPiaLocalType = False
@@ -3622,7 +3622,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation3)
 
             assembly = compilation3.SourceModule.GetReferencedAssemblySymbols()(1)
             [module] = assembly.Modules(0)
@@ -3632,7 +3632,7 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation4)
 
             assembly = compilation4.SourceModule.GetReferencedAssemblySymbols()(1)
             [module] = assembly.Modules(0)
@@ -3707,12 +3707,12 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation3, verify:=False)
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation4, verify:=False)
         End Sub
 
         <Fact()>
@@ -3759,7 +3759,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
-            CompileAndVerify(piaCompilation2, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(piaCompilation2)
 
             Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
@@ -3953,7 +3953,7 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             Dim piaCompilation2 = CreateCompilationWithMscorlibAndReferences(
                 pia2,
                 references:={New VisualBasicCompilationReference(piaCompilation1, embedInteropTypes:=True)})
-            CompileAndVerify(piaCompilation2, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(piaCompilation2)
 
             Dim compilation1 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
@@ -3970,12 +3970,12 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation3)
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(compilation4)
         End Sub
 
         <Fact()>
@@ -4044,12 +4044,12 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation3, verify:=False)
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation4, verify:=False)
         End Sub
 
         <Fact(), WorkItem(673546, "DevDiv")>

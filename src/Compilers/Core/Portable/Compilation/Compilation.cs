@@ -1271,7 +1271,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -1323,7 +1322,6 @@ namespace Microsoft.CodeAnalysis
                     var moduleBeingBuilt = this.CreateModuleBuilder(
                         emitOptions: EmitOptions.Default,
                         manifestResources: null,
-                        assemblySymbolMapper: null,
                         testData: null,
                         diagnostics: discardedDiagnostics,
                         cancellationToken: cancellationToken);
@@ -1591,7 +1589,6 @@ namespace Microsoft.CodeAnalysis
             var moduleBeingBuilt = this.CreateModuleBuilder(
                 options,
                 manifestResources,
-                null,
                 testData,
                 diagnostics,
                 cancellationToken);

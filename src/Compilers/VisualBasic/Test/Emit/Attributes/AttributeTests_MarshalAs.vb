@@ -687,31 +687,7 @@ End Class
                 {"SafeArray7", New Byte() {&H1D, &H24, &H1, &H58}}
             }
 
-            CompileAndVerifyFieldMarshal(source,
-                Function(fieldName, assembly, options)
-                    If options <> TestEmitters.RefEmit Then
-                        Return cciBlobs(fieldName)
-                    End If
-
-                    Dim displayName As String = assembly.Identity.GetDisplayName()
-                    Dim typeName As Byte()
-                    Select Case fieldName
-                        Case "SafeArray5"
-                            typeName = e.GetBytes("System.Collections.Generic.List`1[[X, " + displayName + "]][][], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")
-                            Return New Byte() {&H1D, &H9, &H80}.Append(CByte(typeName.Length)).Append(typeName)
-
-                        Case "SafeArray6"
-                            typeName = e.GetBytes("X, " + displayName)
-                            Return New Byte() {&H1D, &HD}.Append(CByte(typeName.Length)).Append(typeName)
-
-                        Case "SafeArray7"
-                            typeName = e.GetBytes("X, " + displayName)
-                            Return New Byte() {&H1D, &H24}.Append(CByte(typeName.Length)).Append(typeName)
-
-                        Case Else
-                            Throw TestExceptionUtilities.UnexpectedValue(fieldName)
-                    End Select
-                End Function)
+            CompileAndVerifyFieldMarshal(source, cciBlobs)
         End Sub
 
         <Fact()>
@@ -998,7 +974,7 @@ End Enum
 ]]>.Value
 
             CompileAndVerifyFieldMarshal(source,
-                Function(name, _omitted1, _omitted2)
+                Function(name, _omitted1)
                     Return If(name = "f" Or name = "_we" Or name = "A" Or name = "B", New Byte() {&H2}, Nothing)
                 End Function)
         End Sub

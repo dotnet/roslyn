@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     public static class MinimalTestExportProvider
     {
-        private static readonly PartDiscovery s_partDiscovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery() { IsNonPublicSupported = true });
+        private static readonly PartDiscovery s_partDiscovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(Resolver.DefaultInstance), new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true));
         private static readonly Lazy<ComposableCatalog> s_lazyLanguageNeutralCatalog = new Lazy<ComposableCatalog>(() => CreateAssemblyCatalog(GetVisualStudioAssemblies()).WithParts(CreateAssemblyCatalog(GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct())));
 
         public static ComposableCatalog LanguageNeutralCatalog
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // on the thread.
             var parts = Task.Run(async () => await s_partDiscovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).Result;
 
-            return ComposableCatalog.Create(parts);
+            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
         }
 
         public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types)
@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // on the thread.
             var parts = Task.Run(async () => await s_partDiscovery.CreatePartsAsync(types).ConfigureAwait(false)).Result;
 
-            return ComposableCatalog.Create(parts);
+            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
         }
 
         public static ComposableCatalog WithParts(this ComposableCatalog @this, ComposableCatalog catalog)
         {
-            return @this.WithParts(catalog.DiscoveredParts);
+            return @this.AddParts(catalog.DiscoveredParts);
         }
 
         public static ComposableCatalog WithParts(this ComposableCatalog catalog, IEnumerable<Type> types)

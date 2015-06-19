@@ -77,20 +77,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     kind = OutputKind.WindowsRuntimeMetadata
             End Select
 
+            ' GetSDKPath can return E_NOTIMPL if there is no SDK path at all
+            Dim sdkPath As String = Nothing
+            Dim sdkPathHResult = compilerHost.GetSdkPath(sdkPath)
+
+            If sdkPathHResult = VSConstants.E_NOTIMPL Then
+                sdkPath = Nothing
+            Else
+                Marshal.ThrowExceptionForHR(sdkPathHResult, New IntPtr(-1))
+            End If
+
             Dim runtimes = New List(Of String)
             Select Case options.vbRuntimeKind
                 Case VBRuntimeKind.DefaultRuntime
-                    runtimes.Add(PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), "Microsoft.VisualBasic.dll"))
+                    If sdkPath IsNot Nothing Then
+                        runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "Microsoft.VisualBasic.dll"))
+                    End If
 
                 Case VBRuntimeKind.SpecifiedRuntime
                     If options.wszSpecifiedVBRuntime IsNot Nothing Then
                         ' If they specified a fully qualified file, use it
                         If File.Exists(options.wszSpecifiedVBRuntime) Then
                             runtimes.Add(options.wszSpecifiedVBRuntime)
-                        Else
+                        ElseIf sdkPath IsNot Nothing
                             ' If it's just a filename, try to find it in the SDK path.
                             If options.wszSpecifiedVBRuntime = PathUtilities.GetFileName(options.wszSpecifiedVBRuntime) Then
-                                Dim runtimePath = PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), options.wszSpecifiedVBRuntime)
+                                Dim runtimePath = PathUtilities.CombinePathsUnchecked(sdkPath, options.wszSpecifiedVBRuntime)
                                 If File.Exists(runtimePath) Then
                                     runtimes.Add(runtimePath)
                                 End If
@@ -99,11 +111,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     End If
             End Select
 
-            If Not options.bNoStandardLibs Then
-                runtimes.Add(PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), "System.dll"))
-            End If
+            If sdkPath IsNot Nothing Then
+                If Not options.bNoStandardLibs Then
+                    runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "System.dll"))
+                End If
 
-            runtimes.Add(PathUtilities.CombinePathsUnchecked(compilerHost.GetSdkPath(), "mscorlib.dll"))
+                runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "mscorlib.dll"))
+            End If
 
             RuntimeLibraries = runtimes
 

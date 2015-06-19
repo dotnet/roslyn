@@ -100,9 +100,6 @@
     </Compile>
     <Compile Include="CompilationErrorException.cs" />
     <Compile Include="Emit\CommonCompilationExtensions.cs" />
-    <Compile Include="Emit\ReflectionEmitResult.cs" />
-    <Compile Include="Emit\ReflectionEmitter.cs" />
-    <Compile Include="Emit\ReflectionEmitter.Refs.cs" />
     <Compile Include="InteractiveAssemblyLoader.cs" />
     <Compile Include="MemberDisplayFormat.cs" />
     <Compile Include="MetadataShadowCopy.cs" />
