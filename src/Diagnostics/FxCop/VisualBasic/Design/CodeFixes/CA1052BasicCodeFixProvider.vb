@@ -15,13 +15,20 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Design
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA1052DiagnosticAnalyzer.DiagnosticId), [Shared]>
     Public Class CA1052BasicCodeFixProvider
         Inherits CodeFixProvider
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId)
+                ' TODO: Re-implement the VB fix by turning the Class into a Module.
+                ' For now, leave this fixer in place but don't declare it to fix anything.
+                '
+                ' This is tracked by https://github.com/dotnet/roslyn/issues/3546.
+                '
+                ' Return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId)
+                Dim diagnosticIDs() As String = {}
+                Return ImmutableArray.Create(diagnosticIDs)
             End Get
         End Property
 

@@ -382,7 +382,7 @@ public class OKImpl : I
                 // warning CS1701: Assuming assembly reference 'Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'X' matches identity 'Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'Lib', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "X", "Lib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "Lib"));
 
-            CompileAndVerify(main, emitters: TestEmitters.CCI, validator: (assembly, _) =>
+            CompileAndVerify(main, validator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 List<string> refs = new List<string>();
@@ -1759,7 +1759,7 @@ public class C : I { }
             var refLib = ((MetadataImageReference)lib.EmitToImageReference()).WithEmbedInteropTypes(true);
             var main = CreateCompilationWithMscorlib(mainSource, new[] { refLib }, assemblyName: "main");
 
-            CompileAndVerify(main, validator: (pe, _) =>
+            CompileAndVerify(main, validator: (pe) =>
             {
                 var reader = pe.GetMetadataReader();
 

@@ -307,8 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var constructor = structType.InstanceConstructors.Single();
                 Assert.False(constructor.IsImplicitlyDeclared);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         [ClrOnlyFact]
@@ -327,8 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var constructor = structType.InstanceConstructors.Single();
                 Assert.True(constructor.IsImplicitlyDeclared);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         [ClrOnlyFact]
@@ -360,8 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.Equal(0, constructors[withoutParameterIndex].Parameters.Length);
                 Assert.False(constructors[withParameterIndex].IsImplicitlyDeclared);
                 Assert.True(constructors[withoutParameterIndex].IsImplicitlyDeclared);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         [Fact]

@@ -1677,7 +1677,7 @@ End Class]]>
         CompileAndVerify(ca)
 
         Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={New VisualBasicCompilationReference(ca)})
-        CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
+        CompileAndVerify(cb, expectedOutput:="42").Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1072339, "DevDiv")>
@@ -1707,7 +1707,7 @@ End Class]]>
         CompileAndVerify(ca)
 
         Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={New VisualBasicCompilationReference(ca)})
-        CompileAndVerify(cb, expectedOutput:="42", emitters:=TestEmitters.CCI).Diagnostics.Verify()
+        CompileAndVerify(cb, expectedOutput:="42").Diagnostics.Verify()
     End Sub
 
     <Fact, WorkItem(1095618, "DevDiv")>

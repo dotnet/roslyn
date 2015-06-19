@@ -781,8 +781,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         private static IEnumerable<SyntaxToken> GetSkippedTokens(SyntaxTriviaList list)
         {
+            // PERF: Avoid allocations in the most common case of no skipped tokens.
+            if (!HasSkippedTokens(list))
+            {
+                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+            }
+
             return list.Where(trivia => trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
                        .SelectMany(t => ((SkippedTokensTriviaSyntax)t.GetStructure()).Tokens);
+        }
+
+        private static bool HasSkippedTokens(SyntaxTriviaList list)
+        {
+            foreach (var trivia in list)
+            {
+                if (trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

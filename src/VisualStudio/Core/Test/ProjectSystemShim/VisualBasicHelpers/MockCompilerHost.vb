@@ -20,6 +20,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             End Get
         End Property
 
+        Public Shared ReadOnly Property NoSdkCompilerHost As MockCompilerHost
+            Get
+                Return New MockCompilerHost("")
+            End Get
+        End Property
+
         Public Function GetWellKnownDllName(fileName As String) As String
             Return Path.Combine(_sdkPath, fileName)
         End Function
@@ -28,8 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             Throw New NotImplementedException()
         End Sub
 
-        Public Function GetSdkPath() As <MarshalAs(UnmanagedType.BStr)> String Implements IVbCompilerHost.GetSdkPath
-            Return _sdkPath
+        Public Function GetSdkPath(ByRef sdkPath As String) As Integer Implements IVbCompilerHost.GetSdkPath
+            sdkPath = _sdkPath
+
+            If String.IsNullOrEmpty(sdkPath) Then
+                Return VSConstants.E_NOTIMPL
+            Else
+                Return VSConstants.S_OK
+            End If
         End Function
 
         Public Function GetTargetLibraryType() As VBTargetLibraryType Implements IVbCompilerHost.GetTargetLibraryType

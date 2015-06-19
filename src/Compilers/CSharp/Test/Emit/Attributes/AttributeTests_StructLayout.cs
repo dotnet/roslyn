@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 ";
             const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
 
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -151,7 +151,7 @@ class Structs
 	[StructLayout(LayoutKind.Explicit, Pack = 1, Size = Int32.MaxValue)] struct E_P1_S2147483647 {}
 }
 ";
-            Action<PEAssembly, TestEmitters> validator = (assembly, _) =>
+            Action<PEAssembly> validator = (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -214,7 +214,7 @@ class Structs
             CompileAndVerify(unverifiable, assemblyValidator: validator, verify: false);
 
             // CLR limitation on type size, not a RefEmit bug:
-            CompileAndVerify(unloadable, emitters: TestEmitters.CCI, assemblyValidator: validator, verify: false);
+            CompileAndVerify(unloadable, assemblyValidator: validator, verify: false);
         }
 
         [Fact]
@@ -332,7 +332,7 @@ public class C : B
 }
 ";
             // type C can't be loaded
-            CompileAndVerify(source, emitters: TestEmitters.CCI, verify: false);
+            CompileAndVerify(source, verify: false);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ public class A
     event Action b;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
@@ -615,7 +615,7 @@ partial struct C
 
         private void VerifyStructLayout(string source, bool hasInstanceFields)
         {
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var reader = assembly.GetMetadataReader();
                 var type = reader.TypeDefinitions

@@ -299,4 +299,23 @@ End Namespace"
         Next
     End Sub
 
+    <Fact>
+    Public Sub InterpolatedStrings()
+        Dim x = Nothing
+        ParseAndVerify(
+        <![CDATA[
+Module Module1
+    Function M() As String
+        Dim x1 = $"world"
+        Dim x2 = $"hello {x1}"
+        Return x2
+    End Function
+End Module
+        ]]>.Value,
+            LanguageVersion.VisualBasic12,
+            Diagnostic(ERRID.ERR_LanguageVersion, "$""world""").WithArguments("12.0", "interpolated strings").WithLocation(4, 18),
+            Diagnostic(ERRID.ERR_LanguageVersion, "$""hello {x1}""").WithArguments("12.0", "interpolated strings").WithLocation(5, 18))
+    End Sub
+
+
 End Class

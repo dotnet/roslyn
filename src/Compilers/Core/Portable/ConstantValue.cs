@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue Create(float value)
         {
-            if (value == 0 && 1 / value > 0)
+            if (BitConverter.DoubleToInt64Bits(value) == 0)
             {
                 return ConstantValueDefault.Single;
             }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue CreateSingle(double value)
         {
-            if (value == 0 && 1 / value > 0)
+            if (BitConverter.DoubleToInt64Bits(value) == 0)
             {
                 return ConstantValueDefault.Single;
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue Create(double value)
         {
-            if (value == 0 && 1 / value > 0)
+            if (BitConverter.DoubleToInt64Bits(value) == 0)
             {
                 return ConstantValueDefault.Double;
             }

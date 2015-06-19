@@ -2262,7 +2262,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
@@ -2304,8 +2303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emitOptions,
                     kind,
                     moduleProps,
-                    manifestResources,
-                    assemblySymbolMapper);
+                    manifestResources);
             }
 
             // testData is only passed when running tests.
