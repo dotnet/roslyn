@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -45,7 +46,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(4, 9), new LineChange(9, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -92,7 +93,7 @@ class Program
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(4, 9), new LineChange(10, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -119,8 +120,8 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
-                new string[] { });
+                Array.Empty<LineChange>(),
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -148,7 +149,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(4, 6) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -175,7 +176,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(4, 5) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -200,7 +201,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" });
         }
 
@@ -227,7 +228,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" });
         }
 
@@ -255,7 +256,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" });
         }
 
@@ -285,7 +286,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" });
 
             var active = GetActiveStatements(src1, src2);
@@ -307,7 +308,7 @@ class C { /*--*/static void Bar() { } }";
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar() { }" });
         }
 
@@ -335,9 +336,9 @@ class C<T>
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", "method"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        ", FeaturesResources.Method));
         }
 
         [Fact]
@@ -363,9 +364,9 @@ class C<T>
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar()" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", "method"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "\r\n        /*edit*/", FeaturesResources.Method));
         }
 
         [Fact]
@@ -391,9 +392,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static void Bar<T>()" },
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", "method"));
+                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "\r\n        ", FeaturesResources.Method));
         }
 
         [Fact]
@@ -421,7 +422,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "static async Task<int> Bar()" });
         }
 
@@ -458,7 +459,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(4, 8), new LineChange(8, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -485,7 +486,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(4, 5) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -511,7 +512,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "public C(int a)" });
         }
 
@@ -537,7 +538,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "public C(int a)" });
         }
 
@@ -563,9 +564,9 @@ class C<T>
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "public C(int a)" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", "constructor"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "          ", FeaturesResources.Constructor));
         }
 
         #endregion
@@ -589,8 +590,8 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
-                new string[] { });
+                Array.Empty<LineChange>(),
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -610,8 +611,8 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
-                new string[] { });
+                Array.Empty<LineChange>(),
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -633,7 +634,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 4), new LineChange(4, 3) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -656,7 +657,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 6) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -677,7 +678,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new LineChange[] { new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -698,7 +699,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new LineChange[] { new LineChange(3, 4), new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -718,7 +719,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo = " });
         }
 
@@ -739,7 +740,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo " });
         }
 
@@ -760,7 +761,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo = 1" });
         }
 
@@ -781,7 +782,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo = 1" });
         }
 
@@ -802,7 +803,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo = 1" });
         }
 
@@ -822,7 +823,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo = 1 +  1" });
         }
 
@@ -842,9 +843,9 @@ class C<T>
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "Foo = 1 +  1" },
-                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", "field"));
+                Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.Field));
         }
 
         #endregion
@@ -868,7 +869,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "get { return " });
         }
 
@@ -890,7 +891,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -911,7 +912,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 4), new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -932,7 +933,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -953,7 +954,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -974,7 +975,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new LineChange(3, 4) },
-                new string[] { });
+                Array.Empty<string>());
         }
 
         [Fact]
@@ -993,7 +994,7 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
-                new LineChange[] { },
+                Array.Empty<LineChange>(),
                 new string[] { "int P { get; } =  1;" });
         }
 

@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly OptionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
+        Private Shared ReadOnly s_optionsDiagnoseDocComments As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose)
 
         <Fact>
         Public Sub NoXmlResolver()
@@ -69,7 +69,7 @@ Imports System
 Module Module0
 End Module
 ]]>
-                                                          </file>
+    </file>
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -135,7 +135,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
-                sources, parseOptions:=OptionsDiagnoseDocComments)
+                sources, parseOptions:=s_optionsDiagnoseDocComments)
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim moduleStatement = tree.FindNodeOrTokenByKind(SyntaxKind.ModuleStatement)
@@ -6641,7 +6641,7 @@ End Class
 
             ' BREAK: dev11 includes "Sub Other(Of OT).S(a As System.Int32)"
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("Other.S""") + 5, container:=DirectCast(symbols(0), NamedTypeSymbol)),
+                                    model.LookupSymbols(text.IndexOf("Other.S""", StringComparison.Ordinal) + 5, container:=DirectCast(symbols(0), NamedTypeSymbol)),
                                     SymbolKind.Method),
                                "Function System.Object.Equals(obj As System.Object) As System.Boolean",
                                "Function System.Object.Equals(objA As System.Object, objB As System.Object) As System.Boolean",
@@ -6653,13 +6653,13 @@ End Class
                                "Sub System.Object.Finalize()")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("Other.S""") + 5,
+                                    model.LookupSymbols(text.IndexOf("Other.S""", StringComparison.Ordinal) + 5,
                                                         container:=DirectCast(symbols(0), NamedTypeSymbol),
                                                         name:="S"),
                                     SymbolKind.Method))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("Other.S""") + 5,
+                                    model.LookupSymbols(text.IndexOf("Other.S""", StringComparison.Ordinal) + 5,
                                                         container:=DirectCast(symbols(0), NamedTypeSymbol),
                                                         name:="GetHashCode"),
                                     SymbolKind.Method),
@@ -6686,7 +6686,7 @@ End Class
                                                  DirectCast(names(1), ExpressionSyntax),
                                                  "C(Of T).N1.N2.T")
 
-            Dim firstIndex = text.IndexOf("""t""") + 1
+            Dim firstIndex = text.IndexOf("""t""", StringComparison.Ordinal) + 1
             AssertLookupResult(FilterOfSymbolKindOnly(
                                     model.LookupSymbols(firstIndex,
                                                         name:="T"),
@@ -6711,7 +6711,7 @@ End Class
                                                            DirectCast(names(2), ExpressionSyntax),
                                                            "T")
 
-            Dim secondIndex = text.IndexOf("""t""", firstIndex + 5) + 1
+            Dim secondIndex = text.IndexOf("""t""", firstIndex + 5, StringComparison.Ordinal) + 1
 
             AssertLookupResult(FilterOfSymbolKindOnly(
                                     model.LookupSymbols(secondIndex,
@@ -6762,7 +6762,7 @@ End Class
             Dim outer = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Outer")
             Dim inner = outer.GetMember(Of NamedTypeSymbol)("Inner")
 
-            Dim position = syntaxTree.ToString().IndexOf("(Of U)")
+            Dim position = syntaxTree.ToString().IndexOf("(Of U)", StringComparison.Ordinal)
             Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
         End Sub
 
@@ -6937,34 +6937,34 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
         End Sub
 
@@ -6996,34 +6996,34 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter),
                                "a As System.Int32")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
         End Sub
 
@@ -7055,36 +7055,36 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
         End Sub
@@ -7117,36 +7117,36 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""a.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""a""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""a""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "T", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[a]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[a]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.Parameter))
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter),
                                "X")
         End Sub
@@ -7179,32 +7179,32 @@ End Class
             Dim text = tree.ToString()
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""d.""") + 2),
+                                    model.LookupSymbols(text.IndexOf("""d.""", StringComparison.Ordinal) + 2),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""d""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""d""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""[b]""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""[b]""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "a As System.Int32", "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""b""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""b""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
 
             AssertLookupResult(FilterOfSymbolKindOnly(
-                                    model.LookupSymbols(text.IndexOf("""c.""") + 1),
+                                    model.LookupSymbols(text.IndexOf("""c.""", StringComparison.Ordinal) + 1),
                                     SymbolKind.TypeParameter, SymbolKind.Parameter),
                                "X")
         End Sub
@@ -7247,13 +7247,13 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("name=""X""") + 6), SymbolKind.Field, SymbolKind.Parameter),
+                        text.IndexOf("name=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.Parameter),
                     "x As System.Int32")
 
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("cref=""X""") + 6), SymbolKind.Field, SymbolKind.Parameter),
+                        text.IndexOf("cref=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.Parameter),
                     "OuterClass.X As System.String")
         End Sub
 
@@ -7295,13 +7295,13 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("name=""X""") + 6), SymbolKind.Field, SymbolKind.TypeParameter),
+                        text.IndexOf("name=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.TypeParameter),
                     "X")
 
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("cref=""X""") + 6), SymbolKind.Field, SymbolKind.TypeParameter),
+                        text.IndexOf("cref=""X""", StringComparison.Ordinal) + 6), SymbolKind.Field, SymbolKind.TypeParameter),
                     "OuterClass.X As System.String")
         End Sub
 
@@ -7336,13 +7336,13 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("Of Integer") + 3), SymbolKind.Field),
+                        text.IndexOf("Of Integer", StringComparison.Ordinal) + 3), SymbolKind.Field),
                     "OuterClass(Of W).X As System.String")
 
             Dim symInteger =
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("Of Integer") + 3,
+                        text.IndexOf("Of Integer", StringComparison.Ordinal) + 3,
                         name:="Int32"), SymbolKind.NamedType)
 
             AssertLookupResult(symInteger, "System.Int32")
@@ -7350,7 +7350,7 @@ End Class
             AssertLookupResult(
                 FilterOfSymbolKindOnly(
                     model.LookupSymbols(
-                        text.IndexOf("Of Integer") + 3,
+                        text.IndexOf("Of Integer", StringComparison.Ordinal) + 3,
                         name:="Parse",
                         container:=DirectCast(symInteger(0), NamedTypeSymbol)), SymbolKind.Method),
                     "Function System.Int32.Parse(s As System.String) As System.Int32",
@@ -10015,9 +10015,9 @@ AssemblyName
         End Sub
 
         Private Structure NameSyntaxInfo
-            Public Syntax As String
-            Public Symbols As String()
-            Public Types As String()
+            Public ReadOnly Syntax As String
+            Public ReadOnly Symbols As String()
+            Public ReadOnly Types As String()
 
             Public Sub New(syntax As String, symbols As String(), types As String())
                 Me.Syntax = syntax
@@ -11377,7 +11377,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
             compilation.AssertNoDiagnostics()
@@ -11406,7 +11406,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
 
             ' Compat fix: match dev11 with inaccessible lookup
             compilation.AssertNoDiagnostics()
@@ -11447,7 +11447,7 @@ End Class
             Dim lib1Ref = CreateCompilationWithMscorlib(lib1Source).EmitToImageReference()
             Dim lib2Ref = CreateCompilationWithMscorlib(lib2Source).EmitToImageReference()
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {lib1Ref, lib2Ref}, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {lib1Ref, lib2Ref}, parseOptions:=s_optionsDiagnoseDocComments)
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -11485,7 +11485,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11521,7 +11521,7 @@ End Class
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11550,7 +11550,7 @@ Delegate Sub D(Of T)(p As T)
 </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'T' that could not be resolved.
 ''' <see cref="T"/>
@@ -11587,7 +11587,7 @@ Delegate Sub D(Of V)()
 </compilation>
 
             ' NOTE: Unlike C#, VB allows crefs to type parameters.
-            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC42375: XML comment has a tag with a 'cref' attribute 'T' that bound to a type parameter.  Use the <typeparamref> tag instead.
 ''' <see cref='T'/>
@@ -11652,7 +11652,7 @@ End Enum
 </compilation>
 
             ' None of these work in dev11.
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11685,7 +11685,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
@@ -11770,7 +11770,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=OptionsDiagnoseDocComments)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=s_optionsDiagnoseDocComments)
             comp.VerifyDiagnostics()
 
             Dim expectedXmlText = <![CDATA[
@@ -11839,8 +11839,8 @@ xmlDoc)
 #Region "Helpers"
 
         Private Structure AliasInfo
-            Public Name As String
-            Public Target As String
+            Public ReadOnly Name As String
+            Public ReadOnly Target As String
 
             Public Sub New(name As String, target As String)
                 Me.Name = name
@@ -12042,7 +12042,7 @@ xmlDoc)
             Dim text As String = tree.GetText().ToString()
             Dim list As New List(Of TNode)
 
-            Dim position As Integer = text.IndexOf(textToFind)
+            Dim position As Integer = text.IndexOf(textToFind, StringComparison.Ordinal)
             While position >= 0
                 Dim token As SyntaxToken = tree.GetRoot().FindToken(position, True)
                 If token.ValueText = textToFind Then
@@ -12051,7 +12051,7 @@ xmlDoc)
                         list.Add(node)
                     End If
                 End If
-                position = text.IndexOf(textToFind, position + 1)
+                position = text.IndexOf(textToFind, position + 1, StringComparison.Ordinal)
             End While
 
             Return list.ToArray()
@@ -12093,7 +12093,7 @@ xmlDoc)
                 End If
 
                 Try
-                    diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()
+                    diagnostics = compilation.GetDiagnostics(CompilationStage.Compile).ToArray()
                 Finally
                     If ensureEnglishUICulture Then
                         Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
@@ -12280,6 +12280,52 @@ EmptyCref
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Equal("?", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem(1115058, "DevDiv")>
+        Public Sub UnterminatedElement()
+            Dim sources =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Module Module1
+    '''<summary>
+    ''' Something
+    '''<summary>
+    Sub Main()
+        System.Console.WriteLine("Here")
+    End Sub
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+                sources,
+                options:=TestOptions.ReleaseExe,
+                parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            ' Compilation should succeeed with warnings
+            AssertTheseDiagnostics(CompileAndVerify(compilation, expectedOutput:="Here").Diagnostics, <![CDATA[
+BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
+    '''<summary>
+       ~~~~~~~~~
+BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
+    '''<summary>
+       ~~~~~~~~~
+BC42304: XML documentation parse error: '>' expected. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: '>' expected. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. XML comment will be ignored.
+    '''<summary>
+                ~
+BC42304: XML documentation parse error: Expected beginning '<' for an XML tag. XML comment will be ignored.
+    '''<summary>
+                ~
+]]>)
         End Sub
 
     End Class

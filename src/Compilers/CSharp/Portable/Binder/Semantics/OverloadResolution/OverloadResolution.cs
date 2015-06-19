@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // lazily compute if the compiler is in "strict" mode (rather than duplicating bugs for compatibility)
-        private bool? _strict = null;
+        private bool? _strict;
         private bool Strict
         {
             get
@@ -747,12 +747,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overriding methods. For the purposes of removing more stuff, we need to behave as
             // though that's what was there.
             //
-            // The presense of Giraffe.M(T2) does *not* justify the removal of Mammal.M(T3); it is
+            // The presence of Giraffe.M(T2) does *not* justify the removal of Mammal.M(T3); it is
             // not to be considered a method of Giraffe, but rather a method of Mammal for the
             // purposes of removing other methods. 
             //
-            // However, the presense of Mammal.M(T3) does justify the removal of Giraffe.M(T1). Why?
-            // Because the presense of Mammal.M(T3) justifies the removal of Animal.M(T1), and that
+            // However, the presence of Mammal.M(T3) does justify the removal of Giraffe.M(T1). Why?
+            // Because the presence of Mammal.M(T3) justifies the removal of Animal.M(T1), and that
             // is what is supposed to be in the set instead of Giraffe.M(T1).
             //
             // The resulting candidate set after the filtering according to the spec should be:
@@ -1146,7 +1146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EX to PX is better than the conversion from EX to QX.
 
             bool allSame = true; // Are all parameter types equivalent by identify conversions?
-            for (int i = 0; i < arguments.Count; ++i)
+            int i;
+            for (i = 0; i < arguments.Count; ++i)
             {
                 var argumentKind = arguments[i].Kind;
 
@@ -1186,9 +1187,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (okToDowngradeToNeither)
+                if (!considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                 {
-                    Debug.Assert(Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
+                    // If considerRefKinds is false, conversion between parameter types isn't classified by the if condition.
+                    // This assert is here to verify the assumption that the conversion is never an identity in that case and
+                    // we can skip classification as an optimization.
+                    Debug.Assert(considerRefKinds || Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity);
                     allSame = false;
                 }
 
@@ -1237,7 +1241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    return BetterResult.Neither;
+                    result = BetterResult.Neither;
+                    break;
                 }
                 else
                 {
@@ -1261,16 +1266,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int m1ParameterCount;
             int m2ParameterCount;
+            int m1ParametersUsedIncludingExpansionAndOptional;
+            int m2ParametersUsedIncludingExpansionAndOptional;
 
-            if (!allSame)
+            GetParameterCounts(m1, arguments, out m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
+            GetParameterCounts(m2, arguments, out m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
+
+            // We might have got out of the loop above early and allSame isn't completely calculated.
+            // We need to ensure that we are not going to skip over the next 'if' because of that.
+            if (allSame && m1ParametersUsedIncludingExpansionAndOptional == m2ParametersUsedIncludingExpansionAndOptional)
+            {
+                // Complete comparison for the remaining parameter types
+                for (i = i + 1; i < arguments.Count; ++i)
+                {
+                    var argumentKind = arguments[i].Kind;
+
+                    // If these are both applicable varargs methods and we're looking at the __arglist argument
+                    // then clearly neither of them is going to be better in this argument.
+                    if (argumentKind == BoundKind.ArgListOperator)
+                    {
+                        Debug.Assert(i == arguments.Count - 1);
+                        Debug.Assert(m1.Member.GetIsVararg() && m2.Member.GetIsVararg());
+                        continue;
+                    }
+
+                    RefKind refKind1, refKind2;
+                    var type1 = GetParameterType(i, m1.Result, m1.LeastOverriddenMember.GetParameters(), out refKind1);
+                    var type2 = GetParameterType(i, m2.Result, m2.LeastOverriddenMember.GetParameters(), out refKind2);
+
+                    if (Conversions.ClassifyImplicitConversion(type1, type2, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
+                    {
+                        allSame = false;
+                        break;
+                    }
+                }
+            }
+
+            // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
+            //                 native compiler includes types of optinal parameters. We partially duplicate this behavior
+            //                 here by comparing the number of parameters used taking params expansion and 
+            //                 optional parameters into account.
+            if (!allSame || m1ParametersUsedIncludingExpansionAndOptional != m2ParametersUsedIncludingExpansionAndOptional)
             {
                 // SPEC VIOLATION: Even when parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN} are
-                //                 not equivalent, we have tie-breaking rules when optional parameters are involved:
-                //                 1. A candidate Mp that uses optional parameters and is not applicable only in expanded
-                //                    form is better than a candidate Mq that is applicable only in expanded form.
-                //                 2. A candidate Mp that does not use optional parameters and is not applicable only in
-                //                    expanded form is better than a candidate Mq that uses optional parameters and is
-                //                    not applicable only in expanded form.
+                //                 not equivalent, we have tie-breaking rules.
                 //
                 // Relevant code in the native compiler is at the end of
                 //                       BetterTypeEnum ExpressionBinder::WhichMethodIsBetter(
@@ -1279,38 +1318,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //                                           Type* pTypeThrough,
                 //                                           ArgInfos*args)
                 //
-                m1ParameterCount = m1.Member.GetParameterCount();
-                m2ParameterCount = m2.Member.GetParameterCount();
 
-                if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+                if (m1ParametersUsedIncludingExpansionAndOptional != m2ParametersUsedIncludingExpansionAndOptional)
                 {
-                    if (m2.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm && m2ParameterCount != arguments.Count)
+                    if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
                     {
-                        // Optionals used
+                        if (m2.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm)
+                        {
+                            return BetterResult.Right;
+                        }
+                    }
+                    else if (m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+                    {
+                        Debug.Assert(m1.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm);
+                        return BetterResult.Left;
+                    }
+
+                    // Here, if both methods needed to use optionals to fill in the signatures,
+                    // then we are ambiguous. Otherwise, take the one that didn't need any 
+                    // optionals.
+
+                    if (m1ParametersUsedIncludingExpansionAndOptional == arguments.Count)
+                    {
+                        return BetterResult.Left;
+                    }
+                    else if (m2ParametersUsedIncludingExpansionAndOptional == arguments.Count)
+                    {
                         return BetterResult.Right;
                     }
-                }
-                else if (m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
-                {
-                    if (m1.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm && m1ParameterCount != arguments.Count)
-                    {
-                        // Optionals used
-                        return BetterResult.Left;
-                    }
-                }
-                else if (m1ParameterCount == arguments.Count)
-                {
-                    if (m2ParameterCount != arguments.Count)
-                    {
-                        // Optionals used
-                        return BetterResult.Left;
-                    }
-                }
-                else if (m2ParameterCount == arguments.Count)
-                {
-                    Debug.Assert(m1ParameterCount != arguments.Count);
-                    // Optionals used
-                    return BetterResult.Right;
                 }
 
                 return BetterResult.Neither;
@@ -1352,9 +1387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Otherwise, if both methods have params arrays and are applicable only in their
             // expanded forms, and if MP has more declared parameters than MQ, then MP is better than MQ. 
-
-            m1ParameterCount = m1.Member.GetParameterCount();
-            m2ParameterCount = m2.Member.GetParameterCount();
 
             if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm && m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
@@ -1398,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
             var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
             var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            for (int i = 0; i < arguments.Count; ++i)
+            for (i = 0; i < arguments.Count; ++i)
             {
                 uninst1.Add(GetParameterType(i, m1.Result, m1Original));
                 uninst2.Add(GetParameterType(i, m2.Result, m2Original));
@@ -1446,6 +1478,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Otherwise, neither function member is better.
             return BetterResult.Neither;
+        }
+
+        private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
+        {
+            declaredParameterCount = m.Member.GetParameterCount();
+
+            if (m.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+            {
+                if (arguments.Count < declaredParameterCount)
+                {
+                    // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
+                    parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                }
+                else
+                {
+                    parametersUsedIncludingExpansionAndOptional = arguments.Count;
+                }
+            }
+            else
+            {
+                parametersUsedIncludingExpansionAndOptional = declaredParameterCount;
+            }
         }
 
         private static BetterResult MoreSpecificType(ArrayBuilder<TypeSymbol> t1, ArrayBuilder<TypeSymbol> t2, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -2014,9 +2068,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             bool ignore;
                             // Since we are dealing with variance delegate conversion and delegates have identical parameter
-                            // lists, return types must be implicitly convertable in the same direction.
+                            // lists, return types must be implicitly convertible in the same direction.
                             // Or we might be dealing with error return types and we may have one error delegate matching exactly
-                            // while another not being an error and not convertable.
+                            // while another not being an error and not convertible.
                             Debug.Assert(
                                 r1.IsErrorType() ||
                                 r2.IsErrorType() ||

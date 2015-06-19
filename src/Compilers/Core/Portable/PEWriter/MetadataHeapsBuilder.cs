@@ -37,8 +37,8 @@ namespace Microsoft.Cci
         private readonly int _userStringIndexStartOffset;
 
         // #String heap
-        private Dictionary<string, uint> _stringIndex = new Dictionary<string, uint>(128);
-        private Dictionary<uint, uint> _stringIndexMap;
+        private Dictionary<string, StringIdx> _stringIndex = new Dictionary<string, StringIdx>(128);
+        private uint[] _stringIndexMap;
         private readonly BinaryWriter _stringWriter = new BinaryWriter(new MemoryStream(1024));
         private readonly int _stringIndexStartOffset;
 
@@ -179,15 +179,19 @@ namespace Microsoft.Cci
 
         public StringIdx GetStringIndex(string str)
         {
-            uint index = 0;
-            if (str.Length > 0 && !_stringIndex.TryGetValue(str, out index))
+            StringIdx index;
+            if (str.Length == 0)
+            {
+                index = new StringIdx(0);
+            }
+            else if (!_stringIndex.TryGetValue(str, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
-                index = (uint)_stringIndex.Count + 1; // idx 0 is reserved for empty string
+                index = new StringIdx((uint)_stringIndex.Count + 1); // idx 0 is reserved for empty string
                 _stringIndex.Add(str, index);
             }
 
-            return new StringIdx(index);
+            return index;
         }
 
         public uint ResolveStringIndex(StringIdx index)
@@ -204,7 +208,7 @@ namespace Microsoft.Cci
                 index = _userStringWriter.BaseStream.Position + (uint)_userStringIndexStartOffset;
                 _userStringIndex.Add(str, index);
                 _userStringWriter.WriteCompressedUInt((uint)str.Length * 2 + 1);
-                _userStringWriter.WriteChars(str.ToCharArray());
+                _userStringWriter.WriteStringUtf16LE(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple
                 byte stringKind = 0;
@@ -288,17 +292,17 @@ namespace Microsoft.Cci
         private void SerializeStringHeap()
         {
             // Sort by suffix and remove stringIndex
-            var sorted = new List<KeyValuePair<string, uint>>(_stringIndex);
+            var sorted = new List<KeyValuePair<string, StringIdx>>(_stringIndex);
             sorted.Sort(new SuffixSort());
             _stringIndex = null;
 
             // Create VirtIdx to Idx map and add entry for empty string
-            _stringIndexMap = new Dictionary<uint, uint>(sorted.Count);
-            _stringIndexMap.Add(0, 0);
+            _stringIndexMap = new uint[sorted.Count+1];
+            _stringIndexMap[0] = 0;
 
             // Find strings that can be folded
             string prev = String.Empty;
-            foreach (KeyValuePair<string, uint> cur in sorted)
+            foreach (KeyValuePair<string, StringIdx> cur in sorted)
             {
                 uint position = _stringWriter.BaseStream.Position + (uint)_stringIndexStartOffset;
 
@@ -306,15 +310,12 @@ namespace Microsoft.Cci
                 if (prev.EndsWith(cur.Key, StringComparison.Ordinal))
                 {
                     // Map over the tail of prev string. Watch for null-terminator of prev string.
-                    _stringIndexMap.Add(cur.Value, position - (uint)(s_utf8Encoding.GetByteCount(cur.Key) + 1));
+                    _stringIndexMap[cur.Value.VirtIdx] = position - (uint)(s_utf8Encoding.GetByteCount(cur.Key) + 1);
                 }
                 else
                 {
-                    _stringIndexMap.Add(cur.Value, position);
-
-                    // TODO (tomat): consider reusing the buffer instead of allocating a new one for each string
-                    _stringWriter.WriteBytes(s_utf8Encoding.GetBytes(cur.Key));
-
+                    _stringIndexMap[cur.Value.VirtIdx] = position;
+                    _stringWriter.WriteString(cur.Key, s_utf8Encoding);
                     _stringWriter.WriteByte(0);
                 }
 
@@ -326,9 +327,9 @@ namespace Microsoft.Cci
         /// Sorts strings such that a string is followed immediately by all strings
         /// that are a suffix of it.  
         /// </summary>
-        private class SuffixSort : IComparer<KeyValuePair<string, uint>>
+        private class SuffixSort : IComparer<KeyValuePair<string, StringIdx>>
         {
-            public int Compare(KeyValuePair<string, uint> xPair, KeyValuePair<string, uint> yPair)
+            public int Compare(KeyValuePair<string, StringIdx> xPair, KeyValuePair<string, StringIdx> yPair)
             {
                 string x = xPair.Key;
                 string y = yPair.Key;
@@ -361,7 +362,7 @@ namespace Microsoft.Cci
             WriteAligned(_blobWriter.BaseStream, stream);
         }
 
-        private void WriteAligned(MemoryStream source, MemoryStream target)
+        private static void WriteAligned(MemoryStream source, MemoryStream target)
         {
             int length = (int)source.Length;
             source.WriteTo(target);

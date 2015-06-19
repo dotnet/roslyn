@@ -14,7 +14,6 @@ using System.Xml;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Instrumentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxNodeLocationComparer _lazyComparer;
         private DocumentationCommentIncludeCache _includedFileCache;
 
-        private int _indentDepth = 0;
+        private int _indentDepth;
 
         private Stack<TemporaryStringBuilder> _temporaryStringBuilders;
 
@@ -78,38 +77,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
         public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string assemblyName, Stream xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_DocumentationCommentCompiler_WriteDocumentationCommentXml, message: compilation.AssemblyName, cancellationToken: cancellationToken))
+            StreamWriter writer = null;
+            if (xmlDocStream != null && xmlDocStream.CanWrite)
             {
-                StreamWriter writer = null;
-                if (xmlDocStream != null && xmlDocStream.CanWrite)
-                {
-                    writer = new StreamWriter(
-                        stream: xmlDocStream,
-                        encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false),
-                        bufferSize: 0x400, // Default.
-                        leaveOpen: true); // Don't close caller's stream.
-                }
+                writer = new StreamWriter(
+                    stream: xmlDocStream,
+                    encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false),
+                    bufferSize: 0x400, // Default.
+                    leaveOpen: true); // Don't close caller's stream.
+            }
 
-                using (writer)
-                {
-                    var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
-                        processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
-                    compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
-                    Debug.Assert(compiler._indentDepth == 0);
-                }
+            using (writer)
+            {
+                var compiler = new DocumentationCommentCompiler(assemblyName ?? compilation.SourceAssembly.Name, compilation, writer, filterTree, filterSpanWithinTree,
+                    processIncludes: true, isForSingleSymbol: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
+                compiler.Visit(compilation.SourceAssembly.GlobalNamespace);
+                Debug.Assert(compiler._indentDepth == 0);
+            }
 
-                if (filterTree != null)
+            if (filterTree != null)
+            {
+                // Will respect the DocumentationMode.
+                UnprocessedDocumentationCommentFinder.ReportUnprocessed(filterTree, filterSpanWithinTree, diagnostics, cancellationToken);
+            }
+            else
+            {
+                foreach (SyntaxTree tree in compilation.SyntaxTrees)
                 {
                     // Will respect the DocumentationMode.
-                    UnprocessedDocumentationCommentFinder.ReportUnprocessed(filterTree, filterSpanWithinTree, diagnostics, cancellationToken);
-                }
-                else
-                {
-                    foreach (SyntaxTree tree in compilation.SyntaxTrees)
-                    {
-                        // Will respect the DocumentationMode.
-                        UnprocessedDocumentationCommentFinder.ReportUnprocessed(tree, null, diagnostics, cancellationToken);
-                    }
+                    UnprocessedDocumentationCommentFinder.ReportUnprocessed(tree, null, diagnostics, cancellationToken);
                 }
             }
         }
@@ -255,10 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
-
-                // TODO: use culture from compilation?
-                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.InvariantCulture);
-                WriteLine(string.Format(message, symbol.GetDocumentationCommentId()));
+                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
                 return;
             }
 
@@ -304,10 +298,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
-
-                // TODO: use culture from compilation?
-                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.InvariantCulture);
-                WriteLine(string.Format(message, symbol.GetDocumentationCommentId()));
+                string message = ErrorFacts.GetMessage(MessageID.IDS_XMLIGNORED, CultureInfo.CurrentUICulture);
+                WriteLine(string.Format(CultureInfo.CurrentUICulture, message, symbol.GetDocumentationCommentId()));
                 return;
             }
 
@@ -641,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static string[] s_newLineSequences = new[] { "\r\n", "\r", "\n" };
+        private static readonly string[] s_newLineSequences = new[] { "\r\n", "\r", "\n" };
 
         /// <summary>
         /// Given the full text of a documentation comment, strip off the comment punctuation (///, /**, etc)
@@ -842,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             allMatch = false;
                             break;
                         }
-                        Debug.Assert(pattern.StartsWith(currentLinePattern));
+                        Debug.Assert(pattern.StartsWith(currentLinePattern, StringComparison.Ordinal));
                         pattern = currentLinePattern;
                     }
 

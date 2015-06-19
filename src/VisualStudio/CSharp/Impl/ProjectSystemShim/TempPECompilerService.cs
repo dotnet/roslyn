@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -58,7 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                     .WithXmlReferenceResolver(XmlFileResolver.Default)
                     .WithMetadataReferenceResolver(metadataResolver));
 
-            compilation.Emit(pszOutputFileName);
+            var result = compilation.Emit(pszOutputFileName);
+
+            Contract.ThrowIfFalse(result.Success);
         }
 
         private CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
@@ -69,21 +72,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             for (int i = 0; i < optionNames.Length; i++)
             {
-                if (optionNames[i] == "r")
+                var optionName = optionNames[i];
+                var optionValue = optionValues[i];
+
+                if (optionName == "r")
                 {
                     // We get a pipe-delimited list of references, so split them back apart
-                    foreach (var reference in ((string)optionValues[i]).Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+                    foreach (var reference in ((string)optionValue).Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
                     {
                         arguments.Add(string.Format("/r:\"{0}\"", reference));
                     }
                 }
+                else if (optionValue is bool)
+                {
+                    if ((bool)optionValue)
+                    {
+                        arguments.Add($"/{optionName}+");
+                    }
+                    else
+                    {
+                        arguments.Add($"/{optionName}-");
+                    }
+                }
                 else
                 {
-                    arguments.Add(string.Format("/{0}:{1}", optionNames[i], optionValues[i]));
+                    arguments.Add(string.Format("/{0}:{1}", optionName, optionValue));
                 }
             }
 
-            return CSharpCommandLineParser.Default.Parse(arguments, baseDirectory);
+            return CSharpCommandLineParser.Default.Parse(arguments, baseDirectory, RuntimeEnvironment.GetRuntimeDirectory());
         }
     }
 }

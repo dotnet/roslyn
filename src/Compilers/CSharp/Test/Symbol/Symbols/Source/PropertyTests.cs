@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -118,12 +118,15 @@ struct S
 }
 
 ").VerifyDiagnostics(
-    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
-    //         Ps = 5;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
+    // (24,12): error CS0568: Structs cannot contain explicit parameterless constructors
+    //     public S()
+    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(24, 12),
     // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
     //         Ps = 3;
     Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
+    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+    //         Ps = 5;
+    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
     // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
     //         P = 10;
     Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
@@ -136,6 +139,7 @@ struct S
     // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
     //         S.Ps = 1;
     Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9)
+
     );
         }
 
@@ -415,7 +419,7 @@ class C1
             Assert.Equal("@out", dout.ToString());
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyNonDefaultAccessorNames()
         {
             var source = @"
@@ -501,7 +505,7 @@ class Program
         /// Properties should refer to methods
         /// in the type members collection.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void MethodsAndAccessorsSame()
         {
             var source =
@@ -601,7 +605,7 @@ class Program
         /// <summary>
         /// Calling bogus methods directly should be allowed.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void CallMethodsDirectly()
         {
             var source = @"
@@ -636,7 +640,7 @@ class Program
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void MethodsReferencedInMultipleProperties()
         {
             var source = @"
@@ -841,7 +845,7 @@ class C
         /// Properties where the property and accessor signatures differ by
         /// modopt only should be supported (as in the native compiler).
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void SignaturesDifferByModOptsOnly()
         {
             const string ilSource =
@@ -925,7 +929,7 @@ class C
         }
 
         [WorkItem(538956, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyAccessorDoesNotHideMethod()
         {
             const string cSharpSource = @"
@@ -948,7 +952,7 @@ class Program {
         }
 
         [WorkItem(538956, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyAccessorDoesNotConflictWithMethod()
         {
             const string cSharpSource = @"
@@ -1015,7 +1019,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CanReadInstancePropertyWithStaticGetterAsStatic()
         {
             const string ilSource = @"
@@ -1058,7 +1062,7 @@ class B {
         }
 
         [WorkItem(527658, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void CS1546ERR_BindToBogusProp1_PropertyWithPinnedModifierIsBogus()
         {
             const string ilSource = @"
@@ -1104,7 +1108,7 @@ class B {
         }
 
         [WorkItem(527659, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void PropertyWithCircularReturnTypeIsNotSupported()
         {
             const string ilSource = @"
@@ -1179,7 +1183,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadModOptProperty()
         {
             const string ilSource = @"
@@ -1221,7 +1225,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadPropertyOfArrayTypeWithModOptElement()
         {
             const string ilSource = @"
@@ -1237,10 +1241,10 @@ class B {
   }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: TestEmitters.RefEmitUnsupported);
+            CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadModOptPropertyWithNonModOptGetter()
         {
             const string ilSource = @"
@@ -1279,7 +1283,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadNonModOptPropertyWithModOptGetter()
         {
             const string ilSource = @"
@@ -1298,7 +1302,7 @@ class B {
             CompileWithCustomILSource(cSharpSource, ilSource);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadModOptPropertyWithDifferentModOptGetter()
         {
             const string ilSource = @"
@@ -1318,7 +1322,7 @@ class B {
         }
 
         [WorkItem(538845, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadPropertyWithMultipleAndNestedModOpts()
         {
             const string ilSource = @"
@@ -1340,7 +1344,7 @@ class B {
                 Diagnostic(ErrorCode.ERR_BindToBogusProp1, "Foo").WithArguments("A.Foo", "A.get_Foo()"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadPropertyWithModReqsNestedWithinModOpts()
         {
             const string ilSource = @"
@@ -1363,7 +1367,7 @@ class B {
         }
 
         [WorkItem(538846, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanNotReadPropertyWithModReq()
         {
             const string ilSource = @"
@@ -1386,7 +1390,7 @@ class B {
         }
 
         [WorkItem(527662, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CanReadPropertyWithModReqInBaseClassOfReturnType()
         {
             const string ilSource = @"
@@ -1756,7 +1760,7 @@ class C : N.I<int>
         }
 
         [WorkItem(539998, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ImportDefaultPropertiesWithParameters()
         {
             var source = @"
@@ -1807,7 +1811,7 @@ class Program
         }
 
         [WorkItem(540342, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void NoSequencePointsForAutoPropertyAccessors()
         {
             var text = @"
@@ -1885,7 +1889,7 @@ class Test
         }
 
         [WorkItem(545682, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod01()
         {
             var source1 =
@@ -1966,7 +1970,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Q").WithArguments("Q", "object").WithLocation(8, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod02()
         {
             var source1 =
@@ -2020,7 +2024,7 @@ static class E
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersHidingMethod03()
         {
             var source1 =
@@ -2157,7 +2161,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "P9").WithArguments("B.P9[object]").WithLocation(30, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyWithParametersAndOtherErrors()
         {
             var source1 =
@@ -2200,7 +2204,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("A.P3[object]").WithLocation(8, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SubstitutedPropertyWithParameters()
         {
             var source1 =
@@ -2234,7 +2238,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A<object>.P[object]", "A<object>.get_P(object)", "A<object>.set_P(object, object)").WithLocation(7, 11));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void DifferentAccessorSignatures_ByRef()
         {
             var source1 =
@@ -2459,7 +2463,7 @@ End Class";
             return CreateCompilationWithMscorlib(source, new[] { s_propertiesDll }, options ?? TestOptions.ReleaseDll);
         }
 
-        private static MetadataReference s_propertiesDll = TestReferences.SymbolsTests.Properties;
+        private static readonly MetadataReference s_propertiesDll = TestReferences.SymbolsTests.Properties;
 
         #endregion
 
@@ -2621,7 +2625,7 @@ public interface IA
         /// When the output type is .winmdobj properties should emit put_Property methods instead
         /// of set_Property methods.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void WinRtPropertySet()
         {
             const string libSrc =
@@ -2650,13 +2654,12 @@ public interface IA
              {
                  var validator = getValidator(expected);
 
-                // We should see the same members from both source and metadata
-                var verifier = CompileAndVerify(
-                     libSrc,
-                     emitOptions: TestEmitters.RefEmitBug,
-                     sourceSymbolValidator: validator,
-                     symbolValidator: validator,
-                     options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
+                 // We should see the same members from both source and metadata
+                 var verifier = CompileAndVerify(
+                      libSrc,
+                      sourceSymbolValidator: validator,
+                      symbolValidator: validator,
+                      options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll);
                  verifier.VerifyDiagnostics();
              };
 
@@ -2682,7 +2685,7 @@ public interface IA
         /// (i.e., set_ for dll, put_ for winmdobj)
         /// </summary>
         [Fact]
-        public void WinRtPropertyAccesorNameConflict()
+        public void WinRtPropertyAccessorNameConflict()
         {
             const string libSrc =
 @"namespace Test
@@ -2738,7 +2741,7 @@ class C
         }
 
         [WorkItem(1073332, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug1073332_01()
         {
             var text = @"

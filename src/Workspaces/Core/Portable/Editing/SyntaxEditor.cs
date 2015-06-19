@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public void InsertAfter(SyntaxNode node, SyntaxNode newNode)
         {
             CheckNodeInTree(node);
-            this.InsertBefore(node, new[] { newNode });
+            this.InsertAfter(node, new[] { newNode });
         }
 
         private void CheckNodeInTree(SyntaxNode node)
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private class ReplaceChange : Change
         {
-            private Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
+            private readonly Func<SyntaxNode, SyntaxGenerator, SyntaxNode> _modifier;
 
             public ReplaceChange(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> modifier)
                 : base(node)
@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private class InsertChange : Change
         {
-            private List<SyntaxNode> _newNodes;
-            private bool _isBefore;
+            private readonly List<SyntaxNode> _newNodes;
+            private readonly bool _isBefore;
 
             public InsertChange(SyntaxNode node, IEnumerable<SyntaxNode> newNodes, bool isBefore)
                 : base(node)

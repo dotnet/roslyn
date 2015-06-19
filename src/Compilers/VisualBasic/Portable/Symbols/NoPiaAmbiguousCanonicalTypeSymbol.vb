@@ -10,23 +10,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' A NoPiaAmbiguousCanonicalTypeSymbol is a special kind of ErrorSymbol that represents
     ''' a NoPia embedded type symbol that was attempted to be substituted with canonical type, 
-    ''' but the canonocal type was ambiguous.
+    ''' but the canonical type was ambiguous.
     ''' </summary>
     Friend Class NoPiaAmbiguousCanonicalTypeSymbol
         Inherits ErrorTypeSymbol
 
-        Private ReadOnly m_EmbeddingAssembly As AssemblySymbol
-        Private ReadOnly m_FirstCandidate As NamedTypeSymbol
-        Private ReadOnly m_SecondCandidate As NamedTypeSymbol
+        Private ReadOnly _embeddingAssembly As AssemblySymbol
+        Private ReadOnly _firstCandidate As NamedTypeSymbol
+        Private ReadOnly _secondCandidate As NamedTypeSymbol
 
         Public Sub New(
             embeddingAssembly As AssemblySymbol,
             firstCandidate As NamedTypeSymbol,
             secondCandidate As NamedTypeSymbol
         )
-            m_EmbeddingAssembly = embeddingAssembly
-            m_FirstCandidate = firstCandidate
-            m_SecondCandidate = secondCandidate
+            _embeddingAssembly = embeddingAssembly
+            _firstCandidate = firstCandidate
+            _secondCandidate = secondCandidate
         End Sub
 
         Friend Overrides ReadOnly Property MangleName As Boolean
@@ -38,19 +38,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public ReadOnly Property EmbeddingAssembly As AssemblySymbol
             Get
-                Return m_EmbeddingAssembly
+                Return _embeddingAssembly
             End Get
         End Property
 
         Public ReadOnly Property FirstCandidate As NamedTypeSymbol
             Get
-                Return m_FirstCandidate
+                Return _firstCandidate
             End Get
         End Property
 
         Public ReadOnly Property SecondCandidate As NamedTypeSymbol
             Get
-                Return m_SecondCandidate
+                Return _secondCandidate
             End Get
         End Property
 
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' It doesn't look like Dev10 had a special error for this particular scenario.
                 ' ERR_AbsentReferenceToPIA1 should be good enough and we already ignore it, 
                 ' when it comes from implemented interfaces.
-                Return ErrorFactory.ErrorInfo(ERRID.ERR_AbsentReferenceToPIA1, CustomSymbolDisplayFormatter.QualifiedName(m_FirstCandidate))
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_AbsentReferenceToPIA1, CustomSymbolDisplayFormatter.QualifiedName(_firstCandidate))
             End Get
         End Property
     End Class

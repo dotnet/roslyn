@@ -16,20 +16,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Friend NotInheritable Class PEAttributeData
         Inherits VisualBasicAttributeData
 
-        Private ReadOnly m_Decoder As MetadataDecoder
-        Private ReadOnly m_Handle As CustomAttributeHandle
-        Private m_AttributeClass As NamedTypeSymbol ' TODO - Remove class it is available from constructor. For now it is only used to know 
+        Private ReadOnly _decoder As MetadataDecoder
+        Private ReadOnly _handle As CustomAttributeHandle
+        Private _attributeClass As NamedTypeSymbol ' TODO - Remove class it is available from constructor. For now it is only used to know 
         ' that the attribute is fully loaded because there isn't an error method symbol.
-        Private m_AttributeConstructor As MethodSymbol
-        Private m_LazyConstructorArguments As TypedConstant()
-        Private m_LazyNamedArguments As KeyValuePair(Of String, TypedConstant)()
-        Private m_LazyHasErrors As ThreeState = ThreeState.Unknown
+        Private _attributeConstructor As MethodSymbol
+        Private _lazyConstructorArguments As TypedConstant()
+        Private _lazyNamedArguments As KeyValuePair(Of String, TypedConstant)()
+        Private _lazyHasErrors As ThreeState = ThreeState.Unknown
 
         Friend Sub New(moduleSymbol As PEModuleSymbol, handle As CustomAttributeHandle)
             Debug.Assert(moduleSymbol IsNot Nothing)
 
-            m_Decoder = New MetadataDecoder(moduleSymbol)
-            m_Handle = handle
+            _decoder = New MetadataDecoder(moduleSymbol)
+            _handle = handle
         End Sub
 
         ''' <summary>
@@ -37,11 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Public Overrides ReadOnly Property AttributeClass As NamedTypeSymbol
             Get
-                If m_AttributeClass Is Nothing Then
+                If _attributeClass Is Nothing Then
                     EnsureClassAndConstructorSymbols()
                 End If
 
-                Return m_AttributeClass
+                Return _attributeClass
             End Get
         End Property
 
@@ -50,11 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Public Overrides ReadOnly Property AttributeConstructor As MethodSymbol
             Get
-                If m_AttributeConstructor Is Nothing Then
+                If _attributeConstructor Is Nothing Then
                     EnsureClassAndConstructorSymbols()
                 End If
 
-                Return m_AttributeConstructor
+                Return _attributeConstructor
             End Get
         End Property
 
@@ -69,11 +69,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Protected Overrides ReadOnly Property CommonConstructorArguments As ImmutableArray(Of TypedConstant)
             Get
-                If m_LazyConstructorArguments Is Nothing Then
+                If _lazyConstructorArguments Is Nothing Then
                     EnsureLazyMembersAreLoaded()
                 End If
 
-                Return m_LazyConstructorArguments.AsImmutableOrNull
+                Return _lazyConstructorArguments.AsImmutableOrNull
             End Get
         End Property
 
@@ -82,11 +82,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Protected Overrides ReadOnly Property CommonNamedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
             Get
-                If m_LazyNamedArguments Is Nothing Then
+                If _lazyNamedArguments Is Nothing Then
                     EnsureLazyMembersAreLoaded()
                 End If
 
-                Return m_LazyNamedArguments.AsImmutableOrNull
+                Return _lazyNamedArguments.AsImmutableOrNull
             End Get
         End Property
 
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <returns>True if the attribute data matches.</returns>
         Friend Overrides Function IsTargetAttribute(namespaceName As String, typeName As String, Optional ignoreCase As Boolean = False) As Boolean
             ' Matching an attribute by name should not load the attribute class.
-            Return m_Decoder.IsTargetAttribute(m_Handle, namespaceName, typeName, ignoreCase)
+            Return _decoder.IsTargetAttribute(_handle, namespaceName, typeName, ignoreCase)
         End Function
 
         ''' <summary>
@@ -113,65 +113,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </returns>
         ''' <remarks>Matching an attribute by name does not load the attribute class.</remarks>
         Friend Overrides Function GetTargetAttributeSignatureIndex(targetSymbol As Symbol, description As AttributeDescription) As Integer
-            Return m_Decoder.GetTargetAttributeSignatureIndex(m_Handle, description)
+            Return _decoder.GetTargetAttributeSignatureIndex(_handle, description)
         End Function
 
         Private Sub EnsureLazyMembersAreLoaded()
 
-            If m_LazyConstructorArguments Is Nothing Then
+            If _lazyConstructorArguments Is Nothing Then
 
                 Dim constructorArgs As TypedConstant() = Nothing
                 Dim namedArgs As KeyValuePair(Of String, TypedConstant)() = Nothing
 
-                If Not m_Decoder.GetCustomAttribute(m_Handle, constructorArgs, namedArgs) Then
-                    m_LazyHasErrors = ThreeState.True
+                If Not _decoder.GetCustomAttribute(_handle, constructorArgs, namedArgs) Then
+                    _lazyHasErrors = ThreeState.True
                 End If
 
                 Debug.Assert(constructorArgs IsNot Nothing AndAlso namedArgs IsNot Nothing)
 
                 Interlocked.CompareExchange(Of KeyValuePair(Of String, TypedConstant)())(
-                      m_LazyNamedArguments,
+                      _lazyNamedArguments,
                       namedArgs,
                       Nothing)
 
                 Interlocked.CompareExchange(Of TypedConstant())(
-                    m_LazyConstructorArguments,
+                    _lazyConstructorArguments,
                     constructorArgs,
                     Nothing)
             End If
         End Sub
 
         Private Sub EnsureClassAndConstructorSymbols()
-            If m_AttributeClass Is Nothing Then
+            If _attributeClass Is Nothing Then
 
                 Dim attributeClass As TypeSymbol = Nothing
                 Dim attributeCtor As MethodSymbol = Nothing
 
-                If Not m_Decoder.GetCustomAttribute(m_Handle, attributeClass, attributeCtor) OrElse
+                If Not _decoder.GetCustomAttribute(_handle, attributeClass, attributeCtor) OrElse
                     attributeClass Is Nothing Then
 
                     Interlocked.CompareExchange(Of NamedTypeSymbol)(
-                         m_AttributeClass,
+                         _attributeClass,
                          ErrorTypeSymbol.UnknownResultType,
                          Nothing)
 
                     ' Method symbol is null when there is an error.
 
-                    m_LazyHasErrors = ThreeState.True
+                    _lazyHasErrors = ThreeState.True
                     Return
                 End If
 
                 If attributeClass.IsErrorType() OrElse attributeCtor Is Nothing Then
-                    m_LazyHasErrors = ThreeState.True
+                    _lazyHasErrors = ThreeState.True
                 End If
 
                 Interlocked.CompareExchange(Of MethodSymbol)(
-                    m_AttributeConstructor,
+                    _attributeConstructor,
                     attributeCtor,
                     Nothing)
 
                 Interlocked.CompareExchange(Of NamedTypeSymbol)(
-                      m_AttributeClass,
+                      _attributeClass,
                       DirectCast(attributeClass, NamedTypeSymbol),
                       Nothing)
             End If
@@ -179,16 +179,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property HasErrors As Boolean
             Get
-                If m_LazyHasErrors = ThreeState.Unknown Then
+                If _lazyHasErrors = ThreeState.Unknown Then
                     EnsureClassAndConstructorSymbols()
                     EnsureLazyMembersAreLoaded()
 
-                    If m_LazyHasErrors = ThreeState.Unknown Then
-                        m_LazyHasErrors = ThreeState.False
+                    If _lazyHasErrors = ThreeState.Unknown Then
+                        _lazyHasErrors = ThreeState.False
                     End If
                 End If
 
-                Return m_LazyHasErrors.Value
+                Return _lazyHasErrors.Value
             End Get
         End Property
     End Class

@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining.MetadataAsSource
-    Class EnumDeclarationOutliner
+    Friend Class EnumDeclarationOutliner
         Inherits AbstractMetadataAsSourceOutliner(Of EnumStatementSyntax)
 
         Protected Overrides Function GetEndToken(node As EnumStatementSyntax) As SyntaxToken

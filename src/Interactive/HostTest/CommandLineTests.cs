@@ -44,7 +44,7 @@ namespace Roslyn.Interactive.CommandLine.UnitTests
 
 ";
 
-            TestCsi(new[] { "/define:", "/help", "/r:*", "/preferreduilang:en" }, logo + "                        Roslyn Interactive Compiler Options", 0, (e, a) => a.StartsWith(e));
+            TestCsi(new[] { "/define:", "/help", "/r:*", "/preferreduilang:en" }, logo + "                        Roslyn Interactive Compiler Options", 0, (e, a) => a.StartsWith(e, StringComparison.Ordinal));
 
             TestCsi(new[] { "/r:d.dll", "/preferreduilang:en" }, logo + @"error CS7018: Expected at least one script (.csx file) but none specified
 ", 1);
@@ -88,7 +88,7 @@ error CS0246: The type or namespace name 'Foo' could not be found (are you missi
                 "Microsoft (R) Roslyn Visual Basic Interactive Compiler version " + FileVersionInfo.GetVersionInfo(typeof(VisualBasicCompilation).Assembly.Location).FileVersion +
                 "\r\nCopyright (C) Microsoft Corporation. All rights reserved.\r\n\r\n";
 
-            TestVbi(new[] { "/define:", "/help", "/r:*", "/preferreduilang:en" }, logo + "                        Roslyn Interactive Compiler Options", 0, (e, a) => a.StartsWith(e));
+            TestVbi(new[] { "/define:", "/help", "/r:*", "/preferreduilang:en" }, logo + "                        Roslyn Interactive Compiler Options", 0, (e, a) => a.StartsWith(e, StringComparison.Ordinal));
 
             TestVbi(new[] { "/r:d.dll", "/preferreduilang:en" }, logo + "vbc : error BC36963: Expected at least one script (.vbx file) but none specified", 1);
 

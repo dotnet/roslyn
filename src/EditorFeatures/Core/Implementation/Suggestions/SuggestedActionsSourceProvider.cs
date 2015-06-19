@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     [Export(typeof(ISuggestedActionsSourceProvider))]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.CSharpContentType)]
-    [VisualStudio.Utilities.ContentType(ContentTypeNames.VisualBasicContentType)]
+    [VisualStudio.Utilities.ContentType(ContentTypeNames.RoslynContentType)]
     [VisualStudio.Utilities.Name("Roslyn Code Fix")]
     [VisualStudio.Utilities.Order]
     internal class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
@@ -144,58 +144,62 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
                 {
-                    if (range.IsEmpty)
-                    {
-                        return null;
-                    }
-
                     var documentAndSnapshot = GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).WaitAndGetResult(cancellationToken);
                     if (!documentAndSnapshot.HasValue)
                     {
                         // this is here to fail test and see why it is failed.
-                        System.Diagnostics.Trace.WriteLine("given range is not current");
+                        Trace.WriteLine("given range is not current");
                         return null;
                     }
 
                     var document = documentAndSnapshot.Value.Item1;
-                    var snapshot = documentAndSnapshot.Value.Item2;
-
                     var workspace = document.Project.Solution.Workspace;
-                    var optionService = workspace.Services.GetService<IOptionService>();
                     var supportSuggestion = workspace.Services.GetService<IDocumentSupportsSuggestionService>();
 
-                    IEnumerable<SuggestedActionSet> result = null;
-                    if (supportSuggestion.SupportsCodeFixes(document) && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
-                    {
-                        var suggestions = Task.Run(
-                            async () => await _owner._codeFixService.GetFixesAsync(document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+                    var fixes = GetCodeFixes(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
+                    var refactorings = GetRefactorings(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
 
-                        result = OrganizeFixes(workspace, suggestions);
-                    }
-
-                    if (supportSuggestion.SupportsRefactorings(document))
-                    {
-                        var refactoringResult = GetRefactorings(requestedActionCategories, document, snapshot, workspace, optionService, cancellationToken);
-
-                        result = result == null ? refactoringResult :
-                                    refactoringResult == null ? result :
-                                        result.Concat(refactoringResult);
-                    }
-
-                    return result;
+                    return (fixes == null) ? refactorings :
+                                (refactorings == null) ? fixes : fixes.Concat(refactorings);
                 }
+            }
+
+            private IEnumerable<SuggestedActionSet> GetCodeFixes(
+                IDocumentSupportsSuggestionService supportSuggestion,
+                ISuggestedActionCategorySet requestedActionCategories,
+                Workspace workspace,
+                Document document,
+                SnapshotSpan range,
+                CancellationToken cancellationToken)
+            {
+                if (_owner._codeFixService != null && supportSuggestion.SupportsCodeFixes(document) &&
+                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
+                {
+                    // We only include suppressions if lightbulb is asking for everything.
+                    // If the light bulb is only asking for code fixes, then we don't include suppressions.
+                    var includeSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
+
+                    var fixes = Task.Run(
+                        async () => await _owner._codeFixService.GetFixesAsync(
+                            document, range.Span.ToTextSpan(), includeSuppressionFixes, cancellationToken).ConfigureAwait(false),
+                        cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    return OrganizeFixes(workspace, fixes, hasSuppressionFixes: includeSuppressionFixes);
+                }
+
+                return null;
             }
 
             /// <summary>
             /// Arrange fixes into groups based on the issue (diagnostic being fixed) and prioritize these groups.
             /// </summary>
-            private IEnumerable<SuggestedActionSet> OrganizeFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections)
+            private IEnumerable<SuggestedActionSet> OrganizeFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, bool hasSuppressionFixes)
             {
                 var map = ImmutableDictionary.CreateBuilder<Diagnostic, IList<SuggestedAction>>();
                 var order = ImmutableArray.CreateBuilder<Diagnostic>();
 
                 // First group fixes by issue (diagnostic).
-                GroupFixes(workspace, fixCollections, map, order);
+                GroupFixes(workspace, fixCollections, map, order, hasSuppressionFixes);
 
                 // Then prioritize between the groups.
                 return PrioritizeFixGroups(map.ToImmutable(), order.ToImmutable());
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Groups fixes by the diagnostic being addressed by each fix.
             /// </summary>
-            private void GroupFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, IDictionary<Diagnostic, IList<SuggestedAction>> map, IList<Diagnostic> order)
+            private void GroupFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, IDictionary<Diagnostic, IList<SuggestedAction>> map, IList<Diagnostic> order, bool hasSuppressionFixes)
             {
                 foreach (var fixCollection in fixCollections)
                 {
@@ -227,15 +231,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
                     }
 
-                    // Add suppression fixes to the end of a given SuggestedActionSet so that they always show up last in a group.
-                    foreach (var fix in fixes)
+                    if (hasSuppressionFixes)
                     {
-                        if (fix.Action is SuppressionCodeAction)
+                        // Add suppression fixes to the end of a given SuggestedActionSet so that they always show up last in a group.
+                        foreach (var fix in fixes)
                         {
-                            var suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
-                                fix, fixCollection.Provider);
+                            if (fix.Action is SuppressionCodeAction)
+                            {
+                                var suggestedAction = new SuppressionSuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
+                                    fix, fixCollection.Provider);
 
-                            AddFix(fix, suggestedAction, map, order);
+                                AddFix(fix, suggestedAction, map, order);
+                            }
                         }
                     }
                 }
@@ -283,34 +290,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private IEnumerable<SuggestedActionSet> GetRefactorings(
+                IDocumentSupportsSuggestionService supportSuggestion,
                 ISuggestedActionCategorySet requestedActionCategories,
-                Document document,
-                ITextSnapshot snapshot,
                 Workspace workspace,
-                IOptionService optionService,
+                Document document,
+                SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                // For Dev14 Preview, we also want to show refactorings in the CodeFix list when users press Ctrl+.
-                if (requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring) ||
-                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
-                {
-                    var refactoringsOn = optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings);
-                    if (!refactoringsOn)
-                    {
-                        return null;
-                    }
+                var optionService = workspace.Services.GetService<IOptionService>();
 
+                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                    _owner._codeRefactoringService != null &&
+                    supportSuggestion.SupportsRefactorings(document) &&
+                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
+                {
                     // Get the selection while on the UI thread.
-                    var selection = GetCodeRefactoringSelection(snapshot);
+                    var selection = TryGetCodeRefactoringSelection(_subjectBuffer, _textView, range);
                     if (!selection.HasValue)
                     {
                         // this is here to fail test and see why it is failed.
-                        System.Diagnostics.Trace.WriteLine("given range is not current");
+                        Trace.WriteLine("given range is not current");
                         return null;
                     }
 
                     var refactorings = Task.Run(
-                        async () => await _owner._codeRefactoringService.GetRefactoringsAsync(document, selection.Value, cancellationToken).ConfigureAwait(false), cancellationToken).WaitAndGetResult(cancellationToken);
+                        async () => await _owner._codeRefactoringService.GetRefactoringsAsync(
+                            document, selection.Value, cancellationToken).ConfigureAwait(false),
+                        cancellationToken).WaitAndGetResult(cancellationToken);
 
                     return refactorings.Select(r => OrganizeRefactorings(workspace, r));
                 }
@@ -342,6 +348,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                // Explicitly hold onto below fields in locals and use these locals throughout this code path to avoid crashes
+                // if these fields happen to be cleared by Dispose() below. This is required since this code path involves
+                // code that can run asynchronously from background thread.
                 var view = _textView;
                 var buffer = _subjectBuffer;
                 var provider = _owner;
@@ -353,55 +362,116 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 using (var asyncToken = provider._listener.BeginAsyncOperation("HasSuggesetedActionsAsync"))
                 {
-                    var result = await HasSuggesetedActionCoreAsync(view, buffer, provider._codeFixService, range, cancellationToken).ConfigureAwait(false);
-                    if (!result.HasValue)
+                    var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
+                    if (!documentAndSnapshot.HasValue)
                     {
+                        // this is here to fail test and see why it is failed.
+                        Trace.WriteLine("given range is not current");
                         return false;
                     }
 
-                    if (result.Value.HasFix)
+                    var document = documentAndSnapshot.Value.Item1;
+                    var workspace = document.Project.Solution.Workspace;
+                    var supportSuggestion = workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+
+                    return
+                        await HasFixesAsync(
+                            supportSuggestion, requestedActionCategories, provider, document, range,
+                            cancellationToken).ConfigureAwait(false) ||
+                        await HasRefactoringsAsync(
+                            supportSuggestion, requestedActionCategories, provider, document, buffer, view, range,
+                            cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            private async Task<bool> HasFixesAsync(
+                IDocumentSupportsSuggestionService supportSuggestion,
+                ISuggestedActionCategorySet requestedActionCategories,
+                SuggestedActionsSourceProvider provider,
+                Document document, SnapshotSpan range,
+                CancellationToken cancellationToken)
+            {
+                if (provider._codeFixService != null && supportSuggestion.SupportsCodeFixes(document) &&
+                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
+                {
+                    // We only consider suppressions if lightbulb is asking for everything.
+                    // If the light bulb is only asking for code fixes, then we don't consider suppressions.
+                    var considerSuppressionFixes = requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Any);
+                    var result = await Task.Run(
+                        async () => await provider._codeFixService.GetFirstDiagnosticWithFixAsync(
+                            document, range.Span.ToTextSpan(), considerSuppressionFixes, cancellationToken).ConfigureAwait(false),
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (result.HasFix)
                     {
                         Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
                         return true;
                     }
 
-                    if (result.Value.PartialResult)
+                    if (result.PartialResult)
                     {
                         // reset solution version number so that we can raise suggested action changed event
                         Volatile.Write(ref _lastSolutionVersionReported, InvalidSolutionVersion);
                         return false;
                     }
-
-                    return false;
                 }
+
+                return false;
             }
 
-            private static async Task<FirstDiagnosticResult?> HasSuggesetedActionCoreAsync(
-                ITextView view, ITextBuffer buffer, ICodeFixService service, SnapshotSpan range, CancellationToken cancellationToken)
+            private async Task<bool> HasRefactoringsAsync(
+                IDocumentSupportsSuggestionService supportSuggestion,
+                ISuggestedActionCategorySet requestedActionCategories,
+                SuggestedActionsSourceProvider provider,
+                Document document,
+                ITextBuffer buffer,
+                ITextView view,
+                SnapshotSpan range,
+                CancellationToken cancellationToken)
             {
-                var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
-                if (!documentAndSnapshot.HasValue)
+                var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
+
+                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                    provider._codeRefactoringService != null &&
+                    supportSuggestion.SupportsRefactorings(document) &&
+                    requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
-                    return null;
+                    TextSpan? selection = null;
+                    if (IsForeground())
+                    {
+                        // This operation needs to happen on UI thread because it needs to access textView.Selection.
+                        selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                    }
+                    else
+                    {
+                        await InvokeBelowInputPriority(() =>
+                        {
+                            // This operation needs to happen on UI thread because it needs to access textView.Selection.
+                            selection = TryGetCodeRefactoringSelection(buffer, view, range);
+                        }).ConfigureAwait(false);
+                    }
+
+                    if (!selection.HasValue)
+                    {
+                        // this is here to fail test and see why it is failed.
+                        Trace.WriteLine("given range is not current");
+                        return false;
+                    }
+
+                    return await Task.Run(
+                        async () => await provider._codeRefactoringService.HasRefactoringsAsync(
+                            document, selection.Value, cancellationToken).ConfigureAwait(false),
+                        cancellationToken).ConfigureAwait(false);
                 }
 
-                var document = documentAndSnapshot.Value.Item1;
-
-                // make sure current document support codefix
-                var supportCodeFix = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-                if (!supportCodeFix.SupportsCodeFixes(document))
-                {
-                    return null;
-                }
-
-                return await service.GetFirstDiagnosticWithFixAsync(document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                return false;
             }
 
-            private TextSpan? GetCodeRefactoringSelection(ITextSnapshot snapshot)
+            private static TextSpan? TryGetCodeRefactoringSelection(ITextBuffer buffer, ITextView view, SnapshotSpan range)
             {
-                var selectedSpans = _textView.Selection.SelectedSpans
-                    .SelectMany(ss => _textView.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, _subjectBuffer))
-                    .Where(ss => !_textView.IsReadOnlyOnSurfaceBuffer(ss))
+                var selectedSpans = view.Selection.SelectedSpans
+                    .SelectMany(ss => view.BufferGraph.MapDownToBuffer(ss, SpanTrackingMode.EdgeExclusive, buffer))
+                    .Where(ss => !view.IsReadOnlyOnSurfaceBuffer(ss))
                     .ToList();
 
                 // We only support refactorings when there is a single selection in the document.
@@ -410,8 +480,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                var selectedSpan = selectedSpans[0];
-                return selectedSpan.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive).Span.ToTextSpan();
+                var translatedSpan = selectedSpans[0].TranslateTo(range.Snapshot, SpanTrackingMode.EdgeInclusive);
+
+                // We only support refactorings when selected span intersects with the span that the light bulb is asking for.
+                if (!translatedSpan.IntersectsWith(range))
+                {
+                    return null;
+                }
+
+                return translatedSpan.Span.ToTextSpan();
             }
 
             private static async Task<ValueTuple<Document, ITextSnapshot>?> GetMatchingDocumentAndSnapshotAsync(ITextSnapshot givenSnapshot, CancellationToken cancellationToken)
@@ -497,12 +574,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId currentDocumentId, int solutionVersion, DiagnosticsUpdatedArgs args = null)
             {
-                if (_subjectBuffer == null)
+                // Explicitly hold onto the _subjectBuffer field in a local and use this local in this function to avoid crashes
+                // if this field happens to be cleared by Dispose() below. This is required since this code path involves code
+                // that can run on background thread.
+                var buffer = _subjectBuffer;
+                if (buffer == null)
                 {
                     return;
                 }
 
-                var workspace = _subjectBuffer.GetWorkspace();
+                var workspace = buffer.GetWorkspace();
 
                 // workspace is not ready, nothing to do.
                 if (workspace == null || workspace != currentWorkspace)
@@ -510,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return;
                 }
 
-                if (currentDocumentId != workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer()) ||
+                if (currentDocumentId != workspace.GetDocumentIdInCurrentContext(buffer.AsTextContainer()) ||
                     solutionVersion == Volatile.Read(ref _lastSolutionVersionReported))
                 {
                     return;

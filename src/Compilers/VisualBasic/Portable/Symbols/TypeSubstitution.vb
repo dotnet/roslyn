@@ -85,8 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Get all the pairs of substitutions, including from the parent substitutations. The substutitions
-        ''' are in order from outside-in (parent substutitions before child substitutions).
+        ''' Get all the pairs of substitutions, including from the parent substitutions. The substitutions
+        ''' are in order from outside-in (parent substitutions before child substitutions).
         ''' </summary>
         Public ReadOnly Property PairsIncludingParent As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol))
             Get
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Combine two substitutions into one by concatinating. 
+        ''' Combine two substitutions into one by concatenating. 
         ''' 
         ''' They may not directly or indirectly (through Parent) target the same generic definition.
         ''' sub2 is expected to target types lower in the containership hierarchy.
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim currentParent As TypeSubstitution = Nothing
             Dim currentContainer As Symbol = Nothing
 #If DEBUG Then
-            Dim haveSubstitutionForOrdinal = BitArray.Create(params.Length)
+            Dim haveSubstitutionForOrdinal = BitVector.Create(params.Length)
 #End If
 
             Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance()
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim pairsHaveChanged As Boolean = False
             Dim oldPairs = oldConstructSubstitution.Pairs
 
-            Dim haveSubstitutionForOrdinal As BitArray = Nothing
+            Dim haveSubstitutionForOrdinal As BitVector = Nothing
             Dim targetGenericDefinition As Symbol = oldConstructSubstitution.TargetGenericDefinition
 
             If oldPairs.Length > 0 Then
@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     arity = DirectCast(targetGenericDefinition, NamedTypeSymbol).Arity
                 End If
 
-                haveSubstitutionForOrdinal = BitArray.Create(arity)
+                haveSubstitutionForOrdinal = BitVector.Create(arity)
             End If
 
             For i = 0 To oldPairs.Length - 1 Step 1

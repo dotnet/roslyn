@@ -245,7 +245,7 @@ End Class </text>
     End Class
 
 
-    Module Extensions
+    Friend Module Extensions
 
         <Extension()>
         Public Function ChildNamespace(ns As NamespaceSymbol, name As String) As NamespaceSymbol

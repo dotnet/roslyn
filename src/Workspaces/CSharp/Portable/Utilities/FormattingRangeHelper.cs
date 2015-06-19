@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // with a auto brace completion which will do auto formatting when a user types "{", it is quite common that we will automatically put a space
             // between "{" and "}". but user might blindly type without knowing that " " has automatically inserted for him. and ends up have two spaces.
-            // for those cases, whenever we see previous token of the range is "{", we expand the range to include preceeding "{"
+            // for those cases, whenever we see previous token of the range is "{", we expand the range to include preceding "{"
             var currentToken = tokenRange.Value.Item1;
             var previousToken = currentToken.GetPreviousToken();
 
@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 (parent is DelegateDeclarationSyntax) ||
                 (parent is FieldDeclarationSyntax) ||
                 (parent is EventFieldDeclarationSyntax) ||
-                (parent is MethodDeclarationSyntax))
+                (parent is MethodDeclarationSyntax) ||
+                (parent is PropertyDeclarationSyntax))
             {
                 return ValueTuple.Create(GetAppropriatePreviousToken(parent.GetFirstToken(), canTokenBeFirstInABlock: true), parent.GetLastToken());
             }

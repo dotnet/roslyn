@@ -579,13 +579,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits OverrideHidingHelper
 
         ' Comparer for comparing signatures of TSymbols in a runtime-equivalent way
-        Private Shared RuntimeSignatureComparer As IEqualityComparer(Of TSymbol)
+        Private Shared s_runtimeSignatureComparer As IEqualityComparer(Of TSymbol)
 
         ' Initialize the various kinds of comparers.
         Shared Sub New()
-            OverrideHidingHelper(Of MethodSymbol).RuntimeSignatureComparer = MethodSignatureComparer.RuntimeMethodSignatureComparer
-            OverrideHidingHelper(Of PropertySymbol).RuntimeSignatureComparer = PropertySignatureComparer.RuntimePropertySignatureComparer
-            OverrideHidingHelper(Of EventSymbol).RuntimeSignatureComparer = EventSignatureComparer.RuntimeEventSignatureComparer
+            OverrideHidingHelper(Of MethodSymbol).s_runtimeSignatureComparer = MethodSignatureComparer.RuntimeMethodSignatureComparer
+            OverrideHidingHelper(Of PropertySymbol).s_runtimeSignatureComparer = PropertySignatureComparer.RuntimePropertySignatureComparer
+            OverrideHidingHelper(Of EventSymbol).s_runtimeSignatureComparer = EventSignatureComparer.RuntimeEventSignatureComparer
         End Sub
 
         ''' <summary>
@@ -594,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' method is declared "override").
         ''' 
         ''' Methods in the overridden list may not be virtual or may have different
-        ''' accessibities, types, accessors, etc.  They are really candidates to be
+        ''' accessibilities, types, accessors, etc.  They are really candidates to be
         ''' overridden.
         ''' 
         ''' All found accessible candidates of overridden members are collected in two 
@@ -715,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If If(overridingIsFromSomeCompilation,
                         sym.IsWithEventsProperty = overridingSym.IsWithEventsProperty AndAlso
                             SignaturesMatch(overridingSym, member, exactMatch, exactMatchIgnoringCustomModifiers),
-                        RuntimeSignatureComparer.Equals(overridingSym, member)) Then
+                        s_runtimeSignatureComparer.Equals(overridingSym, member)) Then
 
                         If accessible Then
                             If exactMatchIgnoringCustomModifiers Then
@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                builder As ArrayBuilder(Of TSymbol))
 
             ' We should only add a member to a builder if it does not match any 
-            ' symbols from previously processed (derived) clases 
+            ' symbols from previously processed (derived) classes 
 
             ' This is supposed to help avoid adding multiple symbols one of 
             ' which overrides another one, in the following case

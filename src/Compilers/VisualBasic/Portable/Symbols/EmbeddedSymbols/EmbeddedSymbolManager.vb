@@ -12,19 +12,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Partial Friend NotInheritable Class EmbeddedSymbolManager
 
-        Private Shared _embeddedSyntax As SyntaxTree = Nothing
-        Private Shared _vbCoreSyntax As SyntaxTree = Nothing
-        Private Shared _internalXmlHelperSyntax As SyntaxTree = Nothing
+        Private Shared s_embeddedSyntax As SyntaxTree = Nothing
+        Private Shared s_vbCoreSyntax As SyntaxTree = Nothing
+        Private Shared s_internalXmlHelperSyntax As SyntaxTree = Nothing
 
         Friend Shared Function GetEmbeddedKind(tree As SyntaxTree) As EmbeddedSymbolKind
             Debug.Assert(tree IsNot Nothing)
             If tree Is Nothing Then
                 Return EmbeddedSymbolKind.None
-            ElseIf tree Is _embeddedSyntax Then
+            ElseIf tree Is s_embeddedSyntax Then
                 Return EmbeddedSymbolKind.EmbeddedAttribute
-            ElseIf tree Is _vbCoreSyntax Then
+            ElseIf tree Is s_vbCoreSyntax Then
                 Return EmbeddedSymbolKind.VbCore
-            ElseIf tree Is _internalXmlHelperSyntax Then
+            ElseIf tree Is s_internalXmlHelperSyntax Then
                 Return EmbeddedSymbolKind.XmlHelper
             Else
                 Return EmbeddedSymbolKind.None
@@ -46,15 +46,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Shared ReadOnly Property EmbeddedSyntax As SyntaxTree
             Get
-                If _embeddedSyntax Is Nothing Then
-                    Interlocked.CompareExchange(_embeddedSyntax,
+                If s_embeddedSyntax Is Nothing Then
+                    Interlocked.CompareExchange(s_embeddedSyntax,
                                                 VisualBasicSyntaxTree.ParseText(EmbeddedResources.Embedded),
                                                 Nothing)
-                    If _embeddedSyntax.GetDiagnostics().Any() Then
+                    If s_embeddedSyntax.GetDiagnostics().Any() Then
                         Throw ExceptionUtilities.Unreachable
                     End If
                 End If
-                Return _embeddedSyntax
+                Return s_embeddedSyntax
             End Get
         End Property
 
@@ -63,29 +63,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Shared ReadOnly Property VbCoreSyntaxTree As SyntaxTree
             Get
-                If _vbCoreSyntax Is Nothing Then
-                    Interlocked.CompareExchange(_vbCoreSyntax,
+                If s_vbCoreSyntax Is Nothing Then
+                    Interlocked.CompareExchange(s_vbCoreSyntax,
                                                 VisualBasicSyntaxTree.ParseText(EmbeddedResources.VbCoreSourceText),
                                                 Nothing)
-                    If _vbCoreSyntax.GetDiagnostics().Any() Then
+                    If s_vbCoreSyntax.GetDiagnostics().Any() Then
                         Throw ExceptionUtilities.Unreachable
                     End If
                 End If
-                Return _vbCoreSyntax
+                Return s_vbCoreSyntax
             End Get
         End Property
 
         Public Shared ReadOnly Property InternalXmlHelperSyntax As SyntaxTree
             Get
-                If _internalXmlHelperSyntax Is Nothing Then
-                    Interlocked.CompareExchange(_internalXmlHelperSyntax,
+                If s_internalXmlHelperSyntax Is Nothing Then
+                    Interlocked.CompareExchange(s_internalXmlHelperSyntax,
                                                 VisualBasicSyntaxTree.ParseText(EmbeddedResources.InternalXmlHelper),
                                                 Nothing)
-                    If _internalXmlHelperSyntax.GetDiagnostics().Any() Then
+                    If s_internalXmlHelperSyntax.GetDiagnostics().Any() Then
                         Throw ExceptionUtilities.Unreachable
                     End If
                 End If
-                Return _internalXmlHelperSyntax
+                Return s_internalXmlHelperSyntax
             End Get
         End Property
 

@@ -4,6 +4,7 @@ Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor
     Public Class GenerateConstructorTests
@@ -475,6 +476,22 @@ NewLines("Option Strict On \n Module Module1 \n Sub Main() \n Dim int As Integer
 NewLines("Class Foo \n Private Class Bar \n End Class \n End Class \n Class A \n Sub Main() \n Dim s = New [|Foo.Bar(5)|] \n End Sub \n End Class"),
 NewLines("Class Foo \n Private Class Bar \n Private v As Integer \n Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class \n End Class \n Class A \n Sub Main() \n Dim s = New Foo.Bar(5) \n End Sub \n End Class"))
         End Sub
+
+        Public Class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer
+            Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+
+            Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+                Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(), New GenerateConstructorCodeFixProvider())
+            End Function
+
+            <WorkItem(1241, "https://github.com/dotnet/roslyn/issues/1241")>
+            <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+            Public Sub TestGenerateConstructorInIncompleteLambda()
+                Test(
+NewLines("Imports System.Linq \n Class C \n Sub New() \n Dim s As Action = Sub() \n Dim a = New [|C|](0)"),
+NewLines("Imports System.Linq \n Class C \n Private v As Integer \n Sub New() \n Dim s As Action = Sub() \n Dim a = New C(0)Public Sub New(v As Integer) \n Me.v = v \n End Sub \n End Class"))
+            End Sub
+        End Class
 
     End Class
 End Namespace

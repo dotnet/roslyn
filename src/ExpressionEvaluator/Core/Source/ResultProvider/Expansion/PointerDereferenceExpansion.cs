@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class PointerDereferenceExpansion : Expansion
     {
-        private readonly Type _elementType;
+        private readonly TypeAndCustomInfo _elementTypeAndInfo;
 
-        public PointerDereferenceExpansion(Type elementType)
+        public PointerDereferenceExpansion(TypeAndCustomInfo elementTypeAndInfo)
         {
-            Debug.Assert(elementType != null);
-            _elementType = elementType;
+            Debug.Assert(elementTypeAndInfo.Type != null);
+            _elementTypeAndInfo = elementTypeAndInfo;
         }
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -31,43 +31,38 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             if (InRange(startIndex, count, index))
             {
-                rows.Add(GetRow(resultProvider, inspectionContext, value, _elementType, parent));
+                rows.Add(GetRow(resultProvider, inspectionContext, value, _elementTypeAndInfo, parent: parent));
             }
 
             index++;
         }
 
-        private static DkmEvaluationResult GetRow(
+        private static EvalResultDataItem GetRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue pointer,
-            Type elementType,
+            TypeAndCustomInfo elementTypeAndInfo,
             EvalResultDataItem parent)
         {
-            var value = pointer.Dereference();
-            var valueType = value.Type.GetLmrType();
+            var value = pointer.Dereference(inspectionContext);
             var wasExceptionThrown = value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown);
 
-            string debuggerDisplayName;
-            string debuggerDisplayValue;
-            string debuggerDisplayType;
-            value.GetDebuggerDisplayStrings(out debuggerDisplayName, out debuggerDisplayValue, out debuggerDisplayType);
-
-            var declaredType = elementType;
-            var typeName = debuggerDisplayType ?? pointer.InspectionContext.GetTypeName(DkmClrType.Create(pointer.Type.AppDomain, declaredType));
-            var expansion = wasExceptionThrown
-                ? null
-                : resultProvider.GetTypeExpansion(inspectionContext, declaredType, value, ExpansionFlags.None);
+            var expansion = wasExceptionThrown ?
+                null :
+                resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None);
             var fullName = string.Format("*{0}", parent.ChildFullNamePrefix);
-            var editableValue = resultProvider.Formatter.GetEditableValue(value);
+            var editableValue = resultProvider.Formatter.GetEditableValue(value, inspectionContext);
 
             // NB: Full name is based on the real (i.e. not DebuggerDisplay) name.  This is a change from dev12, 
             // which used the DebuggerDisplay name, causing surprising results in "Add Watch" scenarios.
-            var dataItem = new EvalResultDataItem(
-                name: null, // Okay for pointer dereferences.
-                typeDeclaringMember: null,
-                declaredType: declaredType,
+            return new EvalResultDataItem(
+                ExpansionKind.PointerDereference,
+                name: fullName,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: elementTypeAndInfo,
+                parent: null,
                 value: value,
+                displayValue: wasExceptionThrown ? string.Format(Resources.InvalidPointerDereference, fullName) : null,
                 expansion: expansion,
                 childShouldParenthesize: true,
                 fullName: fullName,
@@ -75,18 +70,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: Formatter.NoFormatSpecifiers,
                 category: DkmEvaluationResultCategory.Other,
                 flags: DkmEvaluationResultFlags.None,
-                editableValue: editableValue);
-
-            var name = debuggerDisplayName ?? fullName;
-            var display = debuggerDisplayValue ?? 
-                (wasExceptionThrown ? string.Format(Resources.InvalidPointerDereference, fullName) : value.GetValueString());
-
-            return ResultProvider.CreateEvaluationResult(
-                value,
-                name,
-                typeName,
-                display,
-                dataItem);
+                editableValue: editableValue,
+                inspectionContext: inspectionContext);
         }
     }
 }

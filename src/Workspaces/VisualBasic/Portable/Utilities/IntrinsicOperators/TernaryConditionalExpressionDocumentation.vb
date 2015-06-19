@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class TernaryConditionalExpressionDocumentation
+    Friend NotInheritable Class TernaryConditionalExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
         Public Overrides ReadOnly Property DocumentationText As String
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 2
                     Return VBWorkspaceResources.EvaluatedAndReturnedIfFalse
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 2
                     Return VBWorkspaceResources.ExpressionIfFalse
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 

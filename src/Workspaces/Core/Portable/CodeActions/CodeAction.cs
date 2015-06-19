@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -84,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected virtual async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
             var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            if (changedSolution == null)
+            {
+                return null;
+            }
+
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
         }
 
@@ -103,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected async virtual Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
+            if (changedDocument == null)
+            {
+                return null;
+            }
+
             return changedDocument.Project.Solution;
         }
 
@@ -121,6 +132,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
         {
             var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+            if (solution == null)
+            {
+                return null;
+            }
+
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
@@ -206,15 +222,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <returns>A document with the post processing changes applied.</returns>
         protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
         {
-            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            if (document.SupportsSyntaxTree)
+            {
+                document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // format any node with explicit formatter annotation
-            document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                // format any node with explicit formatter annotation
+                document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // format any elastic whitespace
-            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                // format any elastic whitespace
+                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
+                document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
+            }
+
             return document;
         }
 

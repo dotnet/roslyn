@@ -368,6 +368,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
+        public static bool IsFormattableString(this ITypeSymbol symbol)
+        {
+            return symbol?.MetadataName == "FormattableString"
+                && symbol.ContainingType == null
+                && symbol.ContainingNamespace?.Name == "System"
+                && symbol.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
+        }
+
         public static ITypeSymbol RemoveUnavailableTypeParameters(
             this ITypeSymbol type,
             Compilation compilation,
@@ -570,7 +578,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 : shortName;
         }
 
-        private static bool IsSpecialType(this ITypeSymbol symbol)
+        public static bool IsSpecialType(this ITypeSymbol symbol)
         {
             if (symbol != null)
             {
@@ -769,12 +777,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (type != null)
             {
-                foreach (var baseType in type.GetBaseTypesAndThis())
+                switch(type.Kind)
                 {
-                    if (baseType.Equals(compilation.ExceptionType()))
-                    {
-                        return true;
-                    }
+                    case SymbolKind.NamedType:
+                        foreach (var baseType in type.GetBaseTypesAndThis())
+                        {
+                            if (baseType.Equals(compilation.ExceptionType()))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
+
+                    case SymbolKind.TypeParameter:
+                        foreach (var constraint in ((ITypeParameterSymbol)type).ConstraintTypes)
+                        {
+                            if (constraint.IsOrDerivesFromExceptionType(compilation))
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
                 }
             }
 

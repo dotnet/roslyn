@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -16,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
@@ -24,10 +25,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("[{0}] {1} : {2}", t, i.ToString(), s);
 
-                private readonly int _correlationId;
-                private readonly Workspace _workspace;
+                private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
                 private readonly IDocumentTrackingService _documentTracker;
+                private readonly IProjectCacheService _cacheService;
+
                 private readonly HighPriorityProcessor _highPriorityProcessor;
                 private readonly NormalPriorityProcessor _normalPriorityProcessor;
                 private readonly LowPriorityProcessor _lowPriorityProcessor;
@@ -36,45 +38,50 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public IncrementalAnalyzerProcessor(
                     IAsynchronousOperationListener listener,
-                    int correlationId, Workspace workspace,
                     IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
+                    Registration registration,
                     int highBackOffTimeSpanInMs, int normalBackOffTimeSpanInMs, int lowBackOffTimeSpanInMs, CancellationToken shutdownToken)
                 {
                     _logAggregator = new LogAggregator();
-                    _listener = listener;
 
-                    var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(correlationId, workspace, analyzerProviders));
-                    var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(correlationId, workspace, analyzerProviders));
+                    _listener = listener;
+                    _registration = registration;
+                    _cacheService = registration.GetService<IProjectCacheService>();
+
+                    var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders));
+                    var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzerProviders));
 
                     // event and worker queues
-                    _correlationId = correlationId;
-                    _workspace = workspace;
+                    _documentTracker = _registration.GetService<IDocumentTrackingService>();
 
-                    _documentTracker = workspace.Services.GetService<IDocumentTrackingService>();
+                    var globalNotificationService = _registration.GetService<IGlobalOperationNotificationService>();
 
-                    var globalNotificationService = workspace.Services.GetService<IGlobalOperationNotificationService>();
                     _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
 
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
-                    int correlationId, Workspace workspace, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
+                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var analyzers = providers.Where(p => p.Metadata.HighPriorityForActiveFile && p.Metadata.WorkspaceKinds.Contains(workspace.Kind)).Select(p => p.Value.CreateIncrementalAnalyzer(workspace));
+                    var analyzers = providers.Where(p => p.Metadata.HighPriorityForActiveFile && p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind))
+                                             .Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace));
+
                     var orderedAnalyzers = OrderAnalyzers(analyzers);
 
-                    SolutionCrawlerLogger.LogActiveFileAnalyzers(correlationId, workspace, orderedAnalyzers);
+                    SolutionCrawlerLogger.LogActiveFileAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
                 }
 
                 private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(
-                    int correlationId, Workspace workspace, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
+                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var analyzers = providers.Where(p => p.Metadata.WorkspaceKinds.Contains(workspace.Kind)).Select(p => p.Value.CreateIncrementalAnalyzer(workspace));
+                    var analyzers = providers.Where(p => p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind))
+                                             .Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace));
+
                     var orderedAnalyzers = OrderAnalyzers(analyzers);
 
-                    SolutionCrawlerLogger.LogAnalyzers(correlationId, workspace, orderedAnalyzers);
+                    SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
                 }
 
@@ -136,13 +143,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     get
                     {
-                        return _workspace.CurrentSolution;
+                        return _registration.CurrentSolution;
+                    }
+                }
+
+                private IDisposable EnableCaching(ProjectId projectId)
+                {
+                    return _cacheService?.EnableCaching(projectId) ?? NullDisposable.Instance;
+                }
+
+                private ProjectDependencyGraph DependencyGraph
+                {
+                    get
+                    {
+                        return CurrentSolution.GetProjectDependencyGraph();
                     }
                 }
 
                 private IEnumerable<DocumentId> GetOpenDocumentIds()
                 {
-                    return _workspace.GetOpenDocumentIds();
+                    return _registration.Workspace.GetOpenDocumentIds();
                 }
 
                 private void ResetLogAggregator()
@@ -299,6 +319,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
                     _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly();
+                }
+
+                private class NullDisposable : IDisposable
+                {
+                    public static readonly IDisposable Instance = new NullDisposable();
+
+                    public void Dispose() { }
                 }
             }
         }

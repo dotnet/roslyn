@@ -17,12 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SynthesizedMyGroupCollectionPropertyAccessorSymbol
         Inherits SynthesizedPropertyAccessorBase(Of SynthesizedMyGroupCollectionPropertySymbol)
 
-        Private ReadOnly m_CreateOrDisposeMethod As String
+        Private ReadOnly _createOrDisposeMethod As String
 
         Public Sub New(container As SourceNamedTypeSymbol, [property] As SynthesizedMyGroupCollectionPropertySymbol, createOrDisposeMethod As String)
             MyBase.New(container, [property])
             Debug.Assert(createOrDisposeMethod IsNot Nothing AndAlso createOrDisposeMethod.Length > 0)
-            m_CreateOrDisposeMethod = createOrDisposeMethod
+            _createOrDisposeMethod = createOrDisposeMethod
         End Sub
 
         Friend Overrides ReadOnly Property BackingFieldSymbol As FieldSymbol
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim containingTypeName As String = MakeSafeName(containingType.Name)
 
             Dim targetTypeName As String = PropertyOrEvent.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            Debug.Assert(targetTypeName.StartsWith("Global."))
+            Debug.Assert(targetTypeName.StartsWith("Global.", StringComparison.Ordinal))
 
             Dim propertyName As String = MakeSafeName(PropertyOrEvent.Name)
 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim codeToParse As String =
                 "Partial Class " & containingTypeName & vbCrLf &
                     "Property " & propertyName & vbCrLf &
-                        GetMethodBlock(fieldName, MakeSafeName(m_CreateOrDisposeMethod), targetTypeName) &
+                        GetMethodBlock(fieldName, MakeSafeName(_createOrDisposeMethod), targetTypeName) &
                     "End Property" & vbCrLf &
                 "End Class" & vbCrLf
 
@@ -179,13 +179,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SynthesizedMyGroupCollectionPropertySetAccessorSymbol
         Inherits SynthesizedMyGroupCollectionPropertyAccessorSymbol
 
-        Private ReadOnly m_Parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
 
         Public Sub New(container As SourceNamedTypeSymbol, [property] As SynthesizedMyGroupCollectionPropertySymbol, disposeMethod As String)
             MyBase.New(container, [property], disposeMethod)
 
             Dim params() As ParameterSymbol = {SynthesizedParameterSymbol.CreateSetAccessorValueParameter(Me, [property], StringConstants.ValueParameterName)}
-            m_Parameters = params.AsImmutableOrNull()
+            _parameters = params.AsImmutableOrNull()
         End Sub
 
         Public Overrides ReadOnly Property IsSub As Boolean
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
-                Return m_Parameters
+                Return _parameters
             End Get
         End Property
 

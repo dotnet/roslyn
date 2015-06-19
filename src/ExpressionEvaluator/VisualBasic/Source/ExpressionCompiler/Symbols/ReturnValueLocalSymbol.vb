@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private ReadOnly _index As Integer
 
-        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol, index As Integer)
-            MyBase.New(method, name, type)
+        Friend Sub New(method As MethodSymbol, name As String, displayName As String, type As TypeSymbol, index As Integer)
+            MyBase.New(method, name, displayName, type)
             _index = index
         End Sub
 
@@ -26,20 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
-            Dim method = container.GetOrAddSynthesizedMethod(
-                ExpressionCompilerConstants.GetReturnValueMethodName,
-                Function(c, n, s)
-                    Dim parameterType = compilation.GetSpecialType(SpecialType.System_Int32)
-                    Dim returnType = compilation.GetSpecialType(SpecialType.System_Object)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray.Create(Of ParameterSymbol)(New SynthesizedParameterSymbol(m, parameterType, ordinal:=0, isByRef:=False)))
-                End Function)
+            Dim method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName)
             Dim argument As New BoundLiteral(
                 syntax,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),
@@ -53,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 constantValueOpt:=Nothing,
                 suppressObjectClone:=False,
                 type:=method.ReturnType)
-            Return ConvertToLocalType(compilation, [call], Type)
+            Return ConvertToLocalType(compilation, [call], Type, diagnostics)
         End Function
 
     End Class

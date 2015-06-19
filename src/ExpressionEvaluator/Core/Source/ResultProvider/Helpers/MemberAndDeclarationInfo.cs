@@ -5,9 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
-using MemberTypes = System.Reflection.MemberTypes;
-using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 using Roslyn.Utilities;
+using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -131,13 +130,42 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             get
             {
+                return GetMemberType(_member);
+            }
+        }
+
+        public Type OriginalDefinitionType
+        {
+            get
+            {
+                return GetMemberType(_member.GetOriginalDefinition());
+            }
+        }
+
+        private static Type GetMemberType(MemberInfo member)
+        {
+            switch (member.MemberType)
+            {
+                case MemberTypes.Field:
+                    return ((FieldInfo)member).FieldType;
+                case MemberTypes.Property:
+                    return ((PropertyInfo)member).PropertyType;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.MemberType);
+            }
+        }
+
+        public DkmClrCustomTypeInfo TypeInfo
+        {
+            get
+            {
                 switch (_member.MemberType)
                 {
                     case MemberTypes.Field:
-                        return ((FieldInfo)_member).FieldType;
                     case MemberTypes.Property:
-                        return ((PropertyInfo)_member).PropertyType;
+                        return _member.GetCustomAttributesData().GetDynamicFlags().GetCustomTypeInfo();
                     default:
+                        // If we ever see a method, we'll have to use ReturnTypeCustomAttributes.
                         throw ExceptionUtilities.UnexpectedValue(_member.MemberType);
                 }
             }
@@ -154,7 +182,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // implements an interface member, but it does characterize the set of members we're
                 // interested in displaying differently.  For example, if the property is from VB, it will
                 // be an explicit interface implementation, but will not have a dot.
-                var dotPos = memberName.LastIndexOf(".");
+                var dotPos = memberName.LastIndexOf('.');
                 if (dotPos >= 0)
                 {
                     var property = (PropertyInfo)_member;

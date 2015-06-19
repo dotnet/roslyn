@@ -17,12 +17,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
         Inherits AbstractXmlTagCompletionCommandHandler
 
         <ImportingConstructor>
-        Sub New(undoHistory As ITextUndoHistoryRegistry, waitIndicator As IWaitIndicator)
+        Public Sub New(undoHistory As ITextUndoHistoryRegistry, waitIndicator As IWaitIndicator)
             MyBase.New(undoHistory, waitIndicator)
         End Sub
 
         Protected Overrides Sub TryCompleteTag(textView As ITextView, subjectBuffer As ITextBuffer, document As Document, position As SnapshotPoint, cancellationToken As CancellationToken)
-            Dim tree = document.GetVisualBasicSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments:=True)
 
             Dim parentTrivia = token.GetAncestor(Of DocumentationCommentTriviaSyntax)()

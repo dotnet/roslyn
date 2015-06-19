@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class CSharpSymbolLabelTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub NamedType()
+        Public Sub NamedType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericNamedType()
+        Public Sub GenericNamedType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub GenericMethod()
+        Public Sub GenericMethod()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub MethodWithParamsParameter()
+        Public Sub MethodWithParamsParameter()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -66,7 +66,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub MethodWithOptionalParameter()
+        Public Sub MethodWithOptionalParameter()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub MethodWithRefAndOutParameters()
+        Public Sub MethodWithRefAndOutParameters()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545017)>
-        Sub EnumMember()
+        Public Sub EnumMember()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -111,7 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
-        Sub Constructor()
+        Public Sub Constructor()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545014)>
-        Sub Destructor()
+        Public Sub Destructor()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -141,7 +141,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545013)>
-        Sub ExplicitlyImplementedInterface()
+        Public Sub ExplicitlyImplementedInterface()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -157,7 +157,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn"), WorkItem(545353)>
-        Sub FixedFieldInStruct()
+        Public Sub FixedFieldInStruct()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -173,7 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WorkItem(545011)>
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(13229, "DevDiv_Projects/Roslyn")>
-        Sub DelegateStyle()
+        Public Sub DelegateStyle()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

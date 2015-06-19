@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         <Document>
                             Class {|Definition:$$Foo|}
                                 Public Sub {|Definition:New|}()
-                                    Dim x = New [|Foo|]()
-                                    Dim y As New [|Foo|]()
+                                    Dim x = New {|Reference:Foo|}()
+                                    Dim y As New {|Reference:Foo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -47,8 +47,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         <Document>
                             Class {|Definition:Foo|}
                                 Public Sub Blah()
-                                    Dim x = New [|$$Foo|]()
-                                    Dim y As New [|Foo|]()
+                                    Dim x = New {|Reference:$$Foo|}()
+                                    Dim y As New {|Reference:Foo|}()
                                 End Sub
                             End Class
                         </Document>
@@ -71,7 +71,7 @@ End Interface
 Class C
     Implements I
 
-    Public Sub Bar() Implements I.[|Foo|]
+    Public Sub Bar() Implements I.{|Reference:Foo|}
     End Sub
 End Class
                         </Document>
@@ -94,7 +94,7 @@ End Interface
 Class C
     Implements I
 
-    Public Sub Bar() Implements I.[|$$Foo|]
+    Public Sub Bar() Implements I.{|Reference:$$Foo|}
     End Sub
 End Class
                         </Document>
@@ -117,7 +117,7 @@ End Interface
 Class C
     Implements I
 
-    Public Sub {|Definition:Foo|}() Implements I.[|$$Foo|]
+    Public Sub {|Definition:Foo|}() Implements I.{|Reference:$$Foo|}
     End Sub
 End Class
                         </Document>
@@ -151,8 +151,8 @@ End Class
                         <Document>
 Module M
     Sub Main
-        [|$$Global|].M.Main()
-        [|Global|].M.Main()
+        {|Reference:$$Global|}.M.Main()
+        {|Reference:Global|}.M.Main()
     End Sub
 End Module
                         </Document>
@@ -218,7 +218,7 @@ End Class
 Class C
     Default Public Property Foo($${|Definition:x|} As Integer) As Integer
         Get
-            Return [|x|]
+            Return {|Reference:x|}
         End Get
         Set(value As Integer)
 
@@ -230,6 +230,69 @@ End Class
             </Workspace>
 
             VerifyHighlights(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference()
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class Foo
+    Public Sub New()
+        Dim {|Definition:$$x|} As Integer
+        {|WrittenReference:x|} = 0
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub TestWrittenReference2()
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class Foo
+    Public Sub New()
+        Dim {|Definition:$$x|} As Integer
+        Foo({|WrittenReference:x|})
+    End Sub
+
+    Public Sub Foo(ByRef a as Integer)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            VerifyHighlights(input)
+        End Sub
+
+        <WorkItem(1904, "https://github.com/dotnet/roslyn/issues/1904")>
+        <WorkItem(2079, "https://github.com/dotnet/roslyn/issues/2079")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        Public Sub VerifyHighlightsForVisualBasicGlobalImportAliasedNamespace()
+            VerifyHighlights(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <CompilationOptions><GlobalImport>VB = Microsoft.VisualBasic</GlobalImport></CompilationOptions>
+                        <Document>
+                            Class Test
+                                Public Sub TestMethod()
+                                    ' Add reference tags to verify after #2079 is fixed
+                                    Console.Write(NameOf($$VB))
+                                    Console.Write(NameOf(VB))
+                                    Console.Write(NameOf(Microsoft.VisualBasic))
+                                End Sub
+                            End Class
+                        </Document>
+                    </Project>
+                </Workspace>)
         End Sub
     End Class
 End Namespace

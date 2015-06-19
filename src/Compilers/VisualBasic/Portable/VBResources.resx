@@ -178,7 +178,10 @@
     <value>option '{0}' can be followed only by '+' or '-'</value>
   </data>
   <data name="ERR_InvalidSwitchValue" xml:space="preserve">
-    <value>the value '{0}' is invalid for option '{1}'</value>
+    <value>the value '{1}' is invalid for option '{0}'</value>
+  </data>
+  <data name="ERR_MutuallyExclusiveOptions" xml:space="preserve">
+    <value>Compilation options '{0}' and '{1}' can't both be specified at the same time.</value>
   </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
@@ -1356,7 +1359,7 @@
     <value>Structures cannot have 'Inherits' statements.</value>
   </data>
   <data name="ERR_NewInStruct" xml:space="preserve">
-    <value>The feature 'Parameterless Instance Constructors in Structures' requires language version 14 or above.</value>
+    <value>Structures cannot declare a non-shared 'Sub New' with no parameters.</value>
   </data>
   <data name="ERR_InvalidEndGet" xml:space="preserve">
     <value>'End Get' must be preceded by a matching 'Get'.</value>
@@ -3667,10 +3670,10 @@
   <data name="WRN_UndefinedOrEmptyNamespaceOrClass1_Title" xml:space="preserve">
     <value>Namespace or type specified in Imports statement doesn't contain any public member or cannot be found</value>
   </data>
-  <data name="WRN_UndefinedOrEmpyProjectNamespaceOrClass1" xml:space="preserve">
+  <data name="WRN_UndefinedOrEmptyProjectNamespaceOrClass1" xml:space="preserve">
     <value>Namespace or type specified in the project-level Imports '{0}' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.</value>
   </data>
-  <data name="WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title" xml:space="preserve">
+  <data name="WRN_UndefinedOrEmptyProjectNamespaceOrClass1_Title" xml:space="preserve">
     <value>Namespace or type imported at project level doesn't contain any public member or cannot be found</value>
   </data>
   <data name="WRN_IndirectRefToLinkedAssembly2" xml:space="preserve">
@@ -3847,10 +3850,10 @@
   <data name="WRN_RecursivePropertyCall_Title" xml:space="preserve">
     <value>Expression recursively calls the containing property</value>
   </data>
-  <data name="WRN_OverlapingCatch" xml:space="preserve">
+  <data name="WRN_OverlappingCatch" xml:space="preserve">
     <value>'Catch' block never reached, because '{0}' inherits from '{1}'.</value>
   </data>
-  <data name="WRN_OverlapingCatch_Title" xml:space="preserve">
+  <data name="WRN_OverlappingCatch_Title" xml:space="preserve">
     <value>'Catch' block never reached; exception type's base type handled above in the same Try statement</value>
   </data>
   <data name="WRN_DefAsgUseNullRefByRef" xml:space="preserve">
@@ -4985,8 +4988,11 @@
   <data name="ChainingSpeculativeModelIsNotSupported" xml:space="preserve">
     <value>Chaining speculative semantic model is not supported. You should create a speculative model from the non-speculative ParentModel.</value>
   </data>
+  <data name="IDS_ToolName" xml:space="preserve">
+    <value>Microsoft (R) Visual Basic Compiler</value>
+  </data>
   <data name="IDS_LogoLine1" xml:space="preserve">
-    <value>Microsoft (R) Visual Basic Compiler version {0}</value>
+    <value>{0} version {1}</value>
   </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
@@ -5054,7 +5060,10 @@
 /warnaserror[+|-]:&lt;number_list&gt;   Treat a list of warnings as errors.
 /ruleset:&lt;file&gt;                   Specify a ruleset file that disables specific
                                   diagnostics.
-
+/errorlog:&lt;file&gt;                  Specify a file to log all compiler and analyzer
+                                  diagnostics.
+/reportanalyzer                   Report additional analyzer information, such as
+                                  execution time.
                                   - LANGUAGE -
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
@@ -5205,9 +5214,6 @@
   <data name="ERR_NullPropagatingOpInExpressionTree" xml:space="preserve">
     <value>A null propagating operator cannot be converted into an expression tree.</value>
   </data>
-  <data name="ERR_StructParameterlessInstanceCtorMustBePublic" xml:space="preserve">
-    <value>Parameterless instance constructors in structures must be public.</value>
-  </data>
   <data name="ERR_TooLongOrComplexExpression" xml:space="preserve">
     <value>An expression is too long or complex to compile</value>
   </data>
@@ -5244,11 +5250,14 @@
   <data name="HDN_UnusedImportStatement_Title" xml:space="preserve">
     <value>Unused import statement</value>
   </data>
-  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+  <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
   <data name="ERR_LanguageVersion" xml:space="preserve">
     <value>Visual Basic {0} does not support {1}.</value>
+  </data>
+  <data name="ERR_BadPdbData" xml:space="preserve">
+    <value>Error reading debug information for '{0}'</value>
   </data>
   <data name="FEATURE_ArrayLiterals" xml:space="preserve">
     <value>array literal expressions</value>

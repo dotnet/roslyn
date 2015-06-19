@@ -11,10 +11,11 @@
        use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
-    <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
+    <RoslynSolution Condition="'$(PublicBuild)' == 'true'">$(MSBuildThisFileDirectory)\Src\RoslynLight.sln</RoslynSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs></RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
+    <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
 
     <!-- Emit XML in a CIBuild in order to get structured test results -->
     <RunTestArgs Condition="'$(CIBuild)' == 'true'">$(RunTestArgs) -xml</RunTestArgs>
@@ -28,7 +29,7 @@
   <Target Name="Build" DependsOnTargets="RestorePackages">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Build"/>
   </Target>
 
@@ -42,45 +43,39 @@
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
-             Properties="RestorePackages=false"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Rebuild"/>
   </Target>
 
   <Target Name="Test">
 
-    <ItemGroup Condition="'$(CIBuild)' == ''">
+    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
       <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\*.UnitTests*.dll" 
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
         Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(CIBuild)' == 'true'">
+    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
+      <TestAssemblies 
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+        Exclude="
+        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
+        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
+    </ItemGroup>
 
-      <!-- 
-           These assemblies currently don't run correctly in Jenkins.  Disabling while
-           we investigate the failures.  This is being tracked by issue #79
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CompilerServer.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.NativeClient.UnitTests.dll" />
-      -->
-
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.WinRT.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Semantic.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Syntax.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Symbol.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Semantic.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.FxCop.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\System.Runtime.Analyzers.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Diagnostics.Analyzers.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Services.CSharp.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Services.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Services.VisualBasic.UnitTests.dll" />
+    <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
+    <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
+      <TestAssemblies 
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+        Exclude="
+        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
+        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests2.dll;
+        Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.Services.Editor.VisualBasic.UnitTests.dll;
+        Binaries\$(Configuration)\Roslyn.Services.Editor.CSharp.UnitTests.dll;" />
     </ItemGroup>
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />

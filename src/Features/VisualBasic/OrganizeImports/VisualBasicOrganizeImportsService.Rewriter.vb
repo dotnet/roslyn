@@ -9,16 +9,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Private ReadOnly placeSystemNamespaceFirst As Boolean
+            Private ReadOnly _placeSystemNamespaceFirst As Boolean
             Public ReadOnly TextChanges As IList(Of TextChange) = New List(Of TextChange)()
 
             Public Sub New(placeSystemNamespaceFirst As Boolean)
-                Me.placeSystemNamespaceFirst = placeSystemNamespaceFirst
+                Me._placeSystemNamespaceFirst = placeSystemNamespaceFirst
             End Sub
 
             Public Overrides Function VisitCompilationUnit(node As CompilationUnitSyntax) As SyntaxNode
                 node = DirectCast(MyBase.VisitCompilationUnit(node), CompilationUnitSyntax)
-                Dim organizedImports = ImportsOrganizer.Organize(node.Imports, placeSystemNamespaceFirst)
+                Dim organizedImports = ImportsOrganizer.Organize(node.Imports, _placeSystemNamespaceFirst)
 
                 Dim result = node.WithImports(organizedImports)
                 If result IsNot node Then
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             End Function
 
             Public Overrides Function VisitImportsStatement(node As ImportsStatementSyntax) As SyntaxNode
-                Dim organizedImportsClauses = ImportsOrganizer.Organize(node.ImportsClauses, placeSystemNamespaceFirst)
+                Dim organizedImportsClauses = ImportsOrganizer.Organize(node.ImportsClauses, _placeSystemNamespaceFirst)
 
                 Dim result = node.WithImportsClauses(organizedImportsClauses)
                 If result IsNot node Then

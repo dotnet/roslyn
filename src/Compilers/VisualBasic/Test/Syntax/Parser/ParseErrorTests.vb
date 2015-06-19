@@ -2875,7 +2875,7 @@ End Module
     End Sub
 
     <Fact()>
-    Sub BC31002ERR_InvInsideBlock_If_Class()
+    Public Sub BC31002ERR_InvInsideBlock_If_Class()
         Dim source = <text>
 If True
     Class Foo
@@ -2889,7 +2889,7 @@ End If
     End Sub
 
     <Fact()>
-    Sub BC31002ERR_InvInsideBlock_Do_Function()
+    Public Sub BC31002ERR_InvInsideBlock_Do_Function()
         Dim source = <text>
 Do
     Function Foo
@@ -2902,7 +2902,7 @@ Loop
     End Sub
 
     <Fact()>
-    Sub BC31002ERR_InvInsideBlock_While_Sub()
+    Public Sub BC31002ERR_InvInsideBlock_While_Sub()
         Dim source = <text>
 While True
     Sub Foo
@@ -4737,7 +4737,8 @@ End Class
         Dim tree = VisualBasicSyntaxTree.ParseText(source)
         Dim emptyStatement = tree.GetRoot().DescendantNodes().OfType(Of EmptyStatementSyntax).Single()
         Assert.Equal(numTokens, emptyStatement.FullWidth)
-        Assert.Equal(numTokens, emptyStatement.GetTrailingTrivia().Single().GetStructure().DescendantTokens().Count) ' Confirm that we built a list.
+        Assert.Equal(source, tree.ToString())
+        Assert.Equal(InternalSyntax.Scanner.BadTokenCountLimit, emptyStatement.GetTrailingTrivia().Single().GetStructure().DescendantTokens().Count) ' Confirm that we built a list.
     End Sub
 
 #End Region

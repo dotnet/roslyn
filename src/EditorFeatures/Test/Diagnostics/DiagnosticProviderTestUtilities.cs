@@ -4,129 +4,92 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public static class DiagnosticProviderTestUtilities
     {
-        private static IEnumerable<Diagnostic> GetDiagnostics(DiagnosticAnalyzer analyzerOpt, Document document, TextSpan span, Project project, bool getDocumentDiagnostics, bool getProjectDiagnostics, bool donotCatchAnalyzerExceptions)
+        private static IEnumerable<Diagnostic> GetDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Project project, bool getDocumentDiagnostics, bool getProjectDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, bool logAnalyzerExceptionAsDiagnostics)
         {
             var documentDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
             var projectDiagnostics = SpecializedCollections.EmptyEnumerable<Diagnostic>();
 
             // If no user diagnostic analyzer, then test compiler diagnostics.
-            var analyzer = analyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
+            var workspaceAnalyzer = workspaceAnalyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language);
+
+            // If the test is not configured with a custom onAnalyzerException handler AND has not requested exceptions to be handled and logged as diagnostics, then FailFast on exceptions.
+            if (onAnalyzerException == null && !logAnalyzerExceptionAsDiagnostics)
+            {
+                onAnalyzerException = DiagnosticExtensions.FailFastOnAnalyzerException;
+            }
+
+            var exceptionDiagnosticsSource = new TestHostDiagnosticUpdateSource(project.Solution.Workspace);
+            var analyzerService = new TestDiagnosticAnalyzerService(project.Language, workspaceAnalyzer, exceptionDiagnosticsSource, onAnalyzerException);
+            var incrementalAnalyzer = analyzerService.CreateIncrementalAnalyzer(project.Solution.Workspace);
 
             if (getDocumentDiagnostics)
             {
                 var tree = document.GetSyntaxTreeAsync().Result;
-                var root = document.GetSyntaxRootAsync().Result;
-                var semanticModel = document.GetSemanticModelAsync().Result;
-
-                var builder = new List<Diagnostic>();
-                var nodeInBodyAnalyzerService = document.Project.Language == LanguageNames.CSharp ?
-                    (ISyntaxNodeAnalyzerService)new CSharpSyntaxNodeAnalyzerService() :
-                    new VisualBasicSyntaxNodeAnalyzerService();
-
-                // Lets replicate the IDE diagnostic incremental analyzer behavior to determine span to test:
-                //  (a) If the span is contained within a method level member and analyzer supports semantic in span: analyze in member span.
-                //  (b) Otherwise, analyze entire syntax tree span.
-                var spanToTest = root.FullSpan;
-
-                var driver = new DiagnosticAnalyzerDriver(document, spanToTest, root, syntaxNodeAnalyzerService: nodeInBodyAnalyzerService, cancellationToken: CancellationToken.None, testOnly_DonotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
-                var diagnosticAnalyzerCategory = analyzer.GetDiagnosticAnalyzerCategory(driver);
-                bool supportsSemanticInSpan = (diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
-                if (supportsSemanticInSpan)
-                {
-                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                    if (syntaxFacts != null)
-                    {
-                        var member = syntaxFacts.GetContainingMemberDeclaration(root, span.Start);
-                        if (member != null && syntaxFacts.IsMethodLevelMember(member) && member.FullSpan.Contains(span))
-                        {
-                            spanToTest = member.FullSpan;
-                        }
-                    }
-                }
-
-                if ((diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SyntaxAnalysis) != 0)
-                {
-                    builder.AddRange(driver.GetSyntaxDiagnosticsAsync(analyzer).Result ?? SpecializedCollections.EmptyEnumerable<Diagnostic>());
-                }
-
-                if (supportsSemanticInSpan || (diagnosticAnalyzerCategory & DiagnosticAnalyzerCategory.SemanticDocumentAnalysis) != 0)
-                {
-                    builder.AddRange(driver.GetSemanticDiagnosticsAsync(analyzer).Result ?? SpecializedCollections.EmptyEnumerable<Diagnostic>());
-                }
-
-                documentDiagnostics = builder.Where(d => d.Location == Location.None ||
-                    (d.Location.SourceTree == tree && d.Location.SourceSpan.IntersectsWith(span)));
+                var root = tree.GetRoot();
+                var dxs = analyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id).WaitAndGetResult(CancellationToken.None);
+                documentDiagnostics = dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)).Select(d => d.ToDiagnostic(tree));
             }
 
             if (getProjectDiagnostics)
             {
-                var nodeInBodyAnalyzerService = project.Language == LanguageNames.CSharp ?
-                    (ISyntaxNodeAnalyzerService)new CSharpSyntaxNodeAnalyzerService() :
-                    new VisualBasicSyntaxNodeAnalyzerService();
-                var driver = new DiagnosticAnalyzerDriver(project, nodeInBodyAnalyzerService, CancellationToken.None);
-
-                if (analyzer.SupportsProjectDiagnosticAnalysis(driver))
-                {
-                    projectDiagnostics = driver.GetProjectDiagnosticsAsync(analyzer, null).Result ?? SpecializedCollections.EmptyEnumerable<Diagnostic>();
-                }
+                var dxs = analyzerService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None);
+                projectDiagnostics = dxs.Where(d => !d.HasTextSpan).Select(d => d.ToDiagnostic(tree: null));
             }
 
-            return documentDiagnostics.Concat(projectDiagnostics);
+            var exceptionDiagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(workspaceAnalyzer).Select(d => d.ToDiagnostic(tree: null));
+
+            return documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
         }
 
-        public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer providerOpt, Document document, TextSpan span, bool donotCatchAnalyzerExceptions = true)
+        public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
         {
-            return GetDiagnostics(providerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true, donotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
+            return GetDiagnostics(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: true, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
         }
 
-        public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer providerOpt, Project project, bool donotCatchAnalyzerExceptions = true)
+        public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
         {
             var diagnostics = new List<Diagnostic>();
             foreach (var document in project.Documents)
             {
                 var span = document.GetSyntaxRootAsync().Result.FullSpan;
-                var documentDiagnostics = GetDocumentDiagnostics(providerOpt, document, span, donotCatchAnalyzerExceptions);
+                var documentDiagnostics = GetDocumentDiagnostics(workspaceAnalyzerOpt, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics);
                 diagnostics.AddRange(documentDiagnostics);
             }
 
-            var projectDiagnostics = GetProjectDiagnostics(providerOpt, project, donotCatchAnalyzerExceptions);
+            var projectDiagnostics = GetProjectDiagnostics(workspaceAnalyzerOpt, project, onAnalyzerException, logAnalyzerExceptionAsDiagnostics);
             diagnostics.AddRange(projectDiagnostics);
             return diagnostics;
         }
 
-        public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer providerOpt, Solution solution, bool donotCatchAnalyzerExceptions = true)
+        public static IEnumerable<Diagnostic> GetAllDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Solution solution, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
         {
             var diagnostics = new List<Diagnostic>();
             foreach (var project in solution.Projects)
             {
-                var projectDiagnostics = GetAllDiagnostics(providerOpt, project, donotCatchAnalyzerExceptions);
+                var projectDiagnostics = GetAllDiagnostics(workspaceAnalyzerOpt, project, onAnalyzerException, logAnalyzerExceptionAsDiagnostics);
                 diagnostics.AddRange(projectDiagnostics);
             }
 
             return diagnostics;
         }
 
-        public static IEnumerable<Diagnostic> GetDocumentDiagnostics(DiagnosticAnalyzer providerOpt, Document document, TextSpan span, bool donotCatchAnalyzerExceptions = true)
+        public static IEnumerable<Diagnostic> GetDocumentDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Document document, TextSpan span, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
         {
-            return GetDiagnostics(providerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: false, donotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
+            return GetDiagnostics(workspaceAnalyzerOpt, document, span, document.Project, getDocumentDiagnostics: true, getProjectDiagnostics: false, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
         }
 
-        public static IEnumerable<Diagnostic> GetProjectDiagnostics(DiagnosticAnalyzer providerOpt, Project project, bool donotCatchAnalyzerExceptions = true)
+        public static IEnumerable<Diagnostic> GetProjectDiagnostics(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false)
         {
-            return GetDiagnostics(providerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true, donotCatchAnalyzerExceptions: donotCatchAnalyzerExceptions);
+            return GetDiagnostics(workspaceAnalyzerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
         }
     }
 }

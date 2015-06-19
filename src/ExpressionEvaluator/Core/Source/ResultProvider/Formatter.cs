@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -28,30 +29,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.StaticMembersString = staticMembersString;
         }
 
-        string IDkmClrFormatter.GetValueString(DkmClrValue clrValue)
+        string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
         {
-            // TODO: IDkmClrFormatter.GetValueString should have
-            // an explicit InspectionContext parameter that is not
-            // inherited from the containing DkmClrValue. #1099978
-            var options = ((clrValue.InspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
+            var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
                 ObjectDisplayOptions.UseQuotes :
                 ObjectDisplayOptions.None;
-            return GetValueString(clrValue, options, GetValueFlags.IncludeObjectId);
+            return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
         }
 
-        string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType clrType)
+        string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo typeInfo, ReadOnlyCollection<string> formatSpecifiers)
         {
-            return GetTypeName(clrType.GetLmrType());
+            return GetTypeName(new TypeAndCustomInfo(type.GetLmrType(), typeInfo));
         }
 
-        bool IDkmClrFormatter.HasUnderlyingString(DkmClrValue clrValue)
+        bool IDkmClrFormatter.HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
-            return HasUnderlyingString(clrValue);
+            return HasUnderlyingString(value, inspectionContext);
         }
 
-        string IDkmClrFormatter.GetUnderlyingString(DkmClrValue clrValue)
+        string IDkmClrFormatter.GetUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
-            return GetUnderlyingString(clrValue);
+            return GetUnderlyingString(value, inspectionContext);
         }
 
         // CONSIDER: If the number or complexity of the "language-specific syntax helpers" grows (or if

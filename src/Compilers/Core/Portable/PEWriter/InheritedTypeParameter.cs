@@ -10,9 +10,9 @@ namespace Microsoft.Cci
 {
     internal class InheritedTypeParameter : IGenericTypeParameter
     {
-        private ushort _index;
-        private ITypeDefinition _inheritingType;
-        private IGenericTypeParameter _parentParameter;
+        private readonly ushort _index;
+        private readonly ITypeDefinition _inheritingType;
+        private readonly IGenericTypeParameter _parentParameter;
 
         internal InheritedTypeParameter(ushort index, ITypeDefinition inheritingType, IGenericTypeParameter parentParameter)
         {

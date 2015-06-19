@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class WinMdEventTest
         Inherits BasicTestBase
 
-        Private EventInterfaceILTemplate As String = <![CDATA[
+        Private ReadOnly _eventInterfaceILTemplate As String = <![CDATA[
 .class interface public abstract auto ansi {0}
 {{
   .method public hidebysig newslot specialname abstract virtual 
@@ -55,9 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
   }}
 }} // end of class {0}
 ]]>.Value
-        Private ReadOnly EventLibRef As MetadataReference
+        Private ReadOnly _eventLibRef As MetadataReference
 
-        Private DynamicCommonSrc As XElement =
+        Private ReadOnly _dynamicCommonSrc As XElement =
             <compilation>
                 <file name="dynamic_common.vb">
                     <![CDATA[
@@ -154,7 +154,7 @@ Namespace EventLibrary
 End Namespace
 ]]>
                     </file></compilation>
-            EventLibRef = CreateCompilationWithReferences(
+            _eventLibRef = CreateCompilationWithReferences(
                 eventLibSrc,
                 references:={MscorlibRef_v4_0_30316_17626, SystemCoreRef_v4_0_30319_17929},
                 options:=TestOptions.ReleaseWinMD).EmitToImageReference()
@@ -205,22 +205,21 @@ End Class
 ]]>
                     </file></compilation>
             Dim dynamicCommonRef As MetadataReference = CreateCompilationWithReferences(
-                DynamicCommonSrc,
+                _dynamicCommonSrc,
                 references:={
                     MscorlibRef_v4_0_30316_17626,
-                    EventLibRef},
+                    _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
-            Dim verifer = CompileAndVerifyOnWin8Only(
+            Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
-                    EventLibRef,
-                    dynamicCommonRef},
-                emitOptions:=TestEmitters.RefEmitBug)
-            verifer.VerifyIL("C.Main", <![CDATA[
+                    _eventLibRef,
+                    dynamicCommonRef})
+            verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
   .maxstack  4
@@ -238,45 +237,45 @@ End Class
   IL_0005:  stloc.0
   IL_0006:  newobj     "Sub B..ctor()"
   IL_000b:  stloc.1
-  IL_000c:  ldsfld     "C._Closure$__.$I1-1 As <generated method>"
+  IL_000c:  ldsfld     "C._Closure$__.$I1-0 As <generated method>"
   IL_0011:  brfalse.s  IL_001a
-  IL_0013:  ldsfld     "C._Closure$__.$I1-1 As <generated method>"
+  IL_0013:  ldsfld     "C._Closure$__.$I1-0 As <generated method>"
   IL_0018:  br.s       IL_0030
   IL_001a:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_001f:  ldftn      "Sub C._Closure$__._Lambda$__1-1()"
+  IL_001f:  ldftn      "Sub C._Closure$__._Lambda$__1-0()"
   IL_0025:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_002a:  dup
-  IL_002b:  stsfld     "C._Closure$__.$I1-1 As <generated method>"
+  IL_002b:  stsfld     "C._Closure$__.$I1-0 As <generated method>"
   IL_0030:  stloc.2
-  IL_0031:  ldsfld     "C._Closure$__.$I1-2 As <generated method>"
+  IL_0031:  ldsfld     "C._Closure$__.$I1-1 As <generated method>"
   IL_0036:  brfalse.s  IL_003f
-  IL_0038:  ldsfld     "C._Closure$__.$I1-2 As <generated method>"
+  IL_0038:  ldsfld     "C._Closure$__.$I1-1 As <generated method>"
   IL_003d:  br.s       IL_0055
   IL_003f:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_0044:  ldftn      "Sub C._Closure$__._Lambda$__1-2(String)"
+  IL_0044:  ldftn      "Sub C._Closure$__._Lambda$__1-1(String)"
   IL_004a:  newobj     "Sub VB$AnonymousDelegate_1(Of String)..ctor(Object, System.IntPtr)"
   IL_004f:  dup
-  IL_0050:  stsfld     "C._Closure$__.$I1-2 As <generated method>"
+  IL_0050:  stsfld     "C._Closure$__.$I1-1 As <generated method>"
   IL_0055:  stloc.3
-  IL_0056:  ldsfld     "C._Closure$__.$I1-3 As <generated method>"
+  IL_0056:  ldsfld     "C._Closure$__.$I1-2 As <generated method>"
   IL_005b:  brfalse.s  IL_0064
-  IL_005d:  ldsfld     "C._Closure$__.$I1-3 As <generated method>"
+  IL_005d:  ldsfld     "C._Closure$__.$I1-2 As <generated method>"
   IL_0062:  br.s       IL_007a
   IL_0064:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_0069:  ldftn      "Sub C._Closure$__._Lambda$__1-3(Object)"
+  IL_0069:  ldftn      "Sub C._Closure$__._Lambda$__1-2(Object)"
   IL_006f:  newobj     "Sub VB$AnonymousDelegate_2(Of Object)..ctor(Object, System.IntPtr)"
   IL_0074:  dup
-  IL_0075:  stsfld     "C._Closure$__.$I1-3 As <generated method>"
+  IL_0075:  stsfld     "C._Closure$__.$I1-2 As <generated method>"
   IL_007a:  stloc.s    V_4
-  IL_007c:  ldsfld     "C._Closure$__.$I1-4 As <generated method>"
+  IL_007c:  ldsfld     "C._Closure$__.$I1-3 As <generated method>"
   IL_0081:  brfalse.s  IL_008a
-  IL_0083:  ldsfld     "C._Closure$__.$I1-4 As <generated method>"
+  IL_0083:  ldsfld     "C._Closure$__.$I1-3 As <generated method>"
   IL_0088:  br.s       IL_00a0
   IL_008a:  ldsfld     "C._Closure$__.$I As C._Closure$__"
-  IL_008f:  ldftn      "Sub C._Closure$__._Lambda$__1-4(EventLibrary.voidVoidDelegate)"
+  IL_008f:  ldftn      "Sub C._Closure$__._Lambda$__1-3(EventLibrary.voidVoidDelegate)"
   IL_0095:  newobj     "Sub VB$AnonymousDelegate_3(Of EventLibrary.voidVoidDelegate)..ctor(Object, System.IntPtr)"
   IL_009a:  dup
-  IL_009b:  stsfld     "C._Closure$__.$I1-4 As <generated method>"
+  IL_009b:  stsfld     "C._Closure$__.$I1-3 As <generated method>"
   IL_00a0:  stloc.s    V_5
   IL_00a2:  ldloc.0
   IL_00a3:  dup
@@ -575,7 +574,7 @@ Public Partial Class A
 ]]>
                     </file>
                     <file name="b.vb">
-                        <%= DynamicCommonSrc %>
+                        <%= _dynamicCommonSrc %>
                     </file>
                 </compilation>
 
@@ -584,8 +583,7 @@ Public Partial Class A
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
-                    EventLibRef},
-                emitOptions:=TestEmitters.RefEmitBug)
+                    _eventLibRef})
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {
@@ -593,15 +591,15 @@ Public Partial Class A
   .maxstack  4
   .locals init (VB$AnonymousDelegate_0 V_0, //testDelegate
                 VB$AnonymousDelegate_0 V_1)
-  IL_0000:  ldsfld     "A._Closure$__.$I1-1 As <generated method>"
+  IL_0000:  ldsfld     "A._Closure$__.$I1-0 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "A._Closure$__.$I1-1 As <generated method>"
+  IL_0007:  ldsfld     "A._Closure$__.$I1-0 As <generated method>"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "A._Closure$__.$I As A._Closure$__"
-  IL_0013:  ldftn      "Sub A._Closure$__._Lambda$__1-1()"
+  IL_0013:  ldftn      "Sub A._Closure$__._Lambda$__1-0()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "A._Closure$__.$I1-1 As <generated method>"
+  IL_001f:  stsfld     "A._Closure$__.$I1-0 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldarg.0
   IL_0026:  dup
@@ -651,15 +649,15 @@ Public Partial Class A
                 VB$AnonymousDelegate_0 V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     "A._Closure$__.$I2-1 As <generated method>"
+  IL_0002:  ldsfld     "A._Closure$__.$I2-0 As <generated method>"
   IL_0007:  brfalse.s  IL_0010
-  IL_0009:  ldsfld     "A._Closure$__.$I2-1 As <generated method>"
+  IL_0009:  ldsfld     "A._Closure$__.$I2-0 As <generated method>"
   IL_000e:  br.s       IL_0026
   IL_0010:  ldsfld     "A._Closure$__.$I As A._Closure$__"
-  IL_0015:  ldftn      "Sub A._Closure$__._Lambda$__2-1()"
+  IL_0015:  ldftn      "Sub A._Closure$__._Lambda$__2-0()"
   IL_001b:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0020:  dup
-  IL_0021:  stsfld     "A._Closure$__.$I2-1 As <generated method>"
+  IL_0021:  stsfld     "A._Closure$__.$I2-0 As <generated method>"
   IL_0026:  stloc.1
   IL_0027:  ldloc.0
   IL_0028:  dup
@@ -945,15 +943,15 @@ End Class
             Assert.False(implementingNormalEvent.IsWindowsRuntimeEvent)
             Assert.True(implementingWinRTEvent.IsWindowsRuntimeEvent)
 
-            Dim subsitutedNormalEvent = implementingNormalEvent.ExplicitInterfaceImplementations.Single()
-            Dim subsitutedWinRTEvent = implementingWinRTEvent.ExplicitInterfaceImplementations.Single()
+            Dim substitutedNormalEvent = implementingNormalEvent.ExplicitInterfaceImplementations.Single()
+            Dim substitutedWinRTEvent = implementingWinRTEvent.ExplicitInterfaceImplementations.Single()
 
-            Assert.IsType(Of SubstitutedEventSymbol)(subsitutedNormalEvent)
-            Assert.IsType(Of SubstitutedEventSymbol)(subsitutedWinRTEvent)
+            Assert.IsType(Of SubstitutedEventSymbol)(substitutedNormalEvent)
+            Assert.IsType(Of SubstitutedEventSymbol)(substitutedWinRTEvent)
 
             ' Based on original definition.
-            Assert.False(subsitutedNormalEvent.IsWindowsRuntimeEvent)
-            Assert.True(subsitutedWinRTEvent.IsWindowsRuntimeEvent)
+            Assert.False(substitutedNormalEvent.IsWindowsRuntimeEvent)
+            Assert.True(substitutedWinRTEvent.IsWindowsRuntimeEvent)
 
             Dim retargetingAssembly = New RetargetingAssemblySymbol(DirectCast(comp.Assembly, SourceAssemblySymbol), isLinked:=False)
             retargetingAssembly.SetCorLibrary(comp.Assembly.CorLibrary)
@@ -1021,7 +1019,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I"))
+            Dim ilRef = CompileIL(String.Format(_eventInterfaceILTemplate, "I"))
 
             For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
                 Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), New VisualBasicCompilationOptions(kind))
@@ -1059,7 +1057,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I1") + String.Format(EventInterfaceILTemplate, "I2"))
+            Dim ilRef = CompileIL(String.Format(_eventInterfaceILTemplate, "I1") + String.Format(_eventInterfaceILTemplate, "I2"))
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), TestOptions.ReleaseDll)
             comp.VerifyDiagnostics(
@@ -1089,7 +1087,7 @@ End Class
         </file>
 </compilation>
 
-            Dim ilRef = CompileIL(String.Format(EventInterfaceILTemplate, "I1") + String.Format(EventInterfaceILTemplate, "I2"))
+            Dim ilRef = CompileIL(String.Format(_eventInterfaceILTemplate, "I1") + String.Format(_eventInterfaceILTemplate, "I2"))
 
             Dim comp = CreateCompilationWithReferences(source, WinRtRefs.Concat({ilRef}), TestOptions.ReleaseDll)
 

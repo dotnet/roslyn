@@ -241,15 +241,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Get a source location key for sorting. For performance, it's important that this be 
+        ''' <para>
+        ''' Get a source location key for sorting. For performance, it's important that this
         ''' be able to be returned from a symbol without doing any additional allocations (even
-        ''' if nothing is cached yet.) 
-        ''' 
-        ''' Only members of source namespaces, original source types, and namespaces that can be merged
-        ''' need implement this function.
+        ''' if nothing is cached yet.)
+        ''' </para>
+        ''' <para>
+        ''' Only (original) source symbols and namespaces that can be merged
+        ''' need override this function if they want to do so for efficiency.
+        ''' </para>
         ''' </summary>
         Friend Overridable Function GetLexicalSortKey() As LexicalSortKey
-            Throw ExceptionUtilities.Unreachable
+            Dim locations = Me.Locations
+            Dim declaringCompilation = Me.DeclaringCompilation
+            Debug.Assert(declaringCompilation IsNot Nothing) ' require that it is a source symbol
+            Return If(locations.Length > 0, New LexicalSortKey(locations(0), declaringCompilation), LexicalSortKey.NotInSource)
         End Function
 
         ''' <summary>
@@ -382,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns true if this symbol was declared as requiring an override; i.e., declared
         ''' with the "MustOverride" modifier. Never returns true for types. 
-        ''' Also methods, properties and events declared in interface are considered to have MustOveride.
+        ''' Also methods, properties and events declared in interface are considered to have MustOverride.
         ''' </summary>
         Public MustOverride ReadOnly Property IsMustOverride As Boolean
 
@@ -447,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' NOTE: there are scenarios in which ImplicitlyDefinedBy is called while bound members 
         '''       are not yet published. Ths typically happens if ImplicitlyDefinedBy while binding members.
-        '''       In such case, if calee needs to refer to a member of enclosing type it must 
+        '''       In such case, if callee needs to refer to a member of enclosing type it must 
         '''       do that in the context of unpublished members that caller provides 
         '''       (asking encompassing type for members will cause infinite recursion).
         ''' 

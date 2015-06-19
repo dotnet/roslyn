@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
@@ -544,14 +545,15 @@ class Foo
         }
 
         private static void CommentOrUncommentSelection(
-
             ITextView textView,
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
             bool supportBlockComments,
             CommentUncommentSelectionCommandHandler.Operation operation)
         {
-            var commandHandler = new CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default);
+            var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
+            var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
+            var commandHandler = new CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default, textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentUncommentService(supportBlockComments);
 
             var trackingSpans = new List<ITrackingSpan>();
@@ -618,7 +620,7 @@ class Foo
 
         private static int FindAndRemoveMarker(ITextView textView, string marker)
         {
-            var index = textView.TextSnapshot.GetText().IndexOf(marker);
+            var index = textView.TextSnapshot.GetText().IndexOf(marker, StringComparison.Ordinal);
             if (index >= 0)
             {
                 textView.TextBuffer.Delete(new Span(index, marker.Length));

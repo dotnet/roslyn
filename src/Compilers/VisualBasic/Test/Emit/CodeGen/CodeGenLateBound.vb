@@ -2401,7 +2401,7 @@ End Module
                         "Public $VB$Local_obj0 As Object",
                         "Public $VB$Local_obj1 As Object",
                         "Public Sub New()",
-                        "Friend Sub _Lambda$__1(a0 As Byte, a1 As Integer)"
+                        "Friend Sub _Lambda$__0(a0 As Byte, a1 As Integer)"
                     }, closure.GetMembers().Select(Function(x) x.ToString()))
                 End Sub)
         End Sub
@@ -2434,7 +2434,7 @@ End Module
 </compilation>,
 expectedOutput:="3")
 
-            c.VerifyIL("Program._Closure$__0-0._Lambda$__1",
+            c.VerifyIL("Program._Closure$__0-0._Lambda$__0",
             <![CDATA[
 {
   // Code size      134 (0x86)

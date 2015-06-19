@@ -51,7 +51,7 @@ Public MustInherit Class WriteUtils
 #If OLDSTYLE Then
         Return nodeStructure.Name
 #Else
-        If nodeStructure.Name.EndsWith("Syntax") Then
+        If nodeStructure.Name.EndsWith("Syntax", StringComparison.Ordinal) Then
             Return nodeStructure.Name.Substring(0, nodeStructure.Name.Length - 6)
         Else
             Return nodeStructure.Name
@@ -443,7 +443,7 @@ Public MustInherit Class WriteUtils
     ' The name of the visitor method for a structure type
     Protected Function VisitorMethodName(nodeStructure As ParseNodeStructure) As String
         Dim nodeName = nodeStructure.Name
-        If nodeName.EndsWith("Syntax") Then nodeName = nodeName.Substring(0, nodeName.Length - 6)
+        If nodeName.EndsWith("Syntax", StringComparison.Ordinal) Then nodeName = nodeName.Substring(0, nodeName.Length - 6)
 
         Return "Visit" + nodeName
     End Function
@@ -555,7 +555,7 @@ Public MustInherit Class WriteUtils
         text = text.Trim()
 
         While text.Length >= LineLength
-            Dim split As Integer = text.Substring(0, LineLength).LastIndexOf(" ")
+            Dim split As Integer = text.Substring(0, LineLength).LastIndexOf(" "c)
             If split < 0 Then split = LineLength
 
             Dim line As String = text.Substring(0, split).Trim()
@@ -704,7 +704,7 @@ Public MustInherit Class WriteUtils
         GenerateXmlComment(writer, descriptionText, remarksText, indent)
     End Sub
 
-    Private VBKeywords As String() = {
+    Private ReadOnly _VBKeywords As String() = {
         "ADDHANDLER",
         "ADDRESSOF",
         "ALIAS",
@@ -860,7 +860,7 @@ Public MustInherit Class WriteUtils
 
     ' If the string is a keyword, escape it. Otherwise just return it.
     Protected Function Ident(id As String) As String
-        If VBKeywords.Contains(id.ToUpperInvariant()) Then
+        If _VBKeywords.Contains(id.ToUpperInvariant()) Then
             Return "[" + id + "]"
         Else
             Return id

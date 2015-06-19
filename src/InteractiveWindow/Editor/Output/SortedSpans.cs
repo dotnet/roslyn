@@ -1,8 +1,10 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -13,30 +15,30 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal sealed class SortedSpans
     {
-        private readonly object mutex = new object();
-        private List<Span> spans = new List<Span>();
+        private readonly object _mutex = new object();
+        private List<Span> _spans = new List<Span>();
 
         public void Clear()
         {
-            spans = new List<Span>();
+            _spans = new List<Span>();
         }
 
         public void Add(Span span)
         {
-            Debug.Assert(spans.Count == 0 || span.Start >= spans.Last().End);
+            Debug.Assert(_spans.Count == 0 || span.Start >= _spans.Last().End);
             Debug.Assert(span.Length > 0);
 
-            lock (mutex)
+            lock (_mutex)
             {
-                int last = spans.Count - 1;
-                if (last >= 0 && spans[last].End == span.Start)
+                int last = _spans.Count - 1;
+                if (last >= 0 && _spans[last].End == span.Start)
                 {
                     // merge adjacent spans:
-                    spans[last] = new Span(spans[last].Start, spans[last].Length + span.Length);
+                    _spans[last] = new Span(_spans[last].Start, _spans[last].Length + span.Length);
                 }
                 else
                 {
-                    spans.Add(span);
+                    _spans.Add(span);
                 }
             }
         }
@@ -46,9 +48,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             List<Span> result = null;
             var comparer = SpanStartComparer.Instance;
 
-            lock (mutex)
+            lock (_mutex)
             {
-                int startIndex = spans.BinarySearch(span, comparer);
+                int startIndex = _spans.BinarySearch(span, comparer);
                 if (startIndex < 0)
                 {
                     startIndex = ~startIndex - 1;
@@ -56,13 +58,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (startIndex < 0)
                 {
-                    return SpecializedCollections.EmptyEnumerable<Span>();
+                    return Enumerable.Empty<Span>();
                 }
 
                 int spanEnd = span.End;
-                for (int i = startIndex; i < spans.Count && spans[i].Start < spanEnd; i++)
+                for (int i = startIndex; i < _spans.Count && _spans[i].Start < spanEnd; i++)
                 {
-                    var overlap = span.Overlap(spans[i]);
+                    var overlap = span.Overlap(_spans[i]);
                     if (overlap.HasValue)
                     {
                         if (result == null)
@@ -75,7 +77,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            return result ?? SpecializedCollections.EmptyEnumerable<Span>();
+            return result ?? Enumerable.Empty<Span>();
         }
 
         private sealed class SpanStartComparer : IComparer<Span>

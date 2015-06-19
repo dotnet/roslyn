@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class ContentTypeMetadata : IContentTypeMetadata
     {
-        public IEnumerable<string> ContentTypes { get; private set; }
+        public IEnumerable<string> ContentTypes { get; }
 
         public ContentTypeMetadata(IDictionary<string, object> data)
         {

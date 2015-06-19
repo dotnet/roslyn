@@ -163,5 +163,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 
             AssertRegion(expectedRegion, actualRegion);
         }
+
+        [WorkItem(791)]
+        [WorkItem(1108049)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public void TestIncompleteMultilineCommentZeroSpace()
+        {
+            var tree = ParseLines("/*");
+
+            var multiLineCommentTrivia = tree.GetRoot().FindToken(0).LeadingTrivia;
+            var regions = CSharpOutliningHelpers.CreateCommentRegions(multiLineCommentTrivia).ToList();
+            Assert.Equal(1, regions.Count);
+
+            var actualRegion = regions[0];
+            var expectedRegion = new OutliningSpan(
+                TextSpan.FromBounds(0, 2),
+                "/*  ...",
+                autoCollapse: true);
+
+            AssertRegion(expectedRegion, actualRegion);
+        }
+
+        [WorkItem(791)]
+        [WorkItem(1108049)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public void TestIncompleteMultilineCommentSingleSpace()
+        {
+            var tree = ParseLines("/* ");
+
+            var multiLineCommentTrivia = tree.GetRoot().FindToken(0).LeadingTrivia;
+            var regions = CSharpOutliningHelpers.CreateCommentRegions(multiLineCommentTrivia).ToList();
+            Assert.Equal(1, regions.Count);
+
+            var actualRegion = regions[0];
+            var expectedRegion = new OutliningSpan(
+                TextSpan.FromBounds(0, 3),
+                "/*  ...",
+                autoCollapse: true);
+
+            AssertRegion(expectedRegion, actualRegion);
+        }
     }
 }

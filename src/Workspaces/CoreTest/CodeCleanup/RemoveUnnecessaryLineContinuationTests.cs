@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1307,6 +1308,141 @@ End Module
             Verify(code, expected);
         }
 
+        [Fact]
+        [WorkItem(710, "#710")]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInStringInterpolation1()
+        {
+            var code = @"[|
+Module Program
+    Dim x = $""{ _
+            1}""
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Dim x = $""{ _
+            1}""
+End Module
+";
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(710, "#710")]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInStringInterpolation2()
+        {
+            var code = @"[|
+Module Program
+    Dim x = $""{1 _
+               }""
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Dim x = $""{1 _
+               }""
+End Module
+";
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(710, "#710")]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInStringInterpolation3()
+        {
+            var code = @"[|
+Module Program
+    Dim x = $""{ _
+
+1 _
+
+}""
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Dim x = $""{ _
+
+1 _
+
+}""
+End Module
+";
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [WorkItem(1085887)]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void DontRemoveLineContinuationInVisualBasic9()
+        {
+            var code = @"[|
+Module Program
+    Function Add( _
+        i As Integer, _
+        j As Integer, _
+    ) As Integer
+
+        Return i + j
+    End Function
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Function Add( _
+        i As Integer, _
+        j As Integer, _
+    ) As Integer
+
+        Return i + j
+    End Function
+End Module
+";
+            Verify(code, expected, langVersion: LanguageVersion.VisualBasic9);
+        }
+
+        [Fact]
+        [WorkItem(1085887)]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public void RemoveLineContinuationInVisualBasic10_11_12_And_14()
+        {
+            var code = @"[|
+Module Program
+    Function Add( _
+        i As Integer, _
+        j As Integer, _
+    ) As Integer
+
+        Return i + j
+    End Function
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Function Add(
+        i As Integer,
+        j As Integer,
+    ) As Integer
+
+        Return i + j
+    End Function
+End Module
+";
+
+            Verify(code, expected, langVersion: LanguageVersion.VisualBasic10);
+            Verify(code, expected, langVersion: LanguageVersion.VisualBasic11);
+            Verify(code, expected, langVersion: LanguageVersion.VisualBasic12);
+            Verify(code, expected);
+        }
+
         private string CreateMethod(string body)
         {
             return @"Imports System
@@ -1316,13 +1452,13 @@ Class C
 End Class";
         }
 
-        private void Verify(string codeWithMarker, string expectedResult)
+        private void Verify(string codeWithMarker, string expectedResult, LanguageVersion langVersion = LanguageVersion.VisualBasic14)
         {
             var codeWithoutMarker = default(string);
             var textSpans = (IList<TextSpan>)new List<TextSpan>();
             MarkupTestFile.GetSpans(codeWithMarker, out codeWithoutMarker, out textSpans);
 
-            var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
+            var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation || p.Name == PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups).Result;
@@ -1330,11 +1466,17 @@ End Class";
             Assert.Equal(expectedResult, cleanDocument.GetSyntaxRootAsync().Result.ToFullString());
         }
 
-        private static Document CreateDocument(string code, string language)
+        private static Document CreateDocument(string code, string language, LanguageVersion langVersion)
         {
             var solution = new AdhocWorkspace().CurrentSolution;
             var projectId = ProjectId.CreateNewId();
-            var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
+            var project = solution
+                .AddProject(projectId, "Project", "Project.dll", language)
+                .GetProject(projectId);
+
+            var parseOptions = (VisualBasicParseOptions)project.ParseOptions;
+            parseOptions = parseOptions.WithLanguageVersion(langVersion);
+            project = project.WithParseOptions(parseOptions);
 
             return project.AddDocument("Document", SourceText.From(code));
         }

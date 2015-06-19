@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits MethodSymbol
 
         Protected ReadOnly m_containingType As NamedTypeSymbol
-        Private m_lazyMeParameter As ParameterSymbol
+        Private _lazyMeParameter As ParameterSymbol
 
         Protected Sub New(container As NamedTypeSymbol)
             Debug.Assert(container IsNot Nothing)
@@ -165,11 +165,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If IsShared Then
                 meParameter = Nothing
             Else
-                If m_lazyMeParameter Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+                If _lazyMeParameter Is Nothing Then
+                    Interlocked.CompareExchange(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                 End If
 
-                meParameter = m_lazyMeParameter
+                meParameter = _lazyMeParameter
             End If
             Return True
         End Function

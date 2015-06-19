@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Winner writes diagnostics.
                     if (Interlocked.CompareExchange(ref _fixedSize, size, FixedSizeNotInitialized) == FixedSizeNotInitialized)
                     {
-                        this.AddSemanticDiagnostics(diagnostics);
+                        this.AddDeclarationDiagnostics(diagnostics);
                         if (state.NotePartComplete(CompletionPart.FixedSize))
                         {
                             // FixedSize is the last completion part for fields.
@@ -188,6 +188,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override CharSet MarshallingCharSet
+        {
+            get
+            {
+                // We manually propagate the CharSet field of StructLayout attribute for fabricated structs implementing fixed buffers.
+                // See void AttrBind::EmitStructLayoutAttributeCharSet(AttributeNode *attr) in native codebase.
+                return _field.ContainingType.MarshallingCharSet;
+            }
+        }
         internal override FieldSymbol FixedElementField
         {
             get { return _internalField; }

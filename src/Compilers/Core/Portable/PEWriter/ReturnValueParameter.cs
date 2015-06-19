@@ -23,7 +23,7 @@ namespace Microsoft.Cci
             get { return _containingMethod; }
         }
 
-        private IMethodDefinition _containingMethod;
+        private readonly IMethodDefinition _containingMethod;
 
         public IMetadataConstant Constant
         {

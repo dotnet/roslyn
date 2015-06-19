@@ -10,7 +10,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class LambdaRewriter
+    Friend Partial Class LambdaRewriter
 
         ''' <summary>
         ''' Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
@@ -19,11 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Class Analysis
             Inherits BoundTreeWalker
 
-            Private ReadOnly diagnostics As DiagnosticBag
-            Private ReadOnly method As MethodSymbol
+            Private ReadOnly _diagnostics As DiagnosticBag
+            Private ReadOnly _method As MethodSymbol
 
-            Dim currentParent As MethodSymbol
-            Dim currentBlock As BoundNode
+            Private _currentParent As MethodSymbol
+            Private _currentBlock As BoundNode
 
             ''' <summary>
             ''' Set to true of any lambda expressions were seen in the analyzed method body.
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' Set to true while we are analyzing the interior of an expression lambda.
             ''' </summary>
-            Private inExpressionLambda As Boolean
+            Private _inExpressionLambda As Boolean
 
             ''' <summary>
             ''' All symbols that should never be captured with a copy constructor of a closure.
@@ -122,11 +122,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend ReadOnly symbolsCapturedWithoutCopyCtor As ISet(Of Symbol)
 
             Private Sub New(method As MethodSymbol, symbolsCapturedWithoutCopyCtor As ISet(Of Symbol), diagnostics As DiagnosticBag)
-                Me.currentParent = method
-                Me.method = method
+                Me._currentParent = method
+                Me._method = method
                 Me.symbolsCapturedWithoutCopyCtor = symbolsCapturedWithoutCopyCtor
-                Me.diagnostics = diagnostics
-                Me.inExpressionLambda = False
+                Me._diagnostics = diagnostics
+                Me._inExpressionLambda = False
             End Sub
 
             ''' <summary>
@@ -145,12 +145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 End If
 
-                currentBlock = node
+                _currentBlock = node
 
-                If method IsNot Nothing Then
-                    For Each parameter In method.Parameters
-                        variableScope.Add(parameter, currentBlock)
-                        If inExpressionLambda Then
+                If _method IsNot Nothing Then
+                    For Each parameter In _method.Parameters
+                        variableScope.Add(parameter, _currentBlock)
+                        If _inExpressionLambda Then
                             declaredInsideExpressionLambda.Add(parameter)
                         End If
                     Next
@@ -239,22 +239,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Function PushBlock(node As BoundNode, locals As ImmutableArray(Of LocalSymbol)) As BoundNode
                 If (locals.IsEmpty) Then
-                    Return currentBlock
+                    Return _currentBlock
                 End If
 
-                Dim previousBlock = currentBlock
-                currentBlock = node
-                If currentBlock IsNot previousBlock Then
-                    blockParent.Add(currentBlock, previousBlock)
+                Dim previousBlock = _currentBlock
+                _currentBlock = node
+                If _currentBlock IsNot previousBlock Then
+                    blockParent.Add(_currentBlock, previousBlock)
                 End If
 
                 For Each local In locals
-                    Debug.Assert(local.ContainingSymbol = Me.currentParent OrElse
+                    Debug.Assert(local.ContainingSymbol = Me._currentParent OrElse
                                  local.ContainingSymbol.Kind <> SymbolKind.Method,
                                  "locals should be owned by current method")
 
-                    variableScope.Add(local, currentBlock)
-                    If inExpressionLambda Then
+                    variableScope.Add(local, _currentBlock)
+                    If _inExpressionLambda Then
                         declaredInsideExpressionLambda.Add(local)
                     End If
                 Next
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Sub PopBlock(previousBlock As BoundNode)
-                currentBlock = previousBlock
+                _currentBlock = previousBlock
             End Sub
 
             Public Overrides Function VisitCatchBlock(node As BoundCatchBlock) As BoundNode
@@ -298,37 +298,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Overloads Function VisitLambda(node As BoundLambda, convertToExpressionTree As Boolean) As BoundNode
                 Debug.Assert(node.LambdaSymbol IsNot Nothing)
                 seenLambda = True
-                Dim oldParent = currentParent
-                Dim oldBlock = currentBlock
-                currentParent = node.LambdaSymbol
-                currentBlock = node.Body
-                blockParent.Add(currentBlock, oldBlock)
+                Dim oldParent = _currentParent
+                Dim oldBlock = _currentBlock
+                _currentParent = node.LambdaSymbol
+                _currentBlock = node.Body
+                blockParent.Add(_currentBlock, oldBlock)
                 lambdaParent.Add(node.LambdaSymbol, oldParent)
 
-                Dim wasInExpressionLambda As Boolean = Me.inExpressionLambda
-                Me.inExpressionLambda = inExpressionLambda OrElse convertToExpressionTree
+                Dim wasInExpressionLambda As Boolean = Me._inExpressionLambda
+                Me._inExpressionLambda = _inExpressionLambda OrElse convertToExpressionTree
 
 
                 For Each parameter In node.LambdaSymbol.Parameters
-                    variableScope.Add(parameter, currentBlock)
-                    If inExpressionLambda Then
+                    variableScope.Add(parameter, _currentBlock)
+                    If _inExpressionLambda Then
                         declaredInsideExpressionLambda.Add(parameter)
                     End If
                 Next
 
                 For Each local In node.Body.Locals
-                    variableScope.Add(local, currentBlock)
-                    If inExpressionLambda Then
+                    variableScope.Add(local, _currentBlock)
+                    If _inExpressionLambda Then
                         declaredInsideExpressionLambda.Add(local)
                     End If
                 Next
 
                 Dim result = MyBase.VisitBlock(node.Body)
 
-                Me.inExpressionLambda = wasInExpressionLambda
+                Me._inExpressionLambda = wasInExpressionLambda
 
-                currentParent = oldParent
-                currentBlock = oldBlock
+                _currentParent = oldParent
+                _currentBlock = oldBlock
 
                 Return result
             End Function
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '''       However, we explicitly do not consider frame optimizations in this analysis.
             ''' </summary>
             Private Sub RecordCaptureInIntermediateBlocks(variableOrParameter As Symbol)
-                Dim curBlock As BoundNode = currentBlock
+                Dim curBlock As BoundNode = _currentBlock
 
                 Dim declBlock As BoundNode = Nothing
                 If Not variableScope.TryGetValue(variableOrParameter, declBlock) Then
@@ -400,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private Sub ReferenceVariable(variableOrParameter As Symbol, syntax As VisualBasicSyntaxNode)
                 ' No need to do anything if we are not in a lambda.
-                If currentParent.MethodKind <> MethodKind.LambdaMethod Then
+                If _currentParent.MethodKind <> MethodKind.LambdaMethod Then
                     Return
                 End If
 
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim container = variableOrParameter.ContainingSymbol
                 Debug.Assert(container IsNot Nothing)
 
-                Dim parent = currentParent
+                Dim parent = _currentParent
                 Dim isCaptured As Boolean = False
 
                 If parent IsNot Nothing AndAlso parent <> container Then
@@ -453,26 +453,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If type.IsRestrictedType Then
-                    If Binder.IsTopMostEnclosingLambdaAQueryLambda(currentParent, variableOrParameter.ContainingSymbol) Then
-                        diagnostics.Add(ERRID.ERR_CannotLiftRestrictedTypeQuery, syntax.GetLocation(), type)
+                    If Binder.IsTopMostEnclosingLambdaAQueryLambda(_currentParent, variableOrParameter.ContainingSymbol) Then
+                        _diagnostics.Add(ERRID.ERR_CannotLiftRestrictedTypeQuery, syntax.GetLocation(), type)
                     Else
-                        diagnostics.Add(ERRID.ERR_CannotLiftRestrictedTypeLambda, syntax.GetLocation(), type)
+                        _diagnostics.Add(ERRID.ERR_CannotLiftRestrictedTypeLambda, syntax.GetLocation(), type)
                     End If
                 End If
             End Sub
 
             Public Overrides Function VisitMeReference(node As BoundMeReference) As BoundNode
-                ReferenceVariable(Me.method.MeParameter, node.Syntax)
+                ReferenceVariable(Me._method.MeParameter, node.Syntax)
                 Return MyBase.VisitMeReference(node)
             End Function
 
             Public Overrides Function VisitMyClassReference(node As BoundMyClassReference) As BoundNode
-                ReferenceVariable(Me.method.MeParameter, node.Syntax)
+                ReferenceVariable(Me._method.MeParameter, node.Syntax)
                 Return MyBase.VisitMyClassReference(node)
             End Function
 
             Public Overrides Function VisitMyBaseReference(node As BoundMyBaseReference) As BoundNode
-                ReferenceVariable(Me.method.MeParameter, node.Syntax)
+                ReferenceVariable(Me._method.MeParameter, node.Syntax)
                 Return MyBase.VisitMyBaseReference(node)
             End Function
 
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
-                labelBlock.Add(node.Label, currentBlock)
+                labelBlock.Add(node.Label, _currentBlock)
 
                 Return MyBase.VisitLabelStatement(node)
             End Function
@@ -529,7 +529,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If MayParticipateInIllegalBranch(node) Then
-                    gotoBlock.Add(node, currentBlock)
+                    gotoBlock.Add(node, _currentBlock)
                 End If
 
                 Return MyBase.VisitGotoStatement(node)

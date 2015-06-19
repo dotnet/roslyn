@@ -14,7 +14,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class Symbol
+    Friend Partial Class Symbol
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.

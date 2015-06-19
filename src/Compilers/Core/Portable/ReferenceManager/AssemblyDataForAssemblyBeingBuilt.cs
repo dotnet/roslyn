@@ -145,12 +145,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
-            {
-                majorVersion = 0;
-                minorVersion = 0;
-                return false;
-            }
+            public override Compilation SourceCompilation => null;
         }
     }
 }

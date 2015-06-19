@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Xml;
@@ -48,6 +50,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             DtdProcessing = DtdProcessing.Prohibit,
         };
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
+            MessageId = "System.Xml.XmlReader.Create",
+            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
+XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
+However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
+So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private void ParseInternal<TArg>(string text, Action<XmlReader, TArg> callback, TArg arg)
         {
             _textReader.SetText(text);

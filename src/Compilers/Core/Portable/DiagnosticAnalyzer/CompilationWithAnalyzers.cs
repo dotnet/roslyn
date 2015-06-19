@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -13,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly AnalyzerDriver _driver;
         private readonly Compilation _compilation;
         private readonly CancellationToken _cancellationToken;
+        private readonly ConcurrentSet<Diagnostic> _exceptionDiagnostics;
 
         public Compilation Compilation
         {
@@ -28,8 +31,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken)
         {
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            VerifyAnalyzersArgument(analyzers);
+
             _cancellationToken = cancellationToken;
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Default, out _compilation, _cancellationToken);
+            _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
+        }
+
+        private static void VerifyAnalyzersArgument(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (analyzers.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
+            }
+
+            if (analyzers.Any(a => a == null))
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
+            }
+        }
+
+        private void AddExceptionDiagnostic(Diagnostic diagnostic)
+        {
+            _exceptionDiagnostics.Add(diagnostic);
         }
 
         /// <summary>
@@ -53,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> compilerDiagnostics = _compilation.GetDiagnostics(_cancellationToken);
 
             ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
-            return compilerDiagnostics.AddRange(analyzerDiagnostics);
+            return compilerDiagnostics.AddRange(analyzerDiagnostics).AddRange(_exceptionDiagnostics);
         }
 
         /// <summary>
@@ -76,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var suppressMessageState = AnalyzerDriver.SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-            foreach (var diagnostic in diagnostics)
+            foreach (var diagnostic in diagnostics.ToImmutableArray())
             {
                 if (diagnostic != null)
                 {
@@ -91,9 +120,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
-        /// <paramref name="continueOnAnalyzerException"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
+        /// <param name="analyzer">Analyzer to be checked for suppression.</param>
+        /// <param name="options">Compilation options.</param>
+        /// <param name="onAnalyzerException">
+        /// Optional delegate which is invoked when an analyzer throws an exception.
+        /// Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
+        /// </param>
         /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException)
+        public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
         {
             if (analyzer == null)
             {
@@ -105,13 +139,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (continueOnAnalyzerException == null)
-            {
-                throw new ArgumentNullException(nameof(continueOnAnalyzerException));
-            }
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> voidHandler = (ex, a, diag) => { };
+            onAnalyzerException = onAnalyzerException ?? voidHandler;
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
 
-            Action<Diagnostic> dummy = _ => { };
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, AnalyzerManager.Default, options, dummy, continueOnAnalyzerException, CancellationToken.None);
+            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
+        }
+
+        /// <summary>
+        /// This method should be invoked when the analyzer host is disposing off the given <paramref name="analyzers"/>.
+        /// It clears the cached internal state (supported descriptors, registered actions, exception handlers, etc.) for analyzers.
+        /// </summary>
+        /// <param name="analyzers">Analyzers whose state needs to be cleared.</param>
+        public static void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            VerifyAnalyzersArgument(analyzers);
+
+            AnalyzerManager.Instance.ClearAnalyzerState(analyzers);
         }
     }
 }

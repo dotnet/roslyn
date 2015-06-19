@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.Simplification
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Else
                     Throw New ArgumentException(
                         VBWorkspaceResources.CannotMakeExplicit,
-                        paramName:="node")
+                        paramName:=NameOf(node))
                 End If
             End Using
         End Function
@@ -162,5 +163,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 TypeOf node Is VariableDeclaratorSyntax AndAlso
                 TypeOf node.Parent Is FieldDeclarationSyntax
         End Function
+
+        Private Shared ReadOnly s_BC50000_UnusedImportsClause As String = "BC50000"
+        Private Shared ReadOnly s_BC50001_UnusedImportsStatement As String = "BC50001"
+
+        Protected Overrides Sub GetUnusedNamespaceImports(model As SemanticModel, namespaceImports As HashSet(Of SyntaxNode), cancellationToken As CancellationToken)
+            Dim root = model.SyntaxTree.GetRoot()
+            Dim diagnostics = model.GetDiagnostics(cancellationToken:=cancellationToken)
+
+            For Each diagnostic In diagnostics
+                If diagnostic.Id = s_BC50000_UnusedImportsClause OrElse diagnostic.Id = s_BC50001_UnusedImportsStatement Then
+                    Dim node = root.FindNode(diagnostic.Location.SourceSpan)
+                    Dim statement = TryCast(node, ImportsStatementSyntax)
+                    Dim clause = TryCast(node, ImportsStatementSyntax)
+                    If statement IsNot Nothing Or clause IsNot Nothing Then
+                        namespaceImports.Add(node)
+                    End If
+                End If
+            Next
+        End Sub
+
     End Class
 End Namespace

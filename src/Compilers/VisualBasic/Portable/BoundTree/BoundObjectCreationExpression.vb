@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundObjectCreationExpression
+    Friend Partial Class BoundObjectCreationExpression
 
         Public Sub New(syntax As VisualBasicSyntaxNode, constructorOpt As MethodSymbol, arguments As ImmutableArray(Of BoundExpression), initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             Me.New(syntax, constructorOpt, Nothing, arguments, initializerOpt, type, hasErrors)

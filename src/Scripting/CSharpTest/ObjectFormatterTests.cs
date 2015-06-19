@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
                 var str = CSharpObjectFormatter.Instance.FormatObject(obj, options);
 
                 var expected = output.Substring(0, i - " ...".Length);
-                if (!expected.EndsWith(" "))
+                if (!expected.EndsWith(" ", StringComparison.Ordinal))
                 {
                     expected += " ";
                 }
@@ -1334,7 +1334,7 @@ End Class
             var compilation = VB.VisualBasicCompilation.Create(
                 "foo",
                 new[] { VB.VisualBasicSyntaxTree.ParseText(source) },
-                new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
+                new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
                 new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));
 
             Assembly a;

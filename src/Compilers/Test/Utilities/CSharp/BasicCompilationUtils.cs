@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references = new[] { TestBase.MscorlibRef };
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = s_instance.CompileAndVerify(compilation, emitOptions: TestEmitters.CCI, verify: verify);
+            var verifier = Instance.CompileAndVerify(compilation, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, options);
         }
 
-        private static BasicTestBase s_instance = new BasicTestBase();
+        private static BasicTestBase s_instance;
+
+        private static BasicTestBase Instance => s_instance ?? (s_instance = new BasicTestBase());
 
         private sealed class BasicTestBase : CommonTestBase
         {
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 get { throw new NotImplementedException(); }
             }
 
-            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options)
+            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
             {
                 throw new NotImplementedException();
             }

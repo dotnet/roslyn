@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
             Return compilation.ClassifyConversion(sourceType, targetType).IsWidening
         End Function
 
-        Private Shared ReadOnly annotation As SyntaxAnnotation = New SyntaxAnnotation
+        Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
 
         Friend Overrides Function GetDelegatingConstructor(state As State, document As SemanticDocument, argumentCount As Integer, namedType As INamedTypeSymbol, candidates As ISet(Of IMethodSymbol), cancellationToken As CancellationToken) As IMethodSymbol
             Dim oldToken = state.Token
@@ -164,15 +164,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
                     meOrMybaseExpression = SyntaxFactory.MyBaseExpression
                 End If
 
-                Dim newInvocation = invocation.ReplaceNode(memberAccess.Expression, meOrMybaseExpression).WithAdditionalAnnotations(annotation)
+                Dim newInvocation = invocation.ReplaceNode(memberAccess.Expression, meOrMybaseExpression).WithAdditionalAnnotations(s_annotation)
                 Dim newInvocationStatement = invocationStatement.ReplaceNode(invocation, newInvocation)
-                newInvocation = DirectCast(newInvocationStatement.GetAnnotatedNodes(annotation).Single(), InvocationExpressionSyntax)
+                newInvocation = DirectCast(newInvocationStatement.GetAnnotatedNodes(s_annotation).Single(), InvocationExpressionSyntax)
 
                 Dim oldArgumentList = newInvocation.ArgumentList
                 Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
                 If (newArgumentList IsNot oldArgumentList) Then
                     newInvocationStatement = newInvocationStatement.ReplaceNode(oldArgumentList, newArgumentList)
-                    newInvocation = DirectCast(newInvocationStatement.GetAnnotatedNodes(annotation).Single(), InvocationExpressionSyntax)
+                    newInvocation = DirectCast(newInvocationStatement.GetAnnotatedNodes(s_annotation).Single(), InvocationExpressionSyntax)
                 End If
 
                 Dim speculativeModel As SemanticModel = Nothing
@@ -198,20 +198,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateConstructor
                         typeNameToReplace = parentType
                     End While
 
-                    newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(annotation)
+                    newTypeName = namedType.GenerateTypeSyntax().WithAdditionalAnnotations(s_annotation)
                 Else
-                    newTypeName = typeNameToReplace.WithAdditionalAnnotations(annotation)
+                    newTypeName = typeNameToReplace.WithAdditionalAnnotations(s_annotation)
                 End If
 
                 Dim newNode = oldNode.ReplaceNode(typeNameToReplace, newTypeName)
-                newTypeName = DirectCast(newNode.GetAnnotatedNodes(annotation).[Single](), TypeSyntax)
+                newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).[Single](), TypeSyntax)
 
                 Dim oldArgumentList = DirectCast(newTypeName.Parent.ChildNodes().FirstOrDefault(Function(n) TypeOf n Is ArgumentListSyntax), ArgumentListSyntax)
                 If oldArgumentList IsNot Nothing Then
                     Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
                     If newArgumentList IsNot oldArgumentList Then
                         newNode = newNode.ReplaceNode(oldArgumentList, newArgumentList)
-                        newTypeName = DirectCast(newNode.GetAnnotatedNodes(annotation).Single(), TypeSyntax)
+                        newTypeName = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), TypeSyntax)
                     End If
                 End If
 

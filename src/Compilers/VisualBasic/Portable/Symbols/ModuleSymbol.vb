@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' by this module. Items at the same position from GetReferencedAssemblies and 
         ''' from GetReferencedAssemblySymbols should correspond to each other. If reference is 
         ''' not resolved by compiler, GetReferencedAssemblySymbols returns MissingAssemblySymbol in the
-        ''' correspnding item.
+        ''' corresponding item.
         ''' 
         ''' The array and its content is provided by ReferenceManager and must not be modified.
         ''' </summary>
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Function GetModuleNamespace(namespaceSymbol As INamespaceSymbol) As NamespaceSymbol
             If namespaceSymbol Is Nothing Then
-                Throw New ArgumentNullException("namespaceSymbol")
+                Throw New ArgumentNullException(NameOf(namespaceSymbol))
             End If
 
             Dim moduleNs = TryCast(namespaceSymbol, NamespaceSymbol)
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IModuleSymbol_ReferencedAssemblySymbols As ImmutableArray(Of IAssemblySymbol) Implements IModuleSymbol.ReferencedAssemblySymbols
             Get
-                Return ImmutableArray.Create(Of IAssemblySymbol, AssemblySymbol)(ReferencedAssemblySymbols)
+                Return ImmutableArray(Of IAssemblySymbol).CastUp(ReferencedAssemblySymbols)
             End Get
         End Property
 

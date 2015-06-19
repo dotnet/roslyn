@@ -4,6 +4,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     public class InteractiveLanguageNames
     {
-        public const string InteractiveCommand = "Roslyn Interactive Command";
+        public const string InteractiveCommand = "Interactive Command";
     }
 }

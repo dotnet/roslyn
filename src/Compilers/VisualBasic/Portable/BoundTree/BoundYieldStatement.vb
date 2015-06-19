@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundYieldStatement
+    Friend Partial Class BoundYieldStatement
 
         ''' <summary>
         ''' Suppresses RValue validation when constructing the node. 
-        ''' Must be used _only_ when performing lambda inference where RValue inconsistency on this node is intentinally allowed.
+        ''' Must be used _only_ when performing lambda inference where RValue inconsistency on this node is intentionally allowed.
         ''' If such node makes into a regular bound tree it will be eventually rewritten (all Yields are rewritten at some point)
         ''' and that will trigger validation.
         ''' </summary>

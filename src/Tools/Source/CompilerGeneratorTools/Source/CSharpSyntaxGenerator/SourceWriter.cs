@@ -741,7 +741,7 @@ namespace CSharpSyntaxGenerator
                 if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
                     WriteLine("      if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("        throw new ArgumentNullException(\"{0}\");", CamelCase(field.Name));
+                    WriteLine("        throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
                 }
                 if (field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count > 0)
                 {
@@ -1458,17 +1458,17 @@ namespace CSharpSyntaxGenerator
 
         protected bool CanBeAutoCreated(Node node, Field field)
         {
-            return IsAutoCreatableToken(node, field) || IsAutoCreateableNode(node, field);
+            return IsAutoCreatableToken(node, field) || IsAutoCreatableNode(node, field);
         }
 
         private bool IsAutoCreatableToken(Node node, Field field)
         {
             return field.Type == "SyntaxToken"
                 && field.Kinds != null
-                && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken")) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
+                && ((field.Kinds.Count == 1 && field.Kinds[0].Name != "IdentifierToken" && !field.Kinds[0].Name.EndsWith("LiteralToken", StringComparison.Ordinal)) || (field.Kinds.Count > 1 && field.Kinds.Count == node.Kinds.Count));
         }
 
-        private bool IsAutoCreateableNode(Node node, Field field)
+        private bool IsAutoCreatableNode(Node node, Field field)
         {
             var referencedNode = GetNode(field.Type);
             return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);
@@ -1594,7 +1594,7 @@ namespace CSharpSyntaxGenerator
                 else if (!IsAnyList(field.Type) && !IsOptional(field))
                 {
                     WriteLine("      if ({0} == null)", CamelCase(field.Name));
-                    WriteLine("        throw new ArgumentNullException(\"{0}\");", CamelCase(field.Name));
+                    WriteLine("        throw new ArgumentNullException(nameof({0}));", CamelCase(field.Name));
                 }
             }
 

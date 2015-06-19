@@ -16,15 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
         Private Structure CodeShapeAnalyzer
 
-            Private ReadOnly context As FormattingContext
-            Private ReadOnly optionSet As OptionSet
-            Private ReadOnly list As TriviaList
+            Private ReadOnly _context As FormattingContext
+            Private ReadOnly _optionSet As OptionSet
+            Private ReadOnly _list As TriviaList
 
-            Private indentation As Integer
-            Private trailingSpaces As Integer
-            Private currentColumn As Integer
-            Private lastLineBreakIndex As Integer
-            Private touchedNoisyCharacterOnCurrentLine As Boolean
+            Private _indentation As Integer
+            Private _trailingSpaces As Integer
+            Private _currentColumn As Integer
+            Private _lastLineBreakIndex As Integer
+            Private _touchedNoisyCharacterOnCurrentLine As Boolean
 
             Public Shared Function ShouldFormatMultiLine(context As FormattingContext,
                                                 beginningOfNewLine As Boolean,
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
                         Debug.Assert(trivia.ToString() = trivia.ToFullString())
                         Dim text = trivia.ToString()
-                        If text.IndexOf(vbTab) >= 0 Then
+                        If text.IndexOf(vbTab, StringComparison.Ordinal) >= 0 Then
                             Return True
                         End If
                     End If
@@ -85,20 +85,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Private Sub New(context As FormattingContext,
                             beginningOfNewLine As Boolean,
                             list As TriviaList)
-                Me.context = context
-                Me.optionSet = context.OptionSet
-                Me.list = list
+                Me._context = context
+                Me._optionSet = context.OptionSet
+                Me._list = list
 
-                Me.indentation = 0
-                Me.trailingSpaces = 0
-                Me.currentColumn = 0
-                Me.lastLineBreakIndex = If(beginningOfNewLine, 0, -1)
-                Me.touchedNoisyCharacterOnCurrentLine = False
+                Me._indentation = 0
+                Me._trailingSpaces = 0
+                Me._currentColumn = 0
+                Me._lastLineBreakIndex = If(beginningOfNewLine, 0, -1)
+                Me._touchedNoisyCharacterOnCurrentLine = False
             End Sub
 
             Private ReadOnly Property UseIndentation As Boolean
                 Get
-                    Return Me.lastLineBreakIndex >= 0 AndAlso Not Me.touchedNoisyCharacterOnCurrentLine
+                    Return Me._lastLineBreakIndex >= 0 AndAlso Not Me._touchedNoisyCharacterOnCurrentLine
                 End Get
             End Property
 
@@ -117,27 +117,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim text = trivia.ToString()
 
                 ' if text contains tab, we will give up perf optimization and use more expensive one to see whether we need to format this trivia
-                If text.IndexOf(vbTab) >= 0 Then
+                If text.IndexOf(vbTab, StringComparison.Ordinal) >= 0 Then
                     Return True
                 End If
 
-                Dim currentSpaces = text.ConvertTabToSpace(optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), Me.currentColumn, text.Length)
+                Dim currentSpaces = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), Me._currentColumn, text.Length)
 
-                If currentIndex + 1 < Me.list.Count AndAlso Me.list(currentIndex + 1).RawKind = SyntaxKind.LineContinuationTrivia Then
+                If currentIndex + 1 < Me._list.Count AndAlso Me._list(currentIndex + 1).RawKind = SyntaxKind.LineContinuationTrivia Then
                     If currentSpaces <> 1 Then
                         Return True
                     End If
                 End If
 
                 ' keep track of current column on this line
-                Me.currentColumn += currentSpaces
+                Me._currentColumn += currentSpaces
 
                 ' keep track of trailing space after noisy token
-                Me.trailingSpaces += currentSpaces
+                Me._trailingSpaces += currentSpaces
 
                 ' keep track of indentation after new line
-                If Not Me.touchedNoisyCharacterOnCurrentLine Then
-                    Me.indentation += currentSpaces
+                If Not Me._touchedNoisyCharacterOnCurrentLine Then
+                    Me._indentation += currentSpaces
                 End If
 
                 Return False
@@ -145,13 +145,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Private Sub ResetStateAfterNewLine(currentIndex As Integer)
                 ' reset states for current line
-                Me.currentColumn = 0
-                Me.trailingSpaces = 0
-                Me.indentation = 0
-                Me.touchedNoisyCharacterOnCurrentLine = False
+                Me._currentColumn = 0
+                Me._trailingSpaces = 0
+                Me._indentation = 0
+                Me._touchedNoisyCharacterOnCurrentLine = False
 
                 ' remember last line break index
-                Me.lastLineBreakIndex = currentIndex
+                Me._lastLineBreakIndex = currentIndex
             End Sub
 
             Private Function OnEndOfLine(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
@@ -160,12 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 ' end of line trivia right after whitespace trivia
-                If Me.trailingSpaces > 0 Then
+                If Me._trailingSpaces > 0 Then
                     ' has trailing whitespace
                     Return True
                 End If
 
-                If Me.indentation > 0 AndAlso Not Me.touchedNoisyCharacterOnCurrentLine Then
+                If Me._indentation > 0 AndAlso Not Me._touchedNoisyCharacterOnCurrentLine Then
                     ' we have empty line with spaces. remove spaces
                     Return True
                 End If
@@ -175,8 +175,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Sub MarkTouchedNoisyCharacter()
-                Me.touchedNoisyCharacterOnCurrentLine = True
-                Me.trailingSpaces = 0
+                Me._touchedNoisyCharacterOnCurrentLine = True
+                Me._trailingSpaces = 0
             End Sub
 
             Private Function OnLineContinuation(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return False
                 End If
 
-                If Me.UseIndentation AndAlso Me.indentation <> 1 Then
+                If Me.UseIndentation AndAlso Me._indentation <> 1 Then
                     Return True
                 End If
 
@@ -217,13 +217,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 ' check whether indentation are right
-                If Me.UseIndentation AndAlso Me.indentation <> Me.context.GetBaseIndentation(trivia.SpanStart) Then
+                If Me.UseIndentation AndAlso Me._indentation <> Me._context.GetBaseIndentation(trivia.SpanStart) Then
                     ' comment has wrong indentation
                     Return True
                 End If
 
                 If trivia.Kind = SyntaxKind.DocumentationCommentTrivia AndAlso
-                   ShouldFormatDocumentationComment(indentation, optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), trivia) Then
+                   ShouldFormatDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), trivia) Then
                     Return True
                 End If
 
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return True
                 End If
 
-                If Me.indentation <> Me.context.GetBaseIndentation(trivia.SpanStart) Then
+                If Me._indentation <> Me._context.GetBaseIndentation(trivia.SpanStart) Then
                     Return True
                 End If
 
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Private Function ShouldFormat() As Boolean
                 Dim index = -1
-                For Each trivia In Me.list
+                For Each trivia In Me._list
                     index = index + 1
 
                     If OnElastic(trivia) OrElse

@@ -1,12 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias WORKSPACES;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -87,6 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
+        public IContentType ContentType 
+        {
+            get 
+            {
+                return _contentType;
+            }
+        }
+
         public IInteractiveWindow CurrentWindow
         {
             get
@@ -118,11 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 return _interactiveCommands;
             }
-        }
-
-        public IContentType ContentType
-        {
-            get { return _contentType; }
         }
 
         protected abstract string LanguageName { get; }
@@ -191,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             {
                 // The base directory for relative paths is the directory that contains the .rsp file.
                 // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                var rspArguments = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, Path.GetDirectoryName(_responseFilePath), null /* TODO: pass a valid value*/);
+                var rspArguments = this.CommandLineParser.Parse(new[] { "@" + _responseFilePath }, Path.GetDirectoryName(_responseFilePath), RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
                 referencePaths = rspArguments.ReferencePaths;
 
                 // the base directory for references specified in the .rsp file is the .rsp file directory:
@@ -413,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         #region IInteractiveEngine
 
-        public virtual bool CanExecuteText(string text)
+        public virtual bool CanExecuteCode(string text)
         {
             if (_interactiveCommands != null && _interactiveCommands.InCommand)
             {
@@ -424,9 +429,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         public Task<ExecutionResult> ResetAsync(bool initialize = true)
         {
-            GetInteractiveWindow().AddLogicalInput(_interactiveCommands.CommandPrefix + "reset");
+            GetInteractiveWindow().AddInput(_interactiveCommands.CommandPrefix + "reset");
             GetInteractiveWindow().WriteLine("Resetting execution engine.");
-            GetInteractiveWindow().Flush();
+            GetInteractiveWindow().FlushOutput();
 
             return ResetAsyncWorker(initialize);
         }
@@ -448,13 +453,13 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
-        public async Task<ExecutionResult> ExecuteTextAsync(string text)
+        public async Task<ExecutionResult> ExecuteCodeAsync(string text)
         {
             try
             {
@@ -476,11 +481,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         public async Task<ExecutionResult> LoadCommandAsync(string path)
         {
@@ -504,11 +509,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                 return new ExecutionResult(result.Success);
             }
-            catch (Exception e) when(FatalError.Report(e))
+            catch (Exception e) when (FatalError.Report(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         private void SubmissionSuccessfullyExecuted(RemoteExecutionResult result)
         {
@@ -525,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             UpdateLocalPaths(result.NewReferencePaths, result.NewSourcePaths, result.NewWorkingDirectory);
         }
 
-        public void AbortCommand()
+        public void AbortExecution()
         {
             // TODO: abort execution
         }

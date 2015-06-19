@@ -25,32 +25,32 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class AddMissingTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Private ReadOnly document As Document
-            Private ReadOnly modifiedSpan As TextSpan
+            Private ReadOnly _document As Document
+            Private ReadOnly _modifiedSpan As TextSpan
 
-            Private model As SemanticModel = Nothing
+            Private _model As SemanticModel = Nothing
 
             Public Sub New(document As Document, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
 
-                Me.document = document
-                Me.modifiedSpan = spans.Collapse()
+                Me._document = document
+                Me._modifiedSpan = spans.Collapse()
             End Sub
 
             Private ReadOnly Property SemanticModel As SemanticModel
                 Get
-                    If document Is Nothing Then
+                    If _document Is Nothing Then
                         Return Nothing
                     End If
 
-                    If model Is Nothing Then
+                    If _model Is Nothing Then
                         ' don't want to create semantic model when it is not needed. so get it synchronously when needed
                         ' most of cases, this will run on UI thread, so it shouldn't matter
-                        model = document.GetSemanticModelForSpanAsync(modifiedSpan, Me._cancellationToken).WaitAndGetResult(Me._cancellationToken)
+                        _model = _document.GetSemanticModelForSpanAsync(_modifiedSpan, Me._cancellationToken).WaitAndGetResult(Me._cancellationToken)
                     End If
 
-                    Contract.Requires(model IsNot Nothing)
-                    Return model
+                    Contract.Requires(_model IsNot Nothing)
+                    Return _model
                 End Get
             End Property
 
@@ -418,6 +418,17 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return AddMissingOrOmittedTokenTransform(node, MyBase.VisitContinueStatement(node), Function(n) n.BlockKeyword, SyntaxKind.DoKeyword, SyntaxKind.ForKeyword, SyntaxKind.WhileKeyword)
             End Function
 
+            Public Overrides Function VisitOptionStatement(node As OptionStatementSyntax) As SyntaxNode
+                Select Case node.NameKeyword.Kind
+                    Case SyntaxKind.ExplicitKeyword,
+                        SyntaxKind.InferKeyword,
+                        SyntaxKind.StrictKeyword
+                        Return AddMissingOrOmittedTokenTransform(node, node, Function(n) n.ValueKeyword, SyntaxKind.OnKeyword, SyntaxKind.OffKeyword)
+                    Case Else
+                        Return node
+                End Select
+            End Function
+
             Public Overrides Function VisitSelectStatement(node As SelectStatementSyntax) As SyntaxNode
                 Dim newNode = DirectCast(MyBase.VisitSelectStatement(node), SelectStatementSyntax)
                 Return If(newNode.CaseKeyword.Kind = SyntaxKind.None,
@@ -508,6 +519,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                             End If
 
                         End If
+
+                    Case SyntaxKind.OnKeyword
+                        Dim optionStatement = TryCast(originalParent, OptionStatementSyntax)
+                        If optionStatement IsNot Nothing Then
+                            Return optionStatement.WithValueKeyword(newToken)
+                        End If
                 End Select
 
                 Return originalParent
@@ -524,6 +541,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return If(parent.GetAncestor(Of MultiLineIfBlockSyntax)() IsNot Nothing, CreateOmittedToken(token, SyntaxKind.ThenKeyword), token)
                 ElseIf parent.TypeSwitch(Function(p As IfDirectiveTriviaSyntax) p.ThenKeyword = originalToken) Then
                     Return CreateOmittedToken(token, SyntaxKind.ThenKeyword)
+                ElseIf parent.TypeSwitch(Function(p As OptionStatementSyntax) p.ValueKeyword = originalToken) Then
+                    Return CreateOmittedToken(token, SyntaxKind.OnKeyword)
                 End If
 
                 Return token

@@ -3831,5 +3831,246 @@ End Class
 
             Test(code, expected, compareTokens:=False)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub TestSimpleConditionalAccess()
+            Dim code =
+<File>
+Class C
+    Sub M(args As String())
+        Dim [|x|] = args.Length.ToString()
+        Dim y = x?.ToString()
+        Dim y1 = x?!dictionarykey
+        Dim y2 = x?.&lt;xmlelement&gt;
+        Dim y3 = x?...&lt;xmldescendant&gt;
+        Dim y4 = x?.@xmlattribute
+    End Sub
+End Class
+</File>
+
+            Dim expected =
+<File>
+Class C
+    Sub M(args As String())
+        Dim y = args.Length.ToString()?.ToString()
+        Dim y1 = args.Length.ToString()?!dictionarykey
+        Dim y2 = args.Length.ToString()?.&lt;xmlelement&gt;
+        Dim y3 = args.Length.ToString()?...&lt;xmldescendant&gt;
+        Dim y4 = args.Length.ToString()?.@xmlattribute
+    End Sub
+End Class
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(1025, "https://github.com/dotnet/roslyn/issues/1025")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub TestConditionalAccessWithConversion()
+            Dim code =
+<File>
+Class C
+    Function M(args As String()) As Boolean
+        Dim [|x|] = args(0)
+        Return x?.Length = 0
+    End Function
+End Class
+</File>
+
+            Dim expected =
+<File>
+Class C
+    Function M(args As String()) As Boolean
+        Return args(0)?.Length = 0
+    End Function
+End Class
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub TestConditionalAccessWithConditionalExpression()
+            Dim code =
+<File>
+Class C
+    Sub M(args As String())
+        Dim [|x|] = If(args(0)?.Length, 10)
+        Dim y = If(x = 10, 10, 4)
+    End Sub
+End Class
+</File>
+
+            Dim expected =
+<File>
+Class C
+    Sub M(args As String())
+        Dim y = If(If(args(0)?.Length, 10) = 10, 10, 4)
+    End Sub
+End Class
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        Public Sub TestConditionalAccessWithExtensionMethodInvocation()
+            Dim code =
+<File><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim [|assembly|] = t?.Something().First()
+            Dim identity = assembly?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Dim expected =
+<File><![CDATA[
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim identity = (t?.Something().First())?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
+        Public Sub TestConditionalAccessWithExtensionMethodInvocation_2()
+            Dim code =
+<File><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim [|assembly|] = t?.Something2?()?.Something().First()
+            Dim identity = (assembly)?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Dim expected =
+<File><![CDATA[
+Imports System.Runtime.CompilerServices
+
+Module M
+    <Extension()>
+    Public Function Something(cust As C) As IEnumerable(Of String)
+        Throw New NotImplementedException()
+    End Function
+
+    <Extension()>
+    Public Function Something2(cust As C) As Func(Of C)
+        Throw New NotImplementedException()
+    End Function
+End Module
+
+Class C
+    Private Function GetAssemblyIdentity(types As IEnumerable(Of C)) As Object
+        For Each t In types
+            Dim identity = ((t?.Something2?()?.Something().First()))?.ToArray()
+        Next
+        Return Nothing
+    End Function
+End Class]]>
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub TestXmlLiteral()
+            Dim code =
+<File>
+Class C
+    Sub M(args As String())
+        Dim [|x|] = &lt;xml&gt;Hello&lt;/xml&gt;
+        Dim y = x.&lt;xmlelement&gt;
+        Dim y1 = x?.&lt;xmlelement&gt;
+    End Sub
+End Class
+</File>
+
+            Dim expected =
+<File>
+Class C
+    Sub M(args As String())
+        Dim y = (&lt;xml&gt;Hello&lt;/xml&gt;).&lt;xmlelement&gt;
+        Dim y1 = (&lt;xml&gt;Hello&lt;/xml&gt;)?.&lt;xmlelement&gt;
+    End Sub
+End Class
+</File>
+
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
+        <WorkItem(2671, "https://github.com/dotnet/roslyn/issues/2671")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Sub ReplaceReferencesInWithBlocks()
+            Dim code =
+<MethodBody>
+Dim [||]s As String = "test"
+With s
+    .ToLower()
+End With
+</MethodBody>
+
+            Dim expected =
+<MethodBody>
+With "test"
+    Call .ToLower()
+End With
+</MethodBody>
+            ' Introduction of the Call keyword in this scenario is by design, see bug 529694.
+            Test(code, expected, compareTokens:=False)
+        End Sub
+
     End Class
 End Namespace

@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             this.EndToken = endToken;
         }
 
-        public SyntaxToken AnchorToken { get; private set; }
-        public TextSpan TextSpan { get; private set; }
+        public SyntaxToken AnchorToken { get; }
+        public TextSpan TextSpan { get; }
 
-        public SyntaxToken StartToken { get; private set; }
-        public SyntaxToken EndToken { get; private set; }
+        public SyntaxToken StartToken { get; }
+        public SyntaxToken EndToken { get; }
     }
 }

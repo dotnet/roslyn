@@ -22,19 +22,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 Dim isAsync = False
                 Dim isIterator = False
 
-                With DirectCast( .BlockStatement, MethodStatementSyntax)
+                With DirectCast(.BlockStatement, MethodStatementSyntax)
                     isAsync = .Modifiers.Any(SyntaxKind.AsyncKeyword)
                     isIterator = .Modifiers.Any(SyntaxKind.IteratorKeyword)
 
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
 
                     If .HandlesClause IsNot Nothing Then
-                        highlights.Add( .HandlesClause.HandlesKeyword.Span)
+                        highlights.Add(.HandlesClause.HandlesKeyword.Span)
                     End If
 
                     If .ImplementsClause IsNot Nothing Then
-                        highlights.Add( .ImplementsClause.ImplementsKeyword.Span)
+                        highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
                     End If
                 End With
 
@@ -44,14 +44,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                         checkReturns:=True))
 
                 If isIterator Then
-                    highlights.AddRange( .GetRelatedYieldStatementHighlights())
+                    highlights.AddRange(.GetRelatedYieldStatementHighlights())
                 End If
 
                 If isAsync Then
                     HighlightRelatedAwaits(methodBlock, highlights, cancellationToken)
                 End If
 
-                highlights.Add( .EndBlockStatement.Span)
+                highlights.Add(.EndBlockStatement.Span)
             End With
 
             Return highlights

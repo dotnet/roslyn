@@ -130,12 +130,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             bool addAllDefinitions = true;
 
             // Add definitions
+            // Filter out definitions that cannot be highlighted. e.g: alias symbols defined via project property pages.
             if (symbol.Kind == SymbolKind.Alias &&
                 symbol.Locations.Length > 0)
             {
-                // For alias symbol we want to get the tag only for the alias definition, not the target symbol's definition.
-                await AddLocationSpan(symbol.Locations.First(), solution, spanSet, tagMap, true, cancellationToken).ConfigureAwait(false);
                 addAllDefinitions = false;
+
+                if (symbol.Locations.First().IsInSource)
+                {
+                    // For alias symbol we want to get the tag only for the alias definition, not the target symbol's definition.
+                    await AddLocationSpan(symbol.Locations.First(), solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             // Add references and definitions
@@ -147,21 +152,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     {
                         if (location.IsInSource && documentToSearch.Contains(solution.GetDocument(location.SourceTree)))
                         {
-                            await AddLocationSpan(location, solution, spanSet, tagMap, true, cancellationToken).ConfigureAwait(false);
+                            await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Definition, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
 
                 foreach (var referenceLocation in reference.Locations)
                 {
-                    await AddLocationSpan(referenceLocation.Location, solution, spanSet, tagMap, false, cancellationToken).ConfigureAwait(false);
+                    var referenceKind = referenceLocation.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference;
+                    await AddLocationSpan(referenceLocation.Location, solution, spanSet, tagMap, referenceKind, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // Add additional references
             foreach (var location in additionalReferences)
             {
-                await AddLocationSpan(location, solution, spanSet, tagMap, false, cancellationToken).ConfigureAwait(false);
+                await AddLocationSpan(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
             }
 
             var list = new List<DocumentHighlights>(tagMap.Count);
@@ -205,13 +211,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return true;
         }
 
-        private async Task AddLocationSpan(Location location, Solution solution, HashSet<ValueTuple<Document, TextSpan>> spanSet, MultiDictionary<Document, HighlightSpan> tagList, bool isDefinition, CancellationToken cancellationToken)
+        private async Task AddLocationSpan(Location location, Solution solution, HashSet<ValueTuple<Document, TextSpan>> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
         {
             var span = await GetLocationSpanAsync(solution, location, cancellationToken).ConfigureAwait(false);
             if (span != null && !spanSet.Contains(span.Value))
             {
                 spanSet.Add(span.Value);
-                tagList.Add(span.Value.Item1, new HighlightSpan(span.Value.Item2, isDefinition));
+                tagList.Add(span.Value.Item1, new HighlightSpan(span.Value.Item2, kind));
             }
         }
 

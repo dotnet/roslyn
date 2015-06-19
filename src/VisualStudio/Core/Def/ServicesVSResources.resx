@@ -445,6 +445,48 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>AnalyzerDependencyConflict</value>
   </data>
   <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
-    <value>Assembly '{0}' used by analyzer '{1}' and assembly '{2}' used by analyzer '{3}' have the same identity but different contents. These analyzers may not run correctly.</value>
+    <value>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</value>
+  </data>
+  <data name="ReferenceCountPlural" xml:space="preserve">
+    <value>{0} references</value>
+  </data>
+  <data name="ReferenceCountSingular" xml:space="preserve">
+    <value>1 reference</value>
+  </data>
+  <data name="CodefixOrRefactoringEncounteredError" xml:space="preserve">
+    <value>'{0}' encountered an error and has been disabled.</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="EnableAndIgnore" xml:space="preserve">
+    <value>Enable and ignore future errors</value>
+  </data>
+  <data name="NoChanges" xml:space="preserve">
+    <value>No Changes</value>
+  </data>
+  <data name="DiagnosticIdHyperlinkTooltipText" xml:space="preserve">
+    <value>Get help for '{0}'{1}{2}{3}</value>
+  </data>
+  <data name="FromBing" xml:space="preserve">
+    <value> from Bing</value>
+  </data>
+  <data name="CurrentBlock" xml:space="preserve">
+    <value>Current block</value>
+  </data>
+  <data name="DeterminingCurrentBlock" xml:space="preserve">
+    <value>Determining current block.</value>
+  </data>
+  <data name="WorkspaceOutputPaneTitle" xml:space="preserve">
+    <value>IntelliSense</value>
+  </data>
+  <data name="BuildTableSourceName" xml:space="preserve">
+    <value>C#/VB Build Table Data Source</value>
+  </data>
+  <data name="WRN_MissingAnalyzerReferenceId" xml:space="preserve">
+    <value>MissingAnalyzerReference</value>
+  </data>
+  <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
+    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly.</value>
   </data>
 </root>

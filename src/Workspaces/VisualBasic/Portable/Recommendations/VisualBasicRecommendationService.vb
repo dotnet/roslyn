@@ -147,8 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             Dim nameBinding = context.SemanticModel.GetSymbolInfo(node.Left, cancellationToken)
             Dim symbol = TryCast(nameBinding.Symbol, INamespaceOrTypeSymbol)
-            Dim couldBeMergedNamepsace = CouldBeMergedNamespace(nameBinding)
-            If symbol Is Nothing AndAlso Not couldBeMergedNamepsace Then
+            Dim couldBeMergedNamespace = VisualBasicRecommendationService.CouldBeMergedNamespace(nameBinding)
+            If symbol Is Nothing AndAlso Not couldBeMergedNamespace Then
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim symbols As IEnumerable(Of ISymbol)
-            If couldBeMergedNamepsace Then
+            If couldBeMergedNamespace Then
                 symbols = nameBinding.CandidateSymbols.OfType(Of INamespaceSymbol)() _
                     .SelectMany(Function(n) context.SemanticModel.LookupNamespacesAndTypes(node.SpanStart, n))
             Else
@@ -250,6 +250,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         End If
                 End Select
 
+                ' Check for color color
+                Dim speculativeTypeBinding = context.SemanticModel.GetSpeculativeTypeInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                Dim speculativeAliasBinding = context.SemanticModel.GetSpeculativeAliasInfo(context.Position, leftExpression, SpeculativeBindingOption.BindAsTypeOrNamespace)
+                If speculativeAliasBinding Is Nothing AndAlso firstSymbol.GetSymbolType() Is speculativeTypeBinding.Type Then
+                    excludeShared = False
+                    excludeInstance = False
+                End If
+
                 If inNameOfExpression Then
                     excludeInstance = False
                 End If
@@ -276,6 +284,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 If type?.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
                     container = type.GetTypeArguments().First()
                 End If
+            End If
+
+            ' No completion on types/namespace after conditional access
+            If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
+                (couldBeMergedNamespace OrElse leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias)) Then
+                Return SpecializedCollections.EmptyCollection(Of ISymbol)()
             End If
 
             Dim position = node.SpanStart

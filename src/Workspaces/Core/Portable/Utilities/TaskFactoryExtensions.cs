@@ -29,15 +29,15 @@ namespace Roslyn.Utilities
                 {
                     action();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                };
+            };
 
-                // The one and only place we can call StartNew().
-                return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
-            }
+            // The one and only place we can call StartNew().
+            return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+        }
 
         public static Task<TResult> SafeStartNew<TResult>(this TaskFactory factory, Func<TResult> func, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
@@ -57,15 +57,15 @@ namespace Roslyn.Utilities
                 {
                     return func();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                };
+            };
 
-                // The one and only place we can call StartNew<>().
-                return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
-            }
+            // The one and only place we can call StartNew<>().
+            return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
+        }
 
         public static Task SafeStartNewFromAsync(this TaskFactory factory, Func<Task> actionAsync, CancellationToken cancellationToken, TaskScheduler scheduler)
         {
@@ -81,13 +81,7 @@ namespace Roslyn.Utilities
         {
             // The one and only place we can call StartNew<>().
             var task = factory.StartNew(actionAsync, cancellationToken, creationOptions, scheduler).Unwrap();
-
-            // make it crash if exception has thrown
-            task.ContinueWith(t => FatalError.Report(t.Exception),
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
+            TaskExtensions.ReportFatalError(task, actionAsync);
             return task;
         }
 
@@ -105,13 +99,7 @@ namespace Roslyn.Utilities
         {
             // The one and only place we can call StartNew<>().
             var task = factory.StartNew(funcAsync, cancellationToken, creationOptions, scheduler).Unwrap();
-
-            // make it crash if exception has thrown
-            task.ContinueWith(t => FatalError.Report(t.Exception),
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
+            TaskExtensions.ReportFatalError(task, funcAsync);
             return task;
         }
     }

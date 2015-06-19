@@ -19,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
     Friend Class OverrideCompletionProvider
         Inherits AbstractOverrideCompletionProvider
 
-        Private isFunction As Boolean
-        Private isSub As Boolean
-        Private isProperty As Boolean
+        Private _isFunction As Boolean
+        Private _isSub As Boolean
+        Private _isProperty As Boolean
 
         <ImportingConstructor()>
-        Sub New(waitIndicator As IWaitIndicator)
+        Public Sub New(waitIndicator As IWaitIndicator)
             MyBase.New(waitIndicator)
         End Sub
 
@@ -76,9 +76,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Dim overridesToken = New SyntaxToken()
             Dim isMustOverride = False
             Dim isNotOverridable = False
-            Me.isSub = False
-            Me.isFunction = False
-            Me.isProperty = False
+            Me._isSub = False
+            Me._isFunction = False
+            Me._isProperty = False
 
             Do While IsOnStartLine(token.SpanStart, text, startLine)
                 Select Case token.Kind
@@ -89,13 +89,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                     Case SyntaxKind.NotOverridableKeyword
                         isNotOverridable = True
                     Case SyntaxKind.FunctionKeyword
-                        isFunction = True
+                        _isFunction = True
                     Case SyntaxKind.PropertyKeyword
-                        isProperty = True
+                        _isProperty = True
                     Case SyntaxKind.SubKeyword
-                        isSub = True
+                        _isSub = True
 
-                        ' Filter on accessibility by keeping the first one that we see
+                    ' Filter on accessibility by keeping the first one that we see
                     Case SyntaxKind.PublicKeyword
                         If seenAccessibility = Accessibility.NotApplicable Then
                             seenAccessibility = Accessibility.Public
@@ -157,19 +157,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 members.Remove(finalizeMethod)
             End If
 
-            If Me.isFunction Then
+            If Me._isFunction Then
                 ' Function: look for non-void return types
                 Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) Not m.ReturnsVoid)
                 If filteredMembers.Any Then
                     Return New HashSet(Of ISymbol)(filteredMembers)
                 End If
-            ElseIf Me.isProperty Then
+            ElseIf Me._isProperty Then
                 ' Property: return properties
                 Dim filteredMembers = members.Where(Function(m) m.Kind = SymbolKind.Property)
                 If filteredMembers.Any Then
                     Return New HashSet(Of ISymbol)(filteredMembers)
                 End If
-            ElseIf Me.isSub Then
+            ElseIf Me._isSub Then
                 ' Sub: look for void return types
                 Dim filteredMembers = members.OfType(Of IMethodSymbol)().Where(Function(m) m.ReturnsVoid)
                 If filteredMembers.Any Then
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 End If
             End If
 
-            Return members
+            Return members.Where(Function(m) Not m.IsKind(SymbolKind.Event)).ToSet()
         End Function
 
         Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' Applies Visual Basic-specific modification and filtering of <see cref="Diagnostic"/>s.
     ''' </summary>
     Friend Class VisualBasicDiagnosticFilter
-        Private Shared ReadOnly AlinkWarnings As ERRID() = {ERRID.WRN_ConflictingMachineAssembly,
+        Private Shared ReadOnly s_alinkWarnings As ERRID() = {ERRID.WRN_ConflictingMachineAssembly,
                                                             ERRID.WRN_RefCultureMismatch,
                                                             ERRID.WRN_InvalidVersionFormat}
 
@@ -35,7 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If diagnostic is not configurable, keep it as it is.
             If diagnostic.IsNotConfigurable Then
-                Return diagnostic
+                If diagnostic.IsEnabledByDefault Then
+                    ' Enabled NotConfigurable should always be reported as it is.
+                    Return diagnostic
+                Else
+                    ' Disabled NotConfigurable should never be reported.
+                    Return Nothing
+                End If
             End If
 
             ' In the native compiler, all warnings originating from alink.dll were issued
@@ -49,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim report As ReportDiagnostic
 
-            If (AlinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
+            If (s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
                 caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
                 report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
                 diagnostic.IsEnabledByDefault,

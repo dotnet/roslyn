@@ -157,14 +157,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         private struct Key : IEquatable<Key>
         {
-            public bool DataFlowIn { get; private set; }
-            public bool DataFlowOut { get; private set; }
-            public bool AlwaysAssigned { get; private set; }
-            public bool VariableDeclared { get; private set; }
-            public bool ReadInside { get; private set; }
-            public bool WrittenInside { get; private set; }
-            public bool ReadOutside { get; private set; }
-            public bool WrittenOutside { get; private set; }
+            public bool DataFlowIn { get; }
+            public bool DataFlowOut { get; }
+            public bool AlwaysAssigned { get; }
+            public bool VariableDeclared { get; }
+            public bool ReadInside { get; }
+            public bool WrittenInside { get; }
+            public bool ReadOutside { get; }
+            public bool WrittenOutside { get; }
 
             public Key(
                 bool dataFlowIn,

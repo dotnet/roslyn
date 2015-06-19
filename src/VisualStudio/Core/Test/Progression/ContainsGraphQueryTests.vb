@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TypesContainedInCSharpDocument()
+        Public Sub TypesContainedInCSharpDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TypesContainedInCSharpDocumentInsideNamespace()
+        Public Sub TypesContainedInCSharpDocumentInsideNamespace()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TypesContainedInVisualBasicDocument()
+        Public Sub TypesContainedInVisualBasicDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -148,7 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub MembersContainedInCSharpScriptDocument()
+        Public Sub MembersContainedInCSharpScriptDocument()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -190,7 +190,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub MembersContainedInClass()
+        Public Sub MembersContainedInClass()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -224,7 +224,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         <WorkItem(543892)>
-        Sub NestedTypesContainedInClass()
+        Public Sub NestedTypesContainedInClass()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -255,7 +255,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018)>
-        Sub EnumMembersInEnum()
+        Public Sub EnumMembersInEnum()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -286,7 +286,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
-        Sub NothingInBrokenCode()
+        Public Sub NothingInBrokenCode()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -315,7 +315,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
-        Sub NothingInBrokenCode2()
+        Public Sub NothingInBrokenCode2()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -344,7 +344,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653)>
-        Sub NothingInBrokenCode3()
+        Public Sub NothingInBrokenCode3()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">

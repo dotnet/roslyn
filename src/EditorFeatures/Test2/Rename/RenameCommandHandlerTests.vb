@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -990,6 +991,270 @@ partial class [|Program|]
 
                 ' verify the command was routed to the editor and an empty line was inserted.
                 Assert.Equal(String.Empty, view.Caret.Position.BufferPosition.GetContainingLine.GetText())
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem(1142095)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub SaveDuringRenameCommits()
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                                class [|$$Foo|]
+                                {
+                                    [|Foo|] f;
+                                }
+                            </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim view = workspace.Documents.Single().GetTextView()
+
+                Dim commandHandler As New RenameCommandHandler(workspace.GetService(Of InlineRenameService),
+                                                               workspace.GetService(Of IEditorOperationsFactoryService),
+                                                               workspace.GetService(Of IWaitIndicator))
+
+                Dim session = StartSession(workspace)
+                WaitForRename(workspace)
+                Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
+
+                ' Type first in the main identifier
+                view.Selection.Clear()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "B"c), Sub() editorOperations.InsertText("B"))
+
+                ' Now save the document, which should commit Rename
+                commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub)
+
+                VerifyTagsAreCorrect(workspace, "BFoo")
+
+                ' Rename session was indeed commited and is no longer active
+                Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
+            End Using
+        End Sub
+
+        <Fact>
+        <WorkItem(1142701)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub MoveSelectedLinesUpDuringRename()
+            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New MoveSelectedLinesUpCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(1142701)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub MoveSelectedLinesDownDuringRename()
+            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New MoveSelectedLinesDownCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(991517)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ReorderParametersDuringRename()
+            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New ReorderParametersCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(991517)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RemoveParametersDuringRename()
+            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New RemoveParametersCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(991517)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ExtractInterfaceDuringRename()
+            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New ExtractInterfaceCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(991517)>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub EncapsulateFieldDuringRename()
+            VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New EncapsulateFieldCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CutDuringRename_InsideIdentifier()
+            VerifySessionActiveAfterCutPasteInsideIdentifier(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub PasteDuringRename_InsideIdentifier()
+            VerifySessionActiveAfterCutPasteInsideIdentifier(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CutDuringRename_OutsideIdentifier()
+            VerifySessionCommittedAfterCutPasteOutsideIdentifier(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub PasteDuringRename_OutsideIdentifier()
+            VerifySessionCommittedAfterCutPasteOutsideIdentifier(
+                Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
+                    commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler)
+                End Sub)
+        End Sub
+
+        Private Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+// Comment
+class [|C$$|]
+{
+    [|C|] f;
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim view = workspace.Documents.Single().GetTextView()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+
+                Dim renameService = workspace.GetService(Of InlineRenameService)()
+                Dim commandHandler As New RenameCommandHandler(
+                    renameService,
+                    workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GetService(Of IWaitIndicator))
+
+                Dim session = StartSession(workspace)
+                Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
+
+                ' Type first in the main identifier
+                view.Selection.Clear()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "D"c), Sub() editorOperations.InsertText("D"))
+
+                ' Then execute the command
+                Dim commandInvokedString = "/*Command Invoked*/"
+                executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
+
+                ' Verify rename session was committed.
+                Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
+                Assert.Contains("D f", view.TextBuffer.CurrentSnapshot.GetText())
+
+                ' Verify the command was routed to the editor.
+                Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        Private Sub VerifySessionActiveAfterCutPasteInsideIdentifier(executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+            Using workspace = CreateWorkspaceWithWaiter(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+// Comment
+class [|C$$|]
+{
+    [|C|] f;
+}
+                        </Document>
+                    </Project>
+                </Workspace>)
+
+                Dim view = workspace.Documents.Single().GetTextView()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+
+                Dim renameService = workspace.GetService(Of InlineRenameService)()
+                Dim commandHandler As New RenameCommandHandler(
+                    renameService,
+                    workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GetService(Of IWaitIndicator))
+
+                Dim session = StartSession(workspace)
+                Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
+
+                ' Then execute the command
+                Dim commandInvokedString = "commandInvoked"
+                executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
+
+                ' Verify rename session is still active
+                Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
+                VerifyTagsAreCorrect(workspace, commandInvokedString)
+            End Using
+        End Sub
+
+        Private Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+// Comment
+class [|C$$|]
+{
+    [|C|] f;
+}
+                        </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim view = workspace.Documents.Single().GetTextView()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+
+                Dim renameService = workspace.GetService(Of InlineRenameService)()
+                Dim commandHandler As New RenameCommandHandler(
+                    renameService,
+                    workspace.GetService(Of IEditorOperationsFactoryService),
+                    workspace.GetService(Of IWaitIndicator))
+
+                Dim session = StartSession(workspace)
+                Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(view)
+
+                ' Type first in the main identifier
+                view.Selection.Clear()
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
+                commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "D"c), Sub() editorOperations.InsertText("D"))
+
+                ' Then execute the command
+                Dim commandInvokedString = "commandInvoked"
+                Dim selectionStart = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value - 6
+
+                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, selectionStart))
+                view.SetSelection(New SnapshotSpan(view.TextBuffer.CurrentSnapshot, New Span(selectionStart, 2)))
+
+                executeCommand(commandHandler, view, Sub() editorOperations.InsertText(commandInvokedString))
+
+                ' Verify rename session was committed
+                Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
+                Assert.Contains("D f", view.TextBuffer.CurrentSnapshot.GetText())
+                Assert.Contains(commandInvokedString, view.TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub
     End Class

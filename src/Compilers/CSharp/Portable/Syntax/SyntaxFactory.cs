@@ -19,80 +19,94 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static partial class SyntaxFactory
     {
         /// <summary>
-        /// A trivia with kind EndOfLineTrivia containing both the carriage return and line feed
-        /// characters.
+        /// A trivia with kind EndOfLineTrivia containing both the carriage return and line feed characters.
         /// </summary>
-        public static readonly SyntaxTrivia CarriageReturnLineFeed = Syntax.InternalSyntax.SyntaxFactory.CarriageReturnLineFeed;
+        public static SyntaxTrivia CarriageReturnLineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.CarriageReturnLineFeed;
 
         /// <summary>
         /// A trivia with kind EndOfLineTrivia containing a single line feed character.
         /// </summary>
-        public static readonly SyntaxTrivia LineFeed = Syntax.InternalSyntax.SyntaxFactory.LineFeed;
+        public static SyntaxTrivia LineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.LineFeed;
 
         /// <summary>
         /// A trivia with kind EndOfLineTrivia containing a single carriage return character.
         /// </summary>
-        public static readonly SyntaxTrivia CarriageReturn = Syntax.InternalSyntax.SyntaxFactory.CarriageReturn;
+        public static SyntaxTrivia CarriageReturn { get; } = Syntax.InternalSyntax.SyntaxFactory.CarriageReturn;
 
         /// <summary>
         ///  A trivia with kind WhitespaceTrivia containing a single space character.
         /// </summary>
-        public static readonly SyntaxTrivia Space = Syntax.InternalSyntax.SyntaxFactory.Space;
+        public static SyntaxTrivia Space { get; } = Syntax.InternalSyntax.SyntaxFactory.Space;
 
         /// <summary>
         /// A trivia with kind WhitespaceTrivia containing a single tab character.
         /// </summary>
-        public static readonly SyntaxTrivia Tab = Syntax.InternalSyntax.SyntaxFactory.Tab;
+        public static SyntaxTrivia Tab { get; } = Syntax.InternalSyntax.SyntaxFactory.Tab;
 
         /// <summary>
         /// An elastic trivia with kind EndOfLineTrivia containing both the carriage return and line feed characters.
         /// Elastic trivia are used to denote trivia that was not produced by parsing source text, and are usually not
         /// preserved during formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticCarriageReturnLineFeed = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed;
+        public static SyntaxTrivia ElasticCarriageReturnLineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed;
 
         /// <summary>
         /// An elastic trivia with kind EndOfLineTrivia containing a single line feed character. Elastic trivia are used
         /// to denote trivia that was not produced by parsing source text, and are usually not preserved during
         /// formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticLineFeed = Syntax.InternalSyntax.SyntaxFactory.ElasticLineFeed;
+        public static SyntaxTrivia ElasticLineFeed { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticLineFeed;
 
         /// <summary>
         /// An elastic trivia with kind EndOfLineTrivia containing a single carriage return character. Elastic trivia
         /// are used to denote trivia that was not produced by parsing source text, and are usually not preserved during
         /// formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticCarriageReturn = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturn;
+        public static SyntaxTrivia ElasticCarriageReturn { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticCarriageReturn;
 
         /// <summary>
         /// An elastic trivia with kind WhitespaceTrivia containing a single space character. Elastic trivia are used to
         /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticSpace = Syntax.InternalSyntax.SyntaxFactory.ElasticSpace;
+        public static SyntaxTrivia ElasticSpace { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticSpace;
 
         /// <summary>
         /// An elastic trivia with kind WhitespaceTrivia containing a single tab character. Elastic trivia are used to
         /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticTab = Syntax.InternalSyntax.SyntaxFactory.ElasticTab;
+        public static SyntaxTrivia ElasticTab { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticTab;
 
         /// <summary>
         /// An elastic trivia with kind WhitespaceTrivia containing no characters. Elastic marker trivia are included
         /// automatically by factory methods when trivia is not specified. Syntax formatting will replace elastic
         /// markers with appropriate trivia.
         /// </summary>
-        public static readonly SyntaxTrivia ElasticMarker = Syntax.InternalSyntax.SyntaxFactory.ElasticZeroSpace;
+        public static SyntaxTrivia ElasticMarker { get; } = Syntax.InternalSyntax.SyntaxFactory.ElasticZeroSpace;
 
         /// <summary>
         /// Creates a trivia with kind EndOfLineTrivia containing the specified text. 
         /// </summary>
-        /// <param name="text">The text of the trivia. Any text can be specified here, however only carriage return and
+        /// <param name="text">The text of the end of line. Any text can be specified here, however only carriage return and
         /// line feed characters are recognized by the parser as end of line.</param>
-        /// <param name="elastic">If true, the trivia produced is an elastic trivia. Elastic trivia are used to denote
-        /// trivia that was not produced by parsing source text, and are usually not preserved during
-        /// formatting.</param>
-        public static SyntaxTrivia EndOfLine(string text, bool elastic = true)
+        public static SyntaxTrivia EndOfLine(string text)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic: false);
+        }
+
+        /// <summary>
+        /// Creates a trivia with kind EndOfLineTrivia containing the specified text. Elastic trivia are used to
+        /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
+        /// </summary>
+        /// <param name="text">The text of the end of line. Any text can be specified here, however only carriage return and
+        /// line feed characters are recognized by the parser as end of line.</param>
+        public static SyntaxTrivia ElasticEndOfLine(string text)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic: true);
+        }
+
+        [Obsolete("Use SyntaxFactory.EndOfLine or SyntaxFactory.ElasticEndOfLine")]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static SyntaxTrivia EndOfLine(string text, bool elastic)
         {
             return Syntax.InternalSyntax.SyntaxFactory.EndOfLine(text, elastic);
         }
@@ -102,10 +116,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="text">The text of the whitespace. Any text can be specified here, however only specific
         /// whitespace characters are recognized by the parser.</param>
-        /// <param name="elastic">If true, the trivia produced is an elastic trivia. Elastic trivia are used to denote
-        /// trivia that was not produced by parsing source text, and are usually not preserved during
-        /// formatting.</param>
-        public static SyntaxTrivia Whitespace(string text, bool elastic = true)
+        public static SyntaxTrivia Whitespace(string text)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic: false);
+        }
+
+        /// <summary>
+        /// Creates a trivia with kind WhitespaceTrivia containing the specified text. Elastic trivia are used to
+        /// denote trivia that was not produced by parsing source text, and are usually not preserved during formatting.
+        /// </summary>
+        /// <param name="text">The text of the whitespace. Any text can be specified here, however only specific
+        /// whitespace characters are recognized by the parser.</param>
+        public static SyntaxTrivia ElasticWhitespace(string text)
+        {
+            return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic: false);
+        }
+
+        [Obsolete("Use SyntaxFactory.Whitespace or SyntaxFactory.ElasticWhitespace")]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static SyntaxTrivia Whitespace(string text, bool elastic)
         {
             return Syntax.InternalSyntax.SyntaxFactory.Whitespace(text, elastic);
         }
@@ -155,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (text == null)
             {
-                throw new ArgumentNullException("text");
+                throw new ArgumentNullException(nameof(text));
             }
 
             switch (kind)
@@ -360,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a token with kind NumericLiteraToken from the text and corresponding 4-byte unsigned integer value.
+        /// Creates a token with kind NumericLiteralToken from the text and corresponding 4-byte unsigned integer value.
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
         /// <param name="text">The raw text of the literal.</param>
@@ -1001,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (nodesAndTokens == null)
             {
-                throw new ArgumentNullException("nodesAndTokens");
+                throw new ArgumentNullException(nameof(nodesAndTokens));
             }
 
             var builder = new SyntaxNodeOrTokenListBuilder(8);
@@ -1669,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          currentNode.Kind() == SyntaxKind.ElementBindingExpression);
 
             // In a well formed tree, the corresponding access node should be one of the ancestors
-            // and its "?" token should preceed the binding syntax.
+            // and its "?" token should precede the binding syntax.
             while (currentNode != null)
             {
                 currentNode = currentNode.Parent;
@@ -1736,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (tree == null)
             {
-                throw new ArgumentNullException("tree");
+                throw new ArgumentNullException(nameof(tree));
             }
 
             if (!tree.HasCompilationUnitRoot)

@@ -63,6 +63,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] Empty {
+            get {
+                object obj = ResourceManager.GetObject("Empty", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] LibraryA {
             get {
                 object obj = ResourceManager.GetObject("LibraryA", resourceCulture);

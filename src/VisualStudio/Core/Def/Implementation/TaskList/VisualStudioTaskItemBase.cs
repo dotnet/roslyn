@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 {
                     return mappedLocation[0];
                 }
-                else if (VSConstants.S_OK == containedLanguageHost.GetNearestVisibleToken(displayLocation, mappedLocation))
+                else if (containedLanguageHost != null && VSConstants.S_OK == containedLanguageHost.GetNearestVisibleToken(displayLocation, mappedLocation))
                 {
                     return mappedLocation[0];
                 }

@@ -212,10 +212,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
     End Class
 
-    Class LocalSymbolDumper
-        Private comp As VisualBasicCompilation
+    Friend Class LocalSymbolDumper
+        Private _comp As VisualBasicCompilation
         Public Sub New(comp As VisualBasicCompilation)
-            Me.comp = comp
+            Me._comp = comp
         End Sub
 
         Public Sub GetLocalSymbols(symbol As IFieldSymbol, list As List(Of ISymbol))
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                 Dim declarator = TryCast(node.Parent, VariableDeclaratorSyntax)
                 If declarator IsNot Nothing AndAlso declarator.Initializer IsNot Nothing Then
 
-                    Dim model = comp.GetSemanticModel(declarator.SyntaxTree)
+                    Dim model = _comp.GetSemanticModel(declarator.SyntaxTree)
                     Dim df = model.AnalyzeDataFlow(declarator.Initializer.Value)
 
                     GetLocalAndType(df, list)
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                 If body IsNot Nothing Then
                     If body.Statements <> Nothing AndAlso body.Statements.Count > 0 Then
 
-                        Dim model = comp.GetSemanticModel(body.SyntaxTree)
+                        Dim model = _comp.GetSemanticModel(body.SyntaxTree)
                         Dim df As DataFlowAnalysis = Nothing
                         If body.Statements.Count = 1 Then
                             df = model.AnalyzeDataFlow(body.Statements.First)

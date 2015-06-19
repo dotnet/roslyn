@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// True if this workspace supports manually changing the ative context document of a text buffer.
+        /// True if this workspace supports manually changing the active context document of a text buffer.
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument
         {
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (container == null)
             {
-                throw new ArgumentNullException("container");
+                throw new ArgumentNullException(nameof(container));
             }
 
             using (_stateLock.DisposableWait())

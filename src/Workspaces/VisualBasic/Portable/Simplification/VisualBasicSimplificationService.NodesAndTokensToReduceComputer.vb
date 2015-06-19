@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private ReadOnly _nodesAndTokensToReduce As List(Of NodeOrTokenToReduce)
             Private ReadOnly _isNodeOrTokenOutsideSimplifySpans As Func(Of SyntaxNodeOrToken, Boolean)
 
-            Private Shared ReadOnly ContainsAnnotations As Func(Of SyntaxNode, Boolean) = Function(n) n.ContainsAnnotations
-            Private Shared ReadOnly HasSimplifierAnnotation As Func(Of SyntaxNodeOrToken, Boolean) = Function(n) n.HasAnnotation(Simplifier.Annotation)
+            Private Shared ReadOnly s_containsAnnotations As Func(Of SyntaxNode, Boolean) = Function(n) n.ContainsAnnotations
+            Private Shared ReadOnly s_hasSimplifierAnnotation As Func(Of SyntaxNodeOrToken, Boolean) = Function(n) n.HasAnnotation(Simplifier.Annotation)
 
             Private _simplifyAllDescendants As Boolean
             Private _insideSpeculatedNode As Boolean
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.HasAnnotation(Simplifier.Annotation)
 
                 If Not Me._insideSpeculatedNode AndAlso SpeculationAnalyzer.CanSpeculateOnNode(node) Then
-                    If Me._simplifyAllDescendants OrElse node.DescendantNodesAndTokens(ContainsAnnotations, descendIntoTrivia:=True).Any(HasSimplifierAnnotation) Then
+                    If Me._simplifyAllDescendants OrElse node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation) Then
                         Me._insideSpeculatedNode = True
                         Dim rewrittenNode = MyBase.Visit(node)
                         Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node))
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' However, there is no SyntaxNode for the method body or statement list, hence we add the MethodBlockBaseSyntax to the list of nodes to be reduced.
                 ' Subsequently, when the AbstractReducer is handed a MethodBlockBaseSyntax, it will reduce only the statement list inside it.
                 If Me._simplifyAllDescendants OrElse
-                   node.Statements.Any(Function(s) s.DescendantNodesAndTokensAndSelf(ContainsAnnotations, descendIntoTrivia:=True).Any(HasSimplifierAnnotation)) Then
+                   node.Statements.Any(Function(s) s.DescendantNodesAndTokensAndSelf(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation)) Then
                     Me._insideSpeculatedNode = True
                     Dim statements = VisitList(node.Statements)
                     Dim rewrittenNode = updateFunc(node, node.BlockStatement, statements, node.EndBlockStatement)

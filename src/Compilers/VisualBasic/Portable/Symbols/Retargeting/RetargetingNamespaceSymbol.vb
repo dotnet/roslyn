@@ -24,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <summary>
         ''' Owning RetargetingModuleSymbol.
         ''' </summary>
-        Private ReadOnly m_RetargetingModule As RetargetingModuleSymbol
+        Private ReadOnly _retargetingModule As RetargetingModuleSymbol
 
         ''' <summary>
         ''' The underlying NamespaceSymbol, cannot be another RetargetingNamespaceSymbol.
         ''' </summary>
-        Private ReadOnly m_UnderlyingNamespace As NamespaceSymbol
+        Private ReadOnly _underlyingNamespace As NamespaceSymbol
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingNamespace As NamespaceSymbol)
             Debug.Assert(retargetingModule IsNot Nothing)
@@ -39,30 +39,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Throw New ArgumentException()
             End If
 
-            m_RetargetingModule = retargetingModule
-            m_UnderlyingNamespace = underlyingNamespace
+            _retargetingModule = retargetingModule
+            _underlyingNamespace = underlyingNamespace
         End Sub
 
         Private ReadOnly Property RetargetingTranslator As RetargetingModuleSymbol.RetargetingSymbolTranslator
             Get
-                Return m_RetargetingModule.RetargetingTranslator
+                Return _retargetingModule.RetargetingTranslator
             End Get
         End Property
 
         Public ReadOnly Property UnderlyingNamespace As NamespaceSymbol
             Get
-                Return m_UnderlyingNamespace
+                Return _underlyingNamespace
             End Get
         End Property
 
         Friend Overrides ReadOnly Property Extent As NamespaceExtent
             Get
-                Return New NamespaceExtent(m_RetargetingModule)
+                Return New NamespaceExtent(_retargetingModule)
             End Get
         End Property
 
         Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            Return RetargetMembers(m_UnderlyingNamespace.GetMembers())
+            Return RetargetMembers(_underlyingNamespace.GetMembers())
         End Function
 
         Private Function RetargetMembers(underlyingMembers As ImmutableArray(Of Symbol)) As ImmutableArray(Of Symbol)
@@ -78,19 +78,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Function
 
         Friend Overrides Function GetMembersUnordered() As ImmutableArray(Of Symbol)
-            Return RetargetMembers(m_UnderlyingNamespace.GetMembersUnordered())
+            Return RetargetMembers(_underlyingNamespace.GetMembersUnordered())
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Return RetargetMembers(m_UnderlyingNamespace.GetMembers(name))
+            Return RetargetMembers(_underlyingNamespace.GetMembers(name))
         End Function
 
         Friend Overrides Function GetTypeMembersUnordered() As ImmutableArray(Of NamedTypeSymbol)
-            Return RetargetTypeMembers(m_UnderlyingNamespace.GetTypeMembersUnordered())
+            Return RetargetTypeMembers(_underlyingNamespace.GetTypeMembersUnordered())
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-            Return RetargetTypeMembers(m_UnderlyingNamespace.GetTypeMembers())
+            Return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers())
         End Function
 
         Private Function RetargetTypeMembers(underlyingMembers As ImmutableArray(Of NamedTypeSymbol)) As ImmutableArray(Of NamedTypeSymbol)
@@ -107,58 +107,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Function
 
         Public Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
-            Return RetargetTypeMembers(m_UnderlyingNamespace.GetTypeMembers(name))
+            Return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name))
         End Function
 
         Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return RetargetTypeMembers(m_UnderlyingNamespace.GetTypeMembers(name, arity))
+            Return RetargetTypeMembers(_underlyingNamespace.GetTypeMembers(name, arity))
         End Function
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Return RetargetingTranslator.Retarget(m_UnderlyingNamespace.ContainingSymbol)
+                Return RetargetingTranslator.Retarget(_underlyingNamespace.ContainingSymbol)
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return m_UnderlyingNamespace.Locations
+                Return _underlyingNamespace.Locations
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return m_UnderlyingNamespace.DeclaringSyntaxReferences
+                Return _underlyingNamespace.DeclaringSyntaxReferences
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingAssembly As AssemblySymbol
             Get
-                Return m_RetargetingModule.ContainingAssembly
+                Return _retargetingModule.ContainingAssembly
             End Get
         End Property
 
         Public Overrides ReadOnly Property ContainingModule As ModuleSymbol
             Get
-                Return m_RetargetingModule
+                Return _retargetingModule
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsGlobalNamespace As Boolean
             Get
-                Return m_UnderlyingNamespace.IsGlobalNamespace
+                Return _underlyingNamespace.IsGlobalNamespace
             End Get
         End Property
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return m_UnderlyingNamespace.Name
+                Return _underlyingNamespace.Name
             End Get
         End Property
 
         Public Overrides ReadOnly Property MetadataName As String
             Get
-                Return m_UnderlyingNamespace.MetadataName
+                Return _underlyingNamespace.MetadataName
             End Get
         End Property
 
@@ -167,24 +167,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             ' name through a RetargetingAssemblySymbol. For instance, in
             ' UnitTests.Symbols.Metadata.PE.NoPia.LocalTypeSubstitution2.
 
-            Dim underlying As NamedTypeSymbol = m_UnderlyingNamespace.LookupMetadataType(fullEmittedName)
+            Dim underlying As NamedTypeSymbol = _underlyingNamespace.LookupMetadataType(fullEmittedName)
 
-            Debug.Assert(underlying.ContainingModule Is m_RetargetingModule.UnderlyingModule)
+            Debug.Assert(underlying.ContainingModule Is _retargetingModule.UnderlyingModule)
 
             If Not underlying.IsErrorType() AndAlso underlying.IsExplicitDefinitionOfNoPiaLocalType Then
                 ' Explicitly defined local types should be hidden.
-                Return New MissingMetadataTypeSymbol.TopLevel(m_RetargetingModule, fullEmittedName)
+                Return New MissingMetadataTypeSymbol.TopLevel(_retargetingModule, fullEmittedName)
             End If
 
             Return RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
 
         Public Overrides Function GetModuleMembers() As ImmutableArray(Of NamedTypeSymbol)
-            Return RetargetingTranslator.Retarget(m_UnderlyingNamespace.GetModuleMembers())
+            Return RetargetingTranslator.Retarget(_underlyingNamespace.GetModuleMembers())
         End Function
 
         Public Overrides Function GetModuleMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
-            Return RetargetingTranslator.Retarget(m_UnderlyingNamespace.GetModuleMembers(name))
+            Return RetargetingTranslator.Retarget(_underlyingNamespace.GetModuleMembers(name))
         End Function
 
         ''' <summary>
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides ReadOnly Property DeclaredAccessibilityOfMostAccessibleDescendantType As Accessibility
             Get
-                Return m_UnderlyingNamespace.DeclaredAccessibilityOfMostAccessibleDescendantType
+                Return _underlyingNamespace.DeclaredAccessibilityOfMostAccessibleDescendantType
             End Get
         End Property
 
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
             ' Delegate work to the underlying namespace in order to take advantage of its
             ' map of extension methods.
-            m_UnderlyingNamespace.AppendProbableExtensionMethods(name, methods)
+            _underlyingNamespace.AppendProbableExtensionMethods(name, methods)
 
             ' Retarget all method symbols appended by the underlying namespace.
             For i As Integer = oldCount To methods.Count - 1
@@ -236,14 +236,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' </summary>
         Friend Overrides Sub BuildExtensionMethodsMap(map As Dictionary(Of String, ArrayBuilder(Of MethodSymbol)))
             ' Delegate work to the types of the underlying namespace.
-            For Each underlyingContainedType As NamedTypeSymbol In m_UnderlyingNamespace.TypesToCheckForExtensionMethods
+            For Each underlyingContainedType As NamedTypeSymbol In _underlyingNamespace.TypesToCheckForExtensionMethods
                 underlyingContainedType.BuildExtensionMethodsMap(map, appendThrough:=Me)
             Next
         End Sub
 
         Friend Overrides Sub GetExtensionMethods(methods As ArrayBuilder(Of MethodSymbol), name As String)
             ' Delegate work to the types of the underlying namespace.
-            For Each underlyingContainedType As NamedTypeSymbol In m_UnderlyingNamespace.TypesToCheckForExtensionMethods
+            For Each underlyingContainedType As NamedTypeSymbol In _underlyingNamespace.TypesToCheckForExtensionMethods
                 underlyingContainedType.GetExtensionMethods(methods, appendThrough:=Me, Name:=name)
             Next
         End Sub
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                                                                   originalBinder As Binder)
             ' Delegate work to the underlying namespace in order to take advantage of its
             ' map of extension methods.
-            m_UnderlyingNamespace.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder, appendThrough:=Me)
+            _underlyingNamespace.AddExtensionMethodLookupSymbolsInfo(nameSet, options, originalBinder, appendThrough:=Me)
         End Sub
 
         ''' <summary>
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         End Property
 
         Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
-            Return m_UnderlyingNamespace.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
+            Return _underlyingNamespace.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
     End Class
 End Namespace

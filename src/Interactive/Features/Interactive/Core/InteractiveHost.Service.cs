@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _hostObject = new InteractiveHostObject();
 
                 _options = _options
-                                   .WithBaseDirectory(Environment.CurrentDirectory)
+                                   .WithBaseDirectory(Directory.GetCurrentDirectory())
                                    .AddReferences(_hostObject.GetType().Assembly);
 
                 _hostObject.ReferencePaths.AddRange(_options.SearchPaths);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // send any updates to the host object and current directory back to the client:
                 var newSourcePaths = _hostObject.SourcePaths.List.GetNewContent();
                 var newReferencePaths = _hostObject.ReferencePaths.List.GetNewContent();
-                var currentDirectory = Environment.CurrentDirectory;
+                var currentDirectory = Directory.GetCurrentDirectory();
                 var oldWorkingDirectory = _options.BaseDirectory;
                 var newWorkingDirectory = (oldWorkingDirectory != currentDirectory) ? currentDirectory : null;
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     if (value == null)
                     {
-                        throw new ArgumentNullException("value");
+                        throw new ArgumentNullException(nameof(value));
                     }
 
                     _formattingOptions = value;
@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     // The base directory for relative paths is the directory that contains the .rsp file.
                     // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
-                    var args = parser.Parse(new[] { "@" + initializationFileOpt }, Path.GetDirectoryName(initializationFileOpt), null /* TODO: pass a valid value*/);
+                    var args = parser.Parse(new[] { "@" + initializationFileOpt }, Path.GetDirectoryName(initializationFileOpt), RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
 
                     foreach (var error in args.Errors)
                     {
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 bool hasValue;
-                var resultType = script.GetCompilation().GetSubmissionResultType(out hasValue);
+                var resultType = GetSubmissionResultType(script.GetCompilation(), out hasValue);
                 if (hasValue)
                 {
                     if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
@@ -739,6 +739,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return true;
             }
+
+            // TODO: replace by direct call to GetSubmissionResultType when it becomes public
+            private delegate ITypeSymbol GetSubmissionResultTypeDelegate(Compilation compilation, out bool hasValue);
+            private GetSubmissionResultTypeDelegate GetSubmissionResultType = typeof(Compilation).GetTypeInfo().GetDeclaredMethod("GetSubmissionResultType").CreateDelegate<GetSubmissionResultTypeDelegate>();
 
             private class ExecuteSubmissionError
             {
@@ -810,9 +814,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            #endregion
+#endregion
 
-            #region Win32 API
+#region Win32 API
 
             [DllImport("kernel32", PreserveSig = true)]
             internal static extern ErrorMode SetErrorMode(ErrorMode mode);
@@ -849,9 +853,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 SEM_NOOPENFILEERRORBOX = 0x8000,
             }
 
-            #endregion
+#endregion
 
-            #region Testing
+#region Testing
 
             // TODO(tomat): remove when the compiler supports events
             // For testing purposes only!
@@ -889,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return _metadataFileProvider.IsShadowCopy(path);
             }
 
-            #endregion
+#endregion
         }
     }
 }

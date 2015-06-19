@@ -1,33 +1,29 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Public Structure CollectionRangeVariableSymbolInfo
         ''' <summary>
         ''' Optional AsQueryable/AsEnumerable/Cast(Of Object) method used 
-        ''' to "convert" CollectionRangeVariableSyntax.Expression to queryable
+        ''' to "convert" <see cref="CollectionRangeVariableSyntax.Expression"/> to queryable
         ''' collection.
         ''' </summary>
-        Public ReadOnly ToQueryableCollectionConversion As SymbolInfo
+        Public ReadOnly Property ToQueryableCollectionConversion As SymbolInfo
 
         ''' <summary>
         ''' Optional Select method to handle AsClause.
         ''' </summary>
-        Public ReadOnly AsClauseConversion As SymbolInfo
+        Public ReadOnly Property AsClauseConversion As SymbolInfo
 
         ''' <summary>
-        ''' SelectMany method for CollectionRangeVariableSyntax, which is not the first
-        ''' CollectionRangeVariableSyntax in a QueryExpressionSyntax, and is not the first 
-        ''' CollectionRangeVariableSyntax in AggregateClauseSyntax.
+        ''' SelectMany method for <see cref="CollectionRangeVariableSyntax"/>, which is not the first
+        ''' <see cref="CollectionRangeVariableSyntax"/> in a <see cref="QueryExpressionSyntax"/>, and is not the first 
+        ''' <see cref="CollectionRangeVariableSyntax"/> in <see cref="AggregateClauseSyntax"/>.
         ''' </summary>
-        ''' <remarks></remarks>
-        Public ReadOnly SelectMany As SymbolInfo
+        Public ReadOnly Property SelectMany As SymbolInfo
 
         Friend Shared ReadOnly None As New CollectionRangeVariableSymbolInfo(SymbolInfo.None, SymbolInfo.None, SymbolInfo.None)
 
@@ -44,14 +40,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Public Structure AggregateClauseSymbolInfo
         ''' <summary>
-        ''' The first of the two optional Select methods associated with AggregateClauseSyntax.
+        ''' The first of the two optional Select methods associated with <see cref="AggregateClauseSyntax"/>.
         ''' </summary>
-        Public ReadOnly Select1 As SymbolInfo
+        Public ReadOnly Property Select1 As SymbolInfo
 
         ''' <summary>
-        ''' The second of the two optional Select methods associated with AggregateClauseSyntax.
+        ''' The second of the two optional Select methods associated with <see cref="AggregateClauseSyntax"/>.
         ''' </summary>
-        Public ReadOnly Select2 As SymbolInfo
+        Public ReadOnly Property Select2 As SymbolInfo
 
         Friend Sub New(select1 As SymbolInfo)
             Me.Select1 = select1
@@ -64,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
     End Structure
 
-    Partial Class VBSemanticModel
+    Friend Partial Class VBSemanticModel
 
         ''' <summary>
         ''' Returns information about methods associated with CollectionRangeVariableSyntax.
@@ -74,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cancellationToken As CancellationToken = Nothing
         ) As CollectionRangeVariableSymbolInfo
             If variableSyntax Is Nothing Then
-                Throw New ArgumentNullException("variableSyntax")
+                Throw New ArgumentNullException(NameOf(variableSyntax))
             End If
             If Not IsInTree(variableSyntax) Then
                 Throw New ArgumentException(VBResources.VariableSyntaxNotWithinSyntaxTree)
@@ -93,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional cancellationToken As CancellationToken = Nothing
         ) As AggregateClauseSymbolInfo
             If aggregateSyntax Is Nothing Then
-                Throw New ArgumentNullException("aggregateSyntax")
+                Throw New ArgumentNullException(NameOf(aggregateSyntax))
             End If
             If Not IsInTree(aggregateSyntax) Then
                 Throw New ArgumentException(VBResources.AggregateSyntaxNotWithinSyntaxTree)
@@ -205,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns OrdrBy/OrderByDescending/ThenBy/ThenByDescending method associated with OrderingSyntax.
+        ''' Returns OrderBy/OrderByDescending/ThenBy/ThenByDescending method associated with OrderingSyntax.
         ''' </summary>
         Public Shadows Function GetSymbolInfo(
             orderingSyntax As OrderingSyntax,

@@ -54,15 +54,15 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary">
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc1-20150208-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc3-20150528-03\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="xunit, Version=1.9.2.1705, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">

@@ -38,11 +38,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   within As NamedTypeSymbol,
                                                   Optional throughTypeOpt As NamedTypeSymbol = Nothing) As Boolean
             If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
+                Throw New ArgumentNullException(NameOf(symbol))
             End If
 
             If within Is Nothing Then
-                Throw New ArgumentNullException("within")
+                Throw New ArgumentNullException(NameOf(within))
             End If
 
             Return AccessCheck.IsSymbolAccessible(symbol, within, throughTypeOpt, useSiteDiagnostics:=Nothing)
@@ -54,15 +54,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="symbol">The symbol to check accessibility.</param>
         ''' <param name="within">The assembly to check accessibility within.</param>
-        ''' <returns>True if symbol is acessible. False otherwise.</returns>
+        ''' <returns>True if symbol is accessible. False otherwise.</returns>
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As AssemblySymbol) As Boolean
             If symbol Is Nothing Then
-                Throw New ArgumentNullException("symbol")
+                Throw New ArgumentNullException(NameOf(symbol))
             End If
 
             If within Is Nothing Then
-                Throw New ArgumentNullException("within")
+                Throw New ArgumentNullException(NameOf(within))
             End If
 
             Return AccessCheck.IsSymbolAccessible(symbol, within, useSiteDiagnostics:=Nothing)

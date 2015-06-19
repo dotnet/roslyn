@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft. All Rights Reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
@@ -11,44 +12,44 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.Concord.DoNotUse</AssemblyName>
-    <!--
-      As a convenience for developer machines without .NET 2.0 installed, we'll allow building against v4.*.
-      However, "real" builds must still target v2.0, and we always want to target 2.0 if it's present.
-    -->
-    <TargetFrameworkVersion Condition="Exists('$(WinDir)\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll') OR '$(RealSignBuild)' == 'true'">v2.0</TargetFrameworkVersion>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <ConcordDir>$(MSBuildThisFileDirectory)</ConcordDir>
-	<NonShipping>true</NonShipping>
+    <NonShipping>true</NonShipping>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
   <ItemGroup>
     <None Include="$(ConcordDir)Microsoft.VisualStudio.Debugger.Engine.xml">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <Visible>false</Visible>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata">
+      <Visible>false</Visible>
+    </ConcordAssemblies>
+    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine">
+      <Visible>false</Visible>
+    </ConcordAssemblies>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-  </PropertyGroup>
-  <ItemGroup>
-    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Metadata" />
-    <ConcordAssemblies Include="Microsoft.VisualStudio.Debugger.Engine" />
-  </ItemGroup>
-  <Target Name="Ilasm" 
+  <Target Name="IlasmNetFX20" 
           AfterTargets="CoreCompile"
-          Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).il')"
+          Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).NetFX20.il')"
+          Outputs="$(OutDir)NetFX20\%(Identity).dll">
+    <MakeDir Directories="$(OutDir)NetFX20" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).NetFX20.il" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot;" />
+  </Target>
+  <Target Name="IlasmPortable" 
+          AfterTargets="CoreCompile"
+          Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).Portable.il')"
           Outputs="$(OutDir)%(Identity).dll">
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).il" />
+    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; $(ConcordDir)@(ConcordAssemblies).Portable.il" />
+    <Exec Command="$(FakeSignToolPath) &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
+    <Delete Files="@(ConcordAssemblies->'$(OutDir)NetFX20\%(Identity).dll')" />
     <Delete Files="@(ConcordAssemblies->'$(OutDir)%(Identity).dll')" />
   </Target>
   <ImportGroup Label="Targets">

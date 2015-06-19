@@ -157,8 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotInheritable Class SourceSimpleParameterSymbolWithCustomModifiers
             Inherits SourceSimpleParameterSymbol
 
-            Private ReadOnly m_customModifiers As ImmutableArray(Of CustomModifier)
-            Private ReadOnly m_hasByRefBeforeCustomModifiers As Boolean
+            Private ReadOnly _customModifiers As ImmutableArray(Of CustomModifier)
+            Private ReadOnly _hasByRefBeforeCustomModifiers As Boolean
 
             Friend Sub New(
                 container As Symbol,
@@ -172,19 +172,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.New(container, name, ordinal, type, location)
 
                 Debug.Assert(Not customModifiers.IsDefaultOrEmpty)
-                m_customModifiers = If(customModifiers.IsDefault, ImmutableArray(Of CustomModifier).Empty, customModifiers)
-                m_hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers
+                _customModifiers = If(customModifiers.IsDefault, ImmutableArray(Of CustomModifier).Empty, customModifiers)
+                _hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers
             End Sub
 
             Public Overrides ReadOnly Property CustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
-                    Return m_customModifiers
+                    Return _customModifiers
                 End Get
             End Property
 
             Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
                 Get
-                    Return m_hasByRefBeforeCustomModifiers
+                    Return _hasByRefBeforeCustomModifiers
                 End Get
             End Property
 

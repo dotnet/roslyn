@@ -1,36 +1,45 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        internal VisualBasicCompilerServer(string responseFile, string[] args, string baseDirectory, string libDirectory, string tempPath)
-            : base(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, libDirectory, tempPath)
+        internal VisualBasicCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(VisualBasicCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader)
         {
         }
 
-        public static int RunCompiler(
-            string responseFileDirectory,
+        public static BuildResponse RunCompiler(
+            string clientDirectory,
             string[] args,
             string baseDirectory,
+            string sdkDirectory,
             string libDirectory,
-            string tempPath,
-            TextWriter output,
-            CancellationToken cancellationToken,
-            out bool utf8output)
+            IAnalyzerAssemblyLoader analyzerLoader,
+            CancellationToken cancellationToken)
         {
-            var responseFile = Path.Combine(responseFileDirectory, VisualBasicCompiler.ResponseFileName);
-            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, libDirectory, tempPath);
-            utf8output = compiler.Arguments.Utf8Output;
-            return compiler.Run(output, cancellationToken);
+            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
+            bool utf8output = compiler.Arguments.Utf8Output;
+
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
         }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken)

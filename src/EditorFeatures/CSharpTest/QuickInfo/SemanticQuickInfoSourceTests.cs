@@ -613,7 +613,7 @@ void M() { M$$() }";
         {
             TestInClass(@"$$List<string> l;",
                 MainDescription("class System.Collections.Generic.List<T>"),
-                TypeParameterMap("\r\nT is string"));
+                TypeParameterMap($"\r\nT {FeaturesResources.Is} string"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -627,7 +627,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
             Test(markup,
                 MainDescription("class GenericList<T>"),
                 Documentation("Generic List"),
-                TypeParameterMap("\r\nT is int"));
+                TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -643,8 +643,8 @@ public class GenericList<T> { Generic$$List<int> t; }";
             TestInClass(@"$$Dictionary<int, string> d;",
                 MainDescription("class System.Collections.Generic.Dictionary<TKey, TValue>"),
                 TypeParameterMap(
-                    Lines("\r\nTKey is int",
-                          "TValue is string")));
+                    Lines($"\r\nTKey {FeaturesResources.Is} int",
+                          $"TValue {FeaturesResources.Is} string")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -653,8 +653,8 @@ public class GenericList<T> { Generic$$List<int> t; }";
             TestWithUsings(@"class C<T, U> { $$Dictionary<T, U> d; }",
                 MainDescription("class System.Collections.Generic.Dictionary<TKey, TValue>"),
                 TypeParameterMap(
-                    Lines("\r\nTKey is T",
-                          "TValue is U")));
+                    Lines($"\r\nTKey {FeaturesResources.Is} T",
+                          $"TValue {FeaturesResources.Is} U")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -662,7 +662,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
         {
             TestInClass(@"$$IEnumerable<int> M() { yield break; }",
                 MainDescription("interface System.Collections.Generic.IEnumerable<out T>"),
-                TypeParameterMap("\r\nT is int"));
+                TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -676,7 +676,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
         public void TestTypeParameter()
         {
             Test(@"class C<T> { $$T t; }",
-                MainDescription("T in C<T>"));
+                MainDescription($"T {FeaturesResources.In} C<T>"));
         }
 
         [WorkItem(538636)]
@@ -690,7 +690,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
 class C<T> { $$T t; }";
 
             Test(markup,
-                MainDescription("T in C<T>"),
+                MainDescription($"T {FeaturesResources.In} C<T>"),
                 Documentation("T is Type Parameter"));
         }
 
@@ -698,28 +698,28 @@ class C<T> { $$T t; }";
         public void TestTypeParameter1_Bug931949()
         {
             Test(@"class T1<T11> { $$T11 t; }",
-                MainDescription("T11 in T1<T11>"));
+                MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter2_Bug931949()
         {
             Test(@"class T1<T11> { T$$11 t; }",
-                MainDescription("T11 in T1<T11>"));
+                MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter3_Bug931949()
         {
             Test(@"class T1<T11> { T1$$1 t; }",
-                MainDescription("T11 in T1<T11>"));
+                MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter4_Bug931949()
         {
             Test(@"class T1<T11> { T11$$ t; }",
-                MainDescription("T11 in T1<T11>"));
+                MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -727,70 +727,70 @@ class C<T> { $$T t; }";
         {
             TestInClass(@"$$Nullable<int> i; }",
                 MainDescription("struct System.Nullable<T> where T : struct"),
-                TypeParameterMap("\r\nT is int"));
+                TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeDeclaredOnMethod1_Bug1946()
         {
             Test(@"class C { static void Meth1<T1>($$T1 i) where T1 : struct { T1 i; } }",
-                MainDescription("T1 in C.Meth1<T1> where T1 : struct"));
+                MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeDeclaredOnMethod2_Bug1946()
         {
             Test(@"class C { static void Meth1<T1>(T1 i) where $$T1 : struct { T1 i; } }",
-                MainDescription("T1 in C.Meth1<T1> where T1 : struct"));
+                MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeDeclaredOnMethod3_Bug1946()
         {
             Test(@"class C { static void Meth1<T1>(T1 i) where T1 : struct { $$T1 i; } }",
-                MainDescription("T1 in C.Meth1<T1> where T1 : struct"));
+                MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Class()
         {
             Test(@"class C<T> where $$T : class { }",
-                MainDescription("T in C<T> where T : class"));
+                MainDescription($"T {FeaturesResources.In} C<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Struct()
         {
             Test(@"struct S<T> where $$T : class { }",
-                MainDescription("T in S<T> where T : class"));
+                MainDescription($"T {FeaturesResources.In} S<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Interface()
         {
             Test(@"interface I<T> where $$T : class { }",
-                MainDescription("T in I<T> where T : class"));
+                MainDescription($"T {FeaturesResources.In} I<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Delegate()
         {
             Test(@"delegate void D<T>() where $$T : class;",
-                MainDescription("T in D<T> where T : class"));
+                MainDescription($"T {FeaturesResources.In} D<T> where T : class"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMinimallyQualifiedConstraint()
         {
             Test(@"class C<T> where $$T : IEnumerable<int>",
-                MainDescription("T in C<T> where T : IEnumerable<int>"));
+                MainDescription($"T {FeaturesResources.In} C<T> where T : IEnumerable<int>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FullyQualifiedConstraint()
         {
             Test(@"class C<T> where $$T : System.Collections.Generic.IEnumerable<int>",
-                MainDescription("T in C<T> where T : System.Collections.Generic.IEnumerable<int>"));
+                MainDescription($"T {FeaturesResources.In} C<T> where T : System.Collections.Generic.IEnumerable<int>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -825,14 +825,14 @@ void M()
 }";
 
             TestInClass(markup,
-                MainDescription("(field) int C.field"));
+                MainDescription($"({FeaturesResources.Field}) int C.field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldInMethodBuiltIn2()
         {
             TestInClass("int field; void M() { int f = field$$; }",
-                MainDescription("(field) int C.field"));
+                MainDescription($"({FeaturesResources.Field}) int C.field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -852,14 +852,14 @@ void M()
         public void TestOperatorBuiltIn1()
         {
             TestInMethod("int x; x = x$$ + 1;",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorBuiltIn2()
         {
             TestInMethod("int x; x = x+$$x;",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -873,7 +873,7 @@ void M()
         public void TestOperatorBuiltIn4()
         {
             TestInMethod("int x; x = x + $$x;",
-                MainDescription("(local variable) int x"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -914,7 +914,7 @@ void M()
 }";
 
             TestInClass(markup,
-                MainDescription("(field) DateTime C.field"));
+                MainDescription($"({FeaturesResources.Field}) DateTime C.field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -929,7 +929,7 @@ void M()
 }";
 
             TestInClass(markup,
-                MainDescription("(field) System.IO.FileInfo C.file"));
+                MainDescription($"({FeaturesResources.Field}) System.IO.FileInfo C.file"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -941,7 +941,7 @@ public static int SomeField; }
 static class Test { int a = MyStruct.Some$$Field; }";
 
             Test(markup,
-                MainDescription("(field) int MyStruct.SomeField"));
+                MainDescription($"({FeaturesResources.Field}) int MyStruct.SomeField"));
         }
 
         [WorkItem(538638)]
@@ -955,7 +955,7 @@ public static int SomeField; }
 static class Test { int a = MyStruct.Some$$Field; }";
 
             Test(markup,
-                MainDescription("(field) int MyStruct.SomeField"),
+                MainDescription($"({FeaturesResources.Field}) int MyStruct.SomeField"),
                 Documentation("My Field"));
         }
 
@@ -968,7 +968,7 @@ public static int SomeField; }
 static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
 
             Test(markup,
-                MainDescription("(field) int MyStruct.SomeField"));
+                MainDescription($"({FeaturesResources.Field}) int MyStruct.SomeField"));
         }
 
         [WorkItem(538638)]
@@ -982,7 +982,7 @@ public static int SomeField; }
 static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
 
             Test(markup,
-                MainDescription("(field) int MyStruct.SomeField"),
+                MainDescription($"({FeaturesResources.Field}) int MyStruct.SomeField"),
                 Documentation("My Field"));
         }
 
@@ -990,7 +990,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         public void TestMetadataFieldMinimal()
         {
             TestInMethod(@"DateTime dt = DateTime.MaxValue$$",
-                MainDescription("(field) DateTime DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.Field}) DateTime DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1005,7 +1005,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
     }
 }";
             Test(markup,
-                MainDescription("(field) System.DateTime System.DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.Field}) System.DateTime System.DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1018,7 +1018,7 @@ class C {
         DateTime dt = System.DateTime.MaxValue$$
     }
 }",
-                MainDescription("(field) System.DateTime System.DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.Field}) System.DateTime System.DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1032,7 +1032,7 @@ class C {
         DateTime dt = System.DateTime.MaxValue$$
     }
 }",
-                MainDescription("(field) DateTime DateTime.MaxValue"));
+                MainDescription($"({FeaturesResources.Field}) DateTime DateTime.MaxValue"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1045,7 +1045,7 @@ class D {
         new C<int>().Fi$$eld.ToString();
     }
 }",
-                MainDescription("(field) int C<int>.Field"));
+                MainDescription($"({FeaturesResources.Field}) int C<int>.Field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1059,7 +1059,7 @@ class C<T> {
         Fi$$eld.ToString();
     }
 }",
-                MainDescription("(field) T C<T>.Field"));
+                MainDescription($"({FeaturesResources.Field}) T C<T>.Field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1096,7 +1096,7 @@ class C
         return 5;
     }
 }";
-            Test(markup, MainDescription("Awaited task returns struct System.Int32"));
+            Test(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} struct System.Int32"));
         }
 
         [WorkItem(756226)]
@@ -1112,7 +1112,7 @@ class C
         return 5;
     }
 }";
-            Test(markup, MainDescription("Awaited task returns struct System.Int32"));
+            Test(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} struct System.Int32"));
         }
 
         [WorkItem(756226)]
@@ -1127,7 +1127,7 @@ class C
         aw$$ait Task.Delay(100);
     }
 }";
-            Test(markup, MainDescription("Awaited task returns no value."));
+            Test(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} {FeaturesResources.TextForSystemVoid}"));
         }
 
         [WorkItem(756226), WorkItem(756337)]
@@ -1162,8 +1162,8 @@ class AsyncExample2
         result = await lambda();
     }
 }";
-            Test(markup, MainDescription("(awaitable) Awaited task returns class System.Threading.Tasks.Task<TResult>"),
-                         TypeParameterMap("\r\nTResult is int"));
+            Test(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) {FeaturesResources.PrefixTextForAwaitKeyword} class System.Threading.Tasks.Task<TResult>"),
+                         TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
         }
 
         [WorkItem(756226)]
@@ -1198,7 +1198,7 @@ class AsyncExample2
         result = await lambda();
     }
 }";
-            Test(markup, MainDescription("Awaited task returns struct System.Int32"));
+            Test(markup, MainDescription($"{FeaturesResources.PrefixTextForAwaitKeyword} struct System.Int32"));
         }
 
         [WorkItem(756226), WorkItem(756337)]
@@ -1225,7 +1225,7 @@ class MyAwaiter : INotifyCompletion
     public bool IsCompleted { get { throw new NotImplementedException(); } }
     public void GetResult() { }
 }";
-            Test(markup, MainDescription("(awaitable) class C"));
+            Test(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class C"));
         }
 
         [WorkItem(756226), WorkItem(756337)]
@@ -1240,7 +1240,7 @@ class C
         Task$$ v1;
     }
 }";
-            Test(markup, MainDescription("(awaitable) class System.Threading.Tasks.Task"));
+            Test(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class System.Threading.Tasks.Task"));
         }
 
         [WorkItem(756226), WorkItem(756337)]
@@ -1256,8 +1256,8 @@ class C
         Task$$<int> v1;
     }
 }";
-            Test(markup, MainDescription("(awaitable) class System.Threading.Tasks.Task<TResult>"),
-                         TypeParameterMap("\r\nTResult is int"));
+            Test(markup, MainDescription($"({CSharpFeaturesResources.Awaitable}) class System.Threading.Tasks.Task<TResult>"),
+                         TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1265,6 +1265,34 @@ class C
         {
             TestInMethod(@"string f = ""Foo""$$",
                 MainDescription("class System.String"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimStringLiteral()
+        {
+            TestInMethod(@"string f = @""cat""$$",
+                MainDescription("class System.String"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        }
+
+        [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void TestVerbatimInterpolatedStringLiteral()
+        {
+            TestInMethod(@"string f = $@""cat""$$", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""c$$at""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""$$cat""", MainDescription("class System.String"));
+            TestInMethod(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1279,7 +1307,7 @@ class C
         {
             TestInMethod(@"dyn$$amic dyn;",
                 MainDescription("dynamic"),
-                Documentation("Represents an object whose operations will be resolved at runtime."));
+                Documentation(FeaturesResources.RepresentsAnObjectWhoseOperations));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1290,7 +1318,7 @@ void M()
 {
     d$$yn.Foo();
 }",
-                MainDescription("(field) dynamic C.dyn"));
+                MainDescription($"({FeaturesResources.Field}) dynamic C.dyn"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1363,7 +1391,7 @@ class C<T> {
         public void ValueInProperty()
         {
             TestInClass(@"public DateTime Property {set { foo = val$$ue; } }",
-                MainDescription("(parameter) DateTime value"));
+                MainDescription($"({FeaturesResources.Parameter}) DateTime value"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1440,21 +1468,21 @@ class C
         public void Parameter_InMethod_Minimal()
         {
             TestInClass(@"void M(DateTime dt) { d$$t.ToString();",
-                MainDescription("(parameter) DateTime dt"));
+                MainDescription($"({FeaturesResources.Parameter}) DateTime dt"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_InMethod_Qualified()
         {
             TestInClass(@"void M(System.IO.FileInfo fileInfo) { file$$Info.ToString();",
-                MainDescription("(parameter) System.IO.FileInfo fileInfo"));
+                MainDescription($"({FeaturesResources.Parameter}) System.IO.FileInfo fileInfo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_FromReferenceToNamedParameter()
         {
             TestInMethod(@"Console.WriteLine(va$$lue: ""Hi"");",
-                MainDescription("(parameter) string value"));
+                MainDescription($"({FeaturesResources.Parameter}) string value"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1463,49 +1491,49 @@ class C
             // NOTE: Dev10 doesn't show the default value, but it would be nice if we did.
             // NOTE: The "DefaultValue" property isn't implemented yet.
             TestInClass(@"void M(int param = 42) { para$$m.ToString(); }",
-                MainDescription("(parameter) int param = 42"));
+                MainDescription($"({FeaturesResources.Parameter}) int param = 42"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_Params()
         {
             TestInClass(@"void M(params DateTime[] arg) { ar$$g.ToString(); }",
-                MainDescription("(parameter) params DateTime[] arg"));
+                MainDescription($"({FeaturesResources.Parameter}) params DateTime[] arg"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_Ref()
         {
             TestInClass(@"void M(ref DateTime arg) { ar$$g.ToString(); }",
-                MainDescription("(parameter) ref DateTime arg"));
+                MainDescription($"({FeaturesResources.Parameter}) ref DateTime arg"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_Out()
         {
             TestInClass(@"void M(out DateTime arg) { ar$$g.ToString(); }",
-                MainDescription("(parameter) out DateTime arg"));
+                MainDescription($"({FeaturesResources.Parameter}) out DateTime arg"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Local_Minimal()
         {
             TestInMethod(@"DateTime dt; d$$t.ToString();",
-                MainDescription("(local variable) DateTime dt"));
+                MainDescription($"({FeaturesResources.LocalVariable}) DateTime dt"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Local_Qualified()
         {
             TestInMethod(@"System.IO.FileInfo fileInfo; file$$Info.ToString();",
-                MainDescription("(local variable) System.IO.FileInfo fileInfo"));
+                MainDescription($"({FeaturesResources.LocalVariable}) System.IO.FileInfo fileInfo"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_MetadataOverload()
         {
             TestInMethod("Console.Write$$Line();",
-                MainDescription("void Console.WriteLine() (+ 18 overloads)"));
+                MainDescription($"void Console.WriteLine() (+ 18 {FeaturesResources.Overloads})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1514,7 +1542,7 @@ class C
             TestInClass(@"
 void Method() { Met$$hod(); }
 void Method(int i) { }",
-                MainDescription("void C.Method() (+ 1 overload)"));
+                MainDescription($"void C.Method() (+ 1 {FeaturesResources.Overload})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1525,7 +1553,7 @@ void Method() { Met$$hod(null); }
 void Method(int i) { }
 void Method(DateTime dt) { }
 void Method(System.IO.FileInfo fileInfo) { }",
-                MainDescription("void C.Method(System.IO.FileInfo fileInfo) (+ 3 overloads)"));
+                MainDescription($"void C.Method(System.IO.FileInfo fileInfo) (+ 3 {FeaturesResources.Overloads})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1549,7 +1577,7 @@ void Method(int i = 0) { }",
         {
             TestInClass(@"
 void Foo(decimal x$$yz = 10) { }",
-                MainDescription("(parameter) decimal xyz = 10"));
+                MainDescription($"({FeaturesResources.Parameter}) decimal xyz = 10"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1631,7 +1659,7 @@ void M()
 {
     new C$$ (DateTime.MaxValue).ToString();
 }",
-                MainDescription("C.C(DateTime dt) (+ 2 overloads)"));
+                MainDescription($"C.C(DateTime dt) (+ 2 {FeaturesResources.Overloads})"));
         }
 
         /// <summary>
@@ -1641,7 +1669,7 @@ void M()
         public void Constructor_OverloadFromStringLiteral()
         {
             TestInMethod(@"new InvalidOperatio$$nException("""");",
-                MainDescription("InvalidOperationException.InvalidOperationException(string message) (+ 2 overloads)"));
+                MainDescription($"InvalidOperationException.InvalidOperationException(string message) (+ 2 {FeaturesResources.Overloads})"));
         }
 
         /// <summary>
@@ -1660,14 +1688,14 @@ void M()
         public void Constructor_OverloadFromProperty()
         {
             TestInMethod(@"new InvalidOperatio$$nException(this.GetType().Name);",
-                MainDescription("InvalidOperationException.InvalidOperationException(string message) (+ 2 overloads)"));
+                MainDescription($"InvalidOperationException.InvalidOperationException(string message) (+ 2 {FeaturesResources.Overloads})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_Metadata()
         {
             TestInMethod(@"new Argument$$NullException();",
-                MainDescription("ArgumentNullException.ArgumentNullException() (+ 3 overloads)"));
+                MainDescription($"ArgumentNullException.ArgumentNullException() (+ 3 {FeaturesResources.Overloads})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1780,7 +1808,7 @@ class T1<T11>
     $$T11 i;
 }
 ",
-                MainDescription("T11 in T1<T11>"));
+                MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1792,7 +1820,7 @@ class T1<T11>
         $$T1 i;
     }
 ",
-                MainDescription("T1 in C.Meth1<T1> where T1 : struct"));
+                MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1802,7 +1830,7 @@ class T1<T11>
 var x = new Exception();
 var y = $$x;
 ",
-                MainDescription("(local variable) Exception x"));
+                MainDescription($"({FeaturesResources.LocalVariable}) Exception x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1812,7 +1840,7 @@ var y = $$x;
             List<int>.Enu$$merator e;
 ",
                 MainDescription("struct System.Collections.Generic.List<T>.Enumerator"),
-                TypeParameterMap("\r\nT is int"));
+                TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1833,8 +1861,8 @@ var y = $$x;
 ",
                 MainDescription("class Outer<T>.Inner<U>"),
                 TypeParameterMap(
-                    Lines("\r\nT is int",
-                          "U is string")));
+                    Lines($"\r\nT {FeaturesResources.Is} int",
+                          $"U {FeaturesResources.Is} string")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1851,7 +1879,7 @@ var y = $$x;
         public int z;
     }
 ",
-                MainDescription("(field) int test.z"));
+                MainDescription($"({FeaturesResources.Field}) int test.z"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1887,7 +1915,7 @@ class C<T, Y>
         $$variable = new C<int, DateTime>();
     }
 }",
-                MainDescription("(local variable) C<int, DateTime> variable"));
+                MainDescription($"({FeaturesResources.LocalVariable}) C<int, DateTime> variable"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1901,7 +1929,7 @@ c$$c = 1;
 bb = bb + 21;
 }
 ",
-                MainDescription("(local variable) int cc"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int cc"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1919,7 +1947,7 @@ bb = bb + 21;
             finally
             {
             }",
-                MainDescription("(local variable) int aa"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1938,7 +1966,7 @@ bb = bb + 21;
             {
             }
 ",
-                MainDescription("(local variable) Exception ex"));
+                MainDescription($"({FeaturesResources.LocalVariable}) Exception ex"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1957,7 +1985,7 @@ bb = bb + 21;
             {
             }
 ",
-                MainDescription("(local variable) int aa"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1976,7 +2004,7 @@ bb = bb + 21;
                 aa = a$$a + 1;
             }
 ",
-                MainDescription("(local variable) int aa"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -1992,7 +2020,7 @@ bb = bb + 21;
                 }
             }
 ",
-                MainDescription("(local variable) C<int, DateTime> variable"));
+                MainDescription($"({FeaturesResources.LocalVariable}) C<int, DateTime> variable"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2007,7 +2035,7 @@ class Program<T>
         var p = new Dictio$$nary<int, string>();
     }
 }",
-                MainDescription(@"Dictionary<int, string>.Dictionary() (+ 5 overloads)"));
+                MainDescription($"Dictionary<int, string>.Dictionary() (+ 5 {FeaturesResources.Overloads})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2027,7 +2055,7 @@ class D : X$$ { }
         {
             TestInClass(@"
 DateTime fie$$ld;",
-                MainDescription("(field) DateTime C.field"));
+                MainDescription($"({FeaturesResources.Field}) DateTime C.field"));
         }
 
         [WorkItem(538767)]
@@ -2036,7 +2064,7 @@ DateTime fie$$ld;",
         {
             TestInClass(@"
 NonExistentType<int> fi$$eld;",
-                MainDescription("(field) NonExistentType<int> C.field"));
+                MainDescription($"({FeaturesResources.Field}) NonExistentType<int> C.field"));
         }
 
         [WorkItem(538822)]
@@ -2047,8 +2075,8 @@ NonExistentType<int> fi$$eld;",
 Fun$$c<int, string> field;",
                 MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
                 TypeParameterMap(
-                    Lines("\r\nT is int",
-                          "TResult is string")));
+                    Lines($"\r\nT {FeaturesResources.Is} int",
+                          $"TResult {FeaturesResources.Is} string")));
         }
 
         [WorkItem(538824)]
@@ -2066,7 +2094,7 @@ class Program
     }
 }
 ",
-                MainDescription("(local variable) D1 d"));
+                MainDescription($"({FeaturesResources.LocalVariable}) D1 d"));
         }
 
         [WorkItem(539240)]
@@ -2161,7 +2189,7 @@ class C
         }
     }
 }",
-                MainDescription("(local variable) int cc"));
+                MainDescription($"({FeaturesResources.LocalVariable}) int cc"));
         }
 
         [WorkItem(540438)]
@@ -2257,7 +2285,7 @@ public static class MyExtensions
     }
 }
 ",
-                MainDescription("(extension) bool int.In<int>(IEnumerable<int> items)"));
+                MainDescription($"({CSharpFeaturesResources.Extension}) bool int.In<int>(IEnumerable<int> items)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2282,7 +2310,7 @@ public static class Ex
     public static void TestExt(this string ex, int arg) { }
 }
 ",
-                MainDescription("(extension) void string.TestExt<string>() (+ 2 overloads)"));
+                MainDescription($"({CSharpFeaturesResources.Extension}) void string.TestExt<string>() (+ 2 {FeaturesResources.Overloads})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2307,7 +2335,7 @@ public static class Ex
     public static void TestExt(this int ex, int arg) { }
 }
 ",
-                MainDescription("(extension) void string.TestExt<string>() (+ 1 overload)"));
+                MainDescription($"({CSharpFeaturesResources.Extension}) void string.TestExt<string>() (+ 1 {FeaturesResources.Overload})"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2324,7 +2352,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) int n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2341,7 +2369,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) int n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2357,7 +2385,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) ? n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) ? n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2373,7 +2401,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) ? n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) ? n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2391,7 +2419,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) object n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) object n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2409,7 +2437,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) object n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) object n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2427,7 +2455,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) int n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2445,7 +2473,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) int n"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2464,7 +2492,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) List<int> x"));
+                MainDescription($"({FeaturesResources.RangeVariable}) List<int> x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2483,7 +2511,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) List<int> x"));
+                MainDescription($"({FeaturesResources.RangeVariable}) List<int> x"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2502,7 +2530,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) int y"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2521,7 +2549,7 @@ class C
     }
 }
 ",
-                MainDescription("(range variable) int y"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
         [WorkItem(543205)]
@@ -2550,7 +2578,7 @@ class classAttribute : Attribute
 {
     private classAttribute x$$;
 }",
-                MainDescription("(field) classAttribute classAttribute.x"));
+                MainDescription($"({FeaturesResources.Field}) classAttribute classAttribute.x"));
         }
 
         [WorkItem(544026)]
@@ -2563,14 +2591,62 @@ class class1Attribute : Attribute
 {
     private class1Attribute x$$;
 }",
-                MainDescription("(field) class1Attribute class1Attribute.x"));
+                MainDescription($"({FeaturesResources.Field}) class1Attribute class1Attribute.x"));
+        }
+
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeQuickInfoBindsToClassTest()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+[Some$$]
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+    }
+}
+",
+                Documentation("class comment"));
+        }
+
+        [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void AttributeConstructorQuickInfo()
+        {
+            Test(@"
+using System;
+
+/// <summary>
+/// class comment
+/// </summary>
+class SomeAttribute : Attribute
+{
+    /// <summary>
+    /// ctor comment
+    /// </summary>
+    public SomeAttribute()
+    {
+        var s = new Some$$Attribute();
+    }
+}
+",
+                Documentation("ctor comment"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestLabel()
         {
             TestInClass(@"void M() { Foo: int Foo; goto Foo$$; }",
-                MainDescription("(label) Foo"));
+                MainDescription($"({FeaturesResources.Label}) Foo"));
         }
 
         [WorkItem(542613)]
@@ -2606,9 +2682,9 @@ class C
                 MainDescription(@"AnonymousType 'a"),
                 NoTypeParameterMap,
                 AnonymousTypes(
-@"
-Anonymous Types:
-    'a is new {  }"));
+$@"
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{  }}"));
         }
 
         [WorkItem(543873)]
@@ -2621,20 +2697,20 @@ Anonymous Types:
                 MainDescription(@"'b 'a.Address { get; }"),
                 NoTypeParameterMap,
                 AnonymousTypes(
-@"
-Anonymous Types:
-    'a is new { string Name, 'b Address }
-    'b is new { string Street, string Zip }"));
+$@"
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ string Name, 'b Address }}
+    'b {FeaturesResources.Is} new {{ string Street, string Zip }}"));
 
             // verify second property
             TestInMethod(@"var x = new[] { new { Name = ""BillG"", Address = new { Street = ""1 Microsoft Way"", Zip = ""98052"" } } }; x[0].$$Name",
                 MainDescription(@"string 'a.Name { get; }"),
                 NoTypeParameterMap,
                 AnonymousTypes(
-@"
-Anonymous Types:
-    'a is new { string Name, 'b Address }
-    'b is new { string Street, string Zip }"));
+$@"
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ string Name, 'b Address }}
+    'b {FeaturesResources.Is} new {{ string Street, string Zip }}"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2659,9 +2735,9 @@ Anonymous Types:
                 MainDescription(@"int 'a.N { get; }"),
                 NoTypeParameterMap,
                 AnonymousTypes(
-@"
-Anonymous Types:
-    'a is new { int N }"));
+$@"
+{FeaturesResources.AnonymousTypes}
+    'a {FeaturesResources.Is} new {{ int N }}"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2702,7 +2778,7 @@ namespace N1
     }
 }
 ",
-                MainDescription("(range variable) N1.yield yield"));
+                MainDescription($"({FeaturesResources.RangeVariable}) N1.yield yield"));
         }
 
         [WorkItem(543550)]
@@ -2737,14 +2813,14 @@ class Program
         public void TestConstantField()
         {
             Test("class C { const int $$F = 1;",
-                MainDescription("(constant) int C.F = 1"));
+                MainDescription($"({FeaturesResources.Constant}) int C.F = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMultipleConstantFields()
         {
             Test("class C { public const double X = 1.0, Y = 2.0, $$Z = 3.5;",
-                MainDescription("(constant) double C.Z = 3.5"));
+                MainDescription($"({FeaturesResources.Constant}) double C.Z = 3.5"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2759,7 +2835,7 @@ class B
 {
     public const int Z = A.Y + 1;
 }",
-                MainDescription("(constant) int A.X = B.Z + 1"));
+                MainDescription($"({FeaturesResources.Constant}) int A.X = B.Z + 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2773,7 +2849,7 @@ class B
 {
     public const int Z$$ = A.X + 1;
 }",
-                MainDescription("(constant) int B.Z = A.X + 1"));
+                MainDescription($"({FeaturesResources.Constant}) int B.Z = A.X + 1"));
         }
 
         [WorkItem(544620)]
@@ -2784,7 +2860,7 @@ class B
 {
     public const int Z$$ = int.MaxValue + 1;
 }",
-                MainDescription("(constant) int B.Z = int.MaxValue + 1"));
+                MainDescription($"({FeaturesResources.Constant}) int B.Z = int.MaxValue + 1"));
         }
 
         [WorkItem(544620)]
@@ -2795,7 +2871,7 @@ class B
 {
     public const int Z$$ = unchecked(int.MaxValue + 1);
 }",
-                MainDescription("(constant) int B.Z = unchecked(int.MaxValue + 1)"));
+                MainDescription($"({FeaturesResources.Constant}) int B.Z = unchecked(int.MaxValue + 1)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2809,7 +2885,7 @@ class B
         const int $$x = (int)Days.Sun;
     }
 }",
-                MainDescription("(local constant) int x = (int)Days.Sun"));
+                MainDescription($"({FeaturesResources.LocalConstant}) int x = (int)Days.Sun"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -2823,21 +2899,21 @@ class B
         const Days $$x = default(Days);
     }
 }",
-                MainDescription("(local constant) Days x = default(Days)"));
+                MainDescription($"({FeaturesResources.LocalConstant}) Days x = default(Days)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantParameter()
         {
             Test("class C { void Bar(int $$b = 1); }",
-                MainDescription("(parameter) int b = 1"));
+                MainDescription($"({FeaturesResources.Parameter}) int b = 1"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantLocal()
         {
             Test("class C { void Bar() { const int $$loc = 1; }",
-                MainDescription("(local constant) int loc = 1"));
+                MainDescription($"({FeaturesResources.LocalConstant}) int loc = 1"));
         }
 
         [WorkItem(544416)]
@@ -2845,7 +2921,7 @@ class B
         public void TestErrorType1()
         {
             TestInMethod("var $$v1 = new Foo();",
-                MainDescription("(local variable) Foo v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) Foo v1"));
         }
 
         [WorkItem(544416)]
@@ -2853,7 +2929,7 @@ class B
         public void TestErrorType2()
         {
             TestInMethod("var $$v1 = v1;",
-                MainDescription("(local variable) var v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) var v1"));
         }
 
         [WorkItem(544416)]
@@ -2861,7 +2937,7 @@ class B
         public void TestErrorType3()
         {
             TestInMethod("var $$v1 = new Foo<Bar>();",
-                MainDescription("(local variable) Foo<Bar> v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) Foo<Bar> v1"));
         }
 
         [WorkItem(544416)]
@@ -2869,7 +2945,7 @@ class B
         public void TestErrorType4()
         {
             TestInMethod("var $$v1 = &(x => x);",
-                MainDescription("(local variable) ?* v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) ?* v1"));
         }
 
         [WorkItem(544416)]
@@ -2877,7 +2953,7 @@ class B
         public void TestErrorType5()
         {
             TestInMethod("var $$v1 = &v1",
-                MainDescription("(local variable) var* v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) var* v1"));
         }
 
         [WorkItem(544416)]
@@ -2885,7 +2961,7 @@ class B
         public void TestErrorType6()
         {
             TestInMethod("var $$v1 = new Foo[1]",
-                MainDescription("(local variable) Foo[] v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) Foo[] v1"));
         }
 
         [WorkItem(544416)]
@@ -2893,7 +2969,7 @@ class B
         public void TestErrorType7()
         {
             TestInClass("class C { void Method() { } void Foo() { var $$v1 = MethodGroup; } }",
-                MainDescription("(local variable) ? v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) ? v1"));
         }
 
         [WorkItem(544416)]
@@ -2901,7 +2977,7 @@ class B
         public void TestErrorType8()
         {
             TestInMethod("var $$v1 = Unknown",
-                MainDescription("(local variable) ? v1"));
+                MainDescription($"({FeaturesResources.LocalVariable}) ? v1"));
         }
 
         [WorkItem(545072)]
@@ -2925,7 +3001,7 @@ class B
         public void TestLetIdentifier1()
         {
             TestInMethod("var q = from e in \"\" let $$y = 1 let a = new { y } select a;",
-                MainDescription("(range variable) int y"));
+                MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
         [WorkItem(545295)]
@@ -2944,7 +3020,7 @@ class B
 @"class Program { void M1(float $$j1 = ""Hello""
         + 
         ""World"") { } }",
-                MainDescription(@"(parameter) float j1 = ""Hello"" + ""World"""));
+                MainDescription($@"({FeaturesResources.Parameter}) float j1 = ""Hello"" + ""World"""));
         }
 
         [WorkItem(545230)]
@@ -2962,7 +3038,7 @@ class B
     }
 }
 ",
-                MainDescription(@"(local constant) int MEGABYTE = 1024 * 1024 + true"));
+                MainDescription($@"({FeaturesResources.LocalConstant}) int MEGABYTE = 1024 * 1024 + true"));
         }
 
         [WorkItem(545230)]
@@ -2980,7 +3056,7 @@ class B
         Foo($$a);
     }
 }",
-                MainDescription(@"(constant) int Program.a = true - false"));
+                MainDescription($"({FeaturesResources.Constant}) int Program.a = true - false"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3151,11 +3227,11 @@ class C
         Fo$$o();
     }
 }";
-            var description = @"(awaitable) Task C.Foo()";
+            var description = $"({CSharpFeaturesResources.Awaitable}) Task C.Foo()";
 
-            var documentation = @"
-Usage:
-  await Foo();";
+            var documentation = $@"
+{WorkspacesResources.Usage}
+  {CSharpFeaturesResources.Await} Foo();";
 
             VerifyWithMscorlib45(markup, new[] { MainDescription(description), Usage(documentation) });
         }
@@ -3174,7 +3250,7 @@ class Program
         fo$$o();
     }
 }";
-            Test(markup, MainDescription("[deprecated] void Program.foo()"));
+            Test(markup, MainDescription($"[{CSharpFeaturesResources.Deprecated}] void Program.foo()"));
         }
 
         [WorkItem(751070)]
@@ -3668,7 +3744,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription("(field) int C.x"), Usage("") });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.Field}) int C.x"), Usage("") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -3694,7 +3770,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = Usage("\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", expectsWarningGlyph: true);
+            var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true);
 
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
         }
@@ -3722,7 +3798,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = Usage("\r\n    Proj1 - Not Available\r\n    Proj2 - Available\r\n\r\nYou can use the navigation bar to switch context.", expectsWarningGlyph: true);
+            var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.NotAvailable)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.Available)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true);
 
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
         }
@@ -3754,7 +3830,7 @@ class C
     </Project>
 </Workspace>";
             var expectedDescription = Usage(
-                "\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n    Proj3 - Not Available\r\n\r\nYou can use the navigation bar to switch context.",
+                $"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}",
                 expectsWarningGlyph: true);
 
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
@@ -3789,7 +3865,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
     </Project>
 </Workspace>";
-            var expectedDescription = Usage("\r\n    Proj1 - Available\r\n    Proj3 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", expectsWarningGlyph: true);
+            var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj3", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true);
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
         }
 
@@ -3843,7 +3919,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription("(local variable) int x"), Usage("") });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage("") });
         }
 
         [WorkItem(1020944)]
@@ -3872,7 +3948,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription("(local variable) int x"), Usage("\r\n    Proj1 - Available\r\n    Proj2 - Not Available\r\n\r\nYou can use the navigation bar to switch context.", expectsWarningGlyph: true) });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.LocalVariable}) int x"), Usage($"\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}", expectsWarningGlyph: true) });
         }
 
         [WorkItem(1020944)]
@@ -3897,7 +3973,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription("(label) LABEL"), Usage("") });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.Label}) LABEL"), Usage("") });
         }
 
         [WorkItem(1020944)]
@@ -3923,7 +3999,7 @@ class C
     </Project>
 </Workspace>";
 
-            VerifyWithReferenceWorker(markup, new[] { MainDescription("(range variable) int y"), Usage("") });
+            VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.RangeVariable}) int y"), Usage("") });
         }
 
         [WorkItem(1019766)]
@@ -3975,6 +4051,89 @@ class Program
     }
 }";
             Test(markup, MainDescription("dynamic"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+#if ONE
+    void Do(int x){}
+#endif
+#if TWO
+    void Do(string x){}
+#endif
+    void Shared()
+    {
+        this.Do$$
+    }
+
+}]]></Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void C.Do(int x)";
+            VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void MethodOverloadDifferencesIgnored_ContainingType()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""SourceDocument""><![CDATA[
+class C
+{
+    void Shared()
+    {
+        var x = GetThing().Do$$();
+    }
+
+#if ONE
+    private Methods1 GetThing()
+    {
+        return new Methods1();
+    }
+#endif
+
+#if TWO
+    private Methods2 GetThing()
+    {
+        return new Methods2();
+    }
+#endif
+}
+
+#if ONE
+public class Methods1
+{
+    public void Do(string x) { }
+}
+#endif
+
+#if TWO
+public class Methods2
+{
+    public void Do(string x) { }
+}
+#endif
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"void Methods1.Do(string x)";
+            VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
         }
     }
 }

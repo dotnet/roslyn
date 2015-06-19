@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected new CSharpCompilation GetCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options)
+            CompilationOptions options,
+            ParseOptions parseOptions)
         {
-            return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options);
+            return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options, parseOptions);
         }
 
         internal new IEnumerable<ModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
@@ -38,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return base.ReferencesToModuleSymbols(references, importOptions).Cast<ModuleSymbol>();
         }
 
-        private Action<IModuleSymbol, TestEmitters> Translate2(Action<ModuleSymbol> action)
+        private Action<IModuleSymbol> Translate2(Action<ModuleSymbol> action)
         {
             if (action != null)
             {
-                return (m, _) => action((ModuleSymbol)m);
+                return (m) => action((ModuleSymbol)m);
             }
             else
             {
@@ -66,28 +67,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> assemblyValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
-            bool collectEmittedAssembly = true,
+            ParseOptions parseOptions = null,
             bool verify = true)
         {
             return base.CompileAndVerify(
                 source: source,
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
-                emitOptions: emitOptions,
                 sourceSymbolValidator: Translate2(sourceSymbolValidator),
                 assemblyValidator: assemblyValidator,
                 symbolValidator: Translate2(symbolValidator),
                 expectedSignatures: expectedSignatures,
                 expectedOutput: expectedOutput,
                 options: options,
-                collectEmittedAssembly: collectEmittedAssembly,
+                parseOptions: parseOptions,
                 verify: verify);
         }
 
@@ -96,12 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> assemblyValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
-            bool collectEmittedAssembly = true,
             bool verify = true)
         {
             var options = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
@@ -111,13 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(
                 compilation: compilation,
                 dependencies: dependencies,
-                emitOptions: emitOptions,
                 sourceSymbolValidator: Translate2(sourceSymbolValidator),
                 assemblyValidator: assemblyValidator,
                 symbolValidator: Translate2(symbolValidator),
                 expectedSignatures: expectedSignatures,
                 expectedOutput: expectedOutput,
-                collectEmittedAssembly: collectEmittedAssembly,
                 verify: verify);
         }
 
@@ -125,7 +120,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             string expectedOutput = null,
             MetadataReference[] additionalRefs = null,
-            TestEmitters emitOptions = TestEmitters.All,
             CSharpCompilationOptions options = null,
             bool verify = true)
         {
@@ -141,50 +135,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(
                 compilation: compilation,
                 expectedOutput: expectedOutput,
-                emitOptions: emitOptions,
                 verify: verify);
         }
 
         internal CompilationVerifier CompileAndVerifyOnWin8Only(
             string source,
             MetadataReference[] additionalRefs = null,
-            TestEmitters emitOptions = TestEmitters.All,
             string expectedOutput = null)
         {
+            var isWin8 = OSVersion.IsWin8;
             return CompileAndVerifyWinRt(
                 source,
                 additionalRefs: additionalRefs,
-                expectedOutput: expectedOutput,
-                emitOptions: emitOptions,
-                verify: OSVersion.IsWin8);
+                expectedOutput: isWin8 ? expectedOutput : null,
+                verify: isWin8);
         }
 
         internal CompilationVerifier CompileAndVerify(
             string[] sources,
             MetadataReference[] additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> validator = null,
+            Action<PEAssembly> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
-            bool collectEmittedAssembly = true,
+            ParseOptions parseOptions = null,
             bool verify = true)
         {
             return base.CompileAndVerify(
                 sources,
                 additionalRefs,
                 dependencies,
-                emitOptions,
                 Translate2(sourceSymbolValidator),
                 validator,
                 Translate2(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
                 options,
-                collectEmittedAssembly,
+                parseOptions,
                 verify);
         }
 
@@ -192,26 +182,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitOptions = TestEmitters.All,
             Action<ModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> validator = null,
+            Action<PEAssembly> validator = null,
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
-            bool collectEmittedAssembly = true,
             bool verify = true)
         {
             return base.CompileAndVerify(
                 compilation,
                 manifestResources,
                 dependencies,
-                emitOptions,
                 Translate2(sourceSymbolValidator),
                 validator,
                 Translate2(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
-                collectEmittedAssembly,
                 verify);
         }
     }
@@ -276,24 +262,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return SyntaxFactory.ParseSyntaxTree(stringText, options, filename);
         }
 
-        public static SyntaxTree[] Parse(IEnumerable<string> sources)
+        public static SyntaxTree[] Parse(IEnumerable<string> sources, CSharpParseOptions options = null)
         {
             if (sources == null || !sources.Any())
             {
                 return new SyntaxTree[] { };
             }
 
-            return Parse(sources.ToArray());
+            return Parse(options, sources.ToArray());
         }
 
-        public static SyntaxTree[] Parse(params string[] sources)
+        public static SyntaxTree[] Parse(CSharpParseOptions options = null, params string[] sources)
         {
             if (sources == null || (sources.Length == 1 && null == sources[0]))
             {
                 return new SyntaxTree[] { };
             }
 
-            return sources.Select(src => Parse(src)).ToArray();
+            return sources.Select(src => Parse(src, options: options)).ToArray();
         }
 
         public static SyntaxTree ParseWithRoundTripCheck(string text, CSharpParseOptions options = null)
@@ -316,11 +302,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions options = null,
             bool appendDefaultHeader = true)
         {
-            if (string.IsNullOrEmpty(ilSource))
-            {
-                return CreateCompilationWithMscorlib(source, references, options);
-            }
-
             IEnumerable<MetadataReference> metadataReferences = new[] { CompileIL(ilSource, appendDefaultHeader) };
             if (references != null)
             {
@@ -393,11 +374,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
             string text,
-            CSharpCompilationOptions options = null)
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null)
         {
             var refs = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
 
-            return CreateCompilation(new[] { Parse(text) }, refs, options);
+            return CreateCompilation(new[] { Parse(text, options: parseOptions) }, refs, options);
         }
 
 
@@ -405,9 +387,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
             string assemblyName = "")
         {
-            return CreateCompilationWithMscorlib(Parse(sources), references, options, assemblyName);
+            return CreateCompilationWithMscorlib(Parse(sources, parseOptions), references, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlib(
@@ -470,18 +453,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             string source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
             string assemblyName = "")
         {
-            return CreateCompilation(new[] { Parse(source) }, references, options, assemblyName);
+            return CreateCompilation(new[] { Parse(source, options: parseOptions) }, references, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilation(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
             string assemblyName = "")
         {
-            return CreateCompilation(Parse(sources), references, options, assemblyName);
+            return CreateCompilation(Parse(sources, parseOptions), references, options, assemblyName);
         }
 
         public static CSharpCompilation CreateCompilation(
@@ -512,9 +497,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AssemblyIdentity identity,
             string[] sources,
             MetadataReference[] references,
-            CSharpCompilationOptions options = null)
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null)
         {
-            var trees = (sources == null) ? null : sources.Select(s => Parse(s)).ToArray();
+            var trees = (sources == null) ? null : sources.Select(s => Parse(s, options: parseOptions)).ToArray();
             var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
@@ -522,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return c;
         }
 
-        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, TestEmitters emitOptions = TestEmitters.All, string expectedOutput = null)
+        public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, string expectedOutput = null)
         {
             var compilationOptions = (expectedOutput != null) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll;
 
@@ -534,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             if (ilSource == null)
             {
                 var c = CreateCompilationWithMscorlib(cSharpSource, options: compilationOptions);
-                return CompileAndVerify(c, emitOptions: emitOptions, expectedOutput: expectedOutput);
+                return CompileAndVerify(c, expectedOutput: expectedOutput);
             }
 
             MetadataReference reference = null;
@@ -549,18 +535,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 compilationVerifier(compilation);
             }
 
-            return CompileAndVerify(compilation, emitOptions: emitOptions, expectedOutput: expectedOutput);
+            return CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         protected override Compilation GetCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options)
+            CompilationOptions options,
+            ParseOptions parseOptions)
         {
             return CreateCompilationWithMscorlib(
                 source,
                 references: additionalRefs,
                 options: (CSharpCompilationOptions)options,
+                parseOptions: (CSharpParseOptions)parseOptions,
                 assemblyName: GetUniqueName());
         }
 
@@ -570,17 +558,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <typeparam name="T">Expected type of the exception.</typeparam>
         /// <param name="source">Program to compile and execute.</param>
         /// <param name="expectedMessage">Ignored if null.</param>
-        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false, TestEmitters emitOptions = TestEmitters.All) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(string source, string expectedMessage = null, bool allowUnsafe = false) where T : Exception
         {
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe));
-            return CompileAndVerifyException<T>(comp, expectedMessage, emitOptions);
+            return CompileAndVerifyException<T>(comp, expectedMessage);
         }
 
-        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null, TestEmitters emitOptions = TestEmitters.All) where T : Exception
+        internal CompilationVerifier CompileAndVerifyException<T>(CSharpCompilation comp, string expectedMessage = null) where T : Exception
         {
             try
             {
-                CompileAndVerify(comp, emitOptions: emitOptions, expectedOutput: ""); //need expected output to force execution
+                CompileAndVerify(comp, expectedOutput: ""); //need expected output to force execution
                 Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
             catch (ExecutionException x)
@@ -593,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
             }
 
-            return CompileAndVerify(comp, emitOptions: emitOptions);
+            return CompileAndVerify(comp);
         }
 
         #endregion
@@ -615,10 +603,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <summary>
         /// This method handles one binding text with strong SyntaxNode type
         /// </summary>
-        /// <typeparam name="TNode"></typeparam>
-        /// <param name="compilation"></param>
-        /// <param name="treeIndex"></param>
-        /// <returns></returns>
         public TNode GetBindingNode<TNode>(CSharpCompilation compilation, int treeIndex = 0) where TNode : SyntaxNode
         {
             Assert.True(compilation.SyntaxTrees.Length > treeIndex, "Compilation has enough trees");
@@ -635,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// <param name="compilation"></param>
         /// <param name="treeIndex">which tree</param>
         /// <param name="which">
-        ///     * if which &lt; 0, find ALL wrpaaed nodes
+        ///     * if which &lt; 0, find ALL wrapped nodes
         ///     * if which &gt;=0, find a specific binding node wrapped by /*&lt;bind#&gt;*/ &amp; /*&lt;/bind#&gt;*/
         ///       e.g. if which = 1, find node wrapped by /*&lt;bind1&gt;*/ &amp; /*&lt;/bind1&gt;*/
         /// </param>
@@ -686,12 +670,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // =================
             // Get Binding Text
             string text = tree.GetRoot().ToFullString();
-            int start = text.IndexOf(startTag);
+            int start = text.IndexOf(startTag, StringComparison.Ordinal);
             if (start < 0)
                 return null;
 
             start += startTag.Length;
-            int end = text.IndexOf(endTag);
+            int end = text.IndexOf(endTag, StringComparison.Ordinal);
             Assert.True(end > start, "Bind Pos: end > start");
             // get rid of white spaces if any
             var bindText = text.Substring(start, end - start).Trim();
@@ -819,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// </summary>
         /// <remarks>
         /// Currently unsupported IL decoding:
-        /// - multidimentional arrays
+        /// - multidimensional arrays
         /// - vararg calls
         /// - winmd
         /// - global methods
@@ -924,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             public override string VisualizeSymbol(uint token)
             {
-                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.Handle((int)token));
+                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
                 ISymbol symbol = reference as ISymbol;
                 return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
             }
@@ -933,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 if (type is int)
                 {
-                    type = _decoder.GetSymbolForILToken(MetadataTokens.Handle((int)type));
+                    type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
                 }
 
                 ISymbol symbol = type as ISymbol;

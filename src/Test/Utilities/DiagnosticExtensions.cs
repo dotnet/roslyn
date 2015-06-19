@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis
     public static class DiagnosticExtensions
     {
         private const int EN_US = 1033;
-        public static Func<Exception, DiagnosticAnalyzer, bool> AlwaysCatchAnalyzerExceptions = (e, a) => true;
-        public static Func<Exception, DiagnosticAnalyzer, bool> DonotCatchAnalyzerExceptions = (e, a) => e is OperationCanceledException;
+
+        public static Action<Exception, DiagnosticAnalyzer, Diagnostic> FailFastOnAnalyzerException = (e, a, d) => FailFast.OnFatalException(e);
 
         /// <summary>
         /// This is obsolete. Use Verify instead.
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (expected == null)
             {
-                throw new ArgumentException("Must specify expected errors.", "expected");
+                throw new ArgumentException("Must specify expected errors.", nameof(expected));
             }
 
             var unmatched = actual.Select(d => new DiagnosticDescription(d, errorCodeOnly)).ToList();
@@ -98,27 +99,41 @@ namespace Microsoft.CodeAnalysis
             return c;
         }
 
-        public static void VerifyAnalyzerOccurrenceCount<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, int expectedCount, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static void VerifyAnalyzerOccurrenceCount<TCompilation>(
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            int expectedCount,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
             where TCompilation : Compilation
         {
-            Assert.Equal(expectedCount, c.GetAnalyzerDiagnostics(analyzers, null, continueOnAnalyzerException).Length);
+            Assert.Equal(expectedCount, c.GetAnalyzerDiagnostics(analyzers, null, onAnalyzerException).Length);
         }
 
         public static TCompilation VerifyAnalyzerDiagnostics<TCompilation>(
-                this TCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
+                this TCompilation c,
+                DiagnosticAnalyzer[] analyzers,
+                AnalyzerOptions options = null,
+                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+                bool logAnalyzerExceptionAsDiagnostics = true,
+                params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = c.GetAnalyzerDiagnostics(analyzers, options, continueOnAnalyzerException, diagnostics: out diagnostics);
+            c = c.GetAnalyzerDiagnostics(analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, diagnostics: out diagnostics);
             diagnostics.Verify(expected);
             return c; // note this is a new compilation
         }
 
-        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
+        public static ImmutableArray<Diagnostic> GetAnalyzerDiagnostics<TCompilation>(
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            bool logAnalyzerExceptionAsDiagnostics = true)
             where TCompilation : Compilation
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, analyzers, options, continueOnAnalyzerException, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, analyzers, options, onAnalyzerException, logAnalyzerExceptionAsDiagnostics, out diagnostics);
             return diagnostics;
         }
 
@@ -126,17 +141,36 @@ namespace Microsoft.CodeAnalysis
                 this TCompilation c,
                 DiagnosticAnalyzer[] analyzers,
                 AnalyzerOptions options,
-                Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
+                Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+                bool logAnalyzerExceptionAsDiagnostics,
                 out ImmutableArray<Diagnostic> diagnostics)
             where TCompilation : Compilation
         {
-            // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
-            continueOnAnalyzerException = continueOnAnalyzerException ?? DonotCatchAnalyzerExceptions;
+            var analyzersArray = analyzers.ToImmutableArray();
+
+            var exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+
+            if (onAnalyzerException == null)
+            {
+                if (logAnalyzerExceptionAsDiagnostics)
+                {
+                    onAnalyzerException = (ex, analyzer, diagnostic) =>
+                    {
+                        exceptionDiagnostics.Add(diagnostic);
+                    };
+                }
+                else
+                {
+                    // We want unit tests to throw if any analyzer OR the driver throws, unless the test explicitly provides a delegate.
+                    onAnalyzerException = FailFastOnAnalyzerException;
+                }
+            }
 
             Compilation newCompilation;
-            var driver = AnalyzerDriver.Create(c, analyzers.ToImmutableArray(), options, AnalyzerManager.Default, out newCompilation, continueOnAnalyzerException, CancellationToken.None);
+            var driver = AnalyzerDriver.Create(c, analyzersArray, options, AnalyzerManager.Instance, onAnalyzerException, false, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
-            diagnostics = driver.GetDiagnosticsAsync().Result;
+            diagnostics = driver.GetDiagnosticsAsync().Result.AddRange(exceptionDiagnostics);
+
             return (TCompilation)newCompilation; // note this is a new compilation
         }
 
@@ -158,13 +192,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
-            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
+            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c.Emit(new MemoryStream(), pdbStream: new MemoryStream(), options: options).Diagnostics.Verify(expected);
+            var pdbStream = CLRHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            c.Emit(new MemoryStream(), pdbStream: pdbStream, options: options).Diagnostics.Verify(expected);
             return c;
         }
 
@@ -177,7 +212,8 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, IEnumerable<ResourceDescription> manifestResources, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
-            c.Emit(new MemoryStream(), pdbStream: new MemoryStream(), manifestResources: manifestResources).Diagnostics.Verify(expected);
+            var pdbStream = CLRHelpers.IsRunningOnMono() ? null : new MemoryStream();
+            c.Emit(new MemoryStream(), pdbStream: pdbStream, manifestResources: manifestResources).Diagnostics.Verify(expected);
             return c;
         }
 
@@ -213,6 +249,22 @@ namespace Microsoft.CodeAnalysis
             builder.Add(LanguageNames.CSharp, ImmutableArray.Create(GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp)));
             builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(GetCompilerDiagnosticAnalyzerReference(LanguageNames.VisualBasic)));
             return builder.ToImmutable();
+        }
+
+        internal static string GetExpectedErrorLogHeader(string actualOutput, CommonCompiler compiler)
+        {
+            var expectedToolName = compiler.GetToolName();
+            var expectedProductVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
+            var fileVersion = compiler.GetAssemblyFileVersion();
+            var expectedFileVersion = fileVersion.Substring(0, fileVersion.LastIndexOf('.'));
+
+            return string.Format(@"{{
+  ""version"": ""{0}"",
+  ""toolInfo"": {{
+    ""toolName"": ""{1}"",
+    ""productVersion"": ""{2}"",
+    ""fileVersion"": ""{3}""
+  }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
         }
     }
 }

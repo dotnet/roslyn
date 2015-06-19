@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLitera, "token");
+                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLiteral, "token");
             }
 
             int startLength = 1;
@@ -534,24 +534,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            var text = syntaxTree.GetText(cancellationToken);
-            var lineContainingPosition = text.Lines.IndexOf(position);
             if (token.Kind() == SyntaxKind.EndOfFileToken)
             {
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
                 {
-                    if (triviaTok.HasStructure)
+                    if (triviaTok.Span.Contains(position))
                     {
+                        return false;
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return false;
+                        }
+
                         var structure = triviaTok.GetStructure();
                         if (structure is BranchingDirectiveTriviaSyntax)
                         {
-                            var triviaLine = text.Lines.IndexOf(triviaTok.SpanStart);
-                            if (triviaLine < lineContainingPosition)
-                            {
-                                var branch = (BranchingDirectiveTriviaSyntax)structure;
-                                return !branch.IsActive || !branch.BranchTaken;
-                            }
+                            var branch = (BranchingDirectiveTriviaSyntax)structure;
+                            return !branch.IsActive || !branch.BranchTaken;
                         }
                     }
                 }

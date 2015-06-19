@@ -17,6 +17,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         NoFormatting = 2048,
         NoRawView = 4096, // Not used in managed debugging
         NoQuotes = 8192,
+        DynamicView = 16384,
         ResultsOnly = 32768,
         NoExpansion = 65536,
     }

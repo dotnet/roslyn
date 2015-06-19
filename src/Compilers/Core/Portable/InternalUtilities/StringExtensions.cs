@@ -28,12 +28,12 @@ namespace Roslyn.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             if (separator == null)
             {
-                throw new ArgumentNullException("separator");
+                throw new ArgumentNullException(nameof(separator));
             }
 
             return string.Join(separator, source);

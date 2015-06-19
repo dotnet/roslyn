@@ -22,6 +22,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+#pragma warning disable RS1012
+#pragma warning disable RS1013
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
@@ -49,8 +52,8 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             var expected = new[]
             {
-                GetCSharpExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
-                GetCSharpExpectedDiagnostic(22, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
+                GetCSharpExpectedDiagnostic(24, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
+                GetCSharpExpectedDiagnostic(25, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
             };
 
             VerifyCSharp(source, expected);
@@ -64,6 +67,9 @@ Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+
+#Disable Warning RS1012
+#Disable Warning RS1013
 
 <DiagnosticAnalyzer(LanguageNames.CSharp)>
 Class MyAnalyzer
@@ -88,8 +94,8 @@ End Class
 ";
             var expected = new[]
             {
-                GetBasicExpectedDiagnostic(17, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
-                GetBasicExpectedDiagnostic(18, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
+                GetBasicExpectedDiagnostic(20, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterSyntaxNodeActionName),
+                GetBasicExpectedDiagnostic(21, 9, typeArgumentName: "Int32", registerMethodName: DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCodeBlockStartActionName)
             };
 
             VerifyBasic(source, expected);
@@ -104,6 +110,9 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+
+#pragma warning disable RS1012
+#pragma warning disable RS1013
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 abstract class MyAnalyzer<T> : DiagnosticAnalyzer
@@ -144,6 +153,9 @@ Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+
+#Disable Warning RS1012
+#Disable Warning RS1013
 
 <DiagnosticAnalyzer(LanguageNames.CSharp)>
 Class MyAnalyzer(Of T As Structure)

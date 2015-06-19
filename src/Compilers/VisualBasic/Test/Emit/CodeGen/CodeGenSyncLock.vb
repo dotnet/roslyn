@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub SimpleSyncLock()
+        Public Sub SimpleSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -66,7 +66,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockOldMonitorEnter()
+        Public Sub SimpleSyncLockOldMonitorEnter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -118,7 +118,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockTypeParameter()
+        Public Sub SimpleSyncLockTypeParameter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -181,7 +181,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockObjectType()
+        Public Sub SimpleSyncLockObjectType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -239,7 +239,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockPropertyAccess()
+        Public Sub SimpleSyncLockPropertyAccess()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -270,7 +270,7 @@ Inside SyncLock.
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockNothing()
+        Public Sub SimpleSyncLockNothing()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -319,7 +319,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockInterface()
+        Public Sub SimpleSyncLockInterface()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -369,7 +369,7 @@ End Interface
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockSharedObject()
+        Public Sub SimpleSyncLockSharedObject()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -416,7 +416,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SimpleSyncLockDelegate()
+        Public Sub SimpleSyncLockDelegate()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -465,7 +465,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CallMonitorExitInSyncLock()
+        Public Sub CallMonitorExitInSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -512,7 +512,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CallMonitorExitInSyncLock_1()
+        Public Sub CallMonitorExitInSyncLock_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -564,7 +564,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockMe()
+        Public Sub SyncLockMe()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -608,7 +608,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockString()
+        Public Sub SyncLockString()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -652,7 +652,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub NestedSyncLock()
+        Public Sub NestedSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -726,7 +726,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub NestedSyncLock_1()
+        Public Sub NestedSyncLock_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -801,7 +801,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub TryAndSyncLock()
+        Public Sub TryAndSyncLock()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -867,7 +867,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub TryAndSyncLock_1()
+        Public Sub TryAndSyncLock_1()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -933,7 +933,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub JumpFormOneCaseToAnotherCase()
+        Public Sub JumpFormOneCaseToAnotherCase()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1001,7 +1001,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CustomerApplication()
+        Public Sub CustomerApplication()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1039,7 +1039,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub CustomerApplication_2()
+        Public Sub CustomerApplication_2()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1122,7 +1122,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub SyncLockNoCheckForSyncLockOnValueType()
+        Public Sub SyncLockNoCheckForSyncLockOnValueType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1168,7 +1168,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub SyncLockWithCheckForSyncLockOnValueType()
+        Public Sub SyncLockWithCheckForSyncLockOnValueType()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1216,7 +1216,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(811916, "DevDiv")>
-        Sub VBLegacyThreading_VB7FreeThreading_SyncLock_SyncLock4()
+        Public Sub VBLegacyThreading_VB7FreeThreading_SyncLock_SyncLock4()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1271,7 +1271,7 @@ End Class
         End Sub
 
         <Fact(), WorkItem(1106943, "DevDiv")>
-        Sub Bug1106943_01()
+        Public Sub Bug1106943_01()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1296,7 +1296,7 @@ End Class
         End Sub
 
         <Fact(), WorkItem(1106943, "DevDiv")>
-        Sub Bug1106943_02()
+        Public Sub Bug1106943_02()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1321,7 +1321,7 @@ End Class
         End Sub
 
         <Fact(), WorkItem(1106943, "DevDiv")>
-        Sub Bug1106943_03()
+        Public Sub Bug1106943_03()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1351,7 +1351,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <Fact(), WorkItem(1106943, "DevDiv")>
-        Sub Bug1106943_04()
+        Public Sub Bug1106943_04()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1380,7 +1380,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <Fact(), WorkItem(1106943, "DevDiv")>
-        Sub Bug1106943_05()
+        Public Sub Bug1106943_05()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1414,7 +1414,7 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <Fact(), WorkItem(1106943, "DevDiv")>
-        Sub Bug1106943_06()
+        Public Sub Bug1106943_06()
             Dim source =
 <compilation>
     <file name="a.vb">

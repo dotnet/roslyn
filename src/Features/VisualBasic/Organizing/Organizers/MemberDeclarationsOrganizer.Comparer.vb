@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Partial Class MemberDeclarationsOrganizer
-        Class Comparer
+    Friend Partial Class MemberDeclarationsOrganizer
+        Public Class Comparer
             Implements IComparer(Of StatementSyntax)
             ' TODO(cyrusn): Allow users to specify the ordering they want
-            Enum OuterOrdering
+            Public Enum OuterOrdering
                 Fields
                 EventFields
                 Constructors
@@ -25,13 +25,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                 Remaining
             End Enum
 
-            Enum InnerOrdering
+            Public Enum InnerOrdering
                 StaticInstance
                 Accessibility
                 Name
             End Enum
 
-            Enum Accessibility
+            Public Enum Accessibility
                 [Public]
                 [Protected]
                 [Friend]
@@ -82,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                     Return value
                 End If
 
-                Dim xName = x.GetNameTokenOrNothing()
-                Dim yName = y.GetNameTokenOrNothing()
+                Dim xName = If(ShouldCompareByName(x), TryCast(x, DeclarationStatementSyntax).GetNameToken(), Nothing)
+                Dim yName = If(ShouldCompareByName(x), TryCast(y, DeclarationStatementSyntax).GetNameToken(), Nothing)
 
                 value = TokenComparer.NormalInstance.Compare(xName, yName)
                 If value <> 0 Then
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                 Return x.GetArity() - y.GetArity()
             End Function
 
-            Private Function GetAccessibility(x As StatementSyntax) As Accessibility
+            Private Shared Function GetAccessibility(x As StatementSyntax) As Accessibility
                 Dim xModifiers = x.GetModifiers()
 
                 If xModifiers.Any(Function(t) t.Kind = SyntaxKind.PublicKeyword) Then
@@ -137,6 +137,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                         Return OuterOrdering.Types
                     Case Else
                         Return OuterOrdering.Remaining
+                End Select
+            End Function
+
+            Private Shared Function ShouldCompareByName(x As StatementSyntax) As Boolean
+                ' Constructors and operators should not be sorted by name.
+                Select Case x.Kind
+                    Case SyntaxKind.ConstructorBlock,
+                         SyntaxKind.OperatorBlock
+                        Return False
+                    Case Else
+                        Return True
                 End Select
             End Function
         End Class

@@ -115,7 +115,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub
         End Function
 
-        Protected ReadOnly NoElements As Action(Of Object)() = {}
+        Protected ReadOnly NoElements As Action(Of Object)() = Array.Empty(Of Action(Of Object))()
 
     End Class
 End Namespace

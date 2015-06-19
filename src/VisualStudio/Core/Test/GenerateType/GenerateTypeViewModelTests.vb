@@ -4,6 +4,7 @@ Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GeneratedCodeRecognition
 Imports Microsoft.CodeAnalysis.GenerateType
@@ -17,10 +18,10 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
     Public Class GenerateTypeViewModelTests
-        Private Shared Assembly1_Name As String = "Assembly1"
-        Private Shared Test1_Name As String = "Test1"
-        Private Shared Submit_failed_unexceptedly As String = "Submit failed unexceptedly."
-        Private Shared Submit_passed_unexceptedly As String = "Submit passed unexceptedly. Submit should fail here"
+        Private Shared s_assembly1_Name As String = "Assembly1"
+        Private Shared s_test1_Name As String = "Test1"
+        Private Shared s_submit_failed_unexceptedly As String = "Submit failed unexceptedly."
+        Private Shared s_submit_passed_unexceptedly As String = "Submit passed unexceptedly. Submit should fail here"
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeExistingFileCSharp()
@@ -49,8 +50,8 @@ namespace A
 
             Assert.Equal("Foo.cs", viewModel.FileName)
 
-            Assert.Equal(Assembly1_Name, viewModel.SelectedProject.Name)
-            Assert.Equal(Test1_Name + ".cs", viewModel.SelectedDocument.Name)
+            Assert.Equal(s_assembly1_Name, viewModel.SelectedProject.Name)
+            Assert.Equal(s_test1_Name + ".cs", viewModel.SelectedDocument.Name)
 
             Assert.Equal(True, viewModel.IsExistingFile)
 
@@ -82,8 +83,8 @@ End Namespace"]]></Text>
 
             Assert.Equal("Foo.vb", viewModel.FileName)
 
-            Assert.Equal(Assembly1_Name, viewModel.SelectedProject.Name)
-            Assert.Equal(Test1_Name + ".vb", viewModel.SelectedDocument.Name)
+            Assert.Equal(s_assembly1_Name, viewModel.SelectedProject.Name)
+            Assert.Equal(s_test1_Name + ".vb", viewModel.SelectedDocument.Name)
 
             Assert.Equal(True, viewModel.IsExistingFile)
 
@@ -119,13 +120,13 @@ namespace A
             viewModel.FileName = "Wow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.Equal("Wow.cs", viewModel.FileName)
 
             viewModel.FileName = "Foo\Bar\Woow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(2, viewModel.Folders.Count)
             Assert.Equal("Foo", viewModel.Folders(0))
@@ -134,7 +135,7 @@ namespace A
             viewModel.FileName = "\    name has space \  Foo      \Bar\      Woow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(3, viewModel.Folders.Count)
             Assert.Equal("name has space", viewModel.Folders(0))
@@ -144,15 +145,15 @@ namespace A
             ' Set it to invalid identifier
             viewModel.FileName = "w?d"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             viewModel.FileName = "wow\w?d"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             viewModel.FileName = "w?d\wdd"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -646,40 +647,40 @@ class Program
 
             ' Set the folder to \outer\
             viewModel.FileName = viewModel.ProjectFolders(0)
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Set the Filename to \\something.cs
             viewModel.FileName = "\\ExistingFile.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Set the Filename to an existing file
             viewModel.FileName = "..\..\ExistingFile.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Set the Filename to empty
             viewModel.FileName = "  "
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Set the Filename with more than permissible characters
             viewModel.FileName = "sjkygjksdfygujysdkgkufsdfrgujdfyhgjksuydfujkgysdjkfuygjkusydfjusyfkjsdfygjusydfgjkuysdkfjugyksdfjkusydfgjkusdfyjgukysdjfyjkusydfgjuysdfgjuysdfjgsdjfugjusdfygjuysdfjugyjdufgsgdfvsgdvgtsdvfgsvdfgsdgfgdsvfgsdvfgsvdfgsdfsjkygjksdfygujysdkgkufsdfrgujdfyhgjksuydfujkgysdjkfuygjkusydfjusyfkjsdfygjusydfgjkuysdkfjugyksdfjkusydfgjkusdfyjgukysdjfyjkusydfgjuysdfgjuysdfjgsdjfugjusdfygjuysdfjugyjdufgsgdfvsgdvgtsdvfgsvdfgsdgfgdsvfgsdvfgsvdfgsdf.cs"
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Set the Filename with keywords
             viewModel.FileName = "com1\foo.cs"
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Set the Filename with ".."
             viewModel.FileName = "..\..\foo.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
 
             ' Set the Filename with ".."
             viewModel.FileName = "..\.\..\.\foo.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
         End Sub
 
         <WorkItem(898452)>
@@ -708,19 +709,19 @@ namespace A
             viewModel.FileName = "123\456\Wow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "@@@@\######\Woow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "....a\.....b\Wow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             Dim documentContentMarkupVB = <Text><![CDATA[
@@ -745,19 +746,19 @@ namespace A
             viewModel.FileName = "123\456\Wow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "@@@@\######\Woow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "....a\.....b\Wow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), Submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
         End Sub
 
@@ -800,7 +801,7 @@ namespace A
             viewModel.IsNewFile = True
             viewModel.FileName = randomFileName
 
-            Assert.False(viewModel.TrySubmit(), Submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
 
             ' Cleanup
             File.Delete(pathString)
@@ -882,24 +883,13 @@ namespace A
         End Function
     End Class
 
-    Friend Class TestNotificationService
-        Implements INotificationService
-
-        Public Sub SendNotification(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) Implements INotificationService.SendNotification
-        End Sub
-
-        Public Function ConfirmMessageBox(message As String, Optional title As String = Nothing, Optional severity As NotificationSeverity = NotificationSeverity.Warning) As Boolean Implements INotificationService.ConfirmMessageBox
-            Throw New NotImplementedException()
-        End Function
-    End Class
-
     Friend Class TestProjectManagementService
         Implements IProjectManagementService
 
-        Private projectFolders As List(Of String)
+        Private _projectFolders As List(Of String)
 
         Public Sub New(projectFolders As List(Of String))
-            Me.projectFolders = projectFolders
+            Me._projectFolders = projectFolders
         End Sub
 
         Public Function GetDefaultNamespace(project As Project, workspace As Workspace) As String Implements IProjectManagementService.GetDefaultNamespace
@@ -907,7 +897,7 @@ namespace A
         End Function
 
         Public Function GetFolders(projectId As ProjectId, workspace As Workspace) As IList(Of String) Implements IProjectManagementService.GetFolders
-            Return Me.projectFolders
+            Return Me._projectFolders
         End Function
     End Class
 End Namespace

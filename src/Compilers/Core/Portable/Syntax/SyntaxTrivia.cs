@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,21 +16,17 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
 #pragma warning restore RS0010
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    [StructLayout(LayoutKind.Auto)]
     public struct SyntaxTrivia : IEquatable<SyntaxTrivia>
     {
         internal static readonly Func<SyntaxTrivia, bool> Any = t => true;
 
-        private readonly SyntaxToken _token;
-        private readonly GreenNode _triviaNode;
-        private readonly int _position;
-        private readonly int _index;
-
         internal SyntaxTrivia(SyntaxToken token, GreenNode triviaNode, int position, int index)
         {
-            _token = token;
-            _triviaNode = triviaNode;
-            _position = position;
-            _index = index;
+            Token = token;
+            UnderlyingNode = triviaNode;
+            Position = position;
+            Index = index;
 
             Debug.Assert(this.RawKind != 0 || this.Equals(default(SyntaxTrivia)));
         }
@@ -38,68 +34,41 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// An integer representing the language specific kind of this trivia.
         /// </summary>
-        public int RawKind
-        {
-            get { return _triviaNode != null ? _triviaNode.RawKind : 0; }
-        }
+        public int RawKind => UnderlyingNode?.RawKind ?? 0;
 
         private string GetDebuggerDisplay()
         {
-            return GetType().Name + " " + (_triviaNode != null ? _triviaNode.KindText : "None") + " " + ToString();
+            return GetType().Name + " " + (UnderlyingNode?.KindText ?? "None") + " " + ToString();
         }
 
         /// <summary>
         /// The language name that this trivia is syntax of.
         /// </summary>
-        public string Language
-        {
-            get
-            {
-                return _triviaNode != null ? _triviaNode.Language : string.Empty;
-            }
-        }
+        public string Language => UnderlyingNode?.Language ?? string.Empty;
 
         /// <summary>
         /// The parent token that contains this token in its LeadingTrivia or TrailingTrivia collection.
         /// </summary>
-        public SyntaxToken Token
-        {
-            get { return _token; }
-        }
+        public SyntaxToken Token { get; }
 
-        internal GreenNode UnderlyingNode
-        {
-            get { return _triviaNode; }
-        }
+        internal GreenNode UnderlyingNode { get; }
 
-        internal int Position
-        {
-            get { return _position; }
-        }
+        internal int Position { get; }
 
-        internal int Index
-        {
-            get { return _index; }
-        }
+        internal int Index { get; }
 
         /// <summary>
         /// The width of this trivia in characters. If this trivia is a structured trivia then the returned width will
         /// not include the widths of any leading or trailing trivia present on the child non-terminal node of this
         /// trivia.
         /// </summary>
-        internal int Width
-        {
-            get { return _triviaNode != null ? _triviaNode.Width : 0; }
-        }
+        internal int Width => UnderlyingNode?.Width ?? 0;
 
         /// <summary>
         /// The width of this trivia in characters. If this trivia is a structured trivia then the returned width will
         /// include the widths of any leading or trailing trivia present on the child non-terminal node of this trivia.
         /// </summary>
-        internal int FullWidth
-        {
-            get { return _triviaNode != null ? _triviaNode.FullWidth : 0; }
-        }
+        internal int FullWidth => UnderlyingNode?.FullWidth ?? 0;
 
         /// <summary>
         /// The absolute span of this trivia in characters. If this trivia is a structured trivia then the returned span
@@ -110,8 +79,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _triviaNode != null
-                    ? new TextSpan(_position + _triviaNode.GetLeadingTriviaWidth(), _triviaNode.Width)
+                return UnderlyingNode != null
+                    ? new TextSpan(Position + UnderlyingNode.GetLeadingTriviaWidth(), UnderlyingNode.Width)
                     : default(TextSpan);
             }
         }
@@ -126,8 +95,8 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _triviaNode != null
-                    ? _position + _triviaNode.GetLeadingTriviaWidth()
+                return UnderlyingNode != null
+                    ? Position + UnderlyingNode.GetLeadingTriviaWidth()
                     : 0; // default(TextSpan).Start
             }
         }
@@ -138,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public TextSpan FullSpan
         {
-            get { return _triviaNode != null ? new TextSpan(_position, _triviaNode.FullWidth) : default(TextSpan); }
+            get { return UnderlyingNode != null ? new TextSpan(Position, UnderlyingNode.FullWidth) : default(TextSpan); }
         }
 
         /// <summary>
@@ -146,41 +115,32 @@ namespace Microsoft.CodeAnalysis
         /// returned value will indicate whether this trivia or any of its descendant nodes, tokens or trivia have any
         /// diagnostics on them.
         /// </summary>>
-        public bool ContainsDiagnostics
-        {
-            get { return _triviaNode != null && _triviaNode.ContainsDiagnostics; }
-        }
+        public bool ContainsDiagnostics => UnderlyingNode?.ContainsDiagnostics ?? false;
 
         /// <summary>
         /// Determines whether this trivia is a structured trivia.
         /// </summary>
-        public bool HasStructure
-        {
-            get { return _triviaNode != null && _triviaNode.IsStructuredTrivia; }
-        }
+        public bool HasStructure => UnderlyingNode?.IsStructuredTrivia ?? false;
 
         /// <summary>
         /// Determines whether this trivia is a descendant of a structured trivia.
         /// </summary>
         public bool IsPartOfStructuredTrivia()
         {
-            return _token.Parent != null && _token.Parent.IsPartOfStructuredTrivia();
+            return Token.Parent?.IsPartOfStructuredTrivia() ?? false;
         }
 
         /// <summary>
         /// Determines whether this trivia or any of its structure has annotations.
         /// </summary>
-        internal bool ContainsAnnotations
-        {
-            get { return _triviaNode != null && _triviaNode.ContainsAnnotations; }
-        }
+        internal bool ContainsAnnotations => UnderlyingNode?.ContainsAnnotations ?? false;
 
         /// <summary>
         /// Determines where this trivia has annotations of the specified annotation kind.
         /// </summary>
         public bool HasAnnotations(string annotationKind)
         {
-            return _triviaNode != null && _triviaNode.HasAnnotations(annotationKind);
+            return UnderlyingNode?.HasAnnotations(annotationKind) ?? false;
         }
 
         /// <summary>
@@ -188,7 +148,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasAnnotations(params string[] annotationKinds)
         {
-            return _triviaNode != null && _triviaNode.HasAnnotations(annotationKinds);
+            return UnderlyingNode?.HasAnnotations(annotationKinds) ?? false;
         }
 
         /// <summary>
@@ -196,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasAnnotation(SyntaxAnnotation annotation)
         {
-            return _triviaNode != null && _triviaNode.HasAnnotation(annotation);
+            return UnderlyingNode?.HasAnnotation(annotation) ?? false;
         }
 
         /// <summary>
@@ -204,8 +164,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxAnnotation> GetAnnotations(string annotationKind)
         {
-            return _triviaNode != null
-                ? _triviaNode.GetAnnotations(annotationKind)
+            return UnderlyingNode != null
+                ? UnderlyingNode.GetAnnotations(annotationKind)
                 : SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
         }
 
@@ -214,18 +174,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<SyntaxAnnotation> GetAnnotations(params string[] annotationKinds)
         {
-            return _triviaNode != null
-                ? _triviaNode.GetAnnotations(annotationKinds)
+            return UnderlyingNode != null
+                ? UnderlyingNode.GetAnnotations(annotationKinds)
                 : SpecializedCollections.EmptyEnumerable<SyntaxAnnotation>();
         }
 
         /// <summary>
         /// Determines whether this trivia represents a preprocessor directive.
         /// </summary>
-        public bool IsDirective
-        {
-            get { return _triviaNode != null && _triviaNode.IsDirective; }
-        }
+        public bool IsDirective => UnderlyingNode?.IsDirective ?? false;
 
         /// <summary>
         /// Returns the child non-terminal node representing the syntax tree structure under this structured trivia.
@@ -234,7 +191,7 @@ namespace Microsoft.CodeAnalysis
         /// trivia.</returns>
         public SyntaxNode GetStructure()
         {
-            return HasStructure ? _triviaNode.GetStructure(this) : null;
+            return HasStructure ? UnderlyingNode.GetStructure(this) : null;
         }
 
         /// <summary> 
@@ -245,7 +202,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as Span.Length</remarks>
         public override string ToString()
         {
-            return _triviaNode != null ? _triviaNode.ToString() : string.Empty;
+            return UnderlyingNode != null ? UnderlyingNode.ToString() : string.Empty;
         }
 
         /// <summary> 
@@ -256,7 +213,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>The length of the returned string is always the same as FullSpan.Length</remarks>
         public string ToFullString()
         {
-            return _triviaNode != null ? _triviaNode.ToFullString() : string.Empty;
+            return UnderlyingNode != null ? UnderlyingNode.ToFullString() : string.Empty;
         }
 
         /// <summary>
@@ -264,10 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void WriteTo(System.IO.TextWriter writer)
         {
-            if (_triviaNode != null)
-            {
-                _triviaNode.WriteTo(writer);
-            }
+            UnderlyingNode?.WriteTo(writer);
         }
 
         /// <summary>
@@ -292,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Equals(SyntaxTrivia other)
         {
-            return _token == other._token && _triviaNode == other._triviaNode && _position == other._position && _index == other._index;
+            return Token == other.Token && UnderlyingNode == other.UnderlyingNode && Position == other.Position && Index == other.Index;
         }
 
         /// <summary>
@@ -309,7 +263,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override int GetHashCode()
         {
-            return Hash.Combine(_token.GetHashCode(), Hash.Combine(_triviaNode, Hash.Combine(_position, _index)));
+            return Hash.Combine(Token.GetHashCode(), Hash.Combine(UnderlyingNode, Hash.Combine(Position, Index)));
         }
 
         #region Annotations 
@@ -328,7 +282,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.UnderlyingNode != null)
@@ -357,7 +311,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotations == null)
             {
-                throw new ArgumentNullException("annotations");
+                throw new ArgumentNullException(nameof(annotations));
             }
 
             if (this.UnderlyingNode != null)
@@ -378,17 +332,15 @@ namespace Microsoft.CodeAnalysis
         {
             if (annotationKind == null)
             {
-                throw new ArgumentNullException("annotationKind");
+                throw new ArgumentNullException(nameof(annotationKind));
             }
 
             if (this.HasAnnotations(annotationKind))
             {
                 return this.WithoutAnnotations(this.GetAnnotations(annotationKind));
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
@@ -426,7 +378,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _token.SyntaxTree;
+                return Token.SyntaxTree;
             }
         }
 
@@ -454,8 +406,8 @@ namespace Microsoft.CodeAnalysis
         public bool IsEquivalentTo(SyntaxTrivia trivia)
         {
             return
-                (_triviaNode == null && trivia.UnderlyingNode == null) ||
-                (_triviaNode != null && trivia.UnderlyingNode != null && _triviaNode.IsEquivalentTo(trivia.UnderlyingNode));
+                (UnderlyingNode == null && trivia.UnderlyingNode == null) ||
+                (UnderlyingNode != null && trivia.UnderlyingNode != null && UnderlyingNode.IsEquivalentTo(trivia.UnderlyingNode));
         }
     }
 }

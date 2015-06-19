@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -9,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
-    /// Extends <see cref="MetadataFileReferenceResolver"/> to enable resolution of assembly
+    /// Extends MetadataFileReferenceResolver to enable resolution of assembly
     /// simple names in the GAC.
     /// </summary>
     internal sealed class GacFileResolver : MetadataFileReferenceResolver

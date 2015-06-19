@@ -113,46 +113,36 @@ namespace Microsoft.CodeAnalysis.Editor.SignatureHelp
             out TSyntax expression)
             where TSyntax : SyntaxNode
         {
-            // Bug 1100661 reports an NRE from this method, but no manual repro has been found.  To aid in debugging,
-            // any NRE thrown from here will generate a dump via FatalError.Report() below.  try/catch was added 1/2/2015
-            // and is expected to be removed by 4/1/2015. --brettfo
-            try
+            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
+            if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
-                var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
-                if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
+                if (isTriggerToken(token))
                 {
-                    if (isTriggerToken(token))
-                    {
-                        expression = token.GetAncestor<TSyntax>();
-                        return true;
-                    }
+                    expression = token.GetAncestor<TSyntax>();
+                    return true;
                 }
-                else if (triggerReason == SignatureHelpTriggerReason.InvokeSignatureHelpCommand)
+            }
+            else if (triggerReason == SignatureHelpTriggerReason.InvokeSignatureHelpCommand)
+            {
+                expression = token.Parent?.GetAncestorsOrThis<TSyntax>().SkipWhile(syntax => !isArgumentListToken(syntax, token)).FirstOrDefault();
+                return expression != null;
+            }
+            else if (triggerReason == SignatureHelpTriggerReason.RetriggerCommand)
+            {
+                if (!syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken) ||
+                    syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
-                    expression = token.Parent.GetAncestorsOrThis<TSyntax>().SkipWhile(syntax => !isArgumentListToken(syntax, token)).FirstOrDefault();
+                    expression = token.Parent?.AncestorsAndSelf()
+                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
+                        .OfType<TSyntax>()
+                        .SkipWhile(syntax => !isArgumentListToken(syntax, token))
+                        .FirstOrDefault();
                     return expression != null;
                 }
-                else if (triggerReason == SignatureHelpTriggerReason.RetriggerCommand)
-                {
-                    if (!syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken) ||
-                        syntaxFacts.IsEntirelyWithinStringOrCharLiteral(root.SyntaxTree, position, cancellationToken))
-                    {
-                        expression = token.Parent.AncestorsAndSelf()
-                            .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
-                            .OfType<TSyntax>()
-                            .SkipWhile(syntax => !isArgumentListToken(syntax, token))
-                            .FirstOrDefault();
-                        return expression != null;
-                    }
-                }
+            }
 
-                expression = null;
-                return false;
-            }
-            catch (NullReferenceException e) when(FatalError.Report(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-            }
+            expression = null;
+            return false;
         }
     }
+}

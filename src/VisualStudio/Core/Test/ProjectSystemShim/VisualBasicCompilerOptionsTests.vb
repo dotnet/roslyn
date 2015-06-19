@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(867840)>
-        Sub ConditionalCompilationOptionsIncludesTargetAndVersion()
+        Public Sub ConditionalCompilationOptionsIncludesTargetAndVersion()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
 
@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(530980)>
-        Sub DocumentationModeSetToDiagnoseIfProducingDocFile()
+        Public Sub DocumentationModeSetToDiagnoseIfProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
 
@@ -50,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(530980)>
-        Sub DocumentationModeSetToParseIfNotProducingDocFile()
+        Public Sub DocumentationModeSetToParseIfNotProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
 
@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WorkItem(1092636)>
         <WorkItem(1040247)>
         <WorkItem(1048368)>
-        Sub ProjectWarningsOptionSetAndUnset()
+        Public Sub ProjectWarningsOptionSetAndUnset()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
 

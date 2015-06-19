@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
 
         // Debug information emitted to Debug PDBs supporting EnC:
-        private readonly int _methodOrdinal;
+        private readonly DebugId _methodId;
         private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
         private readonly ImmutableArray<LambdaDebugInfo> _lambdaDebugInfo;
         private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             byte[] ilBits,
             ushort maxStack,
             Cci.IMethodDefinition parent,
-            int methodOrdinal,
+            DebugId methodId,
             ImmutableArray<Cci.ILocalDefinition> locals,
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _asyncMethodDebugInfo = asyncMethodDebugInfo;
             _maxStack = maxStack;
             _parent = parent;
-            _methodOrdinal = methodOrdinal;
+            _methodId = methodId;
             _locals = locals;
             _sequencePoints = sequencePoints;
             _debugDocumentProvider = debugDocumentProvider;
@@ -87,40 +87,19 @@ namespace Microsoft.CodeAnalysis.CodeGen
             throw ExceptionUtilities.Unreachable;
         }
 
-        ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions
-        {
-            get { return _exceptionHandlers; }
-        }
+        ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions => _exceptionHandlers;
 
-        bool Cci.IMethodBody.LocalsAreZeroed
-        {
-            get { return true; }
-        }
+        bool Cci.IMethodBody.LocalsAreZeroed => true;
 
-        ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables
-        {
-            get { return _locals; }
-        }
+        ImmutableArray<Cci.ILocalDefinition> Cci.IMethodBody.LocalVariables => _locals;
 
-        Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition
-        {
-            get { return _parent; }
-        }
+        Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition => _parent;
 
-        Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo
-        {
-            get { return _asyncMethodDebugInfo; }
-        }
+        Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => _asyncMethodDebugInfo;
 
-        ushort Cci.IMethodBody.MaxStack
-        {
-            get { return _maxStack; }
-        }
+        ushort Cci.IMethodBody.MaxStack => _maxStack;
 
-        public byte[] IL
-        {
-            get { return _ilBits; }
-        }
+        public byte[] IL => _ilBits;
 
         public ImmutableArray<Cci.SequencePoint> GetSequencePoints()
         {
@@ -130,99 +109,35 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public bool HasAnySequencePoints
-        {
-            get
-            {
-                return _sequencePoints != null && !_sequencePoints.IsEmpty;
-            }
-        }
+            => _sequencePoints != null && !_sequencePoints.IsEmpty;
 
         public ImmutableArray<Cci.SequencePoint> GetLocations()
-        {
-            return GetSequencePoints();
-        }
+            => GetSequencePoints();
 
-        ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes
-        {
-            get
-            {
-                return _localScopes;
-            }
-        }
+        ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => _localScopes;
 
         /// <summary>
         /// This is a list of the using directives that were in scope for this method body.
         /// </summary>
-        Cci.IImportScope Cci.IMethodBody.ImportScope
-        {
-            get
-            {
-                return _importScopeOpt;
-            }
-        }
+        Cci.IImportScope Cci.IMethodBody.ImportScope => _importScopeOpt;
 
-        string Cci.IMethodBody.StateMachineTypeName
-        {
-            get
-            {
-                return _stateMachineTypeNameOpt;
-            }
-        }
+        string Cci.IMethodBody.StateMachineTypeName => _stateMachineTypeNameOpt;
 
         ImmutableArray<Cci.StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
-        {
-            get
-            {
-                return _stateMachineHoistedLocalScopes;
-            }
-        }
+            => _stateMachineHoistedLocalScopes;
 
         ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
-        {
-            get
-            {
-                return _stateMachineHoistedLocalSlots;
-            }
-        }
+            => _stateMachineHoistedLocalSlots;
 
         ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
-        {
-            get
-            {
-                return _stateMachineAwaiterSlots;
-            }
-        }
+            => _stateMachineAwaiterSlots;
 
-        bool Cci.IMethodBody.HasDynamicLocalVariables
-        {
-            get
-            {
-                return _hasDynamicLocalVariables;
-            }
-        }
+        bool Cci.IMethodBody.HasDynamicLocalVariables => _hasDynamicLocalVariables;
 
-        public int MethodOrdinal
-        {
-            get
-            {
-                return _methodOrdinal;
-            }
-        }
+        public DebugId MethodId => _methodId;
 
-        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo
-        {
-            get
-            {
-                return _lambdaDebugInfo;
-            }
-        }
+        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
 
-        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo
-        {
-            get
-            {
-                return _closureDebugInfo;
-            }
-        }
+        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => _closureDebugInfo;
     }
 }

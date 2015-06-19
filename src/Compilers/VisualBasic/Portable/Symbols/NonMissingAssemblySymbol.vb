@@ -28,12 +28,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Gives about 8% win on subsequent lookups in some scenarios.     
         ''' </summary>
         ''' <remarks></remarks>
-        Private m_EmittedNameToTypeMap As New ConcurrentDictionary(Of MetadataTypeName.Key, NamedTypeSymbol)()
+        Private ReadOnly _emittedNameToTypeMap As New ConcurrentDictionary(Of MetadataTypeName.Key, NamedTypeSymbol)()
 
         ''' <summary>
         ''' The global namespace symbol. Lazily populated on first access.
         ''' </summary>
-        Private m_lazyGlobalNamespace As NamespaceSymbol
+        Private _lazyGlobalNamespace As NamespaceSymbol
 
         ''' <summary>
         ''' Does this symbol represent a missing assembly.
@@ -51,11 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property GlobalNamespace As NamespaceSymbol
             Get
-                If m_lazyGlobalNamespace Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyGlobalNamespace, MergedNamespaceSymbol.CreateGlobalNamespace(Me), Nothing)
+                If _lazyGlobalNamespace Is Nothing Then
+                    Interlocked.CompareExchange(_lazyGlobalNamespace, MergedNamespaceSymbol.CreateGlobalNamespace(Me), Nothing)
                 End If
 
-                Return m_lazyGlobalNamespace
+                Return _lazyGlobalNamespace
             End Get
         End Property
 
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Function CachedTypeByEmittedName(emittedname As String) As NamedTypeSymbol
             Dim mdName = MetadataTypeName.FromFullName(emittedname)
-            Return m_EmittedNameToTypeMap(mdName.ToKey())
+            Return _emittedNameToTypeMap(mdName.ToKey())
         End Function
 
         ''' <summary>
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property EmittedNameToTypeMapCount As Integer
             Get
-                Return m_EmittedNameToTypeMap.Count
+                Return _emittedNameToTypeMap.Count
             End Get
         End Property
 
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ) As NamedTypeSymbol
             Dim result As NamedTypeSymbol = Nothing
 
-            If Me.m_EmittedNameToTypeMap.TryGetValue(emittedName.ToKey(), result) Then
+            If Me._emittedNameToTypeMap.TryGetValue(emittedName.ToKey(), result) Then
                 Return result
             End If
 
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             result As NamedTypeSymbol
         )
             Dim result1 As NamedTypeSymbol = Nothing
-            result1 = Me.m_EmittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
+            result1 = Me._emittedNameToTypeMap.GetOrAdd(emittedName.ToKey(), result)
             Debug.Assert(result1.Equals(result)) ' object identity may differ in error cases
         End Sub
 

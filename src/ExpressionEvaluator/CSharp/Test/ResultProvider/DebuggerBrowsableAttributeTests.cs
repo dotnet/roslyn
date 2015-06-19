@@ -520,9 +520,8 @@ public class C<T>
             var value = CreateDkmClrValue(
                 value: type.Instantiate(1, 2, 3),
                 type: new DkmClrType(runtime.DefaultModule, runtime.DefaultAppDomain, (TypeImpl)type),
-                evalFlags: DkmEvaluationResultFlags.None,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
-            var evalResult = FormatResult("o", value);
+                evalFlags: DkmEvaluationResultFlags.None);
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
             Verify(evalResult,
                 EvalResult("o", "{C<int>}", "C<int>", "o", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
@@ -566,9 +565,8 @@ public class C
             var value = CreateDkmClrValue(
                 value: type.Instantiate(),
                 type: new DkmClrType(runtime.DefaultModule, runtime.DefaultAppDomain, (TypeImpl)type),
-                evalFlags: DkmEvaluationResultFlags.None,
-                inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
-            var evalResult = FormatResult("o", value);
+                evalFlags: DkmEvaluationResultFlags.None);
+            var evalResult = FormatResult("o", value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.HideNonPublicMembers));
             Verify(evalResult,
                 EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);

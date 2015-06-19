@@ -77,6 +77,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Return False
             End If
 
+            ' For Nothing Literals, AllOccurences could introduce semantic errors.
+            If expression.IsKind(SyntaxKind.NothingLiteralExpression) Then
+                Return False
+            End If
+
             Return True
         End Function
 
@@ -110,6 +115,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function IsInParameterInitializer(expression As ExpressionSyntax) As Boolean
             Return expression.GetAncestorOrThis(Of EqualsValueSyntax)().IsParentKind(SyntaxKind.Parameter)
+        End Function
+
+        Protected Overrides Function IsInExpressionBodiedMember(expression As ExpressionSyntax) As Boolean
+            Return False
         End Function
 
         Protected Overrides Function CanReplace(expression As ExpressionSyntax) As Boolean

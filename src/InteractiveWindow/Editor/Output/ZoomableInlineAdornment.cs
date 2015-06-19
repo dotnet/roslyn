@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics;
 using System.Windows;
@@ -10,29 +12,29 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 {
     internal sealed class ZoomableInlineAdornment : ContentControl
     {
-        private readonly ITextView parent;
-        private readonly double minimizedZoom;
-        private readonly double zoomStep;
-        private readonly double widthRatio;
-        private readonly double heightRatio;
+        private readonly ITextView _parent;
+        private readonly double _minimizedZoom;
+        private readonly double _zoomStep;
+        private readonly double _widthRatio;
+        private readonly double _heightRatio;
 
-        private ResizingAdorner adorner;
-        private bool isResizing;
-        private double zoom;
+        private ResizingAdorner _adorner;
+        private bool _isResizing;
+        private double _zoom;
 
         public ZoomableInlineAdornment(UIElement content, ITextView parent)
         {
-            this.parent = parent;
+            _parent = parent;
             Debug.Assert(parent is IInputElement);
             this.Content = new Border { BorderThickness = new Thickness(1), Child = content, Focusable = true };
 
-            this.zoom = 1.0;             // config.GetConfig().Repl.InlineMedia.MaximizedZoom
-            this.zoomStep = 0.25;        // config.GetConfig().Repl.InlineMedia.ZoomStep
-            this.minimizedZoom = 0.25;   // config.GetConfig().Repl.InlineMedia.MinimizedZoom
-            this.widthRatio = 0.67;      // config.GetConfig().Repl.InlineMedia.WidthRatio
-            this.heightRatio = 0.5;      // config.GetConfig().Repl.InlineMedia.HeightRatio
+            _zoom = 1.0;             // config.GetConfig().Repl.InlineMedia.MaximizedZoom
+            _zoomStep = 0.25;        // config.GetConfig().Repl.InlineMedia.ZoomStep
+            _minimizedZoom = 0.25;   // config.GetConfig().Repl.InlineMedia.MinimizedZoom
+            _widthRatio = 0.67;      // config.GetConfig().Repl.InlineMedia.WidthRatio
+            _heightRatio = 0.5;      // config.GetConfig().Repl.InlineMedia.HeightRatio
 
-            this.isResizing = false;
+            _isResizing = false;
             UpdateSize();
 
             this.PreviewMouseLeftButtonDown += (s, e) =>
@@ -94,31 +96,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private IInputElement MyParent
         {
-            get { return parent as IInputElement; }
+            get { return _parent as IInputElement; }
         }
 
         private void OnGotFocus(object sender, RoutedEventArgs args)
         {
             MyParent.PreviewMouseLeftButtonDown += OnPreviewParentMouseDown;
             PreviewKeyDown += OnPreviewKeyDown;
-            adorner = new ResizingAdorner(MyContent);
-            adorner.ResizeStarted += OnResizeStarted;
-            adorner.ResizeCompleted += OnResizeCompleted;
+            _adorner = new ResizingAdorner(MyContent);
+            _adorner.ResizeStarted += OnResizeStarted;
+            _adorner.ResizeCompleted += OnResizeCompleted;
 
             var adornerLayer = AdornerLayer.GetAdornerLayer(MyContent);
-            adornerLayer.Add(adorner);
+            adornerLayer.Add(_adorner);
         }
 
         private void OnLostFocus(object sender, RoutedEventArgs args)
         {
             MyParent.PreviewMouseLeftButtonDown -= OnPreviewParentMouseDown;
             PreviewKeyDown -= OnPreviewKeyDown;
-            adorner.ResizeStarted -= OnResizeStarted;
-            adorner.ResizeCompleted -= OnResizeCompleted;
+            _adorner.ResizeStarted -= OnResizeStarted;
+            _adorner.ResizeCompleted -= OnResizeCompleted;
 
             var adornerLayer = AdornerLayer.GetAdornerLayer(MyContent);
-            adornerLayer.Remove(adorner);
-            adorner = null;
+            adornerLayer.Remove(_adorner);
+            _adorner = null;
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs args)
@@ -146,45 +148,45 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void OnResizeStarted(object sender, RoutedEventArgs args)
         {
-            isResizing = true;
+            _isResizing = true;
         }
 
         private void OnResizeCompleted(object sender, RoutedEventArgs args)
         {
-            isResizing = false;
+            _isResizing = false;
             UpdateSize();
         }
 
         internal void Zoom(double zoomFactor)
         {
-            zoom = zoomFactor;
+            _zoom = zoomFactor;
             UpdateSize();
         }
 
         private void OnZoomIn()
         {
-            zoom += zoomStep;
+            _zoom += _zoomStep;
             UpdateSize();
         }
 
         private void OnZoomOut()
         {
-            if (zoom - zoomStep > 0.1)
+            if (_zoom - _zoomStep > 0.1)
             {
-                zoom -= zoomStep;
+                _zoom -= _zoomStep;
                 UpdateSize();
             }
         }
 
         internal void UpdateSize()
         {
-            if (isResizing)
+            if (_isResizing)
             {
                 return;
             }
 
-            double width = parent.ViewportWidth * widthRatio * zoom;
-            double height = parent.ViewportHeight * heightRatio * zoom;
+            double width = _parent.ViewportWidth * _widthRatio * _zoom;
+            double height = _parent.ViewportHeight * _heightRatio * _zoom;
             MyContent.MaxWidth = width;
             MyContent.MaxHeight = height;
             MyContent.Measure(new Size(width, height));
@@ -192,7 +194,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal double MinimizedZoom
         {
-            get { return minimizedZoom; }
+            get { return _minimizedZoom; }
         }
     }
 }

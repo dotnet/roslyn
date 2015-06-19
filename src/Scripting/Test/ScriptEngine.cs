@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         // state captured by session at creation time:
         private ScriptOptions _options = ScriptOptions.Default;
-        private ScriptBuilder _builder;
+        private readonly ScriptBuilder _builder;
 
         static ScriptEngine()
         {
@@ -62,11 +62,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _options.AssemblyResolver.Provider; }
         }
 
-        public AssemblyLoader AssemblyLoader
-        {
-            get { return _builder.AssemblyLoader; }
-        }
-
         internal ScriptBuilder Builder
         {
             get { return _builder; }
@@ -100,20 +95,6 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         #region Session
 
-        // for testing only:
-        // TODO (tomat): Sessions generate uncollectible code since we don't know whether they would execute just one submissions or multiple.
-        // We need to address code collectibility of multi-submission sessions at some point (the CLR needs to be fixed). Meanwhile use this helper 
-        // to force collectible code generation in order to keep test coverage.
-        internal Session CreateCollectibleSession()
-        {
-            return new Session(this, _options.WithIsCollectible(true), null);
-        }
-
-        internal Session CreateCollectibleSession<THostObject>(THostObject hostObject)
-        {
-            return new Session(this, _options.WithIsCollectible(true), hostObject, typeof(THostObject));
-        }
-
         public Session CreateSession()  // TODO (tomat): bool isCancellable = false
         {
             return new Session(this, _options, null);
@@ -123,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (hostObject == null)
             {
-                throw new ArgumentNullException("hostObject");
+                throw new ArgumentNullException(nameof(hostObject));
             }
 
             return new Session(this, _options, hostObject, hostObject.GetType());
@@ -133,12 +114,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (hostObject == null)
             {
-                throw new ArgumentNullException("hostObject");
+                throw new ArgumentNullException(nameof(hostObject));
             }
 
             if (hostObjectType == null)
             {
-                throw new ArgumentNullException("hostObjectType");
+                throw new ArgumentNullException(nameof(hostObjectType));
             }
 
             Type actualType = hostObject.GetType();
@@ -155,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (hostObject == null)
             {
-                throw new ArgumentNullException("hostObject");
+                throw new ArgumentNullException(nameof(hostObject));
             }
 
             return new Session(this, _options, hostObject, typeof(THostObject));
@@ -170,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// relative paths that appear in source code compiled by this script engine.
         /// </summary>
         /// <remarks>
-        /// If null relative paths won't be resolved and an error will be reported when the compiler encountrs such paths.
+        /// If null relative paths won't be resolved and an error will be reported when the compiler encounters such paths.
         /// The value can be changed at any point in time. However the new value doesn't affect already compiled submissions.
         /// The initial value is the current working directory if the current process, or null if not available.
         /// Changing the base directory doesn't affect the process current working directory used by <see cref="System.IO"/> APIs.
@@ -303,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (!@namespace.IsValidClrNamespaceName())
             {
-                throw new ArgumentException("Invalid namespace name", "namespace");
+                throw new ArgumentException("Invalid namespace name", nameof(@namespace));
             }
         }
 

@@ -7,68 +7,53 @@ using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    ///  Represents a read-only list of <see cref="SyntaxTrivia"/>.
+    /// Represents a read-only list of <see cref="SyntaxTrivia"/>.
     /// </summary>
+    [StructLayout(LayoutKind.Auto)]
     public partial struct SyntaxTriviaList : IEquatable<SyntaxTriviaList>, IReadOnlyList<SyntaxTrivia>
     {
-        private readonly SyntaxToken _token;
-        private readonly GreenNode _node;
-        private readonly int _position;
-        private readonly int _index;
-
-        public static readonly SyntaxTriviaList Empty = default(SyntaxTriviaList);
+        public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
 
         internal SyntaxTriviaList(SyntaxToken token, GreenNode node, int position, int index = 0)
         {
-            _token = token;
-            _node = node;
-            _position = position;
-            _index = index;
+            Token = token;
+            Node = node;
+            Position = position;
+            Index = index;
         }
 
         internal SyntaxTriviaList(SyntaxToken token, GreenNode node)
         {
-            _token = token;
-            _node = node;
-            _position = token.Position;
-            _index = 0;
+            Token = token;
+            Node = node;
+            Position = token.Position;
+            Index = 0;
         }
 
         internal SyntaxTriviaList(SyntaxTrivia trivia)
         {
-            _token = default(SyntaxToken);
-            _node = trivia.UnderlyingNode;
-            _position = 0;
-            _index = 0;
+            Token = default(SyntaxToken);
+            Node = trivia.UnderlyingNode;
+            Position = 0;
+            Index = 0;
         }
 
-        internal SyntaxToken Token
-        {
-            get { return _token; }
-        }
+        internal SyntaxToken Token { get; }
 
-        internal GreenNode Node
-        {
-            get { return _node; }
-        }
+        internal GreenNode Node { get; }
 
-        internal int Position
-        {
-            get { return _position; }
-        }
+        internal int Position { get; }
 
-        internal int Index
-        {
-            get { return _index; }
-        }
+        internal int Index { get; }
 
         public int Count
         {
-            get { return _node == null ? 0 : (_node.IsList ? _node.SlotCount : 1); }
+            get { return Node == null ? 0 : (Node.IsList ? Node.SlotCount : 1); }
         }
 
         public SyntaxTrivia ElementAt(int index)
@@ -81,28 +66,28 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="index">The zero-based index of the trivia to get.</param>
         /// <returns>The token at the specified index.</returns>
-        /// <exception cref="System.ArgumentOutOfRangeException">
-        ///   <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater than <see cref="SyntaxTriviaList.Count" />. </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="index" /> is less than 0.-or-<paramref name="index" /> is equal to or greater than <see cref="Count" />. </exception>
         public SyntaxTrivia this[int index]
         {
             get
             {
-                if (_node != null)
+                if (Node != null)
                 {
-                    if (_node.IsList)
+                    if (Node.IsList)
                     {
-                        if (unchecked((uint)index < (uint)_node.SlotCount))
+                        if (unchecked((uint)index < (uint)Node.SlotCount))
                         {
-                            return new SyntaxTrivia(_token, _node.GetSlot(index), _position + _node.GetSlotOffset(index), _index + index);
+                            return new SyntaxTrivia(Token, Node.GetSlot(index), Position + Node.GetSlotOffset(index), Index + index);
                         }
                     }
                     else if (index == 0)
                     {
-                        return new SyntaxTrivia(_token, _node, _position, _index);
+                        return new SyntaxTrivia(Token, Node, Position, Index);
                     }
                 }
 
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
         }
 
@@ -113,14 +98,12 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_node == null)
+                if (Node == null)
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return new TextSpan(this.Position, _node.FullWidth);
-                }
+
+                return new TextSpan(this.Position, Node.FullWidth);
             }
         }
 
@@ -131,15 +114,13 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (_node == null)
+                if (Node == null)
                 {
                     return default(TextSpan);
                 }
-                else
-                {
-                    return TextSpan.FromBounds(_position + _node.GetLeadingTriviaWidth(),
-                                               _position + _node.FullWidth - _node.GetTrailingTriviaWidth());
-                }
+
+                return TextSpan.FromBounds(Position + Node.GetLeadingTriviaWidth(),
+                    Position + Node.FullWidth - Node.GetTrailingTriviaWidth());
             }
         }
 
@@ -147,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the first trivia in the list.
         /// </summary>
         /// <returns>The first trivia in the list.</returns>
-        /// <exception cref="System.InvalidOperationException">The list is empty.</exception>        
+        /// <exception cref="InvalidOperationException">The list is empty.</exception>        
         public SyntaxTrivia First()
         {
             if (Any())
@@ -162,7 +143,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns the last trivia in the list.
         /// </summary>
         /// <returns>The last trivia in the list.</returns>
-        /// <exception cref="System.InvalidOperationException">The list is empty.</exception>        
+        /// <exception cref="InvalidOperationException">The list is empty.</exception>        
         public SyntaxTrivia Last()
         {
             if (Any())
@@ -176,10 +157,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Does this list have any items.
         /// </summary>
-        /// <returns></returns>
         public bool Any()
         {
-            return _node != null;
+            return Node != null;
         }
 
         /// <summary>
@@ -250,7 +230,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (trivia == default(SyntaxTrivia))
             {
-                throw new ArgumentException("trivia");
+                throw new ArgumentOutOfRangeException(nameof(trivia));
             }
 
             return InsertRange(index, new[] { trivia });
@@ -265,7 +245,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index > this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var items = trivia.ToList();
@@ -281,10 +261,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this;
             }
-            else
-            {
-                return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
-            }
+
+            return new SyntaxTriviaList(default(SyntaxToken), list[0].UnderlyingNode.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -295,12 +273,12 @@ namespace Microsoft.CodeAnalysis
         {
             if (index < 0 || index >= this.Count)
             {
-                throw new ArgumentOutOfRangeException("index");
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), _node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
         }
 
         /// <summary>
@@ -314,10 +292,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.RemoveAt(index);
             }
-            else
-            {
-                return this;
-            }
+
+            return this;
         }
 
         /// <summary>
@@ -329,7 +305,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (newTrivia == default(SyntaxTrivia))
             {
-                throw new ArgumentException("newTrivia");
+                throw new ArgumentOutOfRangeException(nameof(newTrivia));
             }
 
             return ReplaceRange(triviaInList, new[] { newTrivia });
@@ -348,23 +324,18 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), _node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
             }
-            else
-            {
-                throw new ArgumentException("triviaInList");
-            }
+
+            throw new ArgumentOutOfRangeException(nameof(triviaInList));
         }
 
         // for debugging
-        private SyntaxTrivia[] Nodes
-        {
-            get { return this.ToArray(); }
-        }
+        private SyntaxTrivia[] Nodes => this.ToArray();
 
         IEnumerator<SyntaxTrivia> IEnumerable<SyntaxTrivia>.GetEnumerator()
         {
-            if (_node == null)
+            if (Node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
@@ -374,7 +345,7 @@ namespace Microsoft.CodeAnalysis
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            if (_node == null)
+            if (Node == null)
             {
                 return SpecializedCollections.EmptyEnumerator<SyntaxTrivia>();
             }
@@ -387,7 +358,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private GreenNode GetGreenNodeAt(int i)
         {
-            return GetGreenNodeAt(_node, i);
+            return GetGreenNodeAt(Node, i);
         }
 
         private static GreenNode GetGreenNodeAt(GreenNode node, int i)
@@ -398,7 +369,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SyntaxTriviaList other)
         {
-            return _node == other._node && _index == other._index && _token.Equals(other._token);
+            return Node == other.Node && Index == other.Index && Token.Equals(other.Token);
         }
 
         public static bool operator ==(SyntaxTriviaList left, SyntaxTriviaList right)
@@ -418,16 +389,12 @@ namespace Microsoft.CodeAnalysis
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_token.GetHashCode(), Hash.Combine(_node, _index));
+            return Hash.Combine(Token.GetHashCode(), Hash.Combine(Node, Index));
         }
 
         /// <summary>
-        /// Copy count number of items starting at offset from this list into array starting at arrayOffset.
+        /// Copy <paramref name="count"/> number of items starting at <paramref name="offset"/> from this list into <paramref name="array"/> starting at <paramref name="arrayOffset"/>.
         /// </summary>
-        /// <param name="offset"></param>
-        /// <param name="array"></param>
-        /// <param name="arrayOffset"></param>
-        /// <param name="count"></param>
         internal void CopyTo(int offset, SyntaxTrivia[] array, int arrayOffset, int count)
         {
             if (offset < 0 || count < 0 || this.Count < offset + count)
@@ -451,7 +418,7 @@ namespace Microsoft.CodeAnalysis
             for (int i = 1; i < count; i++)
             {
                 position += current.FullWidth;
-                current = new SyntaxTrivia(_token, GetGreenNodeAt(offset + i), position, _index + i);
+                current = new SyntaxTrivia(Token, GetGreenNodeAt(offset + i), position, Index + i);
 
                 array[arrayOffset + i] = current;
             }
@@ -459,12 +426,12 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return _node != null ? _node.ToString() : String.Empty;
+            return Node != null ? Node.ToString() : string.Empty;
         }
 
         public string ToFullString()
         {
-            return _node != null ? _node.ToFullString() : String.Empty;
+            return Node != null ? Node.ToFullString() : string.Empty;
         }
 
         public static SyntaxTriviaList Create(SyntaxTrivia trivia)

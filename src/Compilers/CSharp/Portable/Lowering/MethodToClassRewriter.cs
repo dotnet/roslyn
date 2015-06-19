@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (originalArgument.Kind == BoundKind.MethodGroup && rewrittenArgument.Kind == BoundKind.MethodGroup)
             {
                 //  if the original argument was a method group AND the receiver was BoundKind.BaseReference
-                //  and the visited argument is still a method group with receiver overriden, change the 
+                //  and the visited argument is still a method group with receiver overridden, change the 
                 //  method to point to the wrapper method
                 var originalReceiver = ((BoundMethodGroup)originalArgument).ReceiverOpt;
                 var newReceiver = ((BoundMethodGroup)rewrittenArgument).ReceiverOpt;
@@ -558,9 +558,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceviver, BoundExpression rewrittenReceiver)
+        private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceiver, BoundExpression rewrittenReceiver)
         {
-            return originalReceviver != null && originalReceviver.Kind == BoundKind.BaseReference &&
+            return originalReceiver != null && originalReceiver.Kind == BoundKind.BaseReference &&
                    rewrittenReceiver != null && rewrittenReceiver.Kind != BoundKind.BaseReference;
         }
 
@@ -568,20 +568,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // in a method group conversion, we may need to rewrite the selected method
             BoundMethodGroup operand = (BoundMethodGroup)conversion.Operand;
-            BoundExpression originalReceviverOpt = operand.ReceiverOpt;
+            BoundExpression originalReceiverOpt = operand.ReceiverOpt;
             BoundExpression receiverOpt;
 
-            if (originalReceviverOpt == null)
+            if (originalReceiverOpt == null)
             {
                 receiverOpt = null;
             }
             else if (!conversion.IsExtensionMethod && conversion.SymbolOpt.IsStatic)
             {
-                receiverOpt = new BoundTypeExpression(originalReceviverOpt.Syntax, null, VisitType(originalReceviverOpt.Type));
+                receiverOpt = new BoundTypeExpression(originalReceiverOpt.Syntax, null, VisitType(originalReceiverOpt.Type));
             }
             else
             {
-                receiverOpt = (BoundExpression)Visit(originalReceviverOpt);
+                receiverOpt = (BoundExpression)Visit(originalReceiverOpt);
             }
 
             TypeSymbol type = this.VisitType(conversion.Type);
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             //  if the original receiver was a base access and is was rewritten, 
             //  change the method to point to the wrapper method
-            if (BaseReferenceInReceiverWasRewritten(originalReceviverOpt, receiverOpt) && method.IsMetadataVirtual())
+            if (BaseReferenceInReceiverWasRewritten(originalReceiverOpt, receiverOpt) && method.IsMetadataVirtual())
             {
                 method = GetMethodWrapperForBaseNonVirtualCall(method, conversion.Syntax);
             }

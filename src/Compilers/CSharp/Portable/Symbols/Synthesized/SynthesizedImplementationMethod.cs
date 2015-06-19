@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //inputs
         private readonly MethodSymbol _interfaceMethod;
         private readonly NamedTypeSymbol _implementingType;
-        private readonly bool _debuggerHidden;
         private readonly bool _generateDebugInfo;
         private readonly PropertySymbol _associatedProperty;
 
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol interfaceMethod,
             NamedTypeSymbol implementingType,
             string name = null,
-            bool debuggerHidden = false,
             bool generateDebugInfo = true,
             PropertySymbol associatedProperty = null)
         {
@@ -38,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name ?? ExplicitInterfaceHelpers.GetMemberName(interfaceMethod.Name, interfaceMethod.ContainingType, aliasQualifierOpt: null);
             _interfaceMethod = interfaceMethod;
             _implementingType = implementingType;
-            _debuggerHidden = debuggerHidden;
             _generateDebugInfo = generateDebugInfo;
             _associatedProperty = associatedProperty;
             _explicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(interfaceMethod);
@@ -81,15 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal sealed override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
-
-            if (_debuggerHidden)
-            {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
-            }
 
             if (this.ReturnType.ContainsDynamic())
             {
@@ -168,12 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return LexicalSortKey.NotInSource;
-        }
-
+        
         public override ImmutableArray<Location> Locations
         {
             get { return ImmutableArray<Location>.Empty; }

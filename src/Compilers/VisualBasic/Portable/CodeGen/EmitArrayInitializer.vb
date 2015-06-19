@@ -14,7 +14,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Partial Class CodeGenerator
+    Friend Partial Class CodeGenerator
 
         Private Enum ArrayInitializerStyle
             ' Initialize every element
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         ''' <summary>
         ''' Produces a serialized blob of all constant initializers.
-        ''' Nonconstat initializers are matched with a zero of corresponding size.
+        ''' Nonconstant initializers are matched with a zero of corresponding size.
         ''' </summary>
         Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
             ' the initial size is a guess.

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // if the query variable map for this variable is non empty, we always start with the current
                         // lambda's first parameter, which is a transparent identifier.
-                        Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix));
+                        Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix, StringComparison.Ordinal));
                         translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                         for (int i = path.Length - 1; i >= 0; i--)
                         {

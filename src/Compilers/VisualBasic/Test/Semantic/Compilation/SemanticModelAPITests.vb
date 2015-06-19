@@ -1664,7 +1664,7 @@ End Class
             Assert.Equal("z", parameterSymbol.Name)
         End Sub
 
-        Private Shared Sub TestGetSpeculativeSemanticModelForTypeSyntax_Common(model As SemanticModel, position As Integer, speculatedTypeSyntax As TypeSyntax, bindingOption As SpeculativeBindingOption, expectedSymbolKind As SymbolKind, expectedTypeDislayString As String)
+        Private Shared Sub TestGetSpeculativeSemanticModelForTypeSyntax_Common(model As SemanticModel, position As Integer, speculatedTypeSyntax As TypeSyntax, bindingOption As SpeculativeBindingOption, expectedSymbolKind As SymbolKind, expectedTypeDisplayString As String)
             Assert.False(model.IsSpeculativeSemanticModel)
             Assert.Null(model.ParentModel)
             Assert.Equal(0, model.OriginalPositionForSpeculation)
@@ -1681,12 +1681,12 @@ End Class
             Dim symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol
             Assert.NotNull(symbol)
             Assert.Equal(expectedSymbolKind, symbol.Kind)
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
             Dim typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type
             Assert.NotNull(symbol)
             Assert.Equal(expectedSymbolKind, symbol.Kind)
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
             Dim methodGroupInfo = speculativeModel.GetMemberGroup(speculatedTypeSyntax)
             Dim constantInfo = speculativeModel.GetConstantValue(speculatedTypeSyntax)
@@ -1696,12 +1696,12 @@ End Class
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol
                 Assert.NotNull(symbol)
                 Assert.Equal(expectedSymbolKind, symbol.Kind)
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
                 typeSymbol = speculativeModel.GetTypeInfo(right).Type
                 Assert.NotNull(symbol)
                 Assert.Equal(expectedSymbolKind, symbol.Kind)
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
             End If
         End Sub
 
@@ -3820,7 +3820,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim position = tree.ToString().IndexOf("X")
+            Dim position = tree.ToString().IndexOf("X"c)
             Dim paramName = DirectCast(SyntaxFactory.ParseExpression("Y"), IdentifierNameSyntax)
 
             Dim speculativeModel As SemanticModel = Nothing
@@ -3948,7 +3948,7 @@ End Class
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim position = source.Value.IndexOf("Me")
+            Dim position = source.Value.IndexOf("Me", StringComparison.Ordinal)
             Dim statement = tree.GetRoot().DescendantNodes().OfType(Of LocalDeclarationStatementSyntax).Single()
             Dim newSyntax = SyntaxFactory.ParseExpression("Instance.GetList().OfType(Of D)().Any()")
             Dim newStatement = statement.ReplaceNode(statement.Declarators(0).Initializer.Value, newSyntax)
@@ -3965,7 +3965,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub Test_SemanticLanguage_VB()
+        Public Sub Test_SemanticLanguage_VB()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -3983,7 +3983,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub DiagnosticsInStages()
+        Public Sub DiagnosticsInStages()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4011,7 +4011,7 @@ End Class
 
         <WorkItem(859721, "DevDiv")>
         <Fact()>
-        Sub TestMethodBodyDiagnostics()
+        Public Sub TestMethodBodyDiagnostics()
             ' Even with a root namespace, we should still have these diagnostics with or without root namespace specified
             Dim sourceExplicitGlobalNamespace = <compilation>
                                                     <file name="a.vb"><![CDATA[
@@ -4243,7 +4243,7 @@ BC30002: Type 'A' is not defined.
         End Sub
 
         <Fact>
-        Sub PartialMethodImplementationDiagnostics()
+        Public Sub PartialMethodImplementationDiagnostics()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4273,6 +4273,108 @@ End Class
             Assert.Equal(0, treeErrs.Length())
         End Sub
 #End Region
+
+        <Fact, WorkItem(1146124, "DevDiv")>
+        Public Sub GetTypeInfoForXmlStringInCref()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim xmlString = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlStringSyntax).Single()
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+
+            Dim typelInfo = semanticModel.GetTypeInfo(xmlString)
+            Assert.Null(typelInfo.Type)
+        End Sub
+
+        <WorkItem(1104539, "DevDiv")>
+        <Fact()>
+        Public Sub GetDiagnosticsWithRootNamespace()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports System.Threading
+
+Module TestModule
+    Sub Main()
+        DoesntExist()
+    End Sub
+
+    <Extension>
+    Public Function ToFullWidth(c As Char) As Char
+        Return If(IsHalfWidth(c), MakeFullWidth(c), c)
+    End Function
+End Module
+    ]]></file>
+    <file name="b.vb"><![CDATA[
+Imports Microsoft.VisualBasic.Strings
+
+Namespace Global.Microsoft.CodeAnalysis.VisualBasic
+
+    Partial Public Class SyntaxFacts
+
+        Friend Shared Function MakeFullWidth(c As Char) As Char
+            Return c
+        End Function
+
+        Friend Shared Function IsHalfWidth(c As Char) As Boolean
+            Return c >= ChrW(&H21S) AndAlso c <= ChrW(&H7ES)
+        End Function
+    End Class
+End Namespace
+    ]]></file>
+</compilation>, {SystemCoreRef}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+
+            Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
+
+            semanticModel.GetDiagnostics().AssertTheseDiagnostics(<errors>
+BC50001: Unused import statement.
+Imports System.Threading
+~~~~~~~~~~~~~~~~~~~~~~~~
+BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protection level.
+        DoesntExist()
+        ~~~~~~~~~~~
+                                                                  </errors>, suppressInfos:=False)
+        End Sub
+
+        <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        Public Sub ConstantValueOfInterpolatedString()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+        System.Console.WriteLine($""Hello, world!"");
+        System.Console.WriteLine($""{DateTime.Now.ToString()}.{args(0)}"");
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim model = compilation.GetSemanticModel(tree)
+            For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
+                Assert.False(model.GetConstantValue(interp).HasValue)
+            Next
+        End Sub
 
     End Class
 End Namespace

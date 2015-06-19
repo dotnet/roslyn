@@ -15,12 +15,9 @@
     <Nonshipping>true</Nonshipping>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -31,8 +28,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -54,7 +51,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutDir>..\..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
@@ -65,7 +61,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>..\..\..\..\..\Binaries\Release\amd64</OutDir>
-    <DefineConstants>TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
@@ -77,7 +72,7 @@
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc1-20150208-02\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.0.0-rc3-20150528-03\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -105,6 +100,12 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="CSReflectionBasedKindProvider.cs" />
     <Compile Include="Diagnostics\DiagnosticsHelper.cs" />
     <Compile Include="Diagnostics\OptionsDiagnosticAnalyzer.cs" />

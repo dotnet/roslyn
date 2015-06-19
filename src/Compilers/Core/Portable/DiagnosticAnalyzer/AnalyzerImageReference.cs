@@ -17,17 +17,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly string _fullPath;
         private readonly string _display;
+        private readonly string _id;
 
         public AnalyzerImageReference(ImmutableArray<DiagnosticAnalyzer> analyzers, string fullPath = null, string display = null)
         {
             if (analyzers.Any(a => a == null))
             {
-                throw new ArgumentException("Cannot have null-valued analyzer", "analyzers");
+                throw new ArgumentException("Cannot have null-valued analyzer", nameof(analyzers));
             }
 
             _analyzers = analyzers;
             _fullPath = fullPath;
             _display = display;
+            _id = Guid.NewGuid().ToString();
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
@@ -53,6 +55,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             get
             {
                 return _display ?? _fullPath ?? CodeAnalysisResources.InMemoryAssembly;
+            }
+        }
+
+        public override object Id
+        {
+            get
+            {
+                return _id;
             }
         }
 

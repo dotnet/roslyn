@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationCommentFormatting
 
             for (int i = 0; i < splitLines.Length; i++)
             {
-                if (splitLines[i].StartsWith("///"))
+                if (splitLines[i].StartsWith("///", StringComparison.Ordinal))
                 {
                     splitLines[i] = splitLines[i].Substring(3);
                 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -445,7 +445,7 @@ class ClassA
             Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
         }
 
-        [Fact()]
+        [ClrOnlyFact]
         public void AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit()
         {
             var source = @"
@@ -700,7 +700,7 @@ public class A
         }
 
         [WorkItem(546416, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable()
         {
             CompileAndVerify(
@@ -728,7 +728,7 @@ public class Program
         }
 
         [WorkItem(546416, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()
         {
             CompileAndVerify(
@@ -757,7 +757,7 @@ public class Program
         }
 
         [WorkItem(546416, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable2()
         {
             CompileAndVerify(
@@ -869,7 +869,8 @@ public class Program
             var compilation = GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                TestOptions.ReleaseDll
+                TestOptions.ReleaseDll,
+                TestOptions.Regular
             );
 
             compilation.VerifyDiagnostics(diagnostics);
@@ -913,7 +914,8 @@ public class Program
             return GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                TestOptions.ReleaseDll
+                TestOptions.ReleaseDll,
+                TestOptions.Regular
             );
         }
 
@@ -959,11 +961,11 @@ public class Program
 
         private static IEnumerable<int> FindAll(string source, string what)
         {
-            int index = source.IndexOf(what);
+            int index = source.IndexOf(what, StringComparison.Ordinal);
             while (index >= 0)
             {
                 yield return index;
-                index = source.IndexOf(what, index + 1);
+                index = source.IndexOf(what, index + 1, StringComparison.Ordinal);
             }
         }
 
@@ -974,12 +976,12 @@ public class Program
             {
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    if (!line.Trim().StartsWith("//"))
+                    if (!line.Trim().StartsWith("//", StringComparison.Ordinal))
                     {
-                        for (int index = line.IndexOf("new "); index >= 0;)
+                        for (int index = line.IndexOf("new ", StringComparison.Ordinal); index >= 0;)
                         {
                             cnt++;
-                            index = line.IndexOf("new ", index + 1);
+                            index = line.IndexOf("new ", index + 1, StringComparison.Ordinal);
                         }
                     }
                 }

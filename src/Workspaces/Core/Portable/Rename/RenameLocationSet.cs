@@ -76,10 +76,14 @@ namespace Microsoft.CodeAnalysis.Rename
                 mergedLocations.AddRange(commentsResult);
             }
 
+            var renameMethodGroupReferences = optionSet.GetOption(RenameOptions.RenameOverloads) || !GetOverloadedSymbols(symbol).Any();
             var overloadsToMerge = (optionSet.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
             {
-                mergedLocations.AddRange(result.Locations);
+                mergedLocations.AddRange(renameMethodGroupReferences 
+                    ? result.Locations
+                    : result.Locations.Where(x => !x.IsMethodGroupReference));
+
                 mergedImplicitLocations.AddRange(result.ImplicitLocations);
                 mergedReferencedSymbols.AddRange(result.ReferencedSymbols);
             }

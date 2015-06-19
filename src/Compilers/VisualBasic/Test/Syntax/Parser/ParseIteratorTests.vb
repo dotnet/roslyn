@@ -78,7 +78,7 @@ End Class]]>)
     End Sub
 
     <Fact>
-    Sub ParseYieldStatements()
+    Public Sub ParseYieldStatements()
         Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
 Module Program
 
@@ -224,7 +224,7 @@ End Module]]>.Value)
         Assert.Equal(1, yieldStatements.Count)
 
     End Sub
-    
+
     <Fact>
     Public Sub ParseIteratorLambdas()
         Dim tree = ParseAndVerify(<![CDATA[

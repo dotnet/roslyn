@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class AnnotationTable<TAnnotation> where TAnnotation : class
     {
-        private int _globalId = 0;
+        private int _globalId;
 
         private readonly Dictionary<TAnnotation, SyntaxAnnotation> _realAnnotationMap = new Dictionary<TAnnotation, SyntaxAnnotation>();
         private readonly Dictionary<string, TAnnotation> _annotationMap = new Dictionary<string, TAnnotation>();

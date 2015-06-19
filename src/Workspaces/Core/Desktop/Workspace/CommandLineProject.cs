@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -31,11 +31,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             var commandLineArgumentsFactory = languageServices.GetRequiredService<ICommandLineArgumentsFactoryService>();
-            var commandLineArguments = commandLineArgumentsFactory.CreateCommandLineArguments(commandLineArgs, projectDirectory, isInteractive: false);
+            var commandLineArguments = commandLineArgumentsFactory.CreateCommandLineArguments(commandLineArgs, projectDirectory, isInteractive: false, sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
             // TODO (tomat): to match csc.exe/vbc.exe we should use CommonCommandLineCompiler.ExistingReferencesResolver to deal with #r's
             var referenceResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var referenceProvider = tmpWorkspace.Services.GetRequiredService<IMetadataService>().GetProvider();
+            var analyzerLoader = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
             var strongNameProvider = new DesktopStrongNameProvider(commandLineArguments.KeyFileSearchPaths);
 
@@ -48,7 +49,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             // resolve all analyzer references.
-            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences();
+            foreach (var path in commandLineArguments.AnalyzerReferences.Select(r => r.FilePath))
+            {
+                analyzerLoader.AddDependencyLocation(path);
+            }
+            var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader);
             var unresolvedAnalyzerReferences = boundAnalyzerReferences.FirstOrDefault(r => r is UnresolvedAnalyzerReference);
             if (unresolvedAnalyzerReferences != null)
             {

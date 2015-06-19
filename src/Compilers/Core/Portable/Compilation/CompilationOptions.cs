@@ -42,24 +42,64 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string MainTypeName { get; protected set; }
 
+        // Note that we avoid using default(ImmutableArray<byte>) for unspecified value since 
+        // such value is currently not serializable by JSON serializer.
+
         /// <summary>
-        /// The name of the file containing the key with which to sign the output.
+        /// Specifies public key used to generate strong name for the compilation assembly, or empty of not specified.
         /// </summary>
         /// <remarks>
-        /// To sign the output supply either one of <see cref="CryptoKeyContainer"/> or <see cref="CryptoKeyFile"/>.
-        /// but not both.
+        /// If specified the values of <see cref="CryptoKeyFile"/> and <see cref="CryptoKeyContainer"/> must be null.
+        /// If <see cref="DelaySign"/> is false the assembly is marked as signed but not actually signed (aka "OSS signing").
+        /// </remarks>
+        public ImmutableArray<byte> CryptoPublicKey { get; protected set; }
+
+        /// <summary>
+        /// The name of the file containing the public and private keys to use to generate strong name of the 
+        /// compilation assembly and to sign it.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// To sign the output supply either one of <see cref="CryptoKeyFile"/> or <see cref="CryptoKeyContainer"/>.
+        /// but not both. If both are specified <see cref="CryptoKeyContainer"/> is ignored.
+        /// </para>
+        /// <para>
+        /// This setting is obsolete and only supported on Microsoft Windows platform.
+        /// Use <see cref="CryptoPublicKey"/> to generate assemblies with strong name and 
+        /// a signing tool (Microsoft .NET Framework Strong Name Utility (sn.exe) or equivalent) to sign them.
+        /// </para>
         /// </remarks>
         public string CryptoKeyFile { get; protected set; }
 
         /// <summary>
         /// The CSP container containing the key with which to sign the output.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// To sign the output supply either one of <see cref="CryptoKeyFile"/> or <see cref="CryptoKeyContainer"/>.
+        /// but not both. If both are specified <see cref="CryptoKeyContainer"/> is ignored.
+        /// </para>
+        /// <para>
+        /// This setting is obsolete and only supported on Microsoft Windows platform.
+        /// Use <see cref="CryptoPublicKey"/> to generate assemblies with strong name and 
+        /// a signing tool (Microsoft .NET Framework Strong Name Utility (sn.exe) or equivalent) to sign them.
+        /// </para>
+        /// </remarks>
         public string CryptoKeyContainer { get; protected set; }
 
         /// <summary>
-        /// Turn off strong name signing when you have supplied a key either through
-        /// attributes or <see cref="CryptoKeyContainer"/> or <see cref="CryptoKeyFile"/>.
+        /// Turn compilation assembly signing on or off.
         /// </summary>
+        /// <remarks>
+        /// If true the resulting assembly is marked as delay signed.
+        /// 
+        /// If false and <see cref="CryptoPublicKey"/>, <see cref="CryptoKeyFile"/>, or <see cref="CryptoKeyContainer"/> is specified
+        /// or attribute System.Reflection.AssemblyKeyFileAttribute or System.Reflection.AssemblyKeyNameAttribute is applied to the 
+        /// compilation assembly in source the resulting assembly is signed accordingly to the specified values/attributes.
+        /// 
+        /// If null the semantics is specified by the value of attribute System.Reflection.AssemblyDelaySignAttribute 
+        /// applied to the compilation assembly in source. If the attribute is not present the value defaults to "false".
+        /// </remarks>
         public bool? DelaySign { get; protected set; }
 
         /// <summary>
@@ -147,9 +187,20 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A set of strings designating experimental compiler features that are to be enabled.
         /// </summary>
-        protected internal ImmutableArray<string> Features { get; protected set; }
+        [Obsolete]
+        protected internal ImmutableArray<string> Features
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            protected set
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-        private Lazy<ImmutableArray<Diagnostic>> _lazyErrors = null;
+        private readonly Lazy<ImmutableArray<Diagnostic>> _lazyErrors;
 
         // Expects correct arguments.
         internal CompilationOptions(
@@ -159,6 +210,7 @@ namespace Microsoft.CodeAnalysis
             string scriptClassName,
             string cryptoKeyContainer,
             string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
             bool? delaySign,
             OptimizationLevel optimizationLevel,
             bool checkOverflow,
@@ -173,8 +225,7 @@ namespace Microsoft.CodeAnalysis
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions,
-            ImmutableArray<string> features)
+            MetadataImportOptions metadataImportOptions)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -182,6 +233,7 @@ namespace Microsoft.CodeAnalysis
             this.ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
             this.CryptoKeyContainer = cryptoKeyContainer;
             this.CryptoKeyFile = cryptoKeyFile;
+            this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
             this.DelaySign = delaySign;
             this.CheckOverflow = checkOverflow;
             this.Platform = platform;
@@ -197,7 +249,6 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
-            this.Features = features;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -317,11 +368,6 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
-        internal CompilationOptions WithFeatures(ImmutableArray<string> features)
-        {
-            return CommonWithFeatures(features);
-        }
-
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
@@ -333,6 +379,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
+        [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
         /// <summary>
@@ -365,6 +412,7 @@ namespace Microsoft.CodeAnalysis
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
+                   this.CryptoPublicKey.SequenceEqual(other.CryptoPublicKey) &&
                    this.DelaySign == other.DelaySign &&
                    this.GeneralDiagnosticOption == other.GeneralDiagnosticOption &&
                    string.Equals(this.MainTypeName, other.MainTypeName, StringComparison.Ordinal) &&
@@ -380,8 +428,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
-                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
-                   this.Features.SequenceEqual(other.Features, StringComparer.Ordinal);
+                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
 
             return equal;
         }
@@ -395,7 +442,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
-                   Hash.Combine(this.DelaySign.HasValue ? this.DelaySign.Value : false,
+                   Hash.Combine(Hash.CombineValues(this.CryptoPublicKey, 16),
                    Hash.Combine((int)this.GeneralDiagnosticOption,
                    Hash.Combine(this.MainTypeName != null ? StringComparer.Ordinal.GetHashCode(this.MainTypeName) : 0,
                    Hash.Combine((int)this.MetadataImportOptions,
@@ -410,8 +457,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0)))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

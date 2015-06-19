@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Used for retreiving applied source security attributes, i.e. attributes derived from well-known SecurityAttribute.
+        /// Used for retrieving applied source security attributes, i.e. attributes derived from well-known SecurityAttribute.
         /// </summary>
         public IEnumerable<Cci.SecurityAttribute> GetSecurityAttributes<T>(ImmutableArray<T> customAttributes)
             where T : Cci.ICustomAttribute
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                         var action = (Cci.SecurityAction)_lazySecurityActions[i];
                         Cci.ICustomAttribute attribute = customAttributes[i];
 
-                        if (_lazyPathsForPermissionSetFixup != null && _lazyPathsForPermissionSetFixup[i] != null)
+                        if (_lazyPathsForPermissionSetFixup?[i] != null)
                         {
                             attribute = new PermissionSetAttributeWithFileReference(attribute, _lazyPathsForPermissionSetFixup[i]);
                         }

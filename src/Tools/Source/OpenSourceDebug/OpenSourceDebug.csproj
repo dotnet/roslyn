@@ -18,7 +18,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenSourceDebug</RootNamespace>
     <AssemblyName>OpenSourceDebug</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -59,24 +59,26 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.OLE.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0" />
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.8.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.12.0">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
-    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion)" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" />
-    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0" />
+    <Reference Include="Microsoft.VisualStudio.TextManager.Interop"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.$(VisualStudioVersion)"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.11.0"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Shell.Immutable.12.0"><Private>false</Private></Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -84,75 +86,68 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <ProjectReference Include="..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508f118-f62e-4c16-a6f4-7c3b56e166ad}</Project>
       <Name>VBCSCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\CSharp\Desktop\CSharpCodeAnalysis.Desktop.csproj">
-      <Project>{079AF8EF-1058-48B6-943F-AB02D39E0641}</Project>
-      <Name>CSharpCodeAnalysis.Desktop</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Desktop\BasicCodeAnalysis.Desktop.vbproj">
-      <Project>{73F3E2C5-D742-452E-B9E1-20732DDBC75D}</Project>
-      <Name>BasicCodeAnalysis.Desktop</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\vbc.vbproj">
+    <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\vbc.csproj">
       <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
       <Name>vbc</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\FxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{36755424-5267-478C-9434-37A507E22711}</Project>
-      <Name>FxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\Core\AnalyzerPowerPack.Common.csproj">
+      <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
+      <Name>AnalyzerPowerPack.Common</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\CSharpFxCopRulesDiagnosticAnalyzers.csproj">
-      <Project>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</Project>
-      <Name>CSharpFxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\CSharp\AnalyzerPowerPack.CSharp.csproj">
+      <Project>{3ba13187-2a3b-4b08-9199-c11fda1d5ad0}</Project>
+      <Name>AnalyzerPowerPack.CSharp</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\BasicFxCopRulesDiagnosticAnalyzers.vbproj">
-      <Project>{2FCCB9BE-DD4E-48F2-B678-80E6FB196948}</Project>
-      <Name>BasicFxCopRulesDiagnosticAnalyzers</Name>
+    <ProjectReference Include="..\..\..\Diagnostics\FxCop\VisualBasic\AnalyzerPowerPack.VisualBasic.vbproj">
+      <Project>{2fccb9be-dd4e-48f2-b678-80e6fb196948}</Project>
+      <Name>AnalyzerPowerPack.VisualBasic</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -163,30 +158,35 @@
       <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
       <Name>BasicWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizer\SyntaxVisualizerControl\SyntaxVisualizerControl.csproj">
       <Project>{AFE45E23-E7EE-48C5-8143-EBE2FF67070F}</Project>
       <Name>SyntaxVisualizerControl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\SyntaxVisualizer\SyntaxVisualizerDgmlHelper\SyntaxVisualizerDgmlHelper.vbproj">
       <Project>{DA4F74AF-2694-4AC9-A8CC-18382DE8215E}</Project>
       <Name>SyntaxVisualizerDgmlHelper</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -200,4 +200,4 @@
     <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
- </Project>
+</Project>

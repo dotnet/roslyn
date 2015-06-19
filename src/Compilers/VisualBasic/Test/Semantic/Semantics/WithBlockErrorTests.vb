@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Sub WithTestNotDeclared()
+        Public Sub WithTestNotDeclared()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -31,7 +31,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestScoping()
+        Public Sub WithTestScoping()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -57,7 +57,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestNotAMember()
+        Public Sub WithTestNotAMember()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -85,7 +85,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub WithTestCannotLiftMeReference()
+        Public Sub WithTestCannotLiftMeReference()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -120,7 +120,7 @@ BC36638: Instance members and 'Me' cannot be used within a lambda expression in 
         End Sub
 
         <Fact()>
-        Sub WithTestCannotLiftMeReference2()
+        Public Sub WithTestCannotLiftMeReference2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -154,7 +154,7 @@ BC36638: Instance members and 'Me' cannot be used within a lambda expression in 
         End Sub
 
         <Fact()>
-        Sub WithTestCannotLiftMeReference3()
+        Public Sub WithTestCannotLiftMeReference3()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -192,7 +192,7 @@ BC36638: Instance members and 'Me' cannot be used within a lambda expression in 
         End Sub
 
         <Fact()>
-        Sub WithTestCannotLiftMeReference4()
+        Public Sub WithTestCannotLiftMeReference4()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -221,7 +221,7 @@ End Structure
         End Sub
 
         <Fact()>
-        Sub WithTestCannotLiftMeReference_NestedLambda()
+        Public Sub WithTestCannotLiftMeReference_NestedLambda()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -258,7 +258,7 @@ BC36638: Instance members and 'Me' cannot be used within a lambda expression in 
         End Sub
 
         <Fact()>
-        Sub WithTestCannotLiftMeReference_NestedWith()
+        Public Sub WithTestCannotLiftMeReference_NestedWith()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -295,7 +295,7 @@ BC36638: Instance members and 'Me' cannot be used within a lambda expression in 
         End Sub
 
         <Fact()>
-        Sub WithTest_ValueTypeLValueInParentheses()
+        Public Sub WithTest_ValueTypeLValueInParentheses()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -322,7 +322,7 @@ End Structure
         End Sub
 
         <Fact()>
-        Sub WithTest_UnknownMember()
+        Public Sub WithTest_UnknownMember()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb">
@@ -989,7 +989,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 
         <WorkItem(543921, "DevDiv")>
         <Fact()>
-        Sub WithNewT()
+        Public Sub WithNewT()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="c.vb">

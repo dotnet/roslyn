@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
@@ -22,26 +20,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             AnalyzerActions actions,
             IEnumerable<SyntaxNode> descendantNodes,
             SemanticModel semanticModel,
-            AnalyzerOptions analyzerOptions,
-            Action<Diagnostic> reportDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
+            AnalyzerExecutor analyzerExecutor)
         {
-            AnalyzerDriverHelper.ExecuteSyntaxNodeActions(actions, descendantNodes, semanticModel,
-                analyzerOptions, reportDiagnostic, continueOnAnalyzerException, this.GetKind, cancellationToken);
+            analyzerExecutor.ExecuteSyntaxNodeActions(actions, descendantNodes, semanticModel, this.GetKind);
         }
 
         public void ExecuteCodeBlockActions(
             AnalyzerActions actions,
             IEnumerable<DeclarationInfo> declarationsInNode,
             SemanticModel semanticModel,
-            AnalyzerOptions analyzerOptions,
-            Action<Diagnostic> reportDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            CancellationToken cancellationToken)
+            AnalyzerExecutor analyzerExecutor)
         {
-            AnalyzerDriverHelper.ExecuteCodeBlockActions(actions, declarationsInNode,
-                semanticModel, analyzerOptions, reportDiagnostic, continueOnAnalyzerException, this.GetKind, cancellationToken);
+            analyzerExecutor.ExecuteCodeBlockActions(actions, declarationsInNode, semanticModel, this.GetKind);
         }
     }
 }

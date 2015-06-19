@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -30,17 +30,13 @@
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.Configuration.dll</HintPath>
       <CopyLocal>True</CopyLocal>
     </Reference>
-    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop.dll">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -56,10 +52,6 @@
     <ProjectReference Include="..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>CompilerTestUtilities2</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Desktop\BasicCodeAnalysis.Desktop.vbproj">
-      <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
-      <Name>BasicCodeAnalysis.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
@@ -150,40 +142,40 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -211,7 +203,12 @@
     <Compile Include="Classification\ClassificationTestHelper.cs" />
     <Compile Include="CodeActions\AbstractCodeActionTest.cs" />
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
+    <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
     <Compile Include="CodeGeneration\AbstractCodeGenerationTests.cs" />
     <Compile Include="CodeGeneration\CodeGenerationTests.cs" />
     <Compile Include="CodeGeneration\CodeGenerationTests.CSharp.cs" />
@@ -221,6 +218,9 @@
     <Compile Include="CodeGeneration\ExpressionPrecedenceGenerationTests.cs" />
     <Compile Include="CodeGeneration\NameGenerationTests.cs" />
     <Compile Include="CodeGeneration\StatementGenerationTests.cs" />
+    <Compile Include="CodeRefactorings\CodeRefactoringServiceTest.cs" />
+    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactorings.cs" />
+    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactoringsAsync.cs" />
     <Compile Include="Collections\Immutable\Maps\BidirectionalMapTests.cs" />
     <Compile Include="Collections\Immutable\Maps\MapTests.cs" />
     <Compile Include="Collections\IntervalTreeTests.cs" />
@@ -233,6 +233,7 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="Diagnostics\TestDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderTestUtilities.cs" />
     <Compile Include="Diagnostics\DiagnosticServiceTests.cs" />
@@ -243,6 +244,8 @@
     <Compile Include="Diagnostics\GenerateType\TestProjectManagementService.cs" />
     <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
+    <Compile Include="Diagnostics\TestHostDiagnosticUpdateSource.cs" />
+    <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
     <Compile Include="DocumentationComments\AbstractDocumentationCommentTests.cs" />
@@ -357,6 +360,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />

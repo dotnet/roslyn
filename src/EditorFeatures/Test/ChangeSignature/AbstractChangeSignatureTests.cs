@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             var regularParameterArrangements = GetPermutedSubsets(regularParameterStartIndex, signaturePartCounts[1]);
             var defaultValueParameterArrangements = GetPermutedSubsets(defaultValueParameterStartIndex, signaturePartCounts[2]);
 
-            var startArray = signaturePartCounts[0] == 0 ? new int[] { } : new[] { 0 };
+            var startArray = signaturePartCounts[0] == 0 ? Array.Empty<int>() : new[] { 0 };
 
             foreach (var regularParameterPart in regularParameterArrangements)
             {
@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
             int index = 0;
             foreach (int element in list)
             {
-                var perumtationsWithoutElement = GetPermutations(GetListWithoutElementAtIndex(list, index));
-                foreach (var perm in perumtationsWithoutElement)
+                var permutationsWithoutElement = GetPermutations(GetListWithoutElementAtIndex(list, index));
+                foreach (var perm in permutationsWithoutElement)
                 {
                     yield return perm.Concat(element);
                 }

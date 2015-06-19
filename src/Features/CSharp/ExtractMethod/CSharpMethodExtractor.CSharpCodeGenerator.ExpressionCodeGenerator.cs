@@ -172,6 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         scope = this.CSharpSelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
                     }
 
+                    if (scope == null)
+                    {
+                        // This is similar to FieldDeclaration case but we only want to do this if the member has an expression body.
+                        scope = this.CSharpSelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
+                    }
+
                     return scope;
                 }
 
@@ -213,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
 
                     // we want to replace the old identifier with a invocation expression, but because of MakeExplicit we might have
-                    // a member access now instead of the identifer. So more syntax fiddling is needed.
+                    // a member access now instead of the identifier. So more syntax fiddling is needed.
                     if (sourceNode.Parent.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
                         ((ExpressionSyntax)sourceNode).IsRightSideOfDot())
                     {

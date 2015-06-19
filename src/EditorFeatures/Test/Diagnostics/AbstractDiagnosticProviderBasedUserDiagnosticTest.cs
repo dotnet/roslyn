@@ -87,8 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                             return Task.FromResult(diags);
                         };
 
-                    var fixAllContext = new FixAllContext(document, fixer, scope, fixAllActionId,
-                        SpecializedCollections.SingletonEnumerable(diagnostic.Id), getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, CancellationToken.None);
+                    var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
+                    var fixAllDiagnosticProvider = new FixAllCodeActionContext.FixAllDiagnosticProvider(diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync);
+                    var fixAllContext = new FixAllContext(document, fixer, scope, fixAllActionId, diagnosticIds, fixAllDiagnosticProvider, CancellationToken.None);
                     var fixAllFix = fixAllProvider.GetFixAsync(fixAllContext).WaitAndGetResult(CancellationToken.None);
                     if (fixAllFix != null)
                     {

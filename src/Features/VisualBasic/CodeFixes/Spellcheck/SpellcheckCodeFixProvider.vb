@@ -37,9 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
         ''' </summary>
         Friend Const BC32045 = "BC32045"
 
-        Private Const MaxMatches As Integer = 3
-        Private Const MaximumEditDistancePercentage = 0.8
-        Private Const MinimumLongestCommonSubsequencePercentage = 0.2
+        Private Const s_maxMatches As Integer = 3
+        Private Const s_maximumEditDistancePercentage = 0.8
+        Private Const s_minimumLongestCommonSubsequencePercentage = 0.2
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                 Dim longestCommonPercentage = longestCommonSequence / maxLength
 
                 ' If it's within tolerances, keep it.
-                If editDistancePercentage <= MaximumEditDistancePercentage AndAlso longestCommonPercentage >= MinimumLongestCommonSubsequencePercentage Then
+                If editDistancePercentage <= s_maximumEditDistancePercentage AndAlso longestCommonPercentage >= s_minimumLongestCommonSubsequencePercentage Then
                     results.Add(New SpellcheckResult(name, item, editDistancePercentage, longestCommonPercentage, goodness, complexify:=True))
                 End If
             Next
@@ -149,11 +149,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Dim sortedSymbols = results.OrderBy(Function(r) r.Goodness)
 
             Dim namesToSuggest = sortedSymbols _
-                .Take(MaxMatches) _
+                .Take(s_maxMatches) _
                 .SelectMany(Function(res) res.Item) _
                 .Select(Function(i) GetReasonableName(i.CompletionProvider.GetTextChange(i).NewText)) _
                 .Distinct() _
-                .Take(MaxMatches)
+                .Take(s_maxMatches)
 
             Return namesToSuggest.Select(
                 Function(n)
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Public ReadOnly Complexify As Boolean
             Public ReadOnly Item As IGrouping(Of String, CompletionItem)
 
-            Sub New(name As String, item As IGrouping(Of String, CompletionItem), editDistancePercentage As Double, longestCommonPercentage As Double, goodness As Integer, complexify As Boolean)
+            Public Sub New(name As String, item As IGrouping(Of String, CompletionItem), editDistancePercentage As Double, longestCommonPercentage As Double, goodness As Integer, complexify As Boolean)
                 Me.Name = name
                 Me.Item = item
                 Me.EditDistancePercentage = editDistancePercentage

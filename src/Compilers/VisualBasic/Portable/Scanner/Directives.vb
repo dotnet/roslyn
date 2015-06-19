@@ -15,21 +15,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Partial Friend Class Scanner
 
-        Private IsScanningDirective As Boolean = False
+        Private _isScanningDirective As Boolean = False
         Protected _scannerPreprocessorState As PreprocessorState
 
         Private Function TryScanDirective(tList As SyntaxListBuilder) As Boolean
             Debug.Assert(IsAtNewLine())
 
             ' leading whitespace until we see # should be regular whitespace
-            If CanGetChar() AndAlso IsWhitespace(PeekChar()) Then
+            If CanGet() AndAlso IsWhitespace(Peek()) Then
                 Dim ws = ScanWhitespace()
                 tList.Add(ws)
             End If
 
             ' SAVE the lookahead state and clear current token
             Dim restorePoint = CreateRestorePoint()
-            Me.IsScanningDirective = True
+            Me._isScanningDirective = True
 
             ' since we do not have lookahead tokens, this just 
             ' resets current token to _lineBufferOffset 
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' RESTORE lookahead state and current token if there were any
             restorePoint.RestoreTokens(includeLookAhead:=True)
-            Me.IsScanningDirective = False
+            Me._isScanningDirective = False
 
             Return True
         End Function

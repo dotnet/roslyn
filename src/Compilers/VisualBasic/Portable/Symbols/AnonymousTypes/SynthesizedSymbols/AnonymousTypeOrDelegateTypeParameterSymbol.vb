@@ -14,12 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Class AnonymousTypeOrDelegateTypeParameterSymbol
             Inherits TypeParameterSymbol
 
-            Private ReadOnly m_container As AnonymousTypeOrDelegateTemplateSymbol
-            Private ReadOnly m_ordinal As Integer
+            Private ReadOnly _container As AnonymousTypeOrDelegateTemplateSymbol
+            Private ReadOnly _ordinal As Integer
 
             Public Sub New(container As AnonymousTypeOrDelegateTemplateSymbol, ordinal As Integer)
-                m_container = container
-                m_ordinal = ordinal
+                _container = container
+                _ordinal = ordinal
             End Sub
 
             Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
-                    Return m_container
+                    Return _container
                 End Get
             End Property
 
@@ -54,14 +54,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Name As String
                 Get
-                    If m_container.TypeKind = TypeKind.Delegate Then
-                        If m_container.DelegateInvokeMethod.IsSub OrElse Ordinal < m_container.Arity - 1 Then
+                    If _container.TypeKind = TypeKind.Delegate Then
+                        If _container.DelegateInvokeMethod.IsSub OrElse Ordinal < _container.Arity - 1 Then
                             Return "TArg" & Ordinal
                         Else
                             Return "TResult"
                         End If
                     Else
-                        Debug.Assert(m_container.TypeKind = TypeKind.Class)
+                        Debug.Assert(_container.TypeKind = TypeKind.Class)
                         Return "T" & Ordinal
                     End If
                 End Get
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides ReadOnly Property Ordinal As Integer
                 Get
-                    Return m_ordinal
+                    Return _ordinal
                 End Get
             End Property
 

@@ -29,13 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared ReadOnly s_EmptyTypeSymbols() As TypeSymbol = {}
 
-        Private m_lazyAllInterfaces As ImmutableArray(Of NamedTypeSymbol)
-        Private m_lazyInterfacesAndTheirBaseInterfaces As ImmutableHashSet(Of NamedTypeSymbol)
+        Private _lazyAllInterfaces As ImmutableArray(Of NamedTypeSymbol)
+        Private _lazyInterfacesAndTheirBaseInterfaces As ImmutableHashSet(Of NamedTypeSymbol)
 
         ' Map with the interface member implementations for this type.
         ' Key is implemented method, value is implementing method (from the perspective of this type)
         ' Don't allocate until someone needs it.
-        Private m_lazyImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
+        Private _lazyImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
 
         ' Map with all the explicitly implemented interface symbols declared on this type.
         ' key = interface method/property/event, value = explicitly implementing method/property/event declared on this type
@@ -138,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property AllInterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
-                If (m_lazyAllInterfaces.IsDefault) Then
-                    ImmutableInterlocked.InterlockedCompareExchange(m_lazyAllInterfaces, MakeAllInterfaces(), Nothing)
+                If (_lazyAllInterfaces.IsDefault) Then
+                    ImmutableInterlocked.InterlockedInitialize(_lazyAllInterfaces, MakeAllInterfaces())
                 End If
 
-                Return m_lazyAllInterfaces
+                Return _lazyAllInterfaces
             End Get
         End Property
 
@@ -206,11 +206,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend ReadOnly Property InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics As ImmutableHashSet(Of NamedTypeSymbol)
             Get
-                If m_lazyInterfacesAndTheirBaseInterfaces Is Nothing Then
-                    Interlocked.CompareExchange(m_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(Me.InterfacesNoUseSiteDiagnostics), Nothing)
+                If _lazyInterfacesAndTheirBaseInterfaces Is Nothing Then
+                    Interlocked.CompareExchange(_lazyInterfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(Me.InterfacesNoUseSiteDiagnostics), Nothing)
                 End If
 
-                Return m_lazyInterfacesAndTheirBaseInterfaces
+                Return _lazyInterfacesAndTheirBaseInterfaces
             End Get
 
         End Property
@@ -470,7 +470,7 @@ Done:
         Public Function FindImplementationForInterfaceMember(interfaceMember As Symbol) As Symbol
             ' This layer handles caching, ComputeImplementationForInterfaceMember does the work.
             If interfaceMember Is Nothing Then
-                Throw New ArgumentNullException("interfaceMember")
+                Throw New ArgumentNullException(NameOf(interfaceMember))
             End If
 
             If Not interfaceMember.ContainingType.IsInterfaceType() OrElse
@@ -478,12 +478,31 @@ Done:
                 Return Nothing
             End If
 
-            If m_lazyImplementationForInterfaceMemberMap Is Nothing Then
-                Interlocked.CompareExchange(m_lazyImplementationForInterfaceMemberMap, New ConcurrentDictionary(Of Symbol, Symbol)(), Nothing)
+            ' PERF: Avoid delegate allocation by splitting GetOrAdd into TryGetValue+TryAdd
+            Dim map = ImplementationForInterfaceMemberMap
+            Dim result As Symbol = Nothing
+            If map.TryGetValue(interfaceMember, result) Then
+                Return result
             End If
 
-            Return m_lazyImplementationForInterfaceMemberMap.GetOrAdd(interfaceMember, AddressOf Me.ComputeImplementationForInterfaceMember)
+            result = ComputeImplementationForInterfaceMember(interfaceMember)
+            map.TryAdd(interfaceMember, result)
+            Return result
         End Function
+
+        Private ReadOnly Property ImplementationForInterfaceMemberMap As ConcurrentDictionary(Of Symbol, Symbol)
+            Get
+                Dim map = _lazyImplementationForInterfaceMemberMap
+                If map IsNot Nothing Then
+                    Return map
+                End If
+
+                ' PERF: Avoid over-allocation. In many cases, there's only 1 entry and we don't expect concurrent updates.
+                map = New ConcurrentDictionary(Of Symbol, Symbol)(concurrencyLevel:=1, capacity:=1)
+                Return If(Interlocked.CompareExchange(_lazyImplementationForInterfaceMemberMap, map, Nothing), map)
+            End Get
+        End Property
+
 
         ''' <summary>
         ''' Compute the implementation for an interface member in this type, or Nothing if none.

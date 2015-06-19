@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundNoOpStatement
+    Friend Partial Class BoundNoOpStatement
 
         Public Sub New(syntax As VisualBasicSyntaxNode)
             MyClass.New(syntax, NoOpStatementFlavor.Default)

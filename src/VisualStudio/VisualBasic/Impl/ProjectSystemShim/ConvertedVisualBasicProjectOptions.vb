@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         ''' to cache these rather than reparse them every time we create a new <see cref="ConvertedVisualBasicProjectOptions"/>
         ''' instance. We also expect the total set of these to be small, which is why we never evict anything from this cache.
         ''' </summary>
-        Private Shared conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
+        Private Shared s_conditionalCompilationSymbolsCache As Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object))) =
             New Dictionary(Of KeyValuePair(Of String, OutputKind), ImmutableArray(Of KeyValuePair(Of String, Object)))
 
         Private Sub New()
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
         Public Sub New(options As VBCompilerOptions, compilerHost As IVbCompilerHost, globalImports As IEnumerable(Of GlobalImport), strongNameKeyPaths As ImmutableArray(Of String), projectDirectoryOpt As String, ruleSetOpt As IRuleSetFile)
             If options.wszOutputPath IsNot Nothing AndAlso options.wszExeName IsNot Nothing Then
-                OutputPath = Path.Combine(options.wszOutputPath, options.wszExeName)
+                OutputPath = PathUtilities.CombinePathsUnchecked(options.wszOutputPath, options.wszExeName)
             Else
                 OutputPath = String.Empty
             End If
@@ -77,39 +77,47 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                     kind = OutputKind.WindowsRuntimeMetadata
             End Select
 
+            ' GetSDKPath can return E_NOTIMPL if there is no SDK path at all
+            Dim sdkPath As String = Nothing
+            Dim sdkPathHResult = compilerHost.GetSdkPath(sdkPath)
+
+            If sdkPathHResult = VSConstants.E_NOTIMPL Then
+                sdkPath = Nothing
+            Else
+                Marshal.ThrowExceptionForHR(sdkPathHResult, New IntPtr(-1))
+            End If
+
             Dim runtimes = New List(Of String)
             Select Case options.vbRuntimeKind
                 Case VBRuntimeKind.DefaultRuntime
-                    runtimes.Add(Path.Combine(compilerHost.GetSdkPath(), "Microsoft.VisualBasic.dll"))
-
-                Case VBRuntimeKind.SpecifiedRuntime
-                    If options.wszSpecifiedVBRuntime Is Nothing Then
-                        Throw New ArgumentException()
+                    If sdkPath IsNot Nothing Then
+                        runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "Microsoft.VisualBasic.dll"))
                     End If
 
-                    ' If they specified a fully qualified file, use it
-                    If File.Exists(options.wszSpecifiedVBRuntime) Then
-                        runtimes.Add(options.wszSpecifiedVBRuntime)
-                    Else
-                        ' If it's just a filename, try to find it in the SDK path.
-                        If options.wszSpecifiedVBRuntime <> Path.GetFileName(options.wszSpecifiedVBRuntime) Then
-                            Throw New ArgumentException()
-                        End If
-
-                        Dim runtimePath = Path.Combine(compilerHost.GetSdkPath(), options.wszSpecifiedVBRuntime)
-                        If File.Exists(runtimePath) Then
-                            runtimes.Add(runtimePath)
-                        Else
-                            Throw New ArgumentException()
+                Case VBRuntimeKind.SpecifiedRuntime
+                    If options.wszSpecifiedVBRuntime IsNot Nothing Then
+                        ' If they specified a fully qualified file, use it
+                        If File.Exists(options.wszSpecifiedVBRuntime) Then
+                            runtimes.Add(options.wszSpecifiedVBRuntime)
+                        ElseIf sdkPath IsNot Nothing
+                            ' If it's just a filename, try to find it in the SDK path.
+                            If options.wszSpecifiedVBRuntime = PathUtilities.GetFileName(options.wszSpecifiedVBRuntime) Then
+                                Dim runtimePath = PathUtilities.CombinePathsUnchecked(sdkPath, options.wszSpecifiedVBRuntime)
+                                If File.Exists(runtimePath) Then
+                                    runtimes.Add(runtimePath)
+                                End If
+                            End If
                         End If
                     End If
             End Select
 
-            If Not options.bNoStandardLibs Then
-                runtimes.Add(Path.Combine(compilerHost.GetSdkPath(), "System.dll"))
-            End If
+            If sdkPath IsNot Nothing Then
+                If Not options.bNoStandardLibs Then
+                    runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "System.dll"))
+                End If
 
-            runtimes.Add(Path.Combine(compilerHost.GetSdkPath(), "mscorlib.dll"))
+                runtimes.Add(PathUtilities.CombinePathsUnchecked(sdkPath, "mscorlib.dll"))
+            End If
 
             RuntimeLibraries = runtimes
 
@@ -177,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Dim key = KeyValuePair.Create(str, kind)
 
             Dim result As ImmutableArray(Of KeyValuePair(Of String, Object)) = Nothing
-            If conditionalCompilationSymbolsCache.TryGetValue(key, result) Then
+            If s_conditionalCompilationSymbolsCache.TryGetValue(key, result) Then
                 Return result
             End If
 
@@ -188,27 +196,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Return AddPredefinedPreprocessorSymbols(kind, defines.AsImmutableOrEmpty())
         End Function
 
-        Private Shared Function GetWarningOptions(options As VBCompilerOptions) As Dictionary(Of String, ReportDiagnostic)
-            Dim dictionary As New Dictionary(Of String, ReportDiagnostic)
-            UpdateDictionaryForWarning(dictionary, options.wszWarningsAsErrors, ReportDiagnostic.Error)
-            UpdateDictionaryForWarning(dictionary, options.wszWarningsNotAsErrors, ReportDiagnostic.Default)
-            UpdateDictionaryForWarning(dictionary, options.wszDisabledWarnings, ReportDiagnostic.Suppress)
-
-            Return dictionary
-        End Function
-
-        Private Shared Sub UpdateDictionaryForWarning(dictionary As Dictionary(Of String, ReportDiagnostic), warnings As String, reportDiagnostic As ReportDiagnostic)
+        Private Shared Iterator Function ParseWarningCodes(warnings As String) As IEnumerable(Of String)
             If warnings IsNot Nothing Then
                 For Each warning In warnings.Split(New String() {" ", ",", ";"}, StringSplitOptions.RemoveEmptyEntries)
                     Dim warningId As Integer
                     If Integer.TryParse(warning, warningId) Then
-                        dictionary("BC" + warning) = reportDiagnostic
+                        Yield "BC" + warning
                     Else
-                        dictionary(warning) = reportDiagnostic
+                        Yield warning
                     End If
                 Next
             End If
-        End Sub
+        End Function
 
         Private Shared Function DetermineGeneralDiagnosticOption(level As WarningLevel, ruleSetGeneralDiagnosticOption As ReportDiagnostic?) As ReportDiagnostic
             'If no option was supplied in the project file, but there is one in the ruleset file, use that one.
@@ -222,18 +221,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Function
 
         Private Shared Function DetermineSpecificDiagnosticOptions(options As VBCompilerOptions, ruleSetSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As IReadOnlyDictionary(Of String, ReportDiagnostic)
-            Dim diagnosticOptions As Dictionary(Of String, ReportDiagnostic)
-            Dim diagnosticOptionsFromCompilerOptions = GetWarningOptions(options)
-
-            If ruleSetSpecificDiagnosticOptions IsNot Nothing Then
-                diagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(ruleSetSpecificDiagnosticOptions)
-
-                For Each kvp In diagnosticOptionsFromCompilerOptions
-                    diagnosticOptions(kvp.Key) = kvp.Value
-                Next
-            Else
-                diagnosticOptions = diagnosticOptionsFromCompilerOptions
+            If ruleSetSpecificDiagnosticOptions Is Nothing Then
+                ruleSetSpecificDiagnosticOptions = New Dictionary(Of String, ReportDiagnostic)
             End If
+
+            ' Start with the rule set options
+            Dim diagnosticOptions = New Dictionary(Of String, ReportDiagnostic)(ruleSetSpecificDiagnosticOptions)
+
+            ' Update the specific options based on the general settings
+            If options.WarningLevel = WarningLevel.WARN_AsError Then
+                For Each pair In ruleSetSpecificDiagnosticOptions
+                    If pair.Value = ReportDiagnostic.Warn Then
+                        diagnosticOptions(pair.Key) = ReportDiagnostic.Error
+                    End If
+                Next
+            ElseIf options.WarningLevel = WarningLevel.WARN_None
+                For Each pair In ruleSetSpecificDiagnosticOptions
+                    If pair.Value <> ReportDiagnostic.Error Then
+                        diagnosticOptions(pair.Key) = ReportDiagnostic.Suppress
+                    End If
+                Next
+            End If
+
+            ' Update the specific options based on the specific settings
+            For Each diagnosticID In ParseWarningCodes(options.wszWarningsAsErrors)
+                diagnosticOptions(diagnosticID) = ReportDiagnostic.Error
+            Next
+
+            For Each diagnosticID In ParseWarningCodes(options.wszWarningsNotAsErrors)
+                Dim ruleSetOption As ReportDiagnostic
+                If ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, ruleSetOption) Then
+                    diagnosticOptions(diagnosticID) = ruleSetOption
+                Else
+                    diagnosticOptions(diagnosticID) = ReportDiagnostic.Default
+                End If
+            Next
+
+            For Each diagnosticID In ParseWarningCodes(options.wszDisabledWarnings)
+                diagnosticOptions(diagnosticID) = ReportDiagnostic.Suppress
+            Next
 
             Return New ReadOnlyDictionary(Of String, ReportDiagnostic)(diagnosticOptions)
         End Function

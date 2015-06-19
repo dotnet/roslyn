@@ -6,12 +6,12 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -34,8 +34,7 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__0.<>4__this""
   IL_0006:  ret
@@ -117,7 +116,7 @@ class C
   IL_0001:  ret
 }";
 
-            VerifyHasThis(source, "C.<M>b__0_0", "C", expectedIL);
+            VerifyHasThis(source, "C.<M>b__0_0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -136,14 +135,13 @@ class C
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__0.<>4__this""
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -174,7 +172,7 @@ class C
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -201,7 +199,7 @@ class C
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [WorkItem(1067379)]
@@ -228,7 +226,7 @@ class C
   IL_0001:  ret
 }";
 
-            VerifyHasThis(source, "C.<M>b__1_0", "C", expectedIL);
+            VerifyHasThis(source, "C.<M>b__1_0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -247,14 +245,13 @@ class C<T>
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C<T> C<T>.<F>d__0<U>.<>4__this""
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -285,7 +282,7 @@ class C<T>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL);
+            VerifyHasThis(source, "C.<F>d__0.MoveNext", "C<T>", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -312,7 +309,7 @@ class C<T>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C<T>", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<M>b__0", "C<T>", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -336,14 +333,13 @@ class C : I
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<I-F>d__0.<>4__this""
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -379,7 +375,7 @@ class C : I
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -411,7 +407,7 @@ class C : I
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I.M>b__0", "C", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -435,14 +431,13 @@ class C : I<int>
 {
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<I<System-Int32>-F>d__0.<>4__this""
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -478,7 +473,7 @@ class C : I<int>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL);
+            VerifyHasThis(source, "C.<I<System-Int32>-F>d__0.MoveNext", "C", expectedIL, thisCanBeElided: false);
         }
 
         [Fact]
@@ -510,7 +505,7 @@ class C : I<int>
   IL_0006:  ret
 }";
 
-            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL);
+            VerifyHasThis(source, "C.<>c__DisplayClass1_0.<I<System.Int32>.M>b__0", "C", expectedIL, thisCanBeElided: false);
         }
 
         [WorkItem(1066489)]
@@ -641,7 +636,7 @@ class C : I<int>
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: ilBytes.ToArray(),
-                symReader: new SymReader(ilPdbBytes.ToArray()));
+                symReader: new SymReader(ilPdbBytes.ToArray(), ilBytes.ToArray()));
 
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
             VerifyHasThis(context, "C", @"
@@ -865,7 +860,6 @@ class C
 {{
   // Code size        7 (0x7)
   .maxstack  1
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.{0}.<>4__this""
   IL_0006:  ret
@@ -953,13 +947,33 @@ class C
             }
         }
 
-        private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL)
+        private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL, bool thisCanBeElided = true)
         {
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
-            var runtime = CreateRuntimeInstance(comp);
+            var sourceCompilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(sourceCompilation);
             var context = CreateMethodContext(runtime, methodName);
 
             VerifyHasThis(context, expectedType, expectedIL);
+
+            // Now recompile and test CompileExpression with optimized code.
+            sourceCompilation = sourceCompilation.WithOptions(sourceCompilation.Options.WithOptimizationLevel(OptimizationLevel.Release));
+            runtime = CreateRuntimeInstance(sourceCompilation);
+            context = CreateMethodContext(runtime, methodName);
+            // In C#, "this" may be optimized away.
+            if (thisCanBeElided)
+            {
+                VerifyNoThis(context);
+            }
+            else
+            {
+                VerifyHasThis(context, expectedType, expectedIL: null);
+            }
+            // Verify that binding a trivial expression succeeds.
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("42", out error, testData);
+            Assert.Null(error);
+            Assert.Equal(1, testData.Methods.Count);
         }
 
         private static void VerifyHasThis(EvaluationContext context, string expectedType, string expectedIL)
@@ -971,15 +985,20 @@ class C
             Assert.NotNull(assembly);
             Assert.NotEqual(assembly.Count, 0);
             var localAndMethod = locals.Single(l => l.LocalName == "this");
-            VerifyMethodData(testData.Methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
+            if (expectedIL != null)
+            {
+                VerifyMethodData(testData.Methods.Single(m => m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL);
+            }
             locals.Free();
 
-            ResultProperties resultProperties;
             string error;
             testData = new CompilationTestData();
-            context.CompileExpression("this", out resultProperties, out error, testData);
+            context.CompileExpression("this", out error, testData);
             Assert.Null(error);
-            VerifyMethodData(testData.Methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
+            if (expectedIL != null)
+            {
+                VerifyMethodData(testData.Methods.Single(m => m.Key.Contains("<>m0")).Value, expectedType, expectedIL);
+            }
         }
 
         private static void VerifyMethodData(CompilationTestData.MethodData methodData, string expectedType, string expectedIL)
@@ -1000,10 +1019,9 @@ class C
 
         private static void VerifyNoThis(EvaluationContext context)
         {
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this", out resultProperties, out error, testData);
+            context.CompileExpression("this", out error, testData);
             Assert.Contains(error, new[]
             {
                 "error CS0026: Keyword 'this' is not valid in a static property, static method, or static field initializer",
@@ -1011,7 +1029,7 @@ class C
             });
 
             testData = new CompilationTestData();
-            context.CompileExpression("base.ToString()", out resultProperties, out error, testData);
+            context.CompileExpression("base.ToString()", out error, testData);
             Assert.Contains(error, new[]
             {
                 "error CS1511: Keyword 'base' is not available in a static method",
@@ -1046,16 +1064,14 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C C.<F>d__1.<>4__this""
   IL_0006:  ldfld      ""object C.x""
@@ -1085,10 +1101,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -1124,10 +1139,9 @@ class C
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "C.<F>b__1_0");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -1162,16 +1176,14 @@ class Derived : Base
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("base.x", out resultProperties, out error, testData);
+            context.CompileExpression("base.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
   .maxstack  1
-  .locals init (int V_0,
-                bool V_1)
+  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Derived Derived.<M>d__1.<>4__this""
   IL_0006:  ldfld      ""int Base.x""
@@ -1206,10 +1218,9 @@ class Derived : Base
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("base.x", out resultProperties, out error, testData);
+            context.CompileExpression("base.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size       12 (0xc)
@@ -1250,10 +1261,9 @@ class Derived : Base
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(runtime, "Derived.<F>b__1_0");
-            ResultProperties resultProperties;
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("this.x", out resultProperties, out error, testData);
+            context.CompileExpression("this.x", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(@"
 {
   // Code size        7 (0x7)
@@ -1450,7 +1460,7 @@ public class C
             var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNames.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
-            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, hasDisplayClassThis: true);
+            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, sourceMethodMustBeInstance: true);
             Assert.Equal(iteratorMethod, guessedIterator.OriginalDefinition);
         }
     }

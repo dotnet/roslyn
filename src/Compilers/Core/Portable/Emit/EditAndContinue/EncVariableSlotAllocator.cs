@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // syntax:
         private readonly Func<SyntaxNode, SyntaxNode> _syntaxMapOpt;
-        private readonly IMethodSymbolInternal _previousMethod;
-        private readonly MethodDebugId _previousMethodId;
+        private readonly IMethodSymbolInternal _previousTopLevelMethod;
+        private readonly DebugId _methodId;
 
         // locals:
         private readonly IReadOnlyDictionary<EncLocalInfo, int> _previousLocalSlots;
@@ -33,17 +33,17 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly IReadOnlyDictionary<Cci.ITypeReference, int> _awaiterMapOpt;
 
         // closures:
-        private readonly IReadOnlyDictionary<int, KeyValuePair<int, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Ordinal, Closure Ordinal)
-        private readonly IReadOnlyDictionary<int, int> _closureMapOpt; // SyntaxOffset -> Ordinal
+        private readonly IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Id, Closure Ordinal)
+        private readonly IReadOnlyDictionary<int, DebugId> _closureMapOpt; // SyntaxOffset -> Id
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
-            IMethodSymbolInternal previousMethod,
-            MethodDebugId previousMethodId,
+            IMethodSymbolInternal previousTopLevelMethod,
+            DebugId methodId,
             ImmutableArray<EncLocalInfo> previousLocals,
-            IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMapOpt,
-            IReadOnlyDictionary<int, int> closureMapOpt,
+            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMapOpt,
+            IReadOnlyDictionary<int, DebugId> closureMapOpt,
             string stateMachineTypeNameOpt,
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
         {
             Debug.Assert(symbolMap != null);
-            Debug.Assert(previousMethod != null);
+            Debug.Assert(previousTopLevelMethod != null);
             Debug.Assert(!previousLocals.IsDefault);
 
             _symbolMap = symbolMap;
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;
-            _previousMethod = previousMethod;
-            _previousMethodId = previousMethodId;
+            _previousTopLevelMethod = previousTopLevelMethod;
+            _methodId = methodId;
             _hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
             _hoistedLocalSlotCount = hoistedLocalSlotCount;
             _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
@@ -85,13 +85,21 @@ namespace Microsoft.CodeAnalysis.Emit
             _previousLocalSlots = previousLocalInfoToSlot;
         }
 
-        public override MethodDebugId PreviousMethodId => _previousMethodId;
+        public override DebugId? MethodId => _methodId;
+
+        private int CalculateSyntaxOffsetInPreviousMethod(int position, SyntaxTree tree)
+        {
+            // Note that syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method,
+            // not by the lambda method. The offset is thus relative to the top-level method body start. We can thus avoid mapping 
+            // the current lambda symbol or body to the corresponding previous lambda symbol or body, whcih is non-trivial. 
+            return _previousTopLevelMethod.CalculateLocalSyntaxOffset(position, tree);
+        }
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
             builder.AddRange(_previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
         }
-
+        
         private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
         {
             if (_syntaxMapOpt == null)
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            int syntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
+            int syntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
             previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal);
             return true;
         }
@@ -216,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            previousSyntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
             return true;
         }
 
@@ -224,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Syntax map contains mapping for lambdas, but not their bodies. 
             // Map the lambda first and then determine the corresponding body.
-            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.Parent : lambdaOrLambdaBodySyntax;
+            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.GetLambda() : lambdaOrLambdaBodySyntax;
 
             // no syntax map 
             // => the source of the current method is the same as the source of the previous method 
@@ -240,45 +248,50 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                if (previousSyntax == null)
+                {
+                    previousSyntaxOffset = 0;
+                    return false;
+                }
             }
             else
             {
                 previousSyntax = previousLambdaSyntax;
             }
 
-            previousSyntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
             return true;
         }
 
-        public override bool TryGetPreviousClosure(SyntaxNode scopeSyntax, out int closureOrdinal)
+        public override bool TryGetPreviousClosure(SyntaxNode scopeSyntax, out DebugId closureId)
         {
             int syntaxOffset;
             if (_closureMapOpt != null &&
                 TryGetPreviousSyntaxOffset(scopeSyntax, out syntaxOffset) &&
-                _closureMapOpt.TryGetValue(syntaxOffset, out closureOrdinal))
+                _closureMapOpt.TryGetValue(syntaxOffset, out closureId))
             {
                 return true;
             }
 
-            closureOrdinal = -1;
+            closureId = default(DebugId);
             return false;
         }
 
-        public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out int lambdaOrdinal)
+        public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out DebugId lambdaId)
         {
-            KeyValuePair<int, int> id;
+            KeyValuePair<DebugId, int> idAndClosureOrdinal;
 
             int syntaxOffset;
             if (_lambdaMapOpt != null &&
                 TryGetPreviousLambdaSyntaxOffset(lambdaOrLambdaBodySyntax, isLambdaBody, out syntaxOffset) &&
-                _lambdaMapOpt.TryGetValue(syntaxOffset, out id))
+                _lambdaMapOpt.TryGetValue(syntaxOffset, out idAndClosureOrdinal))
             {
-                lambdaOrdinal = id.Key;
+                lambdaId = idAndClosureOrdinal.Key;
                 return true;
             }
 
-            lambdaOrdinal = -1;
+            lambdaId = default(DebugId);
             return false;
         }
     }

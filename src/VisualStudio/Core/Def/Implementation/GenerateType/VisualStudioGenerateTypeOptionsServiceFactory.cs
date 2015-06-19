@@ -67,6 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                     _accessSelectString = viewModel.SelectedAccessibilityString;
                     _typeKindSelectString = viewModel.SelectedTypeKindString;
 
+                    var defaultNamespace = projectManagementService.GetDefaultNamespace(viewModel.SelectedProject, viewModel.SelectedProject?.Solution.Workspace);
+
                     return new GenerateTypeOptionsResult(
                         accessibility: viewModel.SelectedAccessibility,
                         typeKind: viewModel.SelectedTypeKind,
@@ -77,6 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
                         folders: viewModel.Folders,
                         fullFilePath: viewModel.FullFilePath,
                         existingDocument: viewModel.SelectedDocument,
+                        defaultNamespace: defaultNamespace,
                         areFoldersValidIdentifiers: viewModel.AreFoldersValidIdentifiers);
                 }
                 else

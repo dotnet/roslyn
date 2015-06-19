@@ -108,11 +108,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                         return SpecializedCollections.EmptyEnumerable<ITagSpan<IOutliningRegionTag>>();
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private IList<OutliningSpan> GetMultiLineRegions(IList<OutliningSpan> regions, ITextSnapshot snapshot)
             {

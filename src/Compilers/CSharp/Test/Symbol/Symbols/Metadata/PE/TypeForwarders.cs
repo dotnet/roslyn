@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -1015,7 +1015,7 @@ class Test
                 //     Ns.Ms.Ls.Nope P7 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Ls").WithArguments("Ls", "Ns.Ms"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System") && !ns.StartsWith("Microsoft"));
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System", StringComparison.Ordinal) && !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1073,7 +1073,7 @@ namespace N1
                 //         N1.N2.N3.T t4 { get; set; }
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNSFwd, "T").WithArguments("T", "N1.N2.N3", "pe2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
 
-            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System") && !ns.StartsWith("Microsoft"));
+            var actualNamespaces = EnumerateNamespaces(compilation).Where(ns => !ns.StartsWith("System", StringComparison.Ordinal) && !ns.StartsWith("Microsoft", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1097,7 +1097,7 @@ namespace N1
             }
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_Simple()
         {
             var source1 = @"
@@ -1113,7 +1113,7 @@ public class Forwarded
             CheckForwarderEmit(source1, source2, "Forwarded");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_InNamespace()
         {
             var source1 = @"
@@ -1132,7 +1132,7 @@ namespace NS
             CheckForwarderEmit(source1, source2, "NS.Forwarded");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_OpenGeneric()
         {
             var source1 = @"
@@ -1148,7 +1148,7 @@ public class Forwarded<T>
             CheckForwarderEmit(source1, source2, "Forwarded`1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_ConstructedGeneric()
         {
             var source1 = @"
@@ -1164,7 +1164,7 @@ public class Forwarded<T>
             CheckForwarderEmit(source1, source2, "Forwarded`1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_OverlappingGeneric()
         {
             var source1 = @"
@@ -1182,7 +1182,7 @@ public class Forwarded<T>
             CheckForwarderEmit(source1, source2, "Forwarded`1");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_Nested()
         {
             var source1 = @"
@@ -1204,7 +1204,7 @@ namespace NS
             CheckForwarderEmit(source1, source2, "NS.Forwarded", "NS.Forwarded+Inner");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_Nested_Private()
         {
             var source1 = @"
@@ -1242,7 +1242,7 @@ namespace NS
             CheckForwarderEmit(source1, source2, "NS.Forwarded", "NS.Forwarded+Internal", "NS.Forwarded+Protected", "NS.Forwarded+ProtectedInternal");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_MultipleNested()
         {
             // Note the order: depth first, children in forward order.
@@ -1280,7 +1280,7 @@ public class Forwarded
             CheckForwarderEmit(source1, source2, "Forwarded", "Forwarded+A", "Forwarded+A+B", "Forwarded+A+C", "Forwarded+D", "Forwarded+D+E", "Forwarded+D+F");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_NestedGeneric()
         {
             var source1 = @"
@@ -1311,7 +1311,7 @@ namespace NS
         private void CheckForwarderEmit(string source1, string source2, params string[] forwardedTypeFullNames)
         {
             var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, assemblyName: "Asm1");
-            var verifier1 = CompileAndVerify(comp1, emitOptions: TestEmitters.RefEmitBug);
+            var verifier1 = CompileAndVerify(comp1);
             var ref1 = MetadataReference.CreateFromImage(verifier1.EmittedAssemblyData);
 
             var comp2 = CreateCompilationWithMscorlib(source2, new[] { ref1 }, options: TestOptions.ReleaseDll, assemblyName: "Asm2");
@@ -1348,7 +1348,7 @@ namespace NS
                 }
             };
 
-            var verifier2 = CompileAndVerify(comp2, emitOptions: TestEmitters.RefEmitBug, symbolValidator: metadataValidator);
+            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
 
             using (ModuleMetadata metadata = ModuleMetadata.CreateFromImage(verifier2.EmittedAssemblyData))
             {
@@ -1366,7 +1366,7 @@ namespace NS
         }
 
         [WorkItem(545911, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void EmitForwarder_ModuleInReferencedAssembly()
         {
             string moduleA = @"public class Foo{ public static string A = ""Original""; }";
@@ -1408,7 +1408,7 @@ namespace NS
         }
 
         [WorkItem(545911, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void EmitForwarder_WithModule()
         {
             var source0 = @"
@@ -1435,7 +1435,7 @@ using System;
             CheckForwarderEmit2(source0, source1, source2, "X.Foo");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TypeForwarderInAModule()
         {
             string forwardedTypes =
@@ -1467,11 +1467,11 @@ public class CF1
             Assert.Equal(1, peReader.GetTableRowCount(TableIndex.ExportedType));
             ValidateExportedTypeRow(peReader.ExportedTypes.First(), peReader, "CF1");
 
-            Handle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
+            EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
             // Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, emitOptions: TestEmitters.RefEmitBug, verify: false,
+            CompileAndVerify(appCompilation, verify: false,
                 symbolValidator: m =>
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
@@ -1530,7 +1530,7 @@ public class CF1
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
             Assert.Equal(1, peReader.CustomAttributes.Count);
 
-            CompileAndVerify(appCompilation, emitOptions: TestEmitters.RefEmitBug,
+            CompileAndVerify(appCompilation,
                 symbolValidator: m =>
                 {
                     var peReader1 = ((PEModuleSymbol)m).Module.GetMetadataReader();
@@ -1563,11 +1563,11 @@ public class CF1
         {
             var folder = Temp.CreateDirectory();
             var comp0 = CreateCompilationWithMscorlib(source0, options: TestOptions.ReleaseModule, assemblyName: "asm0");
-            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, emitOptions: TestEmitters.RefEmitBug, verify: false).EmittedAssemblyData);
+            var asm0 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp0, verify: false).EmittedAssemblyData);
             var ref0 = asm0.GetReference();
 
             var comp1 = CreateCompilationWithMscorlib(source1, new[] { ref0 }, options: TestOptions.ReleaseDll, assemblyName: "asm1");
-            var asm1 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp1, emitOptions: TestEmitters.RefEmitBug).EmittedAssemblyData);
+            var asm1 = ModuleMetadata.CreateFromImage(CompileAndVerify(comp1).EmittedAssemblyData);
 
             var assembly1 = AssemblyMetadata.Create(asm1, asm0);
 
@@ -1607,7 +1607,7 @@ public class CF1
                 }
             };
 
-            var verifier2 = CompileAndVerify(comp2, emitOptions: TestEmitters.RefEmitBug, symbolValidator: metadataValidator);
+            var verifier2 = CompileAndVerify(comp2, symbolValidator: metadataValidator);
             var asm2 = folder.CreateFile("asm2.dll");
             asm2.WriteAllBytes(verifier2.EmittedAssemblyData);
 

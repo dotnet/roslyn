@@ -10,17 +10,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Private _presentItemsCallback As Action
         Private _presentItemsWithValuesCallback As Action(Of IList(Of NavigationBarProjectItem), NavigationBarProjectItem, IList(Of NavigationBarItem), NavigationBarItem, NavigationBarItem)
 
-        Sub New(textView As ITextView, presentItemsCallback As Action)
+        Public Sub New(textView As ITextView, presentItemsCallback As Action)
             _textView = textView
             _presentItemsCallback = presentItemsCallback
         End Sub
 
-        Sub New(textView As ITextView, presentItemsWithValuesCallback As Action(Of IList(Of NavigationBarProjectItem), NavigationBarProjectItem, IList(Of NavigationBarItem), NavigationBarItem, NavigationBarItem))
+        Public Sub New(textView As ITextView, presentItemsWithValuesCallback As Action(Of IList(Of NavigationBarProjectItem), NavigationBarProjectItem, IList(Of NavigationBarItem), NavigationBarItem, NavigationBarItem))
             _textView = textView
             _presentItemsWithValuesCallback = presentItemsWithValuesCallback
         End Sub
 
-        Sub RaiseDropDownFocused()
+        Public Sub RaiseDropDownFocused()
             RaiseEvent DropDownFocused(Nothing, EventArgs.Empty)
         End Sub
 
@@ -29,11 +29,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Event ItemSelected As EventHandler(Of NavigationBarItemSelectedEventArgs) Implements INavigationBarPresenter.ItemSelected
         Event ViewFocused As EventHandler(Of EventArgs) Implements INavigationBarPresenter.ViewFocused
 
-        Sub Disconnect() Implements INavigationBarPresenter.Disconnect
+        Public Sub Disconnect() Implements INavigationBarPresenter.Disconnect
 
         End Sub
 
-        Sub PresentItems(projects As IList(Of NavigationBarProjectItem),
+        Public Sub PresentItems(projects As IList(Of NavigationBarProjectItem),
                          selectedProject As NavigationBarProjectItem,
                          typesWithMembers As IList(Of NavigationBarItem),
                          selectedType As NavigationBarItem,
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             End If
         End Sub
 
-        Function TryGetCurrentView() As ITextView Implements INavigationBarPresenter.TryGetCurrentView
+        Public Function TryGetCurrentView() As ITextView Implements INavigationBarPresenter.TryGetCurrentView
             Return _textView
         End Function
     End Class

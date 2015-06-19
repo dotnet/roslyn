@@ -307,6 +307,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return SpecializedTasks.EmptyTask;
         }
 
+        public System.Threading.Tasks.Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
+        }
+
         public System.Threading.Tasks.Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;

@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // var r = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value).ToArray();
 
             var expected = string.Join("\n", source
-                .Split(new[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { Environment.NewLine }, System.StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Contains("//-"))
-                .Select(x => x.Substring(x.IndexOf("//-") + 3))
+                .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3))
                 .ToArray());
 
             AssertEx.Equal(expected, results);

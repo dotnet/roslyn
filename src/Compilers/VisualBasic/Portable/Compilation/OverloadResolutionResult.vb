@@ -18,18 +18,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend Class OverloadResolutionResult(Of TMember As Symbol)
 
-        Private ReadOnly m_ValidResult As MemberResolutionResult(Of TMember) ?
-        Private ReadOnly m_BestResult As MemberResolutionResult(Of TMember) ?
-        Private m_Results As ImmutableArray(Of MemberResolutionResult(Of TMember))
+        Private ReadOnly _validResult As MemberResolutionResult(Of TMember) ?
+        Private ReadOnly _bestResult As MemberResolutionResult(Of TMember) ?
+        Private _results As ImmutableArray(Of MemberResolutionResult(Of TMember))
 
         Friend Sub New(
             results As ImmutableArray(Of MemberResolutionResult(Of TMember)),
             validResult As MemberResolutionResult(Of TMember) ?,
             bestResult As MemberResolutionResult(Of TMember) ?
         )
-            m_Results = results
-            m_ValidResult = validResult
-            m_BestResult = bestResult
+            _results = results
+            _validResult = validResult
+            _bestResult = bestResult
         End Sub
 
         ''' <summary>
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property ValidResult As MemberResolutionResult(Of TMember) ?
             Get
-                Return m_ValidResult
+                Return _validResult
             End Get
         End Property
 
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property BestResult As MemberResolutionResult(Of TMember) ?
             Get
-                Return m_BestResult
+                Return _bestResult
             End Get
         End Property
 
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public ReadOnly Property Results As ImmutableArray(Of MemberResolutionResult(Of TMember))
             Get
-                Return m_Results
+                Return _results
             End Get
         End Property
     End Class

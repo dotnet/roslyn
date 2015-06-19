@@ -464,7 +464,6 @@ Base.Property.set(6)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -528,7 +527,6 @@ Base.Property.set(6)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 
@@ -576,7 +574,6 @@ Base.Method(3)
 
             CompileAndVerify(
                  CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                 emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                  expectedOutput: expectedOutput);
         }
 
@@ -635,7 +632,6 @@ Base.Method(9)
 
             CompileAndVerify(
                 CreateCompilationWithMscorlibAndReference(libSource, exeSource),
-                emitOptions: TestEmitters.CCI, // TODO (tomat): Ref.Emit infrastructure doesn't support compilation references
                 expectedOutput: expectedOutput);
         }
 

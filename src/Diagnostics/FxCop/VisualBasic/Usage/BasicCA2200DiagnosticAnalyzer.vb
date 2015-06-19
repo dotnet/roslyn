@@ -3,10 +3,12 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
+Imports Microsoft.AnalyzerPowerPack.Usage
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
+Namespace Usage
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicCA2200DiagnosticAnalyzer
         Inherits CA2200DiagnosticAnalyzer

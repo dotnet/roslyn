@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundRangeVariable
+    Friend Partial Class BoundRangeVariable
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 Return Me.RangeVariable

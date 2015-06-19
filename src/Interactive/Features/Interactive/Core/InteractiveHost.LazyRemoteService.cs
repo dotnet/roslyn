@@ -97,11 +97,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     return new InitializedRemoteService(remoteService, initializationResult);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private Task<RemoteService> TryStartProcessAsync(CancellationToken cancellationToken)
             {

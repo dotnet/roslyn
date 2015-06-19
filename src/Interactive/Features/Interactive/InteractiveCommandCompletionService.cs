@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         public override Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            return Task.FromResult(default(TextSpan));
+            return SpecializedTasks.Default<TextSpan>();
         }
 
         protected override bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options)

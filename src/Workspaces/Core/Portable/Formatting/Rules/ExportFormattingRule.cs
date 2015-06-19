@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportFormattingRule : ExportAttribute
     {
-        public string Name { get; private set; }
-        public string Language { get; private set; }
+        public string Name { get; }
+        public string Language { get; }
 
         public ExportFormattingRule(string name, string language)
             : base(typeof(IFormattingRule))
         {
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Name = name;

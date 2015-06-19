@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private class EventProcessor : TableControlEventProcessorBase
         {
-            public override void PreprocessNavigate(ITableEntryHandle entryHanle, TableEntryNavigateEventArgs e)
+            public override void PreprocessNavigate(ITableEntryHandle entryHandle, TableEntryNavigateEventArgs e)
             {
                 int index;
                 ITableEntriesSnapshot snapshot;
-                if (!entryHanle.TryGetSnapshot(out snapshot, out index))
+                if (!entryHandle.TryGetSnapshot(out snapshot, out index))
                 {
                     return;
                 }

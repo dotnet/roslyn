@@ -9,6 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Inherits AbstractCodeParameterTests
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -25,7 +26,7 @@ class C
 <Code>
 class C
 {
-    void Foo([Out()]string s)
+    void Foo([Out()] string s)
     {
     }
 }

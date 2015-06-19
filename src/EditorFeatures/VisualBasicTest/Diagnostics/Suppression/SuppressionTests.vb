@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
     Public MustInherit Class VisualBasicSuppressionTests
         Inherits AbstractSuppressionDiagnosticTest
 
-        Private ReadOnly compilationOptions As CompilationOptions =
+        Private ReadOnly _compilationOptions As CompilationOptions =
             New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
 
         Protected Overrides Function GetScriptOptions() As ParseOptions
@@ -69,17 +69,17 @@ Class C
         [|Dim x As Integer|]
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' Unused local variable
+#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         Dim x As Integer
-#Enable Warning BC42024 ' Unused local variable
+#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -106,18 +106,18 @@ Class C
             As Integer|]
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' Unused local variable
+#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         Dim x _
             As Integer
-#Enable Warning BC42024 ' Unused local variable
+#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -147,20 +147,20 @@ Class C
         End If
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
-#Disable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
         If i < j.MaxValue AndAlso
             i > 0 Then
-#Enable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
             Console.WriteLine(i)
         End If
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -192,20 +192,20 @@ Class C
         End If
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
-#Disable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
         If i > 0 AndAlso
             i < j.MaxValue Then
-#Enable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
             Console.WriteLine(i)
         End If
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -235,18 +235,18 @@ Class C
             y As Integer
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' Unused local variable
+#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         Dim x As Integer,
             y As Integer
-#Enable Warning BC42024 ' Unused local variable
+#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -274,18 +274,18 @@ Class C
             [|y As Integer|]
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' Unused local variable
+#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         Dim x As Integer,
             y As Integer
-#Enable Warning BC42024 ' Unused local variable
+#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -314,19 +314,19 @@ Class C
                 </root>
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method(i As Integer, j As Short)
-#Disable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
         Dim x = <root>
                     <condition value=<%= i < j.MaxValue %>/>
                 </root>
-#Enable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -356,19 +356,19 @@ Class C
                 Select i
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method(j As Short)
-#Disable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
-        Dim x = From i As Integer In {}
+#Disable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
+        Dim x = From i As Integer In {{}}
                 Where i < j.MaxValue
                 Select i
-#Enable Warning BC42025 ' Access of shared member, constant member, enum member or nested type through an instance
+#Enable Warning BC42025 ' {WRN_SharedMemberThroughInstance_Title}
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -398,19 +398,19 @@ Class C
         ' Trivia next line
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 Class C
     Sub Method()
-#Disable Warning BC42024 ' Unused local variable
+#Disable Warning BC42024 ' {WRN_UnusedLocal_Title}
         ' Trivia previous line
         Dim x As Integer    ' Trivia same line
-#Enable Warning BC42024 ' Unused local variable
+#Enable Warning BC42024 ' {WRN_UnusedLocal_Title}
         ' Trivia next line
     End Sub
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -442,7 +442,7 @@ Module Module1
       [|C|]
     End Sub
 End Module]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 <Obsolete>
 Class C
@@ -450,13 +450,13 @@ End Class
 
 Module Module1
     Sub Main
-#Disable Warning BC40008 ' Type or member is obsolete
+#Disable Warning BC40008 ' {WRN_UseOfObsoleteSymbolNoMessage1_Title}
         C
-#Enable Warning BC40008 ' Type or member is obsolete
+#Enable Warning BC40008 ' {WRN_UseOfObsoleteSymbolNoMessage1_Title}
     End Sub
-End Module]]>
+End Module"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -626,11 +626,11 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
-                            Return ImmutableArray.Create(descriptor)
+                            Return ImmutableArray.Create(_descriptor)
                         End Get
                     End Property
 
@@ -640,7 +640,7 @@ End Class]]>
 
                     Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(Diagnostic.Create(descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -690,11 +690,11 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private descriptor As New DiagnosticDescriptor("#$DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private _descriptor As New DiagnosticDescriptor("#$DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
-                            Return ImmutableArray.Create(descriptor)
+                            Return ImmutableArray.Create(_descriptor)
                         End Get
                     End Property
 
@@ -704,7 +704,7 @@ End Class]]>
 
                     Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(Diagnostic.Create(descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -763,11 +763,11 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private descriptor As New DiagnosticDescriptor("REm", "REm Title", "REm", "REm", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+                    Private _descriptor As New DiagnosticDescriptor("REm", "REm Title", "REm", "REm", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
-                            Return ImmutableArray.Create(descriptor)
+                            Return ImmutableArray.Create(_descriptor)
                         End Get
                     End Property
 
@@ -777,7 +777,7 @@ End Class]]>
 
                     Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(Diagnostic.Create(descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -827,11 +827,11 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private descriptor As New DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+                    Private _descriptor As New DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
-                            Return ImmutableArray.Create(descriptor)
+                            Return ImmutableArray.Create(_descriptor)
                         End Get
                     End Property
 
@@ -841,7 +841,7 @@ End Class]]>
 
                     Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                         Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                        context.ReportDiagnostic(Diagnostic.Create(descriptor, classDecl.Identifier.GetLocation()))
+                        context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                     End Sub
                 End Class
 
@@ -921,11 +921,11 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
-                            Return ImmutableArray.Create(descriptor)
+                            Return ImmutableArray.Create(_descriptor)
                         End Get
                     End Property
 
@@ -937,32 +937,32 @@ End Class]]>
                         Select Case context.Node.Kind()
                             Case SyntaxKind.ClassStatement
                                 Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, classDecl.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.NamespaceStatement
                                 Dim ns = DirectCast(context.Node, NamespaceStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, ns.Name.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
                                 Dim method = DirectCast(context.Node, MethodStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, method.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.PropertyStatement
                                 Dim p = DirectCast(context.Node, PropertyStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, p.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, p.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.FieldDeclaration
                                 Dim f = DirectCast(context.Node, FieldDeclarationSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, f.Declarators.First().Names.First.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, f.Declarators.First().Names.First.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.EventStatement
                                 Dim e = DirectCast(context.Node, EventStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, e.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, e.Identifier.GetLocation()))
                                 Exit Select
                         End Select
                     End Sub
@@ -981,30 +981,30 @@ Imports System
         Dim x
     End Sub
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:Class1")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class1"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:Class1")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class1"")>
 
 [|Class Class1|]
     Sub Method()
         Dim x
     End Sub
-End Class]]>
+End Class"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1019,22 +1019,22 @@ Imports System
         End Sub
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="namespace", Target:="~N:N")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""namespace"", Target:=""~N:N"")>
+"
 
-                    Test(source.Value, expected.Value, index:=1, isAddedDocument:=True)
+                    Test(source.Value, expected, index:=1, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="namespace", Target:="~N:N")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""namespace"", Target:=""~N:N"")>
 
 [|Namespace N|]
     Class Class1
@@ -1042,9 +1042,9 @@ Imports System
             Dim x
         End Sub
     End Class
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1061,22 +1061,22 @@ Namespace N1
         End Class
     End Namespace
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:N1.N2.Class1")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:N1.N2.Class1"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:N1.N2.Class1")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:N1.N2.Class1"")>
 
 Namespace N1
     Namespace N2
@@ -1086,9 +1086,9 @@ Namespace N1
             End Sub
         End Class
     End Namespace
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1105,22 +1105,22 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:N.Generic`1.Class1")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:N.Generic`1.Class1"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:N.Generic`1.Class1")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:N.Generic`1.Class1"")>
 
 Namespace N
     Class Generic(Of T)
@@ -1130,9 +1130,9 @@ Namespace N
             End Sub
         End Class
     End Class
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1149,22 +1149,22 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~M:N.Generic`1.Class1.Method")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~M:N.Generic`1.Class1.Method")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method"")>
 
 Namespace N
     Class Generic(Of T)
@@ -1174,9 +1174,9 @@ Namespace N
             End Sub|]
         End Class
     End Class
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1197,22 +1197,22 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method(System.Int32,System.Int32@)"")>
 
 Namespace N
     Class Generic(Of T)
@@ -1226,9 +1226,9 @@ Namespace N
             End Sub
         End Class
     End Class
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1249,22 +1249,22 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~M:N.Generic`1.Class1.Method``1(``0,System.Int32@)"")>
 
 Namespace N
     Class Generic(Of T)
@@ -1278,9 +1278,9 @@ Namespace N
             End Sub
         End Class
     End Class
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1299,22 +1299,22 @@ Namespace N
         End Class
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~P:N.Generic.C.P")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~P:N.Generic.C.P"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~P:N.Generic.C.P")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~P:N.Generic.C.P"")>
 
 Namespace N
 	Class Generic
@@ -1326,9 +1326,9 @@ Namespace N
 			End Property
 		End Class
 	End Class
-End Namespace]]>
+End Namespace"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1339,28 +1339,28 @@ Imports System
 Class C
 	[|Private ReadOnly F As Integer|]
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~F:C.F")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~F:C.F"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~F:C.F")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~F:C.F"")>
 
 Class C
 	[|Private ReadOnly F As Integer|]
-End Class]]>
+End Class"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1395,22 +1395,22 @@ Class C
 		End RemoveHandler
 	End Event
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~E:C.SampleEvent")>
-]]>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~E:C.SampleEvent"")>
+"
 
-                    Test(source.Value, expected.Value, isAddedDocument:=True)
+                    Test(source.Value, expected, isAddedDocument:=True)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = <![CDATA[
+                    Dim fixedSource = $"
 Imports System
 
-<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="member", Target:="~E:C.SampleEvent")>
+<Assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""member"", Target:=""~E:C.SampleEvent"")>
 
 Public Class SampleEventArgs
 	Public Sub New(s As String)
@@ -1438,9 +1438,9 @@ Class C
 		RemoveHandler(ByVal value As SampleEventHandler)
 		End RemoveHandler
 	End Event
-End Class]]>
+End Class"
 
-                    TestMissing(fixedSource.Value)
+                    TestMissing(fixedSource)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1469,17 +1469,17 @@ End Class]]>
                         </Project>
                     </Workspace>
 
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:Class2")>
-]]>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
+"
 
-                    Test(source, expected, isLine:=False)
+                    Test(source.ToString(), expected, isLine:=False)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1506,16 +1506,16 @@ End Class
                         </Project>
                     </Workspace>
 
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:Class2")>
-]]>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
+"
 
-                    Test(source, expected, isLine:=False, isAddedDocument:=True)
+                    Test(source.ToString(), expected, isLine:=False, isAddedDocument:=True)
                 End Sub
 
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -1551,17 +1551,17 @@ End Class
                         </Project>
                     </Workspace>
 
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 ' This file is used by Code Analysis to maintain SuppressMessage 
 ' attributes that are applied to this project.
 ' Project-level suppressions either have no target or are given 
 ' a specific target and scoped to a namespace, type, member, etc.
 
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="Class1")>
-<Assembly: Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>", Scope:="type", Target:="~T:Class2")>
-]]>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""<Pending>"", Scope:=""type"", Target:=""Class1"")>
+<Assembly: Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"", Scope:=""type"", Target:=""~T:Class2"")>
+"
 
-                    Test(source, expected, isLine:=False, isAddedDocument:=False)
+                    Test(source.ToString(), expected, isLine:=False, isAddedDocument:=False)
                 End Sub
             End Class
         End Class
@@ -1579,11 +1579,11 @@ End Class
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
-                            Return ImmutableArray.Create(descriptor)
+                            Return ImmutableArray.Create(_descriptor)
                         End Get
                     End Property
 
@@ -1595,32 +1595,32 @@ End Class
                         Select Case context.Node.Kind()
                             Case SyntaxKind.ClassStatement
                                 Dim classDecl = DirectCast(context.Node, ClassStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, classDecl.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, classDecl.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.NamespaceStatement
                                 Dim ns = DirectCast(context.Node, NamespaceStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, ns.Name.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, ns.Name.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
                                 Dim method = DirectCast(context.Node, MethodStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, method.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, method.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.PropertyStatement
                                 Dim p = DirectCast(context.Node, PropertyStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, p.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, p.Identifier.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.FieldDeclaration
                                 Dim f = DirectCast(context.Node, FieldDeclarationSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, f.Declarators.First().Names.First.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, f.Declarators.First().Names.First.GetLocation()))
                                 Exit Select
 
                             Case SyntaxKind.EventStatement
                                 Dim e = DirectCast(context.Node, EventStatementSyntax)
-                                context.ReportDiagnostic(Diagnostic.Create(descriptor, e.Identifier.GetLocation()))
+                                context.ReportDiagnostic(Diagnostic.Create(_descriptor, e.Identifier.GetLocation()))
                                 Exit Select
                         End Select
                     End Sub
@@ -1642,22 +1642,22 @@ Imports System
     End Sub
 End Class
 ]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 ' Some Trivia
-<Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
 Class C
     Sub Method()
         Dim x
     End Sub
 End Class
-]]>
+"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Class C", "[|Class C|]")
+                    Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
 
                     TestMissing(fixedSource)
                 End Sub
@@ -1676,23 +1676,23 @@ Imports System
     End Sub
 End Class
 ]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 ' Some Trivia
-<Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
-<Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
 Class C
     Sub Method()
         Dim x
     End Sub
 End Class
-]]>
+"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Class C", "[|Class C|]")
+                    Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
 
                     TestMissing(fixedSource)
                 End Sub
@@ -1713,25 +1713,25 @@ Imports System
     End Sub
 End Class
 ]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 ' Some Trivia
 ''' <summary>
 ''' My custom type
 ''' </summary>
-<Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
 Class C
     Sub Method()
         Dim x
     End Sub
 End Class
-]]>
+"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Class C", "[|Class C|]")
+                    Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
 
                     TestMissing(fixedSource)
                 End Sub
@@ -1753,26 +1753,26 @@ Imports System
     End Sub
 End Class
 ]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 ' Some Trivia
 ''' <summary>
 ''' My custom type
 ''' </summary>
-<Diagnostics.CodeAnalysis.SuppressMessage("SomeOtherDiagnostic", "SomeOtherDiagnostic:Title", Justification:="<Pending>")>
-<Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""SomeOtherDiagnostic"", ""SomeOtherDiagnostic:Title"", Justification:=""<Pending>"")>
+<Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
 Class C
     Sub Method()
         Dim x
     End Sub
 End Class
-]]>
+"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Class C", "[|Class C|]")
+                    Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
 
                     TestMissing(fixedSource)
                 End Sub
@@ -1790,23 +1790,23 @@ Namespace N
         End Sub
     End Class
 End Namespace]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 Namespace N
     ' Some Trivia
-    <Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+    <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
     Class C
         Sub Method()
             Dim x
         End Sub
     End Class
-End Namespace]]>
+End Namespace"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Class C", "[|Class C|]")
+                    Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
 
                     TestMissing(fixedSource)
                 End Sub
@@ -1824,23 +1824,23 @@ Class Generic(Of T)
         End Sub
     End Class
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 Class Generic(Of T)
     ' Some Trivia
-    <Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+    <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
     Class C
         Sub Method()
             Dim x
         End Sub
     End Class
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Class C", "[|Class C|]")
+                    Dim fixedSource = expected.Replace("Class C", "[|Class C|]")
 
                     TestMissing(fixedSource)
                 End Sub
@@ -1858,23 +1858,23 @@ Class Generic(Of T)
         End Sub|]
     End Class
 End Class]]>
-                    Dim expected = <![CDATA[
+                    Dim expected = $"
 Imports System
 
 Class Generic(Of T)
     Class C
         ' Some Trivia
-        <Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification:="<Pending>")>
+        <Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification:=""{FeaturesResources.SuppressionPendingJustification}"")>
         Sub Method()
             Dim x
         End Sub
     End Class
-End Class]]>
+End Class"
 
-                    Test(source.Value, expected.Value)
+                    Test(source.Value, expected)
 
                     ' Also verify that the added attribute does indeed suppress the diagnostic.
-                    Dim fixedSource = expected.Value.Replace("Sub Method()", "[|Sub Method()|]")
+                    Dim fixedSource = expected.Replace("Sub Method()", "[|Sub Method()|]")
 
                     TestMissing(fixedSource)
                 End Sub

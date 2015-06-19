@@ -47,10 +47,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool IsReadOnly
-            {
-                get { return true; }
-            }
+            public bool IsReadOnly => true;
 
             public IEnumerator<string> GetEnumerator()
             {
@@ -100,10 +97,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Contains(string item)
-            {
-                return IdentifierCollection.CaseSensitiveContains(item);
-            }
+            public override bool Contains(string item) => IdentifierCollection.CaseSensitiveContains(item);
         }
 
         private sealed class CaseInsensitiveCollection : CollectionBase
@@ -112,10 +106,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Contains(string item)
-            {
-                return IdentifierCollection.CaseInsensitiveContains(item);
-            }
+            public override bool Contains(string item) => IdentifierCollection.CaseInsensitiveContains(item);
         }
     }
 }

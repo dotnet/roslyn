@@ -6,19 +6,19 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
-    Class ImportsClauseComparer
+    Friend Class ImportsClauseComparer
         Implements IComparer(Of ImportsClauseSyntax)
 
         Public Shared ReadOnly Instance As IComparer(Of ImportsClauseSyntax) = New ImportsClauseComparer()
 
-        Dim nameComparer As IComparer(Of NameSyntax)
+        Private ReadOnly _nameComparer As IComparer(Of NameSyntax)
 
         Private Sub New()
-            nameComparer = NameSyntaxComparer.Create(TokenComparer.NormalInstance)
+            _nameComparer = NameSyntaxComparer.Create(TokenComparer.NormalInstance)
         End Sub
 
         Public Function Compare(x As ImportsClauseSyntax, y As ImportsClauseSyntax) As Integer Implements IComparer(Of ImportsClauseSyntax).Compare
-            Return CompareClauses(x, y, nameComparer)
+            Return CompareClauses(x, y, _nameComparer)
         End Function
 
         Friend Shared Function CompareClauses(x As ImportsClauseSyntax, y As ImportsClauseSyntax, nameComparer As IComparer(Of NameSyntax)) As Integer

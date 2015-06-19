@@ -2371,7 +2371,7 @@ End Class
 #End Region
 
         <Fact(), WorkItem(544083, "DevDiv")>
-        Sub PropertySpeculativeBinding()
+        Public Sub PropertySpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -2384,7 +2384,7 @@ End Module
     </file>
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression("Property1")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -2400,7 +2400,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(544083, "DevDiv")>
-        Sub WriteOnlyPropertySpeculativeBinding()
+        Public Sub WriteOnlyPropertySpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -2417,7 +2417,7 @@ End Module
     </file>
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression("Property1")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
@@ -3581,9 +3581,9 @@ End Class
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.LateBound, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
-            Dim sortedSybols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("ReadOnly Property Program.P1(x As System.Int32) As System.Int32", sortedSybols(0).ToTestDisplayString())
-            Assert.Equal("ReadOnly Property Program.P1(x As System.String) As System.Int32", sortedSybols(1).ToTestDisplayString())
+            Dim sortedSymbols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Assert.Equal("ReadOnly Property Program.P1(x As System.Int32) As System.Int32", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("ReadOnly Property Program.P1(x As System.String) As System.Int32", sortedSymbols(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
@@ -3635,7 +3635,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(545976, "DevDiv")>
-        Sub ArrayLiteralSpeculativeBinding()
+        Public Sub ArrayLiteralSpeculativeBinding()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3647,20 +3647,20 @@ End Module
     </file>
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
-            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE")
+            Dim position = compilation.SyntaxTrees.Single().ToString().IndexOf("'BINDHERE", StringComparison.Ordinal)
 
             Dim expr = SyntaxFactory.ParseExpression("{1, 2, 3}")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
             Assert.Null(speculativeTypeInfo.Type)
             Assert.Equal("Integer()", speculativeTypeInfo.ConvertedType.ToDisplayString())
 
-            Dim specualtiveConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
-            Assert.Equal(ConversionKind.Widening, specualtiveConversion.Kind)
+            Dim speculativeConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
+            Assert.Equal(ConversionKind.Widening, speculativeConversion.Kind)
         End Sub
 
         <WorkItem(545346, "DevDiv")>
         <Fact()>
-        Sub Bug13693()
+        Public Sub Bug13693()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3738,7 +3738,7 @@ BC30526: Property 'P' is 'ReadOnly'.
         End Sub
 
         <Fact()>
-        Sub SpeculativeConstantValueForGroupAggregationSyntax()
+        Public Sub SpeculativeConstantValueForGroupAggregationSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3755,7 +3755,7 @@ End Module
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim source = compilation.SyntaxTrees.Single().GetCompilationUnitRoot().ToFullString()
-            Dim position = source.IndexOf("fielda = Group")
+            Dim position = source.IndexOf("fielda = Group", StringComparison.Ordinal)
             Dim syntaxNode = compilation.SyntaxTrees().Single().GetCompilationUnitRoot().FindToken(position).Parent.Parent.Parent.DescendantNodesAndSelf.OfType(Of GroupAggregationSyntax).Single()
 
             Dim speculativeConstantValue = semanticModel.GetSpeculativeConstantValue(syntaxNode.SpanStart, syntaxNode)
@@ -3764,7 +3764,7 @@ End Module
 
         <WorkItem(546270, "DevDiv")>
         <Fact()>
-        Sub SpeculativeConstantValueForLabelSyntax()
+        Public Sub SpeculativeConstantValueForLabelSyntax()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
             <compilation>
                 <file name="a.vb">
@@ -3778,7 +3778,7 @@ End Module
             </compilation>)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim source = compilation.SyntaxTrees.Single().GetCompilationUnitRoot().ToFullString()
-            Dim position = source.IndexOf("GoTo Label1")
+            Dim position = source.IndexOf("GoTo Label1", StringComparison.Ordinal)
             Dim syntaxNode = compilation.SyntaxTrees().Single().GetCompilationUnitRoot().FindToken(position).Parent.DescendantNodesAndSelf.OfType(Of LabelSyntax).Single()
 
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeConstantValue(syntaxNode.SpanStart, syntaxNode)
@@ -3962,7 +3962,7 @@ BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature com
 
         <WorkItem(541271, "DevDiv")>
         <Fact()>
-        Public Sub GetDiagnsoticsSubInsideAnInterfaceWithoutMscorlibRef()
+        Public Sub GetDiagnosticsSubInsideAnInterfaceWithoutMscorlibRef()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -3989,7 +3989,7 @@ BC30002: Type 'System.Void' is not defined.
 
         <WorkItem(541304, "DevDiv")>
         <Fact()>
-        Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart()
+        Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4023,7 +4023,7 @@ BC30201: Expression expected.
         End Sub
 
         <Fact()>
-        Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart2()
+        Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart2()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4433,7 +4433,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
 
             Dim originalSyntax = tree.GetCompilationUnitRoot().DescendantNodes.OfType(Of InvocationExpressionSyntax).Last()
-            Assert.True(originalSyntax.ToString().StartsWith("fields"))
+            Assert.True(originalSyntax.ToString().StartsWith("fields", StringComparison.Ordinal))
 
             Dim info1 = model.GetSymbolInfo(originalSyntax)
             Dim method1 = TryCast(info1.Symbol, MethodSymbol)
@@ -4495,7 +4495,7 @@ End Module
             Dim model = comp.GetSemanticModel(tree)
 
             Dim originalSyntax = tree.GetCompilationUnitRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax).Single()
-            Assert.True(originalSyntax.ToString().EndsWith(".ToList"))
+            Assert.True(originalSyntax.ToString().EndsWith(".ToList", StringComparison.Ordinal))
 
             Dim info1 = model.GetSymbolInfo(originalSyntax)
             Dim method1 = TryCast(info1.Symbol, MethodSymbol)

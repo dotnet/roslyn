@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
@@ -162,12 +163,14 @@ namespace Roslyn.Utilities
             {
                 return byte0;
             }
-            else if (marker == Byte2Marker)
+
+            if (marker == Byte2Marker)
             {
                 var byte1 = _reader.ReadByte();
                 return (((uint)byte0) << 8) | byte1;
             }
-            else if (marker == Byte4Marker)
+
+            if (marker == Byte4Marker)
             {
                 var byte1 = _reader.ReadByte();
                 var byte2 = _reader.ReadByte();
@@ -175,30 +178,24 @@ namespace Roslyn.Utilities
 
                 return (((uint)byte0) << 24) | (((uint)byte1) << 16) | (((uint)byte2) << 8) | byte3;
             }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(marker);
-            }
-        }
 
-        private static readonly object s_int32Zero = 0;
-        private static readonly object s_booleanTrue = true;
-        private static readonly object s_booleanFalse = false;
+            throw ExceptionUtilities.UnexpectedValue(marker);
+        }
 
         /// <summary>
         /// Read a value from the stream. The value must have been written using ObjectWriter.WriteValue.
         /// </summary>
         public object ReadValue()
         {
-            DataKind kind = (DataKind)_reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             switch (kind)
             {
                 case DataKind.Null:
                     return null;
                 case DataKind.Boolean_T:
-                    return s_booleanTrue;
+                    return Boxes.BoxedTrue;
                 case DataKind.Boolean_F:
-                    return s_booleanFalse;
+                    return Boxes.BoxedFalse;
                 case DataKind.Int8:
                     return _reader.ReadSByte();
                 case DataKind.UInt8:
@@ -214,7 +211,7 @@ namespace Roslyn.Utilities
                 case DataKind.Int32_S:
                     return (int)_reader.ReadUInt16();
                 case DataKind.Int32_Z:
-                    return s_int32Zero;
+                    return Boxes.BoxedInt32Zero;
                 case DataKind.UInt32:
                     return _reader.ReadUInt32();
                 case DataKind.Int64:
@@ -265,15 +262,8 @@ namespace Roslyn.Utilities
         /// </summary>
         public string ReadString()
         {
-            DataKind kind = (DataKind)_reader.ReadByte();
-            if (kind == DataKind.Null)
-            {
-                return null;
-            }
-            else
-            {
-                return ReadString(kind);
-            }
+            var kind = (DataKind)_reader.ReadByte();
+            return kind == DataKind.Null ? null : ReadString(kind);
         }
 
         private string ReadString(DataKind kind)
@@ -339,7 +329,6 @@ namespace Roslyn.Utilities
                 case DataKind.Array_3:
                     length = 3;
                     break;
-                case DataKind.Array:
                 default:
                     length = (int)this.ReadCompressedUInt();
                     break;
@@ -358,7 +347,7 @@ namespace Roslyn.Utilities
 
         private Type ReadType()
         {
-            DataKind kind = (DataKind)_reader.ReadByte();
+            var kind = (DataKind)_reader.ReadByte();
             return ReadType(kind);
         }
 
@@ -493,19 +482,19 @@ namespace Roslyn.Utilities
             return reader(this);
         }
 
-        private Exception NoBinderException(string typeName)
+        private static Exception NoBinderException(string typeName)
         {
 #if COMPILERCORE
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoBinderException, typeName));
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoBinderException, typeName));
 #else
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
 #endif
         }
 
-        private Exception NoReaderException(string typeName)
+        private static Exception NoReaderException(string typeName)
         {
 #if COMPILERCORE
-            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoReaderException, typeName));
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NoReaderException, typeName));
 #else
             throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
 #endif

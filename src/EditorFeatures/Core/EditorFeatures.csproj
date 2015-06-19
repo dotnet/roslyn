@@ -19,9 +19,10 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <!-- Needed for the _CompileTemporaryAssembly target which runs due to having .xaml files that reference types from this project -->
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -52,45 +53,59 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.ImageCatalog, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Imaging, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -143,6 +158,8 @@
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.QuickInfoSource.cs" />
     <Compile Include="CommandHandlers\SignatureHelpCommandHandler.cs" />
+    <Compile Include="Commands\MoveSelectedLinesDownCommandArgs.cs" />
+    <Compile Include="Commands\MoveSelectedLinesUpCommandArgs.cs" />
     <Compile Include="Commands\AutomaticLineEnderCommandArgs.cs" />
     <Compile Include="Commands\BackspaceKeyCommandArgs.cs" />
     <Compile Include="Commands\BackTabKeyCommandArgs.cs" />
@@ -232,6 +249,8 @@
     <Compile Include="Extensibility\Highlighting\IHighlighter.cs" />
     <Compile Include="Extensibility\NavigationBar\AbstractNavigationBarItemService.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarAutomationStrings.cs" />
+    <Compile Include="Extensibility\NavigationBar\NavigationBarActionlessItem.cs" />
+    <Compile Include="Extensibility\NavigationBar\NavigationBarPresentedItem.cs" />
     <Compile Include="Extensibility\NavigationBar\NavigationBarSymbolItem.cs" />
     <Compile Include="Extensibility\Navigation\INavigableItem.cs" />
     <Compile Include="Extensibility\Navigation\NavigableItemFactory.cs" />
@@ -305,6 +324,7 @@
     <Compile Include="Implementation\BraceMatching\BraceHighlightingViewTaggerProvider.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightTag.cs" />
     <Compile Include="Implementation\BraceMatching\BraceMatchingService.cs" />
+    <Compile Include="Implementation\BraceMatching\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\CallHierarchy\AbstractCallHierarchyCommandHandler.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyDetail.cs" />
     <Compile Include="Implementation\CallHierarchy\CallHierarchyItem.cs" />
@@ -353,6 +373,7 @@
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.TagSource.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.TagSource.cs" />
+    <Compile Include="Implementation\Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractDocumentationCommentCommandHandler.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractXmlTagCompletionCommandHandler.cs" />
     <Compile Include="Implementation\EditAndContinue\ActiveStatementTag.cs" />
@@ -386,12 +407,12 @@
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
     <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
-    <Compile Include="Implementation\Highlighting\AbstractKeywordHighlighter.cs" />
-    <Compile Include="Implementation\Highlighting\HighlighterTagProducer.cs" />
-    <Compile Include="Implementation\Highlighting\HighlighterViewTaggerProvider.cs" />
-    <Compile Include="Implementation\Highlighting\HighlightingService.cs" />
-    <Compile Include="Implementation\Highlighting\HighlightingTagSource.cs" />
-    <Compile Include="Implementation\Highlighting\HighlightTag.cs" />
+    <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
+    <Compile Include="Implementation\KeywordHighlighting\HighlighterTagProducer.cs" />
+    <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
+    <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />
+    <Compile Include="Implementation\KeywordHighlighting\HighlightingTagSource.cs" />
+    <Compile Include="Implementation\KeywordHighlighting\HighlightTag.cs" />
     <Compile Include="Implementation\AutomaticCompletion\IEditorBraceCompletionSessionFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameReplacementInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.cs" />
@@ -399,14 +420,18 @@
     <Compile Include="Implementation\InlineRename\AbstractInlineRenameUndoManager.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_BackspaceDeleteHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_RefactoringWithCommandHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_MoveSelectedLinesHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_EscapeHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_LineStartEndHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineBelowHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_RenameHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_ReturnHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SelectAllHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_SaveHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TabHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_OpenLineAboveHandler.cs" />
+    <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_CutPasteHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_TypeCharHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_UndoRedoHandler.cs" />
     <Compile Include="Implementation\InlineRename\CommandHandlers\RenameCommandHandler_WordDeleteHandler.cs" />
@@ -452,6 +477,7 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_SetModelSelectedItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_Wait.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_AutomaticLineEnder.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Controller_SelectAll.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Delete.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_Backspace.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller_CaretPositionChanged.cs" />
@@ -574,6 +600,9 @@
     <Compile Include="Implementation\Peek\PeekableItemSource.cs" />
     <Compile Include="Implementation\Peek\PeekableItemSourceProvider.cs" />
     <Compile Include="Implementation\Peek\PeekHelpers.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTag.cs" />
+    <Compile Include="Implementation\ReferenceHighlighting\WrittenReferenceHighlightTagDefinition.cs" />
+    <Compile Include="Implementation\RenameTracking\IRenameTrackingLanguageHeuristicsService.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingCancellationCommandHandler.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTagDefinition.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTag.cs" />
@@ -599,6 +628,7 @@
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingCodeAction.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingCommitter.cs" />
+    <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.RenameTrackingSolutionSet.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.StateMachine.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingTaggerProvider.TrackingSession.cs" />
@@ -631,12 +661,20 @@
     <Compile Include="Implementation\TodoComment\TodoCommentState.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentTokens.cs" />
     <Compile Include="Implementation\TodoComment\TodoTaskItem.cs" />
+    <Compile Include="Implementation\Workspaces\EditorErrorReportingService.cs" />
+    <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
+    <Compile Include="Implementation\Workspaces\ProjectCacheService.cs" />
+    <Compile Include="Implementation\Workspaces\ProjectCacheService.SimpleMRUCache.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
+    <Compile Include="Undo\EditorSourceTextUndoService.cs" />
+    <Compile Include="Undo\ISourceTextUndoTransaction.cs" />
+    <Compile Include="Undo\ISourceTextUndoService.cs" />
     <Compile Include="MetadataAsSourceFile.cs" />
     <Compile Include="Implementation\Intellisense\IController.cs" />
     <Compile Include="Options\BraceCompletionOptions.cs" />
@@ -682,7 +720,7 @@
     <Compile Include="Shared\Options\FeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\InternalFeatureOnOffOptions.cs" />
     <Compile Include="Shared\Options\PerformanceFunctionIdOptionsProvider.cs" />
-    <Compile Include="Shared\Preview\PreviewWorkCoordinatorRegistrationService.cs" />
+    <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
     <Compile Include="Shared\SuggestionSupport\IDocumentSupportsSuggestionService.cs" />
@@ -721,8 +759,8 @@
     <Compile Include="Shared\Tagging\Tags\AbstractNavigatableReferenceHighlightingTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
-    <Compile Include="Shared\Tagging\Tags\WarningTag.cs" />
-    <Compile Include="Shared\Tagging\Tags\WarningTagDefinition.cs" />
+    <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
+    <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
     <Compile Include="Shared\Tagging\TagSources\BufferTagSource.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\SemanticBufferTagSource.cs" />

@@ -11,14 +11,14 @@ Imports Xunit
 Namespace Roslyn.VisualBasic.Runtime.UnitTests
 
     Public Class ObjectFormatterTests
-        Private Shared ReadOnly Hexa As ObjectFormattingOptions = New ObjectFormattingOptions(useHexadecimalNumbers:=True)
-        Private Shared ReadOnly MemberList As ObjectFormattingOptions = New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.List)
-        Private Shared ReadOnly Inline As ObjectFormattingOptions = New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.Inline)
+        Private Shared ReadOnly s_hexa As ObjectFormattingOptions = New ObjectFormattingOptions(useHexadecimalNumbers:=True)
+        Private Shared ReadOnly s_memberList As ObjectFormattingOptions = New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.List)
+        Private Shared ReadOnly s_inline As ObjectFormattingOptions = New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.Inline)
 
         <Fact()>
         Public Sub InlineCharacters()
-            Assert.Equal("ChrW(20)", VisualBasicObjectFormatter.Instance.FormatObject(ChrW(20), Inline))
-            Assert.Equal("vbBack", VisualBasicObjectFormatter.Instance.FormatObject(ChrW(&H8), Inline))
+            Assert.Equal("ChrW(20)", VisualBasicObjectFormatter.Instance.FormatObject(ChrW(20), s_inline))
+            Assert.Equal("vbBack", VisualBasicObjectFormatter.Instance.FormatObject(ChrW(&H8), s_inline))
         End Sub
 
         <Fact(Skip:="IDK")>
@@ -26,8 +26,8 @@ Namespace Roslyn.VisualBasic.Runtime.UnitTests
             Dim s = "a" & ChrW(&HFFFE) & ChrW(&HFFFF) & vbCrLf & "b"
 
             ' ObjectFormatter should substitute spaces for non-printable characters
-            Assert.Equal("""a"" & ChrW(&HABCF) & ChrW(&HABCD) & vbCrLf & ""b""", VisualBasicObjectFormatter.Instance.FormatObject(s, Hexa.Copy(quoteStrings:=True)))
-            Assert.Equal("a    b", VisualBasicObjectFormatter.Instance.FormatObject(s, Hexa.Copy(quoteStrings:=False)))
+            Assert.Equal("""a"" & ChrW(&HABCF) & ChrW(&HABCD) & vbCrLf & ""b""", VisualBasicObjectFormatter.Instance.FormatObject(s, s_hexa.Copy(quoteStrings:=True)))
+            Assert.Equal("a    b", VisualBasicObjectFormatter.Instance.FormatObject(s, s_hexa.Copy(quoteStrings:=False)))
         End Sub
 
     End Class

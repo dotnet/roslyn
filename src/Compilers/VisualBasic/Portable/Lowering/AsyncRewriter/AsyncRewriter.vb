@@ -2,14 +2,9 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -19,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits StateMachineRewriter(Of CapturedSymbolOrExpression)
 
         Private ReadOnly _binder As Binder
+        Private ReadOnly _lookupOptions As LookupOptions
         Private ReadOnly _asyncMethodKind As AsyncMethodKind
         Private ReadOnly _builderType As NamedTypeSymbol
         Private ReadOnly _resultType As TypeSymbol
@@ -37,6 +33,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
             Me._binder = CreateMethodBinder(method)
+            Me._lookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
+
+            If compilationState.ModuleBuilderOpt.IgnoreAccessibility Then
+                Me._binder = New IgnoreAccessibilityBinder(Me._binder)
+                Me._lookupOptions = Me._lookupOptions Or LookupOptions.IgnoreAccessibility
+            End If
 
             Debug.Assert(asyncKind <> AsyncMethodKind.None)
             Debug.Assert(asyncKind = GetAsyncMethodKind(method))
@@ -160,25 +162,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub GenerateMethodImplementations()
             ' Add IAsyncStateMachine.MoveNext()
-            Dim debuggerHidden = IsDebuggerHidden(Me.Method)
-            Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
-            If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
             GenerateMoveNext(
-                Me.OpenMethodImplementation(
+                Me.OpenMoveNextMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext,
-                    "MoveNext",
-                    moveNextAttrs,
-                    Accessibility.Friend,
-                    generateDebugInfo:=True,
-                    hasMethodBodyDependency:=True))
+                    Accessibility.Friend))
 
             'Add IAsyncStateMachine.SetStateMachine()
             Me.OpenMethodImplementation(
                     WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine,
                     "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine",
-                    DebugAttributes.DebuggerNonUserCodeAttribute,
                     Accessibility.Private,
-                    generateDebugInfo:=False,
                     hasMethodBodyDependency:=False)
 
             ' SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
@@ -507,19 +500,12 @@ lCaptureRValue:
                                             typeArgs As ImmutableArray(Of TypeSymbol),
                                             ParamArray arguments As BoundExpression()) As BoundExpression
 
-            Dim anyArgumentsWithErrors = False
-
-            ' Check if we have any bad arguments.
-            For Each a In arguments
-                If a.HasErrors Then
-                    anyArgumentsWithErrors = True
-                End If
-            Next
-
             ' Get the method group
             Dim methodGroup = FindMethodAndReturnMethodGroup(receiver, type, methodName, typeArgs)
 
-            If methodGroup Is Nothing OrElse anyArgumentsWithErrors OrElse (receiver IsNot Nothing AndAlso receiver.HasErrors) Then
+            If methodGroup Is Nothing OrElse
+                arguments.Any(Function(a) a.HasErrors) OrElse
+                (receiver IsNot Nothing AndAlso receiver.HasErrors) Then
                 Return Me.F.BadExpression(arguments)
             End If
 
@@ -543,9 +529,8 @@ lCaptureRValue:
             Dim group As BoundMethodGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim options As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=options, useSiteDiagnostics:=useSiteDiagnostics)
+            Me._binder.LookupMember(result, type, methodName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
             Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
 
             If result.IsGood Then
@@ -603,9 +588,8 @@ lCaptureRValue:
             Dim group As BoundPropertyGroup = Nothing
             Dim result = LookupResult.GetInstance()
 
-            Dim options As LookupOptions = LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=options, useSiteDiagnostics:=useSiteDiagnostics)
+            Me._binder.LookupMember(result, type, propertyName, arity:=0, options:=_lookupOptions, useSiteDiagnostics:=useSiteDiagnostics)
             Me.Diagnostics.Add(Me.F.Syntax, useSiteDiagnostics)
 
             If result.IsGood Then

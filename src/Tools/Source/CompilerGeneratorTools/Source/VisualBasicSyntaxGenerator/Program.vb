@@ -1,31 +1,42 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Collections.Generic
 Imports System.Console
+Imports System.Runtime.InteropServices
 
 ''' <summary>
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
 ''' </summary>
-Module Program
+Friend Module Program
 
-    Function Main(args As String()) As Integer
+    Public Function Main(args As String()) As Integer
 
         Const exitWithErrors = 1,
               exitWithoutErrors = 0
 
         Try
+            Dim outputKind As String = Nothing
+            Dim paths As New List(Of String)()
 
-            Dim paths = From arg In args Where Not arg.StartsWith("/")
+            For Each arg in args 
+                Dim c = arg.ToLowerInvariant()
+                If c = "/test" OrElse c = "/source" OrElse c = "/gettext" Then
+                    If outputKind IsNot Nothing Then
+                        PrintUsage()
+                        Return exitWithErrors
+                    End If
+                    outputKind = c
+                Else If c = "/?" Then
+                    PrintUsage()
+                    Return exitWithErrors
+                Else
+                    paths.Add(arg)
+                End If
+            Next
 
-            Dim switches = From arg In args Where arg.StartsWith("/")
-
-            ' Write usage.
-            If switches.Contains("/?") OrElse paths.Count <> 2 OrElse switches.Count > 1 Then
-                WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
-                WriteLine("  /source        Generates syntax model source code.")
-                WriteLine("  /test          Generates syntax model unit tests.")
-                WriteLine("  /gettext       Generates GetText method only.")
-
+            If paths.Count <> 2 Then
+                PrintUsage()
                 Return exitWithErrors
             End If
 
@@ -33,34 +44,47 @@ Module Program
             Dim outputFile = paths(1)
 
             If Not File.Exists(inputFile) Then
-                WriteLine("Input file not found - ""{0}""", inputFile)
+                Console.Error.WriteLine("Input file not found - ""{0}""", inputFile)
 
                 Return exitWithErrors
             End If
 
-            Dim definition = ReadDefinition(inputFile)
-            Dim outputKind = If(switches.Any(), switches(0).ToLowerInvariant(), Nothing)
+            Dim definition As ParseTree = Nothing
+            If Not TryReadDefinition(inputFile, definition) Then
+                Return exitWithErrors
+            End If
+
             WriteOutput(outputFile, definition, outputKind)
 
             Return exitWithoutErrors
+
         Catch ex As Exception
-            WriteLine("FATAL ERROR: {0}", ex.Message)
-            WriteLine(ex.StackTrace)
+            Console.Error.WriteLine("FATAL ERROR: {0}", ex.Message)
+            Console.Error.WriteLine(ex.StackTrace)
 
             Return exitWithErrors
         End Try
 
     End Function
 
-    Function ReadDefinition(inputFile As String) As ParseTree
-        Dim definition = ReadTheTree(inputFile)
+    Private Sub PrintUsage()
+        WriteLine("VBSyntaxGenerator.exe input output [/source] [/test]")
+        WriteLine("  /source        Generates syntax model source code.")
+        WriteLine("  /test          Generates syntax model unit tests.")
+        WriteLine("  /gettext       Generates GetText method only.")
+    End Sub
+
+    Public Function TryReadDefinition(inputFile As String, <Out> ByRef definition As ParseTree) As Boolean
+        If Not TryReadTheTree(inputFile, definition) Then
+            Return False
+        End If
 
         ValidateTree(definition)
 
-        Return definition
+        Return True
     End Function
 
-    Sub WriteOutput(outputFile As String, definition As ParseTree, outputKind As String)
+    Public Sub WriteOutput(outputFile As String, definition As ParseTree, outputKind As String)
 
         Using output As New StreamWriter(outputFile)
             output.WriteLine("' Definition of syntax model.")

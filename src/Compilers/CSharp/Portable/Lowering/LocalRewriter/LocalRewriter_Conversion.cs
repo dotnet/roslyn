@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const bool y = true;
         private const bool n = false;
 
-        private static bool[,] s_needsChecked =
+        private static readonly bool[,] s_needsChecked =
             {   //         chri08u08i16u16i32u32i64u64
                 /* chr */
                           { n, y, y, y, n, n, n, n, n },
@@ -773,9 +773,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundAssignmentOperator tempAssignment;
             var boundTemp = _factory.StoreToTemp(operand, out tempAssignment);
-            MethodSymbol get_HasValue = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_get_HasValue);
             MethodSymbol getValueOrDefault = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
-            BoundExpression condition = BoundCall.Synthesized(syntax, boundTemp, get_HasValue);
+            BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
                 GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
@@ -1005,11 +1004,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundAssignmentOperator tempAssignment;
             BoundLocal boundTemp = _factory.StoreToTemp(rewrittenOperand, out tempAssignment);
-            MethodSymbol get_HasValue = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_get_HasValue);
             MethodSymbol getValueOrDefault = GetNullableMethod(syntax, boundTemp.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             // temp.HasValue
-            BoundExpression condition = BoundCall.Synthesized(syntax, boundTemp, get_HasValue);
+            BoundExpression condition = MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
             BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault);

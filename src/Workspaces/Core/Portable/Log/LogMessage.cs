@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// Logger will call this to return LogMessage to its pool
         /// </summary>
-        public abstract void Free();
+        protected abstract void FreeCore();
 
         public string GetMessage()
         {
@@ -58,6 +58,13 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             return _message;
+        }
+
+        public void Free()
+        {
+            _message = null;
+
+            FreeCore();
         }
 
         private sealed class StaticLogMessage : LogMessage
@@ -77,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return _message;
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
                 if (_message == null)
                 {
@@ -108,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return _messageGetter();
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
                 if (_messageGetter == null)
                 {
@@ -141,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return _messageGetter(_arg);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
                 if (_messageGetter == null)
                 {
@@ -177,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return _messageGetter(_arg0, _arg1);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
                 if (_messageGetter == null)
                 {
@@ -216,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return _messageGetter(_arg0, _arg1, _arg2);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
                 if (_messageGetter == null)
                 {
@@ -258,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return _messageGetter(_arg0, _arg1, _arg2, _arg3);
             }
 
-            public override void Free()
+            protected override void FreeCore()
             {
                 if (_messageGetter == null)
                 {

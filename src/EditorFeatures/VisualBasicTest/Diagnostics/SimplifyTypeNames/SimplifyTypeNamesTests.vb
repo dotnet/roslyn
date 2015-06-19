@@ -3,7 +3,6 @@
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
@@ -579,6 +578,199 @@ End Namespace
         NewLines("Imports System \n Module Program \n Dim x = [|Nullable(Of Guid).op_Implicit|](Nothing) \n End Module"))
         End Sub
 
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestMissingNullableSimplificationInsideCref()
+            TestMissing(
+"Imports System
+''' <summary>
+''' <see cref=""[|Nullable(Of T)|]""/>
+''' </summary>
+Class A
+End Class")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestMissingNullableSimplificationInsideCref2()
+            TestMissing(
+"''' <summary>
+''' <see cref=""[|System.Nullable(Of T)|]""/>
+''' </summary>
+Class A
+End Class")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestMissingNullableSimplificationInsideCref3()
+            TestMissing(
+"''' <summary>
+''' <see cref=""[|System.Nullable(Of T)|].Value""/>
+''' </summary>
+Class A
+End Class")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestMissingNullableSimplificationInsideCref4()
+            TestMissing(
+"Imports System
+''' <summary>
+''' <see cref=""[|Nullable(Of Integer)|].Value""/>
+''' </summary>
+Class A
+End Class")
+        End Sub
+
+        <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
+        <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
+        <WorkItem(29, "https: //github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestNullableSimplificationInsideCref()
+            ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
+            ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiller allows this while
+            ' C# doesn't allow similar case. If this Nullable(Of Integer) becomes illegal in VB in the below case then the simplification
+            ' from Nullable(Of Integer) -> Integer will also stop working and the baseline for this test will have to be updated.
+            Test(
+"Imports System
+''' <summary>
+        ''' <see cref=""C(Of [|Nullable(Of Integer)|])""/>
+        ''' </summary>
+Class C(Of T)
+End Class",
+"Imports System
+''' <summary>
+''' <see cref=""C(Of Integer?)""/>
+''' </summary>
+Class C(Of T)
+End Class")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <WorkItem(2189, "https://github.com/dotnet/roslyn/issues/2189")>
+        <WorkItem(2196, "https://github.com/dotnet/roslyn/issues/2196")>
+        <WorkItem(2197, "https://github.com/dotnet/roslyn/issues/2197")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestNullableSimplificationInsideCref2()
+            ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
+            ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiller allows this while
+            ' C# doesn't allow similar case. If this Nullable(Of Integer) becomes illegal in VB in the below case then the simplification
+            ' from Nullable(Of Integer) -> Integer will also stop working and the baseline for this test will have to be updated.
+            Test(
+"Imports System
+''' <summary>
+''' <see cref=""C.M(Of [|Nullable(Of Integer)|])""/>
+''' </summary>
+Class C
+    Sub M(Of T As Structure)()
+    End Sub
+End Class",
+"Imports System
+''' <summary>
+''' <see cref=""C.M(Of Integer?)""/>
+''' </summary>
+Class C
+    Sub M(Of T As Structure)()
+    End Sub
+End Class")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestNullableSimplificationInsideCref3()
+            Test(
+"Imports System
+''' <summary>
+''' <see cref=""A.M([|Nullable(Of A)|])""/>
+''' </summary>
+Structure A
+    Sub M(x As A?)
+    End Sub
+End Structure",
+"Imports System
+''' <summary>
+''' <see cref=""A.M(A?)""/>
+''' </summary>
+Structure A
+    Sub M(x As A?)
+    End Sub
+End Structure")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestNullableSimplificationInsideCref4()
+            Test(
+"Imports System
+Imports System.Collections.Generic
+''' <summary>
+''' <see cref=""A.M(List(Of [|Nullable(Of Integer)|]))""/>
+''' </summary>
+Structure A
+    Sub M(x As List(Of Integer?))
+    End Sub
+End Structure",
+"Imports System
+Imports System.Collections.Generic
+''' <summary>
+''' <see cref=""A.M(List(Of Integer?))""/>
+''' </summary>
+Structure A
+    Sub M(x As List(Of Integer?))
+    End Sub
+End Structure")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestNullableSimplificationInsideCref5()
+            Test(
+"Imports System
+Imports System.Collections.Generic
+''' <summary>
+''' <see cref=""A.M(Of T)(List(Of [|Nullable(Of T)|]))""/>
+''' </summary>
+Structure A
+    Sub M(Of U As Structure)(x As List(Of U?))
+    End Sub
+End Structure",
+"Imports System
+Imports System.Collections.Generic
+''' <summary>
+''' <see cref=""A.M(Of T)(List(Of T?))""/>
+''' </summary>
+Structure A
+    Sub M(Of U As Structure)(x As List(Of U?))
+    End Sub
+End Structure")
+        End Sub
+
+        <WorkItem(29, "https://github.com/dotnet/roslyn/issues/29")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Sub TestNullableSimplificationInsideCref6()
+            Test(
+"Imports System
+Imports System.Collections.Generic
+''' <summary>
+''' <see cref=""A.M(Of U)(List(Of Nullable(Of Integer)), [|Nullable(Of U)|])""/>
+''' </summary>
+Structure A
+    Sub M(Of U As Structure)(x As List(Of Integer?), y As U?)
+    End Sub
+End Structure",
+"Imports System
+Imports System.Collections.Generic
+''' <summary>
+''' <see cref=""A.M(Of U)(List(Of Nullable(Of Integer)), U?)""/>
+''' </summary>
+Structure A
+    Sub M(Of U As Structure)(x As List(Of Integer?), y As U?)
+    End Sub
+End Structure")
+        End Sub
+
         <WorkItem(529930)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestReservedNameInAttribute1()
@@ -922,7 +1114,7 @@ End Namespace
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
-                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C") + 4)
+                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
                 Assert.Equal(span.Length, "A.B".Length)
             End Using
         End Sub
@@ -956,7 +1148,7 @@ End Module
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(source.Value, Nothing, Nothing)
                 Dim diagnosticAndFix = GetDiagnosticAndFix(workspace)
                 Dim span = diagnosticAndFix.Item1.Location.SourceSpan
-                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")"))
+                Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""foo"")", StringComparison.Ordinal))
                 Assert.Equal(span.Length, "System".Length)
             End Using
         End Sub

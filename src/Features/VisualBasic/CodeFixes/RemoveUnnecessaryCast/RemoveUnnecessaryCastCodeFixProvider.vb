@@ -72,19 +72,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
 
         Private Shared Async Function RemoveUnnecessaryCastAsync(document As Document, node As ExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             ' First, annotate our expression so that we can get back to it.
-            Dim updatedDocument = Await document.ReplaceNodeAsync(node, node.WithAdditionalAnnotations(_expressionAnnotation), cancellationToken).ConfigureAwait(False)
+            Dim updatedDocument = Await document.ReplaceNodeAsync(node, node.WithAdditionalAnnotations(s_expressionAnnotation), cancellationToken).ConfigureAwait(False)
 
-            Dim expression = Await FindNodeWithAnnotationAsync(Of ExpressionSyntax)(_expressionAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
+            Dim expression = Await FindNodeWithAnnotationAsync(Of ExpressionSyntax)(s_expressionAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
 
             ' Next, make the parenting statement of the expression semantically explicit
             Dim parentStatement = expression.FirstAncestorOrSelf(Of StatementSyntax)()
             Dim explicitParentStatement = Await Simplifier.ExpandAsync(parentStatement, updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)
-            explicitParentStatement = explicitParentStatement.WithAdditionalAnnotations(Formatter.Annotation, _statementAnnotation)
+            explicitParentStatement = explicitParentStatement.WithAdditionalAnnotations(Formatter.Annotation, s_statementAnnotation)
 
             updatedDocument = Await updatedDocument.ReplaceNodeAsync(parentStatement, explicitParentStatement, cancellationToken).ConfigureAwait(False)
 
             ' Next, make the statement after the parenting statement of the expression semantically explicit.
-            parentStatement = Await FindNodeWithAnnotationAsync(Of StatementSyntax)(_statementAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
+            parentStatement = Await FindNodeWithAnnotationAsync(Of StatementSyntax)(s_statementAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
             Dim nextStatement = parentStatement.GetNextStatement()
             If nextStatement IsNot Nothing Then
                 Dim explicitNextStatement = Await Simplifier.ExpandAsync(nextStatement, updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)
@@ -94,8 +94,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             updatedDocument = Await RewriteCoreAsync(updatedDocument, expression, cancellationToken).ConfigureAwait(False)
 
             ' Remove added _expressionAnnotation and _statementAnnotation.
-            updatedDocument = Await RemoveNodesAndTokensWithAnnotationAsync(_expressionAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
-            updatedDocument = Await RemoveNodesAndTokensWithAnnotationAsync(_statementAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
+            updatedDocument = Await RemoveNodesAndTokensWithAnnotationAsync(s_expressionAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
+            updatedDocument = Await RemoveNodesAndTokensWithAnnotationAsync(s_statementAnnotation, updatedDocument, cancellationToken).ConfigureAwait(False)
 
             Return updatedDocument
         End Function
@@ -116,7 +116,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
         Private Shared Async Function RewriteCoreAsync(document As Document, originalExpr As ExpressionSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             ' Finally, rewrite the cast expression
             Dim exprToRewrite As ExpressionSyntax = Nothing
-            Dim annotatedNodes = Await FindNodesWithAnnotationAsync(_expressionAnnotation, document, cancellationToken).ConfigureAwait(False)
+            Dim annotatedNodes = Await FindNodesWithAnnotationAsync(s_expressionAnnotation, document, cancellationToken).ConfigureAwait(False)
+
             For Each annotatedNode In annotatedNodes
                 exprToRewrite = TryCast(annotatedNode.AsNode, ExpressionSyntax)
                 If exprToRewrite IsNot Nothing AndAlso exprToRewrite.IsKind(originalExpr.Kind) Then
@@ -138,9 +139,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             End If
 
             Dim rewriter = New Rewriter(exprToRewrite)
-            Dim newExpression = rewriter.Visit(exprToRewrite).WithoutAnnotations(_expressionAnnotation)
+            Dim newExpression = rewriter.Visit(exprToRewrite)
+
+            ' Remove the annotation from the expression so that it isn't hanging around later.
+            If newExpression.HasAnnotation(s_expressionAnnotation) Then
+
+                newExpression = newExpression.WithoutAnnotations(s_expressionAnnotation)
+
+            ElseIf newExpression.IsKind(SyntaxKind.ParenthesizedExpression) Then
+
+                Dim parenthesizedExpression = DirectCast(newExpression, ParenthesizedExpressionSyntax)
+                If parenthesizedExpression.Expression.HasAnnotation(s_expressionAnnotation) Then
+                    newExpression = parenthesizedExpression _
+                        .WithExpression(parenthesizedExpression.Expression.WithoutAnnotations(s_expressionAnnotation))
+                End If
+
+            End If
 
             document = Await document.ReplaceNodeAsync(exprToRewrite, newExpression, cancellationToken).ConfigureAwait(False)
+
             If annotatedNodes.Count > 1 Then
                 Return Await RewriteCoreAsync(document, originalExpr, cancellationToken).ConfigureAwait(False)
             End If
@@ -148,8 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
             Return document
         End Function
 
-        Private Shared ReadOnly _expressionAnnotation As New SyntaxAnnotation
-        Private Shared ReadOnly _statementAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_expressionAnnotation As New SyntaxAnnotation
+        Private Shared ReadOnly s_statementAnnotation As New SyntaxAnnotation
 
         Private Shared Async Function FindNodeWithAnnotationAsync(Of T As SyntaxNode)(annotation As SyntaxAnnotation, document As Document, cancellationToken As CancellationToken) As Task(Of T)
             Dim annotatedNodes = Await FindNodesWithAnnotationAsync(annotation, document, cancellationToken).ConfigureAwait(False)

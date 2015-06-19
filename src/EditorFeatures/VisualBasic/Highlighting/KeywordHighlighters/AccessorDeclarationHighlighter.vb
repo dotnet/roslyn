@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     End With
                 End If
 
-                With DirectCast( .BlockStatement, AccessorStatementSyntax)
-                    Dim firstKeyword = If( .Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
+                With DirectCast(.BlockStatement, AccessorStatementSyntax)
+                    Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
                 End With
 
@@ -42,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                         checkReturns:=True))
 
                 If isIterator Then
-                    highlights.AddRange( .GetRelatedYieldStatementHighlights())
+                    highlights.AddRange(.GetRelatedYieldStatementHighlights())
                 End If
 
-                highlights.Add( .EndBlockStatement.Span)
+                highlights.Add(.EndBlockStatement.Span)
             End With
 
             Return highlights

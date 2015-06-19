@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal sealed class NavigationBarProjectItem : NavigationBarItem
     {
-        public DocumentId DocumentId { get; private set; }
-        public Workspace Workspace { get; private set; }
-        public string Language { get; private set; }
+        public DocumentId DocumentId { get; }
+        public Workspace Workspace { get; }
+        public string Language { get; }
 
         public NavigationBarProjectItem(
             string text,

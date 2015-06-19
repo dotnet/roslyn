@@ -65,17 +65,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            var triggerSymbol = semanticFacts.GetDeclaredSymbol(semanticModel, triggerToken, cancellationToken);
-            triggerSymbol = triggerSymbol ?? semanticModel.GetSymbolInfo(triggerToken, cancellationToken).Symbol;
+            var tokenRenameInfo = RenameUtilities.GetTokenRenameInfo(semanticFacts, semanticModel, triggerToken, cancellationToken);
+
+            // Rename was invoked on a member group reference in a nameof expression.
+            // Trigger the rename on any of the candidate symbols but force the 
+            // RenameOverloads option to be on.
+            var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
             {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
             }
 
+            // If rename is invoked on a member group reference in a nameof expression, then the
+            // RenameOverloads option should be forced on.
+            var forceRenameOverloads = tokenRenameInfo.IsMemberGroup;
+
             if (syntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken, triggerToken.Parent))
             {
                 // To check if va in this context is a real type, or the keyword, we need to 
-                // speculatively bind the identifer "var". If it returns a symbol, it's a real type,
+                // speculatively bind the identifier "var". If it returns a symbol, it's a real type,
                 // if not, it's the keyword.
                 // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
                 var symbolForVar = semanticModel.GetSpeculativeSymbolInfo(
@@ -198,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, cancellationToken);
+            return new SymbolInlineRenameInfo(refactorNotifyServices, document, triggerToken.Span, symbol, forceRenameOverloads, cancellationToken);
         }
 
         private SyntaxToken GetTriggerToken(Document document, int position, CancellationToken cancellationToken)

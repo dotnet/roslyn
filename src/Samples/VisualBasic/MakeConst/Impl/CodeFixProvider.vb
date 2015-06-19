@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="MakeConstVB"), [Shared]>
-Class MakeConstCodeFixProvider
+Friend Class MakeConstCodeFixProvider
     Inherits CodeFixProvider
 
     Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)

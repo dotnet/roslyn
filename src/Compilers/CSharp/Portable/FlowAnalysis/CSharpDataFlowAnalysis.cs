@@ -1,0 +1,306 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
+using System;
+using System.Linq;
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    /// <summary>
+    /// This class implements the region data flow analysis operations.  Region data flow analysis
+    /// provides information how data flows into and out of a region.  The analysis is done lazily.
+    /// When created, it performs no analysis, but simply caches the arguments. Then, the first time
+    /// one of the analysis results is used it computes that one result and caches it. Each result
+    /// is computed using a custom algorithm.
+    /// </summary>
+    internal class CSharpDataFlowAnalysis : DataFlowAnalysis
+    {
+        private readonly RegionAnalysisContext _context;
+
+        private ImmutableArray<ISymbol> _variablesDeclared;
+        private HashSet<Symbol> _unassignedVariables;
+        private ImmutableArray<ISymbol> _dataFlowsIn;
+        private ImmutableArray<ISymbol> _dataFlowsOut;
+        private ImmutableArray<ISymbol> _alwaysAssigned;
+        private ImmutableArray<ISymbol> _readInside;
+        private ImmutableArray<ISymbol> _writtenInside;
+        private ImmutableArray<ISymbol> _readOutside;
+        private ImmutableArray<ISymbol> _writtenOutside;
+        private ImmutableArray<ISymbol> _captured;
+        private ImmutableArray<ISymbol> _unsafeAddressTaken;
+        private HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
+        private bool? _succeeded;
+
+        internal CSharpDataFlowAnalysis(RegionAnalysisContext context)
+        {
+            _context = context;
+        }
+
+        /// <summary>
+        /// A collection of the local variables that are declared within the region. Note that the region must be
+        /// bounded by a method's body or a field's initializer, so method parameter symbols are never included
+        /// in the result, but lambda parameters might appear in the result.
+        /// </summary>
+        public override ImmutableArray<ISymbol> VariablesDeclared
+        {
+            // Variables declared in the region is computed by a simple scan.
+            // ISSUE: are these only variables declared at the top level in the region,
+            // or are we to include variables declared in deeper scopes within the region?
+            get
+            {
+                if (_variablesDeclared.IsDefault)
+                {
+                    var result = Succeeded
+                        ? Sort(VariablesDeclaredWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
+                        : ImmutableArray<ISymbol>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref _variablesDeclared, result);
+                }
+
+                return _variablesDeclared;
+            }
+        }
+
+        private HashSet<Symbol> UnassignedVariables
+        {
+            get
+            {
+                if (_unassignedVariables == null)
+                {
+                    var result = Succeeded
+                        ? UnassignedVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
+                        : new HashSet<Symbol>();
+                    Interlocked.CompareExchange(ref _unassignedVariables, result, null);
+                }
+
+                return _unassignedVariables;
+            }
+        }
+
+        /// <summary>
+        /// A collection of the local variables for which a value assigned outside the region may be used inside the region.
+        /// </summary>
+        public override ImmutableArray<ISymbol> DataFlowsIn
+        {
+            get
+            {
+                if (_dataFlowsIn == null)
+                {
+                    _succeeded = !_context.Failed;
+                    var result = _context.Failed ? ImmutableArray<ISymbol>.Empty :
+                        Sort(DataFlowsInWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, UnassignedVariableAddressOfSyntaxes, out _succeeded));
+                    ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsIn, result);
+                }
+
+                return _dataFlowsIn;
+            }
+        }
+
+        /// <summary>
+        /// A collection of the local variables for which a value assigned inside the region may be used outside the region.
+        /// Note that every reachable assignment to a ref or out variable will be included in the results.
+        /// </summary>
+        public override ImmutableArray<ISymbol> DataFlowsOut
+        {
+            get
+            {
+                var discarded = DataFlowsIn; // force DataFlowsIn to be computed
+                if (_dataFlowsOut == null)
+                {
+                    var result = Succeeded
+                        ? Sort(DataFlowsOutWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariables, _dataFlowsIn))
+                        : ImmutableArray<ISymbol>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref _dataFlowsOut, result);
+                }
+
+                return _dataFlowsOut;
+            }
+        }
+
+        /// <summary>
+        /// A collection of the local variables for which a value is always assigned inside the region.
+        /// </summary>
+        public override ImmutableArray<ISymbol> AlwaysAssigned
+        {
+            get
+            {
+                if (_alwaysAssigned == null)
+                {
+                    var result = Succeeded
+                        ? Sort(AlwaysAssignedWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion))
+                        : ImmutableArray<ISymbol>.Empty;
+                    ImmutableInterlocked.InterlockedInitialize(ref _alwaysAssigned, result);
+                }
+
+                return _alwaysAssigned;
+            }
+        }
+
+        /// <summary>
+        /// A collection of the local variables that are read inside the region.
+        /// </summary>
+        public override ImmutableArray<ISymbol> ReadInside
+        {
+            get
+            {
+                if (_readInside == null)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _readInside;
+            }
+        }
+
+        /// <summary>
+        /// A collection of local variables that are written inside the region.
+        /// </summary>
+        public override ImmutableArray<ISymbol> WrittenInside
+        {
+            get
+            {
+                if (_writtenInside == null)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _writtenInside;
+            }
+        }
+
+        /// <summary>
+        /// A collection of the local variables that are read outside the region.
+        /// </summary>
+        public override ImmutableArray<ISymbol> ReadOutside
+        {
+            get
+            {
+                if (_readOutside == null)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _readOutside;
+            }
+        }
+
+        /// <summary>
+        /// A collection of local variables that are written outside the region.
+        /// </summary>
+        public override ImmutableArray<ISymbol> WrittenOutside
+        {
+            get
+            {
+                if (_writtenOutside == null)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _writtenOutside;
+            }
+        }
+
+        private void AnalyzeReadWrite()
+        {
+            IEnumerable<Symbol> readInside, writtenInside, readOutside, writtenOutside, captured, unsafeAddressTaken;
+            if (Succeeded)
+            {
+                ReadWriteWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode, _context.FirstInRegion, _context.LastInRegion, UnassignedVariableAddressOfSyntaxes,
+                    readInside: out readInside, writtenInside: out writtenInside,
+                    readOutside: out readOutside, writtenOutside: out writtenOutside,
+                    captured: out captured, unsafeAddressTaken: out unsafeAddressTaken);
+            }
+            else
+            {
+                readInside = writtenInside = readOutside = writtenOutside = captured = unsafeAddressTaken = Enumerable.Empty<Symbol>();
+            }
+
+            ImmutableInterlocked.InterlockedInitialize(ref _readInside, Sort(readInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenInside, Sort(writtenInside));
+            ImmutableInterlocked.InterlockedInitialize(ref _readOutside, Sort(readOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _writtenOutside, Sort(writtenOutside));
+            ImmutableInterlocked.InterlockedInitialize(ref _captured, Sort(captured));
+            ImmutableInterlocked.InterlockedInitialize(ref _unsafeAddressTaken, Sort(unsafeAddressTaken));
+        }
+
+        /// <summary>
+        /// A collection of the non-constant local variables and parameters that have been referenced in anonymous functions
+        /// and therefore must be moved to a field of a frame class.
+        /// </summary>
+        public override ImmutableArray<ISymbol> Captured
+        {
+            get
+            {
+                if (_captured == null)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _captured;
+            }
+        }
+
+        /// <summary>
+        /// A collection of the non-constant local variables and parameters that have had their address (or the address of one
+        /// of their fields) taken using the '&amp;' operator.
+        /// </summary>
+        /// <remarks>
+        /// If there are any of these in the region, then a method should not be extracted.
+        /// </remarks>
+        public override ImmutableArray<ISymbol> UnsafeAddressTaken
+        {
+            get
+            {
+                if (_unsafeAddressTaken == null)
+                {
+                    AnalyzeReadWrite();
+                }
+
+                return _unsafeAddressTaken;
+            }
+        }
+
+        private HashSet<PrefixUnaryExpressionSyntax> UnassignedVariableAddressOfSyntaxes
+        {
+            get
+            {
+                if (_unassignedVariableAddressOfSyntaxes == null)
+                {
+                    var result = Succeeded
+                        ? UnassignedAddressTakenVariablesWalker.Analyze(_context.Compilation, _context.Member, _context.BoundNode)
+                        : new HashSet<PrefixUnaryExpressionSyntax>();
+                    Interlocked.CompareExchange(ref _unassignedVariableAddressOfSyntaxes, result, null);
+                }
+
+                return _unassignedVariableAddressOfSyntaxes;
+            }
+        }
+
+        /// <summary>
+        /// Returns true iff analysis was successful.  Analysis can fail if the region does not properly span a single expression,
+        /// a single statement, or a contiguous series of statements within the enclosing block.
+        /// </summary>
+        public sealed override bool Succeeded
+        {
+            get
+            {
+                if (_succeeded == null)
+                {
+                    var discarded = DataFlowsIn;
+                }
+
+                return _succeeded.Value;
+            }
+        }
+
+        internal static ImmutableArray<ISymbol> Sort(IEnumerable<Symbol> data)
+        {
+            var builder = ArrayBuilder<Symbol>.GetInstance();
+            builder.AddRange(data);
+            builder.Sort(LexicalOrderSymbolComparer.Instance);
+            return builder.ToImmutableAndFree().As<ISymbol>();
+        }
+    }
+}

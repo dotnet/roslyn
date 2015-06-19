@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -11,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     internal class MockCsi : CSharpCompiler
     {
-        public MockCsi(string responseFIle, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Interactive, responseFIle, args, baseDirectory, null, System.IO.Path.GetTempPath())
+        public MockCsi(string responseFile, string baseDirectory, string[] args)
+            : base(CSharpCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(typeof(CSharpCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null, new SimpleAnalyzerAssemblyLoader())
         {
         }
 

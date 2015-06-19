@@ -954,7 +954,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Delete7()
+        Public Sub Delete7()
             Dim code =
 <Code><![CDATA[
 ''' <summary>
@@ -978,7 +978,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Delete8()
+        Public Sub Delete8()
             Dim code =
 <Code><![CDATA[
 <$$Foo> ' Comment comment comment
@@ -1064,7 +1064,7 @@ End Class
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code><![CDATA[
 <$$Foo()>

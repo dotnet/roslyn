@@ -15,9 +15,9 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class SymbolDeclaredEventAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.SymbolDeclaredEventRuleDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static readonly string s_fullNameOfSymbol = typeof(ISymbol).FullName;
 
         internal static readonly DiagnosticDescriptor SymbolDeclaredEventRule = new DiagnosticDescriptor(
@@ -133,7 +133,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 var namedType = (INamedTypeSymbol)context.Symbol;
                 if (!namedType.IsAbstract &&
-                    namedType.Name.StartsWith("Source") &&
+                    namedType.Name.StartsWith("Source", StringComparison.Ordinal) &&
                     !namedType.Name.Contains("Backing") &&
                     namedType.AllInterfaces.Contains(_symbolType) &&
                     namedType.GetBaseTypesAndThis().Any(b => SymbolTypesWithExpectedSymbolDeclaredEvent.Contains(b.Name, StringComparer.Ordinal)))
@@ -142,7 +142,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
             }
 
-            internal void AnalyzeCompilationEnd(CompilationEndAnalysisContext context)
+            internal void AnalyzeCompilationEnd(CompilationAnalysisContext context)
             {
                 foreach (var sourceSymbol in _sourceSymbolsToCheck)
                 {

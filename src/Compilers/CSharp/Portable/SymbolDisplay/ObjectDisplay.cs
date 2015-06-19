@@ -133,115 +133,107 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value ? "true" : "false";
         }
 
-        internal static string FormatString(string str, char quote, bool escapeNonPrintable)
+        private static void FormatStringChar(StringBuilder builder, char c, char quote)
         {
-            PooledStringBuilder pooledBuilder = null;
-            StringBuilder sb = null;
-            int lastEscape = -1;
-            for (int i = 0; i < str.Length; i++)
+            string replaceWith;
+            if (ReplaceChar(c, quote, out replaceWith))
             {
-                char c = str[i];
-                char replaceWith = '\0';
-                bool unicodeEscape = false;
-                switch (c)
+                if (replaceWith != null)
                 {
-                    case '\\':
-                        replaceWith = c;
-                        break;
-
-                    case '\0':
-                        replaceWith = '0';
-                        break;
-
-                    case '\r':
-                        replaceWith = 'r';
-                        break;
-
-                    case '\n':
-                        replaceWith = 'n';
-                        break;
-
-                    case '\t':
-                        replaceWith = 't';
-                        break;
-
-                    case '\b':
-                        replaceWith = 'b';
-                        break;
-
-                    case '\v':
-                        replaceWith = 'v';
-                        break;
-
-                    default:
-                        if (quote == c)
-                        {
-                            replaceWith = c;
-                            break;
-                        }
-
-                        if (escapeNonPrintable)
-                        {
-                            switch (CharUnicodeInfo.GetUnicodeCategory(c))
-                            {
-                                case UnicodeCategory.OtherNotAssigned:
-                                case UnicodeCategory.ParagraphSeparator:
-                                case UnicodeCategory.Control:
-                                    unicodeEscape = true;
-                                    break;
-                            }
-                        }
-
-                        break;
+                    builder.Append(replaceWith);
                 }
-
-                if (unicodeEscape || replaceWith != '\0')
+                else
                 {
-                    if (pooledBuilder == null)
-                    {
-                        pooledBuilder = PooledStringBuilder.GetInstance();
-                        sb = pooledBuilder.Builder;
-                        if (quote != 0)
-                        {
-                            sb.Append(quote);
-                        }
-                    }
-
-                    sb.Append(str, lastEscape + 1, i - (lastEscape + 1));
-                    sb.Append('\\');
-                    if (unicodeEscape)
-                    {
-                        sb.Append('u');
-                        sb.Append(((int)c).ToString("x4"));
-                    }
-                    else
-                    {
-                        sb.Append(replaceWith);
-                    }
-
-                    lastEscape = i;
+                    builder.Append("\\u");
+                    builder.Append(((int)c).ToString("x4"));
                 }
             }
-
-            if (sb != null)
+            else
             {
-                sb.Append(str, lastEscape + 1, str.Length - (lastEscape + 1));
-                if (quote != 0)
+                builder.Append(c);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the character should be replaced and sets
+        /// <paramref name="replaceWith"/> to the replacement text if the
+        /// character is replaced with text other than the Unicode escape sequence.
+        /// </summary>
+        private static bool ReplaceChar(char c, char quote, out string replaceWith)
+        {
+            Debug.Assert(quote == '\0' || quote == '"' || quote == '\'');
+
+            replaceWith = null;
+            switch (c)
+            {
+                case '\\':
+                    replaceWith = "\\\\";
+                    break;
+                case '"':
+                    if (quote == c)
+                    {
+                        replaceWith = "\\\"";
+                    }
+                    break;
+                case '\'':
+                    if (quote == c)
+                    {
+                        replaceWith = "\\'";
+                    }
+                    break;
+                case '\0':
+                    replaceWith = "\\0";
+                    break;
+                case '\a':
+                    replaceWith = "\\a";
+                    break;
+                case '\b':
+                    replaceWith = "\\b";
+                    break;
+                case '\f':
+                    replaceWith = "\\f";
+                    break;
+                case '\n':
+                    replaceWith = "\\n";
+                    break;
+                case '\r':
+                    replaceWith = "\\r";
+                    break;
+                case '\t':
+                    replaceWith = "\\t";
+                    break;
+                case '\v':
+                    replaceWith = "\\v";
+                    break;
+            }
+
+            if (replaceWith != null)
+            {
+                return true;
+            }
+
+            switch (CharUnicodeInfo.GetUnicodeCategory(c))
+            {
+                case UnicodeCategory.Control:
+                case UnicodeCategory.OtherNotAssigned:
+                case UnicodeCategory.ParagraphSeparator:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool ReplaceAny(string s, char quote)
+        {
+            foreach (var c in s)
+            {
+                string replaceWith;
+                if (ReplaceChar(c, quote, out replaceWith))
                 {
-                    sb.Append(quote);
+                    return true;
                 }
-
-                return pooledBuilder.ToStringAndFree();
             }
-
-            switch (quote)
-            {
-                case '"': return String.Concat("\"", str, "\"");
-                case '\'': return String.Concat("'", str, "'");
-                case '\0': return str;
-            }
-
-            throw ExceptionUtilities.Unreachable;
+            return false;
         }
 
         /// <summary>
@@ -259,10 +251,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (value == null)
             {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
 
-            return FormatString(value, options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '"' : '\0', escapeNonPrintable: true);
+            var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
+            var quote = useQuotes ? '"' : '\0';
+            if (!useQuotes && !ReplaceAny(value, quote))
+            {
+                return value;
+            }
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            if (useQuotes)
+            {
+                builder.Append(quote);
+            }
+            foreach (var c in value)
+            {
+                FormatStringChar(builder, c, quote);
+            }
+            if (useQuotes)
+            {
+                builder.Append(quote);
+            }
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string FormatString(string str, bool useQuotes)
+        {
+            if (!useQuotes)
+            {
+                return str;
+            }
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            const char quote = '"';
+            builder.Append(quote);
+            foreach (var c in str)
+            {
+                FormatStringChar(builder, c, quote);
+            }
+            builder.Append(quote);
+            return pooledBuilder.ToStringAndFree();
         }
 
         /// <summary>
@@ -273,17 +305,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A character literal with the given value.</returns>
         internal static string FormatLiteral(char c, ObjectDisplayOptions options)
         {
-            var includeCodePoints = options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints);
-            var result = FormatString(c.ToString(),
-                                      quote: options.IncludesOption(ObjectDisplayOptions.UseQuotes) ? '\'' : '\0',
-                                      escapeNonPrintable: !includeCodePoints);
-            if (includeCodePoints)
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+            if (options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
             {
-                var codepoint = options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString();
-                return codepoint + " " + result;
+                builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
+                builder.Append(" ");
             }
-
-            return result;
+            if (options.IncludesOption(ObjectDisplayOptions.UseQuotes))
+            {
+                const char quote = '\'';
+                builder.Append(quote);
+                FormatStringChar(builder, c, quote);
+                builder.Append(quote);
+            }
+            else
+            {
+                builder.Append(c);
+            }
+            return pooledBuilder.ToStringAndFree();
         }
 
         internal static string FormatLiteral(sbyte value, ObjectDisplayOptions options)

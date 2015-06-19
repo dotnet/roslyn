@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
+namespace Microsoft.AnalyzerPowerPack.Utilities
 {
     internal static class IEnumerableExtensions
     {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
 
             return source as ISet<T> ?? new HashSet<T>(source);

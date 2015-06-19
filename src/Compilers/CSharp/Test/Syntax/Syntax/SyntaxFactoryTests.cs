@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t = SyntaxFactory.PragmaChecksumDirectiveTrivia(makeStringLiteral("file"), makeStringLiteral("guid"), makeStringLiteral("bytes"), true);
             Assert.Equal(SyntaxKind.PragmaChecksumDirectiveTrivia, t.Kind());
             Assert.Equal("#pragmachecksum\"file\"\"guid\"\"bytes\"", t.ToString());
-            Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToString());
+            Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToFullString());
         }
 
         [Fact]
@@ -227,13 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // string
             CheckLiteralToString("A", @"""A""");
             CheckLiteralToString("\r", @"""\r""");
-            CheckLiteralToString("\u0007", @"""\u0007""");
+            CheckLiteralToString("\u0007", @"""\a""");
+            CheckLiteralToString("\u000c", @"""\f""");
+            CheckLiteralToString("\u001f", @"""\u001f""");
 
             // char
             CheckLiteralToString('A', @"'A'");
             CheckLiteralToString('\r', @"'\r'");
-            CheckLiteralToString('\u0007', @"'\u0007'");
-
+            CheckLiteralToString('\u0007', @"'\a'");
+            CheckLiteralToString('\u000c', @"'\f'");
+            CheckLiteralToString('\u001f', @"'\u001f'");
 
             // byte
             CheckLiteralToString(byte.MinValue, @"0");

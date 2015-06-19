@@ -127,8 +127,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithTwoChildren
             Inherits SyntaxList
 
-            Private _child0 As VisualBasicSyntaxNode
-            Private _child1 As VisualBasicSyntaxNode
+            Private ReadOnly _child0 As VisualBasicSyntaxNode
+            Private ReadOnly _child1 As VisualBasicSyntaxNode
 
             Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
@@ -206,9 +206,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend NotInheritable Class WithThreeChildren
             Inherits SyntaxList
 
-            Private _child0 As VisualBasicSyntaxNode
-            Private _child1 As VisualBasicSyntaxNode
-            Private _child2 As VisualBasicSyntaxNode
+            Private ReadOnly _child0 As VisualBasicSyntaxNode
+            Private ReadOnly _child1 As VisualBasicSyntaxNode
+            Private ReadOnly _child2 As VisualBasicSyntaxNode
 
             Private Sub New(errors As DiagnosticInfo(), annotations As SyntaxAnnotation(), child0 As VisualBasicSyntaxNode, child1 As VisualBasicSyntaxNode, child2 As VisualBasicSyntaxNode)
                 MyBase.New(errors, annotations)
@@ -466,8 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ''' </remarks>
             Public Overrides Function FindSlotIndexContainingOffset(offset As Integer) As Integer
                 Debug.Assert(offset >= 0 AndAlso offset < FullWidth)
-                Dim idx = _childOffsets.BinarySearch(offset)
-                Return If(idx >= 0, idx, (Not idx) - 1)
+                Return _childOffsets.BinarySearchUpperBound(offset) - 1
             End Function
 
             Friend Overrides Function SetDiagnostics(errors() As DiagnosticInfo) As GreenNode
@@ -633,7 +632,7 @@ enter:
     End Class
 
     Friend Structure SyntaxListBuilder(Of TNode As VisualBasicSyntaxNode)
-        Private builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
 
         Public Shared Function Create() As SyntaxListBuilder(Of TNode)
             Return New SyntaxListBuilder(Of TNode)(8)
@@ -644,66 +643,66 @@ enter:
         End Sub
 
         Friend Sub New(builder As SyntaxListBuilder)
-            Me.builder = builder
+            Me._builder = builder
         End Sub
 
         Public ReadOnly Property IsNull As Boolean
             Get
-                Return (Me.builder Is Nothing)
+                Return (Me._builder Is Nothing)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me.builder.Count
+                Return Me._builder.Count
             End Get
         End Property
 
         Default Public Property Item(index As Integer) As TNode
             Get
-                Return DirectCast(Me.builder.Item(index), TNode)
+                Return DirectCast(Me._builder.Item(index), TNode)
             End Get
             Set(value As TNode)
-                Me.builder.Item(index) = value
+                Me._builder.Item(index) = value
             End Set
         End Property
 
         Friend Sub RemoveLast()
-            Me.builder.RemoveLast()
+            Me._builder.RemoveLast()
         End Sub
 
         Public Sub Clear()
-            Me.builder.Clear()
+            Me._builder.Clear()
         End Sub
 
         Public Sub Add(node As TNode)
-            Me.builder.Add(node)
+            Me._builder.Add(node)
         End Sub
 
         Public Sub AddRange(nodes As SyntaxList(Of TNode))
-            Me.builder.AddRange(Of TNode)(nodes)
+            Me._builder.AddRange(Of TNode)(nodes)
         End Sub
 
         Public Sub AddRange(nodes As SyntaxList(Of TNode), offset As Integer, length As Integer)
-            Me.builder.AddRange(Of TNode)(nodes, offset, length)
+            Me._builder.AddRange(Of TNode)(nodes, offset, length)
         End Sub
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            Return Me.builder.Any(kind)
+            Return Me._builder.Any(kind)
         End Function
 
         Public Function ToList() As SyntaxList(Of TNode)
-            Debug.Assert(Me.builder IsNot Nothing)
-            Return Me.builder.ToList(Of TNode)()
+            Debug.Assert(Me._builder IsNot Nothing)
+            Return Me._builder.ToList(Of TNode)()
         End Function
 
         Public Function ToList(Of TDerivedNode As TNode)() As SyntaxList(Of TDerivedNode)
-            Debug.Assert(Me.builder IsNot Nothing)
-            Return Me.builder.ToList(Of TDerivedNode)()
+            Debug.Assert(Me._builder IsNot Nothing)
+            Return Me._builder.ToList(Of TDerivedNode)()
         End Function
 
         Public Shared Widening Operator CType(builder As SyntaxListBuilder(Of TNode)) As SyntaxListBuilder
-            Return builder.builder
+            Return builder._builder
         End Operator
 
         Public Shared Widening Operator CType(builder As SyntaxListBuilder(Of TNode)) As SyntaxList(Of TNode)
@@ -712,78 +711,78 @@ enter:
     End Structure
 
     Friend Structure SeparatedSyntaxListBuilder(Of TNode As VisualBasicSyntaxNode)
-        Private builder As SyntaxListBuilder
+        Private ReadOnly _builder As SyntaxListBuilder
         Public Sub New(size As Integer)
             Me.New(New SyntaxListBuilder(size))
         End Sub
 
         Friend Sub New(builder As SyntaxListBuilder)
-            Me.builder = builder
+            Me._builder = builder
         End Sub
 
         Public ReadOnly Property IsNull As Boolean
             Get
-                Return (Me.builder Is Nothing)
+                Return (Me._builder Is Nothing)
             End Get
         End Property
 
         Public ReadOnly Property Count As Integer
             Get
-                Return Me.builder.Count
+                Return Me._builder.Count
             End Get
         End Property
 
         Default Public Property Item(index As Integer) As VisualBasicSyntaxNode
             Get
-                Return Me.builder.Item(index)
+                Return Me._builder.Item(index)
             End Get
             Set(value As VisualBasicSyntaxNode)
-                Me.builder.Item(index) = value
+                Me._builder.Item(index) = value
             End Set
         End Property
 
         Public Sub Clear()
-            Me.builder.Clear()
+            Me._builder.Clear()
         End Sub
 
         Public Sub Add(node As TNode)
-            Me.builder.Add(node)
+            Me._builder.Add(node)
         End Sub
 
         Friend Sub AddSeparator(separatorToken As SyntaxToken)
-            Me.builder.Add(separatorToken)
+            Me._builder.Add(separatorToken)
         End Sub
 
         Friend Sub AddRange(nodes As SeparatedSyntaxList(Of TNode), count As Integer)
             Dim list = nodes.GetWithSeparators
-            Me.builder.AddRange(list, Me.Count, Math.Min(count * 2, list.Count))
+            Me._builder.AddRange(list, Me.Count, Math.Min(count * 2, list.Count))
         End Sub
 
         Friend Sub RemoveLast()
-            Me.builder.RemoveLast()
+            Me._builder.RemoveLast()
         End Sub
 
         Public Function Any(kind As SyntaxKind) As Boolean
-            Return Me.builder.Any(kind)
+            Return Me._builder.Any(kind)
         End Function
 
         Public Function ToList() As SeparatedSyntaxList(Of TNode)
-            Return New SeparatedSyntaxList(Of TNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me.builder.ToListNode))
+            Return New SeparatedSyntaxList(Of TNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me._builder.ToListNode))
         End Function
 
         Public Function ToList(Of TDerivedNode As TNode)() As SeparatedSyntaxList(Of TDerivedNode)
-            Return New SeparatedSyntaxList(Of TDerivedNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me.builder.ToListNode))
+            Return New SeparatedSyntaxList(Of TDerivedNode)(New SyntaxList(Of VisualBasicSyntaxNode)(Me._builder.ToListNode))
         End Function
 
         Public Shared Widening Operator CType(builder As SeparatedSyntaxListBuilder(Of TNode)) As SyntaxListBuilder
-            Return builder.builder
+            Return builder._builder
         End Operator
     End Structure
 
     Friend Structure SyntaxList(Of TNode As VisualBasicSyntaxNode)
         Implements IEquatable(Of SyntaxList(Of TNode))
 
-        Private _node As GreenNode
+        Private ReadOnly _node As GreenNode
 
         Friend Sub New(node As GreenNode)
             Me._node = node

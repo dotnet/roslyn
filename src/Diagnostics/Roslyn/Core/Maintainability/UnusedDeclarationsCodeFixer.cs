@@ -13,7 +13,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(UnusedDeclarationsCodeFixProvider)), Shared]
     internal class UnusedDeclarationsCodeFixProvider : CodeFixProvider
     {
-        private static readonly Task _done = Task.Run(() => { });
+        private static readonly Task s_done = Task.Run(() => { });
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -36,7 +36,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 return document.WithText(text.Replace(context.Span, string.Empty));
             }, RoslynDiagnosticIds.DeadCodeTriggerRuleId), context.Diagnostics);
 
-            return _done;
+            return s_done;
         }
 
         private class MyCodeAction : DocumentChangeAction

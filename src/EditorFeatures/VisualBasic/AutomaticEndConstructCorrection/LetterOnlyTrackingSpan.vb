@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private _trackingSpan As ITrackingSpan
         Private _version As ITextVersion
 
-        Sub New(span As SnapshotSpan)
+        Public Sub New(span As SnapshotSpan)
             Contract.ThrowIfNull(span.Snapshot)
 
             Me._trackingSpan = span.Snapshot.CreateTrackingSpan(span.Span, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
@@ -88,15 +88,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
 
         Private Sub AdjustSpanForErrorCase(span As SnapshotSpan, text As String)
             Dim snapshot = span.Snapshot
-            Dim trimedText = text.Trim()
+            Dim trimmedText = text.Trim()
 
-            If trimedText.Length = 0 Then
+            If trimmedText.Length = 0 Then
                 ' all whitespace, make tracking span to stick to end
                 Me._trackingSpan = snapshot.CreateTrackingSpan(span.End.Position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
             Else
                 ' something like punctuation is there
                 ' make tracking span to stick after the punctuation
-                Dim position = span.Start.Position + text.IndexOf(trimedText) + trimedText.Length
+                Dim position = span.Start.Position + text.IndexOf(trimmedText, StringComparison.Ordinal) + trimmedText.Length
                 Me._trackingSpan = snapshot.CreateTrackingSpan(position, 0, SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Backward)
             End If
         End Sub

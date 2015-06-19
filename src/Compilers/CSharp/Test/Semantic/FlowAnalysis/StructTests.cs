@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -79,9 +80,9 @@ class C
         S s5 = s4;
     }
 }");
-            Assert.Equal("s2", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsIn));
-            Assert.Equal("s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.DataFlowsOut));
-            Assert.Equal("s3, s4", GetSymbolNamesSortedAndJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("s2", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("s4", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("s3, s4", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
         }
 
         [Fact]
@@ -199,7 +200,10 @@ public struct StructWithValue
         var v2 = v1;
     }
 }";
-            CreateCompilationWithMscorlib(source2, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable()), references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source2,
+                options: TestOptions.ReleaseDll,
+                references: new MetadataReference[] { sourceReference },
+                parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (6,18): error CS0165: Use of unassigned local variable 'r1'
                 //         var r2 = r1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
@@ -342,7 +346,7 @@ public struct Struct
     internal C1.S data;
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.DebugModule);
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugModule);
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =
@@ -370,7 +374,7 @@ public struct Struct
     private string data;
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.DebugModule);
+            var comp1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugModule);
             var moduleReference = comp1.EmitToImageReference();
 
             var source2 =

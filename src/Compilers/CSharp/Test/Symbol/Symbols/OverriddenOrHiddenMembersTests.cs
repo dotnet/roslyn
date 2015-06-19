@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -2639,7 +2639,7 @@ class D : C
         }
 
         [WorkItem(545658, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MethodConstructedFromOverrideWithCustomModifiers()
         {
             var il = @"
@@ -2817,7 +2817,7 @@ class Test
             var ref1 = CompileIL(il);
 
             var comp = CreateCompilationWithMscorlib(csharp, new[] { ref1 }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"
+            CompileAndVerify(comp, expectedOutput: @"
 SubSubT[System.Int32].vMeth(System.Int32)
 Base[System.Int32].vMeth(System.Int32)
 SubSubGT[System.Int32].vMeth(G`1[System.Int32])
@@ -2841,7 +2841,8 @@ Base[G`1[System.Int32]].Meth(G`1[System.Int32],System.Int32)
 Base[C].Meth(C,System.Int32)");
         }
 
-        [Fact, WorkItem(546816, "DevDiv")]
+        [ClrOnlyFact]
+        [WorkItem(546816, "DevDiv")]
         public void Bug16887()
         {
             var text = @"

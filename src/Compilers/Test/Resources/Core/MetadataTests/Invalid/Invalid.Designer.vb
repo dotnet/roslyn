@@ -77,16 +77,6 @@ Namespace TestResources.MetadataTests
         '''<summary>
         '''  Looks up a localized resource of type System.Byte[].
         '''</summary>
-        Public Shared ReadOnly Property CustomAttributeTableDeclaredUnsorted() As Byte()
-            Get
-                Dim obj As Object = ResourceManager.GetObject("CustomAttributeTableDeclaredUnsorted", resourceCulture)
-                Return CType(obj,Byte())
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized resource of type System.Byte[].
-        '''</summary>
         Public Shared ReadOnly Property CustomAttributeTableUnsorted() As Byte()
             Get
                 Dim obj As Object = ResourceManager.GetObject("CustomAttributeTableUnsorted", resourceCulture)

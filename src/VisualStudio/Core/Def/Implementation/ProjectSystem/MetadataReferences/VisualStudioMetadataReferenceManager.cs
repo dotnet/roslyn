@@ -114,9 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             AssemblyMetadata newMetadata;
-            if (VsSmartScopeCandidate(key.FullPath) && TryGetAssemblyMetadataFromMetadataImporter(key, out newMetadata))
+            if (VsSmartScopeCandidate(key.FullPath) && TryCreateAssemblyMetadataFromMetadataImporter(key, out newMetadata))
             {
-                // don't dispose assembly metadata since it shares module metadata
                 if (!_metadataCache.TryGetOrAddMetadata(key, new WeakConstantValueSource<AssemblyMetadata>(newMetadata), out metadata))
                 {
                     newMetadata.Dispose();
@@ -127,9 +126,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // use temporary storage
             var storages = new List<ITemporaryStreamStorage>();
-            newMetadata = GetAssemblyMetadataFromTemporaryStorage(key, storages);
+            newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
-            // don't dispose assembly metadata since it shares module metdata
+            // don't dispose assembly metadata since it shares module metadata
             if (!_metadataCache.TryGetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
             {
                 newMetadata.Dispose();
@@ -140,13 +139,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private AssemblyMetadata GetAssemblyMetadataFromTemporaryStorage(FileKey fileKey, List<ITemporaryStreamStorage> storages)
+        private AssemblyMetadata CreateAssemblyMetadataFromTemporaryStorage(FileKey fileKey, List<ITemporaryStreamStorage> storages)
         {
-            var moduleMetadata = GetOrCreateModuleMetadataFromTemporaryStorage(fileKey, storages);
-            return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, GetOrCreateModuleMetadataFromTemporaryStorage);
+            var moduleMetadata = CreateModuleMetadataFromTemporaryStorage(fileKey, storages);
+            return CreateAssemblyMetadata(fileKey, moduleMetadata, storages, CreateModuleMetadataFromTemporaryStorage);
         }
 
-        private ModuleMetadata GetOrCreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
+        private ModuleMetadata CreateModuleMetadataFromTemporaryStorage(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
         {
             ITemporaryStreamStorage storage;
             Stream stream;
@@ -227,11 +226,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         /// <exception cref="IOException"/>
         /// <exception cref="BadImageFormatException" />
-        private bool TryGetAssemblyMetadataFromMetadataImporter(FileKey fileKey, out AssemblyMetadata metadata)
+        private bool TryCreateAssemblyMetadataFromMetadataImporter(FileKey fileKey, out AssemblyMetadata metadata)
         {
             metadata = default(AssemblyMetadata);
 
-            var manifestModule = GetOrCreateModuleMetadataFromMetadataImporter(fileKey);
+            var manifestModule = TryCreateModuleMetadataFromMetadataImporter(fileKey);
             if (manifestModule == null)
             {
                 return false;
@@ -241,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private ModuleMetadata GetOrCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
+        private ModuleMetadata TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
         {
             IMetaDataInfo info;
             IntPtr pImage;
@@ -261,11 +260,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ModuleMetadata CreateModuleMetadata(FileKey moduleFileKey, List<ITemporaryStreamStorage> storages)
         {
-            var metadata = GetOrCreateModuleMetadataFromMetadataImporter(moduleFileKey);
+            var metadata = TryCreateModuleMetadataFromMetadataImporter(moduleFileKey);
             if (metadata == null)
             {
                 // getting metadata didn't work out through importer. fallback to shadow copy one
-                metadata = GetOrCreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
+                metadata = CreateModuleMetadataFromTemporaryStorage(moduleFileKey, storages);
             }
 
             return metadata;
@@ -301,7 +300,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <exception cref="BadImageFormatException" />
         private AssemblyMetadata CreateAssemblyMetadata(
             FileKey fileKey, ModuleMetadata manifestModule, List<ITemporaryStreamStorage> storages,
-            Func<FileKey, List<ITemporaryStreamStorage>, ModuleMetadata> moduleMetadataGetter)
+            Func<FileKey, List<ITemporaryStreamStorage>, ModuleMetadata> moduleMetadataFactory)
         {
             ImmutableArray<ModuleMetadata>.Builder moduleBuilder = null;
 
@@ -316,7 +315,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName));
-                var metadata = moduleMetadataGetter(moduleFileKey, storages);
+                var metadata = moduleMetadataFactory(moduleFileKey, storages);
 
                 moduleBuilder.Add(metadata);
             }

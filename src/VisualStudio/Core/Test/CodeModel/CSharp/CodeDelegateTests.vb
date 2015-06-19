@@ -276,6 +276,97 @@ public delegate int? D();
 
 #End Region
 
+#Region "Parameter name tests"
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters()
+            Dim code =
+<Code>
+public delegate int $$M(int @int);
+</Code>
+
+            TestAllParameterNames(code, "@int")
+        End Sub
+
+        <WorkItem(1147885)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestParameterNameWithEscapeCharacters_2()
+            Dim code =
+<Code>
+public delegate int $$M(int @int, string @string);
+</Code>
+
+            TestAllParameterNames(code, "@int", "@string")
+        End Sub
+
+#End Region
+
+#Region "AddAttribute tests"
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute1()
+            Dim code =
+<Code>
+using System;
+
+delegate void $$D();
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+[Serializable()]
+delegate void D();
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute2()
+            Dim code =
+<Code>
+using System;
+
+[Serializable]
+delegate void $$D();
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+[Serializable]
+[CLSCompliant(true)]
+delegate void D();
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+delegate void $$D();
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[CLSCompliant(true)]
+delegate void D();
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+#End Region
+
         Protected Overrides ReadOnly Property LanguageName As String
             Get
                 Return LanguageNames.CSharp

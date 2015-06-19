@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public UnresolvedAnalyzerReference(string unresolvedPath)
         {
+            if (unresolvedPath == null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedPath));
+            }
+
             _unresolvedPath = unresolvedPath;
         }
 
@@ -36,9 +41,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public override bool IsUnresolved
+        public override object Id
         {
-            get { return true; }
+            get
+            {
+                return _unresolvedPath;
+            }
         }
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()

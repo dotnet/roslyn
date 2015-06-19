@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundUserDefinedConditionalLogicalOperator
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundUnaryOperator
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundIncrementOperator
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundCompoundAssignmentOperator
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
     internal partial class BoundLiteral
@@ -326,11 +326,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         // will not be visiting or rewriting this error-recovery information.)
         //
         // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
-        public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; private set; }
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; }
 
         public override bool SuppressVirtualCalls
         {
             get { return this.IsBaseConversion; }
+        }
+
+        /// <summary>
+        /// Returns true when conversion itself (not the operand) may have sideeffects
+        /// A typical sideeffect of a conversion is an exception when conversion is unsuccessful.
+        /// </summary>
+        /// <returns></returns>
+        internal bool ConversionHasSideEffects()
+        {
+            // only some intrinsic conversions are side effect free 
+            // the only side effect of an intrinsic conversion is a throw when we fail to convert.
+            // and some intrinsic conversion always succeed
+            switch (this.ConversionKind)
+            {
+                case ConversionKind.Identity:
+                // NOTE: even explicit float/double identity conversion does not have side
+                // effects since it does not throw
+                case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ImplicitEnumeration:
+                // implicit ref cast does not throw ...
+                case ConversionKind.ImplicitReference:
+                case ConversionKind.Boxing:
+                    return false;
+
+                // unchecked numeric conversion does not throw 
+                case ConversionKind.ExplicitNumeric:
+                    return this.Checked;
+            }
+
+            return true;
         }
     }
 

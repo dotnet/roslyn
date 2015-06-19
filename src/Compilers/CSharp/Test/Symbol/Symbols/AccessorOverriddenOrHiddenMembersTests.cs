@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -852,7 +852,7 @@ public class G<T>
         }
 
         [WorkItem(546143, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void OverridingExplicitInterfaceImplementationFromSource()
         {
             var il = @"
@@ -917,7 +917,7 @@ class Derived : Base
 }
 ";
 
-            CompileAndVerify(csharp, new[] { CompileIL(il) }, emitOptions: TestEmitters.CCI, expectedOutput: @"
+            CompileAndVerify(csharp, new[] { CompileIL(il) }, expectedOutput: @"
 1
 1
 1
@@ -1002,7 +1002,7 @@ using System;
                 Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
                 Assert.False(methodDispose.IsExplicitInterfaceImplementation);
 
-                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Where(d => d.ExplicitInterfaceSpecifier != null).Single();
+                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
                 var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
                 var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
                 Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);

@@ -26,6 +26,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string SymbolDeclaredEventRuleId = "RS0019";
         public const string DeadCodeRuleId = "RS0020";
         public const string DeadCodeTriggerRuleId = "RS0021";
-        public const string BoxingRuleId = "RS0022";
+        public const string ExposedNoninstantiableTypeRuleId = "RS0022";
+        public const string BoxingRuleId = "RS0023";
     }
 }

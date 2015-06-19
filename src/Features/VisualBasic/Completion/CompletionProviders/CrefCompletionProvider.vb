@@ -6,14 +6,13 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CrefCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Dim CrefFormat2 As SymbolDisplayFormat =
+        Private ReadOnly _crefFormat2 As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -44,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
 
             Dim span = CompletionUtilities.GetTextChangeSpan(text, position)
@@ -59,7 +58,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelForNodeAsync(touchingToken.Parent, cancellationToken).ConfigureAwait(False)
+            ' To get a Speculative SemanticModel (which is much faster), we need to 
+            ' walk up to the node the DocumentationTrivia is attached to.
+            Dim parentNode = token.GetAncestor(Of DocumentationCommentTriviaSyntax)().ParentTrivia.Token.Parent
+            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(parentNode, cancellationToken).ConfigureAwait(False)
             Dim workspace = document.Project.Solution.Workspace
 
             If IsXmlStringContext(touchingToken) OrElse
@@ -70,10 +72,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return CreateCompletionItems(symbols, span, semanticModel, workspace, touchingToken.SpanStart)
             End If
 
-            If IsParameterContext(touchingToken) OrElse
-                IsTypeParameterContext(touchingToken) Then
+            If IsTypeParameterContext(touchingToken) Then
+                Return Nothing
+            End If
+
+            If IsFirstParameterContext(touchingToken) OrElse IsOtherParameterContext(touchingToken) Then
                 Dim symbols = semanticModel.LookupNamespacesAndTypes(position)
-                Return CreateCompletionItems(symbols, span, semanticModel, workspace, touchingToken.SpanStart)
+                Dim items = CreateCompletionItems(symbols, span, semanticModel, workspace, touchingToken.SpanStart)
+
+                If (IsFirstParameterContext(touchingToken)) Then
+                    ' Include Of in case they're typing a type parameter
+                    Return items.Concat(CreateOfCompletionItem(span))
+                End If
+
+                Return items
             End If
 
             If touchingToken.IsChildToken(Function(x As QualifiedNameSyntax) x.DotToken) Then
@@ -129,9 +141,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Private Shared Function IsParameterContext(ByRef touchingToken As SyntaxToken) As Boolean
-            Return touchingToken.IsChildToken(Function(x As CrefSignatureSyntax) x.OpenParenToken) OrElse
-                touchingToken.IsChildSeparatorToken(Function(p As CrefSignatureSyntax) p.ArgumentTypes)
+        Private Shared Function IsFirstParameterContext(ByRef touchingToken As SyntaxToken) As Boolean
+            Return touchingToken.IsChildToken(Function(x As CrefSignatureSyntax) x.OpenParenToken)
+        End Function
+
+        Private Shared Function IsOtherParameterContext(ByRef touchingToken As SyntaxToken) As Boolean
+            Return touchingToken.IsChildSeparatorToken(Function(p As CrefSignatureSyntax) p.ArgumentTypes)
         End Function
 
         Private Shared Function IsCrefStartPosition(ByRef touchingToken As SyntaxToken) As Boolean
@@ -161,19 +176,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                       Dim displayString As String
                                       If s.Kind = SymbolKind.Method Then
                                           Dim method = DirectCast(s, IMethodSymbol)
-                                          displayString = method.ToDisplayString(CrefFormat2) + CreateParameters(method, semanticModel, position)
+                                          displayString = method.ToDisplayString(_crefFormat2) + CreateParameters(method, semanticModel, position)
                                           If method.MethodKind = MethodKind.UserDefinedOperator Then
                                               displayString = "Operator " + displayString
                                           End If
                                       ElseIf s.GetParameters().Any() Then
-                                          displayString = s.ToDisplayString(CrefFormat2) + CreateParameters(s, semanticModel, position)
+                                          displayString = s.ToDisplayString(_crefFormat2) + CreateParameters(s, semanticModel, position)
                                       Else
-                                          displayString = s.ToDisplayString(CrefFormat2)
+                                          displayString = s.ToDisplayString(_crefFormat2)
                                       End If
 
                                       Return New CompletionItem(Me, displayString, span, glyph:=s.GetGlyph(),
                                                                 descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s))
                                   End Function)
+        End Function
+
+        Private Function CreateOfCompletionItem(span As TextSpan) As IEnumerable(Of CompletionItem)
+            Dim item = New CompletionItem(Me, "Of", span, glyph:=Glyph.Keyword,
+                                      descriptionFactory:=Function(c As CancellationToken) Task.FromResult(RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip)))
+
+            Return SpecializedCollections.SingletonEnumerable(item)
         End Function
 
         Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)

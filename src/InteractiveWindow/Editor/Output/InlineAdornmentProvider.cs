@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Windows;
@@ -29,23 +31,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private class InlineReplAdornmentManager : ITagger<IntraTextAdornmentTag>
         {
-            private readonly ITextView textView;
-            private readonly List<Tuple<int, ZoomableInlineAdornment>> tags;
-            private readonly Dispatcher dispatcher;
+            private readonly ITextView _textView;
+            private readonly List<Tuple<int, ZoomableInlineAdornment>> _tags;
+            private readonly Dispatcher _dispatcher;
 
             internal InlineReplAdornmentManager(ITextView textView)
             {
-                this.textView = textView;
-                this.tags = new List<Tuple<int, ZoomableInlineAdornment>>();
-                this.dispatcher = Dispatcher.CurrentDispatcher;
+                _textView = textView;
+                _tags = new List<Tuple<int, ZoomableInlineAdornment>>();
+                _dispatcher = Dispatcher.CurrentDispatcher;
             }
 
             public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 var result = new List<TagSpan<IntraTextAdornmentTag>>();
-                foreach (var t in tags)
+                foreach (var t in _tags)
                 {
-                    var span = new SnapshotSpan(textView.TextSnapshot, t.Item1, 0);
+                    var span = new SnapshotSpan(_textView.TextSnapshot, t.Item1, 0);
                     t.Item2.UpdateSize();
                     var tag = new IntraTextAdornmentTag(t.Item2, null);
                     result.Add(new TagSpan<IntraTextAdornmentTag>(span, tag));
@@ -56,20 +58,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void AddAdornment(ZoomableInlineAdornment uiElement)
             {
-                if (Dispatcher.CurrentDispatcher != dispatcher)
+                if (Dispatcher.CurrentDispatcher != _dispatcher)
                 {
-                    dispatcher.BeginInvoke(new Action(() => AddAdornment(uiElement)));
+                    _dispatcher.BeginInvoke(new Action(() => AddAdornment(uiElement)));
                     return;
                 }
 
-                var caretPos = textView.Caret.Position.BufferPosition;
+                var caretPos = _textView.Caret.Position.BufferPosition;
                 var caretLine = caretPos.GetContainingLine();
-                tags.Add(new Tuple<int, ZoomableInlineAdornment>(caretPos.Position, uiElement));
+                _tags.Add(new Tuple<int, ZoomableInlineAdornment>(caretPos.Position, uiElement));
 
                 var handler = TagsChanged;
                 if (handler != null)
                 {
-                    var span = new SnapshotSpan(textView.TextSnapshot, caretLine.Start, caretLine.Length);
+                    var span = new SnapshotSpan(_textView.TextSnapshot, caretLine.Start, caretLine.Length);
                     var args = new SnapshotSpanEventArgs(span);
                     handler(this, args);
                 }
@@ -77,12 +79,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public IList<Tuple<int, ZoomableInlineAdornment>> Adornments
             {
-                get { return tags; }
+                get { return _tags; }
             }
 
             public void RemoveAll()
             {
-                tags.Clear();
+                _tags.Clear();
             }
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;

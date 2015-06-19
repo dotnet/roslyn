@@ -2,14 +2,20 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
     Public Module TestTypeExtensions
 
         <Extension>
-        Public Function GetTypeName(type As Type, Optional escapeKeywordIdentifiers As Boolean = False) As String
-            Return VisualBasicFormatter.Instance.GetTypeName(CType(type, TypeImpl), escapeKeywordIdentifiers)
+        Public Function GetTypeName(type As System.Type, Optional dynamicFlags As Boolean() = Nothing, Optional escapeKeywordIdentifiers As Boolean = False) As String
+            Return type.GetTypeName(DynamicFlagsCustomTypeInfo.Create(dynamicFlags).GetCustomTypeInfo(), escapeKeywordIdentifiers)
+        End Function
+
+        <Extension>
+        Public Function GetTypeName(type As System.Type, typeInfo As DkmClrCustomTypeInfo, Optional escapeKeywordIdentifiers As Boolean = False) As String
+            Return VisualBasicFormatter.Instance.GetTypeName(New TypeAndCustomInfo(CType(type, TypeImpl), typeInfo), escapeKeywordIdentifiers)
         End Function
 
     End Module

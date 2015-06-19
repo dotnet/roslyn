@@ -95,14 +95,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim parameterBuilder = ArrayBuilder(Of ParameterSymbol).GetInstance()
 
             Dim substitutedSourceMeParameter = Me.SubstitutedSourceMethod.MeParameter
-            Dim subsitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
-            If subsitutedSourceHasMeParameter Then
+            Dim substitutedSourceHasMeParameter = substitutedSourceMeParameter IsNot Nothing
+            If substitutedSourceHasMeParameter Then
                 _meParameter = MakeParameterSymbol(0, GeneratedNames.MakeStateMachineCapturedMeName(), substitutedSourceMeParameter) ' NOTE: Name doesn't actually matter.
                 Debug.Assert(_meParameter.Type = Me.SubstitutedSourceMethod.ContainingType)
                 parameterBuilder.Add(_meParameter)
             End If
 
-            Dim ordinalOffset = If(subsitutedSourceHasMeParameter, 1, 0)
+            Dim ordinalOffset = If(substitutedSourceHasMeParameter, 1, 0)
             For Each substitutedSourceParameter In Me.SubstitutedSourceMethod.Parameters
                 Dim ordinal = substitutedSourceParameter.Ordinal + ordinalOffset
                 Debug.Assert(ordinal = parameterBuilder.Count)
@@ -132,23 +132,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Me.LocalsForBinding = localsBuilder.ToImmutableAndFree()
 
             ' Create a map from variable name to display class field.
-            Dim displayClassVariables = PooledDictionary(Of String, DisplayClassVariable).GetInstance()
-            For Each pair In sourceDisplayClassVariables
-                Dim variable = pair.Value
-                Dim displayClassInstanceFromLocal = TryCast(variable.DisplayClassInstance, DisplayClassInstanceFromLocal)
-                Dim displayClassInstance = If(displayClassInstanceFromLocal Is Nothing,
-                    DirectCast(New DisplayClassInstanceFromMe(Me.Parameters(0)), DisplayClassInstance),
-                    New DisplayClassInstanceFromLocal(DirectCast(localsMap(displayClassInstanceFromLocal.Local), EELocalSymbol)))
-                variable = variable.SubstituteFields(displayClassInstance, Me.TypeMap)
-                displayClassVariables.Add(pair.Key, variable)
-            Next
-
-            _displayClassVariables = displayClassVariables.ToImmutableDictionary()
-            displayClassVariables.Free()
+            _displayClassVariables = SubstituteDisplayClassVariables(sourceDisplayClassVariables, localsMap, Me, Me.TypeMap)
             localsMap.Free()
 
             _generateMethodBody = generateMethodBody
         End Sub
+
+        Private Shared Function SubstituteDisplayClassVariables(
+            oldDisplayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable),
+            localsMap As Dictionary(Of LocalSymbol, LocalSymbol),
+            otherMethod As MethodSymbol,
+            typeMap As TypeSubstitution) As ImmutableDictionary(Of String, DisplayClassVariable)
+
+            ' Create a map from variable name to display class field.
+            Dim newDisplayClassVariables = PooledDictionary(Of String, DisplayClassVariable).GetInstance()
+            For Each pair In oldDisplayClassVariables
+                Dim variable = pair.Value
+                Dim oldDisplayClassInstance = variable.DisplayClassInstance
+
+                ' Note: we don't call ToOtherMethod in the local case because doing so would produce
+                ' a new LocalSymbol that would not be ReferenceEquals to the one in this.LocalsForBinding.
+                Dim oldDisplayClassInstanceFromLocal = TryCast(oldDisplayClassInstance, DisplayClassInstanceFromLocal)
+                Dim newDisplayClassInstance = If(oldDisplayClassInstanceFromLocal Is Nothing,
+                    oldDisplayClassInstance.ToOtherMethod(otherMethod, typeMap),
+                    New DisplayClassInstanceFromLocal(DirectCast(localsMap(oldDisplayClassInstanceFromLocal.Local), EELocalSymbol)))
+
+                variable = variable.SubstituteFields(newDisplayClassInstance, typeMap)
+                newDisplayClassVariables.Add(pair.Key, variable)
+            Next
+
+            Dim result = newDisplayClassVariables.ToImmutableDictionary()
+            newDisplayClassVariables.Free()
+            Return result
+        End Function
 
         Private Function MakeParameterSymbol(ordinal As Integer, name As String, sourceParameter As ParameterSymbol) As ParameterSymbol
             Return New SynthesizedParameterSymbolWithCustomModifiers(
@@ -465,7 +481,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             newBody = LocalDeclarationRewriter.Rewrite(_compilation, _container, newBody)
 
             ' Rewrite pseudo-variable references to helper method calls.
-            newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody), BoundBlock)
+            newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics), BoundBlock)
+            If diagnostics.HasAnyErrors() Then
+                Return newBody
+            End If
 
             ' Create a map from original local to target local.
             Dim localMap = PooledDictionary(Of LocalSymbol, LocalSymbol).GetInstance()
@@ -502,27 +521,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             '     <2> = New <>c__DisplayClass0()
             '     <2>.<1> = <1>
             '     <2>.z = z
+            '
+            ' Note: The above behavior is actually implemented in the LambdaRewriter and
+            '       is triggered by overriding PreserveOriginalLocals to return "True".
 
             ' Create a map from variable name to display class field.
-            Dim displayClassVariables = PooledDictionary(Of String, DisplayClassVariable).GetInstance()
-            For Each pair In _displayClassVariables
-                Dim variable = pair.Value
-                Dim displayClassInstanceFromLocal = TryCast(variable.DisplayClassInstance, DisplayClassInstanceFromLocal)
-                Dim displayClassInstance = If(displayClassInstanceFromLocal Is Nothing,
-                        DirectCast(New DisplayClassInstanceFromMe(Me.Parameters(0)), DisplayClassInstance),
-                        New DisplayClassInstanceFromLocal(DirectCast(localMap(displayClassInstanceFromLocal.Local), EELocalSymbol)))
-                variable = New DisplayClassVariable(variable.Name, variable.Kind, displayClassInstance, variable.DisplayClassFields)
-                displayClassVariables.Add(pair.Key, variable)
-            Next
+            Dim displayClassVariables = SubstituteDisplayClassVariables(_displayClassVariables, localMap, Me, Me.TypeMap)
 
             ' Rewrite references to "Me" to refer to this method's "Me" parameter.
             ' Rewrite variables within body to reference existing display classes.
             newBody = DirectCast(CapturedVariableRewriter.Rewrite(
-                    If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
-                    displayClassVariables.ToImmutableDictionary(),
-                    newBody,
-                    diagnostics), BoundBlock)
-            displayClassVariables.Free()
+                If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
+                displayClassVariables,
+                newBody,
+                diagnostics), BoundBlock)
 
             If diagnostics.HasAnyErrors() Then
                 Return newBody
@@ -555,7 +567,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Friend Overrides Function CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer
-            Throw ExceptionUtilities.Unreachable
+            Return localPosition
         End Function
+
+        Friend Overrides ReadOnly Property PreserveOriginalLocals As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
     End Class
+
 End Namespace

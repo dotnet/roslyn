@@ -8,6 +8,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a field in a class, struct or enum.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IFieldSymbol : ISymbol
     {
         /// <summary>
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
-        /// Returns false if the field wasn't declared as "const", or constant value was omitted or errorneous.
+        /// Returns false if the field wasn't declared as "const", or constant value was omitted or erroneous.
         /// True otherwise.
         /// </summary>
         bool HasConstantValue { get; }
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         object ConstantValue { get; }
 
         /// <summary>
-        /// Gets the list of custom modifiers, if any, associated with the field.
+        /// Returns custom modifiers associated with the field, or an empty array if there are none.
         /// </summary>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
 

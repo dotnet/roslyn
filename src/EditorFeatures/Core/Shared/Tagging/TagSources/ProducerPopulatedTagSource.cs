@@ -221,10 +221,46 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
         {
-            var textChangeRanges = contentChanged.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)).ToList();
-            lock (_cachedTagsGate)
+            var contentChanges = contentChanged.Changes;
+            var count = contentChanges.Count;
+
+            switch (count)
             {
-                _accumulatedTextChanges = _accumulatedTextChanges.Accumulate(textChangeRanges);
+                case 0:
+                    return;
+
+                case 1:
+                    // PERF: Optimize for the simple case of typing on a line.
+                    {
+                        var c = contentChanges[0];
+                        var textChangeRange = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);
+                        lock (_cachedTagsGate)
+                        {
+                            if (_accumulatedTextChanges == null)
+                            {
+                                _accumulatedTextChanges = textChangeRange;
+                            }
+                            else
+                            {
+                                _accumulatedTextChanges = _accumulatedTextChanges.Accumulate(SpecializedCollections.SingletonEnumerable(textChangeRange));
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    var textChangeRanges = new TextChangeRange[count];
+                    for (int i = 0; i < count; i++)
+                    {
+                        var c = contentChanges[i];
+                        textChangeRanges[i] = new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength);
+                    }
+
+                    lock (_cachedTagsGate)
+                    {
+                        _accumulatedTextChanges = _accumulatedTextChanges.Accumulate(textChangeRanges);
+                    }
+                    break;
             }
         }
 

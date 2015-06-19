@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class SearchGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForType()
+        Public Sub SearchForType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545474)>
-        Sub SearchForNestedType()
+        Public Sub SearchForNestedType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForMember()
+        Public Sub SearchForMember()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForPartialType()
+        Public Sub SearchForPartialType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -155,7 +155,7 @@ End Namespace
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForMethodInPartialType()
+        Public Sub SearchForMethodInPartialType()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -202,7 +202,7 @@ End Namespace
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchWithResultsAcrossMultipleTypeParts()
+        Public Sub SearchWithResultsAcrossMultipleTypeParts()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -254,7 +254,7 @@ End Namespace
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForDottedName1()
+        Public Sub SearchForDottedName1()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -288,7 +288,7 @@ End Namespace
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForDottedName2()
+        Public Sub SearchForDottedName2()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -310,7 +310,7 @@ End Namespace
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForDottedName3()
+        Public Sub SearchForDottedName3()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -344,7 +344,7 @@ End Namespace
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub SearchForDottedName4()
+        Public Sub SearchForDottedName4()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncMethodBuilderMemberCollection _asyncMethodBuilderMemberCollection;
         private readonly bool _constructedSuccessfully;
         private readonly int _methodOrdinal;
+        private readonly bool _ignoreAccessibility;
 
         private FieldSymbol _builderField;
 
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _methodOrdinal = methodOrdinal;
+            _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
         }
 
         /// <summary>
@@ -93,12 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Add IAsyncStateMachine.MoveNext()
 
-            var moveNextMethod = OpenMethodImplementation(
-                IAsyncStateMachine_MoveNext,
-                WellKnownMemberNames.MoveNextMethodName,
-                debuggerHidden: IsDebuggerHidden(this.method),
-                generateDebugInfo: true,
-                hasMethodBodyDependency: true);
+            var moveNextMethod = OpenMoveNextMethodImplementation(IAsyncStateMachine_MoveNext);
 
             GenerateMoveNext(moveNextMethod);
 
@@ -107,8 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             OpenMethodImplementation(
                 IAsyncStateMachine_SetStateMachine,
                 "SetStateMachine",
-                debuggerHidden: true,
-                generateDebugInfo: false,
                 hasMethodBodyDependency: false);
 
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
@@ -173,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Field(F.Local(stateMachineVariable), _builderField.AsMember(frameType)),
-                        F.StaticCall(methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
+                        F.StaticCall(_ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None, methodScopeAsyncMethodBuilderMemberCollection.BuilderType, "Create", ImmutableArray<TypeSymbol>.Empty)));
 
                 // local.$stateField = NotStartedStateMachine
                 bodyBuilder.Add(

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     internal class PermissionSetAttributeWithFileReference : Cci.ICustomAttribute
     {
         private readonly Cci.ICustomAttribute _sourceAttribute;
-        private string _resolvedPermissionSetFilePath;
+        private readonly string _resolvedPermissionSetFilePath;
         internal static readonly string FilePropertyName = "File";
         internal static readonly string HexPropertyName = "Hex";
 
@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
         public Cci.IMethodReference Constructor(EmitContext context)
-        {
-            return _sourceAttribute.Constructor(context);
-        }
+            => _sourceAttribute.Constructor(context);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.
@@ -136,13 +134,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// The number of positional arguments.
         /// </summary>
-        public int ArgumentCount
-        {
-            get
-            {
-                return _sourceAttribute.ArgumentCount;
-            }
-        }
+        public int ArgumentCount => _sourceAttribute.ArgumentCount;
 
         /// <summary>
         /// The number of named arguments.
@@ -159,15 +151,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// The type of the attribute. For example System.AttributeUsageAttribute.
         /// </summary>
-        public Cci.ITypeReference GetType(EmitContext context)
-        {
-            return _sourceAttribute.GetType(context);
-        }
+        public Cci.ITypeReference GetType(EmitContext context) => _sourceAttribute.GetType(context);
 
-        public bool AllowMultiple
-        {
-            get { return _sourceAttribute.AllowMultiple; }
-        }
+        public bool AllowMultiple => _sourceAttribute.AllowMultiple;
 
         private struct HexPropertyMetadataNamedArgument : Cci.IMetadataNamedArgument
         {
@@ -206,14 +192,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _file = file;
         }
 
-        public string FileName
-        {
-            get { return _file; }
-        }
+        public string FileName => _file;
 
-        public string PropertyName
-        {
-            get { return PermissionSetAttributeWithFileReference.FilePropertyName; }
-        }
+        public string PropertyName => PermissionSetAttributeWithFileReference.FilePropertyName;
     }
 }

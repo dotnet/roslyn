@@ -49,13 +49,14 @@ End Structure
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
 <Code>
 Imports System
 
-Structure $$C
+Structure $$S
 End Structure
 </Code>
 
@@ -64,7 +65,7 @@ End Structure
 Imports System
 
 &lt;Serializable()&gt;
-Structure C
+Structure S
 End Structure
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
@@ -77,7 +78,7 @@ End Structure
 Imports System
 
 &lt;Serializable&gt;
-Structure $$C
+Structure $$S
 End Structure
 </Code>
 
@@ -87,11 +88,36 @@ Imports System
 
 &lt;Serializable&gt;
 &lt;CLSCompliant(True)&gt;
-Structure C
+Structure S
 End Structure
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+Structure $$S
+End Structure
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+&lt;CLSCompliant(True)&gt;
+Structure S
+End Structure
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
+        End Sub
+
 #End Region
 
 #Region "AddImplementedInterface tests"
@@ -255,7 +281,7 @@ End Structure
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Structure $$Foo
@@ -275,7 +301,7 @@ End Structure
 #Region "GenericExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount()
+        Public Sub GenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
 Structure S$$
@@ -286,7 +312,7 @@ End Structure
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName()
+        Public Sub GenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
 Structure S$$
@@ -297,7 +323,7 @@ End Structure
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount1()
+        Public Sub GenericExtender_GetImplementedTypesCount1()
             Dim code =
 <Code>
 Structure S$$
@@ -308,7 +334,7 @@ End Structure
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount2()
+        Public Sub GenericExtender_GetImplementedTypesCount2()
             Dim code =
 <Code>
 Namespace N
@@ -326,7 +352,7 @@ End Namespace
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName1()
+        Public Sub GenericExtender_GetImplTypeGenericName1()
             Dim code =
 <Code>
 Structure S$$
@@ -337,7 +363,7 @@ End Structure
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName2()
+        Public Sub GenericExtender_GetImplTypeGenericName2()
             Dim code =
 <Code>
 Namespace N

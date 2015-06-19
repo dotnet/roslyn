@@ -10,13 +10,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
 
         Private ReadOnly _sdkPath As String
 
-        Private Sub New(sdkPath As String)
+        Public Sub New(sdkPath As String)
             _sdkPath = sdkPath
         End Sub
 
         Public Shared ReadOnly Property FullFrameworkCompilerHost As MockCompilerHost
             Get
                 Return New MockCompilerHost(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.1"))
+            End Get
+        End Property
+
+        Public Shared ReadOnly Property NoSdkCompilerHost As MockCompilerHost
+            Get
+                Return New MockCompilerHost("")
             End Get
         End Property
 
@@ -28,8 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
             Throw New NotImplementedException()
         End Sub
 
-        Public Function GetSdkPath() As <MarshalAs(UnmanagedType.BStr)> String Implements IVbCompilerHost.GetSdkPath
-            Return _sdkPath
+        Public Function GetSdkPath(ByRef sdkPath As String) As Integer Implements IVbCompilerHost.GetSdkPath
+            sdkPath = _sdkPath
+
+            If String.IsNullOrEmpty(sdkPath) Then
+                Return VSConstants.E_NOTIMPL
+            Else
+                Return VSConstants.S_OK
+            End If
         End Function
 
         Public Function GetTargetLibraryType() As VBTargetLibraryType Implements IVbCompilerHost.GetTargetLibraryType

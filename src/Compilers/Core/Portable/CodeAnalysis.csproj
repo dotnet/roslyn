@@ -14,43 +14,39 @@
     <AssemblyName>Microsoft.CodeAnalysis</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;COMPILERCORE</DefineConstants>
+    <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE;COMPILERCORE</DefineConstants>
-    <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
-    <DefineConstants>TRACE;DEBUG;COMPILERCORE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NoWarn>1591</NoWarn>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
-    <DefineConstants>TRACE;COMPILERCORE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AdditionalTextFile.cs" />
+    <Compile Include="AssemblyReferenceResolver.cs" />
+    <Compile Include="AssemblyUtilities.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
@@ -84,7 +80,7 @@
     <Compile Include="CodeGen\MetadataNamedArgument.cs" />
     <Compile Include="CodeGen\MetadataTypeOf.cs" />
     <Compile Include="CodeGen\MethodBody.cs" />
-    <Compile Include="CodeGen\MethodDebugId.cs" />
+    <Compile Include="CodeGen\DebugId.cs" />
     <Compile Include="CodeGen\PermissionSetAttribute.cs" />
     <Compile Include="CodeGen\PrivateImplementationDetails.cs" />
     <Compile Include="CodeGen\RawSequencePoint.cs" />
@@ -101,7 +97,8 @@
     <Compile Include="CodeGen\Win32Res.cs" />
     <Compile Include="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="Collections\ArrayElement.cs" />
-    <Compile Include="Collections\BitArray.cs" />
+    <Compile Include="Collections\BitVector.cs" />
+    <Compile Include="Collections\Boxes.cs" />
     <Compile Include="Collections\ByteSequenceComparer.cs" />
     <Compile Include="Collections\CachingDictionary.cs" />
     <Compile Include="Collections\CachingFactory.cs" />
@@ -116,10 +113,40 @@
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
     <Compile Include="Collections\StaticCast.cs" />
+    <Compile Include="CommandLine\CommandLineAnalyzerReference.cs" />
+    <Compile Include="CommandLine\CommandLineReference.cs" />
+    <Compile Include="CommandLine\CommandLineSourceFile.cs" />
+    <Compile Include="CommandLine\CommonCommandLineArguments.cs" />
+    <Compile Include="CommandLine\CommonCommandLineParser.cs" />
+    <Compile Include="CommandLine\CommonCompiler.CompilerEmitStreamProvider.cs" />
+    <Compile Include="CommandLine\CommonCompiler.cs" />
+    <Compile Include="CommandLine\CommonCompiler.ExistingReferencesResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingMetadataFileResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingSourceFileResolver.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingStrongNameProvider.cs" />
+    <Compile Include="CommandLine\CommonCompiler.LoggingXmlFileResolver.cs" />
+    <Compile Include="CommandLine\ErrorLogger.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Issue.cs" />
+    <Compile Include="CommandLine\ErrorLogger.Value.cs" />
+    <Compile Include="CommandLine\ErrorLogger.WellKnownStrings.cs" />
+    <Compile Include="CommandLine\TouchedFileLogger.cs" />
+    <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
+    <Compile Include="CompilerPathUtilities.cs" />
+    <Compile Include="ReflectionUtil.cs" />
+    <Compile Include="CorLightup.cs" />
+    <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
+    <Compile Include="Desktop\AssemblyVersion.cs" />
+    <Compile Include="Desktop\DesktopAssemblyIdentityComparer.cs" />
+    <Compile Include="Desktop\DesktopAssemblyIdentityComparer.Fx.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerFileReference.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerLoadFailureEventArgs.cs" />
+    <Compile Include="Desktop\DesktopStrongNameProvider.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\IAnalyzerAssemblyLoader.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
+    <Compile Include="Diagnostic\LocalizableResourceString.FixedLocalizableString.cs" />
     <Compile Include="Diagnostic\LocalizableString.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
     <Compile Include="Emit\EditAndContinue\AddedOrChangedMethodInfo.cs" />
@@ -127,13 +154,20 @@
     <Compile Include="Emit\EditAndContinue\EncHoistedLocalMetadata.cs" />
     <Compile Include="Emit\EmitOptions.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
+    <Compile Include="Emit\SemanticEditKind.cs" />
+    <Compile Include="EncodedStringText.cs" />
+    <Compile Include="FileKey.cs" />
+    <Compile Include="FileSystemExtensions.cs" />
+    <Compile Include="Interop\IClrMetaHost.cs" />
+    <Compile Include="Interop\IClrRuntimeInfo.cs" />
+    <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="InternalImplementationOnlyAttribute.cs" />
     <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
     <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
-    <Compile Include="InternalUtilities\DocumentationCommentId.cs" />
+    <Compile Include="DocumentationCommentId.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
     <Compile Include="InternalUtilities\FailFast.cs" />
-    <Compile Include="InternalUtilities\FileStreamLightUp.cs" />
+    <Compile Include="InternalUtilities\InterlockedOperations.cs" />
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />
@@ -185,7 +219,6 @@
     <Compile Include="Diagnostic\CommonDiagnosticComparer.cs" />
     <Compile Include="Diagnostic\CommonMessageProvider.cs" />
     <Compile Include="Diagnostic\Diagnostic.cs" />
-    <Compile Include="Diagnostic\TriggerDiagnosticDescriptor.cs" />
     <Compile Include="Diagnostic\WellKnownDiagnosticTags.cs" />
     <Compile Include="Diagnostic\Diagnostic_SimpleDiagnostic.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContext.cs" />
@@ -243,12 +276,7 @@
     <Compile Include="Emit\NoPia\VtblGap.cs" />
     <Compile Include="Emit\CommonPEModuleBuilder.cs" />
     <Compile Include="Emit\SemanticEdit.cs" />
-    <Compile Include="Emit\TypeExport.cs" />
     <Compile Include="EnumConstantHelper.cs" />
-    <Compile Include="Instrumentation\FunctionId.cs" />
-    <Compile Include="Instrumentation\Logger.cs" />
-    <Compile Include="Instrumentation\PerformanceGoals.cs" />
-    <Compile Include="Instrumentation\RoslynCompilerEventSource.cs" />
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\FatalError.cs" />
@@ -259,7 +287,6 @@
     <Compile Include="InternalUtilities\ConsList`1.cs" />
     <Compile Include="InternalUtilities\DecimalUtilities.cs" />
     <Compile Include="InternalUtilities\DocumentationCommentXmlNames.cs" />
-    <Compile Include="InternalUtilities\EnsureSufficientExecutionStackLightUp.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensions.ComparisonComparer.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="InternalUtilities\EnumField.cs" />
@@ -308,7 +335,10 @@
     <Compile Include="InternalUtilities\WeakList.cs" />
     <Compile Include="InternalUtilities\WeakReferenceExtensions.cs" />
     <Compile Include="InternalUtilities\XmlUtilities.cs" />
+    <Compile Include="Interop\ClrStrongName.cs" />
+    <Compile Include="Interop\IVsSQM.cs" />
     <Compile Include="MemberDescriptor.cs" />
+    <Compile Include="MetadataFileReferenceResolver.cs" />
     <Compile Include="MetadataReader\EmbeddedResource.cs" />
     <Compile Include="MetadataReader\LocalSlotConstraints.cs" />
     <Compile Include="MetadataReader\MetadataDecoder.cs" />
@@ -343,11 +373,26 @@
     <Compile Include="MetadataReference\PortableExecutableReference.cs" />
     <Compile Include="MetadataReference\ReferenceDirective.cs" />
     <Compile Include="MetadataReference\UnresolvedMetadataReference.cs" />
+    <Compile Include="NativePdbWriter\ComMemoryStream.cs" />
+    <Compile Include="NativePdbWriter\IUnsafeComStream.cs" />
+    <Compile Include="FileSystem\PathKind.cs" />
+    <Compile Include="FileSystem\PathUtilities.cs" />
+    <Compile Include="FileSystem\FileUtilities.cs" />
+    <Compile Include="PEWriter\ContentId.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
+    <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
+    <Compile Include="PEWriter\ReferenceIndexerBase.cs" />
     <Compile Include="PEWriter\TypeNameSerializer.cs" />
     <Compile Include="PEWriter\StateMachineHoistedLocalScope.cs" />
     <Compile Include="PEWriter\MetadataWriter.cs" />
+    <Compile Include="PortableShim.cs" />
+    <Compile Include="RuleSet\InvalidRuleSetException.cs" />
+    <Compile Include="RuleSet\RuleSet.cs" />
+    <Compile Include="RuleSet\RuleSetInclude.cs" />
+    <Compile Include="RuleSet\RuleSetProcessor.cs" />
+    <Compile Include="SourceFileResolver.cs" />
+    <Compile Include="SqmServiceProvider.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayExtensions.cs" />
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
@@ -368,8 +413,8 @@
     <Compile Include="PEWriter\IFileReference.cs" />
     <Compile Include="PEWriter\InheritedTypeParameter.cs" />
     <Compile Include="PEWriter\InstructionOperandTypes.cs" />
-    <Compile Include="PEWriter\ISymbolWriter.cs" />
-    <Compile Include="PEWriter\ISymUnmanagedAsyncMethodPropertiesWriter.cs" />
+    <Compile Include="NativePdbWriter\ISymUnmanagedWriter.cs" />
+    <Compile Include="NativePdbWriter\ISymUnmanagedAsyncMethodPropertiesWriter.cs" />
     <Compile Include="PEWriter\LocalScope.cs" />
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
@@ -382,9 +427,8 @@
     <Compile Include="PEWriter\ModifiedTypeReference.cs" />
     <Compile Include="PEWriter\IImportScope.cs" />
     <Compile Include="PEWriter\NtHeader.cs" />
-    <Compile Include="PEWriter\PdbMetadataWrapper.cs" />
-    <Compile Include="PEWriter\PdbWriter.cs" />
-    <Compile Include="PEWriter\PeDebugDirectory.cs" />
+    <Compile Include="NativePdbWriter\PdbMetadataWrapper.cs" />
+    <Compile Include="NativePdbWriter\PdbWriter.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
@@ -575,6 +619,7 @@
     <Compile Include="Syntax\TranslationSyntaxReference.cs" />
     <Compile Include="Text\ChangedText.cs" />
     <Compile Include="Text\CompositeText.cs" />
+    <Compile Include="Text\LargeEncodedText.cs" />
     <Compile Include="Text\LinePosition.cs" />
     <Compile Include="Text\LinePositionSpan.cs" />
     <Compile Include="Text\SourceHashAlgorithm.cs" />
@@ -596,14 +641,12 @@
     <Compile Include="WellKnownMember.cs" />
     <Compile Include="WellKnownMembers.cs" />
     <Compile Include="WellKnownTypes.cs" />
+    <Compile Include="XmlFileResolver.cs" />
     <Compile Include="Xml\XmlCharType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler" />
@@ -615,6 +658,7 @@
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
@@ -659,16 +703,27 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="RuleSet\RuleSetSchema.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.1.0.0-rc2\lib\any~windows\x86\Microsoft.DiaSymReader.Native.x86.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\..\..\packages\Microsoft.DiaSymReader.Native.1.0.0-rc2\lib\any~windows\amd64\Microsoft.DiaSymReader.Native.amd64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />

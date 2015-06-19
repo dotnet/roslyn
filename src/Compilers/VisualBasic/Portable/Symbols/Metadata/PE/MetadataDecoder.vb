@@ -18,12 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary>
         ''' Type context for resolving generic type arguments.
         ''' </summary>
-        Private m_typeContextOpt As PENamedTypeSymbol
+        Private ReadOnly _typeContextOpt As PENamedTypeSymbol
 
         ''' <summary>
         ''' Method context for resolving generic method type arguments.
         ''' </summary>
-        Private m_methodContextOpt As PEMethodSymbol
+        Private ReadOnly _methodContextOpt As PEMethodSymbol
 
         Public Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -56,8 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Debug.Assert(moduleSymbol IsNot Nothing)
 
-            m_typeContextOpt = typeContextOpt
-            m_methodContextOpt = methodContextOpt
+            _typeContextOpt = typeContextOpt
+            _methodContextOpt = methodContextOpt
         End Sub
 
         Friend Shadows ReadOnly Property ModuleSymbol As PEModuleSymbol
@@ -68,11 +68,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Protected Overrides Function GetGenericMethodTypeParamSymbol(position As Integer) As TypeSymbol
 
-            If m_methodContextOpt Is Nothing Then
+            If _methodContextOpt Is Nothing Then
                 Return New UnsupportedMetadataTypeSymbol()
             End If
 
-            Dim typeParameters = m_methodContextOpt.TypeParameters
+            Dim typeParameters = _methodContextOpt.TypeParameters
 
             If typeParameters.Length <= position Then
                 Return New UnsupportedMetadataTypeSymbol()
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Protected Overrides Function GetGenericTypeParamSymbol(position As Integer) As TypeSymbol
 
-            Dim type As PENamedTypeSymbol = m_typeContextOpt
+            Dim type As PENamedTypeSymbol = _typeContextOpt
 
             While type IsNot Nothing AndAlso (type.MetadataArity - type.Arity) > position
                 type = TryCast(type.ContainingSymbol, PENamedTypeSymbol)
@@ -160,9 +160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
-            Dim assemblies = moduleSymbol.GetReferencedAssemblySymbols()
+            ' Go through all assemblies referenced by the current module And
+            ' find the one which *exactly* matches the given identity.
+            ' No unification will be performed
+            Dim assemblies = ModuleSymbol.GetReferencedAssemblies()
             For i = 0 To assemblies.Length - 1
-                If identity.Equals(assemblies(i).Identity) Then
+                If identity.Equals(assemblies(i)) Then
                     Return i
                 End If
             Next
@@ -228,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim baseType As TypeSymbol = Nothing
 
                 If Not isInterface Then
-                    Dim baseToken As Handle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
+                    Dim baseToken As EntityHandle = Me.Module.GetBaseTypeOfTypeOrThrow(typeDef)
 
                     If Not baseToken.IsNil() Then
                         baseType = GetTypeOfToken(baseToken)

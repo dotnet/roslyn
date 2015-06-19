@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     {
         public static Exception ThrowEFail()
         {
-            Marshal.ThrowExceptionForHR(VSConstants.E_FAIL);
+            Marshal.ThrowExceptionForHR(VSConstants.E_FAIL, new IntPtr(-1));
 
             // never reached...
             return null;
@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         public static Exception ThrowEInvalidArg()
         {
-            Marshal.ThrowExceptionForHR(VSConstants.E_INVALIDARG);
+            Marshal.ThrowExceptionForHR(VSConstants.E_INVALIDARG, new IntPtr(-1));
 
             // never reached...
             return null;
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         public static Exception ThrowENotImpl()
         {
-            Marshal.ThrowExceptionForHR(VSConstants.E_NOTIMPL);
+            Marshal.ThrowExceptionForHR(VSConstants.E_NOTIMPL, new IntPtr(-1));
 
             // never reached...
             return null;
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         public static Exception ThrowEUnexpected()
         {
-            Marshal.ThrowExceptionForHR(VSConstants.E_UNEXPECTED);
+            Marshal.ThrowExceptionForHR(VSConstants.E_UNEXPECTED, new IntPtr(-1));
 
             // never reached...
             return null;

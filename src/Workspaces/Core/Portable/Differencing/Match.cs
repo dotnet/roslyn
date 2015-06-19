@@ -26,41 +26,39 @@ namespace Microsoft.CodeAnalysis.Differencing
         private readonly Dictionary<TNode, TNode> _oneToTwo;
         private readonly Dictionary<TNode, TNode> _twoToOne;
 
-        internal Match(TNode root1, TNode root2, TreeComparer<TNode> nodeComparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
+        internal Match(TNode root1, TNode root2, TreeComparer<TNode> comparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
         {
             _root1 = root1;
             _root2 = root2;
-            _comparer = nodeComparer;
+            _comparer = comparer;
+            _oneToTwo = new Dictionary<TNode, TNode>();
+            _twoToOne = new Dictionary<TNode, TNode>();
 
-            int labelCount = nodeComparer.LabelCount;
+            int labelCount = comparer.LabelCount;
 
             // Calculate chains (not including root node):
             int count1, count2;
             List<TNode>[] nodes1, nodes2;
-            CategorizeNodesByLabels(root1, labelCount, out nodes1, out count1);
-            CategorizeNodesByLabels(root2, labelCount, out nodes2, out count2);
-
-            // Calculate match:
-            _oneToTwo = new Dictionary<TNode, TNode>(count1);
-            _twoToOne = new Dictionary<TNode, TNode>(count2);
+            CategorizeNodesByLabels(comparer, root1, labelCount, out nodes1, out count1);
+            CategorizeNodesByLabels(comparer, root2, labelCount, out nodes2, out count2);
 
             if (knownMatches != null)
             {
                 foreach (var knownMatch in knownMatches)
                 {
-                    if (_comparer.GetLabel(knownMatch.Key) != _comparer.GetLabel(knownMatch.Value))
+                    if (comparer.GetLabel(knownMatch.Key) != comparer.GetLabel(knownMatch.Value))
                     {
-                        throw new ArgumentException(string.Format(WorkspacesResources.MatchingNodesMustHaveTheSameLabel, knownMatch.Key, knownMatch.Value), "knownMatches");
+                        throw new ArgumentException(string.Format(WorkspacesResources.MatchingNodesMustHaveTheSameLabel, knownMatch.Key, knownMatch.Value), nameof(knownMatches));
                     }
 
-                    if (!_comparer.TreesEqual(knownMatch.Key, root1))
+                    if (!comparer.TreesEqual(knownMatch.Key, root1))
                     {
-                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheOldTree, knownMatch.Key), "knownMatches");
+                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheOldTree, knownMatch.Key), nameof(knownMatches));
                     }
 
-                    if (!_comparer.TreesEqual(knownMatch.Value, root2))
+                    if (!comparer.TreesEqual(knownMatch.Value, root2))
                     {
-                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheNewTree, knownMatch.Value), "knownMatches");
+                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheNewTree, knownMatch.Value), nameof(knownMatches));
                     }
 
                     if (!_oneToTwo.ContainsKey(knownMatch.Key))
@@ -73,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             ComputeMatch(nodes1, nodes2);
         }
 
-        private void CategorizeNodesByLabels(
+        private static void CategorizeNodesByLabels(
+            TreeComparer<TNode> comparer,
             TNode root,
             int labelCount,
             out List<TNode>[] nodes,
@@ -86,9 +85,9 @@ namespace Microsoft.CodeAnalysis.Differencing
             // This order ensures that a node of a certain kind can have a parent of the same kind 
             // and we can still use tied-to-parent for that kind. That's because the parent will always
             // be processed earlier than the child due to depth-first prefix ordering.
-            foreach (TNode node in _comparer.GetDescendants(root))
+            foreach (TNode node in comparer.GetDescendants(root))
             {
-                int label = _comparer.GetLabel(node);
+                int label = comparer.GetLabel(node);
                 if (label < 0 || label >= labelCount)
                 {
                     throw new InvalidOperationException(string.Format(WorkspacesResources.LabelForNodeIsInvalid, node, labelCount));
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // 
             // 1) A label may be marked "tied to parent". Let x, y have both label l and l is "tied to parent".
             //    Then (x,y) can be in M only if (parent(x), parent(y)) in M.
-            //    Thus we require labels of children tied to a parent to be preceeded by all their possible parent labels.
+            //    Thus we require labels of children tied to a parent to be preceded by all their possible parent labels.
             //
             // 2) Rather than defining function equal in terms of constants f and t, which are hard to get right,
             //    we try to match multiple times with different threashold for node distance.
@@ -338,11 +337,19 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
         }
 
-        public IEnumerable<KeyValuePair<TNode, TNode>> Matches
+        public IReadOnlyDictionary<TNode, TNode> Matches
         {
             get
             {
                 return new ReadOnlyDictionary<TNode, TNode>(_oneToTwo);
+            }
+        }
+
+        public IReadOnlyDictionary<TNode, TNode> ReverseMatches
+        {
+            get
+            {
+                return new ReadOnlyDictionary<TNode, TNode>(_twoToOne);
             }
         }
 
@@ -374,12 +381,12 @@ namespace Microsoft.CodeAnalysis.Differencing
         {
             if (oldNodes == null)
             {
-                throw new ArgumentNullException("oldNodes");
+                throw new ArgumentNullException(nameof(oldNodes));
             }
 
             if (newNodes == null)
             {
-                throw new ArgumentNullException("newNodes");
+                throw new ArgumentNullException(nameof(newNodes));
             }
 
             var oldList = (oldNodes as IReadOnlyList<TNode>) ?? oldNodes.ToList();

@@ -1,35 +1,125 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports VbObjectDisplay = Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay.ObjectDisplay
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Public Class SyntaxFactory
-        Public Shared ReadOnly CarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturnLineFeed, SyntaxTrivia)
-        Public Shared ReadOnly LineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.LineFeed, SyntaxTrivia)
-        Public Shared ReadOnly CarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturn, SyntaxTrivia)
-        Public Shared ReadOnly Space As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Space, SyntaxTrivia)
-        Public Shared ReadOnly Tab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Tab, SyntaxTrivia)
+        ''' <summary>
+        ''' A trivia with kind EndOfLineTrivia containing both the carriage return And line feed characters.
+        ''' </summary>
+        Public Shared ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturnLineFeed, SyntaxTrivia)
 
-        Public Shared ReadOnly ElasticCarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxTrivia)
-        Public Shared ReadOnly ElasticLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticLineFeed, SyntaxTrivia)
-        Public Shared ReadOnly ElasticCarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturn, SyntaxTrivia)
-        Public Shared ReadOnly ElasticSpace As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticSpace, SyntaxTrivia)
-        Public Shared ReadOnly ElasticTab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticTab, SyntaxTrivia)
+        ''' <summary>
+        ''' A trivia with kind EndOfLineTrivia containing a single line feed character.
+        ''' </summary>
+        Public Shared ReadOnly Property LineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.LineFeed, SyntaxTrivia)
 
-        Public Shared ReadOnly ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
-        Private Shared ReadOnly ElasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
+        ''' <summary>
+        ''' A trivia with kind EndOfLineTrivia containing a single carriage return character.
+        ''' </summary>
+        Public Shared ReadOnly Property CarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.CarriageReturn, SyntaxTrivia)
 
-        Public Shared Function Whitespace(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
-            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
+        ''' <summary>
+        '''  A trivia with kind WhitespaceTrivia containing a single space character.
+        ''' </summary>
+        Public Shared ReadOnly Property Space As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Space, SyntaxTrivia)
+
+        ''' <summary>
+        ''' A trivia with kind WhitespaceTrivia containing a single tab character.
+        ''' </summary>
+        Public Shared ReadOnly Property Tab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.Tab, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind EndOfLineTrivia containing both the carriage return And line feed characters.
+        ''' Elastic trivia are used to denote trivia that was Not produced by parsing source text, And are usually Not
+        ''' preserved during formatting.
+        ''' </summary>
+        Public Shared ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind EndOfLineTrivia containing a single line feed character. Elastic trivia are used
+        ''' to denote trivia that was Not produced by parsing source text, And are usually Not preserved during
+        ''' formatting.
+        ''' </summary>
+        Public Shared ReadOnly Property ElasticLineFeed As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticLineFeed, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind EndOfLineTrivia containing a single carriage return character. Elastic trivia
+        ''' are used to denote trivia that was Not produced by parsing source text, And are usually Not preserved during
+        ''' formatting.
+        ''' </summary>
+        Public Shared ReadOnly Property ElasticCarriageReturn As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticCarriageReturn, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind WhitespaceTrivia containing a single space character. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
+        Public Shared ReadOnly Property ElasticSpace As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticSpace, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind WhitespaceTrivia containing a single tab character. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
+        Public Shared ReadOnly Property ElasticTab As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticTab, SyntaxTrivia)
+
+        ''' <summary>
+        ''' An elastic trivia with kind WhitespaceTrivia containing no characters. Elastic marker trivia are included
+        ''' automatically by factory methods when trivia Is Not specified. Syntax formatting will replace elastic
+        ''' markers with appropriate trivia.
+        ''' </summary>
+        Public Shared ReadOnly Property ElasticMarker As SyntaxTrivia = CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia)
+        Private Shared ReadOnly s_elasticMarkerList As SyntaxTriviaList = SyntaxFactory.TriviaList(CType(InternalSyntax.SyntaxFactory.ElasticZeroSpace, SyntaxTrivia))
+
+        ''' <summary>
+        ''' Creates a trivia with kind EndOfLineTrivia containing the specified text. 
+        ''' </summary>
+        ''' <param name="text">The text of the end of line. Any text can be specified here, however only carriage return And
+        ''' line feed characters are recognized by the parser as end of line.</param>
+        Public Shared Function EndOfLine(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=False), SyntaxTrivia)
         End Function
 
-        Public Shared Function EndOfLine(text As String, Optional elastic As Boolean = True) As SyntaxTrivia
+        ''' <summary>
+        ''' Creates a trivia with kind EndOfLineTrivia containing the specified text. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
+        ''' <param name="text">The text of the end of line. Any text can be specified here, however only carriage return And
+        ''' line feed characters are recognized by the parser as end of line.</param>
+        Public Shared Function ElasticEndOfLine(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic:=True), SyntaxTrivia)
+        End Function
+
+        <Obsolete("Use SyntaxFactory.EndOfLine or SyntaxFactory.ElasticEndOfLine")>
+        <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+        Public Shared Function EndOfLine(text As String, elastic As Boolean) As SyntaxTrivia
             Return CType(InternalSyntax.SyntaxFactory.EndOfLine(text, elastic), SyntaxTrivia)
+        End Function
+
+        ''' <summary>
+        ''' Creates a trivia with kind WhitespaceTrivia containing the specified text.
+        ''' </summary>
+        ''' <param name="text">The text of the whitespace. Any text can be specified here, however only specific
+        ''' whitespace characters are recognized by the parser.</param>
+        Public Shared Function Whitespace(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=False), SyntaxTrivia)
+        End Function
+
+        ''' <summary>
+        ''' Creates a trivia with kind WhitespaceTrivia containing the specified text. Elastic trivia are used to
+        ''' denote trivia that was Not produced by parsing source text, And are usually Not preserved during formatting.
+        ''' </summary>
+        ''' <param name="text">The text of the whitespace. Any text can be specified here, however only specific
+        ''' whitespace characters are recognized by the parser.</param>
+        Public Shared Function ElasticWhitespace(text As String) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic:=True), SyntaxTrivia)
+        End Function
+
+        <Obsolete("Use SyntaxFactory.Whitespace or SyntaxFactory.ElasticWhitespace")>
+        <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+        Public Shared Function Whitespace(text As String, elastic As Boolean) As SyntaxTrivia
+            Return CType(InternalSyntax.SyntaxFactory.Whitespace(text, elastic), SyntaxTrivia)
         End Function
 
         ''' <summary> 
@@ -82,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndOfInterpolatedStringToken
 
                 Case Else
-                    Throw New ArgumentOutOfRangeException("kind")
+                    Throw New ArgumentOutOfRangeException(NameOf(kind))
             End Select
         End Sub
 
@@ -123,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte signed integer value. </summary> 
         ''' <param name="text">The raw text of the literal.</param> <param name="value">The 4-byte signed integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Integer) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte signed integer value. </summary> 
@@ -132,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 4-byte signed integer value to be represented by the returned token.</param> 
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Integer, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H"), LiteralBase.Hexadecimal, If(text.StartsWith("&O"), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("I"), TypeCharacter.IntegerLiteral, TypeCharacter.None), CULng(value),
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("I", StringComparison.OrdinalIgnoreCase), TypeCharacter.IntegerLiteral, TypeCharacter.None), CULng(value),
                         DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -147,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As UInteger) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 4-byte unsigned integer value. </summary>
@@ -156,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 4-byte unsigned integer value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As UInteger, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H"), LiteralBase.Hexadecimal, If(text.StartsWith("&O"), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("UI"), TypeCharacter.UIntegerLiteral, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("UI", StringComparison.OrdinalIgnoreCase), TypeCharacter.UIntegerLiteral, TypeCharacter.None), value,
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -170,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Long) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 8-byte signed integer value. </summary>
@@ -179,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 8-byte signed integer value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Long, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H"), LiteralBase.Hexadecimal, If(text.StartsWith("&O"), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("L"), TypeCharacter.LongLiteral, TypeCharacter.None), CULng(value),
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("L", StringComparison.OrdinalIgnoreCase), TypeCharacter.LongLiteral, TypeCharacter.None), CULng(value),
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -193,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As ULong) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind IntegerLiteralToken from the text and corresponding 8-byte unsigned integer value. </summary>
@@ -202,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 8-byte unsigned integer value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As ULong, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H"), LiteralBase.Hexadecimal, If(text.StartsWith("&O"), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("UL"), TypeCharacter.ULongLiteral, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, If(text.StartsWith("&H", StringComparison.OrdinalIgnoreCase), LiteralBase.Hexadecimal, If(text.StartsWith("&O", StringComparison.OrdinalIgnoreCase), LiteralBase.Octal, LiteralBase.Decimal)), If(text.EndsWith("UL", StringComparison.OrdinalIgnoreCase), TypeCharacter.ULongLiteral, TypeCharacter.None), value,
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -216,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 4-byte floating point value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Single) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from the text and corresponding 4-byte floating point value. </summary>
@@ -225,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="value">The 4-byte floating point value to be represented by the returned token.</param>
         ''' <param name="trailing">A list of trivia immediately following the token.</param>
         Public Shared Function Literal(leading As SyntaxTriviaList, text As String, value As Single, trailing As SyntaxTriviaList) As SyntaxToken
-            Return CType(InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, If(text.EndsWith("F"), TypeCharacter.Single, TypeCharacter.None), value,
+            Return CType(InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, If(text.EndsWith("F", StringComparison.Ordinal), TypeCharacter.Single, TypeCharacter.None), value,
                     DirectCast(leading.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailing.Node, InternalSyntax.VisualBasicSyntaxNode)), SyntaxToken)
         End Function
 
@@ -239,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The 8-byte floating point value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Double) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind FloatingLiteralToken from the text and corresponding 8-byte floating point value. </summary>
@@ -262,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal.</param>
         ''' <param name="value">The decimal value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Decimal) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind DecimalLiteralToken from the text and corresponding decimal value. </summary>
@@ -285,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal, including quotes and escape sequences.</param>
         ''' <param name="value">The string value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As String) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind StringLiteralToken from the text and corresponding string value. </summary>
@@ -308,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="text">The raw text of the literal, including quotes and escape sequences.</param>
         ''' <param name="value">The character value to be represented by the returned token.</param>
         Public Shared Function Literal(text As String, value As Char) As SyntaxToken
-            Return Literal(ElasticMarkerList, text, value, ElasticMarkerList)
+            Return Literal(s_elasticMarkerList, text, value, s_elasticMarkerList)
         End Function
 
         ''' <summary> Creates a token with kind CharacterLiteralToken from the text and corresponding character value. </summary>

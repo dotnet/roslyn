@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BinaryOperatorKind.Equal:
                     case BinaryOperatorKind.NotEqual:
-                        TypeSymbol systemDelegateType = _binder.GetSpecialType(SpecialType.System_Delegate, _binder.Compilation.SemanticDiagnostics, left.Syntax);
+                        TypeSymbol systemDelegateType = _binder.GetSpecialType(SpecialType.System_Delegate, _binder.Compilation.DeclarationDiagnostics, left.Syntax);
 
                         if (Conversions.ClassifyImplicitConversionFromExpression(left, systemDelegateType, ref useSiteDiagnostics).IsValid &&
                             Conversions.ClassifyImplicitConversionFromExpression(right, systemDelegateType, ref useSiteDiagnostics).IsValid)

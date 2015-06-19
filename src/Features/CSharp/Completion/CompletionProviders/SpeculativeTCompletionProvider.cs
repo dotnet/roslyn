@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetSpeculativeTCompletions(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             int testPosition = position;
             var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(leftToken.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(leftToken.Parent, cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsGenericTypeArgumentContext(position, leftToken, cancellationToken, semanticModel))
             {
                 // Walk out until we find the start of the partial written generic

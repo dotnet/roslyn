@@ -114,7 +114,7 @@ namespace Microsoft.Cci
     internal interface IAssemblyReference : IModuleReference
     {
         /// <summary>
-        /// Identifies the culture associated with the assembly reference. Typically specified for sattelite assemblies with localized resources.
+        /// Identifies the culture associated with the assembly reference. Typically specified for satellite assemblies with localized resources.
         /// Empty if not specified.
         /// </summary>
         string Culture { get; }
@@ -165,7 +165,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Public types defined in other modules making up this assembly and to which other assemblies may refer to via this assembly.
         /// </summary>
-        IEnumerable<ITypeExport> GetExportedTypes(EmitContext context);
+        IEnumerable<ITypeReference> GetExportedTypes(EmitContext context);
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
@@ -414,7 +414,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Project level imports (VB only, TODO: C# scripts).
         /// </summary>
-        ImmutableArray<UsedNamespaceOrType> GetImports(EmitContext context);
+        ImmutableArray<UsedNamespaceOrType> GetImports();
 
         /// <summary>
         /// Default namespace (VB only).

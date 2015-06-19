@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
     internal class TodoTaskItem : TaskItem
     {
-        public int Priority { get; private set; }
+        public int Priority { get; }
 
         public TodoTaskItem(
             int priority,

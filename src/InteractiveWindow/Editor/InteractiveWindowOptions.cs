@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +11,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 {
     public static class InteractiveWindowOptions
     {
-        private static readonly EditorOptionKey<bool> smartUpDown = new EditorOptionKey<bool>(SmartUpDownOption.OptionName);
+        private static readonly EditorOptionKey<bool> s_smartUpDown = new EditorOptionKey<bool>(SmartUpDownOption.OptionName);
 
         /// <summary>
         /// Indicates that the window should be using smart up/down behavior.  When enabled pressing
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             get
             {
-                return smartUpDown;
+                return s_smartUpDown;
             }
         }
     }

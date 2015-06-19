@@ -738,7 +738,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -1078,7 +1078,7 @@ Class NewClass_Using_Attribute
         End Class
 
 
-        Class New_InhertitedAttribute
+        Class New_InheritedAttribute
             Inherits ClassLibrary1.TestAttribute
         End Class
 
@@ -1367,7 +1367,7 @@ End Namespace
         End Sub
 
         <Fact>
-        Sub Retarget_Scoping()
+        Public Sub Retarget_Scoping()
             'Retargeting symbols occurs for types even if inaccessible 
             'Diagnostics are checked to verify Semnatic behaviour
 
@@ -1511,7 +1511,7 @@ End Namespace
             Dim sourceMethod As MethodSymbol = Nothing
             Dim retargetingMethod As MethodSymbol = Nothing
 
-            'Public With Different Accessible Memeber
+            'Public With Different Accessible Member
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)
@@ -2412,7 +2412,7 @@ test
 
 
         <Fact>
-        Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
+        Public Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
             'This test should also result in clean compilation after retargeting
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -2584,7 +2584,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -2690,7 +2690,7 @@ End Class
 
 
         <Fact>
-        Sub RetargetTest_NoChangeInDiagnostics_Errors()
+        Public Sub RetargetTest_NoChangeInDiagnostics_Errors()
             ' Ensure that same errors occur in retargeting for constraint compilation errors
             Dim sourceLibV1 =
 <compilation name="Lib">
@@ -2864,7 +2864,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 

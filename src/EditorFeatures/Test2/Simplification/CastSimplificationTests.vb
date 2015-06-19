@@ -922,7 +922,7 @@ class X
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529855)>
-        Public Sub CSharp_Remove_UnnecessaryCastInIsExpression()
+        Public Sub CSharp_Remove_CastInIsExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1236,7 +1236,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInTernaryExpression()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInTernaryExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1278,7 +1278,7 @@ class Test
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInTernaryExpression2()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInTernaryExpression2()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1320,7 +1320,7 @@ class Test
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530085)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInTernaryExpression3()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInTernaryExpression3()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1358,7 +1358,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529985)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInMemberAccessExpression()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInMemberAccessExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1408,7 +1408,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529956)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInForEachExpression()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInForEachExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1464,7 +1464,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529956)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInForEachExpressionInsideLambda()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInForEachExpressionInsideLambda()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1526,7 +1526,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529844)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInNumericConversion()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInNumericConversion()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1576,7 +1576,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(662196)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastInDynamicInvocation()
+        Public Sub CSharp_DoNotRemove_NecessaryCastInDynamicInvocation()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1616,7 +1616,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529962)>
-        Public Sub CSharp_Remove_UnneccessaryCastInIsExpression()
+        Public Sub CSharp_Remove_UnnecessaryCastInIsExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1658,7 +1658,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(662196)>
-        Public Sub CSharp_Remove_UnneccessaryCastInAsExpression()
+        Public Sub CSharp_Remove_UnnecessaryCastInAsExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1700,7 +1700,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529973)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastToDelegateInIsExpression()
+        Public Sub CSharp_DoNotRemove_NecessaryCastToDelegateInIsExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1738,7 +1738,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529973)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastToDelegateInAsExpression()
+        Public Sub CSharp_DoNotRemove_NecessaryCastToDelegateInAsExpression()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1776,7 +1776,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
-        Public Sub CSharp_DoNotRemove_NeccessaryCastForParamsArgument()
+        Public Sub CSharp_DoNotRemove_NecessaryCastForParamsArgument()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1834,7 +1834,7 @@ class A
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
-        Public Sub CSharp_Remove_UnneccessaryCastsForParamsArguments()
+        Public Sub CSharp_Remove_UnnecessaryCastsForParamsArguments()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1969,8 +1969,10 @@ class C
         End Sub
 
         <WorkItem(530083)>
+        <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub Csharp_Remove_InsideThrowStatement2()
+        Public Sub CSharp_Remove_InsideThrowStatement2()
+            ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1998,7 +2000,7 @@ class C
 	public static void Main()
 	{
 		Exception ex = new ArgumentException();
-		throw ex;
+		throw (ArgumentException)ex;
 	}
 }
 </code>
@@ -4067,7 +4069,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1007371)>
-        Public Sub CSharp_Remove_UnncessaryCastAndParens()
+        Public Sub CSharp_Remove_UnnecessaryCastAndParens()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -4101,7 +4103,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1067214)>
-        Public Sub CSharp_Remove_UnncessaryCastInExpressionBody_Property()
+        Public Sub CSharp_Remove_UnnecessaryCastInExpressionBody_Property()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -4125,10 +4127,11 @@ class Program
 </code>
 
             Test(input, expected)
-            End SUb
-            <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(1067214)>
-        Public Sub CSharp_Remove_UnncessaryCastInExpressionBody_Method()
+        Public Sub CSharp_Remove_UnnecessaryCastInExpressionBody_Method()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -4147,6 +4150,105 @@ class Program
 class Program
 {
     public int X() => 0;
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(253, "https://github.com/dotnet/roslyn/issues/253")>
+        Public Sub CSharp_DoNotRemove_NecessaryCastInConditionAccess()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public class Class1
+{
+    static void Test(object arg)
+    {
+        var identity = ({|Simplify:(B)arg|})?.A ?? (A)arg;
+    }
+}
+
+class A { }
+class B
+{
+    public A A { get { return null; } }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+public class Class1
+{
+    static void Test(object arg)
+    {
+        var identity = ((B)arg)?.A ?? (A)arg;
+    }
+}
+
+class A { }
+class B
+{
+    public A A { get { return null; } }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DoNotRemove_NecessaryCastInConditionalExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? {|Simplify:(Subject<TResult>?)|}new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? (Subject<TResult>?)new Subject<TResult>((TResult)_value) : null;
+    }
 }
 ]]>
 </code>
@@ -4428,8 +4530,10 @@ End Class
         End Sub
 
         <WorkItem(530083)>
+        <WorkItem(2761, "https://github.com/dotnet/roslyn/issues/2761")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_Remove_InsideThrowStatement2()
+        Public Sub VisualBasic_DontRemove_InsideThrowStatement2()
+            ' We can't remove cast from base to derived, as we cannot be sure that the cast will succeed at runtime.
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -4451,7 +4555,7 @@ Imports System
 Class C
     Shared Sub Main()
         Dim ex As Exception = New ArgumentException()
-        Throw ex
+        Throw DirectCast(ex, ArgumentException)
     End Sub
 End Class
 </code>
@@ -4763,7 +4867,7 @@ End Class
 
         <WorkItem(529956)>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub VisualBasic_DoNotRemove_NeccessaryCastInForEachExpression()
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastInForEachExpression()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -4808,7 +4912,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
-        Public Sub VisualBasic_DoNotRemove_NeccessaryCastForParamsArgument()
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastForParamsArgument()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -4858,7 +4962,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529968)>
-        Public Sub VisualBasic_Remove_UnneccessaryCastsForParamsArguments()
+        Public Sub VisualBasic_Remove_UnnecessaryCastsForParamsArguments()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -4908,7 +5012,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529985)>
-        Public Sub VisualBasic_DoNotRemove_NeccessaryCastInMemberAccessExpression()
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastInMemberAccessExpression()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -4950,7 +5054,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529844)>
-        Public Sub VisualBasic_DoNotRemove_NeccessaryCastInNumericConversion()
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastInNumericConversion()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -7056,7 +7160,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(995855)>
-        Public Sub VisualBasic_Remove_UnncessaryCastInTernaryExpression()
+        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -7113,6 +7217,50 @@ Class Program
         Dim p As Object = 0
         Console.Write(TryCast(p, String) IsNot Nothing)
     End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(253, "https://github.com/dotnet/roslyn/issues/253")>
+        Public Sub VisualBasic_DoNotRemove_NecessaryCastInConditionAccess()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Option Strict On
+
+Public Class Class1
+    Friend Shared Sub Test(arg As Object)
+        Dim identity = If({|Simplify:TryCast(arg, B)|}?.A, TryCast(arg, A))
+    End Sub
+    Class A
+    End Class
+    Class B
+        Public ReadOnly Property A As A
+    End Class
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Option Strict On
+
+Public Class Class1
+    Friend Shared Sub Test(arg As Object)
+        Dim identity = If(TryCast(arg, B)?.A, TryCast(arg, A))
+    End Sub
+    Class A
+    End Class
+    Class B
+        Public ReadOnly Property A As A
+    End Class
 End Class
 ]]>
 </code>

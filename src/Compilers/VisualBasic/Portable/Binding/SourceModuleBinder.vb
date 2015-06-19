@@ -20,11 +20,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class SourceModuleBinder
         Inherits Binder
 
-        Private m_sourceModule As SourceModuleSymbol
+        Private ReadOnly _sourceModule As SourceModuleSymbol
 
         Public Sub New(containingBinder As Binder, sourceModule As SourceModuleSymbol)
             MyBase.New(containingBinder, sourceModule, sourceModule.ContainingSourceAssembly.DeclaringCompilation)
-            m_sourceModule = sourceModule
+            _sourceModule = sourceModule
         End Sub
 
         Public Overrides Function CheckAccessibility(sym As Symbol,
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      Optional basesBeingResolved As ConsList(Of Symbol) = Nothing) As AccessCheckResult
             Return If(IgnoresAccessibility,
                 AccessCheckResult.Accessible,
-                AccessCheck.CheckSymbolAccessibility(sym, m_sourceModule.ContainingSourceAssembly, useSiteDiagnostics, basesBeingResolved))  ' accessThroughType doesn't matter at assembly level.
+                AccessCheck.CheckSymbolAccessibility(sym, _sourceModule.ContainingSourceAssembly, useSiteDiagnostics, basesBeingResolved))  ' accessThroughType doesn't matter at assembly level.
         End Function
 
         Public Overrides Function GetErrorSymbol(name As String,
@@ -45,37 +45,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property OptionStrict As OptionStrict
             Get
-                Return m_sourceModule.Options.OptionStrict
+                Return _sourceModule.Options.OptionStrict
             End Get
         End Property
 
         Public Overrides ReadOnly Property OptionInfer As Boolean
             Get
-                Return m_sourceModule.Options.OptionInfer
+                Return _sourceModule.Options.OptionInfer
             End Get
         End Property
 
         Public Overrides ReadOnly Property OptionExplicit As Boolean
             Get
-                Return m_sourceModule.Options.OptionExplicit
+                Return _sourceModule.Options.OptionExplicit
             End Get
         End Property
 
         Public Overrides ReadOnly Property OptionCompareText As Boolean
             Get
-                Return m_sourceModule.Options.OptionCompareText
+                Return _sourceModule.Options.OptionCompareText
             End Get
         End Property
 
         Public Overrides ReadOnly Property CheckOverflow As Boolean
             Get
-                Return m_sourceModule.Options.CheckOverflow
+                Return _sourceModule.Options.CheckOverflow
             End Get
         End Property
 
         Public Overrides ReadOnly Property QuickAttributeChecker As QuickAttributeChecker
             Get
-                Return m_sourceModule.QuickAttributeChecker
+                Return _sourceModule.QuickAttributeChecker
             End Get
         End Property
     End Class

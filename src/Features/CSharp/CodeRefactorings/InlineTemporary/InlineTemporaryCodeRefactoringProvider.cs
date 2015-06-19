@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
             if (!token.Span.Contains(textSpan))
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 .Select(loc => (IdentifierNameSyntax)syntaxRoot.FindToken(loc.Location.SourceSpan.Start).Parent)
                 .Where(ident => !HasConflict(ident, variableDeclarator));
 
-            // Add referenceAnnotions to identifier nodes being replaced.
+            // Add referenceAnnotations to identifier nodes being replaced.
             updatedDocument = await updatedDocument.ReplaceNodesAsync(
                 nonConflictingIdentifierNodes,
                 (o, n) => n.WithAdditionalAnnotations(ReferenceAnnotation),
@@ -504,37 +504,44 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var inlinedExprNodes = syntaxRootAfterInline.GetAnnotatedNodesAndTokens(ExpressionToInlineAnnotation);
             Debug.Assert(originalIdentifierNodes.Count() == inlinedExprNodes.Count());
 
-            var originalNodesEnum = originalIdentifierNodes.GetEnumerator();
-            var inlinedNodesEnum = inlinedExprNodes.GetEnumerator();
             Dictionary<SyntaxNode, SyntaxNode> replacementNodesWithChangedSemantics = null;
-
-            while (originalNodesEnum.MoveNext())
+            using (var originalNodesEnum = originalIdentifierNodes.GetEnumerator())
             {
-                inlinedNodesEnum.MoveNext();
-                var originalNode = originalNodesEnum.Current;
-
-                // expressionToInline is Parenthesized prior to replacement, so get the parenting parenthesized expression.
-                var inlinedNode = (ExpressionSyntax)inlinedNodesEnum.Current.AsNode().Parent;
-                Debug.Assert(inlinedNode.IsKind(SyntaxKind.ParenthesizedExpression));
-
-                // inlinedNode is the expanded form of the actual initializer expression in the original document.
-                // We have annotated the inner initializer with a special syntax annotation "InitializerAnnotation".
-                // Get this annotated node and compute the symbol info for this node in the inlined document.
-                var innerInitializerInInlineNode = (ExpressionSyntax)inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First().AsNode();
-                var newInializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
-
-                // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
-                if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInializerSymbolInfo, performEquivalenceCheck: true))
+                using (var inlinedNodesOrTokensEnum = inlinedExprNodes.GetEnumerator())
                 {
-                    newInializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
-                    if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInializerSymbolInfo, performEquivalenceCheck: true))
+                    while (originalNodesEnum.MoveNext())
                     {
-                        if (replacementNodesWithChangedSemantics == null)
-                        {
-                            replacementNodesWithChangedSemantics = new Dictionary<SyntaxNode, SyntaxNode>();
-                        }
+                        inlinedNodesOrTokensEnum.MoveNext();
+                        var originalNode = originalNodesEnum.Current;
 
-                        replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
+                        // expressionToInline is Parenthesized prior to replacement, so get the parenting parenthesized expression.
+                        var inlinedNode = (ExpressionSyntax)inlinedNodesOrTokensEnum.Current.Parent;
+                        Debug.Assert(inlinedNode.IsKind(SyntaxKind.ParenthesizedExpression));
+
+                        // inlinedNode is the expanded form of the actual initializer expression in the original document.
+                        // We have annotated the inner initializer with a special syntax annotation "InitializerAnnotation".
+                        // Get this annotated node and compute the symbol info for this node in the inlined document.
+                        var innerInitializerInInlineNodeorToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
+
+                        ExpressionSyntax innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeorToken.IsNode ?
+                            innerInitializerInInlineNodeorToken.AsNode() :
+                            innerInitializerInInlineNodeorToken.AsToken().Parent);
+                        var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
+
+                        // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.
+                        if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
+                        {
+                            newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(inlinedNode, cancellationToken);
+                            if (!SpeculationAnalyzer.SymbolInfosAreCompatible(originalInitializerSymbolInfo, newInitializerSymbolInfo, performEquivalenceCheck: true))
+                            {
+                                if (replacementNodesWithChangedSemantics == null)
+                                {
+                                    replacementNodesWithChangedSemantics = new Dictionary<SyntaxNode, SyntaxNode>();
+                                }
+
+                                replacementNodesWithChangedSemantics.Add(inlinedNode, originalNode);
+                            }
+                        }
                     }
                 }
             }

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -14,22 +15,15 @@ Public MustInherit Class BasicTestBase
     Protected Overloads Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs() As MetadataReference,
-        options As VisualBasicCompilationOptions
+        options As VisualBasicCompilationOptions,
+        parseOptions As VisualBasicParseOptions
     ) As VisualBasicCompilation
-        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options), VisualBasicCompilation)
+        Return DirectCast(MyBase.GetCompilationForEmit(source, additionalRefs, options, parseOptions), VisualBasicCompilation)
     End Function
 
-    Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol, TestEmitters)
+    Private Function Translate(action As Action(Of ModuleSymbol)) As Action(Of IModuleSymbol)
         If action IsNot Nothing Then
-            Return Sub(m, _omitted) action(DirectCast(m, ModuleSymbol))
-        Else
-            Return Nothing
-        End If
-    End Function
-
-    Private Function Translate(action As Action(Of PEAssembly)) As Action(Of PEAssembly, TestEmitters)
-        If action IsNot Nothing Then
-            Return Sub(a, _omitted) action(a)
+            Return Sub(m) action(DirectCast(m, ModuleSymbol))
         Else
             Return Nothing
         End If
@@ -41,13 +35,11 @@ Public MustInherit Class BasicTestBase
         expectedOutput As XCData,
         Optional additionalRefs() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -61,42 +53,36 @@ Public MustInherit Class BasicTestBase
             If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
             additionalRefs,
             dependencies,
-            emitOptions,
             sourceSymbolValidator,
             validator,
             symbolValidator,
             expectedSignatures,
             options,
-            collectEmittedAssembly,
             parseOptions,
             verify)
     End Function
 
-    ' TODO (tomat): remove - here only to override TestEmitOptions default
+    ' TODO (tomat): remove - here only to override emitters default
     Friend Shadows Function CompileAndVerify(
         compilation As Compilation,
         Optional manifestResources As IEnumerable(Of ResourceDescription) = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional expectedOutput As String = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional verify As Boolean = True) As CompilationVerifier
 
         Return MyBase.CompileAndVerify(
             compilation,
             manifestResources,
             dependencies,
-            emitOptions,
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
-            collectEmittedAssembly,
             verify)
     End Function
 
@@ -104,41 +90,34 @@ Public MustInherit Class BasicTestBase
         compilation As Compilation,
         expectedOutput As XCData,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional verify As Boolean = True) As CompilationVerifier
 
         Return CompileAndVerify(
             compilation,
             Nothing,
             dependencies,
-            emitOptions,
             sourceSymbolValidator,
             validator,
             symbolValidator,
             expectedSignatures,
             If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
-            collectEmittedAssembly,
             verify)
     End Function
 
-    ' TODO: EmitOptions.All
     Friend Shadows Function CompileAndVerify(
         source As XElement,
         Optional expectedOutput As String = Nothing,
         Optional additionalRefs() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
@@ -151,13 +130,11 @@ Public MustInherit Class BasicTestBase
                                    allReferences,
                                    expectedOutput,
                                    dependencies,
-                                   emitOptions,
                                    sourceSymbolValidator,
                                    validator,
                                    symbolValidator,
                                    expectedSignatures,
                                    options,
-                                   collectEmittedAssembly,
                                    parseOptions,
                                    verify)
 
@@ -169,13 +146,11 @@ Public MustInherit Class BasicTestBase
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
-        Optional validator As Action(Of PEAssembly, TestEmitters) = Nothing,
+        Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -190,13 +165,11 @@ Public MustInherit Class BasicTestBase
             compilation,
             Nothing,
             dependencies,
-            emitOptions,
             Translate(sourceSymbolValidator),
             validator,
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
-            collectEmittedAssembly,
             verify)
     End Function
 
@@ -205,13 +178,11 @@ Public MustInherit Class BasicTestBase
         allReferences As IEnumerable(Of MetadataReference),
         Optional expectedOutput As String = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -220,13 +191,11 @@ Public MustInherit Class BasicTestBase
             allReferences,
             If(OSVersion.IsWin8, expectedOutput, Nothing),
             dependencies,
-            emitOptions,
             sourceSymbolValidator,
-            Translate(validator),
+            validator,
             symbolValidator,
             expectedSignatures,
             options,
-            collectEmittedAssembly,
             parseOptions,
             verify:=OSVersion.IsWin8)
     End Function
@@ -237,13 +206,11 @@ Public MustInherit Class BasicTestBase
         expectedOutput As XCData,
         Optional allReferences() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True
     ) As CompilationVerifier
@@ -252,13 +219,11 @@ Public MustInherit Class BasicTestBase
             allReferences,
             If(expectedOutput IsNot Nothing, expectedOutput.Value.Replace(vbLf, Environment.NewLine), Nothing),
             dependencies,
-            emitOptions,
             sourceSymbolValidator,
             validator,
             symbolValidator,
             expectedSignatures,
             options,
-            collectEmittedAssembly,
             parseOptions,
             verify)
     End Function
@@ -268,13 +233,11 @@ Public MustInherit Class BasicTestBase
         Optional expectedOutput As String = Nothing,
         Optional additionalRefs() As MetadataReference = Nothing,
         Optional dependencies As IEnumerable(Of ModuleData) = Nothing,
-        Optional emitOptions As TestEmitters = TestEmitters.CCI,
         Optional sourceSymbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional validator As Action(Of PEAssembly) = Nothing,
         Optional symbolValidator As Action(Of ModuleSymbol) = Nothing,
         Optional expectedSignatures As SignatureDescription() = Nothing,
         Optional options As VisualBasicCompilationOptions = Nothing,
-        Optional collectEmittedAssembly As Boolean = True,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
         Optional verify As Boolean = True,
         Optional useLatestFramework As Boolean = False
@@ -284,13 +247,11 @@ Public MustInherit Class BasicTestBase
             expectedOutput:=If(OSVersion.IsWin8, expectedOutput, Nothing),
             additionalRefs:=additionalRefs,
             dependencies:=dependencies,
-            emitOptions:=emitOptions,
             sourceSymbolValidator:=sourceSymbolValidator,
-            validator:=Translate(validator),
+            validator:=validator,
             symbolValidator:=symbolValidator,
             expectedSignatures:=expectedSignatures,
             options:=options,
-            collectEmittedAssembly:=collectEmittedAssembly,
             parseOptions:=parseOptions,
             verify:=OSVersion.IsWin8 AndAlso verify,
             useLatestFramework:=useLatestFramework)
@@ -306,9 +267,6 @@ Public MustInherit Class BasicTestBase
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    ''' <param name="ilSource"></param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
     Friend Function CompileWithCustomILSource(sources As XElement, ilSource As XCData) As CompilationVerifier
         Return CompileWithCustomILSource(sources, ilSource.Value)
     End Function
@@ -323,7 +281,11 @@ Public MustInherit Class BasicTestBase
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    Friend Function CompileWithCustomILSource(sources As XElement, ilSource As String, Optional options As VisualBasicCompilationOptions = Nothing, Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing, Optional emitOptions As TestEmitters = TestEmitters.All, Optional expectedOutput As String = Nothing) As CompilationVerifier
+    Friend Function CompileWithCustomILSource(sources As XElement,
+                                              ilSource As String,
+                                              Optional options As VisualBasicCompilationOptions = Nothing,
+                                              Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing,
+                                              Optional expectedOutput As String = Nothing) As CompilationVerifier
         If expectedOutput IsNot Nothing Then
             options = options.WithOutputKind(OutputKind.ConsoleApplication)
         End If
@@ -344,16 +306,16 @@ Public MustInherit Class BasicTestBase
         End If
 
 
-        Return CompileAndVerify(compilation, emitOptions:=emitOptions, expectedOutput:=expectedOutput)
+        Return CompileAndVerify(compilation, expectedOutput:=expectedOutput)
     End Function
 
     Friend Overloads Function CompileAndVerifyFieldMarshal(source As XElement,
                                                            expectedBlobs As Dictionary(Of String, Byte()),
-                                                           Optional getExpectedBlob As Func(Of String, PEAssembly, TestEmitters, Byte()) = Nothing,
+                                                           Optional getExpectedBlob As Func(Of String, PEAssembly, Byte()) = Nothing,
                                                            Optional expectedSignatures As SignatureDescription() = Nothing,
                                                            Optional isField As Boolean = True) As CompilationVerifier
         Return CompileAndVerifyFieldMarshal(source,
-                                            Function(s, _omitted1, omitted2)
+                                            Function(s, _omitted1)
                                                 Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " & If(isField, "field ", "parameter ") & s)
                                                 Return expectedBlobs(s)
                                             End Function,
@@ -362,12 +324,12 @@ Public MustInherit Class BasicTestBase
     End Function
 
     Friend Overloads Function CompileAndVerifyFieldMarshal(source As XElement,
-                                                           getExpectedBlob As Func(Of String, PEAssembly, TestEmitters, Byte()),
+                                                           getExpectedBlob As Func(Of String, PEAssembly, Byte()),
                                                            Optional expectedSignatures As SignatureDescription() = Nothing,
                                                            Optional isField As Boolean = True) As CompilationVerifier
         Return CompileAndVerify(source,
                                 options:=TestOptions.ReleaseDll,
-                                validator:=Sub(assembly, emitOptions) MarshalAsMetadataValidator(assembly, getExpectedBlob, emitOptions, isField),
+                                validator:=Sub(assembly) MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
                                 expectedSignatures:=expectedSignatures)
     End Function
 
@@ -396,15 +358,15 @@ Public MustInherit Class BasicTestBaseBase
                                          errorCodeType:=GetType(ERRID))
     End Function
 
-    Friend Shared Function AnalyzerDiagnostic(code As String, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
+    Friend Shared Function AnalyzerDiagnostic(code As String, Optional squiggledText As XCData = Nothing, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
         'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
         Return New DiagnosticDescription(code:=code,
-                                         squiggledText:=NormalizeDiagnosticString(squiggledText.Value),
+                                         squiggledText:=If(squiggledText IsNot Nothing, NormalizeDiagnosticString(squiggledText.Value), Nothing),
                                          arguments:=arguments,
                                          startLocation:=startLocation,
                                          syntaxNodePredicate:=DirectCast(syntaxNodePredicate, Func(Of SyntaxNode, Boolean)),
                                          argumentOrderDoesNotMatter:=argumentOrderDoesNotMatter,
-                                         errorCodeType:=GetType(ERRID))
+                                         errorCodeType:=GetType(String))
     End Function
     Friend Shared Function Diagnostic(code As ERRID, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
         'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
@@ -453,8 +415,8 @@ Public MustInherit Class BasicTestBaseBase
         End Get
     End Property
 
-    Dim _lazyDefaultReferences As MetadataReference()
-    Dim _lazyLatestReferences As MetadataReference()
+    Private _lazyDefaultReferences As MetadataReference()
+    Private _lazyLatestReferences As MetadataReference()
 
     Protected ReadOnly Property DefaultReferences As MetadataReference()
         Get
@@ -479,11 +441,12 @@ Public MustInherit Class BasicTestBaseBase
     Protected Overrides Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs As IEnumerable(Of MetadataReference),
-        options As CompilationOptions
+        options As CompilationOptions,
+        parseOptions As ParseOptions
     ) As Compilation
         Return VisualBasicCompilation.Create(
             GetUniqueName(),
-            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t)),
+            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
             references:=If(additionalRefs IsNot Nothing, DefaultReferences.Concat(additionalRefs), DefaultReferences),
             options:=DirectCast(options, VisualBasicCompilationOptions))
     End Function
@@ -748,7 +711,7 @@ Public MustInherit Class BasicTestBaseBase
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private _names As New List(Of NameSyntax)
+        Private ReadOnly _names As New List(Of NameSyntax)
 
         Public Shared Function FindNames(node As SyntaxNode) As List(Of NameSyntax)
             Dim finder As New NameSyntaxFinder()
@@ -773,7 +736,7 @@ Public MustInherit Class BasicTestBaseBase
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private _expressions As New List(Of ExpressionSyntax)
+        Private ReadOnly _expressions As New List(Of ExpressionSyntax)
 
         Public Shared Function FindExpression(node As SyntaxNode) As List(Of ExpressionSyntax)
             Dim finder As New ExpressionSyntaxFinder()
@@ -797,8 +760,8 @@ Public MustInherit Class BasicTestBaseBase
             MyBase.DefaultVisit(node)
         End Sub
 
-        Private _nodes As New List(Of SyntaxNode)
-        Private _kinds As New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer)
+        Private ReadOnly _nodes As New List(Of SyntaxNode)
+        Private ReadOnly _kinds As New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer)
 
         Public Shared Function FindNodes(Of T As SyntaxNode)(node As SyntaxNode, ParamArray kinds() As SyntaxKind) As List(Of T)
             Return New List(Of T)(From s In FindNodes(node, kinds) Select DirectCast(s, T))

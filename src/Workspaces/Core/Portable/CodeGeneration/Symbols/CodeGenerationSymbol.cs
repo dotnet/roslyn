@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         private ImmutableArray<AttributeData> _attributes;
 
-        public Accessibility DeclaredAccessibility { get; private set; }
-        protected internal DeclarationModifiers Modifiers { get; private set; }
-        public string Name { get; private set; }
+        public Accessibility DeclaredAccessibility { get; }
+        protected internal DeclarationModifiers Modifiers { get; }
+        public string Name { get; }
         public INamedTypeSymbol ContainingType { get; protected set; }
 
         protected CodeGenerationSymbol(

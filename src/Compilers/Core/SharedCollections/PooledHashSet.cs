@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Collections
         private readonly ObjectPool<PooledHashSet<T>> _pool;
 
         private PooledHashSet(ObjectPool<PooledHashSet<T>> pool)
-            : base()
         {
             _pool = pool;
         }
@@ -21,10 +20,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public void Free()
         {
             this.Clear();
-            if (_pool != null)
-            {
-                _pool.Free(this);
-            }
+            _pool?.Free(this);
         }
 
         // global pool

@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -7,7 +9,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -19,28 +20,27 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class OutputClassifierProvider : IClassifierProvider
     {
-        private static readonly object textBufferPropertyKey = new object();
+        private static readonly object s_textBufferPropertyKey = new object();
 
         [Import]
-        private IClassificationTypeRegistryService classificationRegistry = null;
+        private IClassificationTypeRegistryService _classificationRegistry = null;
 
         public IClassifier GetClassifier(ITextBuffer textBuffer)
         {
             return new Classifier(
                 textBuffer,
-                classificationRegistry.GetClassificationType(FormatDefinitions.Output.Name),
-                classificationRegistry.GetClassificationType(FormatDefinitions.ErrorOutput.Name));
+                _classificationRegistry.GetClassificationType(FormatDefinitions.ErrorOutput.Name));
         }
 
         internal static void AttachToBuffer(ITextBuffer buffer, SortedSpans spans)
         {
-            buffer.Properties[textBufferPropertyKey] = spans;
+            buffer.Properties[s_textBufferPropertyKey] = spans;
         }
 
         internal static void ClearSpans(ITextBuffer buffer)
         {
             SortedSpans errorSpans;
-            if (buffer.Properties.TryGetProperty(textBufferPropertyKey, out errorSpans))
+            if (buffer.Properties.TryGetProperty(s_textBufferPropertyKey, out errorSpans))
             {
                 errorSpans.Clear();
             }
@@ -48,34 +48,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private sealed class Classifier : IClassifier
         {
-            private readonly ITextBuffer buffer;
-            private readonly IClassificationType outputType;
-            private readonly IClassificationType errorOutputType;
+            private readonly ITextBuffer _buffer;
+            private readonly IClassificationType _errorOutputType;
 
-            public Classifier(ITextBuffer buffer, IClassificationType outputType, IClassificationType errorOutputType)
+            public Classifier(ITextBuffer buffer, IClassificationType errorOutputType)
             {
-                this.outputType = outputType;
-                this.errorOutputType = errorOutputType;
-                this.buffer = buffer;
+                _errorOutputType = errorOutputType;
+                _buffer = buffer;
             }
 
             public IList<ClassificationSpan> GetClassificationSpans(SnapshotSpan span)
             {
                 SortedSpans errorSpans;
-                if (!buffer.Properties.TryGetProperty(textBufferPropertyKey, out errorSpans))
+                if (!_buffer.Properties.TryGetProperty(s_textBufferPropertyKey, out errorSpans))
                 {
-                    return SpecializedCollections.EmptyList<ClassificationSpan>();
+                    return Array.Empty<ClassificationSpan>();
                 }
 
                 List<ClassificationSpan> classifications = new List<ClassificationSpan>();
-                classifications.Add(new ClassificationSpan(span, outputType));
 
                 foreach (var overlap in errorSpans.GetOverlap(span.Span))
                 {
-                    classifications.Add(new ClassificationSpan(new SnapshotSpan(span.Snapshot, overlap), errorOutputType));
+                    classifications.Add(new ClassificationSpan(new SnapshotSpan(span.Snapshot, overlap), _errorOutputType));
                 }
 
-                return classifications ?? (IList<ClassificationSpan>)SpecializedCollections.EmptyList<ClassificationSpan>();
+                return classifications;
             }
 
             public event EventHandler<ClassificationChangedEventArgs> ClassificationChanged
@@ -92,29 +89,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             [Name(Name)]
             [DisplayName(Name)]
             [UserVisible(true)]
-            internal sealed class Output : ClassificationFormatDefinition
-            {
-                public const string Name = "Roslyn - Interactive Window Output";
-
-                [Export]
-                [Name(Name)]
-                [BaseDefinition(PredefinedClassificationTypeNames.NaturalLanguage)]
-                internal static readonly ClassificationTypeDefinition Definition = null;
-
-                public Output()
-                {
-                    this.ForegroundColor = Color.FromRgb(0, 0, 0);
-                }
-            }
-
-            [Export(typeof(EditorFormatDefinition))]
-            [ClassificationType(ClassificationTypeNames = Name)]
-            [Name(Name)]
-            [DisplayName(Name)]
-            [UserVisible(true)]
             internal sealed class ErrorOutput : ClassificationFormatDefinition
             {
-                public const string Name = "Roslyn - Interactive Window Error Output";
+                public const string Name = "Interactive Window Error Output";
 
                 [Export]
                 [Name(Name)]

@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
@@ -11,14 +13,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal sealed class CustomTrackingSpan : ITrackingSpan
     {
-        private readonly ITrackingPoint start;
-        private readonly ITrackingPoint end;
+        private readonly ITrackingPoint _start;
+        private readonly ITrackingPoint _end;
 
         private CustomTrackingSpan(ITrackingPoint start, ITrackingPoint end)
         {
             Debug.Assert(start.TextBuffer == end.TextBuffer);
-            this.start = start;
-            this.end = end;
+            _start = start;
+            _end = end;
         }
 
         public CustomTrackingSpan(ITextSnapshot snapshot, Span span, PointTrackingMode startTrackingMode, PointTrackingMode endTrackingMode)
@@ -29,30 +31,30 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         public CustomTrackingSpan WithEndTrackingMode(PointTrackingMode endTrackingMode)
         {
             var snapshot = TextBuffer.CurrentSnapshot;
-            var newEnd = snapshot.CreateTrackingPoint(end.GetPosition(snapshot), endTrackingMode);
-            return new CustomTrackingSpan(start, newEnd);
+            var newEnd = snapshot.CreateTrackingPoint(_end.GetPosition(snapshot), endTrackingMode);
+            return new CustomTrackingSpan(_start, newEnd);
         }
 
         #region ITrackingSpan Members
 
         public SnapshotPoint GetEndPoint(ITextSnapshot snapshot)
         {
-            return end.GetPoint(snapshot);
+            return _end.GetPoint(snapshot);
         }
 
         public Span GetSpan(ITextVersion version)
         {
-            return Span.FromBounds(start.GetPosition(version), end.GetPosition(version));
+            return Span.FromBounds(_start.GetPosition(version), _end.GetPosition(version));
         }
 
         public SnapshotSpan GetSpan(ITextSnapshot snapshot)
         {
-            return new SnapshotSpan(snapshot, Span.FromBounds(start.GetPoint(snapshot), end.GetPoint(snapshot)));
+            return new SnapshotSpan(snapshot, Span.FromBounds(_start.GetPoint(snapshot), _end.GetPoint(snapshot)));
         }
 
         public SnapshotPoint GetStartPoint(ITextSnapshot snapshot)
         {
-            return start.GetPoint(snapshot);
+            return _start.GetPoint(snapshot);
         }
 
         public string GetText(ITextSnapshot snapshot)
@@ -62,7 +64,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public ITextBuffer TextBuffer
         {
-            get { return start.TextBuffer; }
+            get { return _start.TextBuffer; }
         }
 
         public TrackingFidelityMode TrackingFidelity
@@ -79,7 +81,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public override string ToString()
         {
-            return "CustomSpan: " + GetSpan(start.TextBuffer.CurrentSnapshot).ToString();
+            return "CustomSpan: " + GetSpan(_start.TextBuffer.CurrentSnapshot).ToString();
         }
     }
 }

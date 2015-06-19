@@ -37,11 +37,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             var document = context.Document;
             var diagnostic = context.Diagnostics.Single();
 
-            var action1 = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _waitIndicator, _refactorNotifyServices, _undoHistoryRegistry, showPreview: false);
-            context.RegisterCodeFix(action1, diagnostic);
-
-            var action2 = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _waitIndicator, _refactorNotifyServices, _undoHistoryRegistry, showPreview: true);
-            context.RegisterCodeFix(action2, diagnostic);
+            // Ensure rename can still be invoked in this document. We reanalyze the document for
+            // diagnostics when rename tracking is manually dismissed, but the existence of our
+            // diagnostic may still be cached, so we have to double check before actually providing
+            // any fixes.
+            if (RenameTrackingTaggerProvider.CanInvokeRename(document))
+            {
+                var action = RenameTrackingTaggerProvider.CreateCodeAction(document, diagnostic, _waitIndicator, _refactorNotifyServices, _undoHistoryRegistry);
+                context.RegisterCodeFix(action, diagnostic);
+            }
 
             return SpecializedTasks.EmptyTask;
         }

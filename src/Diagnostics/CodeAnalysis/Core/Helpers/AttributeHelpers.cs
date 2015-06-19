@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Analyzers
 {
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
             return attributes;
         }
 
-        internal static bool DerivesFrom(INamedTypeSymbol symbol, INamedTypeSymbol candidateBaseType)
+        internal static bool DerivesFrom(this INamedTypeSymbol symbol, INamedTypeSymbol candidateBaseType)
         {
             while (symbol != null)
             {

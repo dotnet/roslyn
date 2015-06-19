@@ -1108,7 +1108,7 @@ End Class
         [Fact]
         public void SuppressDuplicateAnalyzerExceptionDiagnostics()
         {
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = (ex, a) => true;
+            var exceptionDiagnostics = new HashSet<Diagnostic>();
 
             VerifyCSharp(@"
 public class C
@@ -1122,8 +1122,15 @@ public class C2
 }
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
-                continueOnAnalyzerException,
-                Diagnostic("AD0001", null).WithLocation(1, 1));
+                onAnalyzerException: (ex, a, d) => exceptionDiagnostics.Add(d));
+
+            exceptionDiagnostics.Verify(
+                Diagnostic("AD0001", null)
+                    .WithArguments(
+                        "Microsoft.CodeAnalysis.UnitTests.Diagnostics.SuppressMessageAttributeTests+ThrowExceptionForEachNamedTypeAnalyzer",
+                        "System.Exception",
+                        "ThrowExceptionAnalyzer exception")
+                    .WithLocation(1, 1));
         }
 
         #endregion
@@ -1133,9 +1140,14 @@ public class C2
             Verify(source, LanguageNames.CSharp, analyzers, diagnostics);
         }
 
-        protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, params DiagnosticDescription[] diagnostics)
+        protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
         {
-            Verify(source, LanguageNames.CSharp, analyzers, diagnostics, continueOnAnalyzerException);
+            Verify(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException);
+        }
+
+        protected void VerifyCSharp(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionsAsDiagnostics, params DiagnosticDescription[] diagnostics)
+        {
+            Verify(source, LanguageNames.CSharp, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionsAsDiagnostics);
         }
 
         protected void VerifyTokenDiagnosticsCSharp(string markup, params DiagnosticDescription[] diagnostics)
@@ -1146,7 +1158,7 @@ public class C2
         protected void VerifyBasic(string source, string rootNamespace, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
         {
             Assert.False(string.IsNullOrWhiteSpace(rootNamespace), string.Format("Invalid root namespace '{0}'", rootNamespace));
-            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, continueOnAnalyzerException: null, rootNamespace: rootNamespace);
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, rootNamespace: rootNamespace);
         }
 
         protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
@@ -1154,9 +1166,14 @@ public class C2
             Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics);
         }
 
-        protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException, params DiagnosticDescription[] diagnostics)
+        protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, params DiagnosticDescription[] diagnostics)
         {
-            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, continueOnAnalyzerException);
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException);
+        }
+
+        protected void VerifyBasic(string source, DiagnosticAnalyzer[] analyzers, bool logAnalyzerExceptionAsDiagnostics, params DiagnosticDescription[] diagnostics)
+        {
+            Verify(source, LanguageNames.VisualBasic, analyzers, diagnostics, onAnalyzerException: null, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics);
         }
 
         protected void VerifyTokenDiagnosticsBasic(string markup, params DiagnosticDescription[] diagnostics)
@@ -1164,11 +1181,11 @@ public class C2
             VerifyTokenDiagnostics(markup, LanguageNames.VisualBasic, diagnostics);
         }
 
-        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, string rootNamespace = null)
+        protected virtual void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] diagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, string rootNamespace = null)
         {
             Assert.True(analyzers != null && analyzers.Length > 0, "Must specify at least one diagnostic analyzer to test suppression");
             var compilation = CreateCompilation(source, language, analyzers, rootNamespace);
-            compilation.VerifyAnalyzerDiagnostics(analyzers, continueOnAnalyzerException: continueOnAnalyzerException, expected: diagnostics);
+            compilation.VerifyAnalyzerDiagnostics(analyzers, onAnalyzerException: onAnalyzerException, logAnalyzerExceptionAsDiagnostics: logAnalyzerExceptionAsDiagnostics, expected: diagnostics);
         }
 
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed
@@ -1210,9 +1227,17 @@ public class C2
             }
         }
 
-        protected static DiagnosticDescription Diagnostic(string id, string squiggledText)
+        protected virtual bool ConsiderArgumentsForComparingDiagnostics
         {
-            var arguments = squiggledText != null ? new[] { squiggledText } : null;
+            get
+            {
+                return true;
+            }
+        }
+
+        protected DiagnosticDescription Diagnostic(string id, string squiggledText)
+        {
+            var arguments = (this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null) ? new[] { squiggledText } : null;
             return new DiagnosticDescription(id, false, squiggledText, arguments, null, null, false);
         }
     }

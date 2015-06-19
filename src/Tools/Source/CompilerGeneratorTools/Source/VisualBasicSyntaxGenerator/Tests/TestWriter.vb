@@ -12,7 +12,7 @@ Public Class TestWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.
-    Private Const externalSourceDirectiveString As String = "ExternalSourceDirective"
+    Private Const s_externalSourceDirectiveString As String = "ExternalSourceDirective"
 
     ' Initialize the class with the parse tree to write.
     Public Sub New(parseTree As ParseTree)
@@ -110,7 +110,7 @@ Public Class TestWriter
             Dim x = 0
         End If
 
-        If nodeKind.Name.Contains(externalSourceDirectiveString) Then
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
             Return ' check for fix
         End If
 
@@ -173,10 +173,10 @@ Public Class TestWriter
                 '    first = False
                 'End If
 
-                If nodeKind.Name.EndsWith("LiteralToken") OrElse
-                   nodeKind.Name.EndsWith("XmlNameToken") OrElse
-                   nodeKind.Name.EndsWith("DocumentationCommentLineBreakToken") OrElse
-                   nodeKind.Name.Equals("InterpolatedStringTextToken") _
+                If nodeKind.Name.EndsWith("LiteralToken", StringComparison.Ordinal) OrElse
+                   nodeKind.Name.EndsWith("XmlNameToken", StringComparison.Ordinal) OrElse
+                   nodeKind.Name.EndsWith("DocumentationCommentLineBreakToken", StringComparison.Ordinal) OrElse
+                   nodeKind.Name = "InterpolatedStringTextToken" _
                 Then
                     If Not first Then callTokens.Add(", ")
                     callTokens.Add("String.Empty")
@@ -473,7 +473,7 @@ Public Class TestWriter
 
     Private Sub GenerateFactoryCallTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
-        If nodeKind.Name.Contains(externalSourceDirectiveString) Then
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
             Return ' check for fix
         End If
 
@@ -526,7 +526,7 @@ Public Class TestWriter
 
     Private Sub GenerateRewriterTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
-        If nodeKind.Name.Contains(externalSourceDirectiveString) Then
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
             Return ' check for fix
         End If
 
@@ -563,7 +563,7 @@ Public Class TestWriter
 
     Private Sub GenerateVisitorTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
-        If nodeKind.Name.Contains(externalSourceDirectiveString) Then
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
             Return ' check for fix
         End If
 

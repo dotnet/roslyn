@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -63,7 +65,9 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             {
                 service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
                 {
-                    return PickLanguageService(_services.Where(lz => lz.Metadata.ServiceType == svctype.AssemblyQualifiedName));
+                    // PERF: Hoist AssemblyQualifiedName out of inner lambda to avoid repeated string allocations.
+                    var assemblyQualifiedName = svctype.AssemblyQualifiedName;
+                    return PickLanguageService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
                 });
             }
 

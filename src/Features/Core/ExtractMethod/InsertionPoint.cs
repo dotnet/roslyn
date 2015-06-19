@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             _context = CreateLazyContextNode();
         }
 
-        public SemanticDocument SemanticDocument { get; private set; }
+        public SemanticDocument SemanticDocument { get; }
 
         public SyntaxNode GetRoot()
         {

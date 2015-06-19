@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             var type = _container as NamedTypeSymbol;
             if ((object)type != null)
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return Next.IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);  // delegate to containing Binder, eventually checking assembly.
+                return Next.IsAccessibleHelper(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);  // delegate to containing Binder, eventually checking assembly.
             }
         }
 
@@ -145,6 +145,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_container.Kind == SymbolKind.Namespace)
                 {
                     ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
+                }
+                else if (((NamedTypeSymbol)_container).IsScriptClass)
+                {
+                    for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                    {
+                        var scriptClass = submission.ScriptClass;
+                        if ((object)scriptClass != null)
+                        {
+                            scriptClass.GetExtensionMethods(methods, name, arity, options);
+                        }
+                    }
                 }
             }
         }

@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,12 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             get { return _associatedViewService; }
         }
 
-        public object GetPreview(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken, DocumentId preferredDocumentId = null, ProjectId preferredProjectId = null)
-        {
-            var previewObjects = GetPreviews(workspace, operations, cancellationToken);
-            return previewObjects == null ? null : previewObjects.TakeNextPreview(preferredDocumentId, preferredProjectId);
-        }
-
         public SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
             if (operations == null)
@@ -52,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             foreach (var op in operations)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var applyChanges = op as ApplyChangesOperation;
                 if (applyChanges != null)
                 {
@@ -69,17 +66,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var previewOp = op as PreviewOperation;
                 if (previewOp != null)
                 {
-                    var customPreview = previewOp.GetPreview();
-                    if (customPreview != null)
-                    {
-                        return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(null, null, new Lazy<object>(() => customPreview)) });
-                    }
+                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, lazyPreview: c => previewOp.GetPreviewAsync(c)) });
                 }
 
                 var title = op.Title;
                 if (title != null)
                 {
-                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(null, null, new Lazy<object>(() => title)) });
+                    return new SolutionPreviewResult(new List<SolutionPreviewItem>() { new SolutionPreviewItem(projectId: null, documentId: null, lazyPreview: c => Task.FromResult<object>(title)) });
                 }
             }
 
@@ -88,6 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken)
         {
+            if (_renameService.ActiveSession != null)
+            {
+                workspace.Services.GetService<INotificationService>()?.SendNotification(
+                    EditorFeaturesResources.CannotApplyOperationWhileRenameSessionIsActive,
+                    severity: NotificationSeverity.Error);
+                return;
+            }
+
 #if DEBUG
             var documentErrorLookup = new HashSet<DocumentId>();
             foreach (var project in workspace.CurrentSolution.Projects)
@@ -118,12 +119,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (updatedSolution == oldSolution)
                 {
                     updatedSolution = applyChanges.ChangedSolution;
+                    var projectChanges = updatedSolution.GetChanges(oldSolution).GetProjectChanges();
+                    var changedDocuments = projectChanges.SelectMany(pd => pd.GetChangedDocuments());
+                    var changedAdditionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
+                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments);
 
-                    // check whether it contains only 1 or 0 changed documents
-                    if (!updatedSolution.GetChanges(oldSolution).GetProjectChanges().SelectMany(pd => pd.GetChangedDocuments()).Skip(1).Any())
+                    // 0 file changes
+                    if (!changedFiles.Any())
                     {
                         operation.Apply(workspace, cancellationToken);
                         continue;
+                    }
+
+                    // 1 file change
+                    SourceText text = null;
+                    if (!changedFiles.Skip(1).Any())
+                    {
+                        if (changedDocuments.Any())
+                        {
+                            text = oldSolution.GetDocument(changedDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        }
+                        else if (changedAdditionalDocuments.Any())
+                        {
+                            text = oldSolution.GetAdditionalDocument(changedAdditionalDocuments.Single()).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        }
+                    }
+
+                    if (text != null)
+                    {
+                        using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
+                        {
+                            operation.Apply(workspace, cancellationToken);
+                            continue;
+                        }
                     }
 
                     // multiple file changes
@@ -166,6 +194,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             foreach (var documentId in changedDocuments)
             {
                 var document = newSolution.GetDocument(documentId);
+                if (!document.SupportsSyntaxTree)
+                {
+                    continue;
+                }
+
                 var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 var renameTokenOpt = root.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind)

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class RetargetExplicitInterfaceImplemenation : CSharpTestBase
+    public class RetargetExplicitInterfaceImplementation : CSharpTestBase
     {
         [Fact]
         public void ExplicitInterfaceImplementationRetargeting()
@@ -304,7 +304,7 @@ public  class D : C
 
         private static PropertySymbol FindIndexerWithParameterCount(NamedTypeSymbol type, int parameterCount)
         {
-            return type.GetMembers().Where(s => s.Kind == SymbolKind.Property).Cast<PropertySymbol>().Where(p => p.Parameters.Length == parameterCount).Single();
+            return type.GetMembers().Where(s => s.Kind == SymbolKind.Property).Cast<PropertySymbol>().Single(p => p.Parameters.Length == parameterCount);
         }
 
         [Fact]

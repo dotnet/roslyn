@@ -8,17 +8,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
     {
         public static readonly GenerateTypeOptionsResult Cancelled = new GenerateTypeOptionsResult(isCancelled: true);
 
-        public Accessibility Accessibility { get; private set; }
-        public Document ExistingDocument { get; private set; }
-        public bool IsCancelled { get; private set; }
-        public bool IsNewFile { get; private set; }
-        public IList<string> Folders { get; private set; }
-        public string NewFileName { get; private set; }
-        public Project Project { get; private set; }
-        public TypeKind TypeKind { get; private set; }
-        public string FullFilePath { get; private set; }
-        public string TypeName { get; private set; }
-        public bool AreFoldersValidIdentifiers { get; private set; }
+        public Accessibility Accessibility { get; }
+        public Document ExistingDocument { get; }
+        public bool IsCancelled { get; }
+        public bool IsNewFile { get; }
+        public IList<string> Folders { get; }
+        public string NewFileName { get; }
+        public Project Project { get; }
+        public TypeKind TypeKind { get; }
+        public string FullFilePath { get; }
+        public string TypeName { get; }
+        public string DefaultNamespace { get; }
+        public bool AreFoldersValidIdentifiers { get; }
 
         public GenerateTypeOptionsResult(
             Accessibility accessibility,
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             string fullFilePath,
             Document existingDocument,
             bool areFoldersValidIdentifiers,
+            string defaultNamespace,
             bool isCancelled = false)
         {
             this.Accessibility = accessibility;
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             this.FullFilePath = fullFilePath;
             this.ExistingDocument = existingDocument;
             this.AreFoldersValidIdentifiers = areFoldersValidIdentifiers;
+            this.DefaultNamespace = defaultNamespace;
             this.IsCancelled = isCancelled;
         }
 

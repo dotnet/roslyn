@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportCodeCleanupProvider : ExportAttribute
     {
-        public string Name { get; private set; }
-        public IEnumerable<string> Languages { get; private set; }
+        public string Name { get; }
+        public IEnumerable<string> Languages { get; }
 
         public ExportCodeCleanupProvider(string name, params string[] languages)
             : base(typeof(ICodeCleanupProvider))
         {
             if (languages == null)
             {
-                throw new ArgumentNullException("languages");
+                throw new ArgumentNullException(nameof(languages));
             }
 
             if (languages.Length == 0)

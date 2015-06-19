@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 0
                     Return VBWorkspaceResources.TypeOrMemberNameToReturn
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 0
                     Return VBWorkspaceResources.TypeOrMember
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 

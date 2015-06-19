@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TableControl;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -22,59 +22,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private static readonly string[] s_columns = new string[]
         {
-            ShimTableColumnDefinitions.Priority,
+            StandardTableColumnDefinitions.Priority,
             StandardTableColumnDefinitions.Text,
-            ShimTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.ProjectName,
             StandardTableColumnDefinitions.DocumentName,
             StandardTableColumnDefinitions.Line,
-            StandardTableColumnDefinitions.Column,
-            ShimTableColumnDefinitions.TaskCategory
+            StandardTableColumnDefinitions.Column
         };
 
-        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, Guid identifier, ITableManagerProvider provider) :
-            base(workspace, provider, StandardTables.TasksTable, new TableDataSource(workspace, todoListProvider, identifier))
+        private readonly TableDataSource _source;
+
+        protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider) :
+            base(workspace, provider, StandardTables.TasksTable)
         {
+            _source = new TableDataSource(workspace, todoListProvider, identifier);
+            AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
-        internal override IReadOnlyCollection<string> Columns { get { return s_columns; } }
+        internal override IReadOnlyCollection<string> Columns => s_columns;
 
-        private class TableDataSource : AbstractTableDataSource<TaskListEventArgs, TodoTaskItem>
+        protected override void AddTableSourceIfNecessary(Solution solution)
+        {
+            if (solution.ProjectIds.Count == 0 || this.TableManager.Sources.Any(s => s == _source))
+            {
+                return;
+            }
+
+            AddTableSource(_source);
+        }
+
+        protected override void RemoveTableSourceIfNecessary(Solution solution)
+        {
+            if (solution.ProjectIds.Count > 0 || !this.TableManager.Sources.Any(s => s == _source))
+            {
+                return;
+            }
+
+            this.TableManager.RemoveSource(_source);
+        }
+
+        protected override void ShutdownSource()
+        {
+            _source.Shutdown();
+        }
+
+        private class TableDataSource : AbstractRoslynTableDataSource<TaskListEventArgs, TodoTaskItem>
         {
             private readonly Workspace _workspace;
-            private readonly Guid _identifier;
+            private readonly string _identifier;
             private readonly ITodoListProvider _todoListProvider;
 
-            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, Guid identifier)
+            public TableDataSource(Workspace workspace, ITodoListProvider todoListProvider, string identifier)
             {
                 _workspace = workspace;
                 _identifier = identifier;
                 _todoListProvider = todoListProvider;
                 _todoListProvider.TodoListUpdated += OnTodoListUpdated;
+
+                ConnectToSolutionCrawlerService(_workspace);
             }
 
-            public override string DisplayName
-            {
-                get
-                {
-                    return ServicesVSResources.TodoTableSourceName;
-                }
-            }
-
-            public override Guid SourceTypeIdentifier
-            {
-                get
-                {
-                    return StandardTableDataSources.CommentTableDataSource;
-                }
-            }
-
-            public override Guid Identifier
-            {
-                get
-                {
-                    return _identifier;
-                }
-            }
+            public override string DisplayName => ServicesVSResources.TodoTableSourceName;
+            public override string SourceTypeIdentifier => StandardTableDataSources.CommentTableDataSource;
+            public override string Identifier => _identifier;
 
             private void OnTodoListUpdated(object sender, TaskListEventArgs e)
             {
@@ -91,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return;
                 }
 
-                OnDataAddedOrChanged(e.DocumentId, e);
+                OnDataAddedOrChanged(e.DocumentId, e, e.TaskItems.Length);
             }
 
             protected override AbstractTableEntriesFactory<TodoTaskItem> CreateTableEntryFactory(object key, TaskListEventArgs data)
@@ -108,7 +118,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private readonly Workspace _workspace;
                 private readonly DocumentId _documentId;
 
-                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId)
+                public TableEntriesFactory(TableDataSource source, Workspace workspace, DocumentId documentId) :
+                    base(source)
                 {
                     _source = source;
                     _workspace = workspace;
@@ -140,17 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     public TableEntriesSnapshot(
                         TableEntriesFactory factory, int version, ImmutableArray<TodoTaskItem> items, ImmutableArray<ITrackingPoint> trackingPoints) :
-                        base(version, items, trackingPoints)
+                        base(version, GetProjectGuid(factory._workspace, factory._documentId.ProjectId), items, trackingPoints)
                     {
                         _factory = factory;
-                    }
-
-                    public override object SnapshotIdentity
-                    {
-                        get
-                        {
-                            return _factory;
-                        }
                     }
 
                     public override bool TryGetValue(int index, string columnName, out object content)
@@ -166,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                         switch (columnName)
                         {
-                            case ShimTableKeyNames.Priority:
+                            case StandardTableKeyNames.Priority:
                                 content = (VSTASKPRIORITY)item.Priority;
                                 return true;
                             case StandardTableKeyNames.Text:
@@ -181,13 +184,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             case StandardTableKeyNames.Column:
                                 content = GetLineColumn(item).Character;
                                 return true;
-                            case ShimTableKeyNames.ProjectName:
+                            case StandardTableKeyNames.ProjectName:
                                 content = GetProjectName(_factory._workspace, _factory._documentId.ProjectId);
                                 return content != null;
-                            case ShimTableKeyNames.Project:
-                                content = GetHierarchy(_factory._workspace, _factory._documentId.ProjectId);
-                                return content != null;
-                            case ShimTableKeyNames.TaskCategory:
+                            case StandardTableKeyNames.ProjectGuid:
+                                content = ProjectGuid;
+                                return ProjectGuid != Guid.Empty;
+                            case StandardTableKeyNames.TaskCategory:
                                 content = VSTASKCATEGORY.CAT_COMMENTS;
                                 return true;
                             default:

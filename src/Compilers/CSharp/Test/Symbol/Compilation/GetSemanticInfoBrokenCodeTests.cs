@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "CompletionItem").Single();
+            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.Identifier.ValueText == "CompletionItem");
 
             var info = model.GetSymbolInfo(identifierSyntax); //Used to throw
         }

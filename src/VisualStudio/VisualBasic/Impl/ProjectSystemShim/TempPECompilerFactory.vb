@@ -7,14 +7,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Friend Class TempPECompilerFactory
         Implements IVbTempPECompilerFactory
 
-        Private ReadOnly workspace As VisualStudioWorkspaceImpl
+        Private ReadOnly _workspace As VisualStudioWorkspaceImpl
 
         Public Sub New(workspace As VisualStudioWorkspaceImpl)
-            Me.workspace = workspace
+            Me._workspace = workspace
         End Sub
 
         Public Function CreateCompiler() As IVbCompiler Implements IVbTempPECompilerFactory.CreateCompiler
-            Return New TempPECompiler(workspace)
+            Return New TempPECompiler(_workspace)
         End Function
     End Class
 End Namespace

@@ -356,6 +356,7 @@ class A
         private IPersistentStorage GetStorage(Solution solution)
         {
             var storage = new PersistentStorageService(_persistentEnabledOptionService, testing: true).GetStorage(solution);
+
             Assert.NotEqual(PersistentStorageService.NoOpPersistentStorageInstance, storage);
             return storage;
         }

@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 Guids.CSharpLanguageServiceId,
                 bstrTypes: surroundWith ? new[] { "SurroundsWith" } : new[] { "Expansion", "SurroundsWith" },
                 iCountTypes: surroundWith ? 1 : 2,
-                fIncludeNULLType: 0,
+                fIncludeNULLType: 1,
                 bstrKinds: null,
                 iCountKinds: 0,
                 fIncludeNULLKind: 0,
@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         protected override bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             return !syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) &&
                 !syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken);

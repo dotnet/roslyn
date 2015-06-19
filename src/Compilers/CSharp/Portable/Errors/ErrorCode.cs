@@ -540,7 +540,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInExpressionTree = 765,
         ERR_PartialMethodMustReturnVoid = 766,
         ERR_ExplicitImplCollisionOnRefOut = 767,
-        // unused 768-799
+        ERR_IndirectRecursiveConstructorCall = 768,
+
+        // unused 769-799
         //ERR_NoEmptyArrayRanges = 800,
         //ERR_IntegerSpecifierOnOneDimArrays = 801,
         //ERR_IntegerSpecifierMustBePositive = 802,
@@ -769,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ParamsCantBeRefOut = 1611,
         ERR_ReturnNotLValue = 1612,
         ERR_MissingCoClass = 1613,
-        ERR_AmbigousAttribute = 1614,
+        ERR_AmbiguousAttribute = 1614,
         ERR_BadArgExtraRef = 1615,
         WRN_CmdOptionConflictsSource = 1616,
         ERR_BadCompatMode = 1617,
@@ -1228,6 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MetadataReferencesNotSupported = 7099,
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
+        ERR_MutuallyExclusiveOptions = 7102,
 
         // available 7102-8000
 
@@ -1267,7 +1270,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NoAnalyzerInAssembly = 8033,
         WRN_UnableToLoadAnalyzer = 8034,
         ERR_CantReadRulesetFile = 8035,
-        // available 8036-8039
+        ERR_BadPdbData = 8036,
+        // available 8037-8039
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
@@ -1278,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncodinglessSyntaxTree = 8055,
         ERR_AccessorListAndExpressionBody = 8056,
         ERR_BlockBodyAndExpressionBody = 8057,
-        // ERR_FeatureIsExperimental = 8058,
+        ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8060-8069
         ERR_SwitchFallOut = 8070,
@@ -1286,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
-        ERR_ParameterlessStructCtorsMustBePublic = 8075,
+        ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
         ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
@@ -1306,6 +1310,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionOrDeclarationExpected = 8092,
         ERR_NameofExtensionMethod = 8093,
         WRN_AlignmentMagnitude = 8094,
-        ERR_ContantStringTooLong = 8095,
+        ERR_ConstantStringTooLong = 8095,
     }
 }

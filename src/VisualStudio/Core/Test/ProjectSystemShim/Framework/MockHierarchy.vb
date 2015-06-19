@@ -61,6 +61,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Function
 
         Public Function GetGuidProperty(itemid As UInteger, propid As Integer, ByRef pguid As Guid) As Integer Implements IVsHierarchy.GetGuidProperty
+            If itemid = VSConstants.VSITEMID_ROOT And propid = CType(__VSHPROPID.VSHPROPID_ProjectIDGuid, Integer) Then
+                pguid = Guid.NewGuid()
+
+                Return VSConstants.S_OK
+            End If
+
             Throw New NotImplementedException()
         End Function
 

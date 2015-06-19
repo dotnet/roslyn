@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Partial Module ExpressionGenerator
+    Friend Partial Module ExpressionGenerator
         Private Structure StringPiece
             Public ReadOnly Value As String
             Public ReadOnly Kind As StringPieceKind
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return GenerateStringConstantExpression("vbFormFeed")
                     Case StringPieceKind.Tab
                         Return GenerateStringConstantExpression("vbTab")
-                    Case StringPieceKind.VeriticalTab
+                    Case StringPieceKind.VerticalTab
                         Return GenerateStringConstantExpression("vbVerticalTab")
                 End Select
 
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         ElseIf c = vbTab Then
                             result.Add(New StringPiece(Nothing, StringPieceKind.Tab))
                         ElseIf c = vbVerticalTab Then
-                            result.Add(New StringPiece(Nothing, StringPieceKind.VeriticalTab))
+                            result.Add(New StringPiece(Nothing, StringPieceKind.VerticalTab))
                         ElseIf c = vbCr Then
                             If i < value.Length AndAlso value(i) = vbLf Then
                                 result.Add(New StringPiece(Nothing, StringPieceKind.CrLf))

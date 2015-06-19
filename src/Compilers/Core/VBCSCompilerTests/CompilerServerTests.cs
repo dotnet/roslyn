@@ -15,16 +15,17 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using System.Xml;
-using System.Xml.XPath;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.BuildTasks;
 
-namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
+namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerUnitTests : TestBase
     {
         private const string CompilerServerExeName = "VBCSCompiler.exe";
         private const string CSharpClientExeName = "csc2.exe";
         private const string BasicClientExeName = "vbc2.exe";
+        private const string BuildTaskDllName = "Microsoft.Build.Tasks.CodeAnalysis.dll";
 
         private static string s_msbuildDirectory;
         private static string MSBuildDirectory
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         private static string MSBuildExecutable { get; } = Path.Combine(MSBuildDirectory, "MSBuild.exe");
 
-        private static readonly string s_workingDirectory = Environment.CurrentDirectory;
+        private static readonly string s_workingDirectory = Directory.GetCurrentDirectory();
         private static string ResolveAssemblyPath(string exeName)
         {
             var path = Path.Combine(s_workingDirectory, exeName);
@@ -74,20 +75,48 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        private static string s_compilerServerExecutableSrc = ResolveAssemblyPath(CompilerServerExeName);
-        private static string s_buildTaskDllSrc = ResolveAssemblyPath("Roslyn.Compilers.BuildTasks.dll");
-        private static string s_CSharpCompilerExecutableSrc = ResolveAssemblyPath("csc.exe");
-        private static string s_basicCompilerExecutableSrc = ResolveAssemblyPath("vbc.exe");
-        private static string s_microsoftCodeAnalysisDllSrc = ResolveAssemblyPath("Microsoft.CodeAnalysis.dll");
-        private static string s_systemCollectionsImmutableDllSrc = ResolveAssemblyPath("System.Collections.Immutable.dll");
+        private static readonly string s_compilerServerExecutableSrc = ResolveAssemblyPath(CompilerServerExeName);
+        private static readonly string s_buildTaskDllSrc = ResolveAssemblyPath(BuildTaskDllName);
+        private static readonly string s_CSharpCompilerExecutableSrc = ResolveAssemblyPath("csc.exe");
+        private static readonly string s_basicCompilerExecutableSrc = ResolveAssemblyPath("vbc.exe");
+        private static readonly string s_microsoftCodeAnalysisDllSrc = ResolveAssemblyPath("Microsoft.CodeAnalysis.dll");
+        private static readonly string s_systemCollectionsImmutableDllSrc = ResolveAssemblyPath("System.Collections.Immutable.dll");
 
         // The native client executables can't be loaded via Assembly.Load, so we just use the
         // compiler server resolved path
-        private static string s_clientExecutableBasePath = Path.GetDirectoryName(s_compilerServerExecutableSrc);
-        private static string s_CSharpCompilerClientSrcPath = Path.Combine(s_clientExecutableBasePath, CSharpClientExeName);
-        private static string s_basicCompilerClientSrcPath = Path.Combine(s_clientExecutableBasePath, BasicClientExeName);
+        private static readonly string s_clientExecutableBasePath = Path.GetDirectoryName(s_compilerServerExecutableSrc);
+        private static readonly string s_CSharpCompilerClientSrcPath = Path.Combine(s_clientExecutableBasePath, CSharpClientExeName);
+        private static readonly string s_basicCompilerClientSrcPath = Path.Combine(s_clientExecutableBasePath, BasicClientExeName);
 
-        private static string[] s_allCompilerFiles =
+        private static readonly KeyValuePair<string, string>[] s_helloWorldSrcCs =
+        {
+            new KeyValuePair<string, string>("hello.cs",
+@"using System;
+using System.Diagnostics;
+class Hello
+{
+    static void Main()
+    {
+        var obj = new Process();
+        Console.WriteLine(""Hello, world.""); 
+    }
+}")
+        };
+
+        private static readonly KeyValuePair<string, string>[] s_helloWorldSrcVb =
+        {
+            new KeyValuePair<string, string>("hello.vb",
+@"Imports System.Diagnostics
+
+Module Module1
+    Sub Main()
+        Dim p As New Process()
+        Console.WriteLine(""Hello from VB"")
+    End Sub
+End Module")
+        };
+
+        private static readonly string[] s_allCompilerFiles =
         {
             s_CSharpCompilerExecutableSrc,
             s_basicCompilerExecutableSrc,
@@ -96,25 +125,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             s_CSharpCompilerClientSrcPath,
             s_basicCompilerClientSrcPath,
             s_systemCollectionsImmutableDllSrc,
+            s_buildTaskDllSrc,
             ResolveAssemblyPath("System.Reflection.Metadata.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.CSharp.Desktop.dll"),
             ResolveAssemblyPath("Microsoft.CodeAnalysis.VisualBasic.dll"),
-            ResolveAssemblyPath("Microsoft.CodeAnalysis.VisualBasic.Desktop.dll"),
             Path.Combine(s_clientExecutableBasePath, CompilerServerExeName + ".config"),
             Path.Combine(s_clientExecutableBasePath, "csc.rsp"),
             Path.Combine(s_clientExecutableBasePath, "vbc.rsp")
         };
 
-        #region Helpers
-
         private readonly TempDirectory _tempDirectory;
         private readonly string _compilerDirectory;
 
-        private readonly string _CSharpCompilerClientExecutable;
+        private readonly string _csharpCompilerClientExecutable;
         private readonly string _basicCompilerClientExecutable;
         private readonly string _compilerServerExecutable;
+        private readonly string _buildTaskDll;
 
         public CompilerServerUnitTests()
         {
@@ -128,9 +154,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 File.Copy(path, Path.Combine(_compilerDirectory, filename));
             }
 
-            _CSharpCompilerClientExecutable = Path.Combine(_compilerDirectory, CSharpClientExeName);
+            _csharpCompilerClientExecutable = Path.Combine(_compilerDirectory, CSharpClientExeName);
             _basicCompilerClientExecutable = Path.Combine(_compilerDirectory, BasicClientExeName);
             _compilerServerExecutable = Path.Combine(_compilerDirectory, CompilerServerExeName);
+            _buildTaskDll = Path.Combine(_compilerDirectory, BuildTaskDllName);
         }
 
         public override void Dispose()
@@ -140,14 +167,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             base.Dispose();
         }
 
-        private Dictionary<string, string> AddForLoggingEnvironmentVars(Dictionary<string, string> vars)
+        #region Helpers
+
+        private IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
         {
-            var dict = vars == null ? new Dictionary<string, string>() : vars;
-            if (!dict.ContainsKey("RoslynCommandLineLogFile"))
+            vars = vars ?? new KeyValuePair<string, string>[] { };
+            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
             {
-                dict.Add("RoslynCommandLineLogFile", typeof(CompilerServerUnitTests).Assembly.Location + ".client-server.log");
+                var list = vars.ToList();
+                list.Add(new KeyValuePair<string, string>(
+                    "RoslynCommandLineLogFile",
+                    typeof(CompilerServerUnitTests).Assembly.Location + ".client-server.log"));
+                return list;
             }
-            return dict;
+            return vars;
         }
 
         private List<Process> GetProcessesByFullPath(string path)
@@ -232,14 +265,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         private void KillCompilerServer()
         {
             KillProcess(_compilerServerExecutable);
+            KillProcess(s_compilerServerExecutableSrc);
         }
 
-        private ProcessResult RunCommandLineCompiler(string compilerPath, string arguments, string currentDirectory, Dictionary<string, string> additionalEnvironmentVars = null)
+        private ProcessResult RunCommandLineCompiler(
+            string compilerPath,
+            string arguments,
+            string currentDirectory,
+            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
-            return ProcessLauncher.Run(compilerPath, arguments, currentDirectory, additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
+            return ProcessLauncher.Run(
+                compilerPath,
+                arguments,
+                currentDirectory,
+                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
         }
 
-        private ProcessResult RunCommandLineCompiler(string compilerPath, string arguments, TempDirectory currentDirectory, Dictionary<string, string> filesInDirectory, Dictionary<string, string> additionalEnvironmentVars = null)
+        private ProcessResult RunCommandLineCompiler(
+            string compilerPath,
+            string arguments,
+            TempDirectory currentDirectory,
+            IEnumerable<KeyValuePair<string, string>> filesInDirectory,
+            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
             foreach (var pair in filesInDirectory)
             {
@@ -247,7 +294,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 file.WriteAllText(pair.Value);
             }
 
-            return RunCommandLineCompiler(compilerPath, arguments, currentDirectory.Path, additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
+            return RunCommandLineCompiler(
+                compilerPath,
+                arguments,
+                currentDirectory.Path,
+                additionalEnvironmentVars: AddForLoggingEnvironmentVars(additionalEnvironmentVars));
         }
 
         private DisposableFile GetResultFile(TempDirectory directory, string resultFileName)
@@ -283,20 +334,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void FallbackToCsc()
         {
-            var files = new Dictionary<string, string> { { "hello.cs",
-@"using System;
-using System.Diagnostics;
-class Hello 
-{
-    static void Main()
-    { 
-        var obj = new Process();
-        Console.WriteLine(""Hello, world.""); 
-    }
-}"}};
             // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
             File.Delete(_compilerServerExecutable);
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/nologo hello.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
@@ -307,7 +347,7 @@ class Hello
 
             // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
             File.Delete(_compilerServerExecutable);
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/nologo hello.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/nologo hello.cs", _tempDirectory, files);
             Assert.Equal(result.ExitCode, 1);
             Assert.True(result.ContainsErrors);
             Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
@@ -324,7 +364,7 @@ class Hello
 
             var result = ProcessLauncher.Run("cmd",
                 string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
-                _CSharpCompilerClientExecutable,
+                _csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -379,18 +419,9 @@ class Hello
         [Fact]
         public void FallbackToVbc()
         {
-            var files = new Dictionary<string, string> { { "hello.vb",
-@"Imports System.Diagnostics
-
-Module Module1
-    Sub Main()
-        Dim p As New Process()
-        Console.WriteLine(""Hello from VB"")
-    End Sub
-End Module"}};
             // Delete VBCSCompiler.exe so vbc2 is forced to fall back to vbc.exe
             File.Delete(_compilerServerExecutable);
-            var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/nologo hello.vb", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/nologo hello.vb", _tempDirectory, s_helloWorldSrcVb);
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
         }
 
@@ -398,19 +429,7 @@ End Module"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldCS()
         {
-            var files = new Dictionary<string, string> { { "hello.cs",
-@"using System;
-using System.Diagnostics;
-class Hello 
-{
-    static void Main()
-    { 
-        var obj = new Process();
-        Console.WriteLine(""Hello, world.""); 
-    }
-}"}};
-
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/nologo hello.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
@@ -434,7 +453,7 @@ class Hello
         public void Platformx86MscorlibCsc()
         {
             var files = new Dictionary<string, string> { { "c.cs", "class C {}" } };
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
                                                 "/nologo /t:library /platform:x86 c.cs",
                                                 _tempDirectory,
                                                 files);
@@ -457,17 +476,10 @@ class Hello
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibCS()
         {
-            Dictionary<string, string> files =
-                                   new Dictionary<string, string> {
-                                           { "hello.cs",
-@"using System;
-class Hello 
-{
-    static void Main()
-    { Console.WriteLine(""Hello, world.""); }
-}"}};
-
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/nologo /r:mscorlib.dll hello.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
+                                                "/nologo /r:mscorlib.dll hello.cs",
+                                                _tempDirectory,
+                                                s_helloWorldSrcCs);
             VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
@@ -475,19 +487,10 @@ class Hello
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldVB()
         {
-            Dictionary<string, string> files =
-                                   new Dictionary<string, string> {
-                                           { "hello.vb",
-@"Imports System.Diagnostics
-
-Module Module1
-    Sub Main()
-        Dim p As New Process()
-        Console.WriteLine(""Hello from VB"")
-    End Sub
-End Module"}};
-
-            var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/nologo /r:Microsoft.VisualBasic.dll hello.vb", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_basicCompilerClientExecutable,
+                                                "/nologo /r:Microsoft.VisualBasic.dll hello.vb",
+                                                _tempDirectory,
+                                                s_helloWorldSrcVb);
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
         }
 
@@ -495,18 +498,10 @@ End Module"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibVB()
         {
-            Dictionary<string, string> files =
-                                   new Dictionary<string, string> {
-                                           { "hello.vb",
-@"Imports System
-
-Module Module1
-    Sub Main()
-        Console.WriteLine(""Hello from VB"")
-    End Sub
-End Module"}};
-
-            var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_basicCompilerClientExecutable,
+                "/nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb",
+                _tempDirectory,
+                s_helloWorldSrcVb);
             VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
         }
 
@@ -524,11 +519,11 @@ class Hello
     { Console.WriteLine(""Hello, world."") }
 }"}};
 
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "hello.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello.cs", _tempDirectory, files);
 
             // Should output errors, but not create output file.                  
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
@@ -552,9 +547,9 @@ End Class"}};
             var result = RunCommandLineCompiler(_basicCompilerClientExecutable, "/r:Microsoft.VisualBasic.dll hellovb.vb", _tempDirectory, files);
 
             // Should output errors, but not create output file.
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output);
-            Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hellovb.vb(3) : error BC30625: 'Module' statement must end with a matching 'End Module'.\r\n", result.Output, StringComparison.Ordinal);
+            Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
@@ -564,12 +559,12 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorCS()
         {
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "missingfile.cs", _tempDirectory, new Dictionary<string, string>());
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "missingfile.cs", _tempDirectory, new Dictionary<string, string>());
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error CS2001: Source file", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
         }
@@ -578,24 +573,12 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingReferenceErrorCS()
         {
-            Dictionary<string, string> files =
-                                   new Dictionary<string, string> {
-                                           { "hello.cs",
-@"using System;
-class Hello 
-{
-    static void Main()
-    { 
-        Console.WriteLine(""Hello, world.""); 
-    }
-}"}};
-
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/r:missing.dll hello.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error CS0006: Metadata file", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hello.exe")));
         }
@@ -611,12 +594,12 @@ class Hello
                                                { "app.cs", "class Test { static void Main() {} }"},
                                            };
 
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/r:Lib.cs app.cs", _tempDirectory, files);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/r:Lib.cs app.cs", _tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error CS0009: Metadata file", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
         }
@@ -629,8 +612,8 @@ class Hello
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output);
-            Assert.Contains("error BC2001", result.Output);
+            Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
+            Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "missingfile.exe")));
         }
@@ -655,7 +638,7 @@ End Module"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("error BC2017: could not find library", result.Output);
+            Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "hellovb.exe")));
         }
@@ -680,7 +663,7 @@ End Module"}};
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
-            Assert.Contains("error BC31519", result.Output);
+            Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
             Assert.False(File.Exists(Path.Combine(_tempDirectory.Path, "app.exe")));
         }
@@ -826,7 +809,7 @@ public class Library
     { return ""library1""; }
 }"}};
 
-                var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "src1.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "src1.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -842,7 +825,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-                    result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -864,7 +847,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello2 from {0}"", Library.GetString()); }
 }"}};
-                        result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "hello2.cs /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello2.cs /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -887,7 +870,7 @@ public class Library
     { return ""library3""; }
 }"}};
 
-                        result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "src2.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "src2.cs /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -903,7 +886,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
-                            result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "hello3.cs /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello3.cs /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -951,7 +934,7 @@ End Module", i));
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerCS(TempDirectory dir, int i)
         {
-            return ProcessLauncher.StartProcess(_CSharpCompilerClientExecutable, string.Format("/nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
+            return ProcessLauncher.StartProcess(_csharpCompilerClientExecutable, string.Format("/nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
         }
 
         // Run compiler in directory set up by SetupDirectory
@@ -1020,6 +1003,314 @@ End Module", i));
             Assert.Equal(string.Empty, process.StandardOutput.ReadToEnd());
             Assert.Equal(string.Empty, process.StandardError.ReadToEnd());
         }
+
+        // A dictionary with name and contents of all the files we want to create for the SimpleMSBuild test.
+        private Dictionary<string, string> SimpleMsBuildFiles => new Dictionary<string, string> {
+{ "HelloSolution.sln",
+@"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloProj"", ""HelloProj.csproj"", ""{7F4CCBA2-1184-468A-BF3D-30792E4E8003}""
+EndProject
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
+EndProject
+Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""VBLib"", ""VBLib.vbproj"", ""{F21C894B-28E5-4212-8AF7-C8E0E5455737}""
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Debug|x86.ActiveCfg = Debug|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Debug|x86.Build.0 = Debug|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Release|Any CPU.ActiveCfg = Release|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Release|Mixed Platforms.Build.0 = Release|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Release|x86.ActiveCfg = Release|x86
+		{7F4CCBA2-1184-468A-BF3D-30792E4E8003}.Release|x86.Build.0 = Release|x86
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|x86.ActiveCfg = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|x86.ActiveCfg = Release|Any CPU	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
+"},
+
+{ "HelloProj.csproj",
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7F4CCBA2-1184-468A-BF3D-30792E4E8003}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HelloProj</RootNamespace>
+    <AssemblyName>HelloProj</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|x86' "">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|x86' "">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include=""System"" />
+    <Reference Include=""System.Core"" />
+    <Reference Include=""System.Xml.Linq"" />
+    <Reference Include=""System.Xml"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=""Program.cs"" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include=""HelloLib.csproj"">
+      <Project>{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}</Project>
+      <Name>HelloLib</Name>
+    </ProjectReference>
+    <ProjectReference Include=""VBLib.vbproj"">
+      <Project>{F21C894B-28E5-4212-8AF7-C8E0E5455737}</Project>
+      <Name>VBLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=""Properties\"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+</Project>"},
+
+{ "Program.cs",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using HelloLib;
+using VBLib;
+
+namespace HelloProj
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            HelloLibClass.SayHello();
+            VBLibClass.SayThere();
+            Console.WriteLine(""World"");
+        }
+    }
+}
+"},
+
+{ "HelloLib.csproj",
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HelloLib</RootNamespace>
+    <AssemblyName>HelloLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include=""System"" />
+    <Reference Include=""System.Core"" />
+    <Reference Include=""System.Xml.Linq"" />
+    <Reference Include=""System.Xml"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=""HelloLib.cs"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=""Properties\"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+</Project>"},
+
+{ "HelloLib.cs",
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace HelloLib
+{
+    public class HelloLibClass
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""Hello"");
+        }
+    }
+}
+"},
+
+ { "VBLib.vbproj",
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + _buildTaskDll + @""" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>
+    </SchemaVersion>
+    <ProjectGuid>{F21C894B-28E5-4212-8AF7-C8E0E5455737}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>VBLib</RootNamespace>
+    <AssemblyName>VBLib</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Windows</MyType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>VBLib.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>VBLib.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include=""System"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include=""Microsoft.VisualBasic"" />
+    <Import Include=""System"" />
+    <Import Include=""System.Collections.Generic"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=""VBLib.vb"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  -->
+</Project>"},
+
+ { "VBLib.vb",
+@"
+Public Class VBLibClass
+    Public Shared Sub SayThere()
+        Console.WriteLine(""there"")
+    End Sub
+End Class
+"}
+            };
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/1445")]
+        public void SimpleMSBuild()
+        {
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
+            var result = RunCommandLineCompiler(MSBuildExecutable, arguments, _tempDirectory, SimpleMsBuildFiles);
+
+            using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
+            {
+                // once we stop issuing BC40998 (NYI), we can start making stronger assertions
+                // about our ouptut in the general case
+                if (result.ExitCode != 0)
+                {
+                    Assert.Equal("", result.Output);
+                    Assert.Equal("", result.Errors);
+                }
+                Assert.Equal(0, result.ExitCode);
+                var runningResult = RunCompilerOutput(resultFile);
+                Assert.Equal("Hello\r\nthere\r\nWorld\r\n", runningResult.Output);
+            }
+        }
+
+
 
         private Dictionary<string, string> GetMultiFileMSBuildFiles()
         {
@@ -1275,7 +1566,7 @@ public class Library
     { return ""library1""; }
 }"}};
 
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
                                                 "src1.cs /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
                                                 _tempDirectory, files);
 
@@ -1294,7 +1585,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-            result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", _tempDirectory, files,
+            result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello1.cs /nologo /r:lib.dll /out:hello1.exe", _tempDirectory, files,
                                             additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
             Assert.Equal("", result.Output);
@@ -1363,7 +1654,7 @@ End Module
 
             var result = ProcessLauncher.Run("cmd",
                 string.Format("/C {0} /nologo /t:library {1} > {2}",
-                _CSharpCompilerClientExecutable,
+                _csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -1403,7 +1694,7 @@ End Module
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             var result = ProcessLauncher.Run("cmd", string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
-                _CSharpCompilerClientExecutable,
+                _csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -1455,7 +1746,7 @@ End Module
 }
 "}};
 
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
                                                 "ref_mscorlib2.cs /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
                                                 _tempDirectory, files);
 
@@ -1479,212 +1770,13 @@ class Program
     }
 }
 "}};
-            result = RunCommandLineCompiler(_CSharpCompilerClientExecutable,
+            result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
                                             "main.cs /nologo /nostdlib /noconfig /r:mscorlib40.dll /r:ref_mscorlib2.dll",
                                             _tempDirectory, files);
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
-        }
-
-        private Dictionary<string, string> GetAnalyzerProjectFiles()
-        {
-            return new Dictionary<string, string>()
-            {
-                {
-                    "MyAnalyzer.csproj",
-                    @"<?xml version=""1.0"" encoding=""utf-8""?>
-<Project ToolsVersion=""14.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <PropertyGroup>
-    <CscToolPath>" + _compilerDirectory + @"</CscToolPath>
-    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
-    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
-    <ProjectGuid>{6BD0BE3E-D565-42C2-A7DE-B7A2161BDBF8}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MyAnalyzer</RootNamespace>
-    <AssemblyName>MyAnalyzer</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include=""Microsoft.CodeAnalysis"">
-      <HintPath>" + s_microsoftCodeAnalysisDllSrc + @"</HintPath>
-    </Reference>
-    <Reference Include=""System"" />
-    <Reference Include=""System.Collections.Immutable"">
-      <HintPath>" + s_systemCollectionsImmutableDllSrc + @"</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include=""MyAnalyzer.cs"" />
-  </ItemGroup>
-  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>"
-                },
-                {
-                    "MyAnalyzer.cs",
-                    @"using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    internal static readonly long loadTime = DateTime.Now.Ticks;
-    internal static readonly DiagnosticDescriptor descriptor = new DiagnosticDescriptor(""MyAnalyzer01"", string.Empty, ""Analyzer loaded at: {0}"", string.Empty, DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get { return ImmutableArray.Create(descriptor); }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-        context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
-    }
-
-    private void AnalyzeSymbol(SymbolAnalysisContext context)
-    {
-        context.ReportDiagnostic(Diagnostic.Create(descriptor, context.Symbol.Locations.First(), loadTime));
-    }
-}"
-                }
-            };
-        }
-
-        [Fact, WorkItem(1119752)]
-        [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
-        public void AnalyzerChangesOnDisk()
-        {
-            var timeout = TimeSpan.FromMinutes(5);
-            const string sourceText = @"using System;
-
-class Hello
-{
-    static void Main()
-    {
-        Console.WriteLine(""Hello, world.""); 
-    }
-}";
-
-            var directory = _tempDirectory.CreateDirectory("AnalyzerChangesOnDisk");
-
-            // First, build the analyzer assembly
-            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 MyAnalyzer.csproj");
-            var resultTask = Task.Run(() => RunCommandLineCompiler(MSBuildExecutable, arguments, directory, GetAnalyzerProjectFiles()));
-            WaitForProcess(resultTask, timeout, string.Format("Compiler server {0} timed out after {1} seconds", MSBuildExecutable, timeout.TotalSeconds), MSBuildExecutable);
-            var result = resultTask.Result;
-
-            Assert.True(directory.CreateFile("hello.cs").WriteAllTextAsync(sourceText).Wait(timeout),
-                        string.Format("Took longer than {0} seconds to create files 'hello.cs' in {1}", timeout.TotalSeconds, directory.Path));
-            var log = directory.CreateFile("Server.log");
-
-            var environmentVars = new Dictionary<string, string>
-            {
-                { "RoslynCommandLineLogFile", log.Path }
-            };
-
-            // Run a build using the analyzer
-            var firstBuildResultTask = Task.Run(() => RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars));
-            WaitForProcess(firstBuildResultTask, timeout, string.Format("Compiler server {0} timed out after {1} seconds", _CSharpCompilerClientExecutable, timeout.TotalSeconds), _CSharpCompilerClientExecutable);
-            var firstBuildResult = firstBuildResultTask.Result;
-
-            // Change the analyzer to cause it to be reloaded
-            File.SetLastWriteTime(Path.Combine(directory.Path, "bin", "Debug", "MyAnalyzer.dll"), DateTime.Now);
-
-            Assert.True(WaitForProcessExitAsync(_compilerServerExecutable).Wait(timeout),
-                string.Format("Compiler server did not exit after {0} seconds, number of vbcscompiler.exe proccesses found: {1}",
-                    timeout.Milliseconds / 1000,
-                    GetProcessesByFullPath(_compilerServerExecutable).Count));
-
-            // Run another build using the analyzer
-            var secondBuildResultTask = Task.Run(() => RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/nologo hello.cs /a:bin\\Debug\\MyAnalyzer.dll", directory.Path, environmentVars));
-            WaitForProcess(secondBuildResultTask, timeout, string.Format("Compiler server {0} timed out after {1} seconds", _CSharpCompilerClientExecutable, timeout.TotalSeconds), _CSharpCompilerClientExecutable);
-            var secondBuildResult = secondBuildResultTask.Result;
-
-            var firstBuildOutput = firstBuildResult.Output;
-            var secondBuildOutput = secondBuildResult.Output;
-
-            var assertMessage = string.Format("Output should be different, but is not.\r\nfirstBuildOutput:\r\n{0}\r\nsecondBuildOutput:\r\n{1}\r\n", firstBuildOutput, secondBuildOutput);
-            // The output message of the analyzer includes a time stamp for when the analyzer was loaded. So if the analyzer was 
-            // reloaded (which is what we want) then the output messages of the first and second builds will be different.
-            Assert.False(firstBuildOutput.Equals(secondBuildOutput), assertMessage);
-        }
-
-        private void WaitForProcess(Task<ProcessResult> resultTask, TimeSpan timeout, string message, string processPath)
-        {
-            bool hasCompleted = resultTask.Wait(timeout);
-            if (!hasCompleted)
-            {
-                Task.WhenAll(GetProcessesByFullPath(processPath).Select(x => DumpProcess(x.Id))).Wait();
-                Assert.True(false, message + Environment.NewLine + "See dump for more info.");
-            }
-        }
-
-        private Task<int> DumpProcess(int pid)
-        {
-            string pathToProcDump;
-            if (!TryFindProcDumpPath(out pathToProcDump))
-            {
-                return Task.FromResult(0);
-            }
-
-            var source = new TaskCompletionSource<int>();
-            ProcessStartInfo processStartInfo = new ProcessStartInfo();
-            processStartInfo.CreateNoWindow = true;
-            processStartInfo.FileName = pathToProcDump;
-            processStartInfo.WorkingDirectory = Environment.CurrentDirectory;
-            processStartInfo.UseShellExecute = false;
-
-            processStartInfo.Arguments = " -accepteula -c 0 -ma " + pid.ToString();
-            var process = new Process();
-            process.StartInfo = processStartInfo;
-            process.Exited += (s, e) => source.TrySetResult(process.ExitCode);
-            process.ErrorDataReceived += (s, e) => source.TrySetException(new Exception("Unable to create dump: " + e.Data));
-            process.Start();
-            return source.Task;
-        }
-
-        private static bool TryFindProcDumpPath(out string path)
-        {
-            string executableDirectory = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            path = Path.Combine(executableDirectory, "ProcDump.exe");
-
-            if (File.Exists(path))
-            {
-                return true;
-            }
-
-            path = Path.Combine(executableDirectory, @"..\ProcDump\ProcDump.exe");
-
-            if (File.Exists(path))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         [WorkItem(979588)]
@@ -1699,7 +1791,7 @@ class Hello
             var result = ProcessLauncher.Run("cmd",
                 string.Format(
                     "/C {0} /noconfig @{1} > {2}",
-                    _CSharpCompilerClientExecutable,
+                    _csharpCompilerClientExecutable,
                     rspFile,
                     tempOut));
 
@@ -1761,45 +1853,55 @@ class Hello
         [Fact]
         public void BadKeepAlive1()
         {
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/keepalive", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/keepalive", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Missing argument for '/keepalive' option", result.Output.Trim());
+            Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
         [Fact]
         public void BadKeepAlive2()
         {
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/keepalive:foo", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/keepalive:foo", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not an integer", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
         [Fact]
         public void BadKeepAlive3()
         {
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/keepalive:-100", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/keepalive:-100", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid", result.Output.Trim());
+            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
 
         [Fact]
         public void BadKeepAlive4()
         {
-            var result = RunCommandLineCompiler(_CSharpCompilerClientExecutable, "/keepalive:9999999999", _tempDirectory.Path);
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "/keepalive:9999999999", _tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' is out of 32-bit integer range", result.Output.Trim());
+            Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
             Assert.Equal("", result.Errors);
+        }
+
+        [Fact]
+        public void SimpleKeepAlive()
+        {
+            var result = RunCommandLineCompiler(_csharpCompilerClientExecutable,
+                                                $"/nologo /keepalive:1 hello.cs",
+                                                _tempDirectory,
+                                                s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact, WorkItem(1024619, "DevDiv")]
@@ -1812,7 +1914,7 @@ class Hello
 
             var result = ProcessLauncher.Run("cmd",
                 string.Format("/C \"SET TMP={2} && {0} /nologo /t:library {1}\"",
-                _CSharpCompilerClientExecutable,
+                _csharpCompilerClientExecutable,
                 srcFile, tmp));
 
             Assert.Equal(0, result.ExitCode);
@@ -1821,7 +1923,7 @@ class Hello
 
             result = ProcessLauncher.Run("cmd",
                 string.Format("/C {0} /nologo /t:library {1}",
-                _CSharpCompilerClientExecutable,
+                _csharpCompilerClientExecutable,
                 srcFile));
 
             Assert.Equal("", result.Output.Trim());
@@ -1852,6 +1954,445 @@ class Hello
 
             Assert.Equal("", result.Output.Trim());
             Assert.Equal(0, result.ExitCode);
+        }
+
+        [Fact]
+        public void ExecuteCscBuildTaskWithServer()
+        {
+            var csc = new Csc();
+            var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcCs[0].Key).WriteAllText(s_helloWorldSrcCs[0].Value).Path;
+            var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
+
+            var engine = new MockEngine();
+            csc.BuildEngine = engine;
+            csc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
+            csc.NoLogo = true;
+            csc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            csc.ToolPath = "";
+            csc.ToolExe = "";
+            csc.UseSharedCompilation = true;
+
+            csc.Execute();
+
+            Assert.Equal(0, csc.ExitCode);
+            Assert.Equal(string.Empty, engine.Warnings);
+            Assert.Equal(string.Empty, engine.Errors);
+
+            Assert.True(File.Exists(exeFile));
+
+            var result = ProcessLauncher.Run(exeFile, "");
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("Hello, world.", result.Output.Trim());
+        }
+
+        [Fact]
+        public void ExecuteVbcBuildTaskWithServer()
+        {
+            var vbc = new Vbc();
+            var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcVb[0].Key).WriteAllText(s_helloWorldSrcVb[0].Value).Path;
+            var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
+
+            var engine = new MockEngine();
+            vbc.BuildEngine = engine;
+            vbc.Sources = new[] { new Build.Utilities.TaskItem(srcFile) };
+            vbc.NoLogo = true;
+            vbc.OutputAssembly = new Build.Utilities.TaskItem(exeFile);
+            vbc.ToolPath = "";
+            vbc.ToolExe = "";
+            vbc.UseSharedCompilation = true;
+
+            vbc.Execute();
+
+            Assert.Equal(0, vbc.ExitCode);
+            Assert.Equal(string.Empty, engine.Warnings);
+            Assert.Equal(string.Empty, engine.Errors);
+
+            Assert.True(File.Exists(exeFile));
+
+            var result = ProcessLauncher.Run(exeFile, "");
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("Hello from VB", result.Output.Trim());
+        }
+
+        [Fact]
+        public void ServerExitsWhenRunWithNoArgs()
+        {
+            var result = ProcessLauncher.Run(_compilerServerExecutable, "");
+
+            Assert.Equal(1, result.ExitCode);
+            Assert.Equal("", result.Output);
+        }
+
+        [Fact]
+        public void OnlyStartsOneServer()
+        {
+            var result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
+
+            result = ProcessLauncher.Run(_csharpCompilerClientExecutable, "");
+            Assert.Equal(1, GetProcessesByFullPath(_compilerServerExecutable).Count);
+        }
+
+        // A dictionary with name and contents of all the files we want to create for the ReportAnalyzerMSBuild test.
+        private Dictionary<string, string> ReportAnalyzerMsBuildFiles => new Dictionary<string, string> {
+{ "HelloSolution.sln",
+@"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""HelloLib"", ""HelloLib.csproj"", ""{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}""
+EndProject
+Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""VBLib"", ""VBLib.vbproj"", ""{F21C894B-28E5-4212-8AF7-C8E0E5455737}""
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}.Release|x86.ActiveCfg = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F21C894B-28E5-4212-8AF7-C8E0E5455737}.Release|x86.ActiveCfg = Release|Any CPU	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
+"},
+{ "HelloLib.csproj",
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C1170A4A-80CF-4B4F-AA58-2FAEA9158D31}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>HelloLib</RootNamespace>
+    <AssemblyName>HelloLib</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ReportAnalyzer>True</ReportAnalyzer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include=""System"" />
+    <Reference Include=""System.Core"" />
+    <Reference Include=""System.Xml.Linq"" />
+    <Reference Include=""System.Xml"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=""HelloLib.cs"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=""Properties\"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
+  <Import Project=""$(MyMSBuildToolsPath)\Microsoft.CSharp.Core.targets"" />
+</Project>"},
+
+{ "HelloLib.cs",
+@"public class $P {}"},
+
+ { "VBLib.vbproj",
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + _buildTaskDll + @""" />
+  <PropertyGroup>
+    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>
+    </SchemaVersion>
+    <ProjectGuid>{F21C894B-28E5-4212-8AF7-C8E0E5455737}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>VBLib</RootNamespace>
+    <AssemblyName>VBLib</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Windows</MyType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>VBLib.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>VBLib.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ReportAnalyzer>True</ReportAnalyzer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include=""System"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include=""Microsoft.VisualBasic"" />
+    <Import Include=""System"" />
+    <Import Include=""System.Collections.Generic"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=""VBLib.vb"" />
+  </ItemGroup>
+  <Import Project=""$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"" />
+  <Import Project=""$(MyMSBuildToolsPath)\Microsoft.VisualBasic.Core.targets"" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  -->
+</Project>"},
+
+ { "VBLib.vb",
+@"
+Public Class $P
+End Class
+"}
+            };
+
+        [Fact]
+        public void ReportAnalyzerMSBuild()
+        {
+            string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
+            var result = RunCommandLineCompiler(MSBuildExecutable, arguments, _tempDirectory, ReportAnalyzerMsBuildFiles,
+                new Dictionary<string, string>
+                { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location) } });
+
+            Assert.True(result.ExitCode != 0);
+            Assert.Contains("/reportanalyzer", result.Output);
+        }
+
+        [Fact(Skip = "failing msbuild")]
+        public void SolutionWithPunctuation()
+        {
+            var testDir = _tempDirectory.CreateDirectory(@"SLN;!@(foo)'^1");
+            var slnFile = testDir.CreateFile("Console;!@(foo)'^(Application1.sln").WriteAllText(
+@"
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2005
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Cons.ole;!@(foo)'^(Application1"", ""Console;!@(foo)'^(Application1\Cons.ole;!@(foo)'^(Application1.csproj"", ""{770F2381-8C39-49E9-8C96-0538FA4349A7}""
+EndProject
+Project(""{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"") = ""Class;!@(foo)'^(Library1"", ""Class;!@(foo)'^(Library1\Class;!@(foo)'^(Library1.csproj"", ""{0B4B78CC-C752-43C2-BE9A-319D20216129}""
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {770F2381-8C39-49E9-8C96-0538FA4349A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {770F2381-8C39-49E9-8C96-0538FA4349A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {770F2381-8C39-49E9-8C96-0538FA4349A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {770F2381-8C39-49E9-8C96-0538FA4349A7}.Release|Any CPU.Build.0 = Release|Any CPU
+        {0B4B78CC-C752-43C2-BE9A-319D20216129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {0B4B78CC-C752-43C2-BE9A-319D20216129}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {0B4B78CC-C752-43C2-BE9A-319D20216129}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {0B4B78CC-C752-43C2-BE9A-319D20216129}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(SolutionProperties) = preSolution
+        HideSolutionNode = FALSE
+    EndGlobalSection
+EndGlobal
+");
+            var appDir = testDir.CreateDirectory(@"Console;!@(foo)'^(Application1");
+            var appProjFile = appDir.CreateFile(@"Cons.ole;!@(foo)'^(Application1.csproj").WriteAllText(
+@"
+<Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
+    <PropertyGroup>
+        <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+        <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+        <ProductVersion>8.0.50510</ProductVersion>
+        <SchemaVersion>2.0</SchemaVersion>
+        <ProjectGuid>{770F2381-8C39-49E9-8C96-0538FA4349A7}</ProjectGuid>
+        <OutputType>Exe</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Console____foo____Application1</RootNamespace>
+        <AssemblyName>Console%3b!%40%28foo%29%27^%28Application1</AssemblyName>
+    </PropertyGroup>
+    <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include=""System"" />
+        <Reference Include=""System.Data"" />
+        <Reference Include=""System.Xml"" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include=""Program.cs"" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include=""..\Class%3b!%40%28foo%29%27^%28Library1\Class%3b!%40%28foo%29%27^%28Library1.csproj"">
+            <Project>{0B4B78CC-C752-43C2-BE9A-319D20216129}</Project>
+            <Name>Class%3b!%40%28foo%29%27^%28Library1</Name>
+        </ProjectReference>
+    </ItemGroup>
+    <Import Project=""$(MSBuildBinPath)\Microsoft.CSharp.targets"" />
+</Project>
+");
+
+            var appProgramFile = appDir.CreateFile("Program.cs").WriteAllText(
+@"
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Console____foo____Application1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Class____foo____Library1.Class1 foo = new Class____foo____Library1.Class1();
+        }
+    }
+}");
+
+            var libraryDir = testDir.CreateDirectory(@"Class;!@(foo)'^(Library1");
+            var libraryProjFile = libraryDir.CreateFile("Class;!@(foo)'^(Library1.csproj").WriteAllText(
+@"
+<Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _buildTaskDll + @""" />
+    <PropertyGroup>
+        <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
+        <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
+        <ProductVersion>8.0.50510</ProductVersion>
+        <SchemaVersion>2.0</SchemaVersion>
+        <ProjectGuid>{0B4B78CC-C752-43C2-BE9A-319D20216129}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>Class____foo____Library1</RootNamespace>
+        <AssemblyName>Class%3b!%40%28foo%29%27^%28Library1</AssemblyName>
+    </PropertyGroup>
+    <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include=""System"" />
+        <Reference Include=""System.Data"" />
+        <Reference Include=""System.Xml"" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include=""Class1.cs"" />
+    </ItemGroup>
+    <Import Project=""$(MSBuildBinPath)\Microsoft.CSharp.targets"" />
+
+    <!-- The old OM, which is what this solution is being built under, doesn't understand
+         BeforeTargets, so this test was failing, because _AssignManagedMetadata was set 
+         up as a BeforeTarget for Build.  Copied here so that build will return the correct
+         information again. -->
+    <Target Name=""BeforeBuild"">
+        <ItemGroup>
+            <BuiltTargetPath Include=""$(TargetPath)"">
+                <ManagedAssembly>$(ManagedAssembly)</ManagedAssembly>
+            </BuiltTargetPath>
+        </ItemGroup>
+    </Target>
+</Project>
+");
+
+            var libraryClassFile = libraryDir.CreateFile("Class1.cs").WriteAllText(
+@"
+namespace Class____foo____Library1
+{
+    public class Class1
+    {
+    }
+}
+");
+
+            var result = RunCommandLineCompiler(MSBuildExecutable, "", testDir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("", result.Errors);
         }
     }
 }

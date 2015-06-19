@@ -365,70 +365,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Returns true if the specified <paramref name="node"/> is a body of an anonymous method, lambda, 
-        /// or a part of a query clause that is syntactically translated to a lambda body.
-        /// </summary>
+        [System.Obsolete("IsLambdaBody API is obsolete", true)]
         public static bool IsLambdaBody(SyntaxNode node)
         {
-            if (node == null)
-            {
-                return false;
-            }
-
-            var parent = node.Parent;
-            if (parent == null)
-            {
-                return false;
-            }
-
-            switch (parent.Kind())
-            {
-                case ParenthesizedLambdaExpression:
-                case SimpleLambdaExpression:
-                case AnonymousMethodExpression:
-                    return true;
-
-                case FromClause:
-                    var fromClause = (FromClauseSyntax)parent;
-                    return fromClause.Expression == node && fromClause.Parent is QueryBodySyntax;
-
-                case JoinClause:
-                    var joinClause = (JoinClauseSyntax)parent;
-                    return joinClause.LeftExpression == node || joinClause.RightExpression == node;
-
-                case LetClause:
-                    var letClause = (LetClauseSyntax)parent;
-                    return letClause.Expression == node;
-
-                case WhereClause:
-                    var whereClause = (WhereClauseSyntax)parent;
-                    return whereClause.Condition == node;
-
-                case AscendingOrdering:
-                case DescendingOrdering:
-                    var ordering = (OrderingSyntax)parent;
-                    return ordering.Expression == node;
-
-                case SelectClause:
-                    var selectClause = (SelectClauseSyntax)parent;
-                    return selectClause.Expression == node;
-
-                case GroupClause:
-                    var groupClause = (GroupClauseSyntax)parent;
-                    return groupClause.GroupExpression == node || groupClause.ByExpression == node;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values. 
-        /// TODO: Avoid generating lambdas. Instead generate a method on the anonymous type, or use KeyValuePair instead.
-        /// </summary>
-        internal static bool IsQueryPairLambda(SyntaxNode syntax)
-        {
-            return syntax.IsKind(GroupClause) || syntax.IsKind(JoinClause) || syntax.IsKind(FromClause);
+            return LambdaUtilities.IsLambdaBody(node);
         }
     }
 }

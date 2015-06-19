@@ -16,8 +16,8 @@
   </Dependencies>
   <Assets>
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicExpressionCompiler" Path="|BasicExpressionCompiler;VsdConfigOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicResultProvider" Path="|BasicResultProvider;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicResultProvider.Portable" Path="|BasicResultProvider.Portable;VsdConfigOutputGroup|" />
     <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpExpressionCompiler" Path="|CSharpExpressionCompiler;VsdConfigOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpResultProvider" Path="|CSharpResultProvider;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpResultProvider.Portable" Path="|CSharpResultProvider.Portable;VsdConfigOutputGroup|" />
   </Assets>
 </PackageManifest>

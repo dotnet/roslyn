@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -213,12 +214,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitRefValueOperator((BoundRefValueOperator)expression, used);
                     break;
 
-                case BoundKind.ConditionalAccess:
-                    EmitConditionalAccessExpression((BoundConditionalAccess)expression, used);
+                case BoundKind.LoweredConditionalAccess:
+                    EmitLoweredConditionalAccessExpression((BoundLoweredConditionalAccess)expression, used);
                     break;
 
                 case BoundKind.ConditionalReceiver:
                     EmitConditionalReceiver((BoundConditionalReceiver)expression, used);
+                    break;
+
+                case BoundKind.ComplexConditionalReceiver:
+                    EmitComplexConditionalReceiver((BoundComplexConditionalReceiver)expression, used);
                     break;
 
                 case BoundKind.PseudoVariable:
@@ -234,7 +239,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitConditionalAccessExpression(BoundConditionalAccess expression, bool used)
+        private void EmitComplexConditionalReceiver(BoundComplexConditionalReceiver expression, bool used)
+        {
+            Debug.Assert(!expression.Type.IsReferenceType);
+            Debug.Assert(!expression.Type.IsValueType);
+
+            var receiverType = expression.Type;
+
+            var whenValueTypeLabel = new object();
+            var doneLabel = new object();
+
+            EmitInitObj(receiverType, true, expression.Syntax);
+            EmitBox(receiverType, expression.Syntax);
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
+
+            EmitExpression(expression.ReferenceTypeReceiver, used);
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(whenValueTypeLabel);
+            EmitExpression(expression.ValueTypeReceiver, used);
+
+            _builder.MarkLabel(doneLabel);
+        }
+
+        private void EmitLoweredConditionalAccessExpression(BoundLoweredConditionalAccess expression, bool used)
         {
             var receiver = expression.Receiver;
 
@@ -246,14 +275,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
-            Debug.Assert(!receiverType.IsValueType, "conditional receiver cannot be a struct");
+            Debug.Assert(!receiverType.IsValueType || 
+                (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
             if (receiverConstant != null)
             {
                 // const but not default
                 receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
-                EmitExpression(expression.AccessExpression, used);
+                EmitExpression(expression.WhenNotNull, used);
                 if (receiverTemp != null)
                 {
                     FreeTemp(receiverTemp);
@@ -264,19 +294,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // labels
             object whenNotNullLabel = new object();
             object doneLabel = new object();
-            LocalDefinition temp = null;
+            LocalDefinition cloneTemp = null;
 
             // we need a copy if we deal with nonlocal value (to capture the value)
             // or if we have a ref-constrained T (to do box just once)
             // or if we deal with stack local (reads are destructive)
-            var nullCheckOnCopy = LocalRewriter.IntroducingReadCanBeObservable(receiver, localsMayBeAssignedOrCaptured: false) ||
+            var nullCheckOnCopy = LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                    (receiverType.IsReferenceType && receiverType.TypeKind == TypeKind.TypeParameter) ||
                                    (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol));
 
+            var unconstrainedReceiver = !receiverType.IsReferenceType && !receiverType.IsValueType;
+
+
+            // ===== RECEIVER
             if (nullCheckOnCopy)
             {
-                EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
-                if (!receiverType.IsReferenceType)
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
+                if (unconstrainedReceiver)
                 {
                     // unconstrained case needs to handle case where T is actually a struct.
                     // such values are never nulls
@@ -297,10 +331,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
                     EmitLoadIndirect(receiverType, receiver.Syntax);
 
-                    temp = AllocateTemp(receiverType, receiver.Syntax);
-                    _builder.EmitLocalStore(temp);
-                    _builder.EmitLocalAddress(temp);
-                    _builder.EmitLocalLoad(temp);
+                    cloneTemp = AllocateTemp(receiverType, receiver.Syntax);
+                    _builder.EmitLocalStore(cloneTemp);
+                    _builder.EmitLocalAddress(cloneTemp);
+                    _builder.EmitLocalLoad(cloneTemp);
                     EmitBox(receiver.Type, receiver.Syntax);
 
                     // here we have loaded a ref to a temp and its boxed value { &T, O }
@@ -308,30 +342,55 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     _builder.EmitOpCode(ILOpCode.Dup);
-                    // here we have loaded two copies of a reference   { O, O }
+                    // here we have loaded two copies of a reference   { O, O }  or  {&nub, &nub}
                 }
             }
             else
             {
-                EmitExpression(receiver, true);
-                if (!receiverType.IsReferenceType)
-                {
-                    EmitBox(receiverType, receiver.Syntax);
-                }
-                // here we have loaded just { O }
-                // we have the most trivial case where we can just reload O when needed
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: false);
+                // here we have loaded just { O } or  {&nub}
+                // we have the most trivial case where we can just reload receiver when needed again
+            }
+
+            // ===== CONDITION
+
+            var hasValueOpt = expression.HasValueMethodOpt;
+            if (hasValueOpt != null)
+            {
+                Debug.Assert(receiver.Type.IsNullableType());
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+                EmitSymbolToken(hasValueOpt, expression.Syntax, null);
             }
 
             _builder.EmitBranch(ILOpCode.Brtrue, whenNotNullLabel);
 
+            // no longer need the temp if we are not holding a copy
+            if (receiverTemp != null && !nullCheckOnCopy)
+            {
+                FreeTemp(receiverTemp);
+                receiverTemp = null;
+            }
+
+            // ===== WHEN NULL
             if (nullCheckOnCopy)
             {
                 _builder.EmitOpCode(ILOpCode.Pop);
             }
 
-            EmitDefaultValue(expression.Type, used, expression.Syntax);
+            var whenNull = expression.WhenNullOpt;
+            if (whenNull == null)
+            {
+                EmitDefaultValue(expression.Type, used, expression.Syntax);
+            }
+            else
+            {
+                EmitExpression(whenNull, used);
+            }
+
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
 
+
+            // ===== WHEN NOT NULL 
             if (nullCheckOnCopy)
             {
                 // notNull branch pops copy of receiver off the stack when nullCheckOnCopy
@@ -352,16 +411,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!nullCheckOnCopy)
             {
-                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: !receiverType.IsReferenceType);
+                Debug.Assert(receiverTemp == null);
+                receiverTemp = EmitReceiverRef(receiver, isAccessConstrained: unconstrainedReceiver);
                 Debug.Assert(receiverTemp == null);
             }
 
-            EmitExpression(expression.AccessExpression, used);
+            EmitExpression(expression.WhenNotNull, used);
+
+            // ===== DONE
             _builder.MarkLabel(doneLabel);
 
-            if (temp != null)
+            if (cloneTemp != null)
             {
-                FreeTemp(temp);
+                FreeTemp(cloneTemp);
             }
 
             if (receiverTemp != null)
@@ -514,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitPseudoVariableValue(BoundPseudoVariable expression, bool used)
         {
-            EmitExpression(expression.EmitExpressions.GetValue(expression), used);
+            EmitExpression(expression.EmitExpressions.GetValue(expression, _diagnostics), used);
         }
 
         private void EmitSequencePointExpression(BoundSequencePointExpression node, bool used)
@@ -559,7 +621,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitExpression(sequence.Value, used);
             }
 
-            FreeLocals(sequence);
+            // sequence is used as a value, can release all locals
+            FreeLocals(sequence, doNotRelease: null);
         }
 
         private void DefineLocals(BoundSequence sequence)
@@ -577,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void FreeLocals(BoundSequence sequence)
+        private void FreeLocals(BoundSequence sequence, LocalSymbol doNotRelease)
         {
             if (sequence.Locals.IsEmpty)
             {
@@ -588,7 +651,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var local in sequence.Locals)
             {
-                FreeLocal(local);
+                if ((object)local != doNotRelease)
+                {
+                    FreeLocal(local);
+                }
             }
         }
 
@@ -1288,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (callKind == CallKind.ConstrainedCallVirt && actualMethodTargetedByTheCall.ContainingType.IsValueType)
             {
-                // special case for overriden methods like ToString(...) called on
+                // special case for overridden methods like ToString(...) called on
                 // value types: if the original method used in emit cannot use callvirt in this
                 // case, change it to Call.
                 callKind = CallKind.Call;
@@ -1970,17 +2036,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         DefineLocals(sequence);
                         EmitSideEffects(sequence);
 
-                        BoundLocal referencedLocal = DigForLocal(sequence.Value);
-                        LocalSymbol doNotRelease = null;
-                        if (referencedLocal != null)
-                        {
-                            doNotRelease = referencedLocal.LocalSymbol;
-                        }
-
                         lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.RefKind, assignmentOperator.Type));
 
-                        FreeLocals(sequence);
-                        Debug.Assert(!sequence.Locals.Any(l => l == doNotRelease));
+                        // doNotRelease will be released in EmitStore after we are done with the whole assignment.
+                        var doNotRelease = DigForValueLocal(sequence);
+                        FreeLocals(sequence, doNotRelease);
                     }
                     break;
 
@@ -2126,6 +2186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var sequence = (BoundSequence)expression;
                         EmitStore(assignment.Update(sequence.Value, assignment.Right, assignment.RefKind, assignment.Type));
+
+                        var notReleased = DigForValueLocal(sequence);
+                        if (notReleased != null)
+                        {
+                            FreeLocal(notReleased);
+                        }
                     }
                     break;
 

@@ -94,50 +94,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TryReadByteOrderMark()
-        {
-            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[0])));
-
-            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef })));
-            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xbb })));
-            Assert.Equal(Encoding.UTF8, EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xBB, 0xBF })));
-
-            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff })));
-            Assert.Equal(Encoding.Unicode, EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff, 0xfe })));
-
-            Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe })));
-            Assert.Equal(Encoding.BigEndianUnicode, EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe, 0xff })));
-        }
-
-        [Fact]
-        public void IsBinary()
-        {
-            Assert.False(EncodedStringText.IsBinary(""));
-
-            Assert.False(EncodedStringText.IsBinary("\0abc"));
-            Assert.False(EncodedStringText.IsBinary("a\0bc"));
-            Assert.False(EncodedStringText.IsBinary("abc\0"));
-            Assert.False(EncodedStringText.IsBinary("a\0b\0c"));
-
-            Assert.True(EncodedStringText.IsBinary("\0\0abc"));
-            Assert.True(EncodedStringText.IsBinary("a\0\0bc"));
-            Assert.True(EncodedStringText.IsBinary("abc\0\0"));
-
-            var encoding = Encoding.GetEncoding(1252);
-            Assert.False(EncodedStringText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
-            // Unicode string: äëïöüû
-            Assert.False(EncodedStringText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
-            Assert.True(EncodedStringText.IsBinary(encoding.GetString(ProprietaryTestResources.NetFX.v4_0_30319.System)));
-        }
-
-        [Fact]
         public void Decode_NonUtf8()
         {
-            var utf8 = new UTF8Encoding(false, true);
-            var text = "abc def baz aeiouy " + Encoding.Default.GetString(new byte[] { 0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF });
-            var bytes = Encoding.Default.GetBytesWithPreamble(text);
+            // Unicode text with extended characters that map to interesting code points in CodePage 1252.
+            var text = "abc def baz aeiouy \u20ac\u2019\u00a4\u00b6\u00c9\u00db\u00ed\u00ff";
 
-            // Encoding.Default should not decode to UTF-8
+            // The same text encoded in CodePage 1252 which happens to be an illegal sequence if decoded as Utf-8.
+            var bytes = new byte[]
+            {
+                0x61, 0x62, 0x63, 0x20, 0x64, 0x65, 0x66, 0x20, 0x62, 0x61, 0x7a, 0x20, 0x61, 0x65, 0x69, 0x6f, 0x75, 0x79, 0x20,
+                0x80, 0x92, 0xA4, 0xB6, 0xC9, 0xDB, 0xED, 0xFF
+            };
+
+            var utf8 = new UTF8Encoding(false, true);
+
+            // bytes should not decode to UTF-8
             using (var stream = new MemoryStream(bytes))
             {
                 Assert.Throws(typeof(DecoderFallbackException), () =>
@@ -148,12 +119,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.True(stream.CanRead);
             }
 
-            // Detect encoding should correctly pick Encoding.Default
+            // Detect encoding should correctly pick CodePage 1252
             using (var stream = new MemoryStream(bytes))
             {
                 var sourceText = EncodedStringText.Create(stream);
                 Assert.Equal(text, sourceText.ToString());
-                Assert.Equal(Encoding.Default, sourceText.Encoding);
+
+                // Check for a complete Encoding implementation.
+                Assert.Equal(1252, sourceText.Encoding.CodePage);
+                Assert.NotNull(sourceText.Encoding.GetEncoder());
+                Assert.NotNull(sourceText.Encoding.GetDecoder());
+                Assert.Equal(2, sourceText.Encoding.GetMaxByteCount(1));
+                Assert.Equal(1, sourceText.Encoding.GetMaxCharCount(1));
+                Assert.Equal(text, sourceText.Encoding.GetString(bytes));
+
                 Assert.True(stream.CanRead);
             }
         }
@@ -300,6 +279,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 var encodedText = EncodedStringText.Create(fs);
                 Assert.Equal(0, encodedText.Length);
+            }
+        }
+
+        [Fact, WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
+        public void HorizontalEllipsis()
+        {
+            // Character 0x85 in CodePage 1252 is a horizontal ellipsis.
+            // If decoded as Latin-1, then it's incorrectly treated as \u0085 which
+            // is a line break ('NEXT LINE').
+            byte[] srcBytes = new[] { (byte)0x85 };
+            using (var ms = new MemoryStream(srcBytes))
+            {
+                var sourceText = EncodedStringText.Create(ms);
+                Assert.Equal('\u2026', sourceText[0]);
             }
         }
     }

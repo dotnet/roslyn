@@ -5,6 +5,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a preprocessing conditional compilation symbol.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface IPreprocessingSymbol : ISymbol
     {
     }

@@ -1,6 +1,6 @@
-﻿extern alias PDB;
-// Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias PDB;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,10 +8,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using PDB::Roslyn.Test.MetadataUtilities;
 using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (!map.TryGetValue(qualifiedMethodName + "()", out methodData))
                 {
                     // now try to match single method with any parameter list
-                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "("));
+                    var keys = map.Keys.Where(k => k.StartsWith(qualifiedMethodName + "(", StringComparison.Ordinal));
                     if (keys.Count() == 1)
                     {
                         methodData = map[keys.First()];
@@ -52,14 +56,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return methodData;
         }
-
+        
         internal static void VerifyIL(
             this CompilationTestData.MethodData method,
             string expectedIL,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
+            const string moduleNamePlaceholder = "{#Module#}";
             string actualIL = GetMethodIL(method);
+            if (expectedIL.IndexOf(moduleNamePlaceholder) >= 0)
+            {
+                var module = method.Method.ContainingModule;
+                var moduleName = Path.GetFileNameWithoutExtension(module.Name);
+                expectedIL = expectedIL.Replace(moduleNamePlaceholder, moduleName);
+            }
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
@@ -80,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath]string expectedValueSourcePath = null)
         {
             string actualPdb = GetPdbXml(compilation, qualifiedMethodName);
-            XmlElementDiff.AssertEqual(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
+            AssertXml.Equal(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
         }
 
         private static XElement ParseExpectedPdbXml(string str)
@@ -105,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath]string expectedValueSourcePath = null)
         {
             XElement actualPdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName));
-            XmlElementDiff.AssertEqual(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
+            AssertXml.Equal(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
         }
 
         internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
@@ -122,9 +133,100 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, methodName: qualifiedMethodName);
                 }
+
+                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb");
             }
 
             return actual;
+        }
+
+        public static void ValidateDebugDirectory(Stream peStream, string pdbPath)
+        {
+            peStream.Seek(0, SeekOrigin.Begin);
+            PEReader peReader = new PEReader(peStream);
+
+            var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
+
+            int position;
+            Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out position));
+            Assert.Equal(0x1c, debugDirectory.Size);
+
+            byte[] buffer = new byte[debugDirectory.Size];
+            peStream.Read(buffer, 0, buffer.Length);
+
+            peStream.Position = position;
+            var reader = new BinaryReader(peStream);
+
+            int characteristics = reader.ReadInt32();
+            Assert.Equal(0, characteristics);
+
+            uint timeDateStamp = reader.ReadUInt32();
+
+            uint version = reader.ReadUInt32();
+            Assert.Equal(0u, version);
+
+            int type = reader.ReadInt32();
+            Assert.Equal(2, type);
+
+            int sizeOfData = reader.ReadInt32();
+            int rvaOfRawData = reader.ReadInt32();
+
+            int section = peReader.PEHeaders.GetContainingSectionIndex(rvaOfRawData);
+            var sectionHeader = peReader.PEHeaders.SectionHeaders[section];
+
+            int pointerToRawData = reader.ReadInt32();
+            Assert.Equal(pointerToRawData, sectionHeader.PointerToRawData + rvaOfRawData - sectionHeader.VirtualAddress);
+
+            peStream.Position = pointerToRawData;
+
+            Assert.Equal((byte)'R', reader.ReadByte());
+            Assert.Equal((byte)'S', reader.ReadByte());
+            Assert.Equal((byte)'D', reader.ReadByte());
+            Assert.Equal((byte)'S', reader.ReadByte());
+
+            byte[] guidBlob = new byte[16];
+            reader.Read(guidBlob, 0, guidBlob.Length);
+
+            Assert.Equal(1u, reader.ReadUInt32());
+
+            byte[] pathBlob = new byte[sizeOfData - 24 - 1];
+            reader.Read(pathBlob, 0, pathBlob.Length);
+            var actualPath = Encoding.UTF8.GetString(pathBlob);
+            Assert.Equal(pdbPath, actualPath);
+            Assert.Equal(0, reader.ReadByte());
+        }
+
+        public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)
+        {
+            peStream1.Position = 0;
+            peStream2.Position = 0;
+
+            var peReader1 = new PEReader(peStream1);
+            var peReader2 = new PEReader(peStream2);
+
+            var md1 = peReader1.GetMetadata().GetContent();
+            var md2 = peReader2.GetMetadata().GetContent();
+
+            var mdReader1 = peReader1.GetMetadataReader();
+            var mdReader2 = peReader2.GetMetadataReader();
+
+            var mvidIndex1 = mdReader1.GetModuleDefinition().Mvid;
+            var mvidIndex2 = mdReader2.GetModuleDefinition().Mvid;
+
+            var mvidOffset1 = mdReader1.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex1) - 1);
+            var mvidOffset2 = mdReader2.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex2) - 1);
+
+            if (!md1.RemoveRange(mvidOffset1, 16).SequenceEqual(md1.RemoveRange(mvidOffset2, 16)))
+            {
+                var mdw1 = new StringWriter();
+                var mdw2 = new StringWriter();
+                new MetadataVisualizer(mdReader1, mdw1).Visualize();
+                new MetadataVisualizer(mdReader2, mdw2).Visualize();
+                mdw1.Flush();
+                mdw2.Flush();
+
+                AssertEx.AssertResultsEqual(mdw1.ToString(), mdw2.ToString());
+            }
         }
 
         internal static string GetMethodIL(this CompilationTestData.MethodData method)
@@ -159,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, out string assemblyPath, out string pdbPath)
         {
-            if (declarations == null) throw new ArgumentNullException("declarations");
+            if (declarations == null) throw new ArgumentNullException(nameof(declarations));
 
             using (var sourceFile = new DisposableFile(extension: ".il"))
             {
@@ -201,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     sourceFile.Path,
                     assemblyPath);
 
-                if (includePdb)
+                if (includePdb && !CLRHelpers.IsRunningOnMono())
                 {
                     pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
                     arguments += string.Format(" /PDB=\"{0}\"", pdbPath);
@@ -211,13 +313,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     pdbPath = null;
                 }
 
-                var result = ProcessLauncher.Run(ilasmPath, arguments);
+                var program = ilasmPath;
+                if (CLRHelpers.IsRunningOnMono())
+                {
+                    arguments = string.Format("{0} {1}", ilasmPath, arguments);
+                    arguments = arguments.Replace("\"", "");
+                    arguments = arguments.Replace("=", ":");
+                    program = "mono";
+                }
+
+                var result = ProcessLauncher.Run(program, arguments);
 
                 if (result.ContainsErrors)
                 {
                     throw new ArgumentException(
                         "The provided IL cannot be compiled." + Environment.NewLine +
-                        ilasmPath + " " + arguments + Environment.NewLine +
+                        program + " " + arguments + Environment.NewLine +
                         result,
                         "declarations");
                 }
@@ -233,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </returns>
         public static string RunPEVerify(byte[] assembly)
         {
-            if (assembly == null) throw new ArgumentNullException("assembly");
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
             var pathToPEVerify = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),

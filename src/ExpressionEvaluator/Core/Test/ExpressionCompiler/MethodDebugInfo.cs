@@ -3,25 +3,25 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class MethodDebugInfo
+    internal sealed class MethodDebugInfoBytes
     {
         public readonly ImmutableArray<byte> Bytes;
         public readonly ISymUnmanagedMethod Method;
 
-        public MethodDebugInfo(ImmutableArray<byte> bytes, ISymUnmanagedMethod method)
+        public MethodDebugInfoBytes(ImmutableArray<byte> bytes, ISymUnmanagedMethod method)
         {
             this.Bytes = bytes;
             this.Method = method;
         }
 
         /// <remarks>
-        /// This is a helper class for creating mostly-correct <see cref="MethodDebugInfo"/> objects (e.g. circular forwards, extra records, etc).
-        /// To create totally broken objects (e.g. corrupted bytes, alternate scope structures, etc), construct <see cref="MethodDebugInfo"/> objects directly.
+        /// This is a helper class for creating mostly-correct <see cref="MethodDebugInfoBytes"/> objects (e.g. circular forwards, extra records, etc).
+        /// To create totally broken objects (e.g. corrupted bytes, alternate scope structures, etc), construct <see cref="MethodDebugInfoBytes"/> objects directly.
         /// </remarks>
         internal sealed class Builder
         {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return this;
             }
 
-            public MethodDebugInfo Build()
+            public MethodDebugInfoBytes Build()
             {
                 // Global header
                 _bytesBuilder.Insert(0, Version);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 Assert.Equal(0, _bytesBuilder.Count % 4);
 
-                var info = new MethodDebugInfo(_bytesBuilder.ToImmutableAndFree(), _method);
+                var info = new MethodDebugInfoBytes(_bytesBuilder.ToImmutableAndFree(), _method);
                 _bytesBuilder = null; // We'll blow up if any other methods are called.
                 return info;
             }

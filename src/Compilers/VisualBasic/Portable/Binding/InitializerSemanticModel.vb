@@ -10,15 +10,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class InitializerSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
         ''' </summary>
-        Friend Shared Function Create(binder As DeclarationInitializerBinder) As InitializerSemanticModel
-            Return New InitializerSemanticModel(binder.Root, binder)
+        Friend Shared Function Create(binder As DeclarationInitializerBinder, Optional ignoreAccessibility As Boolean = False) As InitializerSemanticModel
+            Return New InitializerSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         '  get field symbol
                         Dim fieldSymbol = DirectCast(Me.MemberSymbol, SourceFieldSymbol)
-                        Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
+                        Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
                             binder.BindFieldInitializer(ImmutableArray.Create(Of Symbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Property
                     '  get property symbol
                     Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
-                    Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
+                    Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
                     binder.BindPropertyInitializer(propertySymbol, initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()

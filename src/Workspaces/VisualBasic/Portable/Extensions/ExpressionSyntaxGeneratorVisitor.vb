@@ -17,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         ' Public Shared ReadOnly Instance As ExpressionSyntaxGeneratorVisitor = New ExpressionSyntaxGeneratorVisitor()
 
-        Private ReadOnly addGlobal As Boolean
+        Private ReadOnly _addGlobal As Boolean
 
         Public Sub New(addGlobal As Boolean)
-            Me.addGlobal = addGlobal
+            Me._addGlobal = addGlobal
         End Sub
 
         Public Overrides Function DefaultVisit(symbol As ISymbol) As ExpressionSyntax
-            Return symbol.Accept(New TypeSyntaxGeneratorVisitor(addGlobal))
+            Return symbol.Accept(New TypeSyntaxGeneratorVisitor(_addGlobal))
         End Function
 
         Private Function AddInformationTo(Of TExpressionSyntax As ExpressionSyntax)(expression As TExpressionSyntax, symbol As ISymbol) As TExpressionSyntax
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Public Overrides Function VisitNamedType(symbol As INamedTypeSymbol) As ExpressionSyntax
-            Dim typeSyntax = New TypeSyntaxGeneratorVisitor(addGlobal).CreateSimpleTypeSyntax(symbol)
+            Dim typeSyntax = New TypeSyntaxGeneratorVisitor(_addGlobal).CreateSimpleTypeSyntax(symbol)
             If Not (TypeOf typeSyntax Is SimpleNameSyntax) Then
                 Return typeSyntax
             End If

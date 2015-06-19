@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private class InterpolatedStringScanner
         {
-            public Lexer lexer;
+            public readonly Lexer lexer;
             public bool isVerbatim;
             public bool allowNewlines;
             public SyntaxDiagnosticInfo error;

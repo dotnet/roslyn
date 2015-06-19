@@ -17,34 +17,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export]
     internal class AnalyzerItemsTracker : IVsSelectionEvents
     {
+        private IServiceProvider _serviceProvider;
         private IVsMonitorSelection _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
 
-        public event EventHandler SelectedHierarchyChanged;
-        public event EventHandler SelectedDiagnosticItemsChanged;
-        public event EventHandler SelectedItemIdChanged;
+        public event EventHandler SelectedHierarchyItemChanged;
 
         [ImportingConstructor]
-        public AnalyzerItemsTracker(SVsServiceProvider serviceProvider)
+        public AnalyzerItemsTracker(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            _vsMonitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            _serviceProvider = serviceProvider;
         }
 
         public void Register()
         {
-            if (_vsMonitorSelection != null)
+            IVsMonitorSelection vsMonitorSelection = GetMonitorSelection();
+
+            if (vsMonitorSelection != null)
             {
-                _vsMonitorSelection.AdviseSelectionEvents(this, out _selectionEventsCookie);
+                vsMonitorSelection.AdviseSelectionEvents(this, out _selectionEventsCookie);
             }
         }
 
         public void Unregister()
         {
-            if (_vsMonitorSelection != null)
+            IVsMonitorSelection vsMonitorSelection = GetMonitorSelection();
+
+            if (vsMonitorSelection != null)
             {
-                _vsMonitorSelection.UnadviseSelectionEvents(_selectionEventsCookie);
+                vsMonitorSelection.UnadviseSelectionEvents(_selectionEventsCookie);
             }
         }
+
         public IVsHierarchy SelectedHierarchy { get; private set; }
         public uint SelectedItemId { get; private set; } = VSConstants.VSITEMID_NIL;
         public AnalyzersFolderItem SelectedFolder { get; private set; }
@@ -60,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             return VSConstants.S_OK;
         }
+
         int IVsSelectionEvents.OnSelectionChanged(
             IVsHierarchy pHierOld,
             uint itemidOld,
@@ -88,25 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                   .Select(b => b.Folder)
                                   .FirstOrDefault();
 
-            var oldSelectedDiagnosticItems = this.SelectedDiagnosticItems;
             this.SelectedDiagnosticItems = selectedObjects
                                            .OfType<DiagnosticItem.BrowseObject>()
                                            .Select(b => b.DiagnosticItem)
                                            .ToImmutableArray();
 
-            if (!object.ReferenceEquals(oldSelectedHierarchy, this.SelectedHierarchy))
+            if (!object.ReferenceEquals(oldSelectedHierarchy, this.SelectedHierarchy) ||
+                oldSelectedItemId != this.SelectedItemId)
             {
-                this.SelectedHierarchyChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            if (oldSelectedItemId != this.SelectedItemId)
-            {
-                this.SelectedItemIdChanged?.Invoke(this, EventArgs.Empty);
-            }
-
-            if (oldSelectedDiagnosticItems != this.SelectedDiagnosticItems)
-            {
-                this.SelectedDiagnosticItemsChanged?.Invoke(this, EventArgs.Empty);
+                this.SelectedHierarchyItemChanged?.Invoke(this, EventArgs.Empty);
             }
 
             return VSConstants.S_OK;
@@ -132,6 +128,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             return selectedObjects;
+        }
+
+        private IVsMonitorSelection GetMonitorSelection()
+        {
+            if (_vsMonitorSelection == null)
+            {
+                _vsMonitorSelection = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            }
+
+            return _vsMonitorSelection;
         }
     }
 }

@@ -756,7 +756,7 @@ End Module
 
         <WorkItem(542208, "DevDiv")>
         <Fact()>
-        Public Sub OverlapingCatch()
+        Public Sub OverlappingCatch()
             CompileAndVerify(
             <compilation>
                 <file name="a.vb">

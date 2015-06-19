@@ -160,7 +160,7 @@ namespace ns1
             }
         }
 
-        // Overriden Abstract Methods
+        // Overridden Abstract Methods
         public override int abst(ref string x, params int[] y)
         {
             Console.WriteLine("    c1.abst(ref string, params int[])");
@@ -523,7 +523,7 @@ namespace ns1
             }
         }
 
-        // Overriden Abstract Methods
+        // Overridden Abstract Methods
         public override int abst(ref string x, params int[] y)
         {
             Console.WriteLine("    c2<T>.abst(ref string, params int[])");
@@ -538,7 +538,7 @@ namespace ns1
             return 1;
         }
 
-        // Overriden Virtual Methods
+        // Overridden Virtual Methods
         public override int virt(ref int x, c1 y, params c2<string>[] z)
         {
             Console.WriteLine("    c2<T>.virt(ref int, c1, params c2<string>[])");
@@ -3047,7 +3047,7 @@ namespace ns1
                 d32(1, 0, null);
                 d42((a, b, c) => null, (a, b, c) => null, (a, b, c) => { uu.Equals(vv); });
 
-                // Delegate Relaxation, Compound Assignement
+                // Delegate Relaxation, Compound Assignment
                 Del1 d1 = foo; d1 += foo<T, U>;
                 Del3<InvalidCastException, ArgumentNullException, NullReferenceException, Exception> d33 = foo<int, long>;
                 d33 -= foo<int, long>; d33 += foo<int, double>;

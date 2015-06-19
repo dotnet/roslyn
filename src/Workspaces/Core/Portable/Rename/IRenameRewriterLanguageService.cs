@@ -92,9 +92,12 @@ namespace Microsoft.CodeAnalysis.Rename
         /// Identifies potential Conflicts into the inner scope locals. This may give false positives.
         /// </summary>
         /// <param name="token">The Token that may introduce errors else where</param>
+        /// <param name="newReferencedSymbols">The symbols that this token binds to after the rename
+        /// has been applied</param>
         /// <returns>Returns if there is a potential conflict</returns>
         bool LocalVariableConflict(
-            SyntaxToken token);
+            SyntaxToken token,
+            IEnumerable<ISymbol> newReferencedSymbols);
 
         /// <summary>
         /// Used to find if the replacement Identifier is valid

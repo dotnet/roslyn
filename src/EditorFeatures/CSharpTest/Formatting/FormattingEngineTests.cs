@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -839,10 +841,296 @@ class Program
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected)
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ColonInSwitchCase()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+                 case     1     :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+            case 1:    break;
+        }
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ColonInDefaultSwitchCase()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+            case 1:    break;
+                    default    :$$     break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int f = 0;
+        switch(f)
+        {
+            case 1:    break;
+            default:     break;
+        }
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void ColonInLabeledStatement()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+            label1   :$$   int s = 0;
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+            label1:   int s = 0;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInTargetAttribute()
+        {
+            var code = @"using System;
+[method    :$$    C]
+class C : Attribute
+{
+}";
+
+            var expected = @"using System;
+[method    :    C]
+class C : Attribute
+{
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInBaseList()
+        {
+            var code = @"class C   :$$   Attribute
+{
+}";
+
+            var expected = @"class C   :   Attribute
+{
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInThisConstructor()
+        {
+            var code = @"class Foo
+{
+    Foo(int s)   :$$   this()
+    {
+    }
+
+    Foo()
+    {
+    }
+}";
+
+            var expected = @"class Foo
+{
+    Foo(int s)   :   this()
+    {
+    }
+
+    Foo()
+    {
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInConditionalOperator()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var vari = foo()     ?    true  :$$  false;
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        var vari = foo()     ?    true  :  false;
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInArgument()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args  :$$  args);
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        Main(args  :  args);
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(464)]
+        [WorkItem(908729)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DoNotFormatColonInTyepPararmeter()
+        {
+            var code = @"class Program<T>
+{
+    class C1<U>
+        where   T  :$$  U
+    {
+
+    }
+}";
+
+            var expected = @"class Program<T>
+{
+    class C1<U>
+        where   T  :  U
+    {
+
+    }
+}";
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontSmartFormatBracesOnSmartIndentNone()
+        {
+            var code = @"class Program<T>
+{
+    class C1<U>
+{$$
+}";
+
+            var expected = @"class Program<T>
+{
+    class C1<U>
+{
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+                            {
+                                { new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                            };
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void StillAutoIndentCloseBraceWhenFormatOnCloseBraceIsOff()
+        {
+            var code = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+        }$$
+}
+";
+
+            var expected = @"namespace N
+{
+    class C
+    {
+             // improperly indented code
+             int x = 10;
+    }
+}
+";
+
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                    { new OptionKey(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+            };
+
+            AssertFormatAfterTypeChar(code, expected, optionSet);
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code))
             {
+                if (changedOptionSet != null)
+                {
+                    var options = workspace.Options;
+                    foreach (var entry in changedOptionSet)
+                    {
+                        options = options.WithChangedOption(entry.Key, entry.Value);
+                    }
+
+                    workspace.Options = options;
+                }
+
                 var subjectDocument = workspace.Documents.Single();
 
                 var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();

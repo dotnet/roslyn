@@ -288,7 +288,7 @@ class C
     public static void Main() {}
 }
 ");
-            var verifier = CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitUnsupported_640494);
+            var verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("XAttribute..ctor(int)", @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1423,7 +1423,6 @@ namespace AttributeTest
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var compVerifier = CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: attributeValidator,
                 expectedOutput: "True\r\n",
@@ -1556,7 +1555,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [WorkItem(541058, "DevDiv")]
@@ -1827,7 +1826,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(compilation, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [WorkItem(541709, "DevDiv")]
@@ -1977,7 +1976,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitUnsupported_640494, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [Fact]
@@ -2348,7 +2347,7 @@ public class A : Attribute
     }
 }
 ";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitUnsupported_646007, expectedOutput: "int");
+            CompileAndVerify(source, expectedOutput: "int");
         }
 
         [WorkItem(541876, "DevDiv")]
@@ -3172,7 +3171,7 @@ class C
         Console.WriteLine(message == UnicodeReplacementCharacter + UnicodeReplacementCharacter);
     }
 }";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [WorkItem(546621, "DevDiv")]
@@ -3294,7 +3293,7 @@ public class C
                                         UnicodeReplacementCharacter + UnicodeReplacementCharacter + UnicodeReplacementCharacter + UnicodeReplacementCharacter);
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
+            CompileAndVerify(source, sourceSymbolValidator: validator(true), symbolValidator: validator(false));
         }
 
         [Fact]
@@ -3335,7 +3334,7 @@ class D : C
 
             var model = cm.GetSemanticModel(cm.SyntaxTrees[0]);
 
-            int index = main.IndexOf("M()");
+            int index = main.IndexOf("M()", StringComparison.Ordinal);
             var m = (ExpressionSyntax)cm.SyntaxTrees[0].GetCompilationUnitRoot().FindToken(index).Parent.Parent;
 
             var info = model.GetSymbolInfo(m);
@@ -3653,7 +3652,7 @@ class Class4 { }
             compilation.VerifyDiagnostics(
                 // (10,2): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
                 // [X]                 // Error: Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "X").WithArguments("X", "X", "XAttribute").WithLocation(10, 2));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "X").WithArguments("X", "X", "XAttribute").WithLocation(10, 2));
         }
 
         [Fact]
@@ -4439,7 +4438,7 @@ namespace TestNamespace_01
             compilation.VerifyDiagnostics(
                 // (23,6): error CS1614: 'Description' is ambiguous between 'ValidWithoutSuffix.Description' and 'ValidWithSuffix.DescriptionAttribute'; use either '@Description' or 'DescriptionAttribute'
                 //     [Description(null)]
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Description").WithArguments("Description", "ValidWithoutSuffix.Description", "ValidWithSuffix.DescriptionAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Description").WithArguments("Description", "ValidWithoutSuffix.Description", "ValidWithSuffix.DescriptionAttribute"));
         }
 
         [Fact]
@@ -4965,7 +4964,7 @@ class A2 : System.Attribute { }
 [A]class C { }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (5,2): error CS1614: 'A' is ambiguous between 'A2' and 'A1'; use either '@A' or 'AAttribute'
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A").WithArguments("A", "A1", "A2").WithLocation(5, 2));
         }
 
         [WorkItem(542279, "DevDiv")]
@@ -5717,7 +5716,7 @@ public class C<T>
     public enum E { V }
 }";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitUnsupported_646014, expectedOutput: "");
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(544512, "DevDiv")]
@@ -5998,7 +5997,7 @@ class X: Attribute
 {
 }
 ";
-            CompileAndVerify(source5, emitOptions: TestEmitters.CCI, additionalRefs: new[] { comp1, comp2 });
+            CompileAndVerify(source5, additionalRefs: new[] { comp1, comp2 });
 
             // Multiple from PE, multiple from Source
             var source6 = @"
@@ -6136,21 +6135,17 @@ public class IA
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
-            compilation.VerifyDiagnostics(
-                // (5,11): error CS1061: 'object' does not contain a definition for 'M' and no extension method 'M' accepting a 
-                // first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
-                //         o.M();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M"));
+            compilation.VerifyDiagnostics(); // we now regognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
-            Assert.Equal(type.GetAttributes().Length, 1);
+            Assert.Equal(type.GetAttributes().Length, 0);
             var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
-            Assert.Equal(method.GetAttributes().Length, 1);
+            Assert.Equal(method.GetAttributes().Length, 0);
             Assert.True(method.TestIsExtensionBitSet);
-            Assert.False(method.TestIsExtensionBitTrue);
-            Assert.False(method.IsExtensionMethod);
+            Assert.True(method.TestIsExtensionBitTrue);
+            Assert.True(method.IsExtensionMethod);
         }
 
         [WorkItem(530524, "DevDiv")]
@@ -6495,7 +6490,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,6): error CS1614: 'Action' is ambiguous between 'A.ActionAttribute' and 'A.ActionAttribute'; use either '@Action' or 'ActionAttribute'
                 //     [Action]
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
         [WorkItem(687816, "DevDiv")]
@@ -6521,7 +6516,7 @@ class Program
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,6): error CS1614: 'Action' is ambiguous between 'A.ActionAttribute' and 'A.ActionAttribute'; use either '@Action' or 'ActionAttribute'
                 //     [Action]
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "Action").WithArguments("Action", "A.ActionAttribute", "A.ActionAttribute"));
         }
 
         [WorkItem(728865, "DevDiv")]
@@ -6609,8 +6604,7 @@ namespace Microsoft.Yeti
 } // namespace
 ";
 
-            // TODO: refemit prints numeric values for the enum elements.
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
  - 5 -
  - 100 -
  - 100000 -
@@ -7222,11 +7216,11 @@ class Test
 
             var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) });
 
-            CompileAndVerify(compilation2, emitOptions: TestEmitters.RefEmitBug, symbolValidator: (m) =>
-                                                                   {
-                                                                       Assert.Equal(2, m.ReferencedAssemblies.Length);
-                                                                       Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
-                                                                   });
+            CompileAndVerify(compilation2, symbolValidator: (m) =>
+            {
+                Assert.Equal(2, m.ReferencedAssemblies.Length);
+                Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
+            });
 
             var source3 = @"
 class CAttr : System.Attribute
@@ -7241,7 +7235,7 @@ class Test
 
             var compilation3 = CreateCompilationWithMscorlib(source3, new[] { new CSharpCompilationReference(compilation1) });
 
-            CompileAndVerify(compilation3, emitOptions: TestEmitters.RefEmitBug, symbolValidator: (m) =>
+            CompileAndVerify(compilation3, symbolValidator: (m) =>
             {
                 Assert.Equal(2, m.ReferencedAssemblies.Length);
                 Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
@@ -7263,15 +7257,75 @@ class C<T>
             var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(compilation, symbolValidator: (m) =>
-                                                            {
-                                                                var cc = m.GlobalNamespace.GetTypeMember("C");
-                                                                var mm = cc.GetMember<MethodSymbol>("M");
+            {
+                var cc = m.GlobalNamespace.GetTypeMember("C");
+                var mm = cc.GetMember<MethodSymbol>("M");
 
-                                                                Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
-                                                                Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
-                                                            },
-                             emitOptions: TestEmitters.RefEmitBug);
+                Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
+                Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
+            });
         }
+
+        [WorkItem(1144603, "DevDiv")]
+        [Fact]
+        public void EmitMetadataOnlyInPresenceOfErrors()
+        {
+            var source1 =
+@"
+public sealed class DiagnosticAnalyzerAttribute : System.Attribute
+{
+    public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages)
+    {}
+}
+
+public static class LanguageNames
+{
+    public const xyz CSharp = ""C#"";
+}
+";
+            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            compilation1.VerifyDiagnostics(
+    // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+    //     public const xyz CSharp = "C#";
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "xyz").WithArguments("xyz").WithLocation(10, 18)
+                );
+
+            var source2 =
+@"
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpCompilerDiagnosticAnalyzer
+{}
+";
+
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll" );
+            Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
+            compilation2.VerifyDiagnostics();
+
+            var emitResult2 = compilation2.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
+            Assert.False(emitResult2.Success);
+            emitResult2.Diagnostics.Verify(
+    // error CS7038: Failed to emit module 'Test.dll'.
+    Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll").WithLocation(1, 1)
+                );
+
+            // Use different mscorlib to test retargeting scenario
+            var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
+            Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols[1]);
+            compilation3.VerifyDiagnostics(
+    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
+                );
+
+            var emitResult3 = compilation3.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
+            Assert.False(emitResult3.Success);
+            emitResult3.Diagnostics.Verify(
+    // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
+    // [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
+                );
+        }
+
         #endregion
     }
 }

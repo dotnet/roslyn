@@ -19,8 +19,8 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
-        private static LocalizableString s_localizableTitleUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessageUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitleUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
@@ -31,8 +31,8 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString s_localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessageUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessageUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
@@ -91,8 +91,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class AbstractCodeBlockStartedAnalyzer<TLanguageKindEnum> where TLanguageKindEnum : struct
         {
-            private INamedTypeSymbol _genericEnumerableSymbol;
-            private IMethodSymbol _genericEmptyEnumerableSymbol;
+            private readonly INamedTypeSymbol _genericEnumerableSymbol;
+            private readonly IMethodSymbol _genericEmptyEnumerableSymbol;
 
             public AbstractCodeBlockStartedAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
@@ -116,7 +116,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract class AbstractSyntaxAnalyzer
         {
             protected INamedTypeSymbol genericEnumerableSymbol;
-            private IMethodSymbol _genericEmptyEnumerableSymbol;
+            private readonly IMethodSymbol _genericEmptyEnumerableSymbol;
 
             public AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {

@@ -34,15 +34,15 @@ End Module
   // Code size       60 (0x3c)
   .maxstack  3
   .locals init (System.EventHandler V_0) //del
-  IL_0000:  ldsfld     "MyClass1._Closure$__.$I0-1 As System.EventHandler"
+  IL_0000:  ldsfld     "MyClass1._Closure$__.$I0-0 As System.EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "MyClass1._Closure$__.$I0-1 As System.EventHandler"
+  IL_0007:  ldsfld     "MyClass1._Closure$__.$I0-0 As System.EventHandler"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "MyClass1._Closure$__.$I As MyClass1._Closure$__"
-  IL_0013:  ldftn      "Sub MyClass1._Closure$__._Lambda$__0-1(Object, System.EventArgs)"
+  IL_0013:  ldftn      "Sub MyClass1._Closure$__._Lambda$__0-0(Object, System.EventArgs)"
   IL_0019:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "MyClass1._Closure$__.$I0-1 As System.EventHandler"
+  IL_001f:  stsfld     "MyClass1._Closure$__.$I0-0 As System.EventHandler"
   IL_0024:  stloc.0
   IL_0025:  ldstr      "qq"
   IL_002a:  call       "Function System.AppDomain.CreateDomain(String) As System.AppDomain"
@@ -83,15 +83,15 @@ End Module
   // Code size       67 (0x43)
   .maxstack  3
   .locals init (System.EventHandler V_0) //del
-  IL_0000:  ldsfld     "MyClass1._Closure$__.$I0-1 As System.EventHandler"
+  IL_0000:  ldsfld     "MyClass1._Closure$__.$I0-0 As System.EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "MyClass1._Closure$__.$I0-1 As System.EventHandler"
+  IL_0007:  ldsfld     "MyClass1._Closure$__.$I0-0 As System.EventHandler"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "MyClass1._Closure$__.$I As MyClass1._Closure$__"
-  IL_0013:  ldftn      "Sub MyClass1._Closure$__._Lambda$__0-1(Object, System.EventArgs)"
+  IL_0013:  ldftn      "Sub MyClass1._Closure$__._Lambda$__0-0(Object, System.EventArgs)"
   IL_0019:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "MyClass1._Closure$__.$I0-1 As System.EventHandler"
+  IL_001f:  stsfld     "MyClass1._Closure$__.$I0-0 As System.EventHandler"
   IL_0024:  stloc.0
   IL_0025:  ldstr      "qq"
   IL_002a:  call       "Function System.AppDomain.CreateDomain(String) As System.AppDomain"
@@ -237,15 +237,15 @@ End Module
 {
   // Code size       71 (0x47)
   .maxstack  2
-  IL_0000:  ldsfld     "Module1._Closure$__.$I4-1 As System.Action"
+  IL_0000:  ldsfld     "Module1._Closure$__.$I4-0 As System.Action"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Module1._Closure$__.$I4-1 As System.Action"
+  IL_0007:  ldsfld     "Module1._Closure$__.$I4-0 As System.Action"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "Module1._Closure$__.$I As Module1._Closure$__"
-  IL_0013:  ldftn      "Sub Module1._Closure$__._Lambda$__4-1()"
+  IL_0013:  ldftn      "Sub Module1._Closure$__._Lambda$__4-0()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Module1._Closure$__.$I4-1 As System.Action"
+  IL_001f:  stsfld     "Module1._Closure$__.$I4-0 As System.Action"
   IL_0024:  dup
   IL_0025:  call       "Sub Module1.add_e1(System.Action)"
   IL_002a:  ldsfld     "Module1.e1Event As System.Action"
@@ -293,15 +293,15 @@ End Module
 {
   // Code size       71 (0x47)
   .maxstack  2
-  IL_0000:  ldsfld     "Module1._Closure$__.$I7-1 As Module1.e1EventHandler"
+  IL_0000:  ldsfld     "Module1._Closure$__.$I7-0 As Module1.e1EventHandler"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Module1._Closure$__.$I7-1 As Module1.e1EventHandler"
+  IL_0007:  ldsfld     "Module1._Closure$__.$I7-0 As Module1.e1EventHandler"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "Module1._Closure$__.$I As Module1._Closure$__"
-  IL_0013:  ldftn      "Sub Module1._Closure$__._Lambda$__7-1()"
+  IL_0013:  ldftn      "Sub Module1._Closure$__._Lambda$__7-0()"
   IL_0019:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Module1._Closure$__.$I7-1 As Module1.e1EventHandler"
+  IL_001f:  stsfld     "Module1._Closure$__.$I7-0 As Module1.e1EventHandler"
   IL_0024:  dup
   IL_0025:  call       "Sub Module1.add_e1(Module1.e1EventHandler)"
   IL_002a:  ldsfld     "Module1.e1Event As Module1.e1EventHandler"
@@ -470,15 +470,15 @@ End Module
                 String V_1,
                 Program.del1 V_2,
                 Program.del1 V_3)
-  IL_0000:  ldsfld     "Program._Closure$__.$I9-1 As Program.del1"
+  IL_0000:  ldsfld     "Program._Closure$__.$I9-0 As Program.del1"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__.$I9-1 As Program.del1"
+  IL_0007:  ldsfld     "Program._Closure$__.$I9-0 As Program.del1"
   IL_000c:  br.s       IL_0024
   IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
-  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__9-1(ByRef String)"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__9-0(ByRef String)"
   IL_0019:  newobj     "Sub Program.del1..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__.$I9-1 As Program.del1"
+  IL_001f:  stsfld     "Program._Closure$__.$I9-0 As Program.del1"
   IL_0024:  ldstr      "hello "
   IL_0029:  call       "Sub Program.set_str(String)"
   IL_002e:  ldsfld     "Program.EEvent As Program.del1"
@@ -633,15 +633,15 @@ End Module
   .locals init (String V_0) //Str
   IL_0000:  newobj     "Sub Program.cls1..ctor()"
   IL_0005:  dup
-  IL_0006:  ldsfld     "Program._Closure$__.$I2-1 As Program.i1.del1"
+  IL_0006:  ldsfld     "Program._Closure$__.$I2-0 As Program.i1.del1"
   IL_000b:  brfalse.s  IL_0014
-  IL_000d:  ldsfld     "Program._Closure$__.$I2-1 As Program.i1.del1"
+  IL_000d:  ldsfld     "Program._Closure$__.$I2-0 As Program.i1.del1"
   IL_0012:  br.s       IL_002a
   IL_0014:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
-  IL_0019:  ldftn      "Sub Program._Closure$__._Lambda$__2-1(ByRef String)"
+  IL_0019:  ldftn      "Sub Program._Closure$__._Lambda$__2-0(ByRef String)"
   IL_001f:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
   IL_0024:  dup
-  IL_0025:  stsfld     "Program._Closure$__.$I2-1 As Program.i1.del1"
+  IL_0025:  stsfld     "Program._Closure$__.$I2-0 As Program.i1.del1"
   IL_002a:  callvirt   "Sub Program.i1.add_E(Program.i1.del1)"
   IL_002f:  ldstr      "hello "
   IL_0034:  stloc.0
@@ -709,15 +709,15 @@ End Module
   .locals init (String V_0) //Str
   IL_0000:  newobj     "Sub Program.cls1..ctor()"
   IL_0005:  dup
-  IL_0006:  ldsfld     "Program._Closure$__.$I2-1 As Program.i1.del1"
+  IL_0006:  ldsfld     "Program._Closure$__.$I2-0 As Program.i1.del1"
   IL_000b:  brfalse.s  IL_0014
-  IL_000d:  ldsfld     "Program._Closure$__.$I2-1 As Program.i1.del1"
+  IL_000d:  ldsfld     "Program._Closure$__.$I2-0 As Program.i1.del1"
   IL_0012:  br.s       IL_002a
   IL_0014:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
-  IL_0019:  ldftn      "Sub Program._Closure$__._Lambda$__2-1(ByRef String)"
+  IL_0019:  ldftn      "Sub Program._Closure$__._Lambda$__2-0(ByRef String)"
   IL_001f:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
   IL_0024:  dup
-  IL_0025:  stsfld     "Program._Closure$__.$I2-1 As Program.i1.del1"
+  IL_0025:  stsfld     "Program._Closure$__.$I2-0 As Program.i1.del1"
   IL_002a:  callvirt   "Sub Program.i1.add_E1(Program.i1.del1)"
   IL_002f:  ldstr      "hello "
   IL_0034:  stloc.0
@@ -1732,7 +1732,7 @@ End Class
   IL_0008:  ldarg.1
   IL_0009:  stfld      "C._Closure$__2-0.$VB$Local_value As System.Action"
   IL_000e:  ldloc.0
-  IL_000f:  ldftn      "Sub C._Closure$__2-0._Lambda$__1()"
+  IL_000f:  ldftn      "Sub C._Closure$__2-0._Lambda$__0()"
   IL_0015:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001a:  stloc.1
   IL_001b:  ret

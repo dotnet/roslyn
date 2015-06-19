@@ -2,25 +2,34 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
             private abstract class AsyncWorkItemQueue<TKey> : IDisposable
                 where TKey : class
             {
-                private readonly AsyncSemaphore _semaphore = new AsyncSemaphore(initialCount: 0);
+                private readonly object _gate;
+                private readonly SemaphoreSlim _semaphore;
+                private readonly SolutionCrawlerProgressReporter _progressReporter;
 
                 // map containing cancellation source for the item given out.
-                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap = new Dictionary<object, CancellationTokenSource>();
+                private readonly Dictionary<object, CancellationTokenSource> _cancellationMap;
 
-                private readonly object _gate = new object();
+                public AsyncWorkItemQueue(SolutionCrawlerProgressReporter progressReporter)
+                {
+                    _gate = new object();
+                    _semaphore = new SemaphoreSlim(initialCount: 0);
+                    _cancellationMap = new Dictionary<object, CancellationTokenSource>();
+                    _progressReporter = progressReporter;
+                }
 
                 protected abstract int WorkItemCount_NoLock { get; }
 
@@ -30,7 +39,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 protected abstract bool TryTake_NoLock(TKey key, out WorkItem workInfo);
 
-                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, out WorkItem workItem);
+                protected abstract bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem);
 
                 public bool HasAnyWork
                 {
@@ -38,18 +47,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         lock (_gate)
                         {
-                            return WorkItemCount_NoLock > 0;
-                        }
-                    }
-                }
-
-                public int WorkItemCount
-                {
-                    get
-                    {
-                        lock (_gate)
-                        {
-                            return WorkItemCount_NoLock;
+                            return HasAnyWork_NoLock;
                         }
                     }
                 }
@@ -72,6 +70,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public bool AddOrReplace(WorkItem item)
                 {
+                    if (!HasAnyWork)
+                    {
+                        // first work is added.
+                        _progressReporter.Start();
+                    }
+
                     lock (_gate)
                     {
                         if (AddOrReplace_NoLock(item))
@@ -85,15 +89,68 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public void Dispose()
+                public void RequestCancellationOnRunningTasks()
                 {
+                    List<CancellationTokenSource> cancellations;
                     lock (_gate)
                     {
+                        // request to cancel all running works
+                        cancellations = CancelAll_NoLock();
+                    }
+
+                    RaiseCancellation_NoLock(cancellations);
+                }
+
+                public void Dispose()
+                {
+                    List<CancellationTokenSource> cancellations;
+                    lock (_gate)
+                    {
+                        // here we don't need to care about progress reporter since
+                        // it will be only called when host is shutting down.
+                        // we do the below since we want to kill any pending tasks
                         Dispose_NoLock();
 
-                        _cancellationMap.Do(p => p.Value.Cancel());
-                        _cancellationMap.Clear();
+                        cancellations = CancelAll_NoLock();
                     }
+
+                    RaiseCancellation_NoLock(cancellations);
+                }
+
+                private static void RaiseCancellation_NoLock(List<CancellationTokenSource> cancellations)
+                {
+                    if (cancellations == null)
+                    {
+                        return;
+                    }
+
+                    // cancel can cause outer code to be run inlined, run it outside of the lock.
+                    cancellations.Do(s => s.Cancel());
+                }
+
+                private bool HasAnyWork_NoLock
+                {
+                    get
+                    {
+                        return WorkItemCount_NoLock > 0;
+                    }
+                }
+
+                private List<CancellationTokenSource> CancelAll_NoLock()
+                {
+                    // nothing to do
+                    if (_cancellationMap.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    // make a copy
+                    var cancellations = _cancellationMap.Values.ToList();
+
+                    // clear cancellation map
+                    _cancellationMap.Clear();
+
+                    return cancellations;
                 }
 
                 protected void Cancel_NoLock(object key)
@@ -112,6 +169,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (TryTake_NoLock(key, out workInfo))
                         {
+                            if (!HasAnyWork_NoLock)
+                            {
+                                // last work is done.
+                                _progressReporter.Stop();
+                            }
+
                             source = GetNewCancellationSource_NoLock(key);
                             workInfo.AsyncToken.Dispose();
                             return true;
@@ -124,13 +187,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public bool TryTakeAnyWork(ProjectId preferableProjectId, out WorkItem workItem, out CancellationTokenSource source)
+                public bool TryTakeAnyWork(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem, out CancellationTokenSource source)
                 {
                     lock (_gate)
                     {
                         // there must be at least one item in the map when this is called unless host is shutting down.
-                        if (TryTakeAnyWork_NoLock(preferableProjectId, out workItem))
+                        if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, out workItem))
                         {
+                            if (!HasAnyWork_NoLock)
+                            {
+                                // last work is done.
+                                _progressReporter.Stop();
+                            }
+
                             source = GetNewCancellationSource_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
                             return true;

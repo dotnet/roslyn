@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -13,14 +15,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     [Export(typeof(IInteractiveWindowFactoryService))]
     internal class InteractiveWindowProvider : IInteractiveWindowFactoryService
     {
-        private readonly IContentTypeRegistryService contentTypeRegistry;
-        private readonly ITextBufferFactoryService bufferFactory;
-        private readonly IProjectionBufferFactoryService projectionBufferFactory;
-        private readonly IEditorOperationsFactoryService editorOperationsFactory;
-        private readonly ITextEditorFactoryService editorFactory;
-        private readonly IIntellisenseSessionStackMapService intellisenseSessionStackMap;
-        private readonly ISmartIndentationService smartIndenterService;
-        private readonly IInteractiveWindowEditorFactoryService windowFactoryService;
+        private readonly IContentTypeRegistryService _contentTypeRegistry;
+        private readonly ITextBufferFactoryService _bufferFactory;
+        private readonly IProjectionBufferFactoryService _projectionBufferFactory;
+        private readonly IEditorOperationsFactoryService _editorOperationsFactory;
+        private readonly ITextEditorFactoryService _editorFactory;
+        private readonly IIntellisenseSessionStackMapService _intellisenseSessionStackMap;
+        private readonly ISmartIndentationService _smartIndenterService;
+        private readonly IInteractiveWindowEditorFactoryService _windowFactoryService;
 
         [ImportingConstructor]
         public InteractiveWindowProvider(
@@ -33,14 +35,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ISmartIndentationService smartIndenterService,
             IInteractiveWindowEditorFactoryService windowFactoryService)
         {
-            this.contentTypeRegistry = contentTypeRegistry;
-            this.bufferFactory = bufferFactory;
-            this.projectionBufferFactory = projectionBufferFactory;
-            this.editorOperationsFactory = editorOperationsFactory;
-            this.editorFactory = editorFactory;
-            this.intellisenseSessionStackMap = intellisenseSessionStackMap;
-            this.smartIndenterService = smartIndenterService;
-            this.windowFactoryService = windowFactoryService;
+            _contentTypeRegistry = contentTypeRegistry;
+            _bufferFactory = bufferFactory;
+            _projectionBufferFactory = projectionBufferFactory;
+            _editorOperationsFactory = editorOperationsFactory;
+            _editorFactory = editorFactory;
+            _intellisenseSessionStackMap = intellisenseSessionStackMap;
+            _smartIndenterService = smartIndenterService;
+            _windowFactoryService = windowFactoryService;
         }
 
         public IInteractiveWindow CreateWindow(IInteractiveEvaluator evaluator)
@@ -51,14 +53,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             return new InteractiveWindow(
-                windowFactoryService,
-                contentTypeRegistry,
-                bufferFactory,
-                projectionBufferFactory,
-                editorOperationsFactory,
-                editorFactory,
-                intellisenseSessionStackMap,
-                smartIndenterService, 
+                _windowFactoryService,
+                _contentTypeRegistry,
+                _bufferFactory,
+                _projectionBufferFactory,
+                _editorOperationsFactory,
+                _editorFactory,
+                _intellisenseSessionStackMap,
+                _smartIndenterService,
                 evaluator);
         }
     }

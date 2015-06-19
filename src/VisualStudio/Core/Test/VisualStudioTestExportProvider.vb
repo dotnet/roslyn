@@ -7,26 +7,26 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Module VisualStudioTestExportProvider
-        Private ReadOnly _exportProvider As ExportProvider
-        Private ReadOnly _partCatalog As ComposableCatalog
+        Private ReadOnly s_exportProvider As ExportProvider
+        Private ReadOnly s_partCatalog As ComposableCatalog
 
         Sub New()
             Dim additionalAssemblies = {GetType(CSharpCodeModelService).Assembly,
                                         GetType(VisualBasicCodeModelService).Assembly}
 
-            _partCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(additionalAssemblies))
-            _exportProvider = MinimalTestExportProvider.CreateExportProvider(_partCatalog)
+            s_partCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(additionalAssemblies))
+            s_exportProvider = MinimalTestExportProvider.CreateExportProvider(s_partCatalog)
         End Sub
 
         Public ReadOnly Property ExportProvider As ExportProvider
             Get
-                Return _exportProvider
+                Return s_exportProvider
             End Get
         End Property
 
         Public ReadOnly Property PartCatalog As ComposableCatalog
             Get
-                Return _partCatalog
+                Return s_partCatalog
             End Get
         End Property
     End Module

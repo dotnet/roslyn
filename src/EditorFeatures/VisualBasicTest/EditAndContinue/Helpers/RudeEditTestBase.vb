@@ -15,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         Friend Shared ReadOnly Analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
 
-        Friend Enum StateMachineKind
+        Public Enum StateMachineKind
             None
             Async
             Iterator
         End Enum
 
         Friend Overloads Shared Function Diagnostic(rudeEditKind As RudeEditKind, squiggle As String, ParamArray arguments As String()) As RudeEditDiagnosticDescription
-            Return New RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments)
+            Return New RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine:=Nothing)
         End Function
 
         Friend Shared Function SemanticEdit(kind As SemanticEditKind, symbolProvider As Func(Of Compilation, ISymbol), syntaxMap As IEnumerable(Of KeyValuePair(Of TextSpan, TextSpan))) As SemanticEditDescription
@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return New SemanticEditDescription(kind, symbolProvider, Nothing, preserveLocalVariables)
         End Function
 
-        Private Shared Function ParseSource(source As String) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source))
+        Private Shared Function ParseSource(source As String, Optional options As ParseOptions = Nothing) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(ActiveStatementsDescription.ClearTags(source), options)
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
@@ -49,14 +49,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return match.GetTreeEdits()
         End Function
 
-        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As EditScript(Of SyntaxNode)
-            Dim match = GetMethodMatch(src1, src2, stateMachine)
+        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As EditScript(Of SyntaxNode)
+            Dim match = GetMethodMatch(src1, src2, options, stateMachine)
             Return match.GetTreeEdits()
         End Function
 
-        Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As Match(Of SyntaxNode)
-            Dim m1 = MakeMethodBody(src1, stateMachine)
-            Dim m2 = MakeMethodBody(src2, stateMachine)
+        Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As Match(Of SyntaxNode)
+            Dim m1 = MakeMethodBody(src1, options, stateMachine)
+            Dim m2 = MakeMethodBody(src2, options, stateMachine)
 
             Dim diagnostics = New List(Of RudeEditDiagnostic)()
             Dim needsSyntaxMap As Boolean
@@ -69,50 +69,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End If
 
             Return match
-
         End Function
 
-        Friend Shared Iterator Function GetMethodMatches(src1 As String, src2 As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As IEnumerable(Of Match(Of SyntaxNode))
-            Dim methodMatch = GetMethodMatch(src1, src2, stateMachine)
-
-            Dim queue = New Queue(Of Match(Of SyntaxNode))()
-            queue.Enqueue(methodMatch)
-
-            While queue.Count > 0
-                Dim match = queue.Dequeue()
-                Yield match
-
-                For Each m In match.Matches
-                    If m.Key Is match.OldRoot Then
-                        Assert.Equal(match.NewRoot, m.Value)
-                        Continue For
-                    End If
-
-                    For Each comparer In GetLambdaBodyComparers(m.Key, m.Value)
-                        Dim lambdaMatch = comparer.ComputeMatch(m.Key, m.Value)
-                        queue.Enqueue(lambdaMatch)
-                    Next
-                Next
-            End While
+        Public Shared Function GetMethodMatches(src1 As String,
+                                                src2 As String,
+                                                Optional options As ParseOptions = Nothing,
+                                                Optional stateMachine As StateMachineKind = StateMachineKind.None) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
+            Dim methodMatch = GetMethodMatch(src1, src2, options, stateMachine)
+            Return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch)
         End Function
 
         Public Shared Function ToMatchingPairs(match As Match(Of SyntaxNode)) As MatchingPairs
-            Return New MatchingPairs(ToMatchingPairs(match.Matches.Where(Function(partners) partners.Key IsNot match.OldRoot)))
+            Return EditAndContinueTestHelpers.ToMatchingPairs(match)
         End Function
 
-        Public Shared Function ToMatchingPairs(match As IEnumerable(Of Match(Of SyntaxNode))) As MatchingPairs
-            Return New MatchingPairs(ToMatchingPairs(match.SelectMany(Function(m) m.Matches.Where(Function(partners) partners.Key IsNot m.OldRoot))))
+        Public Shared Function ToMatchingPairs(matches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As MatchingPairs
+            Return EditAndContinueTestHelpers.ToMatchingPairs(matches)
         End Function
 
-        Private Shared Function ToMatchingPairs(matches As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))) As IEnumerable(Of MatchingPair)
-            Return matches.
-                OrderBy(Function(partners) partners.Key.GetLocation().SourceSpan.Start).
-                ThenByDescending(Function(partners) partners.Key.Span.Length).
-                Select(Function(partners) New MatchingPair With {.Old = partners.Key.ToString().Replace(vbCrLf, " ").Replace(vbLf, " "),
-                                                                 .[New] = partners.Value.ToString().Replace(vbCrLf, " ").Replace(vbLf, " ")})
-        End Function
-
-        Friend Shared Function MakeMethodBody(bodySource As String, Optional stateMachine As StateMachineKind = StateMachineKind.None) As SyntaxNode
+        Friend Shared Function MakeMethodBody(bodySource As String, Optional options As ParseOptions = Nothing, Optional stateMachine As StateMachineKind = StateMachineKind.None) As SyntaxNode
             Dim source As String
             Select Case stateMachine
                 Case StateMachineKind.Iterator
@@ -125,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                     source = "Class C" & vbLf & "Sub F()" & vbLf & bodySource & " : End Sub : End Class"
             End Select
 
-            Dim tree = ParseSource(source)
+            Dim tree = ParseSource(source, options)
             Dim root = tree.GetRoot()
             tree.GetDiagnostics().Verify()
 
@@ -140,43 +115,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
         Friend Shared Function GetSyntaxMap(oldSource As String, newSource As String) As SyntaxMapDescription
             Return New SyntaxMapDescription(oldSource, newSource)
-        End Function
-
-        Private Shared Function GetLambdaBodyComparers(oldNode As SyntaxNode, newNode As SyntaxNode) As IEnumerable(Of StatementSyntaxComparer)
-            Select Case oldNode.Kind
-                Case SyntaxKind.SingleLineFunctionLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression,
-                     SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.MultiLineSubLambdaExpression
-                    Return {New StatementSyntaxComparer.SingleBody(oldNode, newNode)}
-
-                Case SyntaxKind.WhereClause
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, WhereClauseSyntax).Condition, DirectCast(newNode, WhereClauseSyntax).Condition)}
-
-                Case SyntaxKind.CollectionRangeVariable
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, CollectionRangeVariableSyntax).Expression, DirectCast(newNode, CollectionRangeVariableSyntax).Expression)}
-
-                Case SyntaxKind.FunctionAggregation
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, FunctionAggregationSyntax).Argument, DirectCast(newNode, FunctionAggregationSyntax).Argument)}
-
-                Case SyntaxKind.ExpressionRangeVariable
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, ExpressionRangeVariableSyntax).Expression, DirectCast(newNode, ExpressionRangeVariableSyntax).Expression)}
-
-                Case SyntaxKind.TakeWhileClause,
-                     SyntaxKind.SkipWhileClause
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, PartitionWhileClauseSyntax).Condition, DirectCast(newNode, PartitionWhileClauseSyntax).Condition)}
-
-                Case SyntaxKind.AscendingOrdering,
-                     SyntaxKind.DescendingOrdering
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, OrderingSyntax).Expression, DirectCast(newNode, OrderingSyntax).Expression)}
-
-                Case SyntaxKind.JoinCondition
-                    Return {New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, JoinConditionSyntax).Left, DirectCast(newNode, JoinConditionSyntax).Left),
-                            New StatementSyntaxComparer.MultiBody(DirectCast(oldNode, JoinConditionSyntax).Right, DirectCast(newNode, JoinConditionSyntax).Right)}
-
-                Case Else
-                    Return SpecializedCollections.EmptyEnumerable(Of StatementSyntaxComparer)()
-            End Select
         End Function
     End Class
 End Namespace

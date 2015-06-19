@@ -2,14 +2,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TableManager;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -19,14 +19,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly ImmutableArray<TData> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
 
-        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TData> items, ImmutableArray<ITrackingPoint> trackingPoints)
+        protected readonly Guid ProjectGuid;
+
+        protected AbstractTableEntriesSnapshot(int version, Guid projectGuid, ImmutableArray<TData> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
             _version = version;
             _items = items;
             _trackingPoints = trackingPoints;
+
+            ProjectGuid = projectGuid;
         }
 
-        public abstract object SnapshotIdentity { get; }
         public abstract bool TryNavigateTo(int index, bool previewTab);
         public abstract bool TryGetValue(int index, string columnName, out object content);
         protected abstract bool IsEquivalent(TData item1, TData item2);
@@ -47,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public int TranslateTo(int index, ITableEntriesSnapshot newerSnapshot)
+        public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
             var item = GetItem(index);
             if (item == null)
@@ -179,11 +182,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected string GetFileName(string original, string mapped)
         {
-            return mapped == null ? original : original == null ? mapped : Path.Combine(original, mapped);
+            return mapped == null ? original : original == null ? mapped : Combine(original, mapped);
+        }
+
+        private string Combine(string path1, string path2)
+        {
+            string result;
+            if (FilePathUtilities.TryCombine(path1, path2, out result))
+            {
+                return result;
+            }
+
+            return string.Empty;
         }
 
         protected string GetProjectName(Workspace workspace, ProjectId projectId)
         {
+            if (projectId == null)
+            {
+                return null;
+            }
+
             var project = workspace.CurrentSolution.GetProject(projectId);
             if (project == null)
             {
@@ -193,15 +212,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return project.Name;
         }
 
-        protected IVsHierarchy GetHierarchy(Workspace workspace, ProjectId projectId)
+        protected static Guid GetProjectGuid(Workspace workspace, ProjectId projectId)
         {
-            var vsWorkspace = workspace as VisualStudioWorkspace;
-            if (vsWorkspace == null)
+            if (projectId == null)
             {
-                return null;
+                return Guid.Empty;
             }
 
-            return vsWorkspace.GetHierarchy(projectId);
+            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
+            var project = vsWorkspace?.GetHostProject(projectId);
+            if (project == null)
+            {
+                return Guid.Empty;
+            }
+
+            return project.Guid;
         }
 
         // we don't use these

@@ -130,13 +130,13 @@
     <value>Cycle detected in extensions</value>
   </data>
   <data name="InvalidDestinationNode" xml:space="preserve">
-    <value>Destination type must be a {0}.</value>
+    <value>Destination type must be a {0}, but given one is {1}.</value>
   </data>
   <data name="InvalidDestinationNode2" xml:space="preserve">
-    <value>Destination type must be a {0} or a {1}.</value>
+    <value>Destination type must be a {0} or a {1}, but given one is {2}.</value>
   </data>
   <data name="InvalidDestinationNode3" xml:space="preserve">
-    <value>Destination type must be a {0}, {1} or {2}.</value>
+    <value>Destination type must be a {0}, {1} or {2}, but given one is {3}.</value>
   </data>
   <data name="CouldNotFindLocationToGen" xml:space="preserve">
     <value>Could not find location to generation symbol into.</value>
@@ -300,9 +300,6 @@
   <data name="UnknownIdentifier" xml:space="preserve">
     <value>Unknown identifier.</value>
   </data>
-  <data name="RemoveUnnecessaryImportsOrUsings" xml:space="preserve">
-    <value>Remove Unnecessary Imports/Usings.</value>
-  </data>
   <data name="CannotCodeGenUnsupportedOperator" xml:space="preserve">
     <value>Cannot generate code for unsupported operator '{0}'</value>
   </data>
@@ -452,5 +449,8 @@
   </data>
   <data name="OpenDocumentNotSupported" xml:space="preserve">
     <value>This workspace does not support opening and closing documents.</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Usage:</value>
   </data>
 </root>

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    NotInheritable Class InterfaceDeclarationBlockContext
+    Friend NotInheritable Class InterfaceDeclarationBlockContext
         Inherits TypeBlockContext
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)

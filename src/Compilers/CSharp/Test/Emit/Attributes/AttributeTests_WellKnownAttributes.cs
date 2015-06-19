@@ -127,7 +127,7 @@ class C
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [Fact]
@@ -252,7 +252,7 @@ class C
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: attributeValidator, symbolValidator: null);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: null);
         }
 
         [Fact]
@@ -413,7 +413,7 @@ class C
             #endregion
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(text, additionalRefs: new[] { SystemRef }, emitOptions: TestEmitters.CCI, sourceSymbolValidator: attributeValidator);
+            CompileAndVerify(text, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
         }
 
         [Fact]
@@ -464,7 +464,6 @@ public class CCC
             CompileAndVerify(
                 text,
                 additionalRefs: new[] { SystemRef },
-                emitOptions: TestEmitters.CCI,
                 expectedOutput: @"
 (Byte)0, (Byte)128, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
 (Byte)0, (Byte)0, (UInt32)4294967295, (UInt32)4294967295, (UInt32)4294967295, True
@@ -508,9 +507,8 @@ public class C
     }
 }";
 
-            Action<IModuleSymbol, TestEmitters> verifier = (module, options) =>
+            Action<IModuleSymbol> verifier = (module) =>
             {
-                var isRefEmit = options == TestEmitters.RefEmit;
                 var c = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("C");
                 var m = (MethodSymbol)c.GetMember("M");
                 var ps = m.GetParameters();
@@ -523,17 +521,8 @@ public class C
                 var theParameter = (PEParameterSymbol)ps[0];
                 object value = theParameter.ImportConstantValue().Value;
 
-                // Ref.Emit doesn't allow to emit short value for int parameter:
-                if (isRefEmit)
-                {
-                    Assert.True(value is int, "Expected value to be Int32");
-                    Assert.Equal(1, value);
-                }
-                else
-                {
-                    Assert.True(value is short, "Expected value to be Int16");
-                    Assert.Equal((short)1, value);
-                }
+                Assert.True(value is short, "Expected value to be Int16");
+                Assert.Equal((short)1, value);
 
                 Assert.False(ps[0].IsOptional);
                 Assert.Equal(0, ps[0].GetAttributes().Length);
@@ -749,7 +738,7 @@ public class C
         set {  }
 }
 }";
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -804,7 +793,7 @@ public delegate void D([Optional, DefaultParameterValue(1)]ref int a, int b = 2,
 ";
             // Dev11: doesn't allow DPV(null) on int[], we do.
 
-            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, new[] { SystemRef }, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -935,7 +924,7 @@ class C
         Foo();
     }
 }";
-            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"5");
+            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, expectedOutput: @"5");
         }
 
         [Fact]
@@ -1002,7 +991,7 @@ public class C
 	}
 }
 ");
-            CompileAndVerify(compilation, emitOptions: TestEmitters.RefEmitUnsupported_640494);
+            CompileAndVerify(compilation);
         }
 
         [Fact, WorkItem(546785, "DevDiv")]
@@ -1057,7 +1046,7 @@ partial class C
                 partialValidator(sourceMethod);
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
+            CompileAndVerify(source, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: sourceValidator);
         }
 
         [WorkItem(544303, "DevDiv")]
@@ -1275,7 +1264,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, SystemRef }, options: TestOptions.ReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(546624, "DevDiv")]
@@ -1611,7 +1600,7 @@ public class MyClass
     }
 }";
 
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"Has DecimalConstantAttribute
+            CompileAndVerify(source, expectedOutput: @"Has DecimalConstantAttribute
 No DecimalConstantAttribute");
         }
 
@@ -1702,7 +1691,7 @@ class C
     public static void M5(int m, out int n, ref int o) { throw null; }
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1795,7 +1784,7 @@ using System.Runtime.InteropServices;
 
 public delegate int F([Out]int a, [In]int b, [In, Out]ref int c, [In]ref int d, ref int e, [Out]out int f, out int g);
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1850,7 +1839,7 @@ public class C
     public int this[[Out]int a, [In]int b, [In, Out]int c, int d] {  get { return 0; }  set { } }
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -1907,7 +1896,7 @@ class C
     }
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2116,7 +2105,7 @@ class Program
     static extern void SurrogatePairMax();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2171,7 +2160,7 @@ public class C
     public static extern void M();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2287,7 +2276,7 @@ public class C
     public extern static event System.Action G;
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2407,7 +2396,7 @@ public class C
             sb.AppendLine("}");
             var code = sb.ToString();
 
-            CompileAndVerify(code, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(code, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
                 Assert.Equal(cases.Length, metadataReader.GetTableRowCount(TableIndex.ImplMap));
@@ -2552,7 +2541,7 @@ abstract class C
     public abstract void InternalCallAbstract();
 }
 ";
-            Action<PEAssembly, bool> validator = (assembly, isRefEmit) =>
+            Action<PEAssembly> validator = (assembly) =>
             {
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
@@ -2572,12 +2561,12 @@ abstract class C
                         case "InternalCallInstance":
                         case "InternalCallAbstract":
                             // workaround for a bug in ref.emit:
-                            expectedFlags = isRefEmit ? MethodImplAttributes.Runtime | MethodImplAttributes.InternalCall : MethodImplAttributes.InternalCall;
+                            expectedFlags = MethodImplAttributes.InternalCall;
                             break;
 
                         case "ForwardRef":
                             // workaround for a bug in ref.emit:
-                            expectedFlags = isRefEmit ? default(MethodImplAttributes) : MethodImplAttributes.ForwardRef;
+                            expectedFlags = MethodImplAttributes.ForwardRef;
                             break;
 
                         case ".ctor": expectedFlags = MethodImplAttributes.IL; break;
@@ -2588,7 +2577,7 @@ abstract class C
                 }
             };
 
-            CompileAndVerify(source, assemblyValidator: (assembly, emitOptions) => validator(assembly, emitOptions == TestEmitters.RefEmit));
+            CompileAndVerify(source, assemblyValidator: validator);
         }
 
         [Fact]
@@ -2763,7 +2752,7 @@ abstract class C
     public extern static void f21();
 }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var peReader = assembly.GetMetadataReader();
                 foreach (var methodHandle in peReader.MethodDefinitions)
@@ -2838,7 +2827,7 @@ class C
     [MethodImpl(MethodImplOptions.PreserveSig)]
     public static void f1() { }
 }";
-            CompileAndVerify(source, emitOptions: TestEmitters.RefEmitUnsupported_646021);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -2909,7 +2898,7 @@ abstract class C
 }
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -2941,7 +2930,7 @@ abstract class C
 }
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3033,7 +3022,7 @@ interface I { }
 delegate void D();
 ";
             // Ref.Emit doesn't implement custom attributes yet
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -3196,7 +3185,7 @@ public class MainClass
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Could not load type 'A' from assembly 'XXX' because the method 'Foo' has no implementation (no RVA).
 
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source, options: TestOptions.ReleaseDll, emitOptions: TestEmitters.CCI, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator));
+            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator));
         }
 
         [Fact, WorkItem(544507, "DevDiv")]
@@ -3282,7 +3271,7 @@ public class MainClass
 0";
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3342,9 +3331,9 @@ public class MainClass
             // Verify attributes from source and then load metadata to see attributes are written correctly.
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3411,7 +3400,7 @@ public class MainClass
             string expectedOutput = @"string";
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator(true), symbolValidator: attributeValidator(false), expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3450,13 +3439,13 @@ public class MainClass
             // Verify attributes from source and then load metadata to see attributes are written correctly.
 
             // Using metadata reference to test RetargetingNamedTypeSymbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source2, additionalRefs: new[] { compDll.ToMetadataReference() }, expectedOutput: expectedOutput);
             // Using assembly file reference to test PENamedTypeSymbol symbol CoClass type
-            CompileAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source2, additionalRefs: new[] { compDll.EmitToImageReference() }, expectedOutput: expectedOutput);
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccesibleInterface()
+        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccessibleInterface()
         {
             string source = @"
 using System;
@@ -3490,7 +3479,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccesibleInterface()
+        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccessibleInterface()
         {
             var source = @"
 using System;
@@ -3509,7 +3498,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccesibleInterface");
+            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleInterface");
 
             var source2 = @"
 public class MainClass
@@ -3534,7 +3523,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccesibleCoClass()
+        public void TestCoClassAttribute_NewOnInterface_FromSource_InaccessibleCoClass()
         {
             string source = @"
 using System;
@@ -3568,7 +3557,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccesibleCoClass()
+        public void TestCoClassAttribute_NewOnInterface_FromMetadata_InaccessibleCoClass()
         {
             var source = @"
 using System;
@@ -3587,7 +3576,7 @@ public class Wrapper
     }
 }
 ";
-            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccesibleCoClass");
+            var compDll = CreateCompilationWithMscorlibAndSystemCore(source, assemblyName: "NewOnInterface_InaccessibleCoClass");
 
             var source2 = @"
 public class MainClass
@@ -3776,7 +3765,7 @@ public class MainClass
         }
 
         [Fact]
-        public void TestCoClassAttribute_NewOnInterface_InaccesibleTypeInCoClassAttribute()
+        public void TestCoClassAttribute_NewOnInterface_InaccessibleTypeInCoClassAttribute()
         {
             string source = @"
 using System;
@@ -3837,7 +3826,7 @@ public class MainClass
         return 0;
     }
 }";
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI);
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -4198,7 +4187,7 @@ enum En
 [SpecialName]
 struct S { }
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4307,7 +4296,7 @@ enum E
 [Serializable]
 delegate void D();
 ";
-            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
                 var metadataReader = assembly.GetMetadataReader();
 
@@ -4416,7 +4405,6 @@ namespace AttributeTest
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             var comp = CompileAndVerify(
                 compilation,
-                emitOptions: TestEmitters.CCI,
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: null,
                 expectedSignatures: new[]
@@ -4516,7 +4504,7 @@ namespace System
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator, emitOptions: TestEmitters.CCI);
+            CompileAndVerify(source, sourceSymbolValidator: attributeValidator, symbolValidator: attributeValidator);
         }
 
         [WorkItem(546102, "DevDiv")]
@@ -4999,7 +4987,7 @@ class A
             // Dev10 Runtime Exception:
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            var verifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: false);
+            var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: false);
             verifier.EmitAndVerify("Type load failed.");
         }
 
@@ -5057,7 +5045,7 @@ class A
                 Assert.True(method.RequiresSecurityObject, "Metadata flag RequiresSecurityObject is not set");
             };
 
-            CompileAndVerify(source, emitOptions: TestEmitters.CCI, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, expectedOutput: "");
+            CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, expectedOutput: "");
         }
 
         #endregion
@@ -7857,5 +7845,121 @@ public class C
         }
 
         #endregion
+
+        [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
+        public void TestAttributePropagationForAsyncAndIterators()
+        {
+            var source = CreateCompilationWithMscorlib45(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    [MyAttribute]
+    [System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [System.Diagnostics.DebuggerHiddenAttribute]
+    [System.Diagnostics.DebuggerStepperBoundaryAttribute]
+    [System.Diagnostics.DebuggerStepThroughAttribute]
+    public async Task<int> test1()
+    {
+        return await DoNothing();
+    }
+
+    public async Task<int> test2()
+    {
+        return await DoNothing();
+    }
+
+    async Task<int> DoNothing()
+    {
+        return 1;
+    }
+
+    [MyAttribute]
+    [System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [System.Diagnostics.DebuggerHiddenAttribute]
+    [System.Diagnostics.DebuggerStepperBoundaryAttribute]
+    [System.Diagnostics.DebuggerStepThroughAttribute]
+    public IEnumerable<int> Test3()
+    {
+        yield return 1;
+        yield return 2;
+    }
+
+    public IEnumerable<int> Test4()
+    {
+        yield return 1;
+        yield return 2;
+    }
+}
+
+class MyAttribute : System.Attribute
+{ }
+");
+
+            Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
+            {
+                var program = m.GlobalNamespace.GetTypeMember("Program");
+
+                Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("test1").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext")));
+
+                Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("test2").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
+
+                Assert.Equal("", CheckAttributePropagation(((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test3").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext")));
+
+                Assert.Equal(0, ((NamedTypeSymbol)program.GetMember<MethodSymbol>("Test4").
+                                                                             GetAttribute("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").
+                                                                             ConstructorArguments.Single().Value).
+                                                                             GetMember<MethodSymbol>("MoveNext").GetAttributes().Length);
+            };
+
+            CompileAndVerify(source, symbolValidator: attributeValidator);
+        }
+
+        private static string CheckAttributePropagation(MethodSymbol moveNext)
+        {
+            string result = "";
+
+            if (moveNext.GetAttributes("", "MyAttribute").Any())
+            {
+                result += "MyAttribute is present\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any())
+            {
+                result += "DebuggerNonUserCodeAttribute is missing\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any())
+            {
+                result += "DebuggerHiddenAttribute is missing\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any())
+            {
+                result += "DebuggerStepperBoundaryAttribute is missing\n";
+            }
+
+            if (!moveNext.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any())
+            {
+                result += "DebuggerStepThroughAttribute is missing\n";
+            }
+
+            return result;
+        }
     }
 }

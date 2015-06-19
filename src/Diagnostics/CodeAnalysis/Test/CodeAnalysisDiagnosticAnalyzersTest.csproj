@@ -15,12 +15,9 @@
     <Nonshipping>true</Nonshipping>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -28,10 +25,6 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Desktop\BasicCodeAnalysis.Desktop.vbproj">
-      <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
-      <Name>BasicCodeAnalysis.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
@@ -81,9 +74,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -98,9 +91,12 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="FixAnalyzers\FixerWithFixAllAnalyzerTests.cs" />
     <Compile Include="InternalImplementationOnlyTests.cs" />
     <Compile Include="MetaAnalyzers\DoNotStorePerCompilationDataOntoFieldsRuleTests.cs" />
     <Compile Include="MetaAnalyzers\InvalidReportDiagnosticRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\StartActionWithOnlyEndActionRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\StartActionWithNoRegisteredActionsRuleTests.cs" />
     <Compile Include="MetaAnalyzers\InvalidSyntaxKindTypeArgumentRuleTests.cs" />
     <Compile Include="MetaAnalyzers\UnsupportedSymbolKindArgumentRuleTests.cs" />
     <Compile Include="MetaAnalyzers\MissingKindArgumentToRegisterActionRuleTests.cs" />

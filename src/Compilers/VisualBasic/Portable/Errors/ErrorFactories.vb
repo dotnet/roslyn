@@ -10,10 +10,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Class ErrorFactory
 
-        Private Const TitleSuffix As String = "_Title"
-        Private Const DescriptionSuffix As String = "_Description"
-        Private Shared ReadOnly HelpLinksMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateHelpLinks)
-        Private Shared ReadOnly CategoriesMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateCategoriesMap)
+        Private Const s_titleSuffix As String = "_Title"
+        Private Const s_descriptionSuffix As String = "_Description"
+        Private Shared ReadOnly s_helpLinksMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateHelpLinks)
+        Private Shared ReadOnly s_categoriesMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateCategoriesMap)
 
         Private Shared Function CreateHelpLinks() As ImmutableDictionary(Of ERRID, String)
             Dim map = New Dictionary(Of ERRID, String) From
@@ -112,16 +112,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function GetTitle(id As ERRID) As LocalizableResourceString
-            Return New LocalizableResourceString(id.ToString() + TitleSuffix, ResourceManager, GetType(ErrorFactory))
+            Return New LocalizableResourceString(id.ToString() + s_titleSuffix, ResourceManager, GetType(ErrorFactory))
         End Function
 
         Public Shared Function GetDescription(id As ERRID) As LocalizableResourceString
-            Return New LocalizableResourceString(id.ToString() + DescriptionSuffix, ResourceManager, GetType(ErrorFactory))
+            Return New LocalizableResourceString(id.ToString() + s_descriptionSuffix, ResourceManager, GetType(ErrorFactory))
         End Function
 
         Public Shared Function GetHelpLink(id As ERRID) As String
             Dim helpLink As String = Nothing
-            If HelpLinksMap.Value.TryGetValue(id, helpLink) Then
+            If s_helpLinksMap.Value.TryGetValue(id, helpLink) Then
                 Return helpLink
             End If
 
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function GetCategory(id As ERRID) As String
             Dim category As String = Nothing
-            If CategoriesMap.Value.TryGetValue(id, category) Then
+            If s_categoriesMap.Value.TryGetValue(id, category) Then
                 Return category
             End If
 

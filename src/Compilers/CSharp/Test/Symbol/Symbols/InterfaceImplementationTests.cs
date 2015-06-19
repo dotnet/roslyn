@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -321,8 +321,8 @@ class Class : Interface
             var interfaceIndexer = @interface.Indexers.Single();
 
             var @class = (NamedTypeSymbol)global.GetMembers("Class").Single();
-            var classImplicitImplementation = @class.Indexers.Where(p => p.Parameters.Length == 2).Single();
-            var classImplicitImplementationBase = @class.Indexers.Where(p => p.Parameters.Length == 1).Single();
+            var classImplicitImplementation = @class.Indexers.Single(p => p.Parameters.Length == 2);
+            var classImplicitImplementationBase = @class.Indexers.Single(p => p.Parameters.Length == 1);
 
             var implementingIndexer = @class.FindImplementationForInterfaceMember(interfaceIndexer);
             Assert.Same(classImplicitImplementation, implementingIndexer);
@@ -1778,7 +1778,7 @@ class D : I
         }
 
         [WorkItem(528898, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void GenericTypeWithObsoleteBangAritySuffixIsNotAvailable()
         {
             var ilSource =
@@ -1799,7 +1799,7 @@ class C : object, B.I<string>
 {
 }
 ";
-            CompileWithCustomILSource(csharpSource, ilSource, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource);
         }
 
         [WorkItem(528913, "DevDiv")]
@@ -2113,7 +2113,7 @@ class Derived2 : Base2, Interface
         }
 
         [WorkItem(718115, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ExplicitlyImplementedAccessorsWithoutEvent()
         {
             var il = @"
@@ -2312,7 +2312,7 @@ public class Derived : Base, I
         }
 
         [WorkItem(943542, "DevDiv"), WorkItem(137, "CodePlex")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug943542()
         {
             var il = @"

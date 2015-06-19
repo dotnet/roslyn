@@ -9,7 +9,7 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         '
         '============ Methods for parsing specific executable statements
@@ -123,10 +123,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     blockKeyword = DirectCast(CurrentToken, KeywordSyntax)
                     GetNextToken()
 
-                    ' The pretty lister is expected to turn Exit statements
-                    ' that don
-                    ' statements that do. That requires identifying this
-                    ' condition during parsing and correcting the parse trees.
+                ' The pretty lister is expected to turn Exit statements
+                ' that don
+                ' statements that do. That requires identifying this
+                ' condition during parsing and correcting the parse trees.
 
                 Case SyntaxKind.SubKeyword
                     ' Error message moved to context
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             GetNextToken() ' get off relational operator
                             TryEatNewLine() ' dev10_503248
 
-                            Dim CaseExpr As ExpressionSyntax = ParseExpression()
+                            Dim CaseExpr As ExpressionSyntax = ParseExpressionCore()
 
                             If CaseExpr.ContainsDiagnostics Then
                                 CaseExpr = ResyncAt(CaseExpr)
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Else
 
-                        Dim value As ExpressionSyntax = ParseExpression()
+                        Dim value As ExpressionSyntax = ParseExpressionCore()
 
                         If value.ContainsDiagnostics Then
                             value = ResyncAt(value, SyntaxKind.ToKeyword)
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Dim toKeyword As KeywordSyntax = Nothing
                         If TryGetToken(SyntaxKind.ToKeyword, toKeyword) Then
 
-                            Dim upperBound As ExpressionSyntax = ParseExpression()
+                            Dim upperBound As ExpressionSyntax = ParseExpressionCore()
 
                             If upperBound.ContainsDiagnostics Then
                                 upperBound = ResyncAt(upperBound)
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim optionalCaseKeyword As KeywordSyntax = Nothing
             TryGetToken(SyntaxKind.CaseKeyword, optionalCaseKeyword)
 
-            Dim value As ExpressionSyntax = ParseExpression()
+            Dim value As ExpressionSyntax = ParseExpressionCore()
 
             If value.ContainsDiagnostics Then
                 value = ResyncAt(value)
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim ifKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            Dim condition = ParseExpression(OperatorPrecedence.PrecedenceNone)
+            Dim condition = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
             If condition.ContainsDiagnostics Then
                 condition = ResyncAt(condition, SyntaxKind.ThenKeyword)
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 elseIfKeyword = New KeywordSyntax(SyntaxKind.ElseIfKeyword, MergeTokenText(elseKeyword, ifKeyword), elseKeyword.GetLeadingTrivia(), ifKeyword.GetTrailingTrivia())
             End If
 
-            Dim condition = ParseExpression(OperatorPrecedence.PrecedenceNone)
+            Dim condition = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
             If condition.ContainsDiagnostics Then
                 condition = ResyncAt(condition, SyntaxKind.ThenKeyword)
@@ -609,7 +609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim inKeyword As KeywordSyntax = Nothing
             If TryGetTokenAndEatNewLine(SyntaxKind.InKeyword, inKeyword) Then
 
-                expression = ParseExpression()
+                expression = ParseExpressionCore()
 
                 If expression.ContainsDiagnostics Then
                     expression = ResyncAt(expression)
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' Dev10_545918 - Allow implicit line continuation after '=' 
 
-                fromValue = ParseExpression()
+                fromValue = ParseExpressionCore()
 
                 If fromValue.ContainsDiagnostics Then
                     fromValue = ResyncAt(fromValue, SyntaxKind.ToKeyword)
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If TryGetToken(SyntaxKind.ToKeyword, toKeyword) Then
 
                 'TODO - davidsch - Why is newline allowed after '=' but not after 'to'?
-                toValue = ParseExpression()
+                toValue = ParseExpressionCore()
 
                 If toValue.ContainsDiagnostics Then
                     toValue = ResyncAt(toValue, SyntaxKind.StepKeyword)
@@ -688,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If TryGetToken(SyntaxKind.StepKeyword, stepKeyword) Then
 
-                stepValue = ParseExpression()
+                stepValue = ParseExpressionCore()
 
                 If stepValue.ContainsDiagnostics Then
                     stepValue = ResyncAt(stepValue)
@@ -790,7 +790,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Case SyntaxKind.OpenParenToken
                             Dim lookAhead As SyntaxToken = Nothing
-                            Dim i = PeekAheadFor(IsTokenOrKeywordFunc, {SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.EqualsToken}, lookAhead)
+                            Dim i = PeekAheadFor(s_isTokenOrKeywordFunc, {SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.EqualsToken}, lookAhead)
                             If lookAhead IsNot Nothing AndAlso
                                 lookAhead.Kind = SyntaxKind.AsKeyword AndAlso
                                 PeekToken(i - 1).Kind = SyntaxKind.CloseParenToken Then
@@ -1098,7 +1098,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 TryEatNewLine()
 
-                Dim source = ParseExpression()
+                Dim source = ParseExpressionCore()
 
                 If source.ContainsDiagnostics Then
                     ' Sync to avoid other errors
@@ -1344,7 +1344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim kind = If(keyword.Kind = SyntaxKind.AddHandlerKeyword, SyntaxKind.AddHandlerStatement, SyntaxKind.RemoveHandlerStatement)
             GetNextToken()
 
-            Dim eventExpression = ParseExpression()
+            Dim eventExpression = ParseExpressionCore()
 
             If eventExpression.ContainsDiagnostics Then
                 eventExpression = ResyncAt(eventExpression, SyntaxKind.CommaToken)
@@ -1353,7 +1353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim commaToken As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, commaToken, createIfMissing:=True)
 
-            Dim DelegateExpression = ParseExpression()
+            Dim DelegateExpression = ParseExpressionCore()
 
             If DelegateExpression.ContainsDiagnostics Then
                 DelegateExpression = ResyncAt(DelegateExpression)
@@ -1384,7 +1384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             GetNextToken()
 
-            Dim operand = ParseExpression(OperatorPrecedence.PrecedenceNone)
+            Dim operand = ParseExpressionCore(OperatorPrecedence.PrecedenceNone)
 
             If operand.ContainsDiagnostics Then
                 operand = ResyncAt(operand)
@@ -1483,7 +1483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim whenKeyword As KeywordSyntax = Nothing
             Dim filter As ExpressionSyntax = Nothing
             If TryGetToken(SyntaxKind.WhenKeyword, whenKeyword) Then
-                filter = ParseExpression()
+                filter = ParseExpressionCore()
 
                 optionalWhenClause = SyntaxFactory.CatchFilterClause(whenKeyword, filter)
             End If
@@ -1514,7 +1514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim throwKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            Dim value = ParseExpression(bailIfFirstTokenRejected:=True)
+            Dim value = ParseExpressionCore(bailIfFirstTokenRejected:=True)
             If value IsNot Nothing Then
                 If value.ContainsDiagnostics Then
                     value = ResyncAt(value)
@@ -1532,7 +1532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim errorKeyword = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            Dim value = ParseExpression()
+            Dim value = ParseExpressionCore()
 
             If value.ContainsDiagnostics Then
                 value = ResyncAt(value)
@@ -1649,7 +1649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim equals As PunctuationSyntax = Nothing
             VerifyExpectedToken(SyntaxKind.EqualsToken, equals)
 
-            Dim source As ExpressionSyntax = ParseExpression()
+            Dim source As ExpressionSyntax = ParseExpressionCore()
 
             If source.ContainsDiagnostics() Then
                 source = ResyncAt(source)
@@ -1682,7 +1682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     GetNextToken()
 
-                    Dim condition = ParseExpression()
+                    Dim condition = ParseExpressionCore()
                     If condition.ContainsDiagnostics Then
                         condition = ResyncAt(condition)
                     End If
@@ -1737,10 +1737,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' We will try to parse the expression, but the final "true" argument means
             ' "Bail if the first token isn't a valid way to start an expression; in this case just return NULL"
-            Dim operand = ParseExpression(OperatorPrecedence.PrecedenceNone, True)
+            Dim operand = ParseExpressionCore(OperatorPrecedence.PrecedenceNone, True)
 
             ' Note: Orcas behavior had been to bail immediately if IsValidStatementTerminator(CurrentToken).
-            ' Well, all such tokens are invalid as ways to start an expression, so the above call to ParseExpression
+            ' Well, all such tokens are invalid as ways to start an expression, so the above call to ParseExpressionCore
             ' will bail correctly for them. I've put in this assert to show that it's safe to skip the check for IsValidStatementTerminator.
 
             Debug.Assert(operand Is Nothing OrElse Not IsValidStatementTerminator(startToken), "Unexpected: we should have bailed on the token after this return statement")
@@ -1753,7 +1753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' token cannot possibly come after the statement, so we'll report on it now:
                 If Not CanFollowStatement(CurrentToken) Then
                     ' This time don't let it bail:
-                    operand = ParseExpression(OperatorPrecedence.PrecedenceNone, False)
+                    operand = ParseExpressionCore(OperatorPrecedence.PrecedenceNone, False)
                 End If
 
             ElseIf operand.ContainsDiagnostics Then
@@ -1802,7 +1802,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 variables = ParseVariableDeclaration(allowAsNewWith:=True)
             Else
-                optionalExpression = ParseExpression()
+                optionalExpression = ParseExpressionCore()
             End If
 
             'TODO - not resynching here may cause errors to differ from Dev10.
@@ -1847,7 +1847,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             yieldKeyword = CheckFeatureAvailability(Feature.Iterators, yieldKeyword)
             GetNextToken()
 
-            Dim expression As ExpressionSyntax = ParseExpression()
+            Dim expression As ExpressionSyntax = ParseExpressionCore()
             Dim result = SyntaxFactory.YieldStatement(yieldKeyword, expression)
 
             Return result
@@ -1858,7 +1858,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim questionToken = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken()
 
-            Dim expression As ExpressionSyntax = ParseExpression()
+            Dim expression As ExpressionSyntax = ParseExpressionCore()
             Dim result = SyntaxFactory.PrintStatement(questionToken, expression)
 
             ' skip possible statement terminator

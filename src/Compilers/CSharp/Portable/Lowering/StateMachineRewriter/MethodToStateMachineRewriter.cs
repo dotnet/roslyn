@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected readonly LocalSymbol cachedState;
 
-        private int _nextState = 0;
+        private int _nextState;
 
         /// <summary>
         /// For each distinct label, the set of states that need to be dispatched to that label.
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
@@ -322,12 +322,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap the node in an iterator scope for debugging
             if (hoistedLocalsWithDebugScopes.Count != 0)
             {
-                translatedStatement = F.Block(new BoundStateMachineScope(F.Syntax, hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement));
+                translatedStatement = MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), translatedStatement);
             }
 
             hoistedLocalsWithDebugScopes.Free();
 
             return translatedStatement;
+        }
+
+        /// <remarks>
+        /// Must remain in sync with <see cref="TryUnwrapBoundStateMachineScope"/>.
+        /// </remarks>
+        internal BoundBlock MakeStateMachineScope(ImmutableArray<StateMachineFieldSymbol> hoistedLocals, BoundStatement statement)
+        {
+            return F.Block(new BoundStateMachineScope(F.Syntax, hoistedLocals, statement));
+        }
+
+        /// <remarks>
+        /// Must remain in sync with <see cref="MakeStateMachineScope"/>.
+        /// </remarks>
+        internal bool TryUnwrapBoundStateMachineScope(ref BoundStatement statement, out ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            if (statement.Kind == BoundKind.Block)
+            {
+                var rewrittenBlock = (BoundBlock)statement;
+                var rewrittenStatements = rewrittenBlock.Statements;
+                if (rewrittenStatements.Length == 1 && rewrittenStatements[0].Kind == BoundKind.StateMachineScope)
+                {
+                    var stateMachineScope = (BoundStateMachineScope)rewrittenStatements[0];
+                    statement = stateMachineScope.Statement;
+                    hoistedLocals = stateMachineScope.Fields;
+                    return true;
+                }
+            }
+
+            hoistedLocals = ImmutableArray<StateMachineFieldSymbol>.Empty;
+            return false;
         }
 
         private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
@@ -423,9 +453,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (needsSacrificialEvaluation)
             {
                 var type = TypeMap.SubstituteType(local.Type);
-                var sacrificalTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
+                var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
                 Debug.Assert(type == replacement.Type);
-                return F.Sequence(ImmutableArray.Create(sacrificalTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificalTemp), replacement, refKind: RefKind.Ref));
+                return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, refKind: RefKind.Ref));
             }
 
             if (sideEffects.Count == 0)
@@ -520,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
                         int slotIndex;
-                        if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(awaitSyntaxOpt, (Cci.ITypeReference)fieldType, kind, id, out slotIndex))
+                        if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(awaitSyntaxOpt, F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics), kind, id, out slotIndex))
                         {
                             slotIndex = _nextFreeHoistedLocalSlot++;
                         }

@@ -45,11 +45,6 @@ namespace Roslyn.Test.Utilities
 
         private static void Parse(string input, out string output, out int? position, out IDictionary<string, IList<TextSpan>> spans)
         {
-            if (input.Contains("\n") && !input.Contains("\r\n"))
-            {
-                throw new ArgumentException("Shouldn't pass stuff with bad line endings!");
-            }
-
             position = null;
             spans = new Dictionary<string, IList<TextSpan>>();
 
@@ -201,7 +196,7 @@ namespace Roslyn.Test.Utilities
 
         private static void AddMatch(string input, string value, int currentIndex, List<Tuple<int, string>> matches)
         {
-            var index = input.IndexOf(value, currentIndex);
+            var index = input.IndexOf(value, currentIndex, StringComparison.Ordinal);
             if (index >= 0)
             {
                 matches.Add(Tuple.Create(index, value));

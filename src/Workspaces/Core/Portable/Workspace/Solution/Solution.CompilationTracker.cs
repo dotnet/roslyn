@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync = LogBuildCompilationAsync;
 
-            public ProjectState ProjectState { get; private set; }
+            public ProjectState ProjectState { get; }
 
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
             private State _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
-            private readonly AsyncSemaphore _buildLock = new AsyncSemaphore(initialCount: 1);
+            private readonly SemaphoreSlim _buildLock = new SemaphoreSlim(initialCount: 1);
 
             private CompilationTracker(
                 ProjectState project,
@@ -247,12 +247,14 @@ namespace Microsoft.CodeAnalysis
                     var referencedProject = solution.GetProject(projectReference.ProjectId);
                     if (referencedProject != null)
                     {
+#if SCRIPTING
                         if (referencedProject.IsSubmission)
                         {
                             var compilation = solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
                             inProgressCompilation = inProgressCompilation.WithPreviousSubmission(compilation);
                         }
                         else
+#endif
                         {
                             // get the latest metadata for the partial compilation of the referenced project.
                             var metadata = solution.GetPartialMetadataReference(projectReference, this.ProjectState, cancellationToken);
@@ -365,11 +367,11 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task<Compilation> GetOrBuildCompilationAsync(
                 Solution solution,
@@ -407,11 +409,11 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             /// <summary>
             /// Builds the compilation matching the project state. In the process of building, also
@@ -471,11 +473,11 @@ namespace Microsoft.CodeAnalysis
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(solution, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
                 Solution solution, CancellationToken cancellationToken)
@@ -493,16 +495,17 @@ namespace Microsoft.CodeAnalysis
                     this.WriteState(new FullDeclarationState(compilation), solution);
                     return compilation;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private Compilation CreateEmptyCompilation()
             {
                 var compilationFactory = this.ProjectState.LanguageServices.GetService<ICompilationFactoryService>();
 
+#if SCRIPTING
                 if (this.ProjectState.IsSubmission)
                 {
                     return compilationFactory.CreateSubmissionCompilation(
@@ -511,6 +514,7 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.HostObjectType);
                 }
                 else
+#endif
                 {
                     return compilationFactory.CreateCompilation(
                         this.ProjectState.AssemblyName,
@@ -526,11 +530,11 @@ namespace Microsoft.CodeAnalysis
                     var compilation = await BuildDeclarationCompilationFromInProgressAsync(solution, state, inProgressCompilation, cancellationToken).ConfigureAwait(false);
                     return await FinalizeCompilationAsync(solution, compilation, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private async Task<Compilation> BuildDeclarationCompilationFromInProgressAsync(
                 Solution solution, InProgressState state, Compilation inProgressCompilation, CancellationToken cancellationToken)
@@ -556,11 +560,11 @@ namespace Microsoft.CodeAnalysis
 
                     return inProgressCompilation;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             // Add all appropriate references to the compilation and set it as our final compilation
             // state.
@@ -584,6 +588,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             // If both projects are submissions, we'll count this as a previous submission link
                             // instead of a regular metadata reference
+#if SCRIPTING
                             if (referencedProject.IsSubmission)
                             {
                                 // if the referenced project is a submission project must be a submission as well:
@@ -594,6 +599,7 @@ namespace Microsoft.CodeAnalysis
                                 compilation = compilation.WithPreviousSubmission(previousSubmissionCompilation);
                             }
                             else
+#endif
                             {
                                 var metadataReference = await solution.GetMetadataReferenceAsync(
                                     projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
@@ -618,11 +624,11 @@ namespace Microsoft.CodeAnalysis
 
                     return compilation;
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             /// <summary>
             /// Get a metadata reference to this compilation info's compilation with respect to
@@ -660,11 +666,11 @@ namespace Microsoft.CodeAnalysis
                         return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             /// <summary>
             /// Attempts to get (without waiting) a metadata reference to a possibly in progress
@@ -719,11 +725,11 @@ namespace Microsoft.CodeAnalysis
                         return reference;
                     }
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             /// <summary>
             /// check whether the compilation contains any declaration symbol from syntax trees with given name
@@ -758,7 +764,7 @@ namespace Microsoft.CodeAnalysis
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
             }
 
-            #region Versions
+#region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
@@ -826,7 +832,7 @@ namespace Microsoft.CodeAnalysis
 
                 return version;
             }
-            #endregion
+#endregion
         }
     }
 }

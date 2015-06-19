@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.Snippets, True))
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
-            snippetCommandHandler = If(languageName = LanguageNames.CSharp,
+            _snippetCommandHandler = If(languageName = LanguageNames.CSharp,
                 DirectCast(New CSharp.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object), AbstractSnippetCommandHandler),
                 New VisualBasic.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
 
@@ -60,15 +60,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
 
-                Me.completionCommandHandler = CompletionCommandHandler
+                Me._completionCommandHandler = CompletionCommandHandler
             End If
 
             SnippetExpansionClient = New MockSnippetExpansionClient(startActiveSession)
             TextView.Properties.AddProperty(GetType(AbstractSnippetExpansionClient), SnippetExpansionClient)
         End Sub
 
-        Private ReadOnly snippetCommandHandler As AbstractSnippetCommandHandler
-        Private ReadOnly completionCommandHandler As CompletionCommandHandler
+        Private ReadOnly _snippetCommandHandler As AbstractSnippetCommandHandler
+        Private ReadOnly _completionCommandHandler As CompletionCommandHandler
         Private _currentCompletionPresenterSession As TestCompletionPresenterSession
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
-            extraParts = If(extraParts, {})
+            extraParts = If(extraParts, Type.EmptyTypes)
             Dim workspaceXml = <Workspace>
                                    <Project Language=<%= languageName %> CommonReferences="true">
                                        <Document><%= markup %></Document>
@@ -107,25 +107,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Function
 
         Friend Overloads Sub SendTabToCompletion()
-            Dim handler = DirectCast(completionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
+            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
 
             SendTab(AddressOf handler.ExecuteCommand, AddressOf SendTab)
         End Sub
 
         Friend Overloads Sub SendTab()
-            SendTab(AddressOf snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
+            SendTab(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
         End Sub
 
         Friend Overloads Sub SendBackTab()
-            SendBackTab(AddressOf snippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
+            SendBackTab(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
         End Sub
 
         Friend Overloads Sub SendReturn()
-            SendReturn(AddressOf snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
+            SendReturn(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
         End Sub
 
         Friend Overloads Sub SendEscape()
-            SendEscape(AddressOf snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+            SendEscape(AddressOf _snippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
         End Sub
 
         Private Class MockOrderableContentTypeMetadata
@@ -140,7 +140,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Friend Class MockSnippetExpansionClient
             Inherits AbstractSnippetExpansionClient
 
-            Private startActiveSession As Boolean
+            Private _startActiveSession As Boolean
 
             Public Sub New(startActiveSession As Boolean)
                 MyBase.New(Nothing, Nothing, Nothing, Nothing)

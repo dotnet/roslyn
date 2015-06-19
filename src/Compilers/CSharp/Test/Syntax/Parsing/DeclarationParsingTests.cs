@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -5126,8 +5127,8 @@ System.Console.WriteLine(""Bad, breaking change"");
             var stmtText = statement.ToString();
 
             //make sure we compiled out the right statement
-            Assert.Contains(desiredText, stmtText);
-            Assert.DoesNotContain(undesiredText, stmtText);
+            Assert.Contains(desiredText, stmtText, StringComparison.Ordinal);
+            Assert.DoesNotContain(undesiredText, stmtText, StringComparison.Ordinal);
         }
 
         private void TestError(string text, ErrorCode error)

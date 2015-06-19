@@ -39,8 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _workspace = workspace;
             _updateSource = hostDiagnosticUpdateSource;
             _fileChangeService = (IVsFileChangeEx)serviceProvider.GetService(typeof(SVsFileChangeEx));
-
-            AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
         }
 
         internal void ErrorIfAnalyzerAlreadyLoaded(ProjectId projectId, string analyzerPath)
@@ -80,10 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 message,
                 ServicesVSResources.WRN_AnalyzerChangedMessage,
                 severity: DiagnosticSeverity.Warning,
-                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
                 workspace: _workspace,
                 projectId: projectId);
 
@@ -109,25 +105,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private void AnalyzerFileReference_AssemblyLoad(object sender, AnalyzerAssemblyLoadEventArgs e)
+        internal void AddPath(string filePath)
         {
             lock (_guard)
             {
                 FileChangeTracker tracker;
-                if (!_fileChangeTrackers.TryGetValue(e.Path, out tracker))
+                if (!_fileChangeTrackers.TryGetValue(filePath, out tracker))
                 {
-                    tracker = new FileChangeTracker(_fileChangeService, e.Path);
+                    tracker = new FileChangeTracker(_fileChangeService, filePath);
                     tracker.UpdatedOnDisk += Tracker_UpdatedOnDisk;
                     tracker.StartFileChangeListeningAsync();
 
-                    _fileChangeTrackers.Add(e.Path, tracker);
+                    _fileChangeTrackers.Add(filePath, tracker);
                 }
 
-                DateTime? fileUpdateTime = GetLastUpdateTimeUtc(e.Path);
+                DateTime? fileUpdateTime = GetLastUpdateTimeUtc(filePath);
 
                 if (fileUpdateTime.HasValue)
                 {
-                    _assemblyUpdatedTimesUtc[e.Path] = fileUpdateTime.Value;
+                    _assemblyUpdatedTimesUtc[filePath] = fileUpdateTime.Value;
                 }
             }
         }
@@ -149,15 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
-            var assemblyPath = filePath;
-            var requestingAssemblyPath = AnalyzerFileReference.TryGetRequestingAssemblyPath(filePath);
-            while (requestingAssemblyPath != null)
-            {
-                assemblyPath = requestingAssemblyPath;
-                requestingAssemblyPath = AnalyzerFileReference.TryGetRequestingAssemblyPath(assemblyPath);
-            }
-
-            var projectsWithAnalyzer = _workspace.ProjectTracker.Projects.Where(p => p.CurrentProjectAnalyzersContains(assemblyPath)).ToArray();
+            var projectsWithAnalyzer = _workspace.ProjectTracker.Projects.Where(p => p.CurrentProjectAnalyzersContains(filePath)).ToArray();
             foreach (var project in projectsWithAnalyzer)
             {
                 RaiseAnalyzerChangedWarning(project.Id, filePath);

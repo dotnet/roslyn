@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.IO;
 using System.Text;
 
@@ -12,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceText _source;
         private readonly Encoder _encoder;
 
+        private readonly int _minimumTargetBufferCount;
         private int _position;
         private int _sourceOffset;
         private readonly char[] _charBuffer;
@@ -23,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             _source = source;
             _encoder = source.Encoding.GetEncoder();
+            _minimumTargetBufferCount = source.Encoding.GetMaxByteCount(charCount: 1);
             _sourceOffset = 0;
             _position = 0;
             _charBuffer = new char[Math.Min(bufferSize, _source.Length)];
@@ -58,18 +62,20 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override long Position
         {
-            get
-            {
-                return _position;
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get { return _position; }
+            set { throw new NotSupportedException(); }
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            if (count < _minimumTargetBufferCount)
+            {
+                // The buffer must be able to hold at least one character from the 
+                // SourceText stream.  Returning 0 for that case isn't correct because
+                // that indicates end of stream vs. insufficient buffer. 
+                throw new ArgumentException(nameof(count));
+            }
+
             int originalCount = count;
 
             if (!_preambleWritten)
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Text
                 count -= bytesWritten;
             }
 
-            while (count > 0 && _position < _source.Length)
+            while (count >= _minimumTargetBufferCount && _position < _source.Length)
             {
                 if (_bufferUnreadChars == 0)
                 {

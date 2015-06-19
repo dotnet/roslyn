@@ -6,20 +6,29 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+Imports Microsoft.AnalyzerPowerPack
+Imports Microsoft.AnalyzerPowerPack.Design
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
+Namespace Design
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA1052DiagnosticAnalyzer.DiagnosticId), [Shared]>
     Public Class CA1052BasicCodeFixProvider
         Inherits CodeFixProvider
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId)
+                ' TODO: Re-implement the VB fix by turning the Class into a Module.
+                ' For now, leave this fixer in place but don't declare it to fix anything.
+                '
+                ' This is tracked by https://github.com/dotnet/roslyn/issues/3546.
+                '
+                ' Return ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId)
+                Dim diagnosticIDs() As String = {}
+                Return ImmutableArray.Create(diagnosticIDs)
             End Get
         End Property
 
@@ -33,10 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
             Dim cancellationToken = context.CancellationToken
 
             cancellationToken.ThrowIfCancellationRequested()
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim classStatement = root.FindToken(span.Start).Parent?.FirstAncestorOrSelf(Of ClassStatementSyntax)
             If classStatement IsNot Nothing Then
-                Dim title As String = String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text)
+                Dim title As String = String.Format(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text)
                 Dim fix = New MyCodeAction(title, Function(ct) AddNotInheritableKeyword(document, root, classStatement))
                 context.RegisterCodeFix(fix, context.Diagnostics)
             End If

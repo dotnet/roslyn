@@ -7,13 +7,18 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal partial class WorkCoordinatorRegistrationService
+    internal partial class SolutionCrawlerRegistrationService
     {
         private partial class WorkCoordinator
         {
             private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
                 private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new Dictionary<ProjectId, WorkItem>();
+
+                public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter) :
+                    base(progressReporter)
+                {
+                }
 
                 protected override int WorkItemCount_NoLock
                 {
@@ -44,13 +49,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return _projectWorkQueue.Remove(key);
                 }
 
-                protected override bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, out WorkItem workItem)
+                protected override bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem)
                 {
                     if (preferableProjectId != null)
                     {
                         if (TryTake_NoLock(preferableProjectId, out workItem))
                         {
                             return true;
+                        }
+
+                        foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(preferableProjectId))
+                        {
+                            if (TryTake_NoLock(dependingProjectId, out workItem))
+                            {
+                                return true;
+                            }
                         }
                     }
 

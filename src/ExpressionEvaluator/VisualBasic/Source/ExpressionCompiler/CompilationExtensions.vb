@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         <Extension>
         Friend Function [GetType](compilation As VisualBasicCompilation, moduleVersionId As Guid, typeToken As Integer, <Out> ByRef metadataDecoder As MetadataDecoder) As PENamedTypeSymbol
             Dim [module] = compilation.GetModule(moduleVersionId)
+            CheckModule([module], moduleVersionId)
             Dim reader = [module].Module.MetadataReader
             Dim typeHandle = CType(MetadataTokens.Handle(typeToken), TypeDefinitionHandle)
             Dim type = [GetType]([module], typeHandle)
@@ -57,6 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         <Extension>
         Friend Function GetMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
             Dim [module] = compilation.GetModule(moduleVersionId)
+            CheckModule([module], moduleVersionId)
             Dim reader = [module].Module.MetadataReader
             Dim typeHandle = reader.GetMethodDefinition(methodHandle).GetDeclaringType()
             Dim type = [GetType]([module], typeHandle)
@@ -80,21 +82,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return Nothing
         End Function
 
+        Private Sub CheckModule([module] As PEModuleSymbol, moduleVersionId As Guid)
+            If [module] Is Nothing Then
+                Throw New ArgumentException($"No module found with MVID '{moduleVersionId}'", NameOf(moduleVersionId))
+            End If
+        End Sub
+
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
-            Return VisualBasicCompilation.Create(
-                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
-                references:=metadataBlocks.MakeAssemblyReferences(),
-                options:=CompilationOptions)
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId:=Nothing, identityComparer:=Nothing)
+            Return references.ToCompilation()
         End Function
 
+        <Extension>
+        Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid) As VisualBasicCompilation
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer)
+            Return references.ToCompilation()
+        End Function
+
+        <Extension>
+        Friend Function ToCompilation(references As ImmutableArray(Of MetadataReference)) As VisualBasicCompilation
+            Return VisualBasicCompilation.Create(
+                assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
+                references:=references,
+                options:=s_compilationOptions)
+        End Function
+
+        Friend ReadOnly IdentityComparer As AssemblyIdentityComparer = DesktopAssemblyIdentityComparer.Default
+
         ' XML file references, #r directives not supported:
-        Private ReadOnly CompilationOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
+        Private ReadOnly s_compilationOptions As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(
             outputKind:=OutputKind.DynamicallyLinkedLibrary,
             platform:=Platform.AnyCpu, ' Platform should match PEModule.Machine, in this case I386.
             optimizationLevel:=OptimizationLevel.Release,
-            assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default).
-            WithMetadataImportOptions(MetadataImportOptions.All)
+            assemblyIdentityComparer:=IdentityComparer).
+            WithMetadataImportOptions(MetadataImportOptions.All).
+            WithSuppressEmbeddedDeclarations(True)
 
     End Module
 

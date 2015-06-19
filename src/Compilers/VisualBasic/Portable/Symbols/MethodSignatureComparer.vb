@@ -453,21 +453,21 @@ Done:
         End Function
 
         Public Structure LazyTypeSubstitution
-            Private m_TypeSubstitution As TypeSubstitution
-            Private m_Method As MethodSymbol
+            Private _typeSubstitution As TypeSubstitution
+            Private _method As MethodSymbol
 
             Public Sub New(method As MethodSymbol)
-                m_Method = method
+                _method = method
             End Sub
 
             Public ReadOnly Property Value As TypeSubstitution
                 Get
-                    If m_TypeSubstitution Is Nothing AndAlso m_Method IsNot Nothing Then
-                        m_TypeSubstitution = GetTypeSubstitution(m_Method)
-                        m_Method = Nothing
+                    If _typeSubstitution Is Nothing AndAlso _method IsNot Nothing Then
+                        _typeSubstitution = GetTypeSubstitution(_method)
+                        _method = Nothing
                     End If
 
-                    Return m_TypeSubstitution
+                    Return _typeSubstitution
                 End Get
             End Property
         End Structure

@@ -23,24 +23,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class IndexedTypeParameterSymbol
         Inherits TypeParameterSymbol
 
-        Private Shared parameterPool As TypeParameterSymbol() = SpecializedCollections.EmptyArray(Of TypeParameterSymbol)()
+        Private Shared s_parameterPool As TypeParameterSymbol() = SpecializedCollections.EmptyArray(Of TypeParameterSymbol)()
 
-        Private ReadOnly index As Integer
+        Private ReadOnly _index As Integer
 
         Private Sub New(index As Integer)
-            Me.index = index
+            Me._index = index
         End Sub
 
         Friend Shared Function GetTypeParameter(index As Integer) As TypeParameterSymbol
-            If index >= parameterPool.Length Then
+            If index >= s_parameterPool.Length Then
                 GrowPool(index + 1)
             End If
 
-            Return parameterPool(index)
+            Return s_parameterPool(index)
         End Function
 
         Private Shared Sub GrowPool(count As Integer)
-            Dim initialPool = parameterPool
+            Dim initialPool = s_parameterPool
             While count > initialPool.Length
                 Dim newPoolSize = ((count + &HF) And Not &HF)
                 Dim newPool = New TypeParameterSymbol(0 To newPoolSize - 1) {}
@@ -51,12 +51,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     newPool(i) = New IndexedTypeParameterSymbol(i)
                 Next
 
-                Interlocked.CompareExchange(parameterPool, newPool, initialPool)
+                Interlocked.CompareExchange(s_parameterPool, newPool, initialPool)
 
                 ' repeat if race condition occurred and someone else resized the pool before us
                 ' and the new pool is still too small
 
-                initialPool = parameterPool
+                initialPool = s_parameterPool
             End While
 
         End Sub
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="count"></param>
         ''' <returns></returns>
         Friend Shared Function Take(count As Integer) As ImmutableArray(Of TypeParameterSymbol)
-            If count > parameterPool.Length Then
+            If count > s_parameterPool.Length Then
                 GrowPool(count)
             End If
 
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Ordinal As Integer
             Get
-                Return index
+                Return _index
             End Get
         End Property
 
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            Return index
+            Return _index
         End Function
 
         Public Overrides ReadOnly Property Variance As VarianceKind

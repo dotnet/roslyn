@@ -80,14 +80,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         internal string GetDebuggerDisplay()
-        {
-            return string.Format("{0}: {1} ({2})", _slot, _nameOpt ?? "<unnamed>", _type);
-        }
+            => $"{_slot}: {_nameOpt ?? "<unnamed>"} ({_type})";
 
-        public ILocalSymbol SymbolOpt
-        {
-            get { return _symbolOpt; }
-        }
+        public ILocalSymbol SymbolOpt => _symbolOpt;
 
         public Location Location
         {
@@ -106,10 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public int SlotIndex
-        {
-            get { return _slot; }
-        }
+        public int SlotIndex => _slot;
 
         public Cci.IMetadataConstant CompileTimeValue
         {
@@ -117,68 +109,35 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
-        }
+            => ImmutableArray<Cci.ICustomModifier>.Empty;
 
         public bool IsConstant
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        public bool IsModified
-        {
-            get { return false; }
-        }
+        public bool IsModified => false;
 
-        public LocalSlotConstraints Constraints
-        {
-            get { return _constraints; }
-        }
+        public LocalSlotConstraints Constraints => _constraints;
 
         public bool IsPinned
-        {
-            get { return (_constraints & LocalSlotConstraints.Pinned) != 0; }
-        }
+            => (_constraints & LocalSlotConstraints.Pinned) != 0;
 
         public bool IsReference
-        {
-            get { return (_constraints & LocalSlotConstraints.ByRef) != 0; }
-        }
+            => (_constraints & LocalSlotConstraints.ByRef) != 0;
 
-        public bool IsDynamic
-        {
-            get { return _isDynamic; }
-        }
+        public bool IsDynamic => _isDynamic;
 
-        public uint PdbAttributes
-        {
-            get { return _pdbAttributes; }
-        }
+        public uint PdbAttributes => _pdbAttributes;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags
-        {
-            get { return _dynamicTransformFlags; }
-        }
+        public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
 
-        public Cci.ITypeReference Type
-        {
-            get { return _type; }
-        }
+        public Cci.ITypeReference Type => _type;
 
-        public string Name
-        {
-            get { return _nameOpt; }
-        }
+        public string Name => _nameOpt;
 
-        public byte[] Signature
-        {
-            get { return null; }
-        }
+        public byte[] Signature => null;
 
-        public LocalSlotDebugInfo SlotInfo
-        {
-            get { return _slotInfo; }
-        }
+        public LocalSlotDebugInfo SlotInfo => _slotInfo;
     }
 }

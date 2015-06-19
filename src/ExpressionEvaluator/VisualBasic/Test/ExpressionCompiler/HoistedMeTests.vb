@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -56,9 +57,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -81,7 +81,7 @@ End Class
             ' This test documents the fact that, as in dev12, "Me"
             ' is unavailable while stepping through the lambda.  It
             ' would be preferable if it were.
-            VerifyNoMe(source, "C._Closure$__._Lambda$__1-1")
+            VerifyNoMe(source, "C._Closure$__._Lambda$__1-0")
         End Sub
 
         <Fact()>
@@ -102,7 +102,7 @@ End Class
   IL_0001:  ret
 }
 "
-            VerifyHasMe(source, "C._Lambda$__1-1", "C", expectedIL)
+            VerifyHasMe(source, "C._Lambda$__1-0", "C", expectedIL)
         End Sub
 
         <Fact>
@@ -146,9 +146,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -178,7 +177,7 @@ End Class
   IL_0006:  ret
 }
 "
-            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__1", "C", expectedIL)
+            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C", expectedIL)
         End Sub
 
         <Fact()>
@@ -201,7 +200,7 @@ End Class
   IL_0001:  ret
 }
 "
-            VerifyHasMe(source, "C._Lambda$__2-1", "C", expectedIL)
+            VerifyHasMe(source, "C._Lambda$__2-0", "C", expectedIL)
         End Sub
 
         <Fact>
@@ -245,9 +244,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C(Of T).VB$StateMachine_1_F(Of U) V_3,
-                System.Exception V_4)
+                C(Of T).VB$StateMachine_1_F(Of U) V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C(Of T).VB$StateMachine_1_F(Of U).$VB$Me As C(Of T)""
   IL_0006:  ret
@@ -277,7 +275,7 @@ End Class
   IL_0006:  ret
 }
 "
-            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__1", "C(Of T)", expectedIL)
+            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C(Of T)", expectedIL)
         End Sub
 
         ' Note: Not actually an issue in VB, since the name isn't mangled.
@@ -331,9 +329,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_1_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_1_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
   IL_0006:  ret
@@ -367,7 +364,7 @@ End Class
   IL_0006:  ret
 }
 "
-            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__1", "C", expectedIL)
+            VerifyHasMe(source, "C._Closure$__2-0._Lambda$__0", "C", expectedIL)
         End Sub
 
         <Fact>
@@ -407,7 +404,7 @@ Module M
     End Sub
 End Module
 "
-            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__1")
+            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
         <Fact>
@@ -450,7 +447,7 @@ Module M
     End Sub
 End Module
 "
-            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__1")
+            VerifyNoMe(source, "M._Closure$__0-0._Lambda$__0")
         End Sub
 
         <WorkItem(1072296)>
@@ -562,7 +559,7 @@ End Class
             Assert.True(displayClassTypes.Any())
             For Each displayClassType In displayClassTypes
                 Dim displayClassName = displayClassType.Name
-                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix))
+                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
                 For Each displayClassMethod In displayClassType.GetMembers().OfType(Of MethodSymbol)().Where(AddressOf IsLambda)
                     Dim lambdaMethodName = String.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name)
                     Dim context = CreateMethodContext(runtime, lambdaMethodName)
@@ -617,7 +614,7 @@ End Module
             Assert.True(displayClassTypes.Any())
             For Each displayClassType In displayClassTypes
                 Dim displayClassName = displayClassType.Name
-                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix))
+                Assert.True(displayClassName.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
                 For Each displayClassMethod In displayClassType.GetMembers().OfType(Of MethodSymbol)().Where(AddressOf IsLambda)
                     Dim lambdaMethodName = String.Format("M.{0}.{1}", displayClassName, displayClassMethod.Name)
                     Dim context = CreateMethodContext(runtime, lambdaMethodName)
@@ -627,14 +624,21 @@ End Module
         End Sub
 
         Private Sub VerifyHasMe(source As String, moveNextMethodName As String, expectedType As String, expectedIL As String)
-            Dim comp = CreateCompilationWithReferences(
+            Dim sourceCompilation = CreateCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929},
                 TestOptions.DebugDll)
-            Dim runtime = CreateRuntimeInstance(comp)
+            Dim runtime = CreateRuntimeInstance(sourceCompilation)
             Dim context = CreateMethodContext(runtime, moveNextMethodName)
 
             VerifyHasMe(context, expectedType, expectedIL)
+
+            ' Now recompile and test CompileExpression with optimized code.
+            sourceCompilation = sourceCompilation.WithOptions(sourceCompilation.Options.WithOptimizationLevel(OptimizationLevel.Release))
+            runtime = CreateRuntimeInstance(sourceCompilation)
+            context = CreateMethodContext(runtime, moveNextMethodName)
+            ' In VB, "Me" is never optimized away.
+            VerifyHasMe(context, expectedType, expectedIL:=Nothing)
         End Sub
 
         Private Sub VerifyHasMe(context As EvaluationContext, expectedType As String, expectedIL As String)
@@ -645,15 +649,18 @@ End Module
             Assert.NotNull(assembly)
             Assert.NotEqual(0, assembly.Count)
             Dim localAndMethod = locals.Single(Function(l) l.LocalName = "Me")
-            VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
+            If expectedIL IsNot Nothing Then
+                VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains(localAndMethod.MethodName)).Value, expectedType, expectedIL)
+            End If
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("Me", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me", errorMessage, testData)
             Assert.Null(errorMessage)
-            VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
+            If expectedIL IsNot Nothing Then
+                VerifyMethodData(testData.Methods.Single(Function(m) m.Key.Contains("<>m0")).Value, expectedType, expectedIL)
+            End If
         End Sub
 
         Private Shared Sub VerifyMethodData(methodData As CompilationTestData.MethodData, expectedType As String, expectedIL As String)
@@ -683,10 +690,9 @@ End Module
             AssertEx.None(locals, Function(l) l.LocalName.Contains("Me"))
             locals.Free()
 
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("Me", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC32001: 'Me' is not valid within a Module.",
@@ -694,7 +700,7 @@ End Module
                             })
 
             testData = New CompilationTestData()
-            context.CompileExpression("MyBase.ToString()", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC32001: 'MyBase' is not valid within a Module.",
@@ -702,7 +708,7 @@ End Module
                             })
 
             testData = New CompilationTestData()
-            context.CompileExpression("MyClass.ToString()", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyClass.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
                                 "(1,2): error BC30470: 'MyClass' cannot be used outside of a class.",
@@ -723,14 +729,14 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "C.VB$StateMachine_2_F.MoveNext")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -759,14 +765,14 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "C._Lambda$__2-1")
+            Dim context = CreateMethodContext(runtime, "C._Lambda$__2-0")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -804,7 +810,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("Me.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("Me.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -812,9 +818,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                C.VB$StateMachine_2_F V_3,
-                System.Exception V_4)
+                C.VB$StateMachine_2_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C.VB$StateMachine_2_F.$VB$Me As C""
   IL_0006:  ldfld      ""C.x As Object""
@@ -838,14 +843,14 @@ Class Derived : Inherits Base
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, "Derived.VB$StateMachine_2_F.MoveNext")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -889,7 +894,7 @@ End Class
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -897,9 +902,8 @@ End Class
   .maxstack  1
   .locals init (Integer V_0,
                 System.Runtime.CompilerServices.TaskAwaiter V_1,
-                Boolean V_2,
-                Derived.VB$StateMachine_2_F V_3,
-                System.Exception V_4)
+                Derived.VB$StateMachine_2_F V_2,
+                System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""Derived.VB$StateMachine_2_F.$VB$Me As Derived""
   IL_0006:  ldfld      ""Base.x As Integer""
@@ -924,14 +928,14 @@ Class Derived : Inherits Base
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
-            Dim context = CreateMethodContext(runtime, "Derived._Lambda$__2-1")
+            Dim context = CreateMethodContext(runtime, "Derived._Lambda$__2-0")
 
             Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("MyBase.x", resultProperties, errorMessage, testData)
+            context.CompileExpression("MyBase.x", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -1004,7 +1008,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub IteratorOverloading_MustOverideness()
+        Public Sub IteratorOverloading_MustOverrideness()
             Const source = "
 Imports System.Collections
 
@@ -1129,7 +1133,7 @@ End Class
                 source,
                 Function(m) m.Name = "M" AndAlso isDesiredOverload(m),
                 Function(originalType)
-                    Dim stateMachineType = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.StateMachineTypeNamePrefix))
+                    Dim stateMachineType = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal))
                     Return stateMachineType.GetMember(Of MethodSymbol)("MoveNext")
                 End Function)
         End Sub
@@ -1139,7 +1143,7 @@ End Class
                 source,
                 isDesiredOverload,
                 Function(originalType)
-                    Dim displayClass As NamedTypeSymbol = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.DisplayClassPrefix))
+                    Dim displayClass As NamedTypeSymbol = originalType.GetMembers().OfType(Of NamedTypeSymbol).Single(Function(t) t.Name.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal))
                     Return displayClass.GetMembers().OfType(Of MethodSymbol).Single(AddressOf IsLambda)
                 End Function)
         End Sub
@@ -1149,7 +1153,7 @@ End Class
         End Function
 
         Private Shared Sub CheckOverloading(source As String, isDesiredOverload As Func(Of MethodSymbol, Boolean), getSynthesizedMethod As Func(Of NamedTypeSymbol, MethodSymbol))
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim dummyComp = MakeDummyCompilation(comp)
 
             Dim originalType = dummyComp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -1157,7 +1161,7 @@ End Class
 
             Dim synthesizedMethod As MethodSymbol = getSynthesizedMethod(originalType)
 
-            Dim guessedMethod = CompilationContext.GetSubstitutedSourceMethod(synthesizedMethod, hasDisplayClassMe:=True)
+            Dim guessedMethod = CompilationContext.GetSubstitutedSourceMethod(synthesizedMethod, sourceMethodMustBeInstance:=True)
             Assert.Equal(desiredMethod, guessedMethod.OriginalDefinition)
         End Sub
 

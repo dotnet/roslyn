@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Compares two anonymous type descriptorss, takes into account fields names and types, not locations.
+        /// Compares two anonymous type descriptors, takes into account fields names and types, not locations.
         /// </summary>
         public override bool Equals(object obj)
         {

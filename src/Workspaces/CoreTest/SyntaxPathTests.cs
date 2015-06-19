@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -451,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal static SourceText WithReplaceFirst(SourceText text, string oldText, string newText)
         {
             var oldFullText = text.ToString();
-            int offset = oldFullText.IndexOf(oldText);
+            int offset = oldFullText.IndexOf(oldText, StringComparison.Ordinal);
             int length = oldText.Length;
             var span = new TextSpan(offset, length);
             var newFullText = oldFullText.Substring(0, offset) + newText + oldFullText.Substring(span.End);
@@ -476,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static SyntaxTree WithReplace(SyntaxTree syntaxTree, int startIndex, string oldText, string newText)
         {            // Use the offset to find the first element to replace at
             return WithReplace(syntaxTree,
-                offset: syntaxTree.GetText().ToString().IndexOf(oldText, startIndex),
+                offset: syntaxTree.GetText().ToString().IndexOf(oldText, startIndex, StringComparison.Ordinal),
                 length: oldText.Length,
                 newText: newText);
         }

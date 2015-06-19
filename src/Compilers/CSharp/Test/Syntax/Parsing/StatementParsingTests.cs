@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Test.Utilities;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -2331,6 +2332,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(walker.Tokens > n);
             var tokens = root.DescendantTokens(descendIntoTrivia: true).ToArray();
             Assert.True(tokens.Length > n);
+        }
+
+        [Fact]
+        public void ExceptionFilter_IfKeyword()
+        {
+            const string source = @"
+class C
+{
+    void M()
+    {
+        try { }
+        catch (System.Exception e) if (true) { }
+    }
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var root = tree.GetRoot();
+            tree.GetDiagnostics(root).Verify(
+                // (7,36): error CS1003: Syntax error, 'when' expected
+                //         catch (System.Exception e) if (true) { }
+                CSharpTestBaseBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
+
+            var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
+            Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
+            Assert.True(filterClause.WhenKeyword.HasStructuredTrivia);
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

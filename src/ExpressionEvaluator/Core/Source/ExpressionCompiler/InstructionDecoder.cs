@@ -35,14 +35,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract ImmutableArray<TTypeParameterSymbol> GetAllTypeParameters(TMethodSymbol method);
 
-        internal abstract TCompilation GetCompilation(DkmClrInstructionAddress instructionAddress);
+        internal abstract TCompilation GetCompilation(DkmClrModuleInstance moduleInstance);
 
         internal abstract TMethodSymbol GetMethod(TCompilation compilation, DkmClrInstructionAddress instructionAddress);
 
         internal string GetName(TMethodSymbol method, bool includeParameterTypes, bool includeParameterNames, ArrayBuilder<string> argumentValues = null)
         {
-            Debug.Assert((argumentValues == null) || (method.Parameters.Length == argumentValues.Count));
-
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
 
@@ -50,11 +48,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             AppendFullName(builder, method);
 
             // parameter list...
-            var includeArgumentValues = argumentValues != null;
+            var parameters = method.Parameters;
+            var includeArgumentValues = (argumentValues != null) && (parameters.Length == argumentValues.Count);
             if (includeParameterTypes || includeParameterNames || includeArgumentValues)
             {
                 builder.Append('(');
-                var parameters = method.Parameters;
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     if (i > 0)
@@ -108,6 +106,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal ImmutableArray<TTypeSymbol> GetTypeSymbols(TCompilation compilation, TMethodSymbol method, string[] serializedTypeNames)
         {
+            if (serializedTypeNames == null)
+            {
+                return ImmutableArray<TTypeSymbol>.Empty;
+            }
+
             var builder = ArrayBuilder<TTypeSymbol>.GetInstance();
             foreach (var name in serializedTypeNames)
             {

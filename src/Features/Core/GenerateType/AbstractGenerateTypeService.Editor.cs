@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         private partial class Editor
         {
-            private TService _service;
+            private readonly TService _service;
             private TargetProjectChangeInLanguage _targetProjectChangeInLanguage = TargetProjectChangeInLanguage.NoChange;
             private IGenerateTypeService _targetLanguageService;
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (!string.IsNullOrWhiteSpace(rootNamespace))
                 {
                     if (namespaceToGenerateInto == rootNamespace ||
-                        namespaceToGenerateInto.StartsWith(rootNamespace + "."))
+                        namespaceToGenerateInto.StartsWith(rootNamespace + ".", StringComparison.Ordinal))
                     {
                         namespaceToGenerateInto = namespaceToGenerateInto.Substring(rootNamespace.Length);
                     }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return rootNamespace.Length;
                 }
 
-                if (namespaceToGenerateInto.StartsWith(rootNamespace + "."))
+                if (namespaceToGenerateInto.StartsWith(rootNamespace + ".", StringComparison.Ordinal))
                 {
                     return rootNamespace.Length + 1;
                 }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
 
                     var projectManagementService = _document.Project.Solution.Workspace.Services.GetService<IProjectManagementService>();
-                    var defaultNamespace = projectManagementService.GetDefaultNamespace(targetProject, targetProject.Solution.Workspace);
+                    var defaultNamespace = _generateTypeOptionsResult.DefaultNamespace;
 
                     // Case 1 : If the type is generated into the same C# project or
                     // Case 2 : If the type is generated from a C# project to a C# Project

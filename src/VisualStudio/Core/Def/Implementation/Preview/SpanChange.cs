@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _rightText = rightText;
             _leftText = leftText;
             _isDeletion = isDeletion;
-            this.Children = new ChangeList(new AbstractChange[0]);
+            this.Children = new ChangeList(Array.Empty<AbstractChange>());
         }
 
         public override int GetText(out VSTREETEXTOPTIONS tto, out string pbstrText)

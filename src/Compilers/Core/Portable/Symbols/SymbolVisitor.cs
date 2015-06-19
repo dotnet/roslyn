@@ -6,10 +6,7 @@ namespace Microsoft.CodeAnalysis
     {
         public virtual void Visit(ISymbol symbol)
         {
-            if (symbol != null)
-            {
-                symbol.Accept(this);
-            }
+            symbol?.Accept(this);
         }
 
         public virtual void DefaultVisit(ISymbol symbol)

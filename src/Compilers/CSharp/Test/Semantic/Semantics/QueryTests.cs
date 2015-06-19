@@ -782,7 +782,7 @@ public class Test2
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select")).Parent;
+            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select", StringComparison.Ordinal)).Parent;
             var info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
@@ -812,7 +812,7 @@ public class Test2
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select w")).Parent;
+            SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select w", StringComparison.Ordinal)).Parent;
             var info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
@@ -839,13 +839,13 @@ public class Test2
             compilation.VerifyDiagnostics();
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("x+1")).Parent;
+            var e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("x+1", StringComparison.Ordinal)).Parent;
             var info = semanticModel.GetSemanticInfoSummary(e);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             Assert.Equal("x", info.Symbol.Name);
 
-            e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("w+1")).Parent;
+            e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("w+1", StringComparison.Ordinal)).Parent;
             info = semanticModel.GetSemanticInfoSummary(e);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
@@ -877,7 +877,7 @@ public class Test2
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w")).Parent;
+            var queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w", StringComparison.Ordinal)).Parent;
             var symbol = semanticModel.GetDeclaredSymbol(queryContinuation);
 
             Assert.NotNull(symbol);
@@ -904,7 +904,7 @@ public class Test2
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
-            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("5"));
+            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
             var info = semanticModel.GetSpeculativeTypeInfo(selectExpression.SpanStart, SyntaxFactory.ParseExpression("x"), SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
@@ -930,7 +930,7 @@ static class Test
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
-            var joinInto = tree.GetRoot().FindToken(sourceCode.IndexOf("into x8")).Parent;
+            var joinInto = tree.GetRoot().FindToken(sourceCode.IndexOf("into x8", StringComparison.Ordinal)).Parent;
             var symbol = semanticModel.GetDeclaredSymbol(joinInto);
 
             Assert.NotNull(symbol);
@@ -1371,12 +1371,12 @@ class C
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
-                // (9,36): error CS0718: 'System.GC': static types cannot be used as type arguments
+                // (9,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(9, 36),
-                // (10,23): error CS0718: 'System.GC': static types cannot be used as type arguments
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
+                // (10,18): error CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = from GC x in string.Empty select x;
-                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "GC").WithArguments("System.GC").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 18)
                 );
         }
 
@@ -1593,7 +1593,7 @@ public class QueryExpressionTest
         }
 
         [WorkItem(543787, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void GetSymbolInfoOfSelectNodeWhenTypeOfRangeVariableIsErrorType()
         {
             string source = @"
@@ -1613,7 +1613,7 @@ class Test
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
-            var index = source.IndexOf("select i");
+            var index = source.IndexOf("select i", StringComparison.Ordinal);
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbolInfo = model.GetSymbolInfo(selectNode);
@@ -1640,7 +1640,7 @@ class Test
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
-            var index = source.IndexOf("join int delegate in expr2 on i equals delegate");
+            var index = source.IndexOf("join int delegate in expr2 on i equals delegate", StringComparison.Ordinal);
             var joinNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as JoinClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
             var queryInfo = model.GetQueryClauseInfo(joinNode);

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 Return Nothing
             End If
 
-            Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDocumentationComments:=True)
 
             Dim parent = token.GetAncestor(Of DocumentationCommentTriviaSyntax)()
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             If nameSyntax.LocalName.ValueText = name Then
                 Return startTag.Attributes.OfType(Of XmlNameAttributeSyntax)() _
-                    .Where(Function(a) a.Name.ToString() = "name") _
+                    .Where(Function(a) a.Name.ToString() = NameOf(name)) _
                     .Select(Function(a) a.Reference.Identifier.ValueText) _
                     .FirstOrDefault()
             End If

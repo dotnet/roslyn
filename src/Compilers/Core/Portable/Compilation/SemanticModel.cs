@@ -77,6 +77,14 @@ namespace Microsoft.CodeAnalysis
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
+        /// </summary>
+        public virtual bool IgnoresAccessibility
+        {
+            get { return false; }
+        }
+
+        /// <summary>
         /// Gets symbol information about a syntax node.
         /// </summary>
         /// <param name="node">The syntax node to get semantic information for.</param>

@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     cancellationToken As CancellationToken) As TDeclarationNode
 
             If target.HasValue AndAlso Not target.Value.IsValidAttributeTarget() Then
-                Throw New ArgumentException("target")
+                Throw New ArgumentException(NameOf(target))
             End If
 
             Dim attributeSyntaxList = AttributeGenerator.GenerateAttributeBlocks(attributes.ToImmutableArray(), options, target)
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As AttributeData, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             If attributeToRemove.ApplicationSyntaxReference Is Nothing Then
-                Throw New ArgumentException("attributeToRemove")
+                Throw New ArgumentException(NameOf(attributeToRemove))
             End If
 
             Dim attributeSyntaxToRemove = attributeToRemove.ApplicationSyntaxReference.GetSyntax(cancellationToken)
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function RemoveAttribute(Of TDeclarationNode As SyntaxNode)(destination As TDeclarationNode, attributeToRemove As SyntaxNode, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             If attributeToRemove Is Nothing Then
-                Throw New ArgumentException("attributeToRemove")
+                Throw New ArgumentException(NameOf(attributeToRemove))
             End If
 
             ' Removed node could be AttributeSyntax or AttributeListSyntax.
@@ -587,16 +587,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList, options, cancellationToken)
         End Function
 
-        Public Overrides Function UpdateDeclarationAccessibility(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newAccesibility As Accessibility, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
+        Public Overrides Function UpdateDeclarationAccessibility(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newAccessibility As Accessibility, options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
-                                                                                           Return UpdateDeclarationAccessibility(modifiersList, newAccesibility, options)
+                                                                                           Return UpdateDeclarationAccessibility(modifiersList, newAccessibility, options)
                                                                                        End Function
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList, options, cancellationToken)
         End Function
 
-        Private Overloads Shared Function UpdateDeclarationAccessibility(modifiersList As SyntaxTokenList, newAccesibility As Accessibility, options As CodeGenerationOptions) As SyntaxTokenList
+        Private Overloads Shared Function UpdateDeclarationAccessibility(modifiersList As SyntaxTokenList, newAccessibility As Accessibility, options As CodeGenerationOptions) As SyntaxTokenList
             Dim newModifierTokens = New List(Of SyntaxToken)()
-            VisualBasicCodeGenerationHelpers.AddAccessibilityModifiers(newAccesibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
+            VisualBasicCodeGenerationHelpers.AddAccessibilityModifiers(newAccessibility, newModifierTokens, CodeGenerationDestination.Unspecified, options, Accessibility.NotApplicable)
             If newModifierTokens.Count = 0 Then
                 Return modifiersList
             End If

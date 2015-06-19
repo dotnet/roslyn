@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Host
                 ~SharedReadableStream()
                 {
                     // we don't have control on stream we give out to others such as
-                    // compiler (ImageOnlyMetdataReferece), make sure we dispose resource 
+                    // compiler (ImageOnlyMetadataReferece), make sure we dispose resource 
                     // at the end if Disposed is not called explicitly.
                     Dispose(false);
                 }
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Host
                         var target = _start + value;
                         if (target < _start || target >= _end)
                         {
-                            throw new ArgumentOutOfRangeException("value");
+                            throw new ArgumentOutOfRangeException(nameof(value));
                         }
 
                         _current = target;
@@ -359,17 +359,17 @@ namespace Microsoft.CodeAnalysis.Host
                                 break;
 
                             default:
-                                throw new ArgumentOutOfRangeException("origin");
+                                throw new ArgumentOutOfRangeException(nameof(origin));
                         }
                     }
                     catch (OverflowException)
                     {
-                        throw new ArgumentOutOfRangeException("offset");
+                        throw new ArgumentOutOfRangeException(nameof(offset));
                     }
 
                     if (target < _start || target >= _end)
                     {
-                        throw new ArgumentOutOfRangeException("offset");
+                        throw new ArgumentOutOfRangeException(nameof(offset));
                     }
 
                     _current = target;
@@ -425,17 +425,8 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     byte* ptr = null;
                     accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-                    ptr += GetPrivateOffset(accessor);
+                    ptr += accessor.PointerOffset;
                     return ptr;
-                }
-
-                // this is a copy from compiler's MemoryMappedFileBlock. see MemoryMappedFileBlock for more information on why this is needed.
-                private static long GetPrivateOffset(MemoryMappedViewAccessor stream)
-                {
-                    System.Reflection.FieldInfo unmanagedMemoryStreamOffset = typeof(MemoryMappedViewAccessor).GetField("m_view", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetField);
-                    object memoryMappedView = unmanagedMemoryStreamOffset.GetValue(stream);
-                    System.Reflection.PropertyInfo memoryMappedViewPointerOffset = memoryMappedView.GetType().GetProperty("PointerOffset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.GetProperty);
-                    return (long)memoryMappedViewPointerOffset.GetValue(memoryMappedView);
                 }
             }
         }

@@ -6,7 +6,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         internal static string AnalyzerFailure => FeaturesResources.UserDiagnosticAnalyzerFailure;
         internal static string AnalyzerThrows => FeaturesResources.UserDiagnosticAnalyzerThrows;
+        internal static string AnalyzerThrowsDescription => FeaturesResources.UserDiagnosticAnalyzerThrowsDescription;
         internal static string ArgumentElementCannotBeNull => FeaturesResources.ArgumentElementCannotBeNull;
         internal static string ArgumentCannotBeEmpty => FeaturesResources.ArgumentCannotBeEmpty;
+        internal static string UnsupportedDiagnosticReported => FeaturesResources.UnsupportedDiagnosticReported;
     }
 }

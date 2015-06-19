@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -386,27 +387,27 @@ class Program
 
             // Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
             var variableDeclarator = (VariableDeclaratorSyntax)tree.GetCompilationUnitRoot()
-                .FindToken(source.IndexOf("ii")).Parent;
+                .FindToken(source.IndexOf("ii", StringComparison.Ordinal)).Parent;
 
             // Get TypeSymbol corresponding to above VariableDeclaratorSyntax.
             TypeSymbol targetType = ((LocalSymbol)model.GetDeclaredSymbol(variableDeclarator)).Type;
 
             // Perform ClassifyConversion for expressions from within the above SyntaxTree.
             var sourceExpression1 = (ExpressionSyntax)tree.GetCompilationUnitRoot()
-                .FindToken(source.IndexOf("jj)")).Parent;
+                .FindToken(source.IndexOf("jj)", StringComparison.Ordinal)).Parent;
             Conversion conversion = model.ClassifyConversion(sourceExpression1, targetType);
             Assert.True(conversion.IsImplicit);
             Assert.True(conversion.IsNumeric);
 
             var sourceExpression2 = (ExpressionSyntax)tree.GetCompilationUnitRoot()
-                .FindToken(source.IndexOf("ss)")).Parent;
+                .FindToken(source.IndexOf("ss)", StringComparison.Ordinal)).Parent;
             conversion = model.ClassifyConversion(sourceExpression2, targetType);
             Assert.False(conversion.Exists);
 
             // Perform ClassifyConversion for constructed expressions
             // at the position identified by the comment '// Perform ...' above.
             ExpressionSyntax sourceExpression3 = SyntaxFactory.IdentifierName("jj");
-            var position = source.IndexOf("//");
+            var position = source.IndexOf("//", StringComparison.Ordinal);
             conversion = model.ClassifyConversion(position, sourceExpression3, targetType);
             Assert.True(conversion.IsImplicit);
             Assert.True(conversion.IsNumeric);
@@ -1516,7 +1517,7 @@ public class Test {
         }
 
         [WorkItem(545361, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void NullableIntToStructViaDecimal()
         {
             var source = @"
@@ -1615,7 +1616,7 @@ public struct S
         }
 
         [WorkItem(545471, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void CheckedConversionsInExpressionTrees()
         {
             var source = @"
@@ -1717,7 +1718,7 @@ class C<T>
         }
 
         [WorkItem(715207, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void LiftingReturnTypeOfExplicitUserDefinedConversion()
         {
             var source = @"
@@ -1816,7 +1817,7 @@ public struct C
         }
 
         [WorkItem(742345, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MethodGroupConversion_ContravarianceAndDynamic()
         {
             var source = @"

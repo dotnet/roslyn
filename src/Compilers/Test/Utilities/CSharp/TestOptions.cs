@@ -1,5 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public static class TestOptions
@@ -32,5 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly CSharpCompilationOptions UnsafeDebugDll = DebugDll.WithAllowUnsafe(true);
         public static readonly CSharpCompilationOptions UnsafeDebugExe = DebugExe.WithAllowUnsafe(true);
+
+        public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>(feature, value) }));
+        }
+
+        public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("strict", "true");
+        }
+
+        public static CSharpParseOptions WithDeterministicFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("deterministic", "true");
+        }
     }
 }

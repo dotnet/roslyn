@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static LookupSymbolsInfo GetInstance()
         {
             var info = s_pool.Allocate();
-            Debug.Assert(info.Names.Count == 0);
+            Debug.Assert(info.Count == 0);
             return info;
         }
     }

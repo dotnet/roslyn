@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundBinaryOperator
+    Friend Partial Class BoundBinaryOperator
 
         Public Sub New(
             syntax As VisualBasicSyntaxNode,

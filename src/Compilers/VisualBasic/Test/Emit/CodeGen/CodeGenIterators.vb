@@ -148,7 +148,7 @@ False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
         End Sub
 
         <Fact>
-        Sub SingletonIterator()
+        Public Sub SingletonIterator()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -223,7 +223,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TwoVarsSameName()
+        Public Sub TwoVarsSameName()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -425,7 +425,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub ReadonlyProperty()
+        Public Sub ReadonlyProperty()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -490,7 +490,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub ReadWriteProperty()
+        Public Sub ReadWriteProperty()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -529,7 +529,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub ParamCapture()
+        Public Sub ParamCapture()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -597,7 +597,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub NestedForeach()
+        Public Sub NestedForeach()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -727,7 +727,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub NestedFor()
+        Public Sub NestedFor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -819,7 +819,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub LocalsInDispose()
+        Public Sub LocalsInDispose()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -961,7 +961,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TryCatch()
+        Public Sub TryCatch()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1097,7 +1097,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TryFinally()
+        Public Sub TryFinally()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1148,7 +1148,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TryYieldFinally()
+        Public Sub TryYieldFinally()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1191,7 +1191,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TryInLoop()
+        Public Sub TryInLoop()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1235,7 +1235,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub InStruct()
+        Public Sub InStruct()
             Dim source =
     <compilation>
         <file name="a.vb">
@@ -1281,7 +1281,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub UnusedParams()
+        Public Sub UnusedParams()
             Dim source =
     <compilation>
         <file name="a.vb">
@@ -1353,7 +1353,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub InferredEnumerable()
+        Public Sub InferredEnumerable()
             Dim source =
     <compilation>
         <file name="a.vb">
@@ -1398,7 +1398,7 @@ System.Collections.Generic.IEnumerator`1[System.Int32]
         End Sub
 
         <Fact>
-        Sub EnumeratorWithParameter()
+        Public Sub EnumeratorWithParameter()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1479,7 +1479,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub GenericEnumerator()
+        Public Sub GenericEnumerator()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -1573,12 +1573,12 @@ End Class]]></file>
             Dim comp = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626}, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim verifier = Me.CompileAndVerify(comp)
             Dim il = verifier.VisualizeIL("Program.VB$StateMachine_1_Foo.GetEnumerator()")
-            Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il)
+            Assert.Contains("System.Environment.get_CurrentManagedThreadId()", il, StringComparison.Ordinal)
         End Sub
 
         <WorkItem(835430, "DevDiv")>
         <Fact>
-        Sub YieldInWith()
+        Public Sub YieldInWith()
             Dim source =
 <compilation>
     <file name="a.vb">

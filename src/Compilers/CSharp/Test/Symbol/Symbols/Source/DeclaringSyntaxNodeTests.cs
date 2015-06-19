@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         {
             var model = comp.GetSemanticModel(tree);
             string code = tree.GetText().ToString();
-            int position = code.IndexOf(name);
+            int position = code.IndexOf(name, StringComparison.Ordinal);
             var node = tree.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
             var sym = (Symbol)model.GetDeclaredSymbol(node);
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         {
             var model = comp.GetSemanticModel(tree);
             string code = tree.GetText().ToString();
-            int position = code.IndexOf(textToSearchFor);
+            int position = code.IndexOf(textToSearchFor, StringComparison.Ordinal);
             var node = tree.GetCompilationUnitRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
             MethodSymbol sym = model.GetSymbolInfo(node).Symbol as MethodSymbol;
 
@@ -255,7 +255,7 @@ class C1 {
             var comp = CreateCompilationWithMscorlib(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
-            int posA1 = text.IndexOf("a1");
+            int posA1 = text.IndexOf("a1", StringComparison.Ordinal);
 
             var declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             var localA1 = (LocalSymbol)model.GetDeclaredSymbol(declaratorA1);
@@ -300,21 +300,21 @@ class C1 {
             var global = comp.GlobalNamespace;
 
             // check 'q'
-            int posQ = text.IndexOf("q");
+            int posQ = text.IndexOf('q');
             var declaratorQ = tree.GetCompilationUnitRoot().FindToken(posQ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorQ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorQ.Initializer.Value);
 
             // check 'x'
-            int posX = text.IndexOf("x");
+            int posX = text.IndexOf('x');
             var declaratorX = tree.GetCompilationUnitRoot().FindToken(posX).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorX),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
 
             // check 'z' --> 'x'
-            int posZ = text.IndexOf("z");
+            int posZ = text.IndexOf('z');
             var declaratorZ = tree.GetCompilationUnitRoot().FindToken(posZ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorZ),

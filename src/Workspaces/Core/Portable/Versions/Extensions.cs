@@ -65,20 +65,12 @@ namespace Microsoft.CodeAnalysis.Versions
             VersionStamp persistedVersion,
             Func<ISemanticVersionTrackingService, Project, VersionStamp, VersionStamp> versionGetter)
         {
-            var canReuse = VersionStamp.CanReusePersistedVersion(semanticVersion, persistedVersion);
-            if (canReuse)
-            {
-                return true;
-            }
-
-            var service = project.Solution.Workspace.Services.GetService<ISemanticVersionTrackingService>();
-            if (service == null)
-            {
-                return canReuse;
-            }
-
-            var persistedProjectVersion = versionGetter(service, project, persistedVersion);
-            return VersionStamp.CanReusePersistedVersion(projectVersion, persistedProjectVersion);
+            // * NOTE * 
+            // Disabled semantic version tracking
+            // we need better version for it to reliably work.
+            //
+            // see tracking issue here : https://github.com/dotnet/roslyn/issues/2311
+            return VersionStamp.CanReusePersistedVersion(semanticVersion, persistedVersion);
         }
     }
 }

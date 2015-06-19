@@ -5,10 +5,10 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.In
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.VisualBasicHelpers
-    Module VisualBasicHelpers
-        Public Function CreateVisualBasicProject(environment As TestEnvironment, projectName As String) As VisualBasicProjectShimWithServices
+    Friend Module VisualBasicHelpers
+        Public Function CreateVisualBasicProject(environment As TestEnvironment, projectName As String, Optional compilerHost As IVbCompilerHost = Nothing) As VisualBasicProjectShimWithServices
             Return New VisualBasicProjectShimWithServices(environment.ProjectTracker,
-                                                          MockCompilerHost.FullFrameworkCompilerHost,
+                                                          If(compilerHost, MockCompilerHost.FullFrameworkCompilerHost),
                                                           projectName,
                                                           environment.CreateHierarchy(projectName, "VB"),
                                                           environment.ServiceProvider)

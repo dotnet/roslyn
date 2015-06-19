@@ -15,6 +15,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="PresentationCore" />
@@ -32,23 +33,22 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Editor.Implementation, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop.dll">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
+      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml" />

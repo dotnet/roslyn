@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -17,22 +16,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
         private static readonly string s_dummyThreeLineTitle = "A" + Environment.NewLine + "A" + Environment.NewLine + "A";
         private static readonly Size s_infiniteSize = new Size(double.PositiveInfinity, double.PositiveInfinity);
 
-        private readonly string _errorId;
-        private readonly bool _telemetry;
-
-        private readonly IServiceProvider _serviceProvider;
+        private readonly string _id;
+        private readonly bool _logIdVerbatimInTelemetry;
 
         private bool _isExpanded;
         private double _heightForThreeLineTitle;
         private IWpfDifferenceViewer _previewDiffViewer;
 
-        public PreviewPane(Image severityIcon, string id, string title, string helpMessage, string description, string helpLink,
-            bool telemetry, object previewContent, IServiceProvider serviceProvider)
+        public PreviewPane(Image severityIcon, string id, string title, string description, Uri helpLink, string helpLinkToolTipText,
+            object previewContent, bool logIdVerbatimInTelemetry)
         {
             InitializeComponent();
 
-            InitializeHyperlinkStyles();
+            _id = id;
+            _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
 
+            // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
             {
                 HeaderStackPanel.Visibility = Visibility.Visible;
@@ -48,15 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 // Now set the actual title text.
                 TitleRun.Text = title;
 
-                Uri helpUri;
-                if (BrowserHelper.TryGetUri(helpLink, out helpUri))
-                {
-                    InitializeDiagnosticIdHyperLink(id, helpUri, bingLink: false);
-                }
-                else
-                {
-                    InitializeDiagnosticIdHyperLink(id, BrowserHelper.CreateBingQueryUri(id, helpMessage), bingLink: true);
-                }
+                InitializeHyperlinks(helpLink, helpLinkToolTipText);
 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
@@ -64,13 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 }
             }
 
+            // Initialize preview (i.e. diff view) portion.
             InitializePreviewElement(previewContent);
-
-            _serviceProvider = serviceProvider;
-            _errorId = id;
-
-            // save permission whether we are allowed to save data as it is or not.
-            _telemetry = telemetry;
         }
 
         private void InitializePreviewElement(object previewContent)
@@ -109,20 +95,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             AdjustWidthAndHeight(previewElement);
         }
 
-        private void InitializeHyperlinkStyles()
+        private void InitializeHyperlinks(Uri helpLink, string helpLinkToolTipText)
         {
-            this.IdHyperlink.SetVSHyperLinkStyle();
-            this.LearnMoreHyperlink.SetVSHyperLinkStyle();
-        }
+            IdHyperlink.SetVSHyperLinkStyle();
+            LearnMoreHyperlink.SetVSHyperLinkStyle();
 
-        private void InitializeDiagnosticIdHyperLink(string id, Uri helpUri, bool bingLink)
-        {
-            IdHyperlink.Inlines.Add(id);
-            IdHyperlink.NavigateUri = helpUri;
+            IdHyperlink.Inlines.Add(_id);
+            IdHyperlink.NavigateUri = helpLink;
             IdHyperlink.IsEnabled = true;
+            IdHyperlink.ToolTip = helpLinkToolTipText;
 
-            LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.LearnMoreLinkText, id));
-            LearnMoreHyperlink.NavigateUri = helpUri;
+            LearnMoreHyperlink.Inlines.Add(string.Format(ServicesVSResources.LearnMoreLinkText, _id));
+            LearnMoreHyperlink.NavigateUri = helpLink;
+            LearnMoreHyperlink.ToolTip = helpLinkToolTipText;
         }
 
         public static Border GetPreviewForString(string previewContent, bool useItalicFontStyle = false, bool centerAlignTextHorizontally = false)
@@ -248,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return;
             }
 
-            BrowserHelper.StartBrowser(_serviceProvider, e.Uri);
+            BrowserHelper.StartBrowser(e.Uri);
             e.Handled = true;
 
             var hyperlink = sender as Hyperlink;
@@ -257,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return;
             }
 
-            DiagnosticLogger.LogHyperlink(hyperlink.Name ?? "Preview", _errorId, HasDescription, _telemetry, e.Uri.AbsoluteUri);
+            DiagnosticLogger.LogHyperlink(hyperlink.Name ?? "Preview", _id, HasDescription, _logIdVerbatimInTelemetry, e.Uri.AbsoluteUri);
         }
 
         private void ExpanderToggleButton_CheckedChanged(object sender, RoutedEventArgs e)

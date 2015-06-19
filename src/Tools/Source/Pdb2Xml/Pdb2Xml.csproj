@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CF450DCE-D12B-4A11-8D2D-A7A125372C48}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Pdb2Xml</RootNamespace>
+    <AssemblyName>Pdb2Xml</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LargeAddressAware>true</LargeAddressAware>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="PdbToXmlApp.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  </ImportGroup>
+</Project>

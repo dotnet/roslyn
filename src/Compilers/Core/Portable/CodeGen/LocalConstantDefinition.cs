@@ -34,84 +34,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _dynamicTransformFlags = dynamicTransformFlags;
         }
 
-        public string Name
-        {
-            get { return _name; }
-        }
+        public string Name => _name;
 
-        public Location Location
-        {
-            get { return _location; }
-        }
+        public Location Location => _location;
 
-        public Cci.IMetadataConstant CompileTimeValue
-        {
-            get { return _compileTimeValue; }
-        }
+        public Cci.IMetadataConstant CompileTimeValue => _compileTimeValue;
 
-        public Cci.ITypeReference Type
-        {
-            get { return _compileTimeValue.Type; }
-        }
+        public Cci.ITypeReference Type => _compileTimeValue.Type;
 
-        public bool IsConstant
-        {
-            get { return true; }
-        }
+        public bool IsConstant => true;
 
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
-        {
-            get { return ImmutableArray<Cci.ICustomModifier>.Empty; }
-        }
+            => ImmutableArray<Cci.ICustomModifier>.Empty;
 
-        public bool IsModified
-        {
-            get { return false; }
-        }
+        public bool IsModified => false;
 
-        public bool IsPinned
-        {
-            get { return false; }
-        }
+        public bool IsPinned => false;
 
-        public bool IsReference
-        {
-            get { return false; }
-        }
+        public bool IsReference => false;
 
-        public LocalSlotConstraints Constraints
-        {
-            get { return LocalSlotConstraints.None; }
-        }
+        public LocalSlotConstraints Constraints => LocalSlotConstraints.None;
 
-        public bool IsDynamic
-        {
-            get { return _isDynamic; }
-        }
+        public bool IsDynamic => _isDynamic;
 
-        public uint PdbAttributes
-        {
-            get { return Cci.PdbWriter.DefaultLocalAttributesValue; }
-        }
+        public uint PdbAttributes => Cci.PdbWriter.DefaultLocalAttributesValue;
 
-        public ImmutableArray<TypedConstant> DynamicTransformFlags
-        {
-            get { return _dynamicTransformFlags; }
-        }
+        public ImmutableArray<TypedConstant> DynamicTransformFlags => _dynamicTransformFlags;
 
-        public int SlotIndex
-        {
-            get { return -1; }
-        }
+        public int SlotIndex => -1;
 
-        public byte[] Signature
-        {
-            get { return null; }
-        }
+        public byte[] Signature => null;
 
         public LocalSlotDebugInfo SlotInfo
-        {
-            get { return new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, LocalDebugId.None); }
-        }
+            => new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, LocalDebugId.None);
     }
 }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace X
 	{
 		public Func<Task<int>> Prop { get; set; }
 	}
-	public sealed class TestCase
+	public sealed partial class TestCase
 	{
 		private static int Count = 0;
 		public async void Run()
@@ -56,7 +56,16 @@ namespace X
 			//When test complete, set the flag.
 			Driver.CompletedSignal.Set();
 		}
+
+        static  partial void Foo();
+        static  partial void Bar();
 	}
+
+	public sealed partial class TestCase
+    {
+        static partial void Bar(){}
+    }
+
 	class Driver
 	{
 		public static int Result = -1;
@@ -73,23 +82,24 @@ namespace X
 }";
             string expected = @"
 <token-map>
-  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22"" />
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""26"" end-line=""9"" end-column=""30"" />
-  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""26"" end-line=""9"" end-column=""30"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""33"" end-line=""9"" end-column=""36"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""38"" end-line=""9"" end-column=""41"" />
-  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""22"" end-line=""11"" end-column=""30"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""22"" end-line=""11"" end-column=""30"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""22"" end-line=""11"" end-column=""30"" />
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""13"" start-column=""22"" end-line=""13"" end-column=""27"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""21"" end-line=""14"" end-column=""24"" />
-  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""26"" start-column=""8"" end-line=""26"" end-column=""14"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""26"" start-column=""8"" end-line=""26"" end-column=""14"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""26"" start-column=""8"" end-line=""26"" end-column=""14"" />
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""28"" start-column=""21"" end-line=""28"" end-column=""27"" />
-  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""29"" start-column=""32"" end-line=""29"" end-column=""47"" />
-  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""30"" start-column=""14"" end-line=""30"" end-column=""18"" />
+    <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""7"" start-column=""8"" end-line=""7"" end-column=""22""/>
+    <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""26"" end-line=""9"" end-column=""30""/>
+    <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""26"" end-line=""9"" end-column=""30""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""33"" end-line=""9"" end-column=""36""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""9"" start-column=""38"" end-line=""9"" end-column=""41""/>
+    <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""11"" start-column=""30"" end-line=""11"" end-column=""38""/>
+    <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""13"" start-column=""22"" end-line=""13"" end-column=""27""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""21"" end-line=""14"" end-column=""24""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""27"" start-column=""30"" end-line=""27"" end-column=""33""/>
+    <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""35"" start-column=""8"" end-line=""35"" end-column=""14""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""35"" start-column=""8"" end-line=""35"" end-column=""14""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""35"" start-column=""8"" end-line=""35"" end-column=""14""/>
+    <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""37"" start-column=""21"" end-line=""37"" end-column=""27""/>
+    <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""38"" start-column=""32"" end-line=""38"" end-column=""47""/>
+    <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""39"" start-column=""14"" end-line=""39"" end-column=""18""/>
 </token-map>";
 
             var compilation = CreateCompilationWithMscorlib45(
@@ -98,7 +108,7 @@ namespace X
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
 
         [WorkItem(693206, "DevDiv")]
@@ -145,7 +155,7 @@ namespace X
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
 
         [Fact]
@@ -226,7 +236,7 @@ namespace X
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E2").WithArguments("X.TestCase.E2"));
 
             string actual = GetTokenToLocationMap(compilation, true);
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
 
         [Fact]
@@ -260,7 +270,7 @@ namespace X
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
             string actual = GetTokenToLocationMap(compilation, true);
-            AssertXmlEqual(expected, actual);
+            AssertXml.Equal(expected, actual);
         }
     }
 }

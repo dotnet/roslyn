@@ -7,11 +7,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
     Friend Class UnifiedArgumentSyntax
         Implements IUnifiedArgumentSyntax
 
-        Private ReadOnly argument As ArgumentSyntax
+        Private ReadOnly _argument As ArgumentSyntax
 
         Private Sub New(argument As ArgumentSyntax)
             Debug.Assert(argument.IsKind(SyntaxKind.SimpleArgument))
-            Me.argument = argument
+            Me._argument = argument
         End Sub
 
         Public Shared Function Create(argument As ArgumentSyntax) As IUnifiedArgumentSyntax
@@ -20,34 +20,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
         Private ReadOnly Property IsDefault As Boolean Implements IUnifiedArgumentSyntax.IsDefault
             Get
-                Return argument Is Nothing
+                Return _argument Is Nothing
             End Get
         End Property
 
         Private ReadOnly Property IsNamed As Boolean Implements IUnifiedArgumentSyntax.IsNamed
             Get
-                Return argument.IsNamed
+                Return _argument.IsNamed
             End Get
         End Property
 
         Public Shared Widening Operator CType(ByVal unified As UnifiedArgumentSyntax) As ArgumentSyntax
-            Return unified.argument
+            Return unified._argument
         End Operator
 
         Public Function GetName() As String Implements IUnifiedArgumentSyntax.GetName
-            Return If(argument.IsNamed,
-                      DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ToString(),
+            Return If(_argument.IsNamed,
+                      DirectCast(_argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ToString(),
                       Nothing)
         End Function
 
         Private Function WithName(name As String) As IUnifiedArgumentSyntax Implements IUnifiedArgumentSyntax.WithName
-            Return If(argument.IsNamed,
-                      Create(DirectCast(argument, SimpleArgumentSyntax).WithNameColonEquals(DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.WithName(SyntaxFactory.IdentifierName(name)))),
-                      Create(SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)), argument.GetExpression())))
+            Return If(_argument.IsNamed,
+                      Create(DirectCast(_argument, SimpleArgumentSyntax).WithNameColonEquals(DirectCast(_argument, SimpleArgumentSyntax).NameColonEquals.WithName(SyntaxFactory.IdentifierName(name)))),
+                      Create(SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)), _argument.GetExpression())))
         End Function
 
         Public Function WithAdditionalAnnotations(annotation As SyntaxAnnotation) As IUnifiedArgumentSyntax Implements IUnifiedArgumentSyntax.WithAdditionalAnnotations
-            Return New UnifiedArgumentSyntax(argument.WithAdditionalAnnotations(annotation))
+            Return New UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation))
         End Function
     End Class
 End Namespace

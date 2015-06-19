@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -15,7 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             Contract.Requires(name.IsMemberAccessExpressionName() || name.IsRightSideOfQualifiedName() || name.IsParentKind(SyntaxKind.NameMemberCref));
             if (name.IsMemberAccessExpressionName())
             {
-                return ((MemberAccessExpressionSyntax)name.Parent).Expression;
+                var conditionalAccess = name.GetParentConditionalAccessExpression();
+                if (conditionalAccess != null)
+                {
+                    return conditionalAccess.Expression;
+                }
+                else
+                {
+                    return ((MemberAccessExpressionSyntax)name.Parent).Expression;
+                }
             }
             else if (name.IsRightSideOfQualifiedName())
             {

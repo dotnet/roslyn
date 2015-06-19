@@ -41,8 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         [ExportOption]
         public static readonly PerLanguageOption<bool> AutoFormattingOnSemicolon = new PerLanguageOption<bool>(OptionName, "Auto Formatting On Semicolon", defaultValue: true);
 
+        [ExportOption]
+        public static readonly PerLanguageOption<bool> RenameTrackingPreview = new PerLanguageOption<bool>(OptionName, "Rename Tracking Preview", defaultValue: true);
+
         /// <summary>
-        /// This option is currently usued by Roslyn, but we might want to implement it in the 
+        /// This option is currently used by Roslyn, but we might want to implement it in the 
         /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption<bool> RenameTracking = new PerLanguageOption<bool>(OptionName, "Rename Tracking", defaultValue: true);
 
         /// <summary>
-        /// This option is currently usued by Roslyn, but we might want to implement it in the 
+        /// This option is currently used by Roslyn, but we might want to implement it in the 
         /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.

@@ -615,7 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var paramArrayType = parameters[paramsParam].Type;
             var arrayArgs = paramArray.ToImmutableAndFree();
 
-            if (arrayArgs.Length == 0) // if this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" if it's available
+            // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
+            // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
+            // point of which is just to represent the semantics of an operation, and we don't know that all consumers
+            // of expression lambdas will appropriately understand Array.Empty<T>().
+            if (arrayArgs.Length == 0 && !_inExpressionLambda)
             {
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
@@ -741,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the temp, the argument RefKind needs to be restored.
                         refKinds[a] = ((BoundLocal)argument).LocalSymbol.RefKind;
 
-                        // the matched store will not need to go into sideffects, only ones before it will
+                        // the matched store will not need to go into sideeffects, only ones before it will
                         // remove the store to signal that we are not using its temp.
                         tempStores[correspondingStore] = null;
                         tempsRemainedInUse--;
@@ -754,10 +758,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var sideffects = new BoundExpression[correspondingStore - firstUnclaimedStore];
-                            for (int s = 0; s < sideffects.Length; s++)
+                            var sideeffects = new BoundExpression[correspondingStore - firstUnclaimedStore];
+                            for (int s = 0; s < sideeffects.Length; s++)
                             {
-                                sideffects[s] = tempStores[firstUnclaimedStore + s];
+                                sideeffects[s] = tempStores[firstUnclaimedStore + s];
                             }
 
                             arguments[a] = new BoundSequence(
@@ -766,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         // we use for the rewrite are stored in one arg and loaded
                                         // in another so they must live in a scope above.
                                         ImmutableArray<LocalSymbol>.Empty,
-                                        sideffects.AsImmutableOrNull(),
+                                        sideeffects.AsImmutableOrNull(),
                                         value,
                                         value.Type);
                         }
@@ -864,6 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to pass this information, and this might be a big task. We should consider doing this when the time permits.
 
             TypeSymbol parameterType = parameter.Type;
+            Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
 

@@ -25,8 +25,8 @@ namespace Roslyn.Utilities
         // a different tree will either return the same type of node as the original, or will fail.  
         protected struct PathSegment
         {
-            public int Ordinal { get; private set; }
-            public int Kind { get; private set; }
+            public int Ordinal { get; }
+            public int Kind { get; }
 
             public PathSegment(int ordinal, int kind)
                 : this()

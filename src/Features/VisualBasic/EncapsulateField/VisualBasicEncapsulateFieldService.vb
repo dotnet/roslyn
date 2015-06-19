@@ -4,7 +4,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -55,12 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         End Function
 
         Protected Overrides Async Function GetFieldsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of IFieldSymbol))
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             Dim fields = root.DescendantNodes(Function(n) n.Span.IntersectsWith(span)) _
                                                         .OfType(Of FieldDeclarationSyntax)() _
-                                                        .Where(Function(n) n.Span.IntersectsWith(span))
+                                                        .Where(Function(n) n.Span.IntersectsWith(span) AndAlso CanEncapsulate(n))
 
             Dim names As IEnumerable(Of ModifiedIdentifierSyntax)
             If span.IsEmpty Then
@@ -75,6 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                                                         .OfType(Of IFieldSymbol)() _
                                                         .WhereNotNull() _
                                                         .Where(Function(f) f.Name.Length > 0)
+        End Function
+
+        Private Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean
+            Return TypeOf field.Parent Is TypeBlockSyntax
         End Function
 
         Protected Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String

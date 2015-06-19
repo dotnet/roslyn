@@ -37,7 +37,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -66,7 +65,6 @@ namespace Test
 
             CompileAndVerify(
               source,
-              emitOptions: TestEmitters.CCI,
               additionalRefs: new[] { LinqAssemblyRef },
               expectedOutput: "True");
         }
@@ -95,7 +93,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -195,7 +192,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -228,7 +224,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -260,7 +255,6 @@ namespace Test
 ";
             var compilation = CompileAndVerify(
                 testSrc,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -340,7 +334,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -369,7 +362,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -414,7 +406,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -452,7 +443,6 @@ namespace Test
 ";
             var compilation = CompileAndVerify(
                 testSrc,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -604,7 +594,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -639,7 +628,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -668,7 +656,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -697,7 +684,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -740,7 +726,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -778,7 +763,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -871,7 +855,6 @@ namespace Test
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -906,7 +889,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "True");
         }
@@ -947,7 +929,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                emitOptions: TestEmitters.CCI,
                 additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: "TrueTrueTrueTrueTrueTrueTrueTrueTrue");
         }

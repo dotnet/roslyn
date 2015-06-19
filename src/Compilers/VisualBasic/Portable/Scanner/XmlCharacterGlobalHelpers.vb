@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Module XmlCharacterGlobalHelpers
+    Friend Module XmlCharacterGlobalHelpers
         Friend Function isNameChar(ch As Char) As Boolean
             ' TODO: which of the following is correct?
             Return XmlCharType.IsNameCharXml4e(ch)

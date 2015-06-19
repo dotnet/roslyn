@@ -74,8 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             var evaluator = CreateInteractiveEvaluator(_vsServiceProvider, _classifierAggregator, _contentTypeRegistry, _vsWorkspace);
 
-            var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator);
-            vsWindow.SetLanguage(LanguageServiceGuid);
+            var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, 0);
+            vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
             // the tool window now owns the engine:
             vsWindow.InteractiveWindow.TextView.Closed += new EventHandler((_, __) => evaluator.Dispose());

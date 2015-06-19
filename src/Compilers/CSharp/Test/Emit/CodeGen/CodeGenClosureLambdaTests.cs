@@ -2059,7 +2059,7 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;", emitOptions: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -4173,7 +4173,6 @@ class Program
             // we are not interested in testing that
             CompileAndVerify(source,
                 additionalRefs: new[] { LinqAssemblyRef },
-                emitOptions: TestEmitters.RefEmitBug,
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -5132,6 +5131,8 @@ namespace ConsoleApplication16
             CompileAndVerify(source);
         }
 
+        #endregion
+
         [Fact]
         public void LambdaInQuery_Let()
         {
@@ -5172,6 +5173,56 @@ class C
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
 
-        #endregion
+        [Fact]
+        public void EmbeddedStatementClosures1()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+class C
+{
+    public void G<T>(Func<T> f) {}
+
+    public void F()
+    {
+        for (int x = 1, y = 2; x < 10; x++) G(() => x + y);
+        for (int x = 1, y = 2; x < 10; x++) { G(() => x + y); }
+        foreach (var x in new[] { 1, 2, 3 }) G(() => x);
+        foreach (var x in new[] { 1, 2, 3 }) { G(() => x); }
+        foreach (var x in new[,] { {1}, {2}, {3} }) G(() => x);
+        foreach (var x in new[,] { {1}, {2}, {3} }) { G(() => x); }
+        foreach (var x in ""123"") G(() => x);
+        foreach (var x in ""123"") { G(() => x); }
+        foreach (var x in new List<string>()) G(() => x);
+        foreach (var x in new List<string>()) { G(() => x); }
+        using (var x = new MemoryStream()) G(() => x);
+        using (var x = new MemoryStream()) G(() => x);
+    }
+}";
+
+            CompileAndVerify(source, new[] { SystemCoreRef });
+        }
+
+        [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
+        public void NestedLambdaWithExtensionMethodsInGeneric()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class BadBaby
+{
+    IEnumerable<object> Children;
+    public object Foo<T>()
+    {
+        return from child in Children select from T ch in Children select false;
+    }
+}";
+            CompileAndVerify(source, new[] { SystemCoreRef });
+        }
     }
 }

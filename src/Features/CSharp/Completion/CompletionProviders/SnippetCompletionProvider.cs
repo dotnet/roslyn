@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class SnippetCompletionProvider : AbstractCompletionProvider
     {
         // If null, the document's language service will be used.
-        private ISnippetInfoService _snippetInfoService;
+        private readonly ISnippetInfoService _snippetInfoService;
 
         public SnippetCompletionProvider(ISnippetInfoService snippetInfoService = null)
         {
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
         {
-            return false;
+            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private async Task<IEnumerable<CompletionItem>> GetSnippetsForDocumentAsync(Document document, int position, Workspace workspace, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var span = new TextSpan(position, 0);
-            var semanticModel = await document.GetCSharpSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
             if (semanticFacts.IsPreProcessorDirectiveContext(semanticModel, position, cancellationToken))
             {
                 var directive = syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(position, includeDirectives: true).GetAncestor<DirectiveTriviaSyntax>();
@@ -134,15 +133,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var snippets = service.GetSnippetsIfAvailable();
             if (isPreProcessorContext)
             {
-                snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#"));
+                snippets = snippets.Where(snippet => snippet.Shortcut.StartsWith("#", StringComparison.Ordinal));
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return snippets.Select(snippet => new CompletionItem(
+            return snippets.Select(snippet => new CSharpCompletionItem(
+                workspace,
                 this,
                 displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                 sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
-                description: (snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts(),
+                descriptionFactory: c => Task.FromResult((snippet.Title + Environment.NewLine + snippet.Description).ToSymbolDisplayParts()),
                 filterSpan: CompletionUtilities.GetTextChangeSpan(text, position),
                 glyph: Glyph.Snippet,
                 shouldFormatOnCommit: service.ShouldFormatSnippet(snippet)));

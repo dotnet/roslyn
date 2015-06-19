@@ -121,12 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var localTypeSource1 = @"public class NoPIAGenerics 
 {
-     InheritsMethods inhertsMethods = null;
+     InheritsMethods inheritsMethods = null;
 }";
             var localConsumer = CreateCompilation(localTypeSource1);
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
-            var localField = classLocalType.GetMembers("inhertsMethods").OfType<FieldSymbol>().Single();
+            var localField = classLocalType.GetMembers("inheritsMethods").OfType<FieldSymbol>().Single();
 
             foreach (MethodSymbol m in localField.Type.GetMembers("Method1").OfType<MethodSymbol>())
             {
@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var local = classLocalType1.GetMembers("typeRef").OfType<FieldSymbol>().Single();
             var importedProperty = local.Type.GetMembers("Property1").OfType<PropertySymbol>().Single();
 
-            Assert.Equal(SymbolKind.ErrorType, importedProperty.Parameters.Where(arg => arg.Name == "x").Single().Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Parameters.Where(arg => arg.Name == "x").Single().Type);
+            Assert.Equal(SymbolKind.ErrorType, importedProperty.Parameters.Single(arg => arg.Name == "x").Type.Kind);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Parameters.Single(arg => arg.Name == "x").Type);
         }
 
         [Fact]
@@ -311,8 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var local = classLocalType.GetMembers("tr2a").OfType<FieldSymbol>().Single();
             var importedMethod = local.Type.GetMembers("op_Implicit").OfType<MethodSymbol>().Single();
 
-            Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Where(arg => arg.Name == "x").Single().Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Single().Type);
+            Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Single(arg => arg.Name == "x").Type.Kind);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Single(arg => arg.Name == "x").Type);
         }
 
         [Fact]

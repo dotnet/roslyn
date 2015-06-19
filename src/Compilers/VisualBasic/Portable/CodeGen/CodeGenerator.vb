@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private _uniqueNameId As Integer
 
         ' label used when when return is emitted in a form of store/goto
-        Private Shared ReadOnly ReturnLabel As New Object
+        Private Shared ReadOnly s_returnLabel As New Object
 
         Private _unhandledReturn As Boolean
 
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                        moduleBuilder As PEModuleBuilder,
                        diagnostics As DiagnosticBag,
                        optimizations As OptimizationLevel,
-                       emittingPdbs As Boolean)
+                       emittingPdb As Boolean)
 
             Debug.Assert(method IsNot Nothing)
             Debug.Assert(boundBody IsNot Nothing)
@@ -55,14 +55,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Debug.Assert(moduleBuilder IsNot Nothing)
             Debug.Assert(diagnostics IsNot Nothing)
 
-            Me._method = method
-            Me._block = boundBody
-            Me._builder = builder
-            Me._module = moduleBuilder
-            Me._diagnostics = diagnostics
+            _method = method
+            _block = boundBody
+            _builder = builder
+            _module = moduleBuilder
+            _diagnostics = diagnostics
 
             ' Always optimize synthesized methods that don't contain user code.
-            Me._optimizations = If(method.GenerateDebugInfo, optimizations, OptimizationLevel.Release)
+            _optimizations = If(method.GenerateDebugInfo, optimizations, OptimizationLevel.Release)
 
             ' Emit sequence points unless
             ' - the PDBs are not being generated
@@ -70,14 +70,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             '   user code that can be stepped thru, or changed during EnC.
             ' 
             ' This setting only affects generating PDB sequence points, it shall Not affect generated IL in any way.
-            Me._emitPdbSequencePoints = emittingPdbs AndAlso method.GenerateDebugInfo
+            _emitPdbSequencePoints = emittingPdb AndAlso method.GenerateDebugInfo
 
-            If Me._optimizations = OptimizationLevel.Release Then
-                Me._block = Optimizer.Optimize(method, boundBody, Me._stackLocals)
+            If _optimizations = OptimizationLevel.Release Then
+                _block = Optimizer.Optimize(method, boundBody, _stackLocals)
             End If
 
-            Me._checkCallsForUnsafeJITOptimization = (Me._method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
-            Debug.Assert(Not Me._module.JITOptimizationIsDisabled(Me._method))
+            _checkCallsForUnsafeJITOptimization = (_method.ImplementationAttributes And MethodSymbol.DisableJITOptimizationFlags) <> MethodSymbol.DisableJITOptimizationFlags
+            Debug.Assert(Not _module.JITOptimizationIsDisabled(_method))
         End Sub
 
         Public Sub Generate()
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub HandleReturn()
-            _builder.MarkLabel(ReturnLabel)
+            _builder.MarkLabel(s_returnLabel)
             _builder.EmitRet(True)
             _unhandledReturn = False
         End Sub
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitSequencePointStatement(node As BoundSequencePointWithSpan)
-            Dim span = node.SequenceSpan
+            Dim span = node.Span
             If span <> Nothing AndAlso _emitPdbSequencePoints Then
                 EmitSequencePoint(node.SyntaxTree, span)
             End If

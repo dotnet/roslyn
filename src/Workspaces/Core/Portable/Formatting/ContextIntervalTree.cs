@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             _edgeExclusivePredicate = ContainsEdgeExclusive;
             _edgeInclusivePredicate = ContainsEdgeInclusive;
-            _containPredicate = (value, start, end) => Contains(value, start, end, Introspector, skipZeroLengthIntervals: true);
+            _containPredicate = (value, start, end) => Contains(value, start, end, Introspector);
         }
 
         public void AddIntervalInPlace(T value)

@@ -1378,7 +1378,8 @@ class C : I
   // Code size       86 (0x56)
   .maxstack  2
   .locals init (I V_0, //i
-                I V_1)
+                I V_1,
+                I V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.1
@@ -1430,9 +1431,9 @@ class C : I
   IL_004a:  callvirt   ""void I.DoNothing()""
   IL_004f:  nop
   IL_0050:  ldloc.0
-  IL_0051:  stloc.1
+  IL_0051:  stloc.2
   IL_0052:  br.s       IL_0054
-  IL_0054:  ldloc.1
+  IL_0054:  ldloc.2
   IL_0055:  ret
 }");
             // Optimized
@@ -2719,7 +2720,7 @@ class C
             // Note that for this test there is no implicit conversion from 's' -> int (SnapshotPoint? -> int), but there is an implicit conversion
             // from stripped type SnapshotPoint -> int.
 
-            // Native compiler instead implements this part based on whether A is a nullable type or not. We maintain comptability with the native compiler:
+            // Native compiler instead implements this part based on whether A is a nullable type or not. We maintain compatibility with the native compiler:
 
             // SPEC PROPOSAL:    Otherwise, if A exists and is a nullable type and if b has a type B and an implicit  conversion exists from A0 to B,
             // SPEC PROPOSAL:    the result type is B. At run-time, a is first evaluated. If a is not null, a is unwrapped to type A0 and converted to type B,
@@ -2750,7 +2751,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, emitOptions: TestEmitters.CCI, expectedOutput: "Pass");
+            var verifier = CompileAndVerify(source: source, expectedOutput: "Pass");
 
             verifier.VerifyIL("Program.Main", @"
 {

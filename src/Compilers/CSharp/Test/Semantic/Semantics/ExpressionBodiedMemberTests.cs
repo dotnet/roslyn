@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Symbols;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -380,5 +382,381 @@ class Program
                 //     private void M() => (new object());
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(4, 25));
         }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_01()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static void M1() 
+    { }
+    => P1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    //     static void M1() 
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static void M1() 
+    { }
+    => P1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public int operator + (C x, C y)
+    { return 1; }
+    => P1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    //     static public int operator + (C x, C y)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int operator + (C x, C y)
+    { return 1; }
+    => P1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_03()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    C()
+    { }
+    => P1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    //     => P1;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
+    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     => P1;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
+    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     => P1;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_04()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    ~C()
+    { }
+    => P1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
+    //     => P1;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
+    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     => P1;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
+    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+    //     => P1;
+    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_05()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public int P2
+    {
+        get
+        { return 1; }
+        => P1;
+    }
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (10,9): error CS1014: A get or set accessor expected
+    //         => P1;
+    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "=>").WithLocation(10, 9),
+    // (10,12): error CS1014: A get or set accessor expected
+    //         => P1;
+    Diagnostic(ErrorCode.ERR_GetOrSetExpected, "P1").WithLocation(10, 12)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+        }
+
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_06()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public int P2
+    {
+    }
+    => P1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+    //     static public int P2
+    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, @"static public int P2
+    {
+    }
+    => P1;").WithLocation(6, 5),
+    // (6,23): error CS0548: 'C.P2': property or indexer must have at least one accessor
+    //     static public int P2
+    Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P2").WithArguments("C.P2").WithLocation(6, 23)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_07()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public explicit operator int (C x)
+    { return 1; }
+    => P1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    //     static public explicit operator int (C x)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public explicit operator int (C x)
+    { return 1; }
+    => P1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_08()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static int M1() 
+    { return P1; }
+    => 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    //     static int M1() 
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static int M1() 
+    { return P1; }
+    => 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_09()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public int operator + (C x, C y)
+    { return P1; }
+    => 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    //     static public int operator + (C x, C y)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public int operator + (C x, C y)
+    { return P1; }
+    => 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_10()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public int P2
+    {
+        get { return P1; }
+    }
+    => 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
+    //     static public int P2
+    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, @"static public int P2
+    {
+        get { return P1; }
+    }
+    => 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
+        public void BlockBodyAndExpressionBody_11()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    static int P1 {get; set;}
+
+    static public explicit operator int (C x)
+    { return P1; }
+    => 1;
+}
+");
+
+            comp.VerifyDiagnostics(
+    // (6,5): error CS8057: Methods cannot combine block bodies with expression bodies.
+    //     static public explicit operator int (C x)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"static public explicit operator int (C x)
+    { return P1; }
+    => 1;").WithLocation(6, 5)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(971, "https://github.com/dotnet/roslyn/issues/971")]
+        public void LookupSymbols()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+public class C
+{
+    Func<int, int> U() => delegate (int y0) { return 0; } 
+    int V(int y1) => 1;  
+}
+
+Func<int, int> W() => delegate (int y2) { return 2; } 
+");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+
+            Assert.Equal(3, nodes.Length);
+
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                Assert.Equal($"{i}", nodes[i].ToString());
+                Assert.Equal($"System.Int32 y{i}", model.LookupSymbols(nodes[i].SpanStart, name: $"y{i}").Single().ToTestDisplayString());
+            }
+        }
+
     }
 }

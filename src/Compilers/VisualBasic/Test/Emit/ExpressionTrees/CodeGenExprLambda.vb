@@ -31,7 +31,7 @@ Module Module1
         Console.WriteLine(exprtree2.Dump)
     End Sub
 End Module]]></file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             CompileAndVerify(source,
@@ -121,7 +121,7 @@ Lambda(
                 TestUnaryOperator_AllTypesWithNullableAndEnum_InIsNot(checked, op, tests)
             Next
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -133,7 +133,7 @@ Lambda(
                 TestUnaryOperator_AllTypesWithNullableAndEnum_PlusMinus(checked, op, tests)
             Next
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -349,7 +349,7 @@ Lambda(
             For Each op In ops
                 TestBinaryOperator_AllTypesWithNullableAndEnum(checked, op, tests)
             Next
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -364,7 +364,7 @@ Lambda(
                 TestBinaryOperator_AllTypesWithNullableAndEnum_Bool(checked, op, tests)
             Next
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -374,14 +374,14 @@ Lambda(
             TestBinaryOperator_AddTestsForType_BoolObject("String", "IsNot", tests)
             TestBinaryOperator_AddTestsForType_BoolObject("Object", "Is", tests)
             TestBinaryOperator_AddTestsForType_BoolObject("Object", "IsNot", tests)
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
         Public Sub TestBinaryOperator_ConcatenatePlus(checked As Boolean, result As String)
             Dim tests As New List(Of ExpressionTreeTest)
 
-            For Each type1 In AllTypes
+            For Each type1 In _allTypes
                 TestBinaryOperator_AddTestsForType(type1, "String", "String", "&", tests)
                 TestBinaryOperator_AddTestsForType(type1, "String", "String", "+", tests)
                 TestBinaryOperator_AddTestsForType("String", type1, "String", "&", tests)
@@ -389,7 +389,7 @@ Lambda(
             Next
             TestBinaryOperator_AddTestsForType("Object", "Object", "Object", "&", tests)
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -397,7 +397,7 @@ Lambda(
             Dim tests As New List(Of ExpressionTreeTest)
 
             Dim index As Integer = 0
-            For Each type1 In AllTypes
+            For Each type1 In _allTypes
                 Select Case index Mod 4
                     Case 0, 3
                         TestBinaryOperator_AddTestsForType(type1, "String", "Boolean", "Like", tests)
@@ -410,7 +410,7 @@ Lambda(
             Next
             TestBinaryOperator_AddTestsForType("Object", "Object", "Object", "Like", tests)
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -447,7 +447,7 @@ Lambda(
                 flag = Not flag
             Next
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -618,7 +618,7 @@ Lambda(
         Public Sub NothingLiteralConversionsDate_CheckedUnchecked()
 
             Dim source = <compilation>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                              <file name="a.vb"><![CDATA[
 Imports System
 Imports System.Linq.Expressions
@@ -1195,7 +1195,7 @@ Lambda(
                              <file name="a.vb">
                                  <%= ExpTreeTestResources.TestConversion_Narrowing_UDC %>
                              </file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             CompileAndVerify(source,
@@ -1217,7 +1217,7 @@ Lambda(
                              <file name="a.vb">
                                  <%= ExpTreeTestResources.TestConversion_Widening_UDC %>
                              </file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             CompileAndVerify(source,
@@ -1265,18 +1265,18 @@ Lambda(
 
         Private Class TypeDescriptor
             Public Type As String = ""
-            Public IsStruncture As Boolean
-            Private ReadOnly Operators As New List(Of OperatorDescriptor)
+            Public IsStructure As Boolean
+            Private ReadOnly _operators As New List(Of OperatorDescriptor)
 
             Public Function WithOperators(ParamArray ops() As OperatorDescriptor) As TypeDescriptor
-                Operators.Clear()
-                Operators.AddRange(ops)
+                _operators.Clear()
+                _operators.AddRange(ops)
                 Return Me
             End Function
 
             Public ReadOnly Property Keyword As String
                 Get
-                    Return If(IsStruncture, "Structure", "Class")
+                    Return If(IsStructure, "Structure", "Class")
                 End Get
             End Property
 
@@ -1285,7 +1285,7 @@ Lambda(
                     Dim builder As New StringBuilder
                     builder.AppendFormat("Public {0} {1}", Keyword, Type)
                     builder.AppendLine()
-                    For Each op In Operators
+                    For Each op In _operators
                         builder.Append(op.Code)
                     Next
                     builder.AppendFormat("End {0}", Keyword)
@@ -1298,8 +1298,8 @@ Lambda(
                 Dim builder As New StringBuilder
                 Me.Type = type
                 builder.Append(Keyword).Append(" ").Append(Me.Type).Append("{")
-                For i = 0 To Operators.Count - 1
-                    builder.Append(If(i > 0, ", ", "")).Append(Operators(i).AssignTypes(typeFrom, typeTo))
+                For i = 0 To _operators.Count - 1
+                    builder.Append(If(i > 0, ", ", "")).Append(_operators(i).AssignTypes(typeFrom, typeTo))
                 Next
                 builder.Append("}")
                 Return builder.ToString()
@@ -1307,8 +1307,8 @@ Lambda(
         End Class
 
         Private Sub TestConversion_UserDefinedTypes_StructStruct(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
-            Dim type1 As New TypeDescriptor With {.IsStruncture = True}
-            Dim type2 As New TypeDescriptor With {.IsStruncture = True}
+            Dim type1 As New TypeDescriptor With {.IsStructure = True}
+            Dim type2 As New TypeDescriptor With {.IsStructure = True}
 
             Dim ops = {New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                        New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeToLifted = True},
@@ -1325,8 +1325,8 @@ Lambda(
 
         Private Sub TestConversion_UserDefinedTypes_ClassStruct(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
             TestConversion_UserDefinedTypes_TwoOps(isNarrowing,
-                                                   New TypeDescriptor With {.IsStruncture = False},
-                                                   New TypeDescriptor With {.IsStruncture = True},
+                                                   New TypeDescriptor With {.IsStructure = False},
+                                                   New TypeDescriptor With {.IsStructure = True},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeToLifted = True},
                                                    list)
@@ -1334,8 +1334,8 @@ Lambda(
 
         Private Sub TestConversion_UserDefinedTypes_StructClass(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
             TestConversion_UserDefinedTypes_TwoOps(isNarrowing,
-                                                   New TypeDescriptor With {.IsStruncture = True},
-                                                   New TypeDescriptor With {.IsStruncture = False},
+                                                   New TypeDescriptor With {.IsStructure = True},
+                                                   New TypeDescriptor With {.IsStructure = False},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                                                    New OperatorDescriptor With {.IsWidenning = Not isNarrowing, .TypeFromLifted = True},
                                                    list)
@@ -1343,8 +1343,8 @@ Lambda(
 
         Private Sub TestConversion_UserDefinedTypes_ClassClass(isNarrowing As Boolean, list As List(Of ExpressionTreeTest))
             TestConversion_UserDefinedTypes_OneOp(isNarrowing,
-                                                  New TypeDescriptor With {.IsStruncture = False},
-                                                  New TypeDescriptor With {.IsStruncture = False},
+                                                  New TypeDescriptor With {.IsStructure = False},
+                                                  New TypeDescriptor With {.IsStructure = False},
                                                   New OperatorDescriptor With {.IsWidenning = Not isNarrowing},
                                                   list)
         End Sub
@@ -1382,8 +1382,8 @@ Lambda(
             Dim typeFromDescr = type1.AssignTypes(typeFrom, typeFrom, typeTo)
             Dim typeToDescr = type2.AssignTypes(typeTo, typeFrom, typeTo)
 
-            For Each typeFromInstance In If(type1.IsStruncture, {typeFrom, typeFrom & "?"}, {typeFrom})
-                For Each typeToInstance In If(type2.IsStruncture, {typeTo, typeTo & "?"}, {typeTo})
+            For Each typeFromInstance In If(type1.IsStructure, {typeFrom, typeFrom & "?"}, {typeFrom})
+                For Each typeToInstance In If(type2.IsStructure, {typeTo, typeTo & "?"}, {typeTo})
                     TestConversion_UserDefinedTypes_OneTest(typeFromDescr, typeToDescr, typeFromInstance, typeToInstance, isNarrowing, list)
                 Next
             Next
@@ -1442,7 +1442,7 @@ Lambda(
                              <file name="a.vb">
                                  <%= ExpTreeTestResources.TestConversion_TypeMatrix_UserTypes %>
                              </file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             CompileAndVerify(source,
@@ -1457,9 +1457,9 @@ Lambda(
             Dim tests As New List(Of ExpressionTreeTest)
 
             ' Primitive types
-            For Each type1 In AllTypes
+            For Each type1 In _allTypes
                 Dim i As Integer = 0 ' Generate only calls to even or odd types from type2
-                For Each type2 In AllTypes
+                For Each type2 In _allTypes
                     i += 1
                     If (i Mod 2) = If(even, 0, 1) Then
                         Dim isFloatingType = (type2 = "Single") OrElse (type2 = "Double")
@@ -1475,7 +1475,7 @@ Lambda(
                 Next
             Next
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
 
@@ -1483,15 +1483,15 @@ Lambda(
             Dim tests As New List(Of ExpressionTreeTest)
 
             ' Primitive types
-            For Each type1 In AllTypes
-                For Each type2 In AllTypes
+            For Each type1 In _allTypes
+                For Each type2 In _allTypes
                     TestConversion_TypeMatrix_DirectCast(type1, type2, tests)
                     TestConversion_TypeMatrix_TryCast(type1, type2, tests)
                     TestConversion_TypeMatrix_Specific(type1, type2, tests)
                 Next
             Next
 
-            tests(0).Prefix = EnumDeclarations
+            tests(0).Prefix = s_enumDeclarations
             TestExpressionTrees(checked, result, tests.ToArray(),
                                 diagnostics:={
                                     Diagnostic(ERRID.WRN_ObsoleteIdentityDirectCastForValueType, "x"),
@@ -1543,7 +1543,7 @@ Lambda(
                 Return
             End If
 
-            TestConversion_TwoTypesAndExpreession(type1, type2, "{0}", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "{0}", list)
         End Sub
 
         Private Sub TestConversion_TypeMatrix_CType(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
@@ -1551,30 +1551,30 @@ Lambda(
                 Return
             End If
 
-            TestConversion_TwoTypesAndExpreession(type1, type2, "CType({0}, {1})", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "CType({0}, {1})", list)
         End Sub
 
         Private Sub TestConversion_TypeMatrix_DirectCast(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
             If IsPrimitiveStructType(type1) Then
                 If Not IsPrimitiveStructType(type1) OrElse (type1 = type2 AndAlso type1 <> "Single" AndAlso type1 <> "Double") Then
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
                 End If
 
             ElseIf type1 = "String" Then
                 If Not IsPrimitiveStructType(type2) Then
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
                 End If
 
             Else
-                TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+                TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
             End If
         End Sub
 
         Private Sub TestConversion_TypeMatrix_TryCast(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
             Select Case type2
                 Case "Struct1", "Struct1?"
-lNothing :
-                    ' Nothing
+lNothing:
+                ' Nothing
 
                 Case "String"
                     If IsPrimitiveStructType(type1) Then
@@ -1586,77 +1586,77 @@ lNothing :
                         GoTo lNothing
                     End If
 
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "TryCast({0}, {1})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "TryCast({0}, {1})", list)
             End Select
         End Sub
 
         Private Sub TestConversion_TypeMatrix_Specific(type1 As String, type2 As String, list As List(Of ExpressionTreeTest))
             Select Case type2
                 Case "Boolean"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CBool({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CBool({0})", list)
 
                 Case "Byte"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CByte({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CByte({0})", list)
 
                 Case "Char"
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CChar({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CChar({0})", list)
 
                 Case "Date"
                     If IsPrimitiveStructType(type1) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CDate({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CDate({0})", list)
 
                 Case "Double"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CDbl({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CDbl({0})", list)
 
                 Case "Decimal"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CDec({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CDec({0})", list)
 
                 Case "Integer"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CInt({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CInt({0})", list)
 
                 Case "Long"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CLng({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CLng({0})", list)
 
                 Case "Object"
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CObj({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CObj({0})", list)
 
                 Case "Short"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CShort({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CShort({0})", list)
 
                 Case "Single"
-                    If type1.StartsWith("Date") Then
+                    If type1.StartsWith("Date", StringComparison.Ordinal) Then
                         GoTo lNothing
                     End If
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CSng({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CSng({0})", list)
 
                 Case "String"
-                    TestConversion_TwoTypesAndExpreession(type1, type2, "CStr({0})", list)
+                    TestConversion_TwoTypesAndExpression(type1, type2, "CStr({0})", list)
 
                 Case Else
-lNothing :
+lNothing:
                     ' Nothing
             End Select
         End Sub
@@ -1681,9 +1681,9 @@ lNothing :
                 TestConversion_TypeParameters(type1, "Object", tests)
             Next
             TestConversion_TypeParameters("O", "Clazz1", tests)
-            TestConversion_TwoTypesAndExpreession("O", "Clazz2", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("O", "Clazz2", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("D", "Clazz1", tests)
-            TestConversion_TwoTypesAndExpreession("D", "Clazz2", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("D", "Clazz2", "TryCast({0}, {1})", tests)
 
 
             ' Type -> Type parameter 
@@ -1693,19 +1693,19 @@ lNothing :
             TestConversion_TypeParameters("Object", "T", tests, False)
             TestConversion_TypeParameters("Object", "O", tests)
             TestConversion_TypeParameters("Clazz1", "O", tests)
-            TestConversion_TwoTypesAndExpreession("Clazz2", "O", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("Clazz2", "O", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("Object", "D", tests)
             TestConversion_TypeParameters("Clazz1", "D", tests)
-            TestConversion_TwoTypesAndExpreession("Clazz2", "D", "TryCast({0}, {1})", tests)
+            TestConversion_TwoTypesAndExpression("Clazz2", "D", "TryCast({0}, {1})", tests)
 
 
             ' Nothing -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
-                TestConversion_TwoTypesAndExpreession("Object", type1, "Nothing", tests)
-                TestConversion_TwoTypesAndExpreession("Object", type1, "CType(Nothing, {1})", tests)
-                TestConversion_TwoTypesAndExpreession("Object", type1, "DirectCast(Nothing, {1})", tests)
+                TestConversion_TwoTypesAndExpression("Object", type1, "Nothing", tests)
+                TestConversion_TwoTypesAndExpression("Object", type1, "CType(Nothing, {1})", tests)
+                TestConversion_TwoTypesAndExpression("Object", type1, "DirectCast(Nothing, {1})", tests)
                 If type1 = "O" OrElse type1 = "D" Then
-                    TestConversion_TwoTypesAndExpreession("Object", type1, "TryCast(Nothing, {1})", tests)
+                    TestConversion_TwoTypesAndExpression("Object", type1, "TryCast(Nothing, {1})", tests)
                 End If
             Next
 
@@ -1720,21 +1720,21 @@ Public Structure Struct1
 End Structure
 ]]>
 
-            tests(0).Prefix.Value = tests(0).Prefix.Value & vbLf & EnumDeclarations.Value
+            tests(0).Prefix.Value = tests(0).Prefix.Value & vbLf & s_enumDeclarations.Value
 
             TestExpressionTrees(checked, result, tests.ToArray(), typeParameters, typeArguments)
         End Sub
 
         Private Sub TestConversion_TypeParameters(type1 As String, type2 As String, list As List(Of ExpressionTreeTest), Optional useTryCast As Boolean = True)
-            TestConversion_TwoTypesAndExpreession(type1, type2, "{0}", list)
-            TestConversion_TwoTypesAndExpreession(type1, type2, "CType({0}, {1})", list)
-            TestConversion_TwoTypesAndExpreession(type1, type2, "DirectCast({0}, {1})", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "{0}", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "CType({0}, {1})", list)
+            TestConversion_TwoTypesAndExpression(type1, type2, "DirectCast({0}, {1})", list)
             If useTryCast Then
-                TestConversion_TwoTypesAndExpreession(type1, type2, "TryCast({0}, {1})", list)
+                TestConversion_TwoTypesAndExpression(type1, type2, "TryCast({0}, {1})", list)
             End If
         End Sub
 
-        Private Sub TestConversion_TwoTypesAndExpreession(type1 As String, type2 As String, pattern As String, list As List(Of ExpressionTreeTest))
+        Private Sub TestConversion_TwoTypesAndExpression(type1 As String, type2 As String, pattern As String, list As List(Of ExpressionTreeTest))
             list.Add(New ExpressionTreeTest With {.Description =
                                                             String.Format("-=-=-=-=-=-=-=-=- {0} -> {1} -=-=-=-=-=-=-=-=-",
                                                                           String.Format(pattern, type1, type2), type2),
@@ -1751,7 +1751,7 @@ End Structure
         Public Sub TestConversion_NothingLiteral(checked As Boolean, result As String)
             Dim tests As New List(Of ExpressionTreeTest)
 
-            For Each type1 In AllTypesWithoutDate.Concat({"Clazz1", "Struct1", "Clazz2(Of Clazz1, String)", "Struct2(Of Struct1)"})
+            For Each type1 In _allTypesWithoutDate.Concat({"Clazz1", "Struct1", "Clazz2(Of Clazz1, String)", "Struct2(Of Struct1)"})
                 TestConversion_NothingLiteral(type1, "Nothing", tests)
                 TestConversion_NothingLiteral(type1, "CType(Nothing, " + type1 + ")", tests)
                 TestConversion_NothingLiteral(type1, "DirectCast(Nothing, " + type1 + ")", tests)
@@ -1775,7 +1775,7 @@ Structure Struct2(Of T)
 End Structure
 ]]>
 
-            tests(0).Prefix.Value = tests(0).Prefix.Value & vbLf & EnumDeclarations.Value
+            tests(0).Prefix.Value = tests(0).Prefix.Value & vbLf & s_enumDeclarations.Value
 
             TestExpressionTrees(checked, result, tests.ToArray())
         End Sub
@@ -1804,8 +1804,8 @@ End Structure
                 CompilationUtils.CreateCompilationWithReferences(
                     <compilation>
                         <%= sourceFile %>
-                        <%= ExprTesting %>
-                        <%= QueryTesting %>
+                        <%= _exprTesting %>
+                        <%= _queryTesting %>
                     </compilation>,
                     references:=If(addXmlReferences, DefaultReferences.Concat(XmlReferences), DefaultReferences),
                     options:=If(optimize, TestOptions.ReleaseDll, TestOptions.DebugDll).WithOverflowChecks(checked))
@@ -1824,8 +1824,8 @@ End Structure
             Return CompileAndVerify(
                 <compilation>
                     <%= sourceFile %>
-                    <%= ExprTesting %>
-                    <%= QueryTesting %>
+                    <%= _exprTesting %>
+                    <%= _queryTesting %>
                 </compilation>,
                 options:=If(optimize, TestOptions.ReleaseExe, TestOptions.DebugExe).WithOverflowChecks(checked),
                 expectedOutput:=If(result IsNot Nothing, result.Trim, Nothing),
@@ -1864,7 +1864,7 @@ End Structure
                                         Optional typeArguments As String = "",
                                         Optional diagnostics() As DiagnosticDescription = Nothing)
 
-            Dim prexifbuilder As New StringBuilder
+            Dim prefixbuilder As New StringBuilder
             Dim testbuilder As New StringBuilder
 
             Dim procIndex As Integer = 0
@@ -1878,8 +1878,8 @@ End Structure
                 Debug.Assert(tst.Lambda IsNot Nothing)
 
                 If tst.Prefix IsNot Nothing Then
-                    prexifbuilder.AppendLine()
-                    prexifbuilder.AppendLine(tst.Prefix.Value)
+                    prefixbuilder.AppendLine()
+                    prefixbuilder.AppendLine(tst.Prefix.Value)
                 End If
 
                 testbuilder.AppendLine(String.Format("Console.WriteLine(""{0}"")", tst.Description))
@@ -1906,11 +1906,11 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             source...<file>.Value = String.Format(source...<file>.Value,
-                                                  prexifbuilder.ToString(),
+                                                  prefixbuilder.ToString(),
                                                   testbuilder.ToString(),
                                                   typeParameters,
                                                   typeArguments)
@@ -1923,7 +1923,7 @@ End Module
             ).VerifyDiagnostics(If(diagnostics, {}))
         End Sub
 
-        Private Shared ReadOnly EnumDeclarations As XCData = <![CDATA[
+        Private Shared ReadOnly s_enumDeclarations As XCData = <![CDATA[
 Public Enum E_Byte As Byte : Dummy : End Enum
 Public Enum E_SByte As SByte : Dummy : End Enum
 Public Enum E_UShort As UShort : Dummy : End Enum
@@ -1934,7 +1934,7 @@ Public Enum E_ULong As ULong : Dummy : End Enum
 Public Enum E_Long As Long : Dummy : End Enum
 ]]>
 
-        Private ReadOnly AllTypes() As String =
+        Private ReadOnly _allTypes() As String =
                 {
                     "SByte", "SByte?", GetEnumTypeName("SByte"), GetEnumTypeName("SByte") + "?",
                     "Byte", "Byte?", GetEnumTypeName("Byte"), GetEnumTypeName("Byte") + "?",
@@ -1952,7 +1952,7 @@ Public Enum E_Long As Long : Dummy : End Enum
                     "Object"
                 }
 
-        Private ReadOnly AllTypesWithoutDate() As String =
+        Private ReadOnly _allTypesWithoutDate() As String =
                 {
                     "SByte", "SByte?", GetEnumTypeName("SByte"), GetEnumTypeName("SByte") + "?",
                     "Byte", "Byte?", GetEnumTypeName("Byte"), GetEnumTypeName("Byte") + "?",
@@ -6151,7 +6151,7 @@ Module Module1
 
 End Module
 ]]></file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             CompileAndVerify(source,
@@ -6209,7 +6209,7 @@ Public Class Gen(Of U, V, W)
     End Function
 End Class
 ]]></file>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                          </compilation>
 
             CompileAndVerify(source,
@@ -6294,7 +6294,7 @@ End Module
         <Fact>
         Public Sub TypeInference()
             Dim source = <compilation>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                              <file name="a.vb"><![CDATA[
 Option Strict On
 
@@ -6328,7 +6328,7 @@ Infer C=System.Int32
         <Fact>
         Public Sub QueryWhereSelect()
             Dim source = <compilation>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                              <file name="a.vb"><![CDATA[
 Option Strict On
 
@@ -6367,7 +6367,7 @@ End Module
         <Fact()>
         Public Sub QueryGroupBy()
             Dim source = <compilation>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                              <file name="a.vb"><![CDATA[
 Option Strict On
 
@@ -6417,7 +6417,7 @@ End Module
         <Fact()>
         Public Sub QueryGroupJoin()
             Dim source = <compilation>
-                             <%= ExprTesting %>
+                             <%= _exprTesting %>
                              <file name="a.vb"><![CDATA[
 Option Strict On
 
@@ -7737,9 +7737,9 @@ BC35000: Requested operation is not available because the runtime library functi
 
 #Region "Expression Tree Test Helpers"
 
-        Private ExprTesting As XElement = <file name="exprlambdatest.vb"><%= ExpTreeTestResources.ExprLambdaUtils %></file>
+        Private ReadOnly _exprTesting As XElement = <file name="exprlambdatest.vb"><%= ExpTreeTestResources.ExprLambdaUtils %></file>
 
-        Private QueryTesting As XElement = <file name="QueryHelper.vb"><%= ExpTreeTestResources.QueryHelper %></file>
+        Private ReadOnly _queryTesting As XElement = <file name="QueryHelper.vb"><%= ExpTreeTestResources.QueryHelper %></file>
 
 #End Region
 
@@ -7895,6 +7895,60 @@ End Module
                  expectedOutput:=<![CDATA[
 () => Concat(value(M+_Closure$__0-0).$VB$Local_str, null)
 () => Concat(null, value(M+_Closure$__0-0).$VB$Local_str)
+]]>).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem(1190, "https://github.com/dotnet/roslyn/issues/1190")>
+        Public Sub CollectionInitializers()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq.Expressions
+Imports System.Runtime.CompilerServices
+
+Namespace ConsoleApplication31
+    Module Program
+        Sub Main()
+            Try
+                Dim e1 As Expression(Of Func(Of Stack(Of Integer))) = Function() New Stack(Of Integer) From {42}
+                System.Console.WriteLine("e1 => {0}", e1.ToString())
+            Catch
+                System.Console.WriteLine("In catch")
+            End Try
+
+            Dim e2 As Expression(Of Func(Of MyStack(Of Integer))) = Function() New MyStack(Of Integer) From {42}
+            System.Console.WriteLine("e2 => {0}", e2.ToString())
+            System.Console.WriteLine(e2.Compile()().Pop())
+        End Sub
+    End Module
+
+    Module StackExtensions
+        <Extension()>
+        Public Sub Add(Of T)(s As Stack(Of T), x As T)
+            s.Push(x)
+        End Sub
+    End Module
+
+    Class MyStack(Of T)
+        Inherits System.Collections.Generic.Stack(Of T)
+
+        Public Sub Add(x As T)
+            Me.Push(x)
+        End Sub
+    End Class
+End Namespace
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe,
+                 expectedOutput:=<![CDATA[
+In catch
+e2 => () => new MyStack`1() {Void Add(Int32)(42)}
+42
 ]]>).VerifyDiagnostics()
         End Sub
 

@@ -85,7 +85,7 @@ index: 2);
         {
             TestExactActionSetOffered(
 @"class Class { void Method(int i) { [|foo|] = 1; } }",
-new[] { "Generate field 'foo' in 'Class'", "Generate property 'Class.foo'", "Generate local 'foo'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GeneratePropertyIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -110,7 +110,7 @@ index: 1);
         {
             TestExactActionSetOffered(
 @"class Class { void Method(ref int i) { Method(ref [|foo|]); } }",
-new[] { "Generate field 'foo' in 'Class'", "Generate local 'foo'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -126,7 +126,7 @@ new[] { "Generate field 'foo' in 'Class'", "Generate local 'foo'" });
         {
             TestExactActionSetOffered(
 @"class Class { void Method(out int i) { Method(out [|foo|]); } }",
-new[] { "Generate field 'foo' in 'Class'", "Generate local 'foo'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "foo", "Class"), string.Format(FeaturesResources.GenerateLocal, "foo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -741,7 +741,7 @@ compareTokens: false);
         {
             TestExactActionSetOffered(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
-new[] { "Generate field 'p' in 'Program'", "Generate property 'Program.p'", "Generate local 'p'" });
+new[] { string.Format(FeaturesResources.GenerateFieldIn, "p", "Program"), string.Format(FeaturesResources.GeneratePropertyIn, "p", "Program"), string.Format(FeaturesResources.GenerateLocal, "p") });
 
             Test(
 @"class Program { static void Main ( ) { [|p|] ++ ; } } ",
@@ -1838,7 +1838,7 @@ class C
 #line hidden
 }
 ";
-            TestExactActionSetOffered(code, new[] { "Generate local 'Bar'" });
+            TestExactActionSetOffered(code, new[] { string.Format(FeaturesResources.GenerateLocal, "Bar") });
 
             Test(code,
 @"
@@ -2577,20 +2577,11 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInPropertyInitializers()
-        {
-            Test(
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private int y ; public int MyProperty { get ; } = y ; } ");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public void TestGenerateFieldInPropertyInitializers()
         {
             Test(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private readonly int y ; public int MyProperty { get ; } = y ; } ",
-index: 1);
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private static int y ; public int MyProperty { get ; } = y ; } ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2598,7 +2589,16 @@ index: 1);
         {
             Test(
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = y ; public int y { get ; private set ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { private static readonly int y ; public int MyProperty { get ; } = y ; } ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGeneratePropertyInPropertyInitializers()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public int MyProperty { get ; } = [|y|] ; } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { public static int y { get ; private set ; } public int MyProperty { get ; } = y ;  } ",
 index: 2);
         }
 
@@ -2783,6 +2783,32 @@ index: 3);
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] } ; } } ",
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { int i = 0 ; var x = new Dictionary < string , int > { [ ""Zero"" ] = i } ; } } ",
 index: 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGenerateVariableFromLambda()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
+@"using System ; class Program { private static Func < int > foo ; static void Main ( string [ ] args ) { foo = ( ) => { return 0 ; } ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGenerateVariableFromLambda2()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
+@"using System ; class Program { public static Func < int > foo { get ; private set ; } static void Main ( string [ ] args ) { foo = ( ) => { return 0 ; } ; } } ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public void TestGenerateVariableFromLambda3()
+        {
+            Test(
+@"using System ; class Program { static void Main ( string [ ] args ) { [|foo|] = ( ) => { return 0 ; } ; } } ",
+@"using System ; class Program { static void Main ( string [ ] args ) { Func < int > foo = ( ) => { return 0 ; } ; } } ",
+index: 2);
         }
     }
 }

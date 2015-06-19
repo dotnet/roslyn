@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// identity into the same load context.
         /// 
         /// We are using a certain naming scheme for the generated assemblies (a fixed name prefix followed by a number). 
-        /// If we allowed the compiled code to add references that match this exact pattern it migth happen that 
+        /// If we allowed the compiled code to add references that match this exact pattern it might happen that 
         /// the user supplied reference identity conflicts with the identity we use for our generated assemblies and 
         /// the AppDomain assembly resolve event won't be able to correctly identify the target assembly.
         /// 
@@ -39,15 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         private int _submissionIdDispenser = -1;
         private readonly string _assemblyNamePrefix;
 
-        // dynamic code storage
-        //
-        // TODO (tomat): Dynamic assembly allocation strategy. A dynamic assembly is a unit of
-        // collection. We need to find a balance between creating a new assembly per execution
-        // (potentially shorter code lifetime) and reusing a single assembly for all executions
-        // (less overhead per execution).
-
         private readonly UncollectibleCodeManager _uncollectibleCodeManager;
-        private readonly CollectibleCodeManager _collectibleCodeManager;
 
         /// <summary>
         /// Lockable object only instance is knowledgeable about.
@@ -56,23 +49,12 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         #region Testing and Debugging
 
-        private const string CollectibleModuleFileName = "CollectibleModule.dll";
         private const string UncollectibleModuleFileName = "UncollectibleModule.dll";
 
         // Setting this flag will add DebuggableAttribute on the emitted code that disables JIT optimizations.
         // With optimizations disabled JIT will verify the method before it compiles it so we can easily 
         // discover incorrect code.
         internal static bool DisableJitOptimizations;
-
-#if DEBUG
-        // Flags to make debugging of emitted code easier.
-
-        // Enables saving the dynamic assemblies to disk. Must be called before any code is compiled. 
-        internal static bool EnableAssemblySave;
-
-        // Helps debugging issues in emitted code. If set the next call to Execute/Compile will save the dynamic assemblies to disk.
-        internal static bool SaveCompiledAssemblies;
-#endif
 
         #endregion
 
@@ -89,13 +71,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
 
             _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
-            _collectibleCodeManager = new CollectibleCodeManager(assemblyLoader, _assemblyNamePrefix);
             _uncollectibleCodeManager = new UncollectibleCodeManager(assemblyLoader, _assemblyNamePrefix);
-        }
-
-        public AssemblyLoader AssemblyLoader
-        {
-            get { return _collectibleCodeManager.assemblyLoader; }
         }
 
         internal string AssemblyNamePrefix
@@ -105,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal static bool IsReservedAssemblyName(AssemblyIdentity identity)
         {
-            return identity.Name.StartsWith(s_globalAssemblyNamePrefix);
+            return identity.Name.StartsWith(s_globalAssemblyNamePrefix, StringComparison.Ordinal);
         }
 
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
@@ -130,18 +106,16 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             DiagnosticBag emitDiagnostics = DiagnosticBag.GetInstance();
             byte[] compiledAssemblyImage;
-            MethodInfo entryPoint;
+
+            string entryPointTypeName;
+            string entryPointMethodName;
 
             bool success = compilation.Emit(
-                 GetOrCreateDynamicModule(options.IsCollectible),
-                assemblyLoader: GetAssemblyLoader(options.IsCollectible),
-                assemblySymbolMapper: symbol => MapAssemblySymbol(symbol, options.IsCollectible),
-                recoverOnError: true,
-                diagnostics: emitDiagnostics,
-                cancellationToken: cancellationToken,
-                entryPoint: out entryPoint,
-                compiledAssemblyImage: out compiledAssemblyImage
-             );
+                emitDiagnostics,
+                out entryPointTypeName,
+                out entryPointMethodName,
+                out compiledAssemblyImage,
+                cancellationToken);
 
             if (diagnostics != null)
             {
@@ -157,180 +131,34 @@ namespace Microsoft.CodeAnalysis.Scripting
                 return null;
             }
 
-            Debug.Assert(entryPoint != null);
+            Debug.Assert(compiledAssemblyImage != null);
 
-            if (compiledAssemblyImage != null)
+            // TODO: do not actually load the assemblies, only notify the loader of mapping from AssemblyIdentity to location.
+            foreach (var referencedAssembly in compilation.GetBoundReferenceManager().GetReferencedAssemblies())
             {
-                // Ref.Emit wasn't able to emit the assembly
-                _uncollectibleCodeManager.AddFallBackAssembly(entryPoint.DeclaringType.Assembly);
-            }
-#if DEBUG
-            if (SaveCompiledAssemblies)
-            {
-                _uncollectibleCodeManager.Save(UncollectibleModuleFileName);
-                _collectibleCodeManager.Save(CollectibleModuleFileName);
-            }
-#endif
-
-            return (Func<object[], object>)Delegate.CreateDelegate(typeof(Func<object[], object>), entryPoint);
-        }
-
-        internal ModuleBuilder GetOrCreateDynamicModule(bool collectible)
-        {
-            if (collectible)
-            {
-                return _collectibleCodeManager.GetOrCreateDynamicModule();
-            }
-            else
-            {
-                return _uncollectibleCodeManager.GetOrCreateDynamicModule();
-            }
-        }
-
-        private static ModuleBuilder CreateDynamicModule(AssemblyBuilderAccess access, AssemblyIdentity name, string fileName)
-        {
-            var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name.ToAssemblyName(), access);
-
-            if (DisableJitOptimizations)
-            {
-                assemblyBuilder.SetCustomAttribute(new CustomAttributeBuilder(
-                    typeof(DebuggableAttribute).GetConstructor(new[] { typeof(DebuggableAttribute.DebuggingModes) }),
-                    new object[] { DebuggableAttribute.DebuggingModes.Default | DebuggableAttribute.DebuggingModes.DisableOptimizations }));
+                _uncollectibleCodeManager.Load(
+                    identity: referencedAssembly.Value.Identity,
+                    location: (referencedAssembly.Key as PortableExecutableReference)?.FilePath);
             }
 
-            const string moduleName = "InteractiveModule";
+            var assembly = Assembly.Load(compiledAssemblyImage);
+            _uncollectibleCodeManager.AddFallBackAssembly(assembly);
 
-            if (access == AssemblyBuilderAccess.RunAndSave)
-            {
-                return assemblyBuilder.DefineDynamicModule(moduleName, fileName, emitSymbolInfo: false);
-            }
-            else
-            {
-                return assemblyBuilder.DefineDynamicModule(moduleName, emitSymbolInfo: false);
-            }
+            var entryPointType = assembly.GetType(entryPointTypeName, throwOnError: true, ignoreCase: false).GetTypeInfo();
+            var entryPointMethod = entryPointType.GetDeclaredMethod(entryPointMethodName);
+            return entryPointMethod.CreateDelegate<Func<object[], object>>();
         }
 
         /// <summary>
-        /// Maps given assembly symbol to an assembly ref.
-        /// </summary>
-        /// <remarks>
-        /// The compiler represents every submission by a compilation instance for which it creates a distinct source assembly symbol.
-        /// However multiple submissions might compile into a single dynamic assembly and so we need to map the corresponding assembly symbols to 
-        /// the name of the dynamic assembly.
-        /// </remarks>
-        internal AssemblyIdentity MapAssemblySymbol(IAssemblySymbol symbol, bool collectible)
-        {
-            if (symbol.IsInteractive)
-            {
-                if (collectible)
-                {
-                    // collectible assemblies can't reference other generated assemblies
-                    throw ExceptionUtilities.Unreachable;
-                }
-                else if (!_uncollectibleCodeManager.ContainsAssembly(symbol.Identity.Name))
-                {
-                    // uncollectible assemblies can reference uncollectible dynamic or uncollectible CCI generated assemblies:
-                    return _uncollectibleCodeManager.dynamicAssemblyName;
-                }
-            }
-
-            return symbol.Identity;
-        }
-
-        internal AssemblyLoader GetAssemblyLoader(bool collectible)
-        {
-            return collectible ? (AssemblyLoader)_collectibleCodeManager : _uncollectibleCodeManager;
-        }
-
-        // TODO (tomat): the code managers can be improved - common base class, less locking, etc.
-
-        private sealed class CollectibleCodeManager : AssemblyLoader
-        {
-            internal readonly AssemblyLoader assemblyLoader;
-            private readonly AssemblyIdentity _dynamicAssemblyName;
-
-            /// <summary>
-            /// lock(_gate) on access.
-            /// </summary>
-            private readonly object _gate = new object();
-
-            /// <summary>
-            /// lock(_gate) on access.
-            /// </summary>
-            internal ModuleBuilder dynamicModule;
-
-            public CollectibleCodeManager(AssemblyLoader assemblyLoader, string assemblyNamePrefix)
-            {
-                this.assemblyLoader = assemblyLoader;
-                _dynamicAssemblyName = new AssemblyIdentity(name: assemblyNamePrefix + "CD");
-
-                AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(Resolve);
-            }
-
-            internal ModuleBuilder GetOrCreateDynamicModule()
-            {
-                if (dynamicModule == null)
-                {
-                    lock (_gate)
-                    {
-                        if (dynamicModule == null)
-                        {
-                            dynamicModule = CreateDynamicModule(
-#if DEBUG
-                                EnableAssemblySave ? AssemblyBuilderAccess.RunAndSave :
-#endif
-                                AssemblyBuilderAccess.RunAndCollect, _dynamicAssemblyName, CollectibleModuleFileName);
-                        }
-                    }
-                }
-
-                return dynamicModule;
-            }
-
-            internal void Save(string fileName)
-            {
-                if (dynamicModule != null)
-                {
-                    ((AssemblyBuilder)dynamicModule.Assembly).Save(fileName);
-                }
-            }
-
-            private Assembly Resolve(object sender, ResolveEventArgs args)
-            {
-                if (args.Name != _dynamicAssemblyName.GetDisplayName())
-                {
-                    return null;
-                }
-
-                lock (_gate)
-                {
-                    return (dynamicModule != null) ? dynamicModule.Assembly : null;
-                }
-            }
-
-            public override Assembly Load(AssemblyIdentity identity, string location = null)
-            {
-                if (dynamicModule != null && identity.Name == _dynamicAssemblyName.Name)
-                {
-                    return dynamicModule.Assembly;
-                }
-
-                return assemblyLoader.Load(identity, location);
-            }
-        }
-
-        /// <summary>
-        /// Manages uncollectible assemblies and resolves assembly references baked into CCI generated metadata. 
+        /// Resolves assembly references from CCI generated metadata. 
         /// The resolution is triggered by the CLR Type Loader.
         /// </summary>
         private sealed class UncollectibleCodeManager : AssemblyLoader
         {
             private readonly AssemblyLoader _assemblyLoader;
             private readonly string _assemblyNamePrefix;
-            internal readonly AssemblyIdentity dynamicAssemblyName;
 
             // lock(_gate) on access
-            private ModuleBuilder _dynamicModule;      // primary uncollectible assembly
             private HashSet<Assembly> _fallBackAssemblies; // additional uncollectible assemblies created due to a Ref.Emit falling back to CCI
             private Dictionary<string, Assembly> _mapping; // { simple name -> fall-back assembly }
 
@@ -343,37 +171,8 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 _assemblyLoader = assemblyLoader;
                 _assemblyNamePrefix = assemblyNamePrefix;
-                this.dynamicAssemblyName = new AssemblyIdentity(name: assemblyNamePrefix + "UD");
 
                 AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(Resolve);
-            }
-
-            internal ModuleBuilder GetOrCreateDynamicModule()
-            {
-                if (_dynamicModule == null)
-                {
-                    lock (_gate)
-                    {
-                        if (_dynamicModule == null)
-                        {
-                            _dynamicModule = CreateDynamicModule(
-#if DEBUG
-                                EnableAssemblySave ? AssemblyBuilderAccess.RunAndSave :
-#endif
-                                AssemblyBuilderAccess.Run, dynamicAssemblyName, UncollectibleModuleFileName);
-                        }
-                    }
-                }
-
-                return _dynamicModule;
-            }
-
-            internal void Save(string fileName)
-            {
-                if (_dynamicModule != null)
-                {
-                    ((AssemblyBuilder)_dynamicModule.Assembly).Save(fileName);
-                }
             }
 
             internal void AddFallBackAssembly(Assembly assembly)
@@ -392,35 +191,16 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
             }
 
-            internal bool ContainsAssembly(string simpleName)
-            {
-                if (_mapping == null)
-                {
-                    return false;
-                }
-
-                lock (_gate)
-                {
-                    return _mapping.ContainsKey(simpleName);
-                }
-            }
-
             private Assembly Resolve(object sender, ResolveEventArgs args)
             {
-                if (!args.Name.StartsWith(_assemblyNamePrefix))
+                if (!args.Name.StartsWith(_assemblyNamePrefix, StringComparison.Ordinal))
                 {
                     return null;
                 }
 
                 lock (_gate)
                 {
-                    if (args.Name == dynamicAssemblyName.GetDisplayName())
-                    {
-                        return _dynamicModule != null ? _dynamicModule.Assembly : null;
-                    }
-
-                    if (_dynamicModule != null && _dynamicModule.Assembly == args.RequestingAssembly ||
-                        _fallBackAssemblies != null && _fallBackAssemblies.Contains(args.RequestingAssembly))
+                    if (_fallBackAssemblies != null && _fallBackAssemblies.Contains(args.RequestingAssembly))
                     {
                         int comma = args.Name.IndexOf(',');
                         return ResolveNoLock(args.Name.Substring(0, (comma != -1) ? comma : args.Name.Length));
@@ -440,11 +220,6 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             private Assembly ResolveNoLock(string simpleName)
             {
-                if (_dynamicModule != null && simpleName == dynamicAssemblyName.Name)
-                {
-                    return _dynamicModule.Assembly;
-                }
-
                 Assembly assembly;
                 if (_mapping != null && _mapping.TryGetValue(simpleName, out assembly))
                 {

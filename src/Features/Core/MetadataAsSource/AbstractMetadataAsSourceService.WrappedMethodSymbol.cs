@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     {
         private class WrappedMethodSymbol : AbstractWrappedSymbol, IMethodSymbol
         {
-            private IMethodSymbol _symbol;
+            private readonly IMethodSymbol _symbol;
 
             public WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
                 : base(methodSymbol, canImplementImplicitly, docCommentFormattingService)

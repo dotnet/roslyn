@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class SignatureHelpItemEventArgs : EventArgs
     {
-        public SignatureHelpItem SignatureHelpItem { get; private set; }
+        public SignatureHelpItem SignatureHelpItem { get; }
 
         public SignatureHelpItemEventArgs(SignatureHelpItem signatureHelpItem)
         {

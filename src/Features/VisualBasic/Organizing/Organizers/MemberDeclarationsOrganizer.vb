@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
-    Partial Class MemberDeclarationsOrganizer
+    Friend Partial Class MemberDeclarationsOrganizer
         Private Sub New()
         End Sub
 

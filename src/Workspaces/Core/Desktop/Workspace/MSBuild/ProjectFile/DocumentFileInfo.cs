@@ -15,25 +15,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// The absolute path to the document file on disk.
         /// </summary>
-        public string FilePath { get; private set; }
+        public string FilePath { get; }
 
         /// <summary>
         /// A fictional path to the document, relative to the project.
         /// The document may not actually exist at this location, and is used
         /// to represent linked documents. This includes the file name.
         /// </summary>
-        public string LogicalPath { get; private set; }
+        public string LogicalPath { get; }
 
         /// <summary>
         /// True if the document has a logical path that differs from its 
         /// absolute file path.
         /// </summary>
-        public bool IsLinked { get; private set; }
+        public bool IsLinked { get; }
 
         /// <summary>
         /// True if the file was generated during build.
         /// </summary>
-        public bool IsGenerated { get; private set; }
+        public bool IsGenerated { get; }
 
         public DocumentFileInfo(string filePath, string logicalPath, bool isLinked, bool isGenerated)
         {

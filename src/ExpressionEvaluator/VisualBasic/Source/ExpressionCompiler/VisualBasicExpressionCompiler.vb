@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class VisualBasicExpressionCompiler
         Inherits ExpressionCompiler
 
-        Private Shared ReadOnly _compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
+        Private Shared ReadOnly s_compilerId As New DkmCompilerId(DkmVendorId.Microsoft, DkmLanguageId.VB)
 
         Friend Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
             Get
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides ReadOnly Property CompilerId As DkmCompilerId
             Get
-                Return _compilerId
+                Return s_compilerId
             End Get
         End Property
 
@@ -30,9 +30,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             appDomain As DkmClrAppDomain,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             moduleVersionId As Guid,
-            typeToken As Integer) As EvaluationContextBase
+            typeToken As Integer,
+            useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
-            Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
+            If useReferencedModulesOnly Then
+                ' Avoid using the cache for referenced assemblies only
+                ' since this should be the exceptional case.
+                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                Return EvaluationContext.CreateTypeContext(
+                    compilation,
+                    moduleVersionId,
+                    typeToken)
+            End If
+
+            Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim context = EvaluationContext.CreateTypeContext(
                 previous,
                 metadataBlocks,
@@ -43,9 +54,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' re-usable than the previous attached method context. (We could hold
             ' on to it if we don't have a previous method context but it's unlikely
             ' that we evaluated a type-level expression before a method-level.)
-            Debug.Assert(previous Is Nothing OrElse context IsNot previous.EvaluationContext)
+            Debug.Assert(context IsNot previous.EvaluationContext)
 
-			Return context
+            Return context
         End Function
 
         Friend Overrides Function CreateMethodContext(
@@ -56,10 +67,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             moduleVersionId As Guid,
             methodToken As Integer,
             methodVersion As Integer,
-            ilOffset As Integer,
-            localSignatureToken As Integer) As EvaluationContextBase
+            ilOffset As UInteger,
+            localSignatureToken As Integer,
+            useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
-            Dim previous = appDomain.GetDataItem(Of VisualBasicMetadataContext)()
+            If useReferencedModulesOnly Then
+                ' Avoid using the cache for referenced assemblies only
+                ' since this should be the exceptional case.
+                Dim compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                Return EvaluationContext.CreateMethodContext(
+                    compilation,
+                    lazyAssemblyReaders,
+                    symReader,
+                    moduleVersionId,
+                    methodToken,
+                    methodVersion,
+                    ilOffset,
+                    localSignatureToken)
+            End If
+
+            Dim previous = appDomain.GetMetadataContext(Of VisualBasicMetadataContext)()
             Dim context = EvaluationContext.CreateMethodContext(
                 previous,
                 metadataBlocks,
@@ -71,16 +98,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ilOffset,
                 localSignatureToken)
 
-			If (previous Is Nothing OrElse context IsNot previous.EvaluationContext) Then
-				appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, New VisualBasicMetadataContext(context))
-			End If
+            If context IsNot previous.EvaluationContext Then
+                appDomain.SetMetadataContext(New VisualBasicMetadataContext(metadataBlocks, context))
+            End If
 
-			Return context
+            Return context
         End Function
 
-        Friend Overrides Function RemoveDataItem(appDomain As DkmClrAppDomain) As Boolean
-            Return appDomain.RemoveDataItem(Of VisualBasicMetadataContext)()
-        End Function
+        Friend Overrides Sub RemoveDataItem(appDomain As DkmClrAppDomain)
+            appDomain.RemoveMetadataContext(Of VisualBasicMetadataContext)()
+        End Sub
 
     End Class
 

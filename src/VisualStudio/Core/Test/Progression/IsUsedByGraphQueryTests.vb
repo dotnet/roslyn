@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class IsUsedByGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub IsUsedByTests()
+        Public Sub IsUsedByTests()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

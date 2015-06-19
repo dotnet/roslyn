@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
@@ -24,14 +23,14 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "If(<expression>, <expressionIfNothing>) As <result>",
-                                     "If <expression> evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns <expressionIfNothing>.",
-                                     "Returned if it evaluates to a reference or nullable type that is not Nothing.",
+                                     $"If({Expression1}, {ExpressionIfNothing}) As {Result}",
+                                     ExpressionEvalReturns,
+                                     ReturnedIfINotNothing,
                                      currentParameterIndex:=0))
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "If(<condition> As Boolean, <expressionIfTrue>, <expressionIfFalse>) As <result>",
-                                     "If <condition> returns True, the function calculates and returns <expressionIfTrue>. Otherwise, it returns <expressionIfFalse>.",
-                                     "The expression to evaluate.",
+                                     $"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}",
+                                     IfConditionReturnsResults,
+                                     ExpressionToEvaluate,
                                      currentParameterIndex:=0))
             Test(markup, expectedOrderedItems)
         End Sub
@@ -48,14 +47,14 @@ End Class
 
             Dim expectedOrderedItems = New List(Of SignatureHelpTestItem)()
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "If(<expression>, <expressionIfNothing>) As <result>",
-                                     "If <expression> evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns <expressionIfNothing>.",
-                                     "Evaluated and returned if <expression> evaluates to Nothing.",
+                                     $"If({Expression1}, {ExpressionIfNothing}) As {Result}",
+                                     ExpressionEvalReturns,
+                                     ReturnedIfNothing,
                                      currentParameterIndex:=1))
             expectedOrderedItems.Add(New SignatureHelpTestItem(
-                                     "If(<condition> As Boolean, <expressionIfTrue>, <expressionIfFalse>) As <result>",
-                                     "If <condition> returns True, the function calculates and returns <expressionIfTrue>. Otherwise, it returns <expressionIfFalse>.",
-                                     "Evaluated and returned if <condition> evaluates to True.",
+                                     $"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As {Result}",
+                                     IfConditionReturnsResults,
+                                     EvaluatedAndReturnedIfTrue,
                                      currentParameterIndex:=1))
             Test(markup, expectedOrderedItems)
         End Sub

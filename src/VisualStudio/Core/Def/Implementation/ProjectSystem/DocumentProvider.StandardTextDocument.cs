@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -38,11 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private ITextBuffer _openTextBuffer;
             private readonly string _itemMoniker;
 
-            public DocumentId Id { get; private set; }
-            public IReadOnlyList<string> Folders { get; private set; }
-            public IVisualStudioHostProject Project { get; private set; }
-            public SourceCodeKind SourceCodeKind { get; private set; }
-            public DocumentKey Key { get; private set; }
+            public DocumentId Id { get; }
+            public IReadOnlyList<string> Folders { get; }
+            public IVisualStudioHostProject Project { get; }
+            public SourceCodeKind SourceCodeKind { get; }
+            public DocumentKey Key { get; }
 
             public event EventHandler UpdatedOnDisk;
             public event EventHandler<bool> Opened;
@@ -66,7 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
                 this.Folders = project.GetFolderNames(itemId);
+
                 _documentProvider = documentProvider;
+
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
                 _itemMoniker = documentKey.Moniker;
@@ -215,8 +217,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 using (var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null))
                 {
-                    var oldText = buffer.CurrentSnapshot.AsText();
+                    var oldSnapshot = buffer.CurrentSnapshot;
+                    var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
+
+                    Workspace workspace = null;
+                    if (Workspace.TryGetWorkspace(oldText.Container, out workspace))
+                    {
+                        var undoService = workspace.Services.GetService<ISourceTextUndoService>();
+                        undoService.BeginUndoTransaction(oldSnapshot);
+                    }
 
                     foreach (var change in changes)
                     {
@@ -247,8 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 uint itemId;
-                Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId);
-                return itemId;
+                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+                    ? itemId
+                    : (uint)VSConstants.VSITEMID.Nil;
             }
         }
     }

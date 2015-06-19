@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private ReadOnly _processedParentNodes As HashSet(Of SyntaxNode)
             Private _hasMoreWork As Boolean
             Protected _alwaysSimplify As Boolean
-            Private _simplificationOptions As OptionSet
+            Private ReadOnly _simplificationOptions As OptionSet
             Private _semanticModel As SemanticModel
 
             Protected Sub New(optionSet As OptionSet, cancellationToken As CancellationToken)

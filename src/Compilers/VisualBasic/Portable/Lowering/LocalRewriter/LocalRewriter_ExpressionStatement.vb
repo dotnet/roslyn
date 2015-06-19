@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IsOmittedBoundCall(expression As BoundExpression) As Boolean
-            Return (Me.Flags And RewritingFlags.AllowOmissionOfConditionalCalls) = RewritingFlags.AllowOmissionOfConditionalCalls AndAlso
+            Return (Me._flags And RewritingFlags.AllowOmissionOfConditionalCalls) = RewritingFlags.AllowOmissionOfConditionalCalls AndAlso
                 expression.Kind = BoundKind.Call AndAlso
                 DirectCast(expression, BoundCall).Method.CallsAreOmitted(expression.Syntax, expression.SyntaxTree)
         End Function

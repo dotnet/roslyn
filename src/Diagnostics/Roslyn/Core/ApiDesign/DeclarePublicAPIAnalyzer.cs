@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -15,6 +16,8 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
     public class DeclarePublicAPIAnalyzer : DiagnosticAnalyzer
     {
         internal const string PublicApiFileName = "PublicAPI.txt";
+        internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
+        internal const string MinimalNamePropertyBagKey = "MinimalName";
 
         internal static readonly DiagnosticDescriptor DeclareNewApiRule = new DiagnosticDescriptor(
             id: RoslynDiagnosticIds.DeclarePublicApiRuleId,
@@ -36,6 +39,16 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             description: RoslynDiagnosticsResources.RemoveDeletedApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly DiagnosticDescriptor ExposedNoninstantiableType = new DiagnosticDescriptor(
+            id: RoslynDiagnosticIds.ExposedNoninstantiableTypeRuleId,
+            title: RoslynDiagnosticsResources.ExposedNoninstantiableTypeTitle,
+            messageFormat: RoslynDiagnosticsResources.ExposedNoninstantiableTypeMessage,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true,
+            description: RoslynDiagnosticsResources.ExposedNoninstantiableTypeDescription,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -49,7 +62,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.None);
 
-        private static readonly SymbolDisplayFormat PublicApiFormat =
+        private static readonly SymbolDisplayFormat s_publicApiFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -70,7 +83,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
+        private static readonly HashSet<MethodKind> s_ignorableMethodKinds = new HashSet<MethodKind>
         {
             MethodKind.EventAdd,
             MethodKind.EventRemove
@@ -82,17 +95,34 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
         {
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles);
-                var publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
+                AdditionalText publicApiAdditionalText = TryGetPublicApiSpec(compilationContext.Options.AdditionalFiles, compilationContext.CancellationToken);
 
                 if (publicApiAdditionalText == null)
                 {
                     return;
                 }
 
-                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText);
+                SourceText publicApiSourceText = publicApiAdditionalText.GetText(compilationContext.CancellationToken);
+                HashSet<string> declaredPublicSymbols = ReadPublicSymbols(publicApiSourceText, compilationContext.CancellationToken);
                 HashSet<string> examinedPublicTypes = new HashSet<string>();
                 object lockObj = new object();
+
+                Dictionary<ITypeSymbol, bool> typeCanBeExtendedPubliclyMap = new Dictionary<ITypeSymbol, bool>();
+                Func<ITypeSymbol, bool> typeCanBeExtendedPublicly = type =>
+                {
+                    bool result;
+                    if (typeCanBeExtendedPubliclyMap.TryGetValue(type, out result)) return result;
+
+                    // a type can be extended publicly if (1) it isn't sealed, and (2) it has some constructor that is
+                    // not internal, private or protected&internal
+                    result = !type.IsSealed &&
+                        type.GetMembers(WellKnownMemberNames.InstanceConstructorName).Any(
+                            m => m.DeclaredAccessibility != Accessibility.Internal && m.DeclaredAccessibility != Accessibility.Private && m.DeclaredAccessibility != Accessibility.ProtectedAndInternal
+                        );
+
+                    typeCanBeExtendedPubliclyMap.Add(type, result);
+                    return result;
+                };
 
                 compilationContext.RegisterSymbolAction(symbolContext =>
                 {
@@ -105,25 +135,44 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         return;
                     }
 
-                    if (!IsPublicOrPublicProtected(symbol))
-                    {
-                        return;
-                    }
-
-                    string publicApiName = GetPublicApiName(symbol);
-
                     lock (lockObj)
                     {
+                        if (!IsPublicApi(symbol, typeCanBeExtendedPublicly))
+                        {
+                            return;
+                        }
+
+                        string publicApiName = GetPublicApiName(symbol);
+
                         examinedPublicTypes.Add(publicApiName);
 
                         if (!declaredPublicSymbols.Contains(publicApiName))
                         {
                             var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
 
+                            var propertyBag = ImmutableDictionary<string, string>.Empty
+                                .Add(PublicApiNamePropertyBagKey, publicApiName)
+                                .Add(MinimalNamePropertyBagKey, errorMessageName);
+
                             foreach (var sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
                             {
-                                symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, errorMessageName));
+                                symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
                             }
+                        }
+
+                        // Check if a public API is a constructor that makes this class instantiable, even though the base class
+                        // is not instantiable. That API pattern is not allowed, because it causes protected members of
+                        // the base class, which are not considered public APIs, to be exposed to subclasses of this class.
+                        if ((symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor &&
+                            symbol.ContainingType.TypeKind == TypeKind.Class &&
+                            !symbol.ContainingType.IsSealed &&
+                            symbol.ContainingType.BaseType != null &&
+                            IsPublicApi(symbol.ContainingType.BaseType, typeCanBeExtendedPublicly) &&
+                            !typeCanBeExtendedPublicly(symbol.ContainingType.BaseType))
+                        {
+                            var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                            var propertyBag = ImmutableDictionary<string, string>.Empty;
+                            symbolContext.ReportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, symbol.Locations[0], propertyBag, errorMessageName));
                         }
                     }
                 },
@@ -154,7 +203,9 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                             location = Location.Create(publicApiAdditionalText.Path, default(TextSpan), default(LinePositionSpan));
                         }
 
-                        compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, symbol));
+                        var propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, symbol);
+
+                        compilationEndContext.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, symbol));
                     }
                 });
             });
@@ -162,7 +213,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
         internal static string GetPublicApiName(ISymbol symbol)
         {
-            var publicApiName = symbol.ToDisplayString(PublicApiFormat);
+            var publicApiName = symbol.ToDisplayString(s_publicApiFormat);
 
             ITypeSymbol memberType = null;
             if (symbol is IMethodSymbol)
@@ -184,7 +235,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
             if (memberType != null)
             {
-                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(PublicApiFormat);
+                publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
             }
 
             return publicApiName;
@@ -203,12 +254,14 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return null;
         }
 
-        private static HashSet<string> ReadPublicSymbols(SourceText file)
+        private static HashSet<string> ReadPublicSymbols(SourceText file, CancellationToken cancellationToken)
         {
             HashSet<string> publicSymbols = new HashSet<string>();
 
             foreach (var line in file.Lines)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var text = line.ToString();
 
                 if (!string.IsNullOrWhiteSpace(text))
@@ -220,38 +273,31 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return publicSymbols;
         }
 
-        private static bool IsPublic(ISymbol symbol)
+        private static bool IsPublicApi(ISymbol symbol, Func<ITypeSymbol, bool> typeCanBeExtendedPublicly)
         {
-            if (symbol.DeclaredAccessibility == Accessibility.Public)
+            switch (symbol.DeclaredAccessibility)
             {
-                return symbol.ContainingType == null || IsPublic(symbol.ContainingType);
+                case Accessibility.Public:
+                    return symbol.ContainingType == null || IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly);
+                case Accessibility.Protected:
+                case Accessibility.ProtectedOrInternal:
+                    // Protected symbols must have parent types (that is, top-level protected
+                    // symbols are not allowed.
+                    return
+                        symbol.ContainingType != null &&
+                        IsPublicApi(symbol.ContainingType, typeCanBeExtendedPublicly) &&
+                        typeCanBeExtendedPublicly(symbol.ContainingType);
+                default:
+                    return false;
             }
-
-            return false;
         }
 
-        private static bool IsPublicOrPublicProtected(ISymbol symbol)
-        {
-            if (symbol.DeclaredAccessibility == Accessibility.Public)
-            {
-                return symbol.ContainingType == null || IsPublic(symbol.ContainingType);
-            }
-
-            if (symbol.DeclaredAccessibility == Accessibility.Protected ||
-                symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal)
-            {
-                // Protected symbols must have parent types (that is, top-level protected
-                // symbols are not allowed.
-                return symbol.ContainingType != null && IsPublicOrPublicProtected(symbol.ContainingType);
-            }
-
-            return false;
-        }
-
-        private static AdditionalText TryGetPublicApiSpec(ImmutableArray<AdditionalText> additionalTexts)
+        private static AdditionalText TryGetPublicApiSpec(ImmutableArray<AdditionalText> additionalTexts, CancellationToken cancellationToken)
         {
             foreach (var text in additionalTexts)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (Path.GetFileName(text.Path).Equals(PublicApiFileName, StringComparison.OrdinalIgnoreCase))
                 {
                     return text;

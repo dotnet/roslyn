@@ -12,9 +12,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <summary>
         /// Launch a process, wait for it to complete, and return output, error, and exit code.
         /// </summary>
-        public static ProcessResult Run(string fileName, string arguments, string workingDirectory = null, Dictionary<string, string> additionalEnvironmentVars = null)
+        public static ProcessResult Run(
+            string fileName,
+            string arguments,
+            string workingDirectory = null,
+            IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null)
         {
-            if (fileName == null) throw new ArgumentNullException("fileName");
+            if (fileName == null) throw new ArgumentNullException(nameof(fileName));
 
             var startInfo = new ProcessStartInfo
             {
@@ -29,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (additionalEnvironmentVars != null)
             {
-                foreach (KeyValuePair<string, string> entry in additionalEnvironmentVars)
+                foreach (var entry in additionalEnvironmentVars)
                 {
                     startInfo.EnvironmentVariables[entry.Key] = entry.Value;
                 }
@@ -62,14 +66,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
-        /// Launch a process, and return Process object. The process continues to run asynchrously.
+        /// Launch a process, and return Process object. The process continues to run asynchronously.
         /// You cannot capture the output.
         /// </summary>
         public static Process StartProcess(string fileName, string arguments, string workingDirectory = null)
         {
             if (fileName == null)
             {
-                throw new ArgumentNullException("fileName");
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             var startInfo = new ProcessStartInfo

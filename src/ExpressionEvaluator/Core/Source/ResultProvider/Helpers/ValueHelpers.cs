@@ -16,18 +16,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 string alias = value.Alias;
                 if (!string.IsNullOrEmpty(alias))
                 {
-                    return string.Format("{0} {{${1}}}", valueStr, alias);
+                    return $"{valueStr} {{{alias}}}";
                 }
             }
             return valueStr;
         }
 
-        // Some evaluation results, like base type, reuse their parent's value.  They should
-        // not, however, report that their evaluation triggered an exception.
-        internal static bool HasExceptionThrown(this DkmClrValue value, EvalResultDataItem parent)
+        internal static bool HasExceptionThrown(this DkmClrValue value)
         {
-            return value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown) &&
-                ((parent == null) || (value != parent.Value));
+            return value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown);
         }
 
         internal static string GetExceptionMessage(this DkmClrValue value, string fullNameWithoutFormatSpecifiers, Formatter formatter)
@@ -35,7 +32,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return string.Format(
                 Resources.ExceptionThrown,
                 fullNameWithoutFormatSpecifiers,
-                formatter.GetTypeName(value.Type.GetLmrType()));
+                formatter.GetTypeName(new TypeAndCustomInfo(value.Type)));
+        }
+
+        internal static DkmClrValue GetMemberValue(this DkmClrValue value, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)
+        {
+            // Note: GetMemberValue() may return special value when func-eval of properties is disabled.
+            return value.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
         }
     }
 }

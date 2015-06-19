@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     {
         private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
         private readonly AbstractExtractInterfaceService _extractInterfaceService;
-        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = Task.FromResult(SpecializedCollections.EmptyEnumerable<CodeActionOperation>());
+        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
 
         public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
         {

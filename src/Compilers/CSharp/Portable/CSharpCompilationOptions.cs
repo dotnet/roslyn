@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnsafe = false,
             string cryptoKeyContainer = null,
             string cryptoKeyFile = null,
+            ImmutableArray<byte> cryptoPublicKey = default(ImmutableArray<byte>),
             bool? delaySign = null,
             Platform platform = Platform.AnyCpu,
             ReportDiagnostic generalDiagnosticOption = ReportDiagnostic.Default,
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssemblyIdentityComparer assemblyIdentityComparer = null,
             StrongNameProvider strongNameProvider = null)
             : this(outputKind, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
-                   cryptoKeyContainer, cryptoKeyFile, delaySign, platform, generalDiagnosticOption, warningLevel,
+                   cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel,
                    specificDiagnosticOptions, concurrentBuild,
                    extendedCustomDebugInformation: true,
                    xmlReferenceResolver: xmlReferenceResolver,
@@ -59,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    metadataReferenceResolver: metadataReferenceResolver,
                    assemblyIdentityComparer: assemblyIdentityComparer,
                    strongNameProvider: strongNameProvider,
-                   metadataImportOptions: MetadataImportOptions.Public,
-                   features: ImmutableArray<string>.Empty)
+                   metadataImportOptions: MetadataImportOptions.Public)
         {
         }
 
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnsafe,
             string cryptoKeyContainer,
             string cryptoKeyFile,
+            ImmutableArray<byte> cryptoPublicKey,
             bool? delaySign,
             Platform platform,
             ReportDiagnostic generalDiagnosticOption,
@@ -88,12 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataReferenceResolver metadataReferenceResolver,
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
-            MetadataImportOptions metadataImportOptions,
-            ImmutableArray<string> features)
-            : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, delaySign, optimizationLevel, checkOverflow,
+            MetadataImportOptions metadataImportOptions)
+            : base(outputKind, moduleName, mainTypeName, scriptClassName, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
-                   strongNameProvider, metadataImportOptions, features)
+                   strongNameProvider, metadataImportOptions)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             allowUnsafe: other.AllowUnsafe,
             cryptoKeyContainer: other.CryptoKeyContainer,
             cryptoKeyFile: other.CryptoKeyFile,
+            cryptoPublicKey: other.CryptoPublicKey,
             delaySign: other.DelaySign,
             platform: other.Platform,
             generalDiagnosticOption: other.GeneralDiagnosticOption,
@@ -122,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             metadataReferenceResolver: other.MetadataReferenceResolver,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
-            metadataImportOptions: other.MetadataImportOptions,
-            features: other.Features)
+            metadataImportOptions: other.MetadataImportOptions)
         {
         }
 
@@ -185,6 +186,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { CryptoKeyFile = path };
+        }
+
+        public CSharpCompilationOptions WithCryptoPublicKey(ImmutableArray<byte> value)
+        {
+            if (value.IsDefault)
+            {
+                value = ImmutableArray<byte>.Empty;
+            }
+
+            if (value == this.CryptoPublicKey)
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { CryptoPublicKey = value };
         }
 
         public CSharpCompilationOptions WithDelaySign(bool? value)
@@ -342,16 +358,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { MetadataImportOptions_internal_protected_set = value };
         }
 
-        internal new CSharpCompilationOptions WithFeatures(ImmutableArray<string> features)
-        {
-            if (features == this.Features)
-            {
-                return this;
-            }
-
-            return new CSharpCompilationOptions(this) { Features = features };
-        }
-
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver resolver)
         {
             if (ReferenceEquals(resolver, this.XmlReferenceResolver))
@@ -444,9 +450,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithStrongNameProvider(provider);
         }
 
+        [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)
         {
-            return WithFeatures(features);
+            throw new NotImplementedException();
         }
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
@@ -461,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!MainTypeName.IsValidClrTypeName())
                 {
-                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "MainTypeName", MainTypeName));
+                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(MainTypeName), MainTypeName));
                 }
             }
 
@@ -472,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (ModuleName != null)
             {
-                Exception e = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, "ModuleName");
+                Exception e = MetadataHelpers.CheckAssemblyOrModuleName(ModuleName, nameof(ModuleName));
                 if (e != null)
                 {
                     builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOption, e.Message));
@@ -481,27 +488,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!OutputKind.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OutputKind", OutputKind.ToString()));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(OutputKind), OutputKind.ToString()));
             }
 
             if (!OptimizationLevel.IsValid())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "OptimizationLevel", OptimizationLevel.ToString()));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(OptimizationLevel), OptimizationLevel.ToString()));
             }
 
             if (ScriptClassName == null || !ScriptClassName.IsValidClrTypeName())
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "ScriptClassName", ScriptClassName ?? "null"));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(ScriptClassName), ScriptClassName ?? "null"));
             }
 
             if (WarningLevel < 0 || WarningLevel > 4)
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "WarningLevel", WarningLevel));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(WarningLevel), WarningLevel));
             }
 
             if (Usings != null && Usings.Any(u => !u.IsValidClrNamespaceName()))
             {
-                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, "Usings", Usings.Where(u => !u.IsValidClrNamespaceName()).First() ?? "null"));
+                builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_BadCompilationOptionValue, nameof(Usings), Usings.Where(u => !u.IsValidClrNamespaceName()).First() ?? "null"));
             }
 
             if (Platform == Platform.AnyCpu32BitPreferred && OutputKind.IsValid() && !(OutputKind == OutputKind.ConsoleApplication || OutputKind == OutputKind.WindowsApplication || OutputKind == OutputKind.WindowsRuntimeApplication))
@@ -512,6 +519,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: add check for 
             //          (kind == 'arm' || kind == 'appcontainer' || kind == 'winmdobj') &&
             //          (version >= "6.2")
+
+            if (!CryptoPublicKey.IsEmpty)
+            {
+                if (CryptoKeyFile != null)
+                {
+                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(CryptoPublicKey), nameof(CryptoKeyFile)));
+                }
+
+                if (CryptoKeyContainer != null)
+                {
+                    builder.Add(Diagnostic.Create(MessageProvider.Instance, (int)ErrorCode.ERR_MutuallyExclusiveOptions, nameof(CryptoPublicKey), nameof(CryptoKeyContainer)));
+                }
+            }
         }
 
         public bool Equals(CSharpCompilationOptions other)

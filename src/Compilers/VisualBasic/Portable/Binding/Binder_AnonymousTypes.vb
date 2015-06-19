@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ''' <summary>
             ''' If set, the state of the binder shouldn't be modified by subsequent binding operations,
-            ''' which could be performed by SemanicModel in context of this binder.
+            ''' which could be performed by SemanticModel in context of this binder.
             ''' </summary>
             Private _freeze As Boolean
 
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''     within initializers. This way we can be sure that result of binding performed by SemanticModel is consistent
         '''     with result of initial binding of the entire node.
         '''   - AnonymousTypeCreationBinder overrides CreateAnonymousObjectCreationExpression in such a way that it mutates
-        '''     its state. That overriden method shouldn't be called while we are binding each initializer (by queries, for example), 
+        '''     its state. That overridden method shouldn't be called while we are binding each initializer (by queries, for example), 
         '''     it should be called only by AnonymousTypeCreationBinder itself after all initializers are bound and we are producing 
         '''     the resulting node. So having an extra binder in between takes care of that.
         ''' </summary>

@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -17,89 +19,95 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         public async Task<DocumentDifferenceResult> GetDifferenceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
-            var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            if (syntaxFactsService == null)
+            try
             {
-                // somehow, we can't get the service. without it, there is nothing we can do.
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
-            }
+                var syntaxFactsService = newDocument.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                if (syntaxFactsService == null)
+                {
+                    // somehow, we can't get the service. without it, there is nothing we can do.
+                    return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                }
 
-            // this is based on the implementation detail where opened documents use strong references
-            // to tree and text rather than recoverable versions.
-            SourceText oldText;
-            SourceText newText;
-            if (!oldDocument.TryGetText(out oldText) ||
-                !newDocument.TryGetText(out newText))
-            {
-                // no cheap way to determine top level changes. assumes top level has changed
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
-            }
-
-            // quick check whether two tree versions are same
-            VersionStamp oldVersion;
-            VersionStamp newVersion;
-            if (oldDocument.TryGetSyntaxVersion(out oldVersion) &&
-                newDocument.TryGetSyntaxVersion(out newVersion) &&
-                oldVersion.Equals(newVersion))
-            {
-                // nothing has changed. don't do anything.
-                // this could happen if a document is opened/closed without any buffer change
-                return null;
-            }
-
-            var range = newText.GetEncompassingTextChangeRange(oldText);
-            if (range == default(TextChangeRange))
-            {
-                // nothing has changed. don't do anything
-                return null;
-            }
-
-            var incrementalParsingCandidate = range.NewLength != newText.Length;
-
-            // see whether we can get it without explicit parsing
-            SyntaxNode oldRoot;
-            SyntaxNode newRoot;
-            if (!oldDocument.TryGetSyntaxRoot(out oldRoot) ||
-                !newDocument.TryGetSyntaxRoot(out newRoot))
-            {
-                if (!incrementalParsingCandidate)
+                // this is based on the implementation detail where opened documents use strong references
+                // to tree and text rather than recoverable versions.
+                SourceText oldText;
+                SourceText newText;
+                if (!oldDocument.TryGetText(out oldText) ||
+                    !newDocument.TryGetText(out newText))
                 {
                     // no cheap way to determine top level changes. assumes top level has changed
                     return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
                 }
 
-                // explicitly parse them
-                oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-                newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            }
-
-            // at this point, we must have these version already calculated
-            VersionStamp oldTopLevelChangeVersion;
-            VersionStamp newTopLevelChangeVersion;
-            if (!oldDocument.TryGetTopLevelChangeTextVersion(out oldTopLevelChangeVersion) ||
-                !newDocument.TryGetTopLevelChangeTextVersion(out newTopLevelChangeVersion))
-            {
-                Debug.Fail("How?");
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
-            }
-
-            // quicker common case
-            if (incrementalParsingCandidate)
-            {
-                if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
+                // quick check whether two tree versions are same
+                VersionStamp oldVersion;
+                VersionStamp newVersion;
+                if (oldDocument.TryGetSyntaxVersion(out oldVersion) &&
+                    newDocument.TryGetSyntaxVersion(out newVersion) &&
+                    oldVersion.Equals(newVersion))
                 {
-                    return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                    // nothing has changed. don't do anything.
+                    // this could happen if a document is opened/closed without any buffer change
+                    return null;
                 }
 
-                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
-            }
+                var range = newText.GetEncompassingTextChangeRange(oldText);
+                if (range == default(TextChangeRange))
+                {
+                    // nothing has changed. don't do anything
+                    return null;
+                }
 
-            if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
+                var incrementalParsingCandidate = range.NewLength != newText.Length;
+
+                // see whether we can get it without explicit parsing
+                SyntaxNode oldRoot;
+                SyntaxNode newRoot;
+                if (!oldDocument.TryGetSyntaxRoot(out oldRoot) ||
+                    !newDocument.TryGetSyntaxRoot(out newRoot))
+                {
+                    if (!incrementalParsingCandidate)
+                    {
+                        // no cheap way to determine top level changes. assumes top level has changed
+                        return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+                    }
+
+                    // explicitly parse them
+                    oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                    newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                }
+
+                // at this point, we must have these version already calculated
+                VersionStamp oldTopLevelChangeVersion;
+                VersionStamp newTopLevelChangeVersion;
+                if (!oldDocument.TryGetTopLevelChangeTextVersion(out oldTopLevelChangeVersion) ||
+                    !newDocument.TryGetTopLevelChangeTextVersion(out newTopLevelChangeVersion))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                // quicker common case
+                if (incrementalParsingCandidate)
+                {
+                    if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
+                    {
+                        return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged, GetChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                    }
+
+                    return new DocumentDifferenceResult(InvocationReasons.DocumentChanged, GetBestGuessChangedMember(syntaxFactsService, oldRoot, newRoot, range));
+                }
+
+                if (oldTopLevelChangeVersion.Equals(newTopLevelChangeVersion))
+                {
+                    return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged);
+                }
+
+                return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
-                return new DocumentDifferenceResult(InvocationReasons.SyntaxChanged);
+                throw ExceptionUtilities.Unreachable;
             }
-
-            return new DocumentDifferenceResult(InvocationReasons.DocumentChanged);
         }
 
         private static SyntaxNode GetChangedMember(
@@ -146,7 +154,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             // there was top level changes, so we can't use equivalent to see whether two members are same.
-            // so, we use some simple text based hueristic to find a member that has changed.
+            // so, we use some simple text based heuristic to find a member that has changed.
             //
             // if we have a differ that do diff on member level or a way to track member between incremental parsing, then
             // that would be preferable. but currently we don't have such thing.

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)Interlocked.CompareExchange(ref _lazyEnumUnderlyingType, this.GetEnumUnderlyingType(diagnostics), ErrorTypeSymbol.UnknownResultType) ==
                         (object)ErrorTypeSymbol.UnknownResultType)
                     {
-                        AddSemanticDiagnostics(diagnostics);
+                        AddDeclarationDiagnostics(diagnostics);
                         this.state.NotePartComplete(CompletionPart.EnumUnderlyingType);
                     }
                     diagnostics.Free();

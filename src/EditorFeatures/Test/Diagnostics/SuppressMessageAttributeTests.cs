@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, string rootNamespace = null)
+        protected override void Verify(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = true, string rootNamespace = null)
         {
             using (var workspace = CreateWorkspaceFromFile(source, language, rootNamespace))
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var actualDiagnostics = new List<Diagnostic>();
                 foreach (var analyzer in analyzers)
                 {
-                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, donotCatchAnalyzerExceptions: continueOnAnalyzerException == null));
+                    actualDiagnostics.AddRange(DiagnosticProviderTestUtilities.GetAllDiagnostics(analyzer, document, span, onAnalyzerException, logAnalyzerExceptionAsDiagnostics));
                 }
 
                 actualDiagnostics.Verify(expectedDiagnostics);
@@ -43,6 +43,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     source,
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
+            }
+        }
+
+        protected override bool ConsiderArgumentsForComparingDiagnostics
+        {
+            get
+            {
+                // Round tripping diagnostics from DiagnosticData causes the Arguments info stored within compiler DiagnosticWithInfo to be lost, so don't compare Arguments in IDE.
+                // NOTE: We will still compare squiggled text for the diagnostics, which is also a sufficient test.
+                return false;
             }
         }
     }

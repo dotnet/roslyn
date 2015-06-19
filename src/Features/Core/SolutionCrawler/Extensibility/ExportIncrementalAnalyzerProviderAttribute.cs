@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     [AttributeUsage(AttributeTargets.Class)]
     internal class ExportIncrementalAnalyzerProviderAttribute : ExportAttribute
     {
-        public bool HighPriorityForActiveFile { get; private set; }
-        public string[] WorkspaceKinds { get; private set; }
+        public bool HighPriorityForActiveFile { get; }
+        public string[] WorkspaceKinds { get; }
 
         public ExportIncrementalAnalyzerProviderAttribute(params string[] workspaceKinds)
             : base(typeof(IIncrementalAnalyzerProvider))
         {
             if (workspaceKinds == null)
             {
-                throw new ArgumentNullException("workspaceKinds");
+                throw new ArgumentNullException(nameof(workspaceKinds));
             }
 
             this.WorkspaceKinds = workspaceKinds;

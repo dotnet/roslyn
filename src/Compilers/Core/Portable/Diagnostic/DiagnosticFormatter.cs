@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (diagnostic == null)
             {
-                throw new ArgumentNullException("diagnostic");
+                throw new ArgumentNullException(nameof(diagnostic));
             }
 
             var culture = formatter as CultureInfo;
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis
                     return string.Format(formatter, "{0}{1}: {2}: {3}",
                                          FormatSourcePath(path, basePath, formatter),
                                          FormatSourceSpan(mappedSpan.Span, formatter),
-                                         GetMessagePrefix(diagnostic, culture),
+                                         GetMessagePrefix(diagnostic),
                                          diagnostic.GetMessage(culture));
 
                 default:
                     return string.Format(formatter, "{0}: {1}",
-                                         GetMessagePrefix(diagnostic, culture),
+                                         GetMessagePrefix(diagnostic),
                                          diagnostic.GetMessage(culture));
             }
         }
@@ -75,30 +75,28 @@ namespace Microsoft.CodeAnalysis
             return string.Format("({0},{1})", span.Start.Line + 1, span.Start.Character + 1);
         }
 
-        internal string GetMessagePrefix(Diagnostic diagnostic, CultureInfo culture)
+        internal string GetMessagePrefix(Diagnostic diagnostic)
         {
             string prefix;
             switch (diagnostic.Severity)
             {
                 case DiagnosticSeverity.Hidden:
-                    prefix = CodeAnalysisResources.ResourceManager.GetString(nameof(CodeAnalysisResources.SeverityHidden), culture);
+                    prefix = "hidden";
                     break;
                 case DiagnosticSeverity.Info:
-                    prefix = CodeAnalysisResources.ResourceManager.GetString(nameof(CodeAnalysisResources.SeverityInfo), culture);
+                    prefix = "info";
                     break;
                 case DiagnosticSeverity.Warning:
-                    prefix = CodeAnalysisResources.ResourceManager.GetString(nameof(CodeAnalysisResources.SeverityWarning), culture);
+                    prefix = "warning";
                     break;
                 case DiagnosticSeverity.Error:
-                    prefix = CodeAnalysisResources.ResourceManager.GetString(nameof(CodeAnalysisResources.SeverityError), culture);
+                    prefix = "error";
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
             }
 
-            return string.Format(culture, "{0} {1}",
-                prefix,
-                diagnostic.Id);
+            return string.Format("{0} {1}", prefix, diagnostic.Id);
         }
 
         internal static readonly DiagnosticFormatter Instance = new DiagnosticFormatter();

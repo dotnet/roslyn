@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,13 +43,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     var elementStartTag = "<" + elementName;
                     var elementEndTag = "</" + elementName;
-                    var startTagStart = textContent.IndexOf(elementStartTag);
+                    var startTagStart = textContent.IndexOf(elementStartTag, StringComparison.Ordinal);
                     if (startTagStart >= -1)
                     {
                         var startTagEnd = textContent.IndexOf('>', startTagStart + 1);
                         if (startTagEnd >= startTagStart)
                         {
-                            var endTagStart = textContent.IndexOf(elementEndTag, startTagEnd + 1);
+                            var endTagStart = textContent.IndexOf(elementEndTag, startTagEnd + 1, StringComparison.Ordinal);
                             if (endTagStart >= startTagEnd)
                             {
                                 var newContent = textContent.Substring(0, startTagEnd + 1) + elementValue + textContent.Substring(endTagStart);

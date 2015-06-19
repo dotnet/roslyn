@@ -20,8 +20,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
     [Export(typeof(IInteractiveWindowEditorFactoryService))]
-    [Export(typeof(IVsInteractiveWindowEditorsFactoryService))]
-    internal sealed class VsInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService, IVsInteractiveWindowEditorsFactoryService
+    internal sealed class VsInteractiveWindowEditorFactoryService : IInteractiveWindowEditorFactoryService
     {
         private readonly IOleServiceProvider _provider;
         private readonly IVsEditorAdaptersFactoryService _adapterFactory;
@@ -45,14 +44,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             // WARNING: This might trigger various services like IntelliSense, margins, taggers, etc.
             var textViewAdapter = _adapterFactory.CreateVsTextViewAdapter(_provider, roles);
 
-            var commandFilter = new VsInteractiveWindowCommandFilter(_adapterFactory, window, textViewAdapter, bufferAdapter);
+            var commandFilter = new VsInteractiveWindowCommandFilter(_adapterFactory, window, textViewAdapter, bufferAdapter, _oleCommandTargetProviders, _contentTypeRegistry);
             window.Properties[typeof(VsInteractiveWindowCommandFilter)] = commandFilter;
             return commandFilter.TextViewHost.TextView;
         }
 
-        ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window, IContentType contentType)
+        ITextBuffer IInteractiveWindowEditorFactoryService.CreateAndActivateBuffer(IInteractiveWindow window)
         {
             // create buffer adapter to support undo/redo:
+            IContentType contentType;
+            if (!window.Properties.TryGetProperty(typeof(IContentType), out contentType))
+            {
+                contentType = _contentTypeRegistry.GetContentType("text");
+            }
+
             var bufferAdapter = _adapterFactory.CreateVsTextBufferAdapter(_provider, contentType);
             bufferAdapter.InitializeContent("", 0);
 
@@ -67,39 +72,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             return _adapterFactory.GetDocumentBuffer(bufferAdapter);
         }
 
-        public IWpfTextViewHost GetTextViewHost(IInteractiveWindow window)
-        {
-            var cmdFilter = GetCommandFilter(window);
-            if (cmdFilter != null)
-            {
-                return cmdFilter.TextViewHost;
-            }
-            return null;
-        }
-
-        public void SetLanguage(IInteractiveWindow window, Guid languageServiceGuid)
-        {
-            // REVIEW: What happens to the current input buffer here?
-            // REVIEW: What happens when the window is already initialized?
-            GetDispatcher(window).CheckAccess();
-
-            var commandFilter = GetCommandFilter(window);
-            commandFilter.firstLanguageServiceCommandFilter = null;
-            var provider = _oleCommandTargetProviders.OfContentType(window.Evaluator.ContentType, _contentTypeRegistry);
-            if (provider != null)
-            {
-                var targetFilter = commandFilter.firstLanguageServiceCommandFilter ?? GetCommandFilter(window).EditorServicesCommandFilter;
-                var target = provider.GetCommandTarget(window.TextView, targetFilter);
-                if (target != null)
-                {
-                    commandFilter.firstLanguageServiceCommandFilter = target;
-                }
-            }
-
-            SetEditorOptions(window.TextView.Options, languageServiceGuid);
-        }
-
-        private void SetEditorOptions(IEditorOptions options, Guid languageServiceGuid)
+        internal static void SetEditorOptions(IEditorOptions options, Guid languageServiceGuid)
         {
             IVsTextManager textMgr = (IVsTextManager)InteractiveWindowPackage.GetGlobalService(typeof(SVsTextManager));
             var langPrefs = new LANGPREFERENCES[1];
@@ -112,12 +85,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             options.SetOptionValue(DefaultOptions.IndentSizeOptionId, (int)langPrefs[0].uIndentSize);
         }
 
-        private Dispatcher GetDispatcher(IInteractiveWindow window)
+        internal static Dispatcher GetDispatcher(IInteractiveWindow window)
         {
             return ((FrameworkElement)window.TextView).Dispatcher;
         }
 
-        public VsInteractiveWindowCommandFilter GetCommandFilter(IInteractiveWindow window)
+        internal static VsInteractiveWindowCommandFilter GetCommandFilter(IInteractiveWindow window)
         {
             return (VsInteractiveWindowCommandFilter)window.Properties[typeof(VsInteractiveWindowCommandFilter)];
         }

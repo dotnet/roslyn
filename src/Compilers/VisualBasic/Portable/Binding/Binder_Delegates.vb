@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return source.GetConversionClassification(destination)
         End Function
 
-        Private Shared ReadOnly CheckDelegateParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckDelegateParameterModifier
+        Private Shared ReadOnly s_checkDelegateParameterModifierCallback As CheckParameterModifierDelegate = AddressOf CheckDelegateParameterModifier
 
         ''' <summary>
         ''' Checks if a parameter is a ParamArray and reports this as an error.

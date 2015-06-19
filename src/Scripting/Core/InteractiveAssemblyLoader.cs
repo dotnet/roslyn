@@ -137,18 +137,18 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         /// <param name="path">Absolute assembly file path.</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an exisiting assembly file path.</exception>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing assembly file path.</exception>
         /// <exception cref="System.Reflection.TargetInvocationException">The assembly resolver threw an exception.</exception>
         public AssemblyLoadResult LoadFromPath(string path)
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new ArgumentException("Path must be absolute", "path");
+                throw new ArgumentException("Path must be absolute", nameof(path));
             }
 
             try
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (dependency == null)
             {
-                throw new ArgumentNullException("dependency");
+                throw new ArgumentNullException(nameof(dependency));
             }
 
             if (string.IsNullOrEmpty(location))

@@ -10,11 +10,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class IteratorRewriter
         Inherits StateMachineRewriter(Of FieldSymbol)
 
-        Private ReadOnly elementType As TypeSymbol
-        Private ReadOnly isEnumerable As Boolean
+        Private ReadOnly _elementType As TypeSymbol
+        Private ReadOnly _isEnumerable As Boolean
 
-        Private currentField As FieldSymbol
-        Private initialThreadIdField As FieldSymbol
+        Private _currentField As FieldSymbol
+        Private _initialThreadIdField As FieldSymbol
 
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
@@ -26,14 +26,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
-            Me.isEnumerable = isEnumerable
+            Me._isEnumerable = isEnumerable
 
             Dim methodReturnType = method.ReturnType
             If methodReturnType.GetArity = 0 Then
-                Me.elementType = method.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
+                Me._elementType = method.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             Else
                 ' the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-                Me.elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap)
+                Me._elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap)
             End If
         End Sub
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function EnsureAllSymbolsAndSignature() As Boolean
             Dim hasErrors As Boolean = MyBase.EnsureAllSymbolsAndSignature
 
-            If Me.Method.IsSub OrElse Me.elementType.IsErrorType Then
+            If Me.Method.IsSub OrElse Me._elementType.IsErrorType Then
                 hasErrors = True
             End If
 
@@ -102,11 +102,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             EnsureSpecialType(SpecialType.System_Int32, hasErrors)
 
             If Me.Method.ReturnType.IsDefinition Then
-                If Me.isEnumerable Then
+                If Me._isEnumerable Then
                     EnsureSpecialType(SpecialType.System_Collections_IEnumerator, hasErrors)
                 End If
             Else
-                If Me.isEnumerable Then
+                If Me._isEnumerable Then
                     EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T, hasErrors)
                     EnsureSpecialType(SpecialType.System_Collections_IEnumerable, hasErrors)
                 End If
@@ -124,10 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.StateField = Me.F.StateMachineField(Me.F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
 
             ' Add a field: T current
-            currentField = F.StateMachineField(elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Public)
+            _currentField = F.StateMachineField(_elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Public)
 
             ' if it is an Enumerable, add a field: initialThreadId As Integer
-            initialThreadIdField = If(isEnumerable,
+            _initialThreadIdField = If(_isEnumerable,
                 F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName(), Accessibility.Public),
                 Nothing)
 
@@ -139,25 +139,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             Dim disposeMethod = Me.OpenMethodImplementation(SpecialMember.System_IDisposable__Dispose,
                                                              "Dispose",
-                                                             DebugAttributes.DebuggerNonUserCodeAttribute,
                                                              Accessibility.Private,
-                                                             generateDebugInfo:=False,
                                                              hasMethodBodyDependency:=True)
 
-            Dim debuggerHidden = IsDebuggerHidden(Me.Method)
-            Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
-            If debuggerHidden Then moveNextAttrs = moveNextAttrs Or DebugAttributes.DebuggerHiddenAttribute
-            Dim moveNextMethod = Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
-                                                             "MoveNext",
-                                                             moveNextAttrs,
-                                                             Accessibility.Private,
-                                                             generateDebugInfo:=True,
-                                                             hasMethodBodyDependency:=True)
+            Dim moveNextMethod = Me.OpenMoveNextMethodImplementation(SpecialMember.System_Collections_IEnumerator__MoveNext,
+                                                                     Accessibility.Private)
 
             GenerateMoveNextAndDispose(moveNextMethod, disposeMethod)
             F.CurrentMethod = moveNextMethod
 
-            If isEnumerable Then
+            If _isEnumerable Then
                 ' generate the code for GetEnumerator()
                 '    IEnumerable<elementType> result;
                 '    if (this.initialThreadId == Thread.CurrentThread.ManagedThreadId && this.state == -2)
@@ -172,12 +163,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '    result.parameter = this.parameterProxy; ' copy all of the parameter proxies
 
                 ' Add IEnumerator<int> IEnumerable<int>.GetEnumerator()
-                Dim getEnumeratorGeneric = Me.OpenMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(elementType),
+                Dim getEnumeratorGeneric = Me.OpenMethodImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType),
                                                             SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator,
                                                             "GetEnumerator",
-                                                            DebugAttributes.DebuggerNonUserCodeAttribute,
                                                             Accessibility.Private,
-                                                            generateDebugInfo:=False,
                                                             hasMethodBodyDependency:=False)
 
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
@@ -212,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     condition:=
                         F.LogicalAndAlso(
                             F.IntEqual(F.Field(F.Me, StateField, False), F.Literal(StateMachineStates.FinishedStateMachine)),
-                            F.IntEqual(F.Field(F.Me, initialThreadIdField, False), managedThreadId)),
+                            F.IntEqual(F.Field(F.Me, _initialThreadIdField, False), managedThreadId)),
                     thenClause:=
                         F.Block(
                             F.Assignment(F.Field(F.Me, StateField, True), F.Literal(StateMachineStates.FirstUnusedState)),
@@ -262,28 +251,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       It is also consistent with the naming of IEnumerable.Current (see below).
                 Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerable__GetEnumerator,
                                             "IEnumerable.GetEnumerator",
-                                            DebugAttributes.DebuggerNonUserCodeAttribute,
                                             Accessibility.Private,
-                                            generateDebugInfo:=False,
                                             hasMethodBodyDependency:=False)
                 F.CloseMethod(F.Return(F.Call(F.Me, getEnumeratorGeneric)))
             End If
 
             ' Add T IEnumerator<T>.Current
-            Me.OpenPropertyImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(elementType),
+            Me.OpenPropertyImplementation(F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType),
                                           SpecialMember.System_Collections_Generic_IEnumerator_T__Current,
                                           "Current",
-                                          DebugAttributes.DebuggerNonUserCodeAttribute,
-                                          Accessibility.Private,
-                                          False)
-            F.CloseMethod(F.Return(F.Field(F.Me, currentField, False)))
+                                          Accessibility.Private)
+            F.CloseMethod(F.Return(F.Field(F.Me, _currentField, False)))
 
             ' Add void IEnumerator.Reset()
             Me.OpenMethodImplementation(SpecialMember.System_Collections_IEnumerator__Reset,
                                         "Reset",
-                                        DebugAttributes.DebuggerNonUserCodeAttribute,
                                         Accessibility.Private,
-                                        generateDebugInfo:=False,
                                         hasMethodBodyDependency:=False)
             F.CloseMethod(F.Throw(F.[New](F.WellKnownType(WellKnownType.System_NotSupportedException))))
 
@@ -296,10 +279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '       it is clear why we have the property, and "Current" suffix will be shared in metadata with another Current.
             Me.OpenPropertyImplementation(SpecialMember.System_Collections_IEnumerator__Current,
                                           "IEnumerator.Current",
-                                          DebugAttributes.DebuggerNonUserCodeAttribute,
-                                          Accessibility.Private,
-                                          False)
-            F.CloseMethod(F.Return(F.Field(F.Me, currentField, False)))
+                                          Accessibility.Private)
+            F.CloseMethod(F.Return(F.Field(F.Me, _currentField, False)))
 
             ' Add a body for the constructor
             If True Then
@@ -308,9 +289,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 bodyBuilder.Add(F.BaseInitialization())
                 bodyBuilder.Add(F.Assignment(F.Field(F.Me, StateField, True), F.Parameter(F.CurrentMethod.Parameters(0)).MakeRValue))    ' this.state = state
 
-                If isEnumerable Then
+                If _isEnumerable Then
                     ' this.initialThreadId = Thread.CurrentThread.ManagedThreadId;
-                    bodyBuilder.Add(F.Assignment(F.Field(F.Me, initialThreadIdField, True), managedThreadId))
+                    bodyBuilder.Add(F.Assignment(F.Field(F.Me, _initialThreadIdField, True), managedThreadId))
                 End If
 
                 bodyBuilder.Add(F.Return())
@@ -327,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
             ' Dim stateMachineLocal As new IteratorImplementationClass(N)
             ' where N is either 0 (if we're producing an enumerator) or -2 (if we're producing an enumerable)
-            Dim initialState = If(isEnumerable, StateMachineStates.FinishedStateMachine, StateMachineStates.FirstUnusedState)
+            Dim initialState = If(_isEnumerable, StateMachineStates.FinishedStateMachine, StateMachineStates.FirstUnusedState)
             bodyBuilder.Add(
                 F.Assignment(
                     F.Local(stateMachineLocal, True),
@@ -336,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides ReadOnly Property PreserveInitialParameterValues As Boolean
             Get
-                Return Me.isEnumerable
+                Return Me._isEnumerable
             End Get
         End Property
 
@@ -346,12 +327,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedStateMachineMethod, disposeMethod As SynthesizedStateMachineMethod)
+        Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedMethod, disposeMethod As SynthesizedMethod)
             Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
                                                           F:=Me.F,
                                                           state:=Me.StateField,
-                                                          current:=Me.currentField,
-                                                          HoistedVariables:=Me.hoistedVariables,
+                                                          current:=Me._currentField,
+                                                          hoistedVariables:=Me.hoistedVariables,
                                                           localProxies:=Me.nonReusableLocalProxies,
                                                           SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
                                                           slotAllocatorOpt:=Me.SlotAllocatorOpt,

@@ -3,11 +3,11 @@
 using System;
 using System.Diagnostics.SymbolStore;
 using System.Runtime.InteropServices.ComTypes;
-using Microsoft.VisualStudio.SymReaderInterop;
+using Microsoft.DiaSymReader;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2
+    internal sealed class NotImplementedSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3
     {
         public static readonly NotImplementedSymUnmanagedReader Instance = new NotImplementedSymUnmanagedReader();
 
@@ -38,19 +38,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetMethod(SymbolToken methodToken, out ISymUnmanagedMethod retVal)
+        public int GetMethod(int methodToken, out ISymUnmanagedMethod retVal)
         {
             retVal = null;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetMethodByVersion(SymbolToken methodToken, int version, out ISymUnmanagedMethod retVal)
+        public int GetMethodByVersion(int methodToken, int version, out ISymUnmanagedMethod retVal)
         {
             retVal = null;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetMethodByVersionPreRemap(SymbolToken methodToken, int version, out ISymUnmanagedMethod retVal)
+        public int GetMethodByVersionPreRemap(int methodToken, int version, out ISymUnmanagedMethod retVal)
         {
             retVal = null;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetMethodsInDocument(ISymUnmanagedDocument document, uint cMethod, out uint pcMethod, ISymUnmanagedMethod[] methods)
+        public int GetMethodsInDocument(ISymUnmanagedDocument document, int cMethod, out int pcMethod, ISymUnmanagedMethod[] methods)
         {
             pcMethod = 0;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
@@ -86,13 +86,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetSymAttribute(SymbolToken parent, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
+        public int GetSymAttribute(int parent, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
         {
             lengthBuffer = 0;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetSymAttributePreRemap(SymbolToken parent, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
+        public int GetSymAttributeByVersion(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            count = 0;
+            return SymUnmanagedReaderExtensions.E_NOTIMPL;
+        }
+
+        public int GetSymAttributeByVersionPreRemap(int methodToken, int version, string name, int bufferLength, out int count, byte[] customDebugInformation)
+        {
+            count = 0;
+            return SymUnmanagedReaderExtensions.E_NOTIMPL;
+        }
+
+        public int GetSymAttributePreRemap(int parent, string name, int sizeBuffer, out int lengthBuffer, byte[] buffer)
         {
             lengthBuffer = 0;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
@@ -104,13 +116,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetUserEntryPoint(out SymbolToken EntryPoint)
+        public int GetUserEntryPoint(out int EntryPoint)
         {
-            EntryPoint = default(SymbolToken);
+            EntryPoint = default(int);
             return SymUnmanagedReaderExtensions.E_NOTIMPL;
         }
 
-        public int GetVariables(SymbolToken parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
+        public int GetVariables(int parent, int cVars, out int pcVars, ISymUnmanagedVariable[] vars)
         {
             pcVars = 0;
             return SymUnmanagedReaderExtensions.E_NOTIMPL;

@@ -1435,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (concatResult.IsBad)
                 {
-                    Error(diagnostics, ErrorCode.ERR_ContantStringTooLong, syntax);
+                    Error(diagnostics, ErrorCode.ERR_ConstantStringTooLong, syntax);
                 }
 
                 return concatResult;
@@ -2438,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (operand.Syntax.Kind() != SyntaxKind.NumericLiteralExpression)
+            if (node.Operand != operand.Syntax || operand.Syntax.Kind() != SyntaxKind.NumericLiteralExpression)
             {
                 return null;
             }

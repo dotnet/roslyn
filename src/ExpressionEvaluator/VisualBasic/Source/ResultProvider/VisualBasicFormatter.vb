@@ -26,26 +26,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                        staticMembersString:=Resources.SharedMembers)
         End Sub
 
-        Private Function IDkmClrFormatter_GetTypeName(inspectionContext As DkmInspectionContext, clrType As DkmClrType) As String Implements IDkmClrFormatter.GetTypeName
-            Return GetTypeName(clrType.GetLmrType())
+        Private Function IDkmClrFormatter_GetTypeName(inspectionContext As DkmInspectionContext, clrType As DkmClrType, clrTypeInfo As DkmClrCustomTypeInfo, formatSpecifiers As ReadOnlyCollection(Of String)) As String Implements IDkmClrFormatter.GetTypeName
+            Return GetTypeName(New TypeAndCustomInfo(clrType.GetLmrType(), clrTypeInfo))
         End Function
 
-        Private Function IDkmClrFormatter_GetUnderlyingString(clrValue As DkmClrValue) As String Implements IDkmClrFormatter.GetUnderlyingString
-            Return GetUnderlyingString(clrValue)
+        Private Function IDkmClrFormatter_GetUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As String Implements IDkmClrFormatter.GetUnderlyingString
+            Return GetUnderlyingString(clrValue, inspectionContext)
         End Function
 
-        Private Function IDkmClrFormatter_GetValueString(clrValue As DkmClrValue) As String Implements IDkmClrFormatter.GetValueString
-            ' TODO: IDkmClrFormatter.GetValueString should have
-            ' an explicit InspectionContext parameter that is not
-            ' inherited from the containing DkmClrValue. #1099978.
-            Dim options = If((clrValue.InspectionContext.EvaluationFlags And DkmEvaluationFlags.NoQuotes) = 0,
+        Private Function IDkmClrFormatter_GetValueString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext, formatSpecifiers As ReadOnlyCollection(Of String)) As String Implements IDkmClrFormatter.GetValueString
+            Dim options = If((inspectionContext.EvaluationFlags And DkmEvaluationFlags.NoQuotes) = 0,
                 ObjectDisplayOptions.UseQuotes,
                 ObjectDisplayOptions.None)
-            Return GetValueString(clrValue, options, GetValueFlags.IncludeObjectId)
+            Return GetValueString(clrValue, inspectionContext, options, GetValueFlags.IncludeObjectId)
         End Function
 
-        Private Function IDkmClrFormatter_HasUnderlyingString(clrValue As DkmClrValue) As Boolean Implements IDkmClrFormatter.HasUnderlyingString
-            Return HasUnderlyingString(clrValue)
+        Private Function IDkmClrFormatter_HasUnderlyingString(clrValue As DkmClrValue, inspectionContext As DkmInspectionContext) As Boolean Implements IDkmClrFormatter.HasUnderlyingString
+            Return HasUnderlyingString(clrValue, inspectionContext)
         End Function
 
         Friend Overrides Function IsIdentifierPartCharacter(c As Char) As Boolean

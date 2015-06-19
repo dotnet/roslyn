@@ -101,8 +101,6 @@ namespace Microsoft.CodeAnalysis
         Microsoft_VisualBasic_Information,
         Microsoft_VisualBasic_Interaction,
 
-        My_InternalXmlHelper,
-
         // standard Func delegates - must be ordered by arity
         System_Func_T,
         System_Func_T2,
@@ -349,8 +347,6 @@ namespace Microsoft.CodeAnalysis
             "Microsoft.VisualBasic.Information",
             "Microsoft.VisualBasic.Interaction",
 
-            "My.InternalXmlHelper",
-
             "System.Func`1",
             "System.Func`2",
             "System.Func`3",
@@ -519,7 +515,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     typeIdName = "System.Math";
                 }
-                else if (typeId == WellKnownType.Last) 
+                else if (typeId == WellKnownType.Last)
                 {
                     typeIdName = "System.IFormatProvider";
                 }

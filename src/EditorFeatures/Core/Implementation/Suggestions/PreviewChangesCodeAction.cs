@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
             if (previewDialogService == null)
             {
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             return await _originalCodeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
         }
     }

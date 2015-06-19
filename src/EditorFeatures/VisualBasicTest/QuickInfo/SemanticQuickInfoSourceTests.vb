@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Inherits AbstractSemanticQuickInfoSourceTests
 
         Protected Overrides Sub Test(markup As String, ParamArray expectedResults() As Action(Of Object))
-            TestWithReferences(markup, {}, expectedResults)
+            TestWithReferences(markup, Array.Empty(Of String)(), expectedResults)
         End Sub
 
         Protected Sub TestShared(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object))
@@ -149,6 +149,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription("Class System.String"))
         End Sub
 
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestStringLiteral()
+            TestInClass("Dim i = ""cat""$$",
+             MainDescription("Class System.String"))
+        End Sub
+
+        <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub TestInterpolatedStringLiteral()
+            TestInClass("Dim i = $""cat""$$", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""c$$at""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""$$cat""", MainDescription("Class System.String"))
+            TestInClass("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfString()
             TestInClass("Dim l As $$List(Of String)",
@@ -168,12 +184,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                WhiteSpace(" "),
                TypeParameter("T"),
                Punctuation.CloseParen)),
-             TypeParameterMap(vbCrLf & "T is String",
+             TypeParameterMap(vbCrLf & $"T {FeaturesResources.Is} String",
               ExpectedClassifications(
                   WhiteSpace(vbCrLf),
                TypeParameter("T"),
                WhiteSpace(" "),
-               Text("is"),
+               Text(FeaturesResources.Is),
                WhiteSpace(" "),
                Keyword("String"))))
         End Sub
@@ -242,8 +258,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                 </Text>.NormalizedValue,
              MainDescription("Class System.Collections.Generic.Dictionary(Of TKey, TValue)"),
              TypeParameterMap(
-              Lines(vbCrLf & "TKey is Integer",
-                 "TValue is String")))
+              Lines(vbCrLf & $"TKey {FeaturesResources.Is} Integer",
+                 $"TValue {FeaturesResources.Is} String")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -255,15 +271,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                 </Text>.NormalizedValue,
              MainDescription("Class System.Collections.Generic.Dictionary(Of TKey, TValue)"),
              TypeParameterMap(
-              Lines(vbCrLf & "TKey is T",
-                 "TValue is U")))
+              Lines(vbCrLf & $"TKey {FeaturesResources.Is} T",
+                 $"TValue {FeaturesResources.Is} U")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestIEnumerableOfInteger()
             TestInClass("Dim ie As $$IEnumerable(Of Integer)",
              MainDescription("Interface System.Collections.Generic.IEnumerable(Of Out T)"),
-             TypeParameterMap(vbCrLf & "T is Integer"))
+             TypeParameterMap(vbCrLf & $"T {FeaturesResources.Is} Integer"))
         End Sub
 
         <WorkItem(542157)>
@@ -318,14 +334,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Test(StringFromLines("Class C(Of T)",
                   "    Dim t As $$T",
                   "End Class"),
-             MainDescription("T in C(Of T)"))
+             MainDescription($"T {FeaturesResources.In} C(Of T)"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestNullableOfInteger()
             TestInClass("Dim n As $$Nullable(Of Integer)",
              MainDescription("Structure System.Nullable(Of T As Structure)"),
-             TypeParameterMap(vbCrLf & "T is Integer"))
+             TypeParameterMap(vbCrLf & $"T {FeaturesResources.Is} Integer"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -337,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                         End Sub
                     End Class
                 </Text>.NormalizedValue,
-             MainDescription("T1 in C.Meth1(Of T1)"))
+             MainDescription($"T1 {FeaturesResources.In} C.Meth1(Of T1)"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -349,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                         End Sub
                     End Class
                 </Text>.NormalizedValue,
-             MainDescription("T1 in C.Meth1(Of T1 As Class)"))
+             MainDescription($"T1 {FeaturesResources.In} C.Meth1(Of T1 As Class)"))
         End Sub
 
         <WorkItem(538732)>
@@ -362,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                         End Sub
                     End Class
                 </Text>.NormalizedValue,
-             MainDescription("Sub Console.Write(value As Integer) (+ 17 overloads)",
+             MainDescription($"Sub Console.Write(value As Integer) (+ 17 {FeaturesResources.Overloads})",
               ExpectedClassifications(
                Keyword("Sub"),
                WhiteSpace(" "),
@@ -382,14 +398,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                WhiteSpace(" "),
                Text("17"),
                WhiteSpace(" "),
-               Text("overloads"),
+               Text(FeaturesResources.Overloads),
                Punctuation.CloseParen)))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnFieldDeclaration()
             TestInClass("Dim $$i As Int32",
-             MainDescription("(field) C.i As Integer"))
+             MainDescription($"({FeaturesResources.Field}) C.i As Integer"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -400,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                      Dim p as New Li$$st(Of string)
                      End Class
                  </Text>.NormalizedValue,
-              MainDescription("Sub List(Of String).New() (+ 2 overloads)"))
+              MainDescription($"Sub List(Of String).New() (+ 2 {FeaturesResources.Overloads})"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -441,8 +457,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                  </Text>.NormalizedValue,
               MainDescription("Delegate Function System.Func(Of In T, Out TResult)(arg As T) As TResult"),
               TypeParameterMap(
-               Lines(vbCrLf & "T is Integer",
-                  "TResult is String")))
+               Lines(vbCrLf & $"T {FeaturesResources.Is} Integer",
+                  $"TResult {FeaturesResources.Is} String")))
         End Sub
 
         <WorkItem(538824)>
@@ -456,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                             $$d()
                         end sub
                     end class</Text>.NormalizedValue,
-            MainDescription("(local variable) d As D1"))
+            MainDescription($"({FeaturesResources.LocalVariable}) d As D1"))
         End Sub
 
         <WorkItem(538786)>
@@ -481,7 +497,7 @@ Class Test
     End Sub
 End Class
 </Text>.NormalizedValue,
-            MainDescription("Sub C.M() (+ 2 overloads)"))
+            MainDescription($"Sub C.M() (+ 2 {FeaturesResources.Overloads})"))
         End Sub
 
         <WorkItem(538786)>
@@ -511,7 +527,7 @@ End Class
 
         <WorkItem(538773)>
         <Fact>
-        Public Sub TestOverridenMethod()
+        Public Sub TestOverriddenMethod()
             Test(<Text>
 Class A
     Public Overridable Sub G()
@@ -531,7 +547,7 @@ Class C
     End Sub
 End Class
 </Text>.NormalizedValue,
-            MainDescription("Sub B.G() (+ 1 overload)"))
+            MainDescription($"Sub B.G() (+ 1 {FeaturesResources.Overload})"))
         End Sub
 
         <WorkItem(538918)>
@@ -724,7 +740,7 @@ Module MyExtensions
         Return True
     End Function
 End Module]]></Text>.NormalizedValue,
-            MainDescription("<Extension> Function Integer.Count(items As IEnumerable(Of Integer)) As Boolean"))
+            MainDescription($"<{VBFeaturesResources.Extension}> Function Integer.Count(items As IEnumerable(Of Integer)) As Boolean"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -748,7 +764,7 @@ Module Ex
     Public Sub TestExt(ex As String, arg As Integer)
     End Sub
 End Module]]></Text>.NormalizedValue,
-            MainDescription("<Extension> Sub String.TestExt() (+ 2 overloads)"))
+            MainDescription($"<{VBFeaturesResources.Extension}> Sub String.TestExt() (+ 2 {FeaturesResources.Overloads})"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -772,7 +788,7 @@ Module Ex
     Public Sub TestExt(ex As Integer, arg As Integer)
     End Sub
 End Module]]></Text>.NormalizedValue,
-            MainDescription("<Extension> Sub String.TestExt() (+ 1 overload)"))
+            MainDescription($"<{VBFeaturesResources.Extension}> Sub String.TestExt() (+ 1 {FeaturesResources.Overload})"))
         End Sub
 
         <WorkItem(541960)>
@@ -785,7 +801,7 @@ Class _Attribute
 
     Dim x$$ As _Attribute
 End Class]]></Text>.NormalizedValue,
-            MainDescription("(field) _Attribute.x As _Attribute"))
+            MainDescription($"({FeaturesResources.Field}) _Attribute.x As _Attribute"))
         End Sub
 
         <WorkItem(541960)>
@@ -798,7 +814,7 @@ Class ClassAttribute
 
     Dim x$$ As ClassAttribute
 End Class]]></Text>.NormalizedValue,
-            MainDescription("(field) ClassAttribute.x As ClassAttribute"))
+            MainDescription($"({FeaturesResources.Field}) ClassAttribute.x As ClassAttribute"))
         End Sub
 
         <WorkItem(541960)>
@@ -811,7 +827,53 @@ Class Class1Attribute
 
     Dim x$$ As Class1Attribute
 End Class]]></Text>.NormalizedValue,
-            MainDescription("(field) Class1Attribute.x As Class1Attribute"))
+            MainDescription($"({FeaturesResources.Field}) Class1Attribute.x As Class1Attribute"))
+        End Sub
+
+        <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub AttributeQuickInfoBindsToClassTest()
+            Test("
+Imports System
+
+''' <summary>
+''' class comment
+''' </summary>
+<Some$$>
+Class SomeAttribute
+    Inherits Attribute
+
+    ''' <summary>
+    ''' ctor comment
+    ''' </summary>
+    Public Sub New()
+    End Sub
+End Class
+",
+                Documentation("class comment"))
+        End Sub
+
+        <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Sub AttributeConstructorQuickInfo()
+            Test("
+Imports System
+
+''' <summary>
+''' class comment
+''' </summary>
+Class SomeAttribute
+    Inherits Attribute
+
+    ''' <summary>
+    ''' ctor comment
+    ''' </summary>
+    Public Sub New()
+        Dim s = New Some$$Attribute()
+    End Sub
+End Class
+",
+                Documentation("ctor comment"))
         End Sub
 
         <WorkItem(542613)>
@@ -840,7 +902,7 @@ Class C
 End Class]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & "Anonymous Types:" & vbCrLf & "    'a is New With { Key .Name As String, Key .Price As Integer }"))
+            AnonymousTypes(vbCrLf & FeaturesResources.AnonymousTypes & vbCrLf & $"    'a {FeaturesResources.Is} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Sub
 
         <WorkItem(543226)>
@@ -858,7 +920,7 @@ Module Program
 End Module]]></Text>.NormalizedValue,
             MainDescription("ReadOnly Property 'a.Name As String"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & "Anonymous Types:" & vbCrLf & "    'a is New With { Key .Name As String, Key .Price As Integer }"))
+            AnonymousTypes(vbCrLf & FeaturesResources.AnonymousTypes & vbCrLf & $"    'a {FeaturesResources.Is} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Sub
 
         <WorkItem(543223)>
@@ -873,7 +935,7 @@ End Class
 ]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & "Anonymous Types:" & vbCrLf & "    'a is New With { Key .Foo As ? }"))
+            AnonymousTypes(vbCrLf & FeaturesResources.AnonymousTypes & vbCrLf & $"    'a {FeaturesResources.Is} New With {{ Key .Foo As ? }}"))
         End Sub
 
         <WorkItem(543242)>
@@ -903,7 +965,7 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription("(local variable) a As <Sub()>"))
+            MainDescription($"({FeaturesResources.LocalVariable}) a As <Sub()>"))
         End Sub
 
         <WorkItem(543624)>
@@ -919,7 +981,7 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription("(local variable) a As <Function() As Integer>"))
+            MainDescription($"({FeaturesResources.LocalVariable}) a As <Function() As Integer>"))
         End Sub
 
         <WorkItem(543624)>
@@ -934,9 +996,9 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription("(local variable) a As <Function() As 'a>"),
-            AnonymousTypes(vbCrLf & "Anonymous Types:" & vbCrLf &
-                           "    'a is New With { .Foo As String }"))
+            MainDescription($"({FeaturesResources.LocalVariable}) a As <Function() As 'a>"),
+            AnonymousTypes(vbCrLf & FeaturesResources.AnonymousTypes & vbCrLf &
+                           $"    'a {FeaturesResources.Is} New With {{ .Foo As String }}"))
         End Sub
 
         <WorkItem(543624)>
@@ -952,9 +1014,9 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription("(local variable) a As <Function(i As Integer) As 'a>"),
-            AnonymousTypes(vbCrLf & "Anonymous Types:" & vbCrLf &
-                           "    'a is New With { .Sq As Integer, .M As <Function(j As Integer) As Integer> }"))
+            MainDescription($"({FeaturesResources.LocalVariable}) a As <Function(i As Integer) As 'a>"),
+            AnonymousTypes(vbCrLf & FeaturesResources.AnonymousTypes & vbCrLf &
+                           $"    'a {FeaturesResources.Is} New With {{ .Sq As Integer, .M As <Function(j As Integer) As Integer> }}"))
         End Sub
 
         <WorkItem(543389)>
@@ -1013,23 +1075,23 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub BinaryConditionalExpression()
             TestInMethod("Dim x = If$$(True, False)",
-                MainDescription("If(<expression>, <expressionIfNothing>) As Boolean"),
-                Documentation("If <expression> evaluates to a reference or Nullable value that is not Nothing, the function returns that value. Otherwise, it calculates and returns <expressionIfNothing>."))
+                MainDescription($"If({Expression1}, {ExpressionIfNothing}) As Boolean"),
+                Documentation(ExpressionEvalReturns))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TernaryConditionalExpression()
             TestInMethod("Dim x = If$$(True, ""Foo"", ""Bar"")",
-                MainDescription("If(<condition> As Boolean, <expressionIfTrue>, <expressionIfFalse>) As String"),
-                Documentation("If <condition> returns True, the function calculates and returns <expressionIfTrue>. Otherwise, it returns <expressionIfFalse>."))
+                MainDescription($"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As String"),
+                Documentation(IfConditionReturnsResults))
         End Sub
 
         <WorkItem(957082)>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub AddHandlerStatement()
             TestInMethod("$$AddHandler foo, bar",
-                MainDescription("AddHandler <event>, <handler>"),
-                Documentation("Associates an event with an event handler, delegate or lambda expression at run time."),
+                MainDescription($"AddHandler {Event1}, {Handler}"),
+                Documentation(AssociatesAnEvent),
                 SymbolGlyph(Glyph.Keyword))
         End Sub
 
@@ -1037,8 +1099,8 @@ End Module
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub RemoveHandlerStatement()
             TestInMethod("$$RemoveHandler foo, bar",
-                MainDescription("RemoveHandler <event>, <handler>"),
-                Documentation("Removes the association between an event and an event handler or delegate at run time."),
+                MainDescription($"RemoveHandler {Event1}, {Handler}"),
+                Documentation(RemovesEventAssociation),
                 SymbolGlyph(Glyph.Keyword))
         End Sub
 
@@ -1046,7 +1108,7 @@ End Module
         Public Sub GetTypeExpression()
             TestInMethod("Dim x = GetType$$(String)",
                 MainDescription("GetType(String) As Type"),
-                Documentation("Returns a System.Type object for the specified type name."))
+                Documentation(ReturnsSystemTypeObject))
         End Sub
 
         <WorkItem(544140)>
@@ -1061,167 +1123,167 @@ class C
 end class
                 </text>.NormalizedValue,
                 {GetType(System.Xml.XmlAttribute).Assembly.Location, GetType(System.Xml.Linq.XAttribute).Assembly.Location},
-                MainDescription("GetXmlNamespace([<xmlNamespacePrefix>]) As Xml.Linq.XNamespace"),
-                Documentation("Returns the System.Xml.Linq.XNamespace object corresponding to the specified XML namespace prefix."))
+                MainDescription($"GetXmlNamespace([{XmlNamespacePrefix}]) As Xml.Linq.XNamespace"),
+                Documentation(ReturnsXNamespaceObject))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TryCastExpression()
             TestInMethod("Dim x = TryCast$$(a, String)",
-                MainDescription("TryCast(<expression>, String) As String"),
-                Documentation("Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for."))
+                MainDescription($"TryCast({Expression1}, String) As String"),
+                Documentation(IntroducesSafeTypeConversion))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub DirectCastExpression()
             TestInMethod("Dim x = DirectCast$$(a, String)",
-                MainDescription("DirectCast(<expression>, String) As String"),
-                Documentation("Introduces a type conversion operation similar to CType. The difference is that CType succeeds as long as there is a valid conversion, whereas DirectCast requires that one type inherit from or implement the other type."))
+                MainDescription($"DirectCast({Expression1}, String) As String"),
+                Documentation(IntroducesTypeConversion))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CTypeCastExpression()
             TestInMethod("Dim x = CType$$(a, String)",
-                MainDescription("CType(<expression>, String) As String"),
-                Documentation("Returns the result of explicitly converting an expression to a specified data type."))
+                MainDescription($"CType({Expression1}, String) As String"),
+                Documentation(ReturnsConvertResult))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CBoolExpression()
             TestInMethod("Dim x = CBool$$(a)",
-                MainDescription("CBool(<expression>) As Boolean"),
-                Documentation("Converts an expression to the Boolean data type."))
+                MainDescription($"CBool({Expression1}) As Boolean"),
+                Documentation(String.Format(ConvertsToDataType, "Boolean")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CByteExpression()
             TestInMethod("Dim x = CByte$$(a)",
-                MainDescription("CByte(<expression>) As Byte"),
-                Documentation("Converts an expression to the Byte data type."))
+                MainDescription($"CByte({Expression1}) As Byte"),
+                Documentation(String.Format(ConvertsToDataType, "Byte")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CCharExpression()
             TestInMethod("Dim x = CChar$$(a)",
-                MainDescription("CChar(<expression>) As Char"),
-                Documentation("Converts an expression to the Char data type."))
+                MainDescription($"CChar({Expression1}) As Char"),
+                Documentation(String.Format(ConvertsToDataType, "Char")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CDateExpression()
             TestInMethod("Dim x = CDate$$(a)",
-                MainDescription("CDate(<expression>) As Date"),
-                Documentation("Converts an expression to the Date data type."))
+                MainDescription($"CDate({Expression1}) As Date"),
+                Documentation(String.Format(ConvertsToDataType, "Date")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CDblExpression()
             TestInMethod("Dim x = CDbl$$(a)",
-                MainDescription("CDbl(<expression>) As Double"),
-                Documentation("Converts an expression to the Double data type."))
+                MainDescription($"CDbl({Expression1}) As Double"),
+                Documentation(String.Format(ConvertsToDataType, "Double")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CDecExpression()
             TestInMethod("Dim x = CDec$$(a)",
-                MainDescription("CDec(<expression>) As Decimal"),
-                Documentation("Converts an expression to the Decimal data type."))
+                MainDescription($"CDec({Expression1}) As Decimal"),
+                Documentation(String.Format(ConvertsToDataType, "Decimal")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CIntExpression()
             TestInMethod("Dim x = CInt$$(a)",
-                MainDescription("CInt(<expression>) As Integer"),
-                Documentation("Converts an expression to the Integer data type."))
+                MainDescription($"CInt({Expression1}) As Integer"),
+                Documentation(String.Format(ConvertsToDataType, "Integer")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CLngExpression()
             TestInMethod("Dim x = CLng$$(a)",
-                MainDescription("CLng(<expression>) As Long"),
-                Documentation("Converts an expression to the Long data type."))
+                MainDescription($"CLng({Expression1}) As Long"),
+                Documentation(String.Format(ConvertsToDataType, "Long")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CObjExpression()
             TestInMethod("Dim x = CObj$$(a)",
-                MainDescription("CObj(<expression>) As Object"),
-                Documentation("Converts an expression to the Object data type."))
+                MainDescription($"CObj({Expression1}) As Object"),
+                Documentation(String.Format(ConvertsToDataType, "Object")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CSByteExpression()
             TestInMethod("Dim x = CSByte$$(a)",
-                MainDescription("CSByte(<expression>) As SByte"),
-                Documentation("Converts an expression to the SByte data type."))
+                MainDescription($"CSByte({Expression1}) As SByte"),
+                Documentation(String.Format(ConvertsToDataType, "SByte")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CShortExpression()
             TestInMethod("Dim x = CShort$$(a)",
-                MainDescription("CShort(<expression>) As Short"),
-                Documentation("Converts an expression to the Short data type."))
+                MainDescription($"CShort({Expression1}) As Short"),
+                Documentation(String.Format(ConvertsToDataType, "Short")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CSngExpression()
             TestInMethod("Dim x = CSng$$(a)",
-                MainDescription("CSng(<expression>) As Single"),
-                Documentation("Converts an expression to the Single data type."))
+                MainDescription($"CSng({Expression1}) As Single"),
+                Documentation(String.Format(ConvertsToDataType, "Single")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CStrExpression()
             TestInMethod("Dim x = CStr$$(a)",
-                MainDescription("CStr(<expression>) As String"),
-                Documentation("Converts an expression to the String data type."))
+                MainDescription($"CStr({Expression1}) As String"),
+                Documentation(String.Format(ConvertsToDataType, "String")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CUIntExpression()
             TestInMethod("Dim x = CUInt$$(a)",
-                MainDescription("CUInt(<expression>) As UInteger"),
-                Documentation("Converts an expression to the UInteger data type."))
+                MainDescription($"CUInt({Expression1}) As UInteger"),
+                Documentation(String.Format(ConvertsToDataType, "UInteger")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CULngExpression()
             TestInMethod("Dim x = CULng$$(a)",
-                MainDescription("CULng(<expression>) As ULong"),
-                Documentation("Converts an expression to the ULong data type."))
+                MainDescription($"CULng({Expression1}) As ULong"),
+                Documentation(String.Format(ConvertsToDataType, "ULong")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CUShortExpression()
             TestInMethod("Dim x = CUShort$$(a)",
-                MainDescription("CUShort(<expression>) As UShort"),
-                Documentation("Converts an expression to the UShort data type."))
+                MainDescription($"CUShort({Expression1}) As UShort"),
+                Documentation(String.Format(ConvertsToDataType, "UShort")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub MidAssignmentStatement1()
             TestInMethod("$$Mid(""foo"", 0) = ""bar""",
-                MainDescription("Mid(<stringName>, <startIndex>, [<length>]) = <stringExpression>"),
-                Documentation("Replaces a specified number of characters in a String variable with characters from another string."))
+                MainDescription($"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}"),
+                Documentation(ReplacesChars))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub MidAssignmentStatement2()
             TestInMethod("$$Mid(""foo"", 0, 0) = ""bar""",
-                MainDescription("Mid(<stringName>, <startIndex>, [<length>]) = <stringExpression>"),
-                Documentation("Replaces a specified number of characters in a String variable with characters from another string."))
+                MainDescription($"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}"),
+                Documentation(ReplacesChars))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantField()
             TestInClass("const $$F = 1",
-                MainDescription("(constant) C.F As Integer = 1"))
+                MainDescription($"({FeaturesResources.Constant}) C.F As Integer = 1"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestMultipleConstantFields()
             TestInClass("Public Const X As Double = 1.0, Y As Double = 2.0, $$Z As Double = 3.5",
-                MainDescription("(constant) C.Z As Double = 3.5"))
+                MainDescription($"({FeaturesResources.Constant}) C.Z As Double = 3.5"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1237,7 +1299,7 @@ Class B
     Public Const Z As Integer = A.Y + 1
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription("(constant) A.X As Integer = B.Z + 1"))
+                MainDescription($"({FeaturesResources.Constant}) A.X As Integer = B.Z + 1"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1252,14 +1314,14 @@ Class B
     Public Const Z As Integer = A.X + 1
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription("(constant) A.X As Integer = B.Z + 1"))
+                MainDescription($"({FeaturesResources.Constant}) A.X As Integer = B.Z + 1"))
         End Sub
 
         <WorkItem(544620)>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantOverflow()
             TestInClass("Public Const $$Z As Integer = Integer.MaxValue + 1",
-                MainDescription("(constant) C.Z As Integer = Integer.MaxValue + 1"))
+                MainDescription($"({FeaturesResources.Constant}) C.Z As Integer = Integer.MaxValue + 1"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1280,7 +1342,7 @@ Public Class EnumTest
     End Sub
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription("(local constant) x As Integer = CInt(Days.Sun)"))
+                MainDescription($"({FeaturesResources.LocalConstant}) x As Integer = CInt(Days.Sun)"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1301,37 +1363,37 @@ Public Class EnumTest
     End Sub
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription("(local constant) x As Days = Days.Sun"))
+                MainDescription($"({FeaturesResources.LocalConstant}) x As Days = Days.Sun"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantParameter()
             TestInClass("Sub Bar(optional $$b as Integer = 1)",
-                MainDescription("(parameter) b As Integer = 1"))
+                MainDescription($"({FeaturesResources.Parameter}) b As Integer = 1"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantLocal()
             TestInMethod("const $$loc = 1",
-                MainDescription("(local constant) loc As Integer = 1"))
+                MainDescription($"({FeaturesResources.LocalConstant}) loc As Integer = 1"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumValue1()
             TestInMethod("Const $$sunday = DayOfWeek.Sunday",
-                MainDescription("(local constant) sunday As DayOfWeek = DayOfWeek.Sunday"))
+                MainDescription($"({FeaturesResources.LocalConstant}) sunday As DayOfWeek = DayOfWeek.Sunday"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumValue2()
             TestInMethod("Const $$v = AttributeTargets.Constructor or AttributeTargets.Class",
-                MainDescription("(local constant) v As AttributeTargets = AttributeTargets.Constructor or AttributeTargets.Class"))
+                MainDescription($"({FeaturesResources.LocalConstant}) v As AttributeTargets = AttributeTargets.Constructor or AttributeTargets.Class"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestComplexConstantParameter()
             TestInClass("Sub Bar(optional $$b as Integer = 1 + True)",
-                MainDescription("(parameter) b As Integer = 1 + True"))
+                MainDescription($"({FeaturesResources.Parameter}) b As Integer = 1 + True"))
         End Sub
 
         <WorkItem(546849)>
@@ -1372,9 +1434,9 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;Awaitable&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.foo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", "Usage:", "  Await foo()")
+            Dim doc = StringFromLines("", WorkspacesResources.Usage, $"  {VBFeaturesResources.Await} foo()")
 
             TestFromXml(markup,
                  MainDescription(description), Usage(doc))
@@ -1392,7 +1454,7 @@ Class C
     End Sub
 End Class
 ]]></Text>.NormalizedValue,
-                MainDescription("(Deprecated) Sub C.Foo()"))
+                MainDescription($"({VBFeaturesResources.Deprecated}) Sub C.Foo()"))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1706,7 +1768,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>Awaited task returns no value.</File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.PrefixTextForAwaitKeyword %><%= " " %><%= FeaturesResources.TextForSystemVoid %></File>.ConvertTestSourceTag()
 
             TestFromXml(markup, MainDescription(description))
         End Sub
@@ -1729,7 +1791,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>Awaited task returns Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.PrefixTextForAwaitKeyword %> Structure System.Int32</File>.ConvertTestSourceTag()
 
             TestFromXml(markup, MainDescription(description))
         End Sub
@@ -1751,7 +1813,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>Awaited task returns no value.</File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.PrefixTextForAwaitKeyword %><%= " " %><%= FeaturesResources.TextForSystemVoid %></File>.ConvertTestSourceTag()
 
             TestFromXml(markup, MainDescription(description))
         End Sub
@@ -1788,8 +1850,8 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;Awaitable&gt; Awaited task returns Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
-            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & "TResult is Integer"))
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= FeaturesResources.PrefixTextForAwaitKeyword %> Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
+            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.Is} Integer"))
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>
@@ -1824,7 +1886,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>Awaited task returns Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.PrefixTextForAwaitKeyword %> Structure System.Int32</File>.ConvertTestSourceTag()
             TestFromXml(markup, MainDescription(description))
         End Sub
 
@@ -1846,7 +1908,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;Awaitable&gt; Class System.Threading.Tasks.Task</File>.ConvertTestSourceTag()
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Class System.Threading.Tasks.Task</File>.ConvertTestSourceTag()
             TestFromXml(markup, MainDescription(description))
         End Sub
 
@@ -1868,8 +1930,8 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;Awaitable&gt; Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
-            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & "TResult is Integer"))
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
+            TestFromXml(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.Is} Integer"))
         End Sub
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
@@ -1911,7 +1973,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;Awaitable&gt; Class C</File>.ConvertTestSourceTag()
+            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Class C</File>.ConvertTestSourceTag()
             TestFromXml(markup, MainDescription(description))
         End Sub
 

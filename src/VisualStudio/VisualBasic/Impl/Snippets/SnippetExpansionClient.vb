@@ -5,7 +5,6 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -108,9 +107,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                 Return document
             End If
 
-            Dim root = document.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
 
-            Dim newRoot = root.AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
+            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
             Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)
@@ -120,8 +119,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         End Function
 
         Private Shared Function GetImportsStatementsToAdd(document As Document, snippetNode As XElement, importsNode As XElement, cancellationToken As CancellationToken) As IList(Of ImportsStatementSyntax)
-            Dim localImportsClauses = document.GetVisualBasicSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken).Imports.SelectMany(Function(x) x.ImportsClauses)
-            Dim globalImportsClauses = document.GetVisualBasicCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken).Options.GlobalImports.Select(Function(g) g.Clause)
+            Dim root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim localImportsClauses = CType(root, CompilationUnitSyntax).Imports.SelectMany(Function(x) x.ImportsClauses)
+            Dim compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim options = CType(compilation.Options, VisualBasicCompilationOptions)
+            Dim globalImportsClauses = options.GlobalImports.Select(Function(g) g.Clause)
 
             Dim membersImports = From clause In localImportsClauses.Union(globalImportsClauses).OfType(Of SimpleImportsClauseSyntax)
                                  Where clause.Alias Is Nothing

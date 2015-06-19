@@ -19,15 +19,13 @@ namespace Microsoft.CodeAnalysis.Scripting
         private readonly ImmutableArray<MetadataReference> _references;
         private readonly ImmutableArray<string> _namespaces;
         private readonly AssemblyReferenceResolver _referenceResolver;
-        private readonly bool _isCollectible;
         private readonly bool _isInteractive;
 
         public ScriptOptions()
             : this(ImmutableArray<MetadataReference>.Empty,
                   ImmutableArray<string>.Empty,
                   new AssemblyReferenceResolver(GacFileResolver.Default, MetadataFileReferenceProvider.Default),
-                  isInteractive: true,
-                  isCollectible: false)
+                  isInteractive: true)
         {
         }
 
@@ -47,14 +45,12 @@ namespace Microsoft.CodeAnalysis.Scripting
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
             AssemblyReferenceResolver referenceResolver,
-            bool isInteractive,
-            bool isCollectible)
+            bool isInteractive)
         {
             _references = references;
             _namespaces = namespaces;
             _referenceResolver = referenceResolver;
             _isInteractive = isInteractive;
-            _isCollectible = isCollectible;
         }
 
         /// <summary>
@@ -117,35 +113,27 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _isInteractive; }
         }
 
-        internal bool IsCollectible
-        {
-            get { return _isCollectible; }
-        }
-
         private ScriptOptions With(
             Optional<ImmutableArray<MetadataReference>> references = default(Optional<ImmutableArray<MetadataReference>>),
             Optional<ImmutableArray<string>> namespaces = default(Optional<ImmutableArray<string>>),
             Optional<AssemblyReferenceResolver> resolver = default(Optional<AssemblyReferenceResolver>),
-            Optional<bool> isInteractive = default(Optional<bool>),
-            Optional<bool> isCollectible = default(Optional<bool>))
+            Optional<bool> isInteractive = default(Optional<bool>))
         {
             var newReferences = references.HasValue ? references.Value : _references;
             var newNamespaces = namespaces.HasValue ? namespaces.Value : _namespaces;
             var newResolver = resolver.HasValue ? resolver.Value : _referenceResolver;
             var newIsInteractive = isInteractive.HasValue ? isInteractive.Value : _isInteractive;
-            var newIsCollectible = isCollectible.HasValue ? isCollectible.Value : _isCollectible;
 
             if (newReferences == _references &&
                 newNamespaces == _namespaces &&
                 newResolver == _referenceResolver &&
-                newIsInteractive == _isInteractive &&
-                newIsCollectible == _isCollectible)
+                newIsInteractive == _isInteractive)
             {
                 return this;
             }
             else
             {
-                return new ScriptOptions(newReferences, newNamespaces, newResolver, newIsInteractive, newIsCollectible);
+                return new ScriptOptions(newReferences, newNamespaces, newResolver, newIsInteractive);
             }
         }
 
@@ -207,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return WithReferences(assemblies.Select(MetadataReference.CreateFromAssembly));
+                return WithReferences(assemblies.Select(MetadataReference.CreateFromAssemblyInternal));
             }
         }
 
@@ -230,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return AddReferences(assemblies.Select(MetadataReference.CreateFromAssembly));
+                return AddReferences(assemblies.Select(MetadataReference.CreateFromAssemblyInternal));
             }
         }
 
@@ -479,11 +467,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ScriptOptions WithIsInteractive(bool isInteractive)
         {
             return With(isInteractive: isInteractive);
-        }
-
-        internal ScriptOptions WithIsCollectible(bool isCollectible)
-        {
-            return With(isCollectible: isCollectible);
         }
     }
 }

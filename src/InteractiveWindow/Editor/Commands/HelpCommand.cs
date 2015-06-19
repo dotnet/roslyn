@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
@@ -9,7 +12,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     {
         internal const string CommandName = "help";
 
-        private static readonly string[] Details = new[]
+        private static readonly string[] s_details = new[]
         {
             "  command-name    Name of the REPL command to display help on.",
         };
@@ -19,9 +22,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return "Display help on specified REPL command, or all available REPL commands and key bindings if none specified."; }
         }
 
-        public override string Name
+        public override IEnumerable<string> Names
         {
-            get { return CommandName; }
+            get { yield return CommandName; }
         }
 
         public override string CommandLine
@@ -58,11 +61,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             return ExecutionResult.Succeeded;
         }
 
-        private static readonly char[] whitespaceChars = new[] { '\r', '\n', ' ', '\t' };
+        private static readonly char[] s_whitespaceChars = new[] { '\r', '\n', ' ', '\t' };
 
         private bool ParseArguments(IInteractiveWindow window, string arguments, out string commandName, out IInteractiveWindowCommand command)
         {
-            string name = arguments.Split(whitespaceChars)[0];
+            string name = arguments.Split(s_whitespaceChars)[0];
 
             if (name.Length == 0)
             {
@@ -77,7 +80,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             // display help on a particular command:
             command = commands[name];
 
-            if (command == null && name.StartsWith(prefix))
+            if (command == null && name.StartsWith(prefix, StringComparison.Ordinal))
             {
                 name = name.Substring(prefix.Length);
                 command = commands[name];

@@ -2011,7 +2011,7 @@ return (i);
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ClrOnlyFact]
         [Trait("Feature", "Directives")]
         public void TestRegionWithSingleLineComment()
         {
@@ -2033,7 +2033,7 @@ return (i);
         }
 
         [WorkItem(2958, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ClrOnlyFact]
         [Trait("Feature", "Directives")]
         public void TestRegionWithInvalidSingleLineComment()
         {
@@ -2954,7 +2954,7 @@ class A { }
             var error = tree.GetDiagnostics().Single();
             Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
             string errorString = error.ToString();
-            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf("("));
+            string actualErrorStringFileName = errorString.Substring(0, errorString.IndexOf('('));
             Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
         }
 
@@ -3178,7 +3178,7 @@ x = 1;
             VerifyDirectivesSpecial(tree.GetCompilationUnitRoot(), new DirectiveInfo { Kind = SyntaxKind.LineDirectiveTrivia, Status = NodeStatus.IsActive, Number = 100, Text = "test.cs" });
 
             var diagnostics = tree.GetDiagnostics();
-            Assert.Contains("100", diagnostics.First().ToString()); // one-based line number
+            Assert.Contains("100", diagnostics.First().ToString(), StringComparison.Ordinal); // one-based line number
 
             var lineSpan = diagnostics.First().Location.GetMappedLineSpan();
             Assert.Equal(99, lineSpan.StartLinePosition.Line); // zero-based line number

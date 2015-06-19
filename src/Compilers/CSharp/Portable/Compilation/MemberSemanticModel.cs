@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _root = root;
             _memberSymbol = memberSymbol;
-            this.RootBinder = rootBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
+            this.RootBinder = rootBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
         }
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new TypeofBinder(typeOfArgument, binder);
             }
 
-            return binder.WithAdditionalFlags(BinderFlags.SemanticModel);
+            return binder.WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
         private static Binder AdjustBinderForPositionWithinStatement(int position, Binder binder, StatementSyntax stmt)
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var csdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var binder = this.GetEnclosingBinder(expression, GetAdjustedNodePosition(expression));
@@ -1202,11 +1202,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode outerLambda = GetOutermostLambdaOrQuery(innerLambda);
                 Debug.Assert(outerLambda != null);
                 Debug.Assert(outerLambda != this.Root);
-                CSharpSyntaxNode outerExpression = GetBindingRoot(outerLambda);
+                CSharpSyntaxNode nodeToBind = GetBindingRoot(outerLambda);
+
+                var statementBinder = GetEnclosingBinder(nodeToBind, position);
+                Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
                 using (_nodeMapLock.DisposableWrite())
                 {
-                    BoundNode boundOuterExpression = this.Bind(GetEnclosingBinder(outerExpression, position), outerExpression, _ignoredDiagnostics);
+                    BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
                     GuardedAddBoundTreeAndGetBoundNodeFromMap(innerLambda, boundOuterExpression);
                 }
             }
@@ -1246,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(result != null);
-            return result.WithAdditionalFlags(BinderFlags.SemanticModel);
+            return result.WithAdditionalFlags(GetSemanticModelBinderFlags());
         }
 
         /// <remarks>

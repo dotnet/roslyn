@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -46,21 +47,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // If user types a space, do not complete the " =" (space and equals) at the end of a named parameter. The
                 // typed space character will be passed through to the editor, and they can then type the '='.
-                if (ch == ' ' && displayText.EndsWith(SpaceEqualsString))
+                if (ch == ' ' && displayText.EndsWith(SpaceEqualsString, StringComparison.Ordinal))
                 {
                     return new TextChange(selectedItem.FilterSpan, displayText.Remove(displayText.Length - SpaceEqualsString.Length));
                 }
 
                 // If the user types '=', do not complete the '=' at the end of the named parameter because the typed '=' 
                 // will be passed through to the editor.
-                if (ch == '=' && displayText.EndsWith(EqualsString))
+                if (ch == '=' && displayText.EndsWith(EqualsString, StringComparison.Ordinal))
                 {
                     return new TextChange(selectedItem.FilterSpan, displayText.Remove(displayText.Length - EqualsString.Length));
                 }
 
                 // If the user types ':', do not complete the ':' at the end of the named parameter because the typed ':' 
                 // will be passed through to the editor.
-                if (ch == ':' && displayText.EndsWith(ColonString))
+                if (ch == ':' && displayText.EndsWith(ColonString, StringComparison.Ordinal))
                 {
                     return new TextChange(selectedItem.FilterSpan, displayText.Remove(displayText.Length - ColonString.Length));
                 }
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override async Task<bool> IsExclusiveAsync(Document document, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = syntaxTree.FindTokenOnLeftOfPosition(caretPosition, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(caretPosition);
 
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            var syntaxTree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken))
             {
                 return null;
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
 
             var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetCSharpSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
             var nameColonItems = await GetNameColonItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
             var nameEqualsItems = await GetNameEqualsItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
 

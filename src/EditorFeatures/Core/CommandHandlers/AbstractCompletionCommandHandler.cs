@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ICommandHandler<SurroundWithCommandArgs>,
         ICommandHandler<AutomaticLineEnderCommandArgs>,
         ICommandHandler<SaveCommandArgs>,
-        ICommandHandler<DeleteKeyCommandArgs>
+        ICommandHandler<DeleteKeyCommandArgs>,
+        ICommandHandler<SelectAllCommandArgs>
     {
         private readonly IAsyncCompletionService _completionService;
 
@@ -305,6 +306,18 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         public void ExecuteCommand(DeleteKeyCommandArgs args, Action nextHandler)
+        {
+            AssertIsForeground();
+            ExecuteCommandWorker(args, nextHandler);
+        }
+
+        public CommandState GetCommandState(SelectAllCommandArgs args, Func<CommandState> nextHandler)
+        {
+            AssertIsForeground();
+            return GetCommandStateWorker(args, nextHandler);
+        }
+
+        public void ExecuteCommand(SelectAllCommandArgs args, Action nextHandler)
         {
             AssertIsForeground();
             ExecuteCommandWorker(args, nextHandler);

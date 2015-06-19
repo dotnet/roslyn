@@ -12,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend NotInheritable Class GeneratedNames
         Friend Const DotReplacementInTypeNames As Char = "-"c
-        Private Const MethodNameSeparator As Char = "_"c
-        Private Const IdSeparator As Char = "-"c
-        Private Const GenerationSeparator As Char = "#"c
+        Private Const s_methodNameSeparator As Char = "_"c
+        Private Const s_idSeparator As Char = "-"c
+        Private Const s_generationSeparator As Char = "#"c
 
         ''' <summary>
         ''' Generates the name of a state machine's type.
@@ -46,20 +46,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return MakeMethodScopedSynthesizedName(StringConstants.DisplayClassPrefix, methodOrdinal, generation)
         End Function
 
-        Friend Shared Function MakeLambdaDisplayClassName(methodOrdinal As Integer, generation As Integer, scopeOrdinal As Integer, isDelegateRelaxation As Boolean) As String
-            Debug.Assert(scopeOrdinal >= 0)
+        Friend Shared Function MakeLambdaDisplayClassName(methodOrdinal As Integer, generation As Integer, closureOrdinal As Integer, closureGeneration As Integer, isDelegateRelaxation As Boolean) As String
+            Debug.Assert(closureOrdinal >= 0)
             Debug.Assert(methodOrdinal >= 0)
             Debug.Assert(generation >= 0)
 
             Dim prefix = If(isDelegateRelaxation, StringConstants.DelegateRelaxationDisplayClassPrefix, StringConstants.DisplayClassPrefix)
-            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, uniqueId:=scopeOrdinal, isTypeName:=True)
+            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, entityOrdinal:=closureOrdinal, entityGeneration:=closureGeneration, isTypeName:=True)
         End Function
 
         Friend Shared Function MakeDisplayClassGenericParameterName(parameterIndex As Integer) As String
             Return StringConstants.DisplayClassGenericParameterNamePrefix & StringExtensions.GetNumeral(parameterIndex)
         End Function
 
-        Friend Shared Function MakeLambdaMethodName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaKind As SynthesizedLambdaKind) As String
+        Friend Shared Function MakeLambdaMethodName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaGeneration As Integer, lambdaKind As SynthesizedLambdaKind) As String
             Debug.Assert(methodOrdinal >= -1)
             Debug.Assert(lambdaOrdinal >= 0)
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             StringConstants.DelegateRelaxationMethodNamePrefix,
                             StringConstants.LambdaMethodNamePrefix)
 
-            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, uniqueId:=lambdaOrdinal)
+            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, entityOrdinal:=lambdaOrdinal, entityGeneration:=lambdaGeneration)
         End Function
 
         ''' <summary>
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return StringConstants.LambdaCacheFieldPrefix
         End Function
 
-        Friend Shared Function MakeLambdaCacheFieldName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaKind As SynthesizedLambdaKind) As String
+        Friend Shared Function MakeLambdaCacheFieldName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaGeneration As Integer, lambdaKind As SynthesizedLambdaKind) As String
             Debug.Assert(methodOrdinal >= -1)
             Debug.Assert(lambdaOrdinal >= 0)
 
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             StringConstants.DelegateRelaxationCacheFieldPrefix,
                             StringConstants.LambdaCacheFieldPrefix)
 
-            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, uniqueId:=lambdaOrdinal)
+            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, entityOrdinal:=lambdaOrdinal, entityGeneration:=lambdaGeneration)
         End Function
 
         Friend Shared Function MakeDelegateRelaxationParameterName(parameterIndex As Integer) As String
@@ -94,13 +94,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared Function MakeMethodScopedSynthesizedName(prefix As String,
                                                                 methodOrdinal As Integer,
-                                                                generation As Integer,
+                                                                methodGeneration As Integer,
                                                                 Optional methodNameOpt As String = Nothing,
-                                                                Optional uniqueId As Integer = -1,
+                                                                Optional entityOrdinal As Integer = -1,
+                                                                Optional entityGeneration As Integer = -1,
                                                                 Optional isTypeName As Boolean = False) As String
             Debug.Assert(methodOrdinal >= -1)
-            Debug.Assert(generation >= 0)
-            Debug.Assert(uniqueId >= -1)
+            Debug.Assert(methodGeneration >= 0 OrElse methodGeneration = -1 AndAlso methodOrdinal = -1)
+            Debug.Assert(entityOrdinal >= -1)
+            Debug.Assert(entityGeneration >= 0 OrElse entityGeneration = -1 AndAlso entityOrdinal = -1)
+            Debug.Assert(entityGeneration = -1 OrElse entityGeneration >= methodGeneration)
 
             Dim result = PooledStringBuilder.GetInstance()
             Dim builder = result.Builder
@@ -110,23 +113,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If methodOrdinal >= 0 Then
                 builder.Append(methodOrdinal)
 
-                If generation > 0 Then
-                    builder.Append(GenerationSeparator)
-                    builder.Append(generation)
+                If methodGeneration > 0 Then
+                    builder.Append(s_generationSeparator)
+                    builder.Append(methodGeneration)
                 End If
             End If
 
-            If uniqueId >= 0 Then
+            If entityOrdinal >= 0 Then
                 If methodOrdinal >= 0 Then
                     ' Can't use underscore since name parser uses it to find the method name.
-                    builder.Append(IdSeparator)
+                    builder.Append(s_idSeparator)
                 End If
 
-                builder.Append(uniqueId)
+                builder.Append(entityOrdinal)
+
+                If entityGeneration > 0 Then
+                    builder.Append(s_generationSeparator)
+                    builder.Append(entityGeneration)
+                End If
             End If
 
             If methodNameOpt IsNot Nothing Then
-                builder.Append(MethodNameSeparator)
+                builder.Append(s_methodNameSeparator)
                 builder.Append(methodNameOpt)
 
                 ' CLR generally allows names with dots, however some APIs like IMetaDataImport
@@ -149,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
-            Dim separatorPos = stateMachineTypeName.IndexOf(MethodNameSeparator, prefixLength)
+            Dim separatorPos = stateMachineTypeName.IndexOf(s_methodNameSeparator, prefixLength)
             If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
                 Return False
             End If
@@ -212,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' All names should start with "$VB$Local_"
-            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix) Then
+            If Not proxyName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
@@ -228,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             index = 0
 
             ' All names should start with "$VB$ResumableLocal_"
-            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix) Then
+            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// get diagnostics of the given diagnostic ids from the given solution. all diagnostics returned should be up-to-date with respect to the given solution.
-        /// Note that for project case, this metHod returns diagnostics from all project documents as well. Use <see cref="GetProjectDiagnosticsForIdsAsync(Solution, ProjectId, ImmutableHashSet{string}, CancellationToken)"/>
+        /// Note that for project case, this method returns diagnostics from all project documents as well. Use <see cref="GetProjectDiagnosticsForIdsAsync(Solution, ProjectId, ImmutableHashSet{string}, CancellationToken)"/>
         /// if you want to fetch only project diagnostics without source locations.
         /// </summary>
         Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Solution solution, ProjectId projectId = null, DocumentId documentId = null, ImmutableHashSet<string> diagnosticIds = null, CancellationToken cancellationToken = default(CancellationToken));
@@ -70,5 +70,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <returns>A mapping from analyzer name to the diagnostics produced by that analyzer</returns>
         ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptors(Project projectOpt);
+
+        /// <summary>
+        /// Gets a list of the diagnostics provided by the given <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <returns>A list of the diagnostics produced by the given analyzer</returns>
+        ImmutableArray<DiagnosticDescriptor> GetDiagnosticDescriptors(DiagnosticAnalyzer analyzer);
+
+        /// <summary>
+        /// Check whether given diagnostic is compiler diagnostic or not
+        /// </summary>
+        bool IsCompilerDiagnostic(string language, DiagnosticData diagnostic);
+
+        /// <summary>
+        /// Get compiler analyzer for the given language
+        /// </summary>
+        DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string language);
+
+        /// <summary>
+        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compiler analyzer for the language or not.
+        /// </summary>
+        bool IsCompilerDiagnosticAnalyzer(string language, DiagnosticAnalyzer analyzer);
     }
 }

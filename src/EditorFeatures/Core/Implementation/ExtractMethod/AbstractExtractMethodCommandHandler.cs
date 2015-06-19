@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             }
 
             var reason = result.Reasons.FirstOrDefault();
-            var length = FeaturesResources.AsyncMethodWithRefOutParameters.IndexOf(":");
-            if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.AsyncMethodWithRefOutParameters.Substring(0, length), 0, length) >= 0)
+            var length = FeaturesResources.AsyncMethodWithRefOutParameters.IndexOf(':');
+            if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.AsyncMethodWithRefOutParameters.Substring(0, length), 0, length, StringComparison.Ordinal) >= 0)
             {
                 options = options.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, true);
                 var newResult = ExtractMethodService.ExtractMethodAsync(

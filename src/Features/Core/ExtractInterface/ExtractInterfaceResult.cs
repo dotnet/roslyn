@@ -4,9 +4,9 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 {
     internal sealed class ExtractInterfaceResult
     {
-        public bool Succeeded { get; private set; }
-        public Solution UpdatedSolution { get; private set; }
-        public DocumentId NavigationDocumentId { get; private set; }
+        public bool Succeeded { get; }
+        public Solution UpdatedSolution { get; }
+        public DocumentId NavigationDocumentId { get; }
 
         public ExtractInterfaceResult(bool succeeded, Solution updatedSolution = null, DocumentId navigationDocumentId = null)
         {

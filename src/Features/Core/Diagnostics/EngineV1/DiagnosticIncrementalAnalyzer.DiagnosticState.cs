@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
     {
         internal class DiagnosticState : AbstractAnalyzerState<object, object, AnalysisData>
         {
-            private const int FormatVersion = 5;
+            private const int FormatVersion = 6;
 
             private readonly string _stateName;
             private readonly VersionStamp _version;
@@ -118,23 +118,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                             return null;
                         }
 
-                        // saved data is for same provider of different version of dll
-                        var providerVersion = VersionStamp.ReadFrom(reader);
-                        if (providerVersion != _version)
+                        // saved data is for same analyzer of different version of dll
+                        var analyzerVersion = VersionStamp.ReadFrom(reader);
+                        if (analyzerVersion != _version)
                         {
                             return null;
                         }
 
                         var textVersion = VersionStamp.ReadFrom(reader);
                         var dataVersion = VersionStamp.ReadFrom(reader);
-                        if (textVersion == VersionStamp.Default || dataVersion == VersionStamp.Default)
+
+                        if (dataVersion == VersionStamp.Default)
                         {
                             return null;
                         }
 
                         AppendItems(reader, project, document, list, cancellationToken);
 
-                        return new AnalysisData(textVersion, dataVersion, list.ToImmutableArray<DiagnosticData>());
+                        return new AnalysisData(textVersion, dataVersion, list.ToImmutableArray());
                     }
                 }
                 catch (Exception)
@@ -187,8 +188,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var customTagsCount = reader.ReadInt32();
                     var customTags = GetCustomTags(reader, customTagsCount);
 
+                    var propertiesCount = reader.ReadInt32();
+                    var properties = GetProperties(reader, propertiesCount);
+
                     list.Add(new DiagnosticData(
-                        id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags,
+                        id, category, message, messageFormat, severity, defaultSeverity, isEnabledByDefault, warningLevel, customTags, properties,
                         project.Solution.Workspace, project.Id, document != null ? document.Id : null, document != null ? textSpan : (TextSpan?)null,
                         mappedFile, mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn,
                         originalFile, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
@@ -196,6 +200,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         description: description,
                         helpLink: helpLink));
                 }
+            }
+
+            private ImmutableDictionary<string, string> GetProperties(ObjectReader reader, int count)
+            {
+                if (count > 0)
+                {
+                    var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                    for (var i = 0; i < count; i++)
+                    {
+                        properties.Add(reader.ReadString(), reader.ReadString());
+                    }
+
+                    return properties.ToImmutable();
+                }
+
+                return ImmutableDictionary<string, string>.Empty;
             }
 
             private static IReadOnlyList<string> GetCustomTags(ObjectReader reader, int count)
@@ -245,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         writer.WriteString(item.Category);
 
                         writer.WriteString(item.Message);
-                        writer.WriteString(item.MessageFormat);
+                        writer.WriteString(item.ENUMessageForBingSearch);
                         writer.WriteString(item.Title);
                         writer.WriteString(item.Description);
                         writer.WriteString(item.HelpLink);
@@ -283,6 +303,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         foreach (var tag in item.CustomTags)
                         {
                             writer.WriteString(tag);
+                        }
+
+                        writer.WriteInt32(item.Properties.Count);
+                        foreach (var property in item.Properties)
+                        {
+                            writer.WriteString(property.Key);
+                            writer.WriteString(property.Value);
                         }
                     }
                 }

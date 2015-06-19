@@ -1152,7 +1152,7 @@ class Test
 }
 ";
             // Note: This test is exercising a case that is 'Runtime Ambiguous'. In the generated IL, it is ambiguous which
-            // method is being overriden. As far as I can tell, the output won't change from build to build / machine to machine
+            // method is being overridden. As far as I can tell, the output won't change from build to build / machine to machine
             // although it may change from one version of the CLR to another (not sure). If it turns out that this makes
             // the test flaky, we can delete this test.
 
@@ -2151,7 +2151,7 @@ public class Derived2 : Base<int>
     public sealed override List<int> Property1 { protected set { } }
     public sealed override List<int> Property2 { protected get { return null; } }
 }";
-            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitOptions: TestEmitters.RefEmitBug, expectedSignatures: new[]
+            var comp = CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, expectedSignatures: new[]
             {
                 Signature("Derived", "get_Property1", ".method public hidebysig specialname virtual final instance System.Collections.Generic.List`1[System.Int32] get_Property1() cil managed"),
                 Signature("Derived", "set_Property1", ".method family hidebysig specialname virtual final instance System.Void set_Property1(System.Collections.Generic.List`1[System.Int32] value) cil managed"),
@@ -3388,19 +3388,18 @@ namespace Metadata
                 text,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 expectedOutput: @"Hello 3",
-                emitOptions: TestEmitters.RefEmitUnsupported_646023,
                 expectedSignatures: new[]
                 {
-                // The ILDASM output is following,and Roslyn handles it correctly. 
-                // Verifier tool gives different output due to the limitation of Reflection
-                // @".method public hidebysig virtual instance System.Void Method<X>(" +
-                // @"System.String modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x," +
-                // @"UInt64 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) y," +
-                // @"!!X modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) z) cil managed")
-                Signature("Metadata.GD", "Method",
-                        @".method public hidebysig virtual instance System.Void Method<X>(" +
-                        @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
-                        @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
+                    // The ILDASM output is following,and Roslyn handles it correctly. 
+                    // Verifier tool gives different output due to the limitation of Reflection
+                    // @".method public hidebysig virtual instance System.Void Method<X>(" +
+                    // @"System.String modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) x," +
+                    // @"UInt64 modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) y," +
+                    // @"!!X modopt([mscorlib]System.Runtime.CompilerServices.IsConst)[] modopt([mscorlib]System.Runtime.CompilerServices.IsConst) z) cil managed")
+                    Signature("Metadata.GD", "Method",
+                              @".method public hidebysig virtual instance System.Void Method<X>(" +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.String[] x, " +
+                              @"modopt(System.Runtime.CompilerServices.IsConst) System.UInt64[] y, modopt(System.Runtime.CompilerServices.IsConst) X[] z) cil managed"),
                 });
         }
 
@@ -3958,7 +3957,7 @@ class B : A
                 }
             };
 
-            var verifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
+            var verifier = CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true), expectedOutput: @"System.Int32[]");
         }
 
         [WorkItem(543158, "DevDiv")]
@@ -4011,7 +4010,7 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions: TestEmitters.RefEmitBug);
+            var cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
             var vb2Compilation = CreateVisualBasicCompilation("VB2",
@@ -4054,7 +4053,6 @@ public class Program
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
             var cs2Verifier = CompileAndVerify(cs2Compilation,
-                emitOptions: TestEmitters.RefEmitBug,
                 expectedOutput: @"C3");
             cs2Verifier.VerifyDiagnostics();
         }
@@ -4081,7 +4079,7 @@ public abstract class C2 : C1
 }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { vb1Compilation });
-            var cs1Verifier = CompileAndVerify(cs1Compilation, emitOptions: TestEmitters.RefEmitBug);
+            var cs1Verifier = CompileAndVerify(cs1Compilation);
             cs1Verifier.VerifyDiagnostics();
 
             var vb2Compilation = CreateVisualBasicCompilation("VB2",
@@ -4126,8 +4124,7 @@ public class Program
 }",
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new Compilation[] { vb1Compilation, cs1Compilation, vb2Compilation });
-            var cs2Verifier = CompileAndVerify(cs2Compilation,
-                emitOptions: TestEmitters.RefEmitBug, expectedOutput: @"C4
+            var cs2Verifier = CompileAndVerify(cs2Compilation, expectedOutput: @"C4
 C2");
             cs2Verifier.VerifyDiagnostics();
         }

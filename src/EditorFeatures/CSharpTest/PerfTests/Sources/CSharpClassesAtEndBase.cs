@@ -2047,7 +2047,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinition( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionElementFactoryCreator Instance
 		{
@@ -2168,7 +2168,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Notation( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static NotationElementFactoryCreator Instance
 		{
@@ -2289,7 +2289,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Explorer( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ExplorerElementFactoryCreator Instance
 		{
@@ -2401,7 +2401,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertiesWindow( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertiesWindowElementFactoryCreator Instance
 		{
@@ -2885,7 +2885,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValidationBehavior( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValidationBehaviorElementFactoryCreator Instance
 		{
@@ -3527,7 +3527,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Diagram( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramElementFactoryCreator Instance
 		{
@@ -4174,7 +4174,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Connector( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorElementFactoryCreator Instance
 		{
@@ -4287,7 +4287,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Toolbox( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ToolboxElementFactoryCreator Instance
 		{
@@ -5229,7 +5229,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ToolboxItem( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ToolboxItemElementFactoryCreator Instance
 		{
@@ -5731,7 +5731,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeTool( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeToolElementFactoryCreator Instance
 		{
@@ -6233,7 +6233,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorTool( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorToolElementFactoryCreator Instance
 		{
@@ -6735,7 +6735,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentTextTool( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentTextToolElementFactoryCreator Instance
 		{
@@ -7301,7 +7301,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramMapElementFactoryCreator Instance
 		{
@@ -7921,7 +7921,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapElementFactoryCreator Instance
 		{
@@ -8469,7 +8469,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeTextMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeTextMapElementFactoryCreator Instance
 		{
@@ -8693,7 +8693,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ExplorerNode( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ExplorerNodeElementFactoryCreator Instance
 		{
@@ -9370,7 +9370,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ElementNode( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ElementNodeElementFactoryCreator Instance
 		{
@@ -10213,7 +10213,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CollectionNode( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CollectionNodeElementFactoryCreator Instance
 		{
@@ -10733,7 +10733,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertySet( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertySetElementFactoryCreator Instance
 		{
@@ -10957,7 +10957,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramElementDetails( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramElementDetailsElementFactoryCreator Instance
 		{
@@ -11148,7 +11148,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ColorDetails( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ColorDetailsElementFactoryCreator Instance
 		{
@@ -11726,7 +11726,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeDecorator( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeDecoratorElementFactoryCreator Instance
 		{
@@ -11951,7 +11951,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeText( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeTextElementFactoryCreator Instance
 		{
@@ -12176,7 +12176,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeIcon( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeIconElementFactoryCreator Instance
 		{
@@ -12279,7 +12279,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ExpandCollapse( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ExpandCollapseElementFactoryCreator Instance
 		{
@@ -12857,7 +12857,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorDecorator( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorDecoratorElementFactoryCreator Instance
 		{
@@ -13082,7 +13082,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorText( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorTextElementFactoryCreator Instance
 		{
@@ -13306,7 +13306,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorIcon( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorIconElementFactoryCreator Instance
 		{
@@ -13497,7 +13497,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DashStyleDetails( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DashStyleDetailsElementFactoryCreator Instance
 		{
@@ -13721,7 +13721,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.NodeRendering( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static NodeRenderingElementFactoryCreator Instance
 		{
@@ -14344,7 +14344,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ClassNodeRendering( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ClassNodeRenderingElementFactoryCreator Instance
 		{
@@ -14569,7 +14569,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CollectionNodeRendering( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CollectionNodeRenderingElementFactoryCreator Instance
 		{
@@ -15036,7 +15036,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Shape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeElementFactoryCreator Instance
 		{
@@ -15471,7 +15471,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.OutlinedShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static OutlinedShapeElementFactoryCreator Instance
 		{
@@ -15825,7 +15825,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentShapeElementFactoryCreator Instance
 		{
@@ -16049,7 +16049,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.GeometryShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static GeometryShapeElementFactoryCreator Instance
 		{
@@ -16273,7 +16273,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PathShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PathShapeElementFactoryCreator Instance
 		{
@@ -16497,7 +16497,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ImageShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ImageShapeElementFactoryCreator Instance
 		{
@@ -17165,7 +17165,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Compartment( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentElementFactoryCreator Instance
 		{
@@ -17268,7 +17268,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ListCompartment( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ListCompartmentElementFactoryCreator Instance
 		{
@@ -17924,7 +17924,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapElementFactoryCreator Instance
 		{
@@ -18472,7 +18472,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeIconMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeIconMapElementFactoryCreator Instance
 		{
@@ -19020,7 +19020,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorTextMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorTextMapElementFactoryCreator Instance
 		{
@@ -19477,7 +19477,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorIconMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorIconMapElementFactoryCreator Instance
 		{
@@ -19625,7 +19625,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.SourceMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static SourceMapElementFactoryCreator Instance
 		{
@@ -19773,7 +19773,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.TargetMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static TargetMapElementFactoryCreator Instance
 		{
@@ -20360,7 +20360,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorEnd( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorEndElementFactoryCreator Instance
 		{
@@ -20984,7 +20984,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ObjectModel( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ObjectModelElementFactoryCreator Instance
 		{
@@ -21087,7 +21087,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ModelNavigationExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ModelNavigationExpressionElementFactoryCreator Instance
 		{
@@ -21190,7 +21190,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValueExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValueExpressionElementFactoryCreator Instance
 		{
@@ -21692,7 +21692,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValuePropertyExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValuePropertyExpressionElementFactoryCreator Instance
 		{
@@ -21916,7 +21916,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.XPathValueExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static XPathValueExpressionElementFactoryCreator Instance
 		{
@@ -22019,7 +22019,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.MelCollectionExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static MelCollectionExpressionElementFactoryCreator Instance
 		{
@@ -22243,7 +22243,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.XPathMelCollectionExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static XPathMelCollectionExpressionElementFactoryCreator Instance
 		{
@@ -22745,7 +22745,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.RoleExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static RoleExpressionElementFactoryCreator Instance
 		{
@@ -23413,7 +23413,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.RoleProperty( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static RolePropertyElementFactoryCreator Instance
 		{
@@ -23951,7 +23951,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValuePropertyBooleanExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValuePropertyBooleanExpressionElementFactoryCreator Instance
 		{
@@ -24417,7 +24417,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.EnumerationBooleanExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static EnumerationBooleanExpressionElementFactoryCreator Instance
 		{
@@ -25010,7 +25010,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentMapElementFactoryCreator Instance
 		{
@@ -25642,7 +25642,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.Validation( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValidationElementFactoryCreator Instance
 		{
@@ -25796,7 +25796,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinitionHasNotation( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionHasNotationElementFactoryCreator Instance
 		{
@@ -25950,7 +25950,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinitionHasExplorer( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionHasExplorerElementFactoryCreator Instance
 		{
@@ -26104,7 +26104,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinitionHasPropertiesWindow( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionHasPropertiesWindowElementFactoryCreator Instance
 		{
@@ -26258,7 +26258,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinitionHasValidationBehavior( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionHasValidationBehaviorElementFactoryCreator Instance
 		{
@@ -26412,7 +26412,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.NotationHasDiagrams( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static NotationHasDiagramsElementFactoryCreator Instance
 		{
@@ -26566,7 +26566,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramHasShapes( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramHasShapesElementFactoryCreator Instance
 		{
@@ -26720,7 +26720,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramHasConnectors( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramHasConnectorsElementFactoryCreator Instance
 		{
@@ -26874,7 +26874,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramHasToolbox( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramHasToolboxElementFactoryCreator Instance
 		{
@@ -27028,7 +27028,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ToolboxHasItems( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ToolboxHasItemsElementFactoryCreator Instance
 		{
@@ -27182,7 +27182,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.NotationHasDiagramMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static NotationHasDiagramMapsElementFactoryCreator Instance
 		{
@@ -27336,7 +27336,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramMapReferencesDiagram( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramMapReferencesDiagramElementFactoryCreator Instance
 		{
@@ -27490,7 +27490,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinitionReferencesObjectModel( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionReferencesObjectModelElementFactoryCreator Instance
 		{
@@ -27644,7 +27644,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramMapHasShapeMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramMapHasShapeMapsElementFactoryCreator Instance
 		{
@@ -27798,7 +27798,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMapHasTextMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapHasTextMapsElementFactoryCreator Instance
 		{
@@ -27952,7 +27952,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.TextMapHasTextDecorator( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static TextMapHasTextDecoratorElementFactoryCreator Instance
 		{
@@ -28106,7 +28106,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeHasFillColor( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeHasFillColorElementFactoryCreator Instance
 		{
@@ -28260,7 +28260,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMapReferencesShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapReferencesShapeElementFactoryCreator Instance
 		{
@@ -28414,7 +28414,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ExplorerHasRoots( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ExplorerHasRootsElementFactoryCreator Instance
 		{
@@ -28568,7 +28568,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ClassNodeReferencesClass( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ClassNodeReferencesClassElementFactoryCreator Instance
 		{
@@ -28722,7 +28722,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.NodeTypeHasChildCollections( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static NodeTypeHasChildCollectionsElementFactoryCreator Instance
 		{
@@ -28876,7 +28876,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CollectionNodeReferencesSortProperty( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CollectionNodeReferencesSortPropertyElementFactoryCreator Instance
 		{
@@ -29030,7 +29030,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertiesWindowHasPropertiesSet( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertiesWindowHasPropertiesSetElementFactoryCreator Instance
 		{
@@ -29184,7 +29184,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertiesSetReferencesClass( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertiesSetReferencesClassElementFactoryCreator Instance
 		{
@@ -29338,7 +29338,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertiesSetReferencesValuePropertyExceptions( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertiesSetReferencesValuePropertyExceptionsElementFactoryCreator Instance
 		{
@@ -29492,7 +29492,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertiesSetReferencesRolesToDisplay( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertiesSetReferencesRolesToDisplayElementFactoryCreator Instance
 		{
@@ -29646,7 +29646,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValidationBehaviorReferencesContextMenuGroups( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValidationBehaviorReferencesContextMenuGroupsElementFactoryCreator Instance
 		{
@@ -29800,7 +29800,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValidationBehaviorReferencesLoadGroups( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValidationBehaviorReferencesLoadGroupsElementFactoryCreator Instance
 		{
@@ -29954,7 +29954,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValidationBehaviorReferencesSaveGroups( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValidationBehaviorReferencesSaveGroupsElementFactoryCreator Instance
 		{
@@ -30108,7 +30108,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ClassNodeHasRendering( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ClassNodeHasRenderingElementFactoryCreator Instance
 		{
@@ -30262,7 +30262,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CollectionNodeHasRendering( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CollectionNodeHasRenderingElementFactoryCreator Instance
 		{
@@ -30416,7 +30416,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CollectionNodeHasChildNodes( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CollectionNodeHasChildNodesElementFactoryCreator Instance
 		{
@@ -30570,7 +30570,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ExplorerHasDefaultRendering( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ExplorerHasDefaultRenderingElementFactoryCreator Instance
 		{
@@ -30724,7 +30724,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentShapeHasCompartments( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentShapeHasCompartmentsElementFactoryCreator Instance
 		{
@@ -30878,7 +30878,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramMapHasConnectorMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramMapHasConnectorMapsElementFactoryCreator Instance
 		{
@@ -31032,7 +31032,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMapHasTextMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapHasTextMapsElementFactoryCreator Instance
 		{
@@ -31186,7 +31186,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMapReferencesClass( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapReferencesClassElementFactoryCreator Instance
 		{
@@ -31340,7 +31340,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMapHasConnector( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapHasConnectorElementFactoryCreator Instance
 		{
@@ -31494,7 +31494,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMapHasIconMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapHasIconMapsElementFactoryCreator Instance
 		{
@@ -31648,7 +31648,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorHasDecorators( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorHasDecoratorsElementFactoryCreator Instance
 		{
@@ -31802,7 +31802,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeToolReferencesShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeToolReferencesShapeElementFactoryCreator Instance
 		{
@@ -31956,7 +31956,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentTextToolReferencesTextCompartment( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentTextToolReferencesTextCompartmentElementFactoryCreator Instance
 		{
@@ -32110,7 +32110,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorToolReferencesConnector( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorToolReferencesConnectorElementFactoryCreator Instance
 		{
@@ -32264,7 +32264,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.OutlinedShapeHasOutlineColor( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static OutlinedShapeHasOutlineColorElementFactoryCreator Instance
 		{
@@ -32418,7 +32418,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorTextMapReferencesTextDecorator( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorTextMapReferencesTextDecoratorElementFactoryCreator Instance
 		{
@@ -32572,7 +32572,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMapHasIconMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapHasIconMapsElementFactoryCreator Instance
 		{
@@ -32726,7 +32726,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMapHasSourceMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapHasSourceMapElementFactoryCreator Instance
 		{
@@ -32880,7 +32880,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorMapHasTargetMap( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorMapHasTargetMapElementFactoryCreator Instance
 		{
@@ -33034,7 +33034,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorHasTarget( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorHasTargetElementFactoryCreator Instance
 		{
@@ -33188,7 +33188,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorEndHasShape( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorEndHasShapeElementFactoryCreator Instance
 		{
@@ -33342,7 +33342,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorHasConnectorEnd( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorHasConnectorEndElementFactoryCreator Instance
 		{
@@ -33496,7 +33496,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ModelValuePropertyExpressionHasModelValueProperty( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ModelValuePropertyExpressionHasModelValuePropertyElementFactoryCreator Instance
 		{
@@ -33650,7 +33650,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ModelRoleExpressionHasModelRole( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ModelRoleExpressionHasModelRoleElementFactoryCreator Instance
 		{
@@ -33804,7 +33804,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CollectionNodeHasMelCollectionExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CollectionNodeHasMelCollectionExpressionElementFactoryCreator Instance
 		{
@@ -33958,7 +33958,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.SourceMapHasModelNavigationExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static SourceMapHasModelNavigationExpressionElementFactoryCreator Instance
 		{
@@ -34112,7 +34112,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.TargetMapHasModelNavigationExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static TargetMapHasModelNavigationExpressionElementFactoryCreator Instance
 		{
@@ -34266,7 +34266,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeTextMapHasValueExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeTextMapHasValueExpressionElementFactoryCreator Instance
 		{
@@ -34420,7 +34420,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.PropertySetHasRoleProperties( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static PropertySetHasRolePropertiesElementFactoryCreator Instance
 		{
@@ -34574,7 +34574,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.RolePropertyHasStringToDisplay( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static RolePropertyHasStringToDisplayElementFactoryCreator Instance
 		{
@@ -34728,7 +34728,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DiagramMapReferencesClass( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DiagramMapReferencesClassElementFactoryCreator Instance
 		{
@@ -34882,7 +34882,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMapHasModelNavigationExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapHasModelNavigationExpressionElementFactoryCreator Instance
 		{
@@ -35036,7 +35036,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMapReferencesClass( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapReferencesClassElementFactoryCreator Instance
 		{
@@ -35190,7 +35190,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ClassNodeRenderingReferencesClass( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ClassNodeRenderingReferencesClassElementFactoryCreator Instance
 		{
@@ -35344,7 +35344,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ObjectModelHasModel( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ObjectModelHasModelElementFactoryCreator Instance
 		{
@@ -35498,7 +35498,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorHasDashStyle( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorHasDashStyleElementFactoryCreator Instance
 		{
@@ -35652,7 +35652,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorHasColor( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorHasColorElementFactoryCreator Instance
 		{
@@ -35806,7 +35806,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ConnectorTextMapHasValueExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ConnectorTextMapHasValueExpressionElementFactoryCreator Instance
 		{
@@ -35960,7 +35960,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DecoratedShapeHasDecorators( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DecoratedShapeHasDecoratorsElementFactoryCreator Instance
 		{
@@ -36114,7 +36114,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.EnumerationLiteralChoiceHasCdlEnumerationLiteral( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static EnumerationLiteralChoiceHasCdlEnumerationLiteralElementFactoryCreator Instance
 		{
@@ -36268,7 +36268,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeIconMapHasShapeIcon( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeIconMapHasShapeIconElementFactoryCreator Instance
 		{
@@ -36422,7 +36422,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ValuePropertyBooleanExpressionHasCdlValueProperty( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ValuePropertyBooleanExpressionHasCdlValuePropertyElementFactoryCreator Instance
 		{
@@ -36576,7 +36576,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeIconMapHasVisibilityExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeIconMapHasVisibilityExpressionElementFactoryCreator Instance
 		{
@@ -36730,7 +36730,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.ShapeMapHasCompartmentMaps( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static ShapeMapHasCompartmentMapsElementFactoryCreator Instance
 		{
@@ -36884,7 +36884,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentMapReferencesCompartment( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentMapReferencesCompartmentElementFactoryCreator Instance
 		{
@@ -37038,7 +37038,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentMapHasMelCollectionExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentMapHasMelCollectionExpressionElementFactoryCreator Instance
 		{
@@ -37192,7 +37192,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentMapHasValueExpression( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentMapHasValueExpressionElementFactoryCreator Instance
 		{
@@ -37346,7 +37346,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentHasCompartmentFillColor( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentHasCompartmentFillColorElementFactoryCreator Instance
 		{
@@ -37500,7 +37500,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.CompartmentHasTitleFillColor( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static CompartmentHasTitleFillColorElementFactoryCreator Instance
 		{
@@ -37653,7 +37653,7 @@ namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 			return new Microsoft.VisualStudio.Modeling.DesignerDefinition.DesignerDefinitionHasValidation( partition, bag );
 		}
 		/// <summary>
-		/// Create an instance of the createor object
+		/// Create an instance of the creator object
 		/// </summary>
 		public static DesignerDefinitionHasValidationElementFactoryCreator Instance
 		{

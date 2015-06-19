@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
                 low = unchecked((int)args[4].DecodeValue<uint>(SpecialType.System_UInt32));
             }
 
-            return Microsoft.CodeAnalysis.ConstantValue.Create(new decimal(low, mid, high, isNegative, scale));
+            return ConstantValue.Create(new decimal(low, mid, high, isNegative, scale));
         }
 
         internal ConstantValue DecodeDateTimeConstantValue()
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis
         internal static AttributeUsageInfo DecodeAttributeUsageAttribute(TypedConstant positionalArg, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArgs)
         {
             // BREAKING CHANGE (C#):
-            //   If the well known attribute class System.AttributeUsage is overriden in source,
+            //   If the well known attribute class System.AttributeUsage is overridden in source,
             //   we will use the overriding AttributeUsage type for attribute usage validation,
             //   i.e. we try to find a constructor in that type with signature AttributeUsage(AttributeTargets)
             //   and public bool properties Inherited and AllowMultiple.

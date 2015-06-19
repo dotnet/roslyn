@@ -95,8 +95,8 @@ class Methods
                 // (13,18): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1;  // Too long
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(13, 18), // Would be nice not to report on the backing field.
-                                                                                                                                          // (13,18): error CS7013: Name 'add_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
-                                                                                                                                          //     event Action LongSymbolName + 1;  // Too long
+                                                                                                                                              // (13,18): error CS7013: Name 'add_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
+                                                                                                                                              //     event Action LongSymbolName + 1;  // Too long
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments("add_" + s_longSymbolName + 1).WithLocation(13, 18),
                 // (13,18): error CS7013: Name 'remove_LongSymbolName + 1' exceeds the maximum length allowed in metadata.
                 //     event Action LongSymbolName + 1;  // Too long
@@ -381,7 +381,7 @@ class E
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, s_longSymbolName + 1).WithArguments(s_longSymbolName + 1).WithLocation(10, 1037));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Locals()
         {
             var sourceTemplate = @"
@@ -405,7 +405,7 @@ class C
                 Diagnostic(ErrorCode.WRN_PdbLocalNameTooLong, s_longLocalName + 1).WithArguments(s_longLocalName + 1).WithLocation(7, 13));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ConstantLocals()
         {
             var sourceTemplate = @"
@@ -448,7 +448,7 @@ class C
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0).Length - 1;
+            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0, 0).Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source);

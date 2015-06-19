@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Done:
             If namedType Is Nothing Then
-                If fullEmittedName.FullName.StartsWith("Microsoft.CodeAnalysis.VisualBasic.Syntax.SyntaxList") Then
+                If fullEmittedName.FullName.StartsWith("Microsoft.CodeAnalysis.VisualBasic.Syntax.SyntaxList", StringComparison.Ordinal) Then
                     Stop
                 End If
 
@@ -519,7 +519,7 @@ Done:
             Return result
         End Function
 
-        Friend Sub AddMemeberIfExtension(bucket As ArrayBuilder(Of MethodSymbol), member As Symbol)
+        Friend Sub AddMemberIfExtension(bucket As ArrayBuilder(Of MethodSymbol), member As Symbol)
             If member.Kind = SymbolKind.Method Then
                 Dim method = DirectCast(member, MethodSymbol)
 
@@ -530,7 +530,7 @@ Done:
         End Sub
 
         ''' <summary>
-        ''' This method is overriden by RetargetingNamespaceSymbol and allows it to delegate majority of the work 
+        ''' This method is overridden by RetargetingNamespaceSymbol and allows it to delegate majority of the work 
         ''' to the underlying namespace symbol, but still retarget method symbols before they are added to the map
         ''' of extension methods.
         ''' </summary>

@@ -590,7 +590,7 @@ public class A
     ~A() { }
 }
 ";
-            CompileAndVerify(text, assemblyValidator: (assembly, _) =>
+            CompileAndVerify(text, assemblyValidator: (assembly) =>
             {
                 var peFileReader = assembly.GetMetadataReader();
 
@@ -616,7 +616,7 @@ public class A
                 // Find the handle for System.Object's destructor.
                 MemberReferenceHandle handleDestructorObject = peFileReader.MemberReferences.AsEnumerable().
                     Select(handle => new { handle = handle, row = peFileReader.GetMemberReference(handle) }).
-                    Single(pair => pair.row.Parent == (Handle)handleObject &&
+                    Single(pair => pair.row.Parent == (EntityHandle)handleObject &&
                         peFileReader.GetString(pair.row.Name) == WellKnownMemberNames.DestructorName).handle;
 
 
@@ -629,10 +629,10 @@ public class A
                 Assert.Equal(handleA, methodImpl.Type);
 
                 // The MethodDeclaration column should point to System.Object.Finalize.
-                Assert.Equal((Handle)handleDestructorObject, methodImpl.MethodDeclaration);
+                Assert.Equal((EntityHandle)handleDestructorObject, methodImpl.MethodDeclaration);
 
                 // The MethodDeclarationColumn should point to A's destructor.
-                Assert.Equal((Handle)handleDestructorA, methodImpl.MethodBody);
+                Assert.Equal((EntityHandle)handleDestructorA, methodImpl.MethodBody);
             });
         }
 

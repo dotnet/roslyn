@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _dictionary = null;
             }
 
-            if (_pool != null)
-            {
-                _pool.Free(this);
-            }
+            _pool?.Free(this);
         }
 
         // global pool
@@ -158,16 +155,16 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         /// <summary>
-        /// Get the number of values assocaited with a key.
+        /// Get the number of values associated with a key.
         /// </summary>
         public int GetCountForKey(K k)
         {
             object item;
             if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
             {
-                var arrayBuilder = item as ArrayBuilder<V>;
-                return arrayBuilder != null ? arrayBuilder.Count : 1;
+                return (item as ArrayBuilder<V>)?.Count ?? 1;
             }
+
             return 0;
         }
 

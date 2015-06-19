@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundByRefArgumentWithCopyBack
+    Friend Partial Class BoundByRefArgumentWithCopyBack
 #If DEBUG Then
         Private Sub Validate()
             Debug.Assert(OriginalArgument.IsSupportingAssignment())

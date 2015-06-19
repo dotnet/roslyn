@@ -101,7 +101,7 @@ class C
     {
         Foo {|DeclConflict:x|} = new Foo(FooMeth);
         int [|$$z|] = 1; // Rename z to x
-        {|unresolve1:x|}({|unresolve2:z|});
+        x({|unresolve2:z|});
     }
 }
                             </Document>
@@ -109,7 +109,6 @@ class C
                     </Workspace>, renameTo:="x")
 
                 result.AssertLabeledSpansAre("DeclConflict", type:=RelatedLocationType.UnresolvedConflict)
-                result.AssertLabeledSpansAre("unresolve1", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansAre("unresolve2", "x", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
@@ -2723,7 +2722,7 @@ End Class
 
         <WorkItem(866094)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub Bug866094_DaveTest()
+        Public Sub Bug866094()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6692,6 +6691,84 @@ class {|Conflict:foo|}
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "// foo BAR! foo!")
             End Using
         End Sub
+
 #End Region
+
+#Region "Rename In NameOf"
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_NoOverloads_CSharp()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+}
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Mo")
+
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_WithOverloads_CSharp()
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$M|]()
+    {
+        nameof(M).ToString();
+    }
+
+    void M(int x)
+    {
+    }
+}
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Mo")
+
+            End Using
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameMethodWithNameof_WithOverloads_WithRenameOverloadsOption_CSharp()
+            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
+            renamingOptions.Add(RenameOptions.RenameOverloads, True)
+            Using result = RenameEngineResult.Create(
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$M|]()
+    {
+        nameof([|M|]).ToString();
+    }
+
+    void [|M|](int x)
+    {
+    }
+}
+]]>
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Mo", changedOptionSet:=renamingOptions)
+
+            End Using
+        End Sub
+#End Region
+
     End Class
 End Namespace

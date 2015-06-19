@@ -3,8 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     public partial struct SyntaxTriviaList
     {
         /// <summary>
-        /// reversed enumerable
+        /// Reversed enumerable.
         /// </summary>
         public struct Reversed : IEnumerable<SyntaxTrivia>, IEquatable<Reversed>
         {
@@ -38,7 +37,8 @@ namespace Microsoft.CodeAnalysis
                 return new ReversedEnumeratorImpl(ref _list);
             }
 
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            IEnumerator 
+                IEnumerable.GetEnumerator()
             {
                 if (_list.Count == 0)
                 {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
             public override bool Equals(object obj)
             {
-                return (obj is Reversed) && Equals((Reversed)obj);
+                return obj is Reversed && Equals((Reversed)obj);
             }
 
             public bool Equals(Reversed other)
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis
                 return _list.Equals(other._list);
             }
 
+            [StructLayout(LayoutKind.Auto)]
             public struct Enumerator
             {
                 private readonly SyntaxToken _token;
@@ -79,9 +80,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (list.Any())
                     {
-                        _token = list._token;
-                        _singleNodeOrList = list._node;
-                        _baseIndex = list._index;
+                        _token = list.Token;
+                        _singleNodeOrList = list.Node;
+                        _baseIndex = list.Index;
                         _count = list.Count;
 
                         _index = _count;
@@ -132,15 +133,9 @@ namespace Microsoft.CodeAnalysis
                     _enumerator = new Enumerator(ref list);
                 }
 
-                public SyntaxTrivia Current
-                {
-                    get { return _enumerator.Current; }
-                }
+                public SyntaxTrivia Current => _enumerator.Current;
 
-                object IEnumerator.Current
-                {
-                    get { return _enumerator.Current; }
-                }
+                object IEnumerator.Current => _enumerator.Current;
 
                 public bool MoveNext()
                 {

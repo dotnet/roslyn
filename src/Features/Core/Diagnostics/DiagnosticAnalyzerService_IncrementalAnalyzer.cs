@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // subscribe to active context changed event for new workspace
             workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
-            return new IncrementalAnalyzerDelegatee(this, workspace, _workspaceAnalyzerManager);
+            return new IncrementalAnalyzerDelegatee(this, workspace, _hostAnalyzerManager, _hostDiagnosticUpdateSource);
         }
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
@@ -60,27 +59,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
-            private readonly Workspace _workspace;
-            private readonly WorkspaceAnalyzerManager _workspaceAnalyzerManager;
-            private readonly DiagnosticAnalyzerService _owner;
-
             // v1 diagnostic engine
             private readonly EngineV1.DiagnosticIncrementalAnalyzer _engineV1;
 
             // v2 diagnostic engine - for now v1
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
-            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, WorkspaceAnalyzerManager workspaceAnalyzerManager)
+            public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+                : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
             {
-                _workspace = workspace;
-                _workspaceAnalyzerManager = workspaceAnalyzerManager;
-                _owner = owner;
-
                 var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(_owner, v1CorrelationId, _workspace, _workspaceAnalyzerManager);
+                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(owner, v1CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
 
                 var v2CorrelationId = LogAggregator.GetNextId();
-                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(_owner, v2CorrelationId, _workspace, _workspaceAnalyzerManager);
+                _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(owner, v2CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
             }
 
             #region IIncrementalAnalyzer
@@ -102,6 +94,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
             {
                 return Analyzer.DocumentOpenAsync(document, cancellationToken);
+            }
+
+            public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return Analyzer.DocumentCloseAsync(document, cancellationToken);
             }
 
             public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
@@ -176,11 +173,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             #endregion
 
+            #region build synchronization
+            public override Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                return Analyzer.SynchronizeWithBuildAsync(project, diagnostics);
+            }
+
+            public override Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
+            {
+                return Analyzer.SynchronizeWithBuildAsync(document, diagnostics);
+            }
+            #endregion
+
             public void TurnOff(bool useV2)
             {
                 var turnedOffAnalyzer = GetAnalyzer(!useV2);
 
-                foreach (var project in _workspace.CurrentSolution.Projects)
+                foreach (var project in Workspace.CurrentSolution.Projects)
                 {
                     foreach (var document in project.Documents)
                     {
@@ -196,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 get
                 {
-                    var option = _workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
+                    var option = Workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2);
                     return GetAnalyzer(option);
                 }
             }

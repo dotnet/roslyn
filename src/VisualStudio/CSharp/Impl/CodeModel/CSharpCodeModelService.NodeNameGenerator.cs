@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -141,11 +142,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             private static void AppendOperatorName(StringBuilder builder, SyntaxKind kind)
             {
                 var name = "#op_" + kind.ToString();
-                if (name.EndsWith("Keyword"))
+                if (name.EndsWith("Keyword", StringComparison.Ordinal))
                 {
                     name = name.Substring(0, name.Length - 7);
                 }
-                else if (name.EndsWith("Token"))
+                else if (name.EndsWith("Token", StringComparison.Ordinal))
                 {
                     name = name.Substring(0, name.Length - 5);
                 }

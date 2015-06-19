@@ -13,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
     Friend NotInheritable Class VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer
         Inherits RemoveUnnecessaryCastDiagnosticAnalyzerBase(Of SyntaxKind)
 
-        Private Shared ReadOnly _kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.CTypeExpression,
+        Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(SyntaxKind.CTypeExpression,
                                                                                                           SyntaxKind.DirectCastExpression,
                                                                                                           SyntaxKind.TryCastExpression,
                                                                                                           SyntaxKind.PredefinedCastExpression)
         Public Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
             Get
-                Return _kindsOfInterest
+                Return s_kindsOfInterest
             End Get
         End Property
 

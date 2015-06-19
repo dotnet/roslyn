@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class ModuleMetadataTests : TestBase
     {
-        private char _systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
+        private readonly char _systemDrive = Environment.GetFolderPath(Environment.SpecialFolder.Windows)[0];
 
         [Fact]
         public unsafe void CreateFromMetadata_Errors()
@@ -129,6 +129,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ObjectDisposedException>(() => m.Module);
             Assert.Throws<ObjectDisposedException>(() => copy1.Module);
             Assert.Throws<ObjectDisposedException>(() => copy2.Module);
+        }
+
+        [Fact, WorkItem(2988, "https://github.com/dotnet/roslyn/issues/2988")]
+        public void EmptyStream()
+        {
+            ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.Default);
+            Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata));
+            Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata | PEStreamOptions.PrefetchEntireImage));
         }
     }
 }

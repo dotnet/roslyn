@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundLValueToRValueWrapper
+    Friend Partial Class BoundLValueToRValueWrapper
 
 #If DEBUG Then
         Private Sub Validate()

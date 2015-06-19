@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -285,7 +285,7 @@ void foo()
         }
 
         // Convert integer to Enum instance
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void ConvertOnEnum()
         {
             var source =
@@ -383,7 +383,7 @@ class c1
         }
 
         // The literal 0 implicitly converts to any enum type. 
-        [Fact]
+        [ClrOnlyFact]
         public void ZeroInEnum()
         {
             var source =
@@ -589,7 +589,7 @@ public enum Enum2 : byte { A2, B2 };
 
         [WorkItem(5030, "DevDiv_Projects/Roslyn")]
         // Operator on enum member 
-        [Fact]
+        [ClrOnlyFact]
         public void OperatorOnEnumMember()
         {
             var source =

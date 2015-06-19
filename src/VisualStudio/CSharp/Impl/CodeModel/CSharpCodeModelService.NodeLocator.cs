@@ -50,6 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
+                    case SyntaxKind.ConversionOperatorDeclaration:
                         return GetStartPoint(text, (BaseMethodDeclarationSyntax)node, part);
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.IndexerDeclaration:
@@ -95,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     case SyntaxKind.ConstructorDeclaration:
                     case SyntaxKind.DestructorDeclaration:
                     case SyntaxKind.OperatorDeclaration:
+                    case SyntaxKind.ConversionOperatorDeclaration:
                         return GetEndPoint(text, (BaseMethodDeclarationSyntax)node, part);
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.IndexerDeclaration:
@@ -121,20 +123,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         Debug.Fail("Unsupported node kind: " + node.Kind());
                         throw new NotSupportedException();
                 }
-            }
-
-            private SyntaxToken GetFirstTokenAfterAttributes(BaseTypeDeclarationSyntax node)
-            {
-                return node.AttributeLists.Count != 0
-                    ? node.AttributeLists.Last().GetLastToken().GetNextToken()
-                    : node.GetFirstToken();
-            }
-
-            private SyntaxToken GetFirstTokenAfterAttributes(BaseMethodDeclarationSyntax node)
-            {
-                return node.AttributeLists.Count != 0
-                    ? node.AttributeLists.Last().GetLastToken().GetNextToken()
-                    : node.GetFirstToken();
             }
 
             private VirtualTreePoint GetBodyStartPoint(SourceText text, SyntaxToken openBrace)
@@ -300,7 +288,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         throw Exceptions.ThrowENotImpl();
 
                     case EnvDTE.vsCMPart.vsCMPartHeader:
-                        startPosition = GetFirstTokenAfterAttributes(node).SpanStart;
+                        startPosition = node.GetFirstTokenAfterAttributes().SpanStart;
                         break;
 
                     case EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter:
@@ -348,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         throw Exceptions.ThrowENotImpl();
 
                     case EnvDTE.vsCMPart.vsCMPartHeader:
-                        startPosition = GetFirstTokenAfterAttributes(node).SpanStart;
+                        startPosition = node.GetFirstTokenAfterAttributes().SpanStart;
                         break;
 
                     case EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter:
@@ -391,7 +379,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                                     startPosition = ((OperatorDeclarationSyntax)node).OperatorToken.SpanStart;
                                     break;
                                 default:
-                                    startPosition = GetFirstTokenAfterAttributes(node).SpanStart;
+                                    startPosition = node.GetFirstTokenAfterAttributes().SpanStart;
                                     break;
                             }
                         }
@@ -927,7 +915,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                                     endPosition = ((OperatorDeclarationSyntax)node).OperatorToken.Span.End;
                                     break;
                                 default:
-                                    endPosition = GetFirstTokenAfterAttributes(node).Span.End;
+                                    endPosition = node.GetFirstTokenAfterAttributes().Span.End;
                                     break;
                             }
                         }

@@ -147,6 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 last = statement;
             }
 
+            // expression bodied member case
+            var expressionBodiedMember = this.GetContainingScopeOf<ArrowExpressionClauseSyntax>();
+            if (expressionBodiedMember != null)
+            {
+                // the class declaration is the innermost statement container, since the method does not have a block body
+                return expressionBodiedMember.Parent.Parent;
+            }
+
             // constructor initializer case
             var constructorInitializer = this.GetContainingScopeOf<ConstructorInitializerSyntax>();
             if (constructorInitializer != null)

@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             const string AttributeSuffix = "Attribute";
 
-            return state.IsAttribute && !state.NameIsVerbatim && !state.Name.EndsWith(AttributeSuffix)
+            return state.IsAttribute && !state.NameIsVerbatim && !state.Name.EndsWith(AttributeSuffix, StringComparison.Ordinal)
                 ? state.Name + AttributeSuffix
                 : state.Name;
         }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             if (semanticModel != null)
             {
                 var namespaceSymbol = semanticModel.GetEnclosingNamespace(triggeringPosition, cancellationToken);
-                if (namespaceSymbol != null && namespaceSymbol.ToDisplayString().StartsWith(includeUsingsOrImports))
+                if (namespaceSymbol != null && namespaceSymbol.ToDisplayString().StartsWith(includeUsingsOrImports, StringComparison.Ordinal))
                 {
                     return true;
                 }

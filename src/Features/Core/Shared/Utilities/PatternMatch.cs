@@ -9,19 +9,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// The weight of a CamelCase match. A higher number indicates a more accurate match.
         /// </summary>
-        public int? CamelCaseWeight { get; private set; }
+        public int? CamelCaseWeight { get; }
 
         /// <summary>
         /// True if this was a case sensitive match.
         /// </summary>
-        public bool IsCaseSensitive { get; private set; }
+        public bool IsCaseSensitive { get; }
 
         /// <summary>
         /// The type of match that occurred.
         /// </summary>
-        public PatternMatchKind Kind { get; private set; }
+        public PatternMatchKind Kind { get; }
 
-        private bool _punctuationStripped;
+        private readonly bool _punctuationStripped;
 
         internal PatternMatch(PatternMatchKind resultType, bool punctuationStripped, bool isCaseSensitive, int? camelCaseWeight = null)
             : this()
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         }
 
-        private int ComparePunctuation(PatternMatch result1, PatternMatch result2)
+        internal static int ComparePunctuation(PatternMatch result1, PatternMatch result2)
         {
             // Consider a match to be better if it was successful without stripping punctuation
             // versus a match that had to strip punctuation to succeed.
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         }
 
-        private static int CompareCase(PatternMatch result1, PatternMatch result2)
+        internal static int CompareCase(PatternMatch result1, PatternMatch result2)
         {
             if (result1.IsCaseSensitive != result2.IsCaseSensitive)
             {
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return 0;
         }
 
-        private static int CompareType(PatternMatch result1, PatternMatch result2)
+        internal static int CompareType(PatternMatch result1, PatternMatch result2)
         {
             return result1.Kind - result2.Kind;
         }
 
-        private static int CompareCamelCase(PatternMatch result1, PatternMatch result2)
+        internal static int CompareCamelCase(PatternMatch result1, PatternMatch result2)
         {
             if (result1.Kind == PatternMatchKind.CamelCase && result2.Kind == PatternMatchKind.CamelCase)
             {

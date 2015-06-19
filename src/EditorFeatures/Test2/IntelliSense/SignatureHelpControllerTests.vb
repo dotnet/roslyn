@@ -16,6 +16,8 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
+#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class SignatureHelpControllerTests
@@ -96,6 +98,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             GetMocks(controller).PresenterSession.Verify(Sub(p) p.SelectNextItem(), Times.Once)
         End Sub
 
+        <WorkItem(1181, "https://github.com/dotnet/roslyn/issues/1181")>
+        <Fact>
+        Public Sub UpAndDownKeysShouldStillNavigateWhenDuplicateItemsAreFiltered()
+            Dim item = CreateItems(1).Single()
+            Dim controller = CreateController(items:={item, item}, waitForPresentation:=True)
+
+            Dim handled = controller.TryHandleUpKey()
+
+            Assert.False(handled)
+            GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
+        End Sub
+
         <Fact>
         Public Sub CaretMoveWithActiveSessionShouldRecomputeModel()
             Dim controller = CreateController(waitForPresentation:=True)
@@ -133,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         ' Create an empty document to use as a non-null parameter when needed
-        Private Shared ReadOnly Document As Document =
+        Private Shared ReadOnly s_document As Document =
             (Function()
                  Dim workspace = TestWorkspaceFactory.CreateWorkspace(
                      <Workspace>
@@ -144,12 +158,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                      </Workspace>)
                  Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
              End Function)()
-        Private Shared ReadOnly BufferFactory As ITextBufferFactoryService = DirectCast(Document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
+        Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
 
-        Private Shared ReadOnly ControllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
+        Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
         Private Shared Function GetMocks(controller As Controller) As ControllerMocks
             Dim result As ControllerMocks = Nothing
-            Roslyn.Utilities.Contract.ThrowIfFalse(ControllerMocksMap.TryGetValue(controller, result))
+            Roslyn.Utilities.Contract.ThrowIfFalse(s_controllerMocksMap.TryGetValue(controller, result))
             Return result
         End Function
 
@@ -159,13 +173,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As ISignatureHelpProvider = Nothing,
                                                  Optional waitForPresentation As Boolean = False,
                                                  Optional triggerSession As Boolean = True) As Controller
-            Dim buffer = BufferFactory.CreateTextBuffer()
+            Dim buffer = s_bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
-                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(Document))
-                documentProvider.Setup(Function(p) p.GetOpenDocumentInCurrentContextWithChanges(It.IsAny(Of ITextSnapshot))).Returns(Document)
+                documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(s_document))
+                documentProvider.Setup(Function(p) p.GetOpenDocumentInCurrentContextWithChanges(It.IsAny(Of ITextSnapshot))).Returns(s_document)
             End If
 
             If provider Is Nothing Then
@@ -185,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 documentProvider.Object,
                 {provider})
 
-            ControllerMocksMap.Add(controller, New ControllerMocks(
+            s_controllerMocksMap.Add(controller, New ControllerMocks(
                       view,
                       buffer,
                       presenter,
@@ -211,18 +225,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend Class MockSignatureHelpProvider
             Implements ISignatureHelpProvider
 
-            Private ReadOnly items As IList(Of SignatureHelpItem)
+            Private ReadOnly _items As IList(Of SignatureHelpItem)
 
             Public Sub New(items As IList(Of SignatureHelpItem))
-                Me.items = items
+                Me._items = items
             End Sub
 
             Public Property GetItemsCount As Integer
 
             Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
                 GetItemsCount += 1
-                Return Task.FromResult(If(items.Any(),
-                                       New SignatureHelpItems(items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),
+                Return Task.FromResult(If(_items.Any(),
+                                       New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),
                                        Nothing))
             End Function
 

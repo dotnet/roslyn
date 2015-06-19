@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static private void RemoveTrailingComma(StringBuilder sb)
         {
-            if (sb.ToString().EndsWith(", "))
+            if (sb.ToString().EndsWith(", ", StringComparison.Ordinal))
             {
                 sb.Length -= 2;
             }
@@ -485,10 +485,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (property.Attributes.HasFlag(PropertyAttributes.SpecialName)) sb.Append("specialname ");
             if (property.Attributes.HasFlag(PropertyAttributes.RTSpecialName)) sb.Append("rtspecialname ");
 
-            var propertyAccesors = property.GetAccessors();
-            if (propertyAccesors.Length > 0)
+            var propertyAccessors = property.GetAccessors();
+            if (propertyAccessors.Length > 0)
             {
-                sb.Append(propertyAccesors[0].IsStatic ? "static " : "instance ");
+                sb.Append(propertyAccessors[0].IsStatic ? "static " : "instance ");
             }
             AppendType(property.PropertyType, sb);
             sb.Append(" ");

@@ -4,7 +4,6 @@ Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -14,7 +13,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Debugging
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
     <ExportLanguageService(GetType(IProximityExpressionsService), LanguageNames.VisualBasic), [Shared]>
-    Partial Class VisualBasicProximityExpressionsService
+    Friend Partial Class VisualBasicProximityExpressionsService
         Implements IProximityExpressionsService
 
         Public Async Function GetProximityExpressionsAsync(
@@ -22,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
             position As Integer,
             cancellationToken As CancellationToken) As Task(Of IList(Of String)) Implements IProximityExpressionsService.GetProximityExpressionsAsync
 
-            Dim tree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Return [Do](tree, position, cancellationToken)
         End Function
 
@@ -55,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
             cancellationToken As CancellationToken) As Task(Of Boolean) Implements IProximityExpressionsService.IsValidAsync
 
             Dim expression = SyntaxFactory.ParseExpression(expressionValue)
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim token = root.FindToken(position)
 
             ' The debugger stops on "End Sub" and we want to see locals and/or parameters at that point, 

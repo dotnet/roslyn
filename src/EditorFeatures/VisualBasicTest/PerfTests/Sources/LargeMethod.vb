@@ -47,7 +47,7 @@ Public Class LargeMethodTest
             Return False
         End Function
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c1.abst(ref string, params int[])")
             Return 0

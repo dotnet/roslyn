@@ -29,65 +29,74 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         {
         }
 
-        private CodeFunction ParentElement
+        private ImmutableArray<EnvDTE.CodeElement> _overloads;
+
+        private CodeFunction ParentElement => (CodeFunction)this.Parent;
+
+        private ImmutableArray<EnvDTE.CodeElement> GetOverloads()
         {
-            get { return (CodeFunction)Parent; }
-        }
-
-        private ImmutableArray<EnvDTE.CodeElement> EnumerateOverloads()
-        {
-            var symbol = (IMethodSymbol)ParentElement.LookupSymbol();
-
-            // Only methods and constructors can be overloaded.  However, all functions
-            // can successfully return a collection of overloaded functions; if not
-            // really overloaded, the collection contains just the original function.
-            if (symbol.MethodKind != MethodKind.Ordinary &&
-                symbol.MethodKind != MethodKind.Constructor)
+            // Retrieving the overloads is potentially very expensive because it can force multiple FileCodeModels to be instantiated.
+            // Here, we cache the result to avoid having to perform these calculations each time GetOverloads() is called.
+            // This *could* be an issue because it means that an OverloadsCollection will not necessarily reflect the
+            // current state of the user's code. However, because a new OverloadsCollection is created everytime the Overloads
+            // property is accessed on CodeFunction, consumers would hit this behavior rarely.
+            if (this._overloads == null)
             {
-                return ImmutableArray.Create((EnvDTE.CodeElement)Parent);
-            }
+                var symbol = (IMethodSymbol)ParentElement.LookupSymbol();
 
-            var overloadsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
-            foreach (var method in symbol.ContainingType.GetMembers(symbol.Name))
-            {
-                if (method.Kind != SymbolKind.Method)
+                // Only methods and constructors can be overloaded.  However, all functions
+                // can successfully return a collection of overloaded functions; if not
+                // really overloaded, the collection contains just the original function.
+                if (symbol.MethodKind != MethodKind.Ordinary &&
+                    symbol.MethodKind != MethodKind.Constructor)
                 {
-                    continue;
+                    return ImmutableArray.Create((EnvDTE.CodeElement)Parent);
                 }
 
-                var location = method.Locations.FirstOrDefault(l => l.IsInSource);
-                if (location != null)
+                var solution = this.Workspace.CurrentSolution;
+
+                var overloadsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
+                foreach (var method in symbol.ContainingType.GetMembers(symbol.Name))
                 {
-                    var tree = location.SourceTree;
-                    var document = this.Workspace.CurrentSolution.GetDocument(tree);
-
-                    var fileCodeModelObject = this.Workspace.GetFileCodeModel(document.Id);
-                    var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fileCodeModelObject);
-
-                    var element = fileCodeModel.CodeElementFromPosition(location.SourceSpan.Start, EnvDTE.vsCMElement.vsCMElementFunction);
-                    if (element != null)
+                    if (method.Kind != SymbolKind.Method)
                     {
-                        overloadsBuilder.Add(element);
+                        continue;
+                    }
+
+                    var location = method.Locations.FirstOrDefault(l => l.IsInSource);
+                    if (location != null)
+                    {
+                        var document = solution.GetDocument(location.SourceTree);
+                        if (document != null)
+                        {
+                            var fileCodeModelObject = this.Workspace.GetFileCodeModel(document.Id);
+                            if (fileCodeModelObject != null)
+                            {
+                                var fileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fileCodeModelObject);
+
+                                var element = fileCodeModel.CodeElementFromPosition(location.SourceSpan.Start, EnvDTE.vsCMElement.vsCMElementFunction);
+                                if (element != null)
+                                {
+                                    overloadsBuilder.Add(element);
+                                }
+                            }
+                        }
                     }
                 }
+
+                this._overloads = overloadsBuilder.ToImmutable();
             }
 
-            return overloadsBuilder.ToImmutable();
+            return this._overloads;
         }
 
-        public override int Count
-        {
-            get
-            {
-                return EnumerateOverloads().Length;
-            }
-        }
+        internal override Snapshot CreateSnapshot() => new CodeElementSnapshot(GetOverloads());
 
         protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
         {
-            if (index >= 0 && index < EnumerateOverloads().Length)
+            if (index >= 0 && index < GetOverloads().Length)
             {
-                element = EnumerateOverloads()[index];
+                element = GetOverloads()[index];
                 return true;
             }
 
@@ -100,5 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             element = null;
             return false;
         }
+
+        public override int Count => GetOverloads().Length;
     }
 }

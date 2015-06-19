@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this is a submission project.
         /// </summary>
-        public bool IsSubmission
+        internal bool IsSubmission
         {
             get
             {
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _solution.GetCompilationAsync(this.Id, cancellationToken);
+            return _solution.GetCompilationAsync(this, cancellationToken);
         }
 
         /// <summary>
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (oldProject == null)
             {
-                throw new ArgumentNullException("oldProject");
+                throw new ArgumentNullException(nameof(oldProject));
             }
 
             return new ProjectChanges(this, oldProject);

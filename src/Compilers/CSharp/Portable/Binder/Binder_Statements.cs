@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
-            var symbol = result.Symbols.Count != 0 ?
+            var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
                 (LabelSymbol)result.Symbols.First() :
                 new SourceLabelSymbol((MethodSymbol)ContainingMemberOrLambda, node.Identifier);
 
@@ -1399,7 +1399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)containing != null &&
                         fieldIsStatic == containing.IsStatic &&
                         (fieldIsStatic || fieldAccess.ReceiverOpt.Kind == BoundKind.ThisReference) &&
-                        fieldSymbol.ContainingType == containing.ContainingType)
+                        (Compilation.FeatureStrictEnabled
+                            ? fieldSymbol.ContainingType == containing.ContainingType
+                            // We duplicate a bug in the native compiler for compatibility in non-strict mode
+                            : fieldSymbol.ContainingType.OriginalDefinition == containing.ContainingType.OriginalDefinition))
                     {
                         if (containing.Kind == SymbolKind.Method)
                         {
@@ -1749,7 +1752,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // NOTE: availability of well-known members is checked in BindEventAssignment because
                         // we don't have the context to determine whether addition or subtraction is being performed.
 
-                        if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                        if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
+                            return false;
+                        }
+                        else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                         {
                             // NOTE: BindEventAssignment checks use site errors on the specific accessor 
                             // (since we don't know which is being used).
@@ -1951,11 +1959,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)sourceProperty != null &&
                     sourceProperty.IsAutoProperty &&
                     sourceProperty.ContainingType == fromMember.ContainingType &&
-                    ((MethodSymbol)fromMember).MethodKind == (propertyIsStatic ? MethodKind.StaticConstructor
-                                                                                : MethodKind.Constructor) &&
-                   (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
+                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
         }
 
+        private static bool IsConstructorOrField(Symbol member, bool isStatic)
+        {
+            return  (member as MethodSymbol)?.MethodKind == (isStatic ?
+                                                                MethodKind.StaticConstructor :
+                                                                MethodKind.Constructor) ||
+                    (member as FieldSymbol)?.IsStatic == isStatic;
+        }
 
         /// <summary>
         /// SPEC: When a property or indexer declared in a struct-type is the target of an 
@@ -2829,7 +2843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (arg != null)
             {
-                hasErrors = arg.HasAnyErrors;
+                hasErrors = arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
             else
             {
@@ -2900,15 +2914,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // Check that the returned expression is not void. "return void" is not allowed anywhere outside
-                // expression-lambdas.
-                //
-                // Note: in the case of "return void" in non-async lambdas used in return-type-inference,
-                // simply return "void" as the inferred return type and give an error if that didn't work.
-                // We can't follow the same route in async methods, since empty-return-operands become a "Task"
-                // return type.
-
-                if ((object)arg?.Type != null && IsInAsyncMethod() && arg.Type.SpecialType == SpecialType.System_Void)
+                // Check that the returned expression is not void.
+                if ((object)arg?.Type != null && arg.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(diagnostics, ErrorCode.ERR_CantReturnVoid, expressionSyntax);
                 }

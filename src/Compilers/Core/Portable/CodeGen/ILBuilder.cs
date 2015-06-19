@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // debug sequence points from all blocks, note that each 
         // sequence point references absolute IL offset via IL marker
-        public ArrayBuilder<RawSequencePoint> SeqPointsOpt = null;
+        public ArrayBuilder<RawSequencePoint> SeqPointsOpt;
 
         /// <summary> 
         /// In some cases we have to get a final IL offset during emit phase, for example for
@@ -53,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// will be put into allocatedILMarkers array. Note that only markers from reachable blocks 
         /// are materialized, the rest will have offset -1.
         /// </summary>
-        private ArrayBuilder<ILMarker> _allocatedILMarkers = null;
+        private ArrayBuilder<ILMarker> _allocatedILMarkers;
 
         // Since blocks are created lazily in GetCurrentBlock,
         // pendingBlockCreate is set to true when a block must be
         // created, in particular for leader blocks in exception handlers.
-        private bool _pendingBlockCreate = false;
+        private bool _pendingBlockCreate;
 
         internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations)
         {
@@ -172,15 +171,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private ExceptionHandlerScope EnclosingExceptionHandler
-        {
-            get { return _scopeManager.EnclosingExceptionHandler; }
-        }
+        private ExceptionHandlerScope EnclosingExceptionHandler => _scopeManager.EnclosingExceptionHandler;
 
-        internal bool InExceptionHandler
-        {
-            get { return this.EnclosingExceptionHandler != null; }
-        }
+        internal bool InExceptionHandler => this.EnclosingExceptionHandler != null;
 
         /// <summary>
         /// Realizes method body.
@@ -201,10 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// Gets all scopes that contain variables.
         /// </summary>
-        internal ImmutableArray<Cci.LocalScope> GetAllScopes()
-        {
-            return _scopeManager.GetAllScopesWithLocals();
-        }
+        internal ImmutableArray<Cci.LocalScope> GetAllScopes() => _scopeManager.GetAllScopesWithLocals();
 
         /// <summary>
         /// Gets all scopes that contain variables.
@@ -236,13 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        internal ushort MaxStack
-        {
-            get
-            {
-                return (ushort)_emitState.MaxStack;
-            }
-        }
+        internal ushort MaxStack => (ushort)_emitState.MaxStack;
 
         /// <summary>
         /// IL opcodes emitted by this builder.
@@ -254,13 +238,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// Example: a label will not result in any code so when emitting debugging information 
         ///          an extra NOP may be needed if we want to decorate the label with sequence point. 
         /// </summary>
-        internal int InstructionsEmitted
-        {
-            get
-            {
-                return _emitState.InstructionsEmitted;
-            }
-        }
+        internal int InstructionsEmitted => _emitState.InstructionsEmitted;
 
         /// <summary>
         /// Marks blocks that are reachable.
@@ -316,10 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     if (branchCode == ILOpCode.Endfinally)
                     {
                         var enclosingFinally = block.EnclosingHandler;
-                        if (enclosingFinally != null)
-                        {
-                            enclosingFinally.UnblockFinally();
-                        }
+                        enclosingFinally?.UnblockFinally();
                     }
                 }
 
@@ -653,15 +628,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return true;
                 }
 
-                var contanerScope = currentHandler.ContainingExceptionScope;
-                if (!contanerScope.FinallyOnly())
+                var containerScope = currentHandler.ContainingExceptionScope;
+                if (!containerScope.FinallyOnly())
                 {
                     // this may move the label outside of catch-protected region
                     // we will disallow that.
                     return false;
                 }
 
-                currentHandler = contanerScope.ContainingHandler;
+                currentHandler = containerScope.ContainingHandler;
             } while (currentHandler != null);
 
             return false;
@@ -908,11 +883,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     }
                 }
 
-                var bits = block.RegularInstructions;
-                if (bits != null)
-                {
-                    bits.WriteTo(realizedIlBitStream);
-                }
+                block.RegularInstructions?.WriteTo(realizedIlBitStream);
 
                 switch (block.BranchCode)
                 {
@@ -1161,9 +1132,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         internal bool PossiblyDefinedOutsideOfTry(LocalDefinition local)
-        {
-            return _scopeManager.PossiblyDefinedOutsideOfTry(local);
-        }
+            => _scopeManager.PossiblyDefinedOutsideOfTry(local);
 
         /// <summary>
         /// Marks the end of filter condition and start of the actual filter handler.

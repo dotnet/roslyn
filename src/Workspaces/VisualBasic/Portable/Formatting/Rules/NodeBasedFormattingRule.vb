@@ -119,6 +119,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim baseToken = multiLineLambda.SubOrFunctionHeader.GetFirstToken(includeZeroWidth:=True)
                 Dim lastBeginningToken = If(multiLineLambda.SubOrFunctionHeader.GetLastToken().Kind = SyntaxKind.None, multiLineLambda.SubOrFunctionHeader.GetLastToken(includeZeroWidth:=True), multiLineLambda.SubOrFunctionHeader.GetLastToken())
 
+                SetAlignmentBlockOperation(operations, baseToken,
+                                        baseToken.GetNextToken(includeZeroWidth:=True),
+                                        multiLineLambda.GetLastToken(includeZeroWidth:=True))
+
                 AddIndentBlockOperation(operations, baseToken,
                                         lastBeginningToken.GetNextToken(includeZeroWidth:=True),
                                         multiLineLambda.EndSubOrFunctionStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True))
@@ -148,9 +152,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Dim caseBlock = TryCast(node, CaseBlockSyntax)
-            If caseBlock IsNot Nothing AndAlso pair.Item2.GetNextToken().IsKind(SyntaxKind.CaseKeyword) Then
-                AddIndentBlockOperation(operations, pair.Item1, pair.Item2, dontIncludeNextTokenTrailingTrivia:=True)
-                Return
+            If caseBlock IsNot Nothing Then
+                Dim nextTokenAfterCase = pair.Item2.GetNextToken()
+                If nextTokenAfterCase.IsKind(SyntaxKind.CaseKeyword) Then
+                    ' Make sure the comments in the empty case block are indented
+                    If caseBlock.Statements.Count = 0 Then
+                        Dim caseBlockLastToken = caseBlock.GetLastToken()
+                        operations.Add(FormattingOperations.CreateIndentBlockOperation(caseBlockLastToken, nextTokenAfterCase, TextSpan.FromBounds(caseBlockLastToken.Span.End, nextTokenAfterCase.SpanStart), 1, IndentBlockOption.RelativePosition))
+                        Return
+                    End If
+
+                    AddIndentBlockOperation(operations, pair.Item1, pair.Item2, dontIncludeNextTokenTrailingTrivia:=True)
+                    Return
+                End If
             End If
 
             AddIndentBlockOperation(operations, pair.Item1, pair.Item2)

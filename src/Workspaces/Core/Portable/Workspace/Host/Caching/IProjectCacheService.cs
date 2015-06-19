@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
     {
         /// <summary>
         /// If caching is enabled for <see cref="ProjectId"/> key, the instance is added to 
-        /// a condtional weak table.  
+        /// a conditional weak table.  
         /// 
         /// It will not be collected until either caching is disabled for the project
         /// or the owner object is collected.

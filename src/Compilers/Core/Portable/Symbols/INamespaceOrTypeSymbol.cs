@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents either a namespace or a type.
     /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
     public interface INamespaceOrTypeSymbol : ISymbol
     {
         /// <summary>

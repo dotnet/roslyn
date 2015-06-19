@@ -29,6 +29,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private _recursionDepth As Integer
+
+        Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
+            If node IsNot Nothing Then
+                _recursionDepth += 1
+
+                If _recursionDepth > Syntax.InternalSyntax.Parser.MaxUncheckedRecursionDepth Then
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
+                End If
+
+                Dim result = DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
+
+                _recursionDepth -= 1
+                Return result
+            Else
+                Return node
+            End If
+        End Function
+
         Public Overridable Function VisitToken(token As SyntaxToken) As SyntaxToken
             Dim leading = Me.VisitList(token.LeadingTrivia)
             Dim trailing = Me.VisitList(token.TrailingTrivia)

@@ -179,7 +179,7 @@ NewLines("Class A \n Friend field As Integer \n End Class \n Class B \n Public S
         Public Sub TestOnlyGenerateFieldInByRefProperty()
             TestExactActionSetOffered(
 NewLines("Class A \n End Class \n Class B \n Public Sub Foo(ByRef d As Integer) \n End Sub \n Public Sub Bar() \n Dim s As New A() \n Foo(s.[|field|]) \n End Sub \n End Class"),
-{"Generate field 'field' in 'A'"})
+{String.Format(FeaturesResources.GenerateFieldIn, "field", "A")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
@@ -908,6 +908,66 @@ index:=2)
 NewLines("Module C \n Sub Test() \n If TypeOf [|B|] Is String Then \n End If \n End Sub \n End Module"),
 NewLines("Module C \n Sub Test() \n Dim B As String = Nothing \n If TypeOf B Is String Then \n End If \n End Sub \n End Module"),
 index:=3)
+        End Sub
+
+        <WorkItem(1130960)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestGeneratePropertyInTypeOfIsNot()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf [|Prop|] IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Public Property Prop As TypeOfIsNotDerived \n Sub M() \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+index:=0)
+        End Sub
+
+        <WorkItem(1130960)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateFieldInTypeOfIsNot()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf [|Prop|] IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Private Prop As TypeOfIsNotDerived \n Sub M() \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+index:=1)
+        End Sub
+
+        <WorkItem(1130960)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateReadOnlyFieldInTypeOfIsNot()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf [|Prop|] IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Private ReadOnly Prop As TypeOfIsNotDerived \n Sub M() \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+index:=2)
+        End Sub
+
+        <WorkItem(1130960)>
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateLocalInTypeOfIsNot()
+            Test(
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n If TypeOf [|Prop|] IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n Dim Prop As TypeOfIsNotDerived = Nothing \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
+index:=3)
+        End Sub
+	
+	 <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateVariableFromLambda()
+            Test(
+NewLines("Class [Class] \n Private Sub Method(i As Integer) \n [|foo|] = Function() \n Return 2 \n End Function \n End Sub \n End Class"),
+NewLines("Imports System\n\nClass [Class]\n    Private foo As Func(Of Integer)\n\n    Private Sub Method(i As Integer)\n        foo = Function()\n                  Return 2\n              End Function\n    End Sub\nEnd Class"),
+index:=0)
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateVariableFromLambda2()
+            Test(
+NewLines("Class [Class] \n Private Sub Method(i As Integer) \n [|foo|] = Function() \n Return 2 \n End Function \n End Sub \n End Class"),
+NewLines("Imports System\n\nClass [Class]\n    Public Property foo As Func(Of Integer)\n\n    Private Sub Method(i As Integer)\n        foo = Function()\n                  Return 2\n              End Function\n    End Sub\nEnd Class"),
+index:=1)
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+        Public Sub TestGenerateVariableFromLambda3()
+            Test(
+NewLines("Class [Class] \n Private Sub Method(i As Integer) \n [|foo|] = Function() \n Return 2 \n End Function \n End Sub \n End Class"),
+NewLines("Class [Class] \n Private Sub Method(i As Integer)\n        Dim foo As System.Func(Of Integer)\n        foo = Function() \n Return 2 \n End Function \n End Sub \n End Class"),
+index:=2)
         End Sub
     End Class
 End Namespace

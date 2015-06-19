@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class BoundQueryClause
+    Friend Partial Class BoundQueryClause
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get
                 Return UnderlyingExpression.ExpressionSymbol

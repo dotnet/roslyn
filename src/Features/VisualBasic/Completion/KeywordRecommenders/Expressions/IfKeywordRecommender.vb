@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If context.IsAnyExpressionContext Then
                 Return SpecializedCollections.SingletonEnumerable(
                     CreateRecommendedKeywordForIntrinsicOperator(SyntaxKind.IfKeyword,
-                                                                 "If function (+1 overload)",
+                                                                 $"{String.Format(VBFeaturesResources.Function1, "If")} (+1 {FeaturesResources.Overload})",
                                                                  Glyph.MethodPublic,
                                                                  New TernaryConditionalExpressionDocumentation()))
             End If

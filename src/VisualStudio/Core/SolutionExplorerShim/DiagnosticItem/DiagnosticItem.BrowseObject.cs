@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.HelpLinkUri;
+                    return _diagnosticItem.GetHelpLink()?.ToString();
                 }
             }
 
@@ -120,6 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return _diagnosticItem.Descriptor.Id;
             }
 
+            [Browsable(false)]
             public DiagnosticItem DiagnosticItem
             {
                 get { return _diagnosticItem; }

@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <summary>
         /// There was a conflict that could not be resolved.
         /// </summary>
-        PossibilyResolvableConflict = 0x4,
+        PossiblyResolvableConflict = 0x4,
 
         /// <summary>
         /// These are the conflicts that cannot be resolved. E.g.: Declaration Conflict
         /// </summary>
         UnresolvableConflict = 0x8,
 
-        UnresolvedConflict = PossibilyResolvableConflict | UnresolvableConflict
+        UnresolvedConflict = PossiblyResolvableConflict | UnresolvableConflict
     }
 }

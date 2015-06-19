@@ -62,11 +62,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     return _provider.GetMetadata(this.FilePath, _timestamp);
                 }
-                catch (Exception e) when(SaveMetadataReadingException(e))
+                catch (Exception e) when (SaveMetadataReadingException(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             private bool SaveMetadataReadingException(Exception e)
             {

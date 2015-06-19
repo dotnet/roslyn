@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             this.Option = option;
         }
 
-        public int Line { get; private set; }
-        public AdjustNewLinesOption Option { get; private set; }
+        public int Line { get; }
+        public AdjustNewLinesOption Option { get; }
     }
 }

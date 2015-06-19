@@ -10,7 +10,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
         Public Overrides Function VisitLateMemberAccess(memberAccess As BoundLateMemberAccess) As BoundNode
-            If inExpressionLambda Then
+            If _inExpressionLambda Then
                 ' just preserve the node to report an error in ExpressionLambdaRewriter
                 Return MyBase.VisitLateMemberAccess(memberAccess)
             End If

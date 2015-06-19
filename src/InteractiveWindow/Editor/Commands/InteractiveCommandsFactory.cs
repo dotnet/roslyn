@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -12,19 +14,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     [Export(typeof(IInteractiveWindowCommandsFactory))]
     internal class InteractiveCommandsFactory : IInteractiveWindowCommandsFactory
     {
-        private readonly IContentTypeRegistryService contentTypeRegistry;
-        private readonly IStandardClassificationService standardClassification;
+        private readonly IContentTypeRegistryService _contentTypeRegistry;
+        private readonly IStandardClassificationService _standardClassification;
 
         [ImportingConstructor]
         public InteractiveCommandsFactory(IContentTypeRegistryService contentTypeRegistry, IStandardClassificationService classification)
         {
-            this.contentTypeRegistry = contentTypeRegistry;
-            this.standardClassification = classification;
+            _contentTypeRegistry = contentTypeRegistry;
+            _standardClassification = classification;
         }
 
         public IInteractiveWindowCommands CreateInteractiveCommands(IInteractiveWindow window, string prefix, IEnumerable<IInteractiveWindowCommand> commands)
         {
-            return new Commands(window, prefix, commands.ToArray(), contentTypeRegistry, standardClassification);
+            return new Commands(window, prefix, commands.ToArray(), _contentTypeRegistry, _standardClassification);
         }
     }
 }

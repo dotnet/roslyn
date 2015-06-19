@@ -33,7 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 outputKind:=OutputKind.DynamicallyLinkedLibrary,
                 serializationProperties:=serializationProperties,
                 manifestResources:=SpecializedCollections.EmptyEnumerable(Of ResourceDescription)(),
-                assemblySymbolMapper:=Nothing,
                 additionalTypes:=additionalTypes)
 
             _methods = methods
@@ -60,13 +59,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return MyBase.TranslateModule(symbol, diagnostics)
         End Function
 
+        Friend Overrides ReadOnly Property IgnoreAccessibility As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
             Get
                 Return 0
             End Get
         End Property
 
-        Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol) As VariableSlotAllocator
+        Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
             If method IsNot Nothing AndAlso _methods.Contains(method) Then
                 Dim defs = GetLocalDefinitions(method.Locals)
@@ -167,12 +172,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousClosure(scopeSyntax As SyntaxNode, <Out> ByRef closureOrdinal As Integer) As Boolean
+            Public Overrides Function TryGetPreviousClosure(scopeSyntax As SyntaxNode, <Out> ByRef closureId As DebugId) As Boolean
+                closureId = Nothing
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, <Out> ByRef lambdaOrdinal As Integer) As Boolean
-                lambdaOrdinal = -1
+            Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, <Out> ByRef lambdaId As DebugId) As Boolean
+                lambdaId = Nothing
                 Return False
             End Function
 
@@ -182,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property PreviousMethodId As MethodDebugId
+            Public Overrides ReadOnly Property MethodId As DebugId?
                 Get
                     Return Nothing
                 End Get

@@ -54,14 +54,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim objectCreationExpression As ObjectCreationExpressionSyntax = Nothing
             If Not TryGetObjectCreationExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService), triggerInfo.TriggerReason, cancellationToken, objectCreationExpression) Then
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim type = TryCast(semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type, INamedTypeSymbol)
             If type Is Nothing Then
                 Return Nothing

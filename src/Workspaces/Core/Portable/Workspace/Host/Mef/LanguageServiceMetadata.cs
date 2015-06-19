@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     internal class LanguageServiceMetadata : LanguageMetadata
     {
-        public string ServiceType { get; private set; }
-        public string Layer { get; private set; }
+        public string ServiceType { get; }
+        public string Layer { get; }
 
-        public IReadOnlyDictionary<string, object> Data { get; private set; }
+        public IReadOnlyDictionary<string, object> Data { get; }
 
         public LanguageServiceMetadata(IDictionary<string, object> data)
             : base(data)

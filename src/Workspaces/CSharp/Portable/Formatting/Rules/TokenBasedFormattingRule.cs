@@ -60,13 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                     if (!previousToken.IsCloseBraceOfExpression())
                     {
-                        if (currentToken.Kind() != SyntaxKind.SemicolonToken &&
+                        if (!currentToken.IsKind(SyntaxKind.SemicolonToken) &&
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
-                            !currentToken.IsCloseParenInStatement())
+                            !currentToken.IsCloseParenInStatement() &&
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -303,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // For spacing between the identifer and the conditional operator 
+            // For spacing between the identifier and the conditional operator 
             if (currentToken.IsKind(SyntaxKind.QuestionToken) && currentToken.Parent.Kind() == SyntaxKind.ConditionalAccessExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);

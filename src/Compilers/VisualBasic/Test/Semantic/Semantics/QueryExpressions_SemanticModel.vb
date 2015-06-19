@@ -3561,7 +3561,7 @@ End Module
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
             Dim semanticModel As SemanticModel = compilation.GetSemanticModel(tree)
-            Dim node = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("aggr4(4)")).Parent, FunctionAggregationSyntax)
+            Dim node = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("aggr4(4)", StringComparison.Ordinal)).Parent, FunctionAggregationSyntax)
             Dim info = semanticModel.GetSymbolInfo(node)
 
             Assert.NotNull(info)
@@ -3630,7 +3630,7 @@ End Module
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("n As")).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
+            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("n As", StringComparison.Ordinal)).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
             Dim info = semanticModel.GetTypeInfo(node)
 
             Assert.NotNull(info)
@@ -3662,7 +3662,7 @@ End Module
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
-            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("By")).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
+            Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("By", StringComparison.Ordinal)).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
 
             Dim containingSymbol = DirectCast(semanticModel, SemanticModel).GetEnclosingSymbol(node.SpanStart)
 

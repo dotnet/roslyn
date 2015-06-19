@@ -16,15 +16,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
         ''' done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
         ''' </summary>
-        Friend Shared Sub InitializeObsoleteDataFromMetadata(ByRef data As ObsoleteAttributeData, token As Handle, containingModule As PEModuleSymbol)
+        Friend Shared Sub InitializeObsoleteDataFromMetadata(ByRef data As ObsoleteAttributeData, token As EntityHandle, containingModule As PEModuleSymbol)
             If data Is ObsoleteAttributeData.Uninitialized Then
-                Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
-                Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
-                Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))
-                Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
-                Interlocked.CompareExchange(data, obsoleteAttributeData, obsoleteAttributeData.Uninitialized)
+                Dim obsoleteAttributeData As ObsoleteAttributeData = GetObsoleteDataFromMetadata(token, containingModule)
+                Interlocked.CompareExchange(data, obsoleteAttributeData, ObsoleteAttributeData.Uninitialized)
             End If
         End Sub
+
+        Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
+            Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
+            Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
+            Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))
+            Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
+            Return obsoleteAttributeData
+        End Function
 
         ''' <summary>
         ''' This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
@@ -85,14 +90,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' For all other symbols, report the regular diagnostic.
             If symbol.IsAccessor() AndAlso (DirectCast(symbol, MethodSymbol).AssociatedSymbol).Kind = SymbolKind.Property Then
                 Dim accessorSymbol = DirectCast(symbol, MethodSymbol)
-                Dim accesorString = If(accessorSymbol.MethodKind = MethodKind.PropertyGet, "Get", "Set")
+                Dim accessorString = If(accessorSymbol.MethodKind = MethodKind.PropertyGet, "Get", "Set")
 
                 If String.IsNullOrEmpty(data.Message) Then
                     Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor2, ERRID.WRN_UseOfObsoletePropertyAccessor2),
-                                        accesorString, accessorSymbol.AssociatedSymbol)
+                                        accessorString, accessorSymbol.AssociatedSymbol)
                 Else
                     Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor3, ERRID.WRN_UseOfObsoletePropertyAccessor3),
-                                        accesorString, accessorSymbol.AssociatedSymbol, data.Message)
+                                        accessorString, accessorSymbol.AssociatedSymbol, data.Message)
                 End If
             Else
                 If String.IsNullOrEmpty(data.Message) Then

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
@@ -38,15 +39,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             protected override bool ShouldInclude(DiagnosticData diagnostic)
             {
+                var isUnnecessary = (diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+
                 return
-                    (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error) &&
+                    (diagnostic.Severity == DiagnosticSeverity.Warning || diagnostic.Severity == DiagnosticSeverity.Error || isUnnecessary) &&
                     !string.IsNullOrWhiteSpace(diagnostic.Message);
             }
 
             protected override TagSpan<IErrorTag> CreateTagSpan(SnapshotSpan span, DiagnosticData diagnostic)
             {
                 Contract.Requires(!string.IsNullOrWhiteSpace(diagnostic.Message));
-                var errorType = GetErrorTypeFromDiagnosticKind(diagnostic);
+                var errorType = GetErrorTypeFromDiagnostic(diagnostic);
                 if (errorType == null)
                 {
                     // unknown diagnostic kind.
@@ -59,25 +62,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return new TagSpan<IErrorTag>(span, new ErrorTag(errorType, diagnostic.Message));
             }
 
-            private string GetErrorTypeFromDiagnosticKind(DiagnosticData diagnostic)
+            private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
             {
-                if (diagnostic.CustomTags.Count > 1)
-                {
-                    switch (diagnostic.CustomTags[0])
-                    {
-                        case WellKnownDiagnosticTags.EditAndContinue:
-                            return EditAndContinueErrorTypeDefinition.Name;
-                        case WellKnownDiagnosticTags.Build:
-                            if (_blueSquiggleForBuildDiagnostic)
-                            {
-                                return PredefinedErrorTypeNames.CompilerError;
-                            }
+                return GetErrorTypeFromDiagnosticTags(diagnostic) ??
+                       GetErrorTypeFromDiagnosticProperty(diagnostic) ??
+                       GetErrorTypeFromDiagnosticSeverity(diagnostic);
+            }
 
-                            break;
-                    }
+            private string GetErrorTypeFromDiagnosticProperty(DiagnosticData diagnostic)
+            {
+                if (diagnostic.Properties.Count == 0)
+                {
+                    return null;
                 }
 
-                return GetErrorTypeFromDiagnosticSeverity(diagnostic);
+                string value;
+                if (!diagnostic.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out value))
+                {
+                    return null;
+                }
+
+                if (value == WellKnownDiagnosticTags.Build && _blueSquiggleForBuildDiagnostic)
+                {
+                    return PredefinedErrorTypeNames.CompilerError;
+                }
+
+                return null;
+            }
+
+            private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
+            {
+                if (diagnostic.CustomTags.Count <= 1)
+                {
+                    return null;
+                }
+
+                switch (diagnostic.CustomTags[0])
+                {
+                    case WellKnownDiagnosticTags.EditAndContinue:
+                        return EditAndContinueErrorTypeDefinition.Name;
+                }
+
+                return null;
             }
 
             private static string GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)
@@ -89,7 +115,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     case DiagnosticSeverity.Warning:
                         return PredefinedErrorTypeNames.Warning;
                     case DiagnosticSeverity.Info:
+                        return null;
                     case DiagnosticSeverity.Hidden:
+                        if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                        {
+                            // This ensures that we have an 'invisible' squiggle (which will in turn
+                            // display Quick Info on mouse hover) for the hidden diagnostics that we
+                            // report for 'Remove Unnecessary Usings' and 'Simplify Type Name'. The
+                            // presence of Quick Info pane for such squiggles allows allows platform
+                            // to display Light Bulb for the corresponding fixes (per their current
+                            // design platform can only display light bulb if Quick Info pane is present).
+                            return PredefinedErrorTypeNames.Suggestion;
+                        }
+
                         return null;
                     default:
                         return PredefinedErrorTypeNames.OtherError;

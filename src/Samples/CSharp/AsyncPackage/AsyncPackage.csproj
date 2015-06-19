@@ -14,7 +14,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AsyncPackage</RootNamespace>
     <AssemblyName>AsyncPackage</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
@@ -52,7 +52,6 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -60,7 +59,6 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -96,37 +94,37 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -195,6 +193,6 @@
   </ImportGroup>
   <Target Name="AfterBuild">
     <Message Text="AfterBuild" />
-    <Exec Command="$(SolutionDir)..\..\packages\NuGet.CommandLine.2.8.3\tools\NuGet.exe pack Diagnostic.nuspec -NoPackageAnalysis -OutputDirectory $(OutDir)" />
+    <Exec Condition="'$(CIBuild)' != 'true'" Command="$(SolutionDir)..\..\packages\NuGet.CommandLine.$(NuGetCommandLineVersion)\tools\NuGet.exe pack Diagnostic.nuspec -NoPackageAnalysis -OutputDirectory $(OutDir)" />
   </Target>
 </Project>

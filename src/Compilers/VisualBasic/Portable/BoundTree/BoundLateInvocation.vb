@@ -7,7 +7,7 @@ Imports System.Diagnostics
 
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class BoundLateInvocation
+    Friend Partial Class BoundLateInvocation
         ''' <summary>
         ''' Updates access kind. To clear the access kind,
         ''' 'newAccessKind' should be Unknown. Otherwise, the current

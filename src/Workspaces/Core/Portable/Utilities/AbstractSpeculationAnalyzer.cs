@@ -199,6 +199,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         #region Semantic comparison helpers
 
+        private bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
+        {
+            Debug.Assert(originalExpression != null);
+            Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
+            Debug.Assert(newExpression != null);
+            Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
+
+            var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
+            var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
+            if (originalTypeInfo.Type == null)
+            {
+                return false;
+            }
+
+            return newTypeInfo.Type == null ||
+                (newTypeInfo.Type.IsErrorType() && !originalTypeInfo.Type.IsErrorType());
+        }
+
         protected bool TypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
         {
             Debug.Assert(originalExpression != null);
@@ -500,7 +518,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
-                if (!ImplicitConversionsAreCompatible(originalExpression, newExpression))
+                if (!ImplicitConversionsAreCompatible(originalExpression, newExpression) ||
+                    ReplacementIntroducesErrorType(originalExpression, newExpression))
                 {
                     return true;
                 }
@@ -735,15 +754,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalTargetType != null)
             {
                 var newTargetType = this.SpeculativeSemanticModel.GetTypeInfo(newLeft).Type;
-                if (originalTargetType != newTargetType)
-                {
-                    return true;
-                }
-
-                if (!ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType))
-                {
-                    return true;
-                }
+                return !SymbolsAreCompatible(originalTargetType, newTargetType) ||
+                    !ImplicitConversionsAreCompatible(originalRight, originalTargetType, newRight, newTargetType);
             }
 
             return false;

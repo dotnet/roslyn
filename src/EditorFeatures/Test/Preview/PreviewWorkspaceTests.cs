@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
         public void TestPreviewCreationWithExplicitHostServices()
         {
-            var assembly = typeof(IWorkCoordinatorRegistrationService).Assembly;
+            var assembly = typeof(ISolutionCrawlerRegistrationService).Assembly;
             using (var previewWorkspace = new PreviewWorkspace(MefHostServices.Create(MefHostServices.DefaultAssemblies.Concat(assembly))))
             {
                 Assert.NotNull(previewWorkspace.CurrentSolution);
@@ -127,8 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             using (var previewWorkspace = new PreviewWorkspace(MefV1HostServices.Create(TestExportProvider.ExportProviderWithCSharpAndVisualBasic.AsExportProvider())))
             {
-                var workcoordinatorService = previewWorkspace.Services.GetService<IWorkCoordinatorRegistrationService>();
-                Assert.True(workcoordinatorService is PreviewWorkCoordinatorRegistrationService);
+                var service = previewWorkspace.Services.GetService<ISolutionCrawlerRegistrationService>();
+                Assert.True(service is PreviewSolutionCrawlerRegistrationService);
 
                 var persistentService = previewWorkspace.Services.GetService<IPersistentStorageService>();
                 Assert.NotNull(persistentService);
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                     source = new CancellationTokenSource();
                     var cancellationToken = source.Token;
-                    Task.Delay(2000, cancellationToken).ContinueWith(t => taskSource.TrySetResult(a), TaskContinuationOptions.OnlyOnRanToCompletion);
+                    Task.Delay(2000, cancellationToken).ContinueWith(t => taskSource.TrySetResult(a), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
                 };
 
                 var hostDocument = workspace.Projects.First().Documents.First();
@@ -250,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // create a diff view
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                var diffView = previewFactoryService.CreateChangedDocumentPreviewView(oldDocument, newDocument, CancellationToken.None);
+                var diffView = (IWpfDifferenceViewer)previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None).PumpingWaitResult();
 
                 var foregroundService = new TestForegroundNotificationService();
                 var optionsService = workspace.Services.GetService<IOptionService>();

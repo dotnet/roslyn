@@ -77,7 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 {
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.IncludeKeywords), CompletionOptions.IncludeKeywords),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnTypingLetters), CompletionOptions.TriggerOnTypingLetters),
-                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(FormattingOptions.UseTabOnlyForIndentation), FormattingOptions.UseTabOnlyForIndentation)
                 });
 
             Type[] types = new[]
@@ -149,7 +148,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                    option == FeatureOnOffOptions.FormatOnPaste ||
                    option == FeatureOnOffOptions.AutoXmlDocCommentGeneration ||
                    option == FeatureOnOffOptions.RefactoringVerification ||
-                   option == FeatureOnOffOptions.RenameTracking;
+                   option == FeatureOnOffOptions.RenameTracking ||
+                   option == FeatureOnOffOptions.RenameTrackingPreview;
         }
 
         public override bool TryFetch(OptionKey optionKey, out object value)

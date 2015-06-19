@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             if (mefHostServices != null)
             {
-                var registry = mefHostServices.GetExports<IContentTypeRegistryService>().Single().Value;
-                return mefHostServices.GetExports<ILanguageService, ContentTypeLanguageMetadata>()
+                var exports = mefHostServices.GetExports<ILanguageService, ContentTypeLanguageMetadata>();
+                return exports
                         .Where(lz => !string.IsNullOrEmpty(lz.Metadata.DefaultContentType))
                         .ToDictionary(lz => lz.Metadata.Language, lz => lz.Metadata.DefaultContentType);
             }

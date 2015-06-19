@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         protected override CSharpCompilationOptions CreateCompilationOptions()
         {
-            IDictionary<string, ReportDiagnostic> warningOptions = null;
+            IDictionary<string, ReportDiagnostic> ruleSetSpecificDiagnosticOptions = null;
 
             // Get options from the ruleset file, if any, first. That way project-specific
             // options can override them.
@@ -99,21 +99,68 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             if (this.ruleSet != null)
             {
                 ruleSetGeneralDiagnosticOption = this.ruleSet.GetGeneralDiagnosticOption();
-                warningOptions = new Dictionary<string, ReportDiagnostic>(this.ruleSet.GetSpecificDiagnosticOptions());
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>(this.ruleSet.GetSpecificDiagnosticOptions());
             }
             else
             {
-                warningOptions = new Dictionary<string, ReportDiagnostic>();
+                ruleSetSpecificDiagnosticOptions = new Dictionary<string, ReportDiagnostic>();
             }
 
             UpdateRuleSetError(ruleSet);
 
-            UpdateWarning(warningOptions, CompilerOptions.OPTID_WARNASERRORLIST, ReportDiagnostic.Error);
-            UpdateWarning(warningOptions, CompilerOptions.OPTID_WARNNOTASERRORLIST, ReportDiagnostic.Warn);
+            ReportDiagnostic generalDiagnosticOption;
+            var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);
+            if (warningsAreErrors.HasValue)
+            {
+                generalDiagnosticOption = warningsAreErrors.Value ? ReportDiagnostic.Error : ReportDiagnostic.Default;
+            }
+            else if (ruleSetGeneralDiagnosticOption.HasValue)
+            {
+                generalDiagnosticOption = ruleSetGeneralDiagnosticOption.Value;
+            }
+            else
+            {
+                generalDiagnosticOption = ReportDiagnostic.Default;
+            }
 
-            // Add the warning supressions second, since the if a warning appears in both lists the
-            // supression takes priority
-            UpdateWarning(warningOptions, CompilerOptions.OPTID_NOWARNLIST, ReportDiagnostic.Suppress);
+            // Start with the rule set options
+            IDictionary<string, ReportDiagnostic> diagnosticOptions = new Dictionary<string, ReportDiagnostic>(ruleSetSpecificDiagnosticOptions);
+
+            // Update the specific options based on the general settings
+            if (warningsAreErrors.HasValue && warningsAreErrors.Value == true)
+            {
+                foreach (var pair in ruleSetSpecificDiagnosticOptions)
+                {
+                    if (pair.Value == ReportDiagnostic.Warn)
+                    {
+                        diagnosticOptions[pair.Key] = ReportDiagnostic.Error;
+                    }
+                }
+            }
+
+            // Update the specific options based on the specific settings
+            foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNASERRORLIST))
+            {
+                diagnosticOptions[diagnosticID] = ReportDiagnostic.Error;
+            }
+
+            foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_WARNNOTASERRORLIST))
+            {
+                ReportDiagnostic ruleSetOption;
+                if (ruleSetSpecificDiagnosticOptions.TryGetValue(diagnosticID, out ruleSetOption))
+                {
+                    diagnosticOptions[diagnosticID] = ruleSetOption;
+                }
+                else
+                {
+                    diagnosticOptions[diagnosticID] = ReportDiagnostic.Default;
+                }
+            }
+
+            foreach (var diagnosticID in ParseWarningCodes(CompilerOptions.OPTID_NOWARNLIST))
+            {
+                diagnosticOptions[diagnosticID] = ReportDiagnostic.Suppress;
+            }
 
             Platform platform;
 
@@ -136,21 +183,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             // TODO: #load support
             var sourceSearchPaths = ImmutableArray<string>.Empty;
-
-            ReportDiagnostic generalDiagnosticOption;
-            var warningsAreErrors = GetNullableBooleanOption(CompilerOptions.OPTID_WARNINGSAREERRORS);
-            if (warningsAreErrors.HasValue)
-            {
-                generalDiagnosticOption = warningsAreErrors.Value ? ReportDiagnostic.Error : ReportDiagnostic.Default;
-            }
-            else if (ruleSetGeneralDiagnosticOption.HasValue)
-            {
-                generalDiagnosticOption = ruleSetGeneralDiagnosticOption.Value;
-            }
-            else
-            {
-                generalDiagnosticOption = ReportDiagnostic.Default;
-            }
 
             MetadataReferenceResolver referenceResolver;
             if (this.Workspace != null)
@@ -179,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 optimizationLevel: GetBooleanOption(CompilerOptions.OPTID_OPTIMIZATIONS) ? OptimizationLevel.Release : OptimizationLevel.Debug,
                 outputKind: _outputKind,
                 platform: platform,
-                specificDiagnosticOptions: warningOptions,
+                specificDiagnosticOptions: diagnosticOptions,
                 warningLevel: warningLevel,
                 xmlReferenceResolver: new XmlFileResolver(projectDirectory),
                 sourceReferenceResolver: new SourceFileResolver(sourceSearchPaths, projectDirectory),
@@ -188,7 +220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 strongNameProvider: new DesktopStrongNameProvider(GetStrongNameKeyPaths()));
         }
 
-        private void UpdateWarning(IDictionary<string, ReportDiagnostic> warningOptions, CompilerOptions compilerOptions, ReportDiagnostic reportDiagnostic)
+        private IEnumerable<string> ParseWarningCodes(CompilerOptions compilerOptions)
         {
             Contract.ThrowIfFalse(compilerOptions == CompilerOptions.OPTID_NOWARNLIST || compilerOptions == CompilerOptions.OPTID_WARNASERRORLIST || compilerOptions == CompilerOptions.OPTID_WARNNOTASERRORLIST);
             foreach (var warning in GetStringOption(compilerOptions, defaultValue: "").Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
@@ -200,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                     warningStringID = GetIdForErrorCode(warningId);
                 }
 
-                warningOptions[warningStringID] = reportDiagnostic;
+                yield return warningStringID;
             }
         }
 

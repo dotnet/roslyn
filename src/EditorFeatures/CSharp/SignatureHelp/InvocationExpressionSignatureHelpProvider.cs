@@ -71,11 +71,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
                 return null;
             }
 
+            // get the regular signature help items
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
             var methodGroup = semanticModel.GetMemberGroup(invocationExpression.Expression, cancellationToken)
                                            .OfType<IMethodSymbol>()
-                                           .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
-                                           .Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart);
+                                           .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation);
+
+            // try to bind to the actual method
+            var symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
+            var matchedMethodSymbol = symbolInfo.Symbol as IMethodSymbol;
+
+            // if the symbol could be bound, replace that item in the symbol list
+            if (matchedMethodSymbol != null && matchedMethodSymbol.IsGenericMethod)
+            {
+                methodGroup = methodGroup.Select(m => matchedMethodSymbol.OriginalDefinition == m ? matchedMethodSymbol : m);
+            }
+
+            methodGroup = methodGroup.Sort(symbolDisplayService, semanticModel, invocationExpression.SpanStart);
 
             var expressionType = semanticModel.GetTypeInfo(invocationExpression.Expression, cancellationToken).Type as INamedTypeSymbol;
 

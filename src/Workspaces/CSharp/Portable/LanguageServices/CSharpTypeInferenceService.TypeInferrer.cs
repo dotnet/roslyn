@@ -193,6 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parent = parent.Parent;
                 }
 
+
+                if (parent is MemberAccessExpressionSyntax)
+                {
+                    var awaitExpression = parent.GetAncestor<AwaitExpressionSyntax>();
+                    if (awaitExpression != null)
+                    {
+                        parent = awaitExpression;
+                    }
+                }
+
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument),
@@ -253,8 +263,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxTree = (SyntaxTree)_semanticModel.SyntaxTree;
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, _cancellationToken);
                 token = token.GetPreviousTokenIfTouchingWord(position);
-
                 var parent = token.Parent;
+
+                // A couple of broken code scenarios where the new keyword in objectcreationexpression
+                // appears to be a part of a subsequent assignment.
+                if (token.Kind() == SyntaxKind.NewKeyword &&
+                    token.Parent.IsKind(SyntaxKind.ObjectCreationExpression) &&
+                    token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    var parentAssignment = token.Parent.Parent as AssignmentExpressionSyntax;
+                    if (token.Parent == parentAssignment.Left)
+                    {
+                        // case 1:
+                        //      new Form
+                        //      {
+                        //          Location = new $$
+                        //          StartPosition = FormStartPosition.CenterParent
+                        //      };
+                        // The 'new' token is part of an assignment of the assignment to StartPosition,
+                        // but the user is really trying to assign to Location.
+                        // In this case, we need to detect that the 'new' token is on the left side of 
+                        // its parent assignment and on the right side of its grandparent assignment and
+                        // return the inferred type of the grandparent.
+                        if (parentAssignment.Parent is AssignmentExpressionSyntax)
+                        {
+                            var grandparentAssignment = (AssignmentExpressionSyntax)parentAssignment.Parent;
+                            if (grandparentAssignment.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
+                                parentAssignment == grandparentAssignment.Right)
+                            {
+                                parent = grandparentAssignment;
+                                token = grandparentAssignment.OperatorToken;
+                            }
+                        }
+                        // case 2:
+                        //      bool b;
+                        //      Task task = new $$
+                        //      b = false;
+                        // The 'new' token is part of an assignment of the assignment to b,
+                        // but the user is really trying to assign to task.
+                        // In this case, we need to detect that the 'new' token is on the left side of 
+                        // its parent assignment and on the right side of its grandparent assignment and
+                        // return the inferred type of the grandparent.
+                        else if (parentAssignment.Parent is EqualsValueClauseSyntax)
+                        {
+                            var grandParentAssignment = (EqualsValueClauseSyntax)parentAssignment.Parent;
+                            if (parentAssignment == grandParentAssignment.Value)
+                            {
+                                parent = grandParentAssignment;
+                                token = grandParentAssignment.EqualsToken;
+                            }
+                        }
+                    }
+                }
+
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator, token),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument, token),
@@ -284,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
+                    (ObjectCreationExpressionSyntax objectCreation) => InferTypesWorker(objectCreation),
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression, token),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary, token),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary, token),
@@ -1077,8 +1139,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionOpt = null,
                 SyntaxToken? previousToken = null)
             {
+                if (initializerExpression.IsKind(SyntaxKind.ComplexElementInitializerExpression))
+                {
+                    // new Dictionary<K,V> { { x, ... } }
+                    // new C { Prop = { { x, ... } } }
+                    var parameterIndex = previousToken.HasValue
+                            ? initializerExpression.Expressions.GetSeparators().ToList().IndexOf(previousToken.Value) + 1
+                            : initializerExpression.Expressions.IndexOf(expressionOpt);
+
+                    var addMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+                    var addMethodParameterTypes = addMethodSymbols
+                        .Cast<IMethodSymbol>()
+                        .Where(a => a.Parameters.Length == initializerExpression.Expressions.Count)
+                        .Select(a => a.Parameters.ElementAtOrDefault(parameterIndex)?.Type)
+                        .WhereNotNull();
+
+                    if (addMethodParameterTypes.Any())
+                    {
+                        return addMethodParameterTypes;
+                    }
+                }
+                else if (initializerExpression.IsKind(SyntaxKind.CollectionInitializerExpression))
+                {
+                    if (expressionOpt != null)
+                    {
+                        // new List<T> { x, ... }
+                        // new C { Prop = { x, ... } }
+                        var addMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
+                        var addMethodParameterTypes = addMethodSymbols
+                            .Cast<IMethodSymbol>()
+                            .Where(a => a.Parameters.Length == 1)
+                            .Select(a => a.Parameters[0].Type).WhereNotNull();
+                        if (addMethodParameterTypes.Any())
+                        {
+                            return addMethodParameterTypes;
+                        }
+                    }
+                    else
+                    {
+                        // new List<T> { x,
+                        // new C { Prop = { x,
+
+                        foreach (var sibling in initializerExpression.Expressions.Where(e => e.Kind() != SyntaxKind.ComplexElementInitializerExpression))
+                        {
+                            var types = GetTypes(sibling);
+                            if (types.Any())
+                            {
+                                return types;
+                            }
+                        }
+                    }
+                }
+
                 if (initializerExpression.IsParentKind(SyntaxKind.ImplicitArrayCreationExpression))
                 {
+                    // new[] { 1, x }
+
                     // First, try to infer the type that the array should be.  If we can infer an
                     // appropriate array type, then use the element type of the array.  Otherwise,
                     // look at the siblings of this expression and use their type instead.
@@ -1089,20 +1205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (elementTypes.Any())
                     {
                         return elementTypes;
-                    }
-
-                    // { foo(), |
-                    if (previousToken.HasValue && previousToken.Value.Kind() == SyntaxKind.CommaToken)
-                    {
-                        var sibling = initializerExpression.Expressions.FirstOrDefault(e => e.SpanStart < previousToken.Value.SpanStart);
-                        if (sibling != null)
-                        {
-                            var types = GetTypes(sibling);
-                            if (types.Any())
-                            {
-                                return types;
-                            }
-                        }
                     }
 
                     foreach (var sibling in initializerExpression.Expressions)
@@ -1131,13 +1233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
                     // new int[] { Foo() } 
-                    var symbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
-
-                    if (symbols.Any(t => t is INamedTypeSymbol))
-                    {
-                        return symbols.OfType<INamedTypeSymbol>();
-                    }
-
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
                     IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation);
 
@@ -1159,42 +1254,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             GetCollectionElementType(t, parameterIndex: 0));
                     }
                 }
-                else if ((initializerExpression.IsParentKind(SyntaxKind.ComplexElementInitializerExpression) &&
-                          initializerExpression.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression)) ||
-                         (initializerExpression.IsKind(SyntaxKind.ComplexElementInitializerExpression) &&
-                          initializerExpression.IsParentKind(SyntaxKind.CollectionInitializerExpression) &&
-                          initializerExpression.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression)))
-                {
-                    // new Dictionary<K,V> { { Foo(), ... } }
-                    var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent.Parent;
-                    var symbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
-
-                    if (symbols.Any(t => t is INamedTypeSymbol))
-                    {
-                        return symbols.OfType<INamedTypeSymbol>();
-                    }
-
-                    IEnumerable<ITypeSymbol> types = GetTypes(objectCreation);
-
-                    if (types.Any(t => t is INamedTypeSymbol))
-                    {
-                        var parameterIndex = previousToken.HasValue
-                            ? initializerExpression.Expressions.GetWithSeparators().IndexOf(previousToken.Value) + 1
-                            : initializerExpression.Expressions.IndexOf(expressionOpt);
-
-                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                            GetCollectionElementType(t,
-                                parameterIndex: parameterIndex));
-                    }
-                }
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     // new Foo { a = { Foo() } }
-                    var symbols = _semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
 
-                    if (symbols.Any(t => t is INamedTypeSymbol))
+                    if (expressionOpt != null)
                     {
-                        return symbols.OfType<INamedTypeSymbol>();
+                        var addMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expressionOpt).GetAllSymbols();
+                        var addMethodParameterTypes = addMethodSymbols.Select(a => ((IMethodSymbol)a).Parameters[0].Type).WhereNotNull();
+                        if (addMethodParameterTypes.Any())
+                        {
+                            return addMethodParameterTypes;
+                        }
                     }
 
                     var assignExpression = (AssignmentExpressionSyntax)initializerExpression.Parent;
@@ -1202,13 +1273,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
+                        // new Foo { a = { Foo() } }
                         var parameterIndex = previousToken.HasValue
-                            ? initializerExpression.Expressions.GetWithSeparators().IndexOf(previousToken.Value) + 1
-                            : initializerExpression.Expressions.IndexOf(expressionOpt);
+                                ? initializerExpression.Expressions.GetSeparators().ToList().IndexOf(previousToken.Value) + 1
+                                : initializerExpression.Expressions.IndexOf(expressionOpt);
 
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                            GetCollectionElementType(t,
-                                parameterIndex: parameterIndex));
+                            GetCollectionElementType(t, 0));
                     }
                 }
 

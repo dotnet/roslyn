@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2967,5 +2968,89 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
 
             Assert.Null(model.GetDeclaredSymbol(node));
         }
+
+        [Fact, WorkItem(1733, "https://github.com/dotnet/roslyn/issues/1733")]
+        public void MissingBaseType()
+        {
+            var source1 = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}
+";
+
+            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "MissingBaseType1");
+            comp1.VerifyDiagnostics();
+
+            var source2 = @"
+public class Enumerable  
+{
+    public Enumerator GetEnumerator()
+    {
+        return default(Enumerator);
+    }
+}
+
+public struct Enumerator
+{
+    public int Current
+    {
+        get
+        {
+            return 0;
+        }
+    }
+
+    public bool MoveNext()
+    {
+        return false;
+    }
+}";
+
+            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            comp2.VerifyDiagnostics();
+
+            var source3 = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+}
+";
+
+            var comp3 = CreateCompilation(source3, options: TestOptions.DebugDll, assemblyName: "MissingBaseType2");
+            comp3.VerifyDiagnostics();
+
+            var source4 = @"
+class Program
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable())
+        { }
+    }
+}";
+
+            var comp4 = CreateCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
+            comp4.VerifyDiagnostics(
+    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    //         foreach (var x in new Enumerable())
+    Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
+        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
+    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+    //         foreach (var x in new Enumerable())
+    Diagnostic(ErrorCode.ERR_NoTypeDef, "foreach").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                );
+        }
+
     }
 }

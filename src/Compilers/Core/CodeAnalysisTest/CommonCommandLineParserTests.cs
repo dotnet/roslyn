@@ -3,6 +3,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,8 +11,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CommonCommandLineParserTests : TestBase
     {
-        private const int EN_US = 1033;
-
         private void VerifyCommandLineSplitter(string commandLine, string[] expected, bool removeHashComments = false)
         {
             var actual = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments).ToArray();
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void VerifyRuleSetError(string source, Func<string> messageFormatter, bool locSpecific = true, params string[] otherSources)
         {
-            CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            CultureInfo saveUICulture = Thread.CurrentThread.CurrentUICulture;
 
             if (locSpecific)
             {
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    System.Threading.Thread.CurrentThread.CurrentUICulture = preferred;
+                    Thread.CurrentThread.CurrentUICulture = preferred;
                 }
             }
 
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 if (locSpecific)
                 {
-                    System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                    Thread.CurrentThread.CurrentUICulture = saveUICulture;
                 }
             }
 
@@ -85,15 +84,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             VerifyCommandLineSplitter("", new string[0]);
             VerifyCommandLineSplitter("   \t   ", new string[0]);
-            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new string[] { "abc", "def", "baz", "quuz" });
+            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new[] { "abc", "def", "baz", "quuz" });
             VerifyCommandLineSplitter(@"  ""abc def""  fi""ddle dee de""e  ""hi there ""dude  he""llo there""  ",
-                                        new string[] { @"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there""" });
+                                        new string[] { @"abc def", @"fiddle dee dee", @"hi there dude", @"hello there" });
             VerifyCommandLineSplitter(@"  ""abc def \"" baz quuz"" ""\""straw berry"" fi\""zz \""buzz fizzbuzz",
                                         new string[] { @"abc def "" baz quuz", @"""straw berry", @"fi""zz", @"""buzz", @"fizzbuzz" });
             VerifyCommandLineSplitter(@"  \\""abc def""  \\\""abc def"" ",
-                                        new string[] { @"\""abc def""", @"\""abc", @"def""" });
+                                        new string[] { @"\abc def", @"\""abc", @"def" });
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" ",
-                                        new string[] { @"\\""abc def""", @"\\""abc", @"def""" });
+                                        new string[] { @"\\abc def", @"\\""abc", @"def" });
+            VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" q a r ",
+                                        new string[] { @"\\abc def", @"\\""abc", @"def q a r" });
             VerifyCommandLineSplitter(@"abc #Comment ignored",
                                         new string[] { @"abc" }, removeHashComments: true);
         }
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "There is a duplicate key sequence 'CA1012' for the 'UniqueRuleName' key or unique identity constraint."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetHasDuplicateRules, "CA1012", "Error", "Warn"));
         }
 
         [Fact]
@@ -290,7 +291,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TIncludeAllAction' - The Enumeration constraint failed."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, "Action", "Default"));
         }
 
         [Fact]
@@ -304,8 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Id' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rule", "Id"));
         }
 
         [Fact]
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Action' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rule", "Action"));
         }
 
         [Fact]
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'AnalyzerId' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rules", "AnalyzerId"));
         }
 
         [Fact]
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'RuleNamespace' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rules", "RuleNamespace"));
         }
 
         [Fact]
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'ToolsVersion' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "RuleSet", "ToolsVersion"));
         }
 
         [Fact]
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Name' is missing."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "RuleSet", "Name"));
         }
 
         [Fact]
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TRuleAction' - The Enumeration constraint failed."));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, "Action", "Default"));
         }
 
         [Fact]
@@ -441,8 +441,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ruleSet.Includes.First().IncludePath, "foo.ruleset");
         }
 
-        [WorkItem(156)]
-        [Fact(Skip = "156")]
+        [WorkItem(1184500, "DevDiv 1184500")]
+        [Fact]
         public void TestRuleSetInclude1()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -453,7 +453,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] { "" });
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.ruleset");
+            file.WriteAllText(source);
+
+            var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
+
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+            Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
+            Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1013"]);
         }
 
         [Fact]
@@ -969,7 +977,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 catch (InvalidRuleSetException e)
                 {
-                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message);
+                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, "Action", "Default")), e.Message, StringComparison.Ordinal);
                 }
             }
         }

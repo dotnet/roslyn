@@ -628,7 +628,7 @@ class C
 {
     void M()
     {
-        var x = $"{true ? 1 : 0}";
+        var x = $"{(true ? 1 : 0)}";
     }
 }
 </code>
@@ -661,6 +661,146 @@ class C
     void M()
     {
         var x = $"{(true ? 1 : 0):x}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation3()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var x = $"{{|Simplify:(global::System.Guid.Empty)|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var x = $"{(global::System.Guid.Empty)}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation4()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{g == {|Simplify:(global::System.Guid.Empty)|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{g == (global::System.Guid.Empty)}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation5()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{{|Simplify:(g == (global::System.Guid.Empty))|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var g = System.Guid.NewGuid();
+        var x = $"{g == (global::System.Guid.Empty)}";
+    }
+}
+</code>
+
+            Test(input, expected)
+
+        End Sub
+
+        <WorkItem(724, "#724")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_SimplifyParenthesesInsideInterpolation6()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var x = 19;
+        var y = 23;
+        var z = $"{{|Simplify:((true ? x : y) == 42)|}}";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var x = 19;
+        var y = 23;
+        var z = $"{(true ? x : y) == 42}";
     }
 }
 </code>
@@ -863,8 +1003,82 @@ class Program
             Test(input, expected)
 
         End Sub
-
 #End Region
 
+        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var x = new List&lt;int&gt;();
+        int i = {|Simplify:({|Simplify:(int?)x?.Count|})|}.GetValueOrDefault();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var x = new List&lt;int&gt;();
+        int i = (x?.Count).GetValueOrDefault();
+    }
+}
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim x = New List(Of Integer)
+        Dim i = {|Simplify:({|Simplify:CType(x?.Count, Integer?)|})|}.GetValueOrDefault()
+    End Sub
+End Module
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Imports System
+Imports System.Collections.Generic
+
+Module Program
+    Sub Main()
+        Dim x = New List(Of Integer)
+        Dim i = (x?.Count).GetValueOrDefault()
+    End Sub
+End Module
+</code>
+
+            Test(input, expected)
+        End Sub
     End Class
 End Namespace

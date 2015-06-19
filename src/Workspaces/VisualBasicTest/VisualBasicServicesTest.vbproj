@@ -16,12 +16,9 @@
     <VBRuntime>Default</VBRuntime>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -46,10 +43,6 @@
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Desktop\BasicWorkspace.Desktop.vbproj">
-      <Project>{e637ad92-8397-4337-a9cd-9f2570078e59}</Project>
-      <Name>BasicWorkspace.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
       <Name>BasicWorkspace</Name>
@@ -64,7 +57,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\\System.Collections.Immutable.dll" />
     <Reference Include="..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
@@ -101,6 +94,7 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGeneration\AddImportsTests.vb" />
     <Compile Include="CodeGeneration\SyntaxGeneratorTests.vb" />
     <Compile Include="Formatting\FormattingTests.vb" />
     <Compile Include="Formatting\VisualBasicFormattingTestBase.vb" />

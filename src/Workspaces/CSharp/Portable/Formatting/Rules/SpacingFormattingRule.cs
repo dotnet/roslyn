@@ -68,6 +68,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
             }
 
+            // For spacing around: typeof, default, and sizeof; treat like a Method Call
+            if (currentKind == SyntaxKind.OpenParenToken && IsFunctionLikeKeywordExpressionKind(currentParentKind))
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterMethodCallName);
+            }
+
+            if (previousKind == SyntaxKind.OpenParenToken && IsFunctionLikeKeywordExpressionKind(previousParentKind))
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
+            }
+
+            if (currentKind == SyntaxKind.CloseParenToken && IsFunctionLikeKeywordExpressionKind(currentParentKind))
+            {
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinMethodCallParentheses);
+            }
+
             // For Spacing b/n control flow keyword and paren. Parent check not needed.
             if (currentKind == SyntaxKind.OpenParenToken &&
                 (previousKind == SyntaxKind.IfKeyword || previousKind == SyntaxKind.WhileKeyword || previousKind == SyntaxKind.SwitchKeyword ||
@@ -92,18 +108,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing between the parenthesis and the expression inside the control flow expression
-            if (previousKind == SyntaxKind.OpenParenToken &&
-                (previousParentKind == SyntaxKind.IfStatement || previousParentKind == SyntaxKind.WhileStatement || previousParentKind == SyntaxKind.SwitchStatement ||
-                previousParentKind == SyntaxKind.ForStatement || previousParentKind == SyntaxKind.ForEachStatement || previousParentKind == SyntaxKind.DoStatement ||
-                previousParentKind == SyntaxKind.CatchDeclaration || previousParentKind == SyntaxKind.UsingStatement))
+            if (previousKind == SyntaxKind.OpenParenToken && IsControlFlowLikeKeywordStatementKind(previousParentKind))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }
 
-            if (currentKind == SyntaxKind.CloseParenToken &&
-                (currentParentKind == SyntaxKind.IfStatement || currentParentKind == SyntaxKind.WhileStatement || currentParentKind == SyntaxKind.SwitchStatement ||
-                currentParentKind == SyntaxKind.ForStatement || currentParentKind == SyntaxKind.ForEachStatement || currentParentKind == SyntaxKind.DoStatement ||
-                currentParentKind == SyntaxKind.UsingStatement || previousParentKind == SyntaxKind.CatchDeclaration))
+            // Semicolons in an empty for statement.  i.e.   for(;;)
+            if (previousKind == SyntaxKind.OpenParenToken || previousKind == SyntaxKind.SemicolonToken)
+            {
+                if (previousToken.Parent.Kind() == SyntaxKind.ForStatement)
+                {
+                    var forStatement = (ForStatementSyntax)previousToken.Parent;
+                    if (forStatement.Initializers.Count == 0 &&
+                        forStatement.Declaration == null &&
+                        forStatement.Condition == null &&
+                        forStatement.Incrementors.Count == 0)
+                    {
+                        return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+                    }
+                }
+            }
+
+            if (currentKind == SyntaxKind.CloseParenToken && IsControlFlowLikeKeywordStatementKind(currentParentKind))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinOtherParentheses);
             }
@@ -121,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing empty square braces
-            if (previousKind == SyntaxKind.OpenBracketToken && currentKind == SyntaxKind.OmittedArraySizeExpressionToken && HasFormattableBracketParent(previousToken))
+            if (previousKind == SyntaxKind.OpenBracketToken && (currentKind == SyntaxKind.CloseBracketToken || currentKind == SyntaxKind.OmittedArraySizeExpressionToken) && HasFormattableBracketParent(previousToken))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets);
             }
@@ -300,6 +326,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private bool HasFormattableBracketParent(SyntaxToken token)
         {
             return token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
+        }
+
+        private bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
+        {
+            return (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
+        }
+
+        private bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
+        {
+            return (syntaxKind == SyntaxKind.IfStatement || syntaxKind == SyntaxKind.WhileStatement || syntaxKind == SyntaxKind.SwitchStatement ||
+                syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.DoStatement ||
+                syntaxKind == SyntaxKind.CatchDeclaration || syntaxKind == SyntaxKind.UsingStatement || syntaxKind == SyntaxKind.LockStatement ||
+                syntaxKind == SyntaxKind.FixedStatement);
         }
     }
 }

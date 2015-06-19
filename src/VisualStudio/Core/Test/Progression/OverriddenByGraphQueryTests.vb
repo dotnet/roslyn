@@ -8,7 +8,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class OverriddenByGraphQueryTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TestOverriddenByMethod1()
+        Public Sub TestOverriddenByMethod1()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -50,7 +50,7 @@ class Foo : Base, IComparable
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Sub TestOverriddenByMethod2()
+        Public Sub TestOverriddenByMethod2()
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">

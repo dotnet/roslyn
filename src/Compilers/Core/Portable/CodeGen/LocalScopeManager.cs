@@ -25,13 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _scopes.Push(_rootScope);
             }
 
-            private ScopeInfo CurrentScope
-            {
-                get
-                {
-                    return _scopes.Peek();
-                }
-            }
+            private ScopeInfo CurrentScope => _scopes.Peek();
 
             internal ScopeInfo OpenScope(ScopeType scopeType, Microsoft.Cci.ITypeReference exceptionType)
             {
@@ -70,10 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 Debug.Assert(_enclosingExceptionHandler == GetEnclosingExceptionHandler());
             }
 
-            internal ExceptionHandlerScope EnclosingExceptionHandler
-            {
-                get { return _enclosingExceptionHandler; }
-            }
+            internal ExceptionHandlerScope EnclosingExceptionHandler => _enclosingExceptionHandler;
 
             private ExceptionHandlerScope GetEnclosingExceptionHandler()
             {
@@ -304,10 +295,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// </summary>
             public abstract void FreeBasicBlocks();
 
-            internal virtual bool ContainsLocal(LocalDefinition local)
-            {
-                return false;
-            }
+            internal virtual bool ContainsLocal(LocalDefinition local) => false;
         }
 
         /// <summary>
@@ -325,10 +313,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             private ImmutableArray<ScopeInfo>.Builder _nestedScopes;
             protected ImmutableArray<BasicBlock>.Builder Blocks;
 
-            public override ScopeType Type
-            {
-                get { return ScopeType.Variable; }
-            }
+            public override ScopeType Type => ScopeType.Variable;
 
             public override ScopeInfo OpenScope(
                 ScopeType scopeType,
@@ -574,23 +559,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _exceptionType = exceptionType;
             }
 
-            public ExceptionHandlerContainerScope ContainingExceptionScope
-            {
-                get
-                {
-                    return _containingScope;
-                }
-            }
+            public ExceptionHandlerContainerScope ContainingExceptionScope => _containingScope;
 
-            public override ScopeType Type
-            {
-                get { return _type; }
-            }
+            public override ScopeType Type => _type;
 
-            public Microsoft.Cci.ITypeReference ExceptionType
-            {
-                get { return _exceptionType; }
-            }
+            public Microsoft.Cci.ITypeReference ExceptionType => _exceptionType;
 
             // pessimistically sets destination for blocked branches.
             // called when finally block is inserted in the outer TryFinally scope.
@@ -604,10 +577,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // if current finally does not terminate, this is where 
             // branches going through it should be retargeted.
             // Otherwise returns null.
-            public object BlockedByFinallyDestination
-            {
-                get { return _blockedByFinallyDestination; }
-            }
+            public object BlockedByFinallyDestination => _blockedByFinallyDestination;
 
             // Called when finally is determined to be non-blocking
             public void UnblockFinally()
@@ -616,12 +586,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             public int FilterHandlerStart
-            {
-                get
-                {
-                    return _lastFilterConditionBlock.Start + _lastFilterConditionBlock.TotalSize;
-                }
-            }
+                => _lastFilterConditionBlock.Start + _lastFilterConditionBlock.TotalSize;
 
             public override void FinishFilterCondition(ILBuilder builder)
             {
@@ -668,10 +633,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return block;
             }
 
-            public ExceptionHandlerLeaderBlock LeaderBlock
-            {
-                get { return (Blocks == null) ? null : (ExceptionHandlerLeaderBlock)Blocks[0]; }
-            }
+            public ExceptionHandlerLeaderBlock LeaderBlock => (ExceptionHandlerLeaderBlock) Blocks?[0];
 
             private BlockType GetLeaderBlockType()
             {
@@ -715,23 +677,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _endLabel = new object();
             }
 
-            public ExceptionHandlerScope ContainingHandler
-            {
-                get
-                {
-                    return _containingHandler;
-                }
-            }
+            public ExceptionHandlerScope ContainingHandler => _containingHandler;
 
-            public object EndLabel
-            {
-                get { return _endLabel; }
-            }
+            public object EndLabel => _endLabel;
 
-            public override ScopeType Type
-            {
-                get { return ScopeType.TryCatchFinally; }
-            }
+            public override ScopeType Type => ScopeType.TryCatchFinally;
 
             public override ScopeInfo OpenScope(ScopeType scopeType,
                 Microsoft.Cci.ITypeReference exceptionType,
@@ -853,14 +803,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             internal override ScopeBounds GetLocalScopes(ArrayBuilder<Cci.LocalScope> scopesWithVariables)
-            {
-                return GetLocalScopes(scopesWithVariables, _handlers);
-            }
+                => GetLocalScopes(scopesWithVariables, _handlers);
 
             internal override ScopeBounds GetHoistedLocalScopes(ArrayBuilder<Cci.StateMachineHoistedLocalScope> result)
-            {
-                return GetHoistedLocalScopes(result, _handlers);
-            }
+                => GetHoistedLocalScopes(result, _handlers);
 
             private static ScopeBounds GetBounds(ExceptionHandlerScope scope)
             {

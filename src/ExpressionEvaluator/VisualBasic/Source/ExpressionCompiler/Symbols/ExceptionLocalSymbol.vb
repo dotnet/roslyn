@@ -8,8 +8,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class ExceptionLocalSymbol
         Inherits PlaceholderLocalSymbol
 
-        Friend Sub New(method As MethodSymbol, name As String, type As TypeSymbol)
-            MyBase.New(method, name, type)
+        Private ReadOnly _getExceptionMethodName As String
+
+        Friend Sub New(method As MethodSymbol, name As String, displayName As String, type As TypeSymbol, getExceptionMethodName As String)
+            MyBase.New(method, name, displayName, type)
+            _getExceptionMethodName = getExceptionMethodName
         End Sub
 
         Friend Overrides ReadOnly Property IsReadOnly As Boolean
@@ -22,20 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             container As EENamedTypeSymbol,
             syntax As VisualBasicSyntaxNode,
-            isLValue As Boolean) As BoundExpression
+            isLValue As Boolean,
+            diagnostics As DiagnosticBag) As BoundExpression
 
-            ' The intrinsic accessor method has the same name as the pseudo-variable (normalized to lowercase).
-            Dim method = container.GetOrAddSynthesizedMethod(
-                Name.ToLowerInvariant(),
-                Function(c, n, s)
-                    Dim returnType = compilation.GetWellKnownType(WellKnownType.System_Exception)
-                    Return New PlaceholderMethodSymbol(
-                        c,
-                        s,
-                        n,
-                        returnType,
-                        Function(m) ImmutableArray(Of ParameterSymbol).Empty)
-                End Function)
+            Dim method = GetIntrinsicMethod(compilation, _getExceptionMethodName)
             Dim [call] As New BoundCall(
                 syntax,
                 method,
@@ -45,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 constantValueOpt:=Nothing,
                 suppressObjectClone:=False, ' Doesn't matter, since no arguments.
                 type:=method.ReturnType)
-            Return ConvertToLocalType(compilation, [call], Type)
+            Return ConvertToLocalType(compilation, [call], Type, diagnostics)
         End Function
 
     End Class

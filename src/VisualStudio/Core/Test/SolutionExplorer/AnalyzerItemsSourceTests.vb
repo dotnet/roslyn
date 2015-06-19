@@ -20,8 +20,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing)
-                Dim analyzerItemsSource = New AnalyzerItemSource(analyzerFolder)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzerItemsSource = New AnalyzerItemSource(analyzerFolder, New FakeAnalyzersCommandHandler)
 
                 Dim analyzers = analyzerItemsSource.Items.Cast(Of AnalyzerItem)().ToArray()
 

@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
-        private ImmutableHashSet<Symbol> _lazyAbstractMembers = null;
-        private InterfaceInfo _lazyInterfaceInfo = null;
+        private ImmutableHashSet<Symbol> _lazyAbstractMembers;
+        private InterfaceInfo _lazyInterfaceInfo;
 
         private class InterfaceInfo
         {
@@ -45,7 +45,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Key is implemented member (method, property, or event), value is implementing member (from the 
             // perspective of this type).  Don't allocate until someone needs it.
-            internal ConcurrentDictionary<Symbol, SymbolAndDiagnostics> implementationForInterfaceMemberMap;
+            private ConcurrentDictionary<Symbol, SymbolAndDiagnostics> _implementationForInterfaceMemberMap;
+
+            public ConcurrentDictionary<Symbol, SymbolAndDiagnostics> ImplementationForInterfaceMemberMap
+            {
+                get
+                {
+                    var map = _implementationForInterfaceMemberMap;
+                    if (map != null)
+                    {
+                        return map;
+                    }
+
+                    // PERF: Avoid over-allocation. In many cases, there's only 1 entry and we don't expect concurrent updates.
+                    map = new ConcurrentDictionary<Symbol, SymbolAndDiagnostics>(concurrencyLevel: 1, capacity: 1);
+                    return Interlocked.CompareExchange(ref _implementationForInterfaceMemberMap, map, null) ?? map;
+                }
+            }
 
             // key = interface method/property/event, value = explicitly implementing method/property/event declared on this type
             internal Dictionary<Symbol, Symbol> explicitInterfaceImplementationMap;
@@ -54,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return allInterfaces.IsDefault &&
                     interfacesAndTheirBaseInterfaces == null &&
-                    implementationForInterfaceMemberMap == null &&
+                    _implementationForInterfaceMemberMap == null &&
                     explicitInterfaceImplementationMap == null;
             }
         }
@@ -306,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
         {
-            private readonly bool _ignoreDynamic,_ignoreCustomModifiers;
+            private readonly bool _ignoreDynamic, _ignoreCustomModifiers;
 
             public EqualsIgnoringComparer(bool ignoreDynamic, bool ignoreCustomModifiers)
             {
@@ -442,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if ((object)interfaceMember == null)
             {
-                throw new ArgumentNullException("interfaceMember");
+                throw new ArgumentNullException(nameof(interfaceMember));
             }
 
             return FindImplementationForInterfaceMemberWithDiagnostics(interfaceMember).Symbol;
@@ -641,12 +657,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return SymbolAndDiagnostics.Empty;
                     }
 
-                    if (info.implementationForInterfaceMemberMap == null)
+                    // PERF: Avoid delegate allocation by splitting GetOrAdd into TryGetValue+TryAdd
+                    var map = info.ImplementationForInterfaceMemberMap;
+                    SymbolAndDiagnostics result;
+                    if (map.TryGetValue(interfaceMember, out result))
                     {
-                        Interlocked.CompareExchange(ref info.implementationForInterfaceMemberMap, new ConcurrentDictionary<Symbol, SymbolAndDiagnostics>(), null);
+                        return result;
                     }
 
-                    return info.implementationForInterfaceMemberMap.GetOrAdd(interfaceMember, this.ComputeImplementationAndDiagnosticsForInterfaceMember);
+                    result = ComputeImplementationAndDiagnosticsForInterfaceMember(interfaceMember);
+                    map.TryAdd(interfaceMember, result);
+                    return result;
 
                 default:
                     return SymbolAndDiagnostics.Empty;

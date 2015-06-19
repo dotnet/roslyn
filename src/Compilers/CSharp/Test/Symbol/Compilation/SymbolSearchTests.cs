@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestExplicitInterfaceSearch()
         {
-            var source = @"
+            const string source = @"
 interface I
 {
     void M();
@@ -153,14 +153,14 @@ class Implicit : I
     public void M() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(sources: new string[] { source });
+            var compilation = CreateCompilationWithMscorlib(new[] { source });
 
             Test(compilation, n => n.IndexOf("M", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 3);
         }
 
         private static CSharpCompilation GetTestCompilation()
         {
-            string source = @"
+            const string source = @"
 namespace System
 {
     public class Test { }

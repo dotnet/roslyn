@@ -199,5 +199,64 @@ class Program
 }";
             VerifyProviderCommit(markup, "D", expected, '(', "");
         }
+
+        [WorkItem(1090377)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByAssignment()
+        {
+            var markup = @"
+class Location {}
+enum EAB { A, B }
+class Foo
+{
+    Location Loc {get; set;}
+    EAB E {get; set;}
+
+    void stuff()
+    {
+        var x = new Foo
+            {
+                Loc = new $$
+                E = EAB.A
+            };
+    }
+}
+
+";
+            VerifyItemExists(markup, "Location");
+        }
+
+        [WorkItem(1090377)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Program p = new $$
+        bool b = false;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByAssignment_GrandParentIsEqualsValueClause()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        bool b;
+        Program p = new $$
+        b = false;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
     }
 }

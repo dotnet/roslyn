@@ -506,6 +506,5 @@ class C
             Test(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/$$B|]/*4*/?./*5*/C/*6*/"));
             Test(string.Format(sourceTemplate, "/*1*/[|Me/*2*/?./*3*/B/*4*/?./*5*/$$C|]/*6*/"));
         }
-
     }
 }

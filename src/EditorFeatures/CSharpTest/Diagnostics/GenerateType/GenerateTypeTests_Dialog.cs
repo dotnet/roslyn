@@ -701,7 +701,7 @@ isLine: false,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: new string[0],
+newFileFolderContainers: Array.Empty<string>(),
 newFileName: "Test2.cs");
         }
 
@@ -1225,7 +1225,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: new string[0],
+newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2");
         }
 
@@ -1443,7 +1443,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[0],
+newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2");
         }
 
@@ -1703,7 +1703,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[0],
+newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2");
         }
 
@@ -1928,7 +1928,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[0],
+newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2",
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
         }
@@ -2956,7 +2956,7 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: new string[0],
+newFileFolderContainers: Array.Empty<string>(),
 projectName: "Assembly2");
         }
 

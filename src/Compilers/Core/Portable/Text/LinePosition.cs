@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// A <see cref="LinePosition"/> that represents position 0 at line 0.
         /// </summary>
-        public static readonly LinePosition Zero = new LinePosition(0, 0);
+        public static LinePosition Zero => default(LinePosition);
 
         private readonly int _line;
         private readonly int _character;
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (line < 0)
             {
-                throw new ArgumentOutOfRangeException("line");
+                throw new ArgumentOutOfRangeException(nameof(line));
             }
 
             if (character < 0)
             {
-                throw new ArgumentOutOfRangeException("character");
+                throw new ArgumentOutOfRangeException(nameof(character));
             }
 
             _line = line;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (character < 0)
             {
-                throw new ArgumentOutOfRangeException("character");
+                throw new ArgumentOutOfRangeException(nameof(character));
             }
 
             _line = -1;

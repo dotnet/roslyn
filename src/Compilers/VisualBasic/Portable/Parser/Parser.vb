@@ -21,13 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Enum
 
         ' Keep this value in sync with C# LanguageParser
-        Private Const _maxUncheckedRecursionDepth As Integer = 30
+        Friend Const MaxUncheckedRecursionDepth As Integer = 20
 
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
         Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibleFirstStatementKind.Yes
         Private _recursionDepth As Integer
-        Private m_EvaluatingConditionCompilationExpression As Boolean
+        Private _evaluatingConditionCompilationExpression As Boolean
         Private ReadOnly _scanner As Scanner
         Private ReadOnly _cancellationToken As CancellationToken
         Friend ReadOnly _pool As New SyntaxListPool
@@ -119,13 +119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Function
 
-        ReadOnly Property IsWithinAsyncMethodOrLambda As Boolean Implements ISyntaxFactoryContext.IsWithinAsyncMethodOrLambda
+        Public ReadOnly Property IsWithinAsyncMethodOrLambda As Boolean Implements ISyntaxFactoryContext.IsWithinAsyncMethodOrLambda
             Get
                 Return If(Not _isInMethodDeclarationHeader, Context.IsWithinAsyncMethodOrLambda, _isInAsyncMethodDeclarationHeader)
             End Get
         End Property
 
-        ReadOnly Property IsWithinIteratorContext As Boolean Implements ISyntaxFactoryContext.IsWithinIteratorContext
+        Public ReadOnly Property IsWithinIteratorContext As Boolean Implements ISyntaxFactoryContext.IsWithinIteratorContext
             Get
                 Return If(Not _isInMethodDeclarationHeader, Context.IsWithinIteratorMethodOrLambdaOrProperty, _isInIteratorMethodDeclarationHeader)
             End Get
@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Optional nonArrayName As Boolean = False,
                             Optional disallowGenericArgumentsOnLastQualifiedName As Boolean = False,
                             Optional allowEmptyGenericArguments As Boolean = False,
-                            Optional ByRef allowedEmptyGenericArguments As Boolean = False
+                            Optional ByRef allowedEmptyGenericArguments As Boolean = False,
+                            Optional isNameInNamespaceDeclaration As Boolean = False
                         ) As NameSyntax
 
             Debug.Assert(allowGenericArguments OrElse Not allowEmptyGenericArguments, "Inconsistency in generic arguments parsing requirements!!!")
@@ -171,7 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
 
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
-                result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+
+                If isNameInNamespaceDeclaration Then
+                    result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+                End If
 
                 GetNextToken()
 
@@ -432,75 +436,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 1125 - 1125
         ' HRESULT .Parser::ParseDecls( [ _In_ Scanner* InputStream ] [ ErrorTable* Errors ] [ SourceFile* InputFile ] [  ParseTree::FileBlockStatement** Result ] [ _Inout_ NorlsAllocator* ConditionalCompilationSymbolsStorage ] [ BCSYM_Container* ProjectLevelCondCompScope ] [ _Out_opt_ BCSYM_Container** ConditionalCompilationConstants ] [ _In_ LineMarkerTable* LineMarkerTableForConditionals ] )
         Friend Function ParseCompilationUnit() As CompilationUnitSyntax
+            Return ParseWithStackGuard(Of CompilationUnitSyntax)(
+                AddressOf Me.ParseCompilationUnitCore,
+                Function() SyntaxFactory.CompilationUnit(
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    New SyntaxList(Of VisualBasicSyntaxNode)(),
+                    Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SyntaxFactory.EndOfFileToken()))
+        End Function
 
-            Dim restorePoint = _scanner.CreateRestorePoint()
-            Try
-                Debug.Assert(_context IsNot Nothing)
-                Dim programContext As CompilationUnitContext = DirectCast(_context, CompilationUnitContext)
+        Friend Function ParseCompilationUnitCore() As CompilationUnitSyntax
+            Debug.Assert(_context IsNot Nothing)
+            Dim programContext As CompilationUnitContext = DirectCast(_context, CompilationUnitContext)
 
-                GetNextToken()
+            GetNextToken()
 
-                While True
-                    Dim curSyntaxNode As VisualBasicSyntaxNode = Nothing
-                    Dim incrementalContext = GetCurrentSyntaxNodeIfApplicable(curSyntaxNode)
+            While True
+                Dim curSyntaxNode As VisualBasicSyntaxNode = Nothing
+                Dim incrementalContext = GetCurrentSyntaxNodeIfApplicable(curSyntaxNode)
 
-                    If incrementalContext IsNot Nothing Then
-                        _context = incrementalContext
-                        Dim lastTrivia = curSyntaxNode.LastTriviaIfAny()
-                        If lastTrivia IsNot Nothing Then
-                            If lastTrivia.Kind = SyntaxKind.EndOfLineTrivia Then
-                                ConsumedStatementTerminator(allowLeadingMultilineTrivia:=True)
-                                ResetCurrentToken(ScannerState.VBAllowLeadingMultilineTrivia)
-                            ElseIf lastTrivia.Kind = SyntaxKind.ColonTrivia Then
-                                Debug.Assert(Not _context.IsSingleLine) ' Not handling single-line statements.
-                                ConsumedStatementTerminator(
-                                allowLeadingMultilineTrivia:=True,
-                                possibleFirstStatementOnLine:=PossibleFirstStatementKind.IfPrecededByLineBreak)
-                                ResetCurrentToken(If(_allowLeadingMultilineTrivia, ScannerState.VBAllowLeadingMultilineTrivia, ScannerState.VB))
-                            End If
-                        Else
-                            ' If we reuse a label statement, note that it may end with a colon.
-                            Dim curNodeLabel As LabelStatementSyntax = TryCast(curSyntaxNode, LabelStatementSyntax)
-                            If curNodeLabel IsNot Nothing AndAlso curNodeLabel.ColonToken.Kind = SyntaxKind.ColonToken Then
-                                ConsumedStatementTerminator(
-                                allowLeadingMultilineTrivia:=True,
-                                possibleFirstStatementOnLine:=PossibleFirstStatementKind.IfPrecededByLineBreak)
-                            End If
+                If incrementalContext IsNot Nothing Then
+                    _context = incrementalContext
+                    Dim lastTrivia = curSyntaxNode.LastTriviaIfAny()
+                    If lastTrivia IsNot Nothing Then
+                        If lastTrivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                            ConsumedStatementTerminator(allowLeadingMultilineTrivia:=True)
+                            ResetCurrentToken(ScannerState.VBAllowLeadingMultilineTrivia)
+                        ElseIf lastTrivia.Kind = SyntaxKind.ColonTrivia Then
+                            Debug.Assert(Not _context.IsSingleLine) ' Not handling single-line statements.
+                            ConsumedStatementTerminator(
+                            allowLeadingMultilineTrivia:=True,
+                            possibleFirstStatementOnLine:=PossibleFirstStatementKind.IfPrecededByLineBreak)
+                            ResetCurrentToken(If(_allowLeadingMultilineTrivia, ScannerState.VBAllowLeadingMultilineTrivia, ScannerState.VB))
                         End If
                     Else
-                        ResetCurrentToken(If(_allowLeadingMultilineTrivia, ScannerState.VBAllowLeadingMultilineTrivia, ScannerState.VB))
-
-                        If CurrentToken.IsEndOfParse Then
-                            _context.RecoverFromMissingEnd(programContext)
-                            Exit While
+                        ' If we reuse a label statement, note that it may end with a colon.
+                        Dim curNodeLabel As LabelStatementSyntax = TryCast(curSyntaxNode, LabelStatementSyntax)
+                        If curNodeLabel IsNot Nothing AndAlso curNodeLabel.ColonToken.Kind = SyntaxKind.ColonToken Then
+                            ConsumedStatementTerminator(
+                            allowLeadingMultilineTrivia:=True,
+                            possibleFirstStatementOnLine:=PossibleFirstStatementKind.IfPrecededByLineBreak)
                         End If
-
-                        Dim statement = _context.Parse()
-                        Dim adjustedStatement = AdjustTriviaForMissingTokens(statement)
-                        _context = _context.LinkSyntax(adjustedStatement)
-                        _context = _context.ResyncAndProcessStatementTerminator(adjustedStatement, lambdaContext:=Nothing)
-
                     End If
-                End While
+                Else
+                    ResetCurrentToken(If(_allowLeadingMultilineTrivia, ScannerState.VBAllowLeadingMultilineTrivia, ScannerState.VB))
 
-                ' Create program
-                Dim terminator = DirectCast(CurrentToken, PunctuationSyntax)
-                Debug.Assert(terminator.Kind = SyntaxKind.EndOfFileToken)
+                    If CurrentToken.IsEndOfParse Then
+                        _context.RecoverFromMissingEnd(programContext)
+                        Exit While
+                    End If
 
-                Dim notClosedIfDirectives As ArrayBuilder(Of IfDirectiveTriviaSyntax) = Nothing
-                Dim notClosedRegionDirectives As ArrayBuilder(Of RegionDirectiveTriviaSyntax) = Nothing
-                Dim notClosedExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax = Nothing
-                terminator = _scanner.RecoverFromMissingConditionalEnds(terminator, notClosedIfDirectives, notClosedRegionDirectives, notClosedExternalSourceDirective)
-                Return programContext.CreateCompilationUnit(terminator, notClosedIfDirectives, notClosedRegionDirectives, notClosedExternalSourceDirective)
+                    Dim statement = _context.Parse()
+                    Dim adjustedStatement = AdjustTriviaForMissingTokens(statement)
+                    _context = _context.LinkSyntax(adjustedStatement)
+                    _context = _context.ResyncAndProcessStatementTerminator(adjustedStatement, lambdaContext:=Nothing)
 
+                End If
+            End While
+
+            ' Create program
+            Dim terminator = DirectCast(CurrentToken, PunctuationSyntax)
+            Debug.Assert(terminator.Kind = SyntaxKind.EndOfFileToken)
+
+            Dim notClosedIfDirectives As ArrayBuilder(Of IfDirectiveTriviaSyntax) = Nothing
+            Dim notClosedRegionDirectives As ArrayBuilder(Of RegionDirectiveTriviaSyntax) = Nothing
+            Dim notClosedExternalSourceDirective As ExternalSourceDirectiveTriviaSyntax = Nothing
+            terminator = _scanner.RecoverFromMissingConditionalEnds(terminator, notClosedIfDirectives, notClosedRegionDirectives, notClosedExternalSourceDirective)
+            Return programContext.CreateCompilationUnit(terminator, notClosedIfDirectives, notClosedRegionDirectives, notClosedExternalSourceDirective)
+        End Function
+
+        Private Function ParseWithStackGuard(Of TNode As VisualBasicSyntaxNode)(parseFunc As Func(Of TNode), defaultFunc As Func(Of TNode)) As TNode
+            Debug.Assert(_recursionDepth = 0)
+            Dim restorePoint = _scanner.CreateRestorePoint()
+            Try
+                Return parseFunc()
                 ' TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
                 ' Is available in the PCL
             Catch ex As Exception When ex.GetType().Name = "InsufficientExecutionStackException"
-                Return CreateForInsufficientStack(restorePoint)
+                Return CreateForInsufficientStack(restorePoint, defaultFunc())
             End Try
         End Function
 
-        Function CreateForInsufficientStack(ByRef restorePoint As Scanner.RestorePoint) As CompilationUnitSyntax
+        Private Function CreateForInsufficientStack(Of TNode As VisualBasicSyntaxNode)(ByRef restorePoint As Scanner.RestorePoint, result As TNode) As TNode
             restorePoint.Restore()
             GetNextToken()
 
@@ -510,17 +528,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken()
             End While
 
-            Dim result = _syntaxFactory.CompilationUnit(
-                New SyntaxList(Of VisualBasicSyntaxNode)(),
-                New SyntaxList(Of VisualBasicSyntaxNode)(),
-                New SyntaxList(Of VisualBasicSyntaxNode)(),
-                New SyntaxList(Of VisualBasicSyntaxNode)(),
-                DirectCast(CurrentToken, PunctuationSyntax))
-
             Return result.AddLeadingSyntax(builder.ToList(Of SyntaxToken)(), ERRID.ERR_TooLongOrComplexExpression)
         End Function
 
         Friend Function ParseExecutableStatement() As StatementSyntax
+            Return ParseWithStackGuard(Of StatementSyntax)(
+                AddressOf Me.ParseExecutableStatementCore,
+                Function() InternalSyntaxFactory.EmptyStatement())
+        End Function
+
+        Private Function ParseExecutableStatementCore() As StatementSyntax
             Dim outerContext As New CompilationUnitContext(Me)
             Dim fakeBegin = SyntaxFactory.SubStatement(Nothing, Nothing, InternalSyntaxFactory.MissingKeyword(SyntaxKind.SubKeyword),
                                                   InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing, Nothing, Nothing)
@@ -843,8 +860,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= _maxUncheckedRecursionDepth Then
-                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack()
+                If _recursionDepth >= MaxUncheckedRecursionDepth Then
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
                 End If
 
                 _hadImplicitLineContinuation = False
@@ -1475,7 +1492,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If TryGetTokenAndEatNewLine(SyntaxKind.EqualsToken, optionalEquals) Then
 
-                expr = ParseExpression()
+                expr = ParseExpressionCore()
 
                 If expr.ContainsDiagnostics Then
                     ' Resync at EOS so we don't get any more errors.
@@ -1628,7 +1645,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 requireQualification:=False,
                 allowGlobalNameSpace:=True,
                 allowGenericArguments:=False,
-                allowGenericsWithoutOf:=True)
+                allowGenericsWithoutOf:=True,
+                isNameInNamespaceDeclaration:=True)
 
             If namespaceName.ContainsDiagnostics Then
                 ' Resync at EOS so we don't get expecting EOS errors
@@ -1914,25 +1932,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.ProtectedKeyword,
                          SyntaxKind.FriendKeyword
 
-                    ' Storage category
+                        ' Storage category
                     Case SyntaxKind.SharedKeyword,
                          SyntaxKind.ShadowsKeyword
 
-                    ' Inheritance category
+                        ' Inheritance category
                     Case SyntaxKind.MustInheritKeyword,
                          SyntaxKind.OverloadsKeyword,
                          SyntaxKind.NotInheritableKeyword,
                          SyntaxKind.OverridesKeyword
 
-                    ' Partial types category
+                        ' Partial types category
                     Case SyntaxKind.PartialKeyword
 
-                    ' Modifier category
+                        ' Modifier category
                     Case SyntaxKind.NotOverridableKeyword,
                          SyntaxKind.OverridableKeyword,
                          SyntaxKind.MustOverrideKeyword
 
-                    ' Writeability category
+                        ' Writeability category
                     Case SyntaxKind.ReadOnlyKeyword,
                          SyntaxKind.WriteOnlyKeyword
 
@@ -1942,7 +1960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.DefaultKeyword,
                          SyntaxKind.WithEventsKeyword
 
-                    ' Conversion category
+                        ' Conversion category
                     Case SyntaxKind.WideningKeyword,
                          SyntaxKind.NarrowingKeyword
 
@@ -2240,7 +2258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' Make the initializer expression a deferred expression
                     ' Allow expression initializer
                     ' Disallow assignment initializer
-                    Dim value As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNone) 'Dev10 was ParseInitializer
+                    Dim value As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceNone) 'Dev10 was ParseInitializer
 
                     Debug.Assert(Equals IsNot Nothing)
                     optionalInitializer = SyntaxFactory.EqualsValue(Equals, value)
@@ -2343,7 +2361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Do
                     'This used to call ParseInitializer
-                    Dim Initializer As ExpressionSyntax = ParseExpression(OperatorPrecedence.PrecedenceNone) 'Dev 10 was ParseInitializer
+                    Dim Initializer As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceNone) 'Dev 10 was ParseInitializer
 
                     If Initializer.ContainsDiagnostics Then
                         Initializer = ResyncAt(Initializer, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken)
@@ -2488,7 +2506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '''       RequireAtleastOneInitializer = false
         ''' 
         '''  While the grammar uses the nonterminal CollectionInitializer is modeled as an
-        '''  AnnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
+        '''  AnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
         ''' </remarks>
         ''' 
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
@@ -2522,7 +2540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim equals As PunctuationSyntax = Nothing
             Dim expression As ExpressionSyntax
 
-            ' Parse form: Key? '.'<IdentiferOrKeyword> '=' <Expression>
+            ' Parse form: Key? '.'<IdentifierOrKeyword> '=' <Expression>
 
             If anonymousTypeInitializer AndAlso
                 TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.KeyKeyword, optionalKey) Then
@@ -2556,7 +2574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
             ElseIf anonymousTypeInitializer Then
-                expression = ParseExpression() 'Dev10 was ParseInitializer()
+                expression = ParseExpressionCore() 'Dev10 was ParseInitializer()
 
                 Dim propertyName As SyntaxToken
                 Dim isNameDictionaryAccess As Boolean = False
@@ -2603,7 +2621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.InferredFieldInitializer(optionalKey, expression)
 
             Else
-                ' Assume that the "'.'<IdentiferOrKeyword> '='" was left out.
+                ' Assume that the "'.'<IdentifierOrKeyword> '='" was left out.
 
                 dot = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.DotToken)
                 id = InternalSyntaxFactory.MissingIdentifier()
@@ -2613,12 +2631,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' allow expression initializer
             ' disallow assignment initializer
-            expression = ParseExpression() 'Dev10 was ParseInitializer()
+            expression = ParseExpressionCore() 'Dev10 was ParseInitializer()
 
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' TOO - davidsch - handle annonymous type initialization
+        ' TODO - davidsch - handle annonymous type initialization
         ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
 
         ' /*********************************************************************
@@ -2670,7 +2688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' We want to check for this and give a more informative error.
             If SyntaxFacts.IsSpecifier(identifierStart.Kind) Then
 
-                ' We don't want to look for specifiers if the errorneous declarator starts on a new line.
+                ' We don't want to look for specifiers if the erroneous declarator starts on a new line.
                 ' This is because we want to recover the error on the previous line and treat the line with the
                 ' specifier as a new statement
                 If identifierStartPrev IsNot Nothing AndAlso identifierStartPrev.IsEndOfLine Then
@@ -2711,7 +2729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Parse an identifier followed by optional? (but not optional array bounds), and return modified identifier
         ' Used inside LINQ queries.
-        Private Function ParseNullableModifiedIdentifer() As ModifiedIdentifierSyntax
+        Private Function ParseNullableModifiedIdentifier() As ModifiedIdentifierSyntax
             Dim optionalNullable As PunctuationSyntax = Nothing
             Dim id As IdentifierTokenSyntax = ParseNullableIdentifier(optionalNullable)
 
@@ -2834,7 +2852,7 @@ checkNullable:
             End If
 
             If SyntaxKind.QuestionToken = CurrentToken.Kind Then
-                If m_EvaluatingConditionCompilationExpression Then
+                If _evaluatingConditionCompilationExpression Then
 
                     typeName = typeName.AddTrailingSyntax(CurrentToken, ERRID.ERR_BadNullTypeInCCExpression)
                     GetNextToken()
@@ -2905,7 +2923,7 @@ checkNullable:
             Dim start As SyntaxToken = CurrentToken
             Dim result As TypeSyntax
 
-            If m_EvaluatingConditionCompilationExpression AndAlso Not SyntaxFacts.IsPredefinedTypeOrVariant(start.Kind) Then
+            If _evaluatingConditionCompilationExpression AndAlso Not SyntaxFacts.IsPredefinedTypeOrVariant(start.Kind) Then
 
                 'TODO - 
                 ' 1. Dev10 code does NOT consume any tokens here.
@@ -3215,7 +3233,7 @@ checkNullable:
             Do
                 Dim lowerBound As ExpressionSyntax = Nothing
                 Dim toKeyword As KeywordSyntax = Nothing
-                Dim upperBound As ExpressionSyntax = ParseExpression()
+                Dim upperBound As ExpressionSyntax = ParseExpressionCore()
 
                 If upperBound.ContainsDiagnostics Then
                     upperBound = ResyncAt(upperBound, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken, SyntaxKind.AsKeyword)
@@ -3228,7 +3246,7 @@ checkNullable:
 
                     GetNextToken() ' consume To keyword
 
-                    upperBound = ParseExpression()
+                    upperBound = ParseExpressionCore()
                 End If
 
                 If upperBound.ContainsDiagnostics OrElse (toKeyword IsNot Nothing AndAlso lowerBound.ContainsDiagnostics) Then
@@ -4538,12 +4556,12 @@ checkNullable:
                     equals = ReportSyntaxError(equals, ERRID.ERR_DefaultValueForNonOptionalParam)
                 End If
 
-                value = ParseExpression()
+                value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
 
                 equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpression()
+                value = ParseExpressionCore()
 
             End If
 
@@ -5466,7 +5484,7 @@ checkNullable:
 
         Private Shared Function StartsValidConditionalCompilationExpr(t As SyntaxToken) As Boolean
             Select Case (t.Kind)
-                ' Identifiers - note that only simple indentifiers are allowed.
+                ' Identifiers - note that only simple identifiers are allowed.
                 ' This check is done in ParseTerm.
 
                 ' Parenthesized expressions
@@ -5912,7 +5930,7 @@ checkNullable:
         '
 
         ' IdentifierAsKeyword returns the token type of a identifier token,
-        ' interpreting non-bracketed indentifiers as (non-reserved) keywords as appropriate.
+        ' interpreting non-bracketed identifiers as (non-reserved) keywords as appropriate.
 
         Private Shared Function TryIdentifierAsContextualKeyword(id As SyntaxToken, ByRef kind As SyntaxKind) As Boolean
             Debug.Assert(id IsNot Nothing)
@@ -5946,7 +5964,7 @@ checkNullable:
             Return Scanner.TryTokenAsKeyword(t, kind)
         End Function
 
-        Private Shared ReadOnly IsTokenOrKeywordFunc As Func(Of SyntaxToken, SyntaxKind(), Boolean) = AddressOf IsTokenOrKeyword
+        Private Shared ReadOnly s_isTokenOrKeywordFunc As Func(Of SyntaxToken, SyntaxKind(), Boolean) = AddressOf IsTokenOrKeyword
 
         Private Shared Function IsTokenOrKeyword(token As SyntaxToken, kinds As SyntaxKind()) As Boolean
             Debug.Assert(Not kinds.Contains(SyntaxKind.IdentifierToken))
@@ -5982,8 +6000,14 @@ checkNullable:
                 Return node
             End If
 
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            If feature = Feature.InterpolatedStrings Then
+                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
+                ' an unlocalized string and fix this to be localized in the next release.
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+            Else
+                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            End If
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean

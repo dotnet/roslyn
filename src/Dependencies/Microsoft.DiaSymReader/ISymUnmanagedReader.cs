@@ -22,8 +22,8 @@ namespace Microsoft.DiaSymReader
 
         [PreserveSig]
         int GetDocuments(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[] documents);
 
         [PreserveSig]
@@ -47,8 +47,8 @@ namespace Microsoft.DiaSymReader
 
         [PreserveSig]
         int GetGlobalVariables(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] variables);
 
         [PreserveSig]
@@ -87,8 +87,8 @@ namespace Microsoft.DiaSymReader
 
         [PreserveSig]
         int GetSymbolStoreFileName(
-            int bufferLength, 
-            out int count, 
+            int bufferLength,
+            out int count,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] name);
 
         [PreserveSig]

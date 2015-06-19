@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// The <see cref="CodeAnalysis.Document"/> the span was produced from.
         /// </summary>
-        public Document Document { get; private set; }
+        public Document Document { get; }
 
         /// <summary>
         /// The editor <see cref="VisualStudio.Text.SnapshotSpan"/>.
         /// </summary>
-        public SnapshotSpan SnapshotSpan { get; private set; }
+        public SnapshotSpan SnapshotSpan { get; }
 
         /// <summary>
         /// Creates a new <see cref="DocumentSnapshotSpan"/>.

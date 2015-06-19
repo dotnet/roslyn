@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             protected override int PutChecked(int fChecked)
             {
-                _checked = fChecked == 1 ? true : false;
+                _checked = fChecked == 1;
                 return VSConstants.S_OK;
             }
         }

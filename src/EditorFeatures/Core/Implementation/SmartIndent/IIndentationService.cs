@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// The base position in the document that the indent should be relative to.  This position
         /// can occur on any line (including the current line, or a previous line).
         /// </summary>
-        public int BasePosition { get; private set; }
+        public int BasePosition { get; }
 
         /// <summary>
         /// The number of columns the indent should be at relative to the BasePosition's column.
         /// </summary>
-        public int Offset { get; private set; }
+        public int Offset { get; }
 
         public IndentationResult(int basePosition, int offset) : this()
         {

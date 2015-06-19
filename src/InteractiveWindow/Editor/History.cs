@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Text;
@@ -11,51 +13,51 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// <summary>
             /// The cached text of this entry, which may exist if we've detached from the span.
             /// </summary>
-            private string cachedText;
+            private string _cachedText;
 
             /// <summary>
             /// The span of the original submission of this text.
             /// </summary>
-            private SnapshotSpan? originalSpan;
+            private SnapshotSpan? _originalSpan;
 
             public bool Command { get; set; }
             public bool Failed { get; set; }
 
-            public SnapshotSpan? OriginalSpan { get { return originalSpan; } }
+            public SnapshotSpan? OriginalSpan { get { return _originalSpan; } }
 
             public string Text
             {
                 get
                 {
-                    if (cachedText != null)
+                    if (_cachedText != null)
                     {
-                        return cachedText;
+                        return _cachedText;
                     }
 
-                    return originalSpan.Value.GetText();
+                    return _originalSpan.Value.GetText();
                 }
             }
 
             internal void ForgetOriginalBuffer()
             {
-                if (originalSpan.HasValue)
+                if (_originalSpan.HasValue)
                 {
-                    cachedText = originalSpan.Value.GetText();
-                    originalSpan = null;
+                    _cachedText = _originalSpan.Value.GetText();
+                    _originalSpan = null;
                 }
             }
 
             public Entry(SnapshotSpan span)
             {
-                this.originalSpan = span;
+                _originalSpan = span;
             }
         }
 
-        private readonly List<Entry> history;
-        private readonly int maxLength;
+        private readonly List<Entry> _history;
+        private readonly int _maxLength;
 
-        private int current;
-        private bool live;
+        private int _current;
+        private bool _live;
 
         internal string UncommittedInput { get; set; }
 
@@ -66,21 +68,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal History(int maxLength)
         {
-            this.maxLength = maxLength;
-            this.current = -1;
-            this.history = new List<Entry>();
+            _maxLength = maxLength;
+            _current = -1;
+            _history = new List<Entry>();
         }
 
         internal void Clear()
         {
-            current = -1;
-            live = false;
-            history.Clear();
+            _current = -1;
+            _live = false;
+            _history.Clear();
         }
 
         internal void ForgetOriginalBuffers()
         {
-            foreach (var entry in history)
+            foreach (var entry in _history)
             {
                 entry.ForgetOriginalBuffer();
             }
@@ -88,26 +90,26 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal int MaxLength
         {
-            get { return maxLength; }
+            get { return _maxLength; }
         }
 
         internal int Length
         {
-            get { return history.Count; }
+            get { return _history.Count; }
         }
 
         internal IEnumerable<Entry> Items
         {
-            get { return history; }
+            get { return _history; }
         }
 
         internal Entry Last
         {
             get
             {
-                if (history.Count > 0)
+                if (_history.Count > 0)
                 {
-                    return history[history.Count - 1];
+                    return _history[_history.Count - 1];
                 }
                 else
                 {
@@ -121,34 +123,34 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             var entry = new Entry(span);
             var text = span.GetText();
 
-            live = false;
+            _live = false;
             if (Length == 0 || Last.Text != text)
             {
-                history.Add(entry);
+                _history.Add(entry);
             }
 
-            if (history[(current == -1) ? Length - 1 : current].Text != text)
+            if (_history[(_current == -1) ? Length - 1 : _current].Text != text)
             {
-                current = -1;
+                _current = -1;
             }
 
             if (Length > MaxLength)
             {
-                history.RemoveAt(0);
-                if (current > 0)
+                _history.RemoveAt(0);
+                if (_current > 0)
                 {
-                    current--;
+                    _current--;
                 }
             }
         }
 
         private Entry Get(string pattern, int step)
         {
-            var startPos = current;
+            var startPos = _current;
             var next = Move(pattern, step);
             if (next == null)
             {
-                current = startPos;
+                _current = startPos;
                 return null;
             }
 
@@ -169,8 +171,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             Debug.Assert(step == -1 || step == +1);
 
-            bool wasLive = live;
-            live = true;
+            bool wasLive = _live;
+            _live = true;
 
             if (Length == 0)
             {
@@ -192,19 +194,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             // no search in progress:
-            if (current == -1)
+            if (_current == -1)
             {
-                current = start;
+                _current = start;
             }
 
             int visited = 0;
             while (true)
             {
-                if (current == end)
+                if (_current == end)
                 {
                     if (visited < Length)
                     {
-                        current = start;
+                        _current = start;
                     }
                     else
                     {
@@ -219,10 +221,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 else
                 {
-                    current += step;
+                    _current += step;
                 }
 
-                var entry = history[current];
+                var entry = _history[_current];
                 if (patternEmpty || Matches(entry.Text, pattern))
                 {
                     return entry;

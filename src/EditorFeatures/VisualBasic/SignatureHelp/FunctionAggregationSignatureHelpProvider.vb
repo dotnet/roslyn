@@ -47,14 +47,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim functionAggregation As FunctionAggregationSyntax = Nothing
             If Not TryGetFunctionAggregation(root, position, document.GetLanguageService(Of ISyntaxFactsService), triggerInfo.TriggerReason, cancellationToken, functionAggregation) Then
                 Return Nothing
             End If
 
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim methods = semanticModel.LookupSymbols(
                 functionAggregation.SpanStart,
                 name:=functionAggregation.FunctionName.ValueText,
@@ -145,14 +145,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
                    Not delegateInvokeMethod.ReturnsVoid Then
 
                     Dim parts = New List(Of SymbolDisplayPart)
-                    parts.Add(Text("<expression>"))
+                    parts.Add(Text(Expression1))
                     parts.Add(Space())
                     parts.Add(Keyword(SyntaxKind.AsKeyword))
                     parts.Add(Space())
                     parts.AddRange(delegateInvokeMethod.ReturnType.ToMinimalDisplayParts(semanticModel, position))
 
                     Dim sigHelpParameter = New SignatureHelpParameter(
-                        "<expression>",
+                        Expression1,
                         parameter.IsOptional,
                         parameter.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormattingService),
                         parts)

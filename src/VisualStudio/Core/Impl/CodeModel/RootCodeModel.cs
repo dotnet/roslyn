@@ -85,12 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var hostProject = ((VisualStudioWorkspaceImpl)Workspace).ProjectTracker.GetProject(_projectId);
                 var projectCodeModel = ((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
-                return projectCodeModel.GetFileCodeModelInstance(fileName).Value;
+
+                return projectCodeModel.GetOrCreateFileCodeModel(fileName);
             }
-            else
-            {
-                throw Exceptions.ThrowEInvalidArg();
-            }
+
+            throw Exceptions.ThrowEInvalidArg();
         }
 
         public EnvDTE.Project Parent

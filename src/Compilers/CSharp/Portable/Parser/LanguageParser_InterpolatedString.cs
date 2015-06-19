@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             Debug.Assert(originalToken.ToFullString() == result.ToFullString()); // yield from text equals yield from node
-            return result;
+            return CheckFeatureAvailability(result, MessageID.IDS_FeatureInterpolatedStrings);
         }
 
         private InterpolationSyntax ParseInterpolation(string text, Lexer.Interpolation interpolation, bool isVerbatim)
@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void ParseInterpolationStart(out SyntaxToken openBraceToken, out ExpressionSyntax expr, out SyntaxToken commaToken, out ExpressionSyntax alignmentExpression)
         {
             openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
-            expr = this.ParseExpression();
+            expr = this.ParseExpressionCore();
             if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
                 commaToken = this.EatToken(SyntaxKind.CommaToken);
-                alignmentExpression = ConsumeUnexpectedTokens(this.ParseExpression());
+                alignmentExpression = ConsumeUnexpectedTokens(this.ParseExpressionCore());
             }
             else
             {

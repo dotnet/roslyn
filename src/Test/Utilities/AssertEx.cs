@@ -9,8 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -352,7 +352,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void Throws<T>(Action del, bool allowDerived = false)
+        public static T Throws<T>(Action del, bool allowDerived = false) where T : Exception
         {
             try
             {
@@ -364,13 +364,13 @@ namespace Roslyn.Test.Utilities
                 if (type.Equals(typeof(T)))
                 {
                     // We got exactly the type we wanted
-                    return;
+                    return (T)ex;
                 }
 
                 if (allowDerived && typeof(T).IsAssignableFrom(type))
                 {
                     // We got a derived type
-                    return;
+                    return (T)ex;
                 }
 
                 // We got some other type. We know that type != typeof(T), and so we'll use Assert.Equal since Xunit
@@ -378,9 +378,10 @@ namespace Roslyn.Test.Utilities
                 Assert.Equal(typeof(T), type);
             }
 
-            Assert.True(false, "No exception was thrown.");
+            throw new Exception("No exception was thrown.");
         }
 
+        // compares against a baseline
         public static void AssertEqualToleratingWhitespaceDifferences(
             string expected,
             string actual,
@@ -397,11 +398,37 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        // compares two results (no baseline)
+        public static void AssertResultsEqual(string result1, string result2)
+        {
+            if (result1 != result2)
+            {
+                string message;
+
+                if (DiffToolAvailable)
+                {
+                    string file1 = Path.GetTempFileName();
+                    File.WriteAllText(file1, result1);
+
+                    string file2 = Path.GetTempFileName();
+                    File.WriteAllText(file2, result2);
+
+                    message = MakeDiffToolLink(file1, file2);
+                }
+                else
+                {
+                    message = GetAssertMessage(result1, result2);
+                }
+
+                Assert.True(false, message);
+            }
+        }
+
         public static void AssertContainsToleratingWhitespaceDifferences(string expectedSubString, string actualString)
         {
             expectedSubString = NormalizeWhitespace(expectedSubString);
             actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString);
+            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
         internal static string NormalizeWhitespace(string input)
@@ -413,7 +440,7 @@ namespace Roslyn.Test.Utilities
                 var trimmedLine = line.Trim();
                 if (trimmedLine.Length > 0)
                 {
-                    if (!(trimmedLine.StartsWith("{", StringComparison.Ordinal) || trimmedLine.StartsWith("}", StringComparison.Ordinal)))
+                    if (!(trimmedLine[0] == '{' || trimmedLine[0] == '}'))
                     {
                         output.Append("  ");
                     }
@@ -481,7 +508,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine(DiffUtil.DiffReport(expected, actual, comparer, itemInspector, itemSeparator));
 
             string link;
-            if (TryGenerateExpectedSourceFielAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
+            if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out link))
             {
                 message.AppendLine(link);
             }
@@ -489,10 +516,10 @@ namespace Roslyn.Test.Utilities
             return message.ToString();
         }
 
-        internal static bool TryGenerateExpectedSourceFielAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
+        internal static bool TryGenerateExpectedSourceFileAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
         {
             // add a link to a .cmd file that opens a diff tool:
-            if (!string.IsNullOrEmpty(s_diffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
+            if (DiffToolAvailable && expectedValueSourcePath != null && expectedValueSourceLine != 0)
             {
                 var actualFile = Path.GetTempFileName();
                 var testFileLines = File.ReadAllLines(expectedValueSourcePath);
@@ -501,10 +528,7 @@ namespace Roslyn.Test.Utilities
                 File.AppendAllText(actualFile, actualString);
                 File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expectedLineCount));
 
-                var compareCmd = Path.GetTempFileName() + ".cmd";
-                File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", s_diffToolPath, actualFile, expectedValueSourcePath));
-
-                link = "file://" + compareCmd;
+                link = MakeDiffToolLink(actualFile, expectedValueSourcePath);
 
                 s_diffLinks.Value.Add(Tuple.Create(expectedValueSourcePath, expectedValueSourceLine, link));
                 return true;
@@ -514,7 +538,17 @@ namespace Roslyn.Test.Utilities
             return false;
         }
 
-        private static Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
+        internal static bool DiffToolAvailable => !string.IsNullOrEmpty(s_diffToolPath);
+
+        internal static string MakeDiffToolLink(string actualFilePath, string expectedFilePath)
+        {
+            var compareCmd = Path.GetTempFileName() + ".cmd";
+            File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", s_diffToolPath, actualFilePath, expectedFilePath));
+
+            return "file://" + compareCmd;
+        }
+
+        private static readonly Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
         {
             AppDomain.CurrentDomain.DomainUnload += (_, __) =>
             {
@@ -528,5 +562,6 @@ namespace Roslyn.Test.Utilities
 
             return new List<Tuple<string, int, string>>();
         });
+
     }
 }

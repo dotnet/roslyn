@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class NamedParameterCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Private Const ColonEquals As String = ":="
+        Private Const s_colonEquals As String = ":="
 
         Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
             Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
@@ -32,17 +32,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim symbolItem = DirectCast(selectedItem, SymbolCompletionItem)
             If ch.HasValue AndAlso ch.Value = ":"c Then
                 Return New TextChange(symbolItem.FilterSpan,
-                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - ColonEquals.Length))
+                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - s_colonEquals.Length))
             ElseIf ch.HasValue AndAlso ch.Value = "="c Then
                 Return New TextChange(selectedItem.FilterSpan,
-                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - (ColonEquals.Length - 1)))
+                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - (s_colonEquals.Length - 1)))
             Else
                 Return New TextChange(symbolItem.FilterSpan, symbolItem.InsertionText)
             End If
         End Function
 
         Protected Overrides Async Function IsExclusiveAsync(document As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
-            Dim syntaxTree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(caretPosition, cancellationToken).
                                    GetPreviousTokenIfTouchingWord(caretPosition)
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
-            Dim syntaxTree = Await document.GetVisualBasicSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
+            Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             If syntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 syntaxTree.IsInSkippedText(position, cancellationToken) Then
                 Return Nothing
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return unspecifiedParameters.Select(
                 Function(p) New SymbolCompletionItem(
-                    Me, p.Name & ColonEquals, p.Name.ToIdentifierToken().ToString() & ColonEquals,
+                    Me, p.Name & s_colonEquals, p.Name.ToIdentifierToken().ToString() & s_colonEquals,
                     CompletionUtilities.GetTextChangeSpan(text, position), position, SpecializedCollections.SingletonEnumerable(p).ToList(), context))
         End Function
 

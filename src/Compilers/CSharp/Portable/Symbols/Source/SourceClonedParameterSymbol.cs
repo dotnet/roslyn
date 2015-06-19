@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // Since you can't get from the syntax node that represents the orginal parameter 
+                // Since you can't get from the syntax node that represents the original parameter 
                 // back to this symbol we decided not to return the original syntax node here.
                 return ImmutableArray<SyntaxReference>.Empty;
             }

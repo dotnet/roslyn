@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SynthesizedLocal
         Inherits LocalSymbol
 
-        Private ReadOnly m_kind As SynthesizedLocalKind
-        Private ReadOnly m_isByRef As Boolean
-        Private ReadOnly m_syntaxOpt As SyntaxNode
+        Private ReadOnly _kind As SynthesizedLocalKind
+        Private ReadOnly _isByRef As Boolean
+        Private ReadOnly _syntaxOpt As SyntaxNode
 
         Friend Sub New(container As Symbol,
                        type As TypeSymbol,
@@ -24,26 +24,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(Not kind.IsLongLived OrElse syntaxOpt IsNot Nothing)
 
-            Me.m_kind = kind
-            Me.m_syntaxOpt = syntaxOpt
-            Me.m_isByRef = isByRef
+            Me._kind = kind
+            Me._syntaxOpt = syntaxOpt
+            Me._isByRef = isByRef
         End Sub
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return If(m_syntaxOpt Is Nothing, ImmutableArray(Of Location).Empty, ImmutableArray.Create(m_syntaxOpt.GetLocation()))
+                Return If(_syntaxOpt Is Nothing, ImmutableArray(Of Location).Empty, ImmutableArray.Create(_syntaxOpt.GetLocation()))
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return If(m_syntaxOpt Is Nothing, ImmutableArray(Of SyntaxReference).Empty, ImmutableArray.Create(m_syntaxOpt.GetReference()))
+                Return If(_syntaxOpt Is Nothing, ImmutableArray(Of SyntaxReference).Empty, ImmutableArray.Create(_syntaxOpt.GetReference()))
             End Get
         End Property
 
         Friend Overrides Function GetDeclaratorSyntax() As SyntaxNode
-            Debug.Assert(m_syntaxOpt IsNot Nothing)
-            Return m_syntaxOpt
+            Debug.Assert(_syntaxOpt IsNot Nothing)
+            Return _syntaxOpt
         End Function
 
         Friend NotOverridable Overrides ReadOnly Property IdentifierToken As SyntaxToken
@@ -66,13 +66,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsByRef As Boolean
             Get
-                Return m_isByRef
+                Return _isByRef
             End Get
         End Property
 
         Friend Overrides ReadOnly Property SynthesizedKind As SynthesizedLocalKind
             Get
-                Return m_kind
+                Return _kind
             End Get
         End Property
 
@@ -84,14 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property IsFunctionValue As Boolean
             Get
-                Return m_kind = SynthesizedLocalKind.FunctionReturnValue
+                Return _kind = SynthesizedLocalKind.FunctionReturnValue
             End Get
         End Property
 
         Private Function GetDebuggerDisplay() As String
             Dim builder As New StringBuilder()
 
-            builder.Append(m_kind.ToString())
+            builder.Append(_kind.ToString())
             builder.Append(" ")
             builder.Append(Me.Type.ToDisplayString(SymbolDisplayFormat.TestFormat))
 

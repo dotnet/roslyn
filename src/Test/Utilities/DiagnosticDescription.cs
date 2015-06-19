@@ -192,6 +192,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return new DiagnosticDescription(_code, _isWarningAsError, _squiggledText, _arguments, _startPosition, syntaxPredicate, _argumentOrderDoesNotMatter, _errorCodeType);
         }
 
+        public object Code => _code;
+
         public override bool Equals(object obj)
         {
             var d = obj as DiagnosticDescription;
@@ -381,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             const int CSharp = 1;
             const int VisualBasic = 2;
-            var language = actual.Any() && actual.First().Id.StartsWith("CS") ? CSharp : VisualBasic;
+            var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
 
             if (language == CSharp)
             {

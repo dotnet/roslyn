@@ -1030,7 +1030,9 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact(Skip = "529480")]
+        [Fact]
+        [WorkItem(529480)]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCollectionInitializer1()
         {
             var text =
@@ -1047,7 +1049,9 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact(Skip = "529480")]
+        [Fact]
+        [WorkItem(529480)]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCollectionInitializer2()
         {
             var text =
@@ -1065,7 +1069,9 @@ class C
             Test(text, "System.Int32");
         }
 
-        [Fact(Skip = "529480")]
+        [Fact]
+        [WorkItem(529480)]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public void TestCollectionInitializer3()
         {
             var text =
@@ -1080,7 +1086,82 @@ class C
   }
 }";
 
-            Test(text, "string");
+            Test(text, "System.String");
+        }
+
+        [Fact]
+        [WorkItem(529480)]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public void TestCustomCollectionInitializerAddMethod1()
+        {
+            var text =
+@"class C : System.Collections.IEnumerable
+{
+    void M()
+    {
+        var x = new C() { [|a|] };
+    }
+
+    void Add(int i) { }
+    void Add(string s, bool b) { }
+
+    public System.Collections.IEnumerator GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+
+            Test(text, "System.Int32", testPosition: false);
+        }
+
+        [Fact]
+        [WorkItem(529480)]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public void TestCustomCollectionInitializerAddMethod2()
+        {
+            var text =
+@"class C : System.Collections.IEnumerable
+{
+    void M()
+    {
+        var x = new C() { { ""test"", [|b|] } };
+    }
+
+    void Add(int i) { }
+    void Add(string s, bool b) { }
+
+    public System.Collections.IEnumerator GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+
+            Test(text, "System.Boolean");
+        }
+
+        [Fact]
+        [WorkItem(529480)]
+        [Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public void TestCustomCollectionInitializerAddMethod3()
+        {
+            var text =
+@"class C : System.Collections.IEnumerable
+{
+    void M()
+    {
+        var x = new C() { { [|s|], true } };
+    }
+
+    void Add(int i) { }
+    void Add(string s, bool b) { }
+
+    public System.Collections.IEnumerator GetEnumerator()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+
+            Test(text, "System.String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -1482,6 +1563,42 @@ try
 catch (Exception) if ([|M|].N)
 }";
             TestInMethod(text, "System.Object", testPosition: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        public void TestAwaitExpressionWithChainingMethod()
+        {
+            var text =
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async void T()
+    {
+        bool x = await [|M()|].ConfigureAwait(false);
+    }
+}";
+            Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
+        public void TestAwaitExpressionWithChainingMethod2()
+        {
+            var text =
+@"using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async void T()
+    {
+        bool x = await [|M|].ContinueWith(a => { return true; }).ContinueWith(a => { return false; });
+    }
+}";
+            Test(text, "global::System.Threading.Tasks.Task<System.Boolean>");
         }
     }
 }

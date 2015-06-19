@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private int _lastSnapshotVersion = -1;
 
         // the current version, each modification increments it:
-        private int _version = 0;
+        private int _version;
 
         internal int Version
         {

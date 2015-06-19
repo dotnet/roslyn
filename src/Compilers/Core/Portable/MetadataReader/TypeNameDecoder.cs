@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName);
         protected abstract TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName);
+
+        /// <summary>
+        /// Given the identity of an assembly referenced by this module, finds
+        /// the index of that assembly in the list of assemblies referenced by
+        /// the current module.
+        /// </summary>
         protected abstract int GetIndexOfReferencedAssembly(AssemblyIdentity identity);
 
         internal TypeSymbol GetTypeSymbolForSerializedType(string s)
@@ -189,6 +195,11 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 container = SubstituteWithUnboundIfGeneric(container);
+            }
+
+            for (int i = 0; i < fullName.PointerCount; i++)
+            {
+                container = MakePointerTypeSymbol(container, ImmutableArray<ModifierInfo<TypeSymbol>>.Empty);
             }
 
             // Process any array type ranks

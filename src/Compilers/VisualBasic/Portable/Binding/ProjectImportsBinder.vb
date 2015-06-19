@@ -23,15 +23,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits Binder
 
         ' The syntax tree this binder is associated with
-        Private ReadOnly m_tree As SyntaxTree
+        Private ReadOnly _tree As SyntaxTree
 
         Public Sub New(containingBinder As Binder, tree As SyntaxTree)
             MyBase.New(containingBinder)
-            m_tree = tree
+            _tree = tree
         End Sub
 
         Public Overrides Function GetSyntaxReference(node As VisualBasicSyntaxNode) As SyntaxReference
-            Return m_tree.GetReference(node)
+            Return _tree.GetReference(node)
         End Function
     End Class
 

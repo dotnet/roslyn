@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract CSharpSyntaxNode Root { get; }
 
+
         // Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
         // WARN: If isSpeculative is true, then don't look at .Parent - there might not be one.
         internal static bool CanGetSemanticInfo(CSharpSyntaxNode node, bool allowNamedArgumentName = false, bool isSpeculative = false)
@@ -262,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null)
             {
-                throw new ArgumentNullException("expression");
+                throw new ArgumentNullException(nameof(expression));
             }
 
             crefSymbols = default(ImmutableArray<Symbol>);
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 unusedDiagnostics.Free();
                 return null;
             }
-            else if (binder.Flags.Includes(BinderFlags.Cref))
+            else if (binder.InCref)
             {
                 if (expression.IsKind(SyntaxKind.QualifiedName))
                 {
@@ -322,8 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal SymbolInfo GetCrefSymbolInfo(int position, CrefSyntax crefSyntax, SymbolInfoOptions options, bool hasParameterList)
         {
             var binder = this.GetEnclosingBinder(position);
-            if (binder != null &&
-                (binder.Flags.Includes(BinderFlags.Cref) || binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType)))
+            if (binder?.InCref == true)
             {
                 ImmutableArray<Symbol> symbols = BindCref(crefSyntax, binder);
                 return GetCrefSymbolInfo(symbols, options, hasParameterList);
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (attribute == null)
             {
-                throw new ArgumentNullException("attribute");
+                throw new ArgumentNullException(nameof(attribute));
             }
 
             binder = this.GetSpeculativeBinderForAttribute(position);
@@ -509,8 +509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public SymbolInfo GetSymbolInfo(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSymbolInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(expression);
 
                 if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
@@ -527,7 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
                 }
             }
-        }
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax 
@@ -535,8 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public SymbolInfo GetCollectionInitializerSymbolInfo(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSymbolInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(expression);
 
                 if (expression.Parent != null && expression.Parent.Kind() == SyntaxKind.CollectionInitializerExpression)
@@ -566,7 +561,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return SymbolInfo.None;
             }
-        }
 
 
         /// <summary>
@@ -576,15 +570,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public SymbolInfo GetSymbolInfo(ConstructorInitializerSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSymbolInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(constructorInitializer);
 
                 return CanGetSemanticInfo(constructorInitializer)
                     ? GetSymbolInfoWorker(constructorInitializer, SymbolInfoOptions.DefaultOptions, cancellationToken)
                     : SymbolInfo.None;
             }
-        }
 
         /// <summary>
         /// Returns what symbol(s), if any, the given attribute syntax bound to in the program.
@@ -593,30 +584,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public SymbolInfo GetSymbolInfo(AttributeSyntax attributeSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSymbolInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(attributeSyntax);
 
                 return CanGetSemanticInfo(attributeSyntax)
                     ? GetSymbolInfoWorker(attributeSyntax, SymbolInfoOptions.DefaultOptions, cancellationToken)
                     : SymbolInfo.None;
             }
-        }
 
         /// <summary>
         /// Gets the semantic information associated with a documentation comment cref.
         /// </summary>
         public SymbolInfo GetSymbolInfo(CrefSyntax crefSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSymbolInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(crefSyntax);
 
                 return CanGetSemanticInfo(crefSyntax)
                     ? GetSymbolInfoWorker(crefSyntax, SymbolInfoOptions.DefaultOptions, cancellationToken)
                     : SymbolInfo.None;
             }
-        }
 
         /// <summary>
         /// Binds the expression in the context of the specified location and gets symbol information.
@@ -643,8 +628,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public SymbolInfo GetSpeculativeSymbolInfo(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSpeculativeSymbolInfo, message: this.SyntaxTree.FilePath))
-            {
                 if (!CanGetSemanticInfo(expression, isSpeculative: true)) return SymbolInfo.None;
 
                 Binder binder;
@@ -660,7 +643,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return symbolInfo;
             }
-        }
 
         /// <summary>
         /// Bind the attribute in the context of the specified location and get semantic information
@@ -677,8 +659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The semantic information for the topmost node of the attribute.</returns>
         public SymbolInfo GetSpeculativeSymbolInfo(int position, AttributeSyntax attribute)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSpeculativeSymbolInfo, message: this.SyntaxTree.FilePath))
-            {
                 Debug.Assert(CanGetSemanticInfo(attribute, isSpeculative: true));
 
                 Binder binder;
@@ -690,7 +670,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return symbolInfo;
             }
-        }
 
         /// <summary>
         /// Bind the constructor initializer in the context of the specified location and get semantic information
@@ -708,15 +687,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The semantic information for the topmost node of the constructor initializer.</returns>
         public SymbolInfo GetSpeculativeSymbolInfo(int position, ConstructorInitializerSyntax constructorInitializer)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSpeculativeSymbolInfo, message: this.SyntaxTree.FilePath))
-            {
                 Debug.Assert(CanGetSemanticInfo(constructorInitializer, isSpeculative: true));
 
                 position = CheckAndAdjustPosition(position);
 
                 if (constructorInitializer == null)
                 {
-                    throw new ArgumentNullException("speculativeConstructorInitializer");
+                throw new ArgumentNullException(nameof(constructorInitializer));
                 }
 
                 // NOTE: since we're going to be depending on a MemberModel to do the binding for us,
@@ -754,7 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SymbolInfo.None;
                 }
             }
-        }
 
         /// <summary>
         /// Bind the cref in the context of the specified location and get semantic information
@@ -771,14 +747,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The semantic information for the topmost node of the cref.</returns>
         public SymbolInfo GetSpeculativeSymbolInfo(int position, CrefSyntax cref, SymbolInfoOptions options = SymbolInfoOptions.DefaultOptions)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSpeculativeSymbolInfo, message: this.SyntaxTree.FilePath))
-            {
                 Debug.Assert(CanGetSemanticInfo(cref, isSpeculative: true));
 
                 position = CheckAndAdjustPosition(position);
                 return this.GetCrefSymbolInfo(position, cref, options, HasParameterList(cref));
             }
-        }
 
         #endregion GetSymbolInfo
 
@@ -791,15 +764,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public TypeInfo GetTypeInfo(ConstructorInitializerSyntax constructorInitializer, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetTypeInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(constructorInitializer);
 
                 return CanGetSemanticInfo(constructorInitializer)
                     ? GetTypeInfoWorker(constructorInitializer, cancellationToken)
                     : CSharpTypeInfo.None;
             }
-        }
 
         public abstract TypeInfo GetTypeInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -810,15 +780,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public TypeInfo GetTypeInfo(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetTypeInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(expression);
 
                 return CanGetSemanticInfo(expression)
                     ? GetTypeInfoWorker(expression, cancellationToken)
                     : CSharpTypeInfo.None;
             }
-        }
 
         /// <summary>
         /// Gets type information about an attribute.
@@ -827,15 +794,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public TypeInfo GetTypeInfo(AttributeSyntax attributeSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetTypeInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(attributeSyntax);
 
                 return CanGetSemanticInfo(attributeSyntax)
                     ? GetTypeInfoWorker(attributeSyntax, cancellationToken)
                     : CSharpTypeInfo.None;
             }
-        }
 
         /// <summary>
         /// Gets the conversion that occurred between the expression's type and type implied by the expression's context.
@@ -844,8 +808,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csnode = (CSharpSyntaxNode)expression;
 
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetConversion, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(csnode);
 
                 var info = CanGetSemanticInfo(csnode)
@@ -854,7 +816,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return info.ImplicitConversion;
             }
-        }
 
         /// <summary>
         /// Binds the expression in the context of the specified location and gets type information.
@@ -881,8 +842,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpTypeInfo GetSpeculativeTypeInfoWorker(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSpeculativeTypeInfo, message: this.SyntaxTree.FilePath))
-            {
                 if (!CanGetSemanticInfo(expression, isSpeculative: true))
                 {
                     return CSharpTypeInfo.None;
@@ -903,7 +862,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return typeInfo;
             }
-        }
 
         /// <summary>
         /// Gets the conversion that occurred between the expression's type and type implied by the expression's context.
@@ -926,15 +884,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public ImmutableArray<ISymbol> GetMemberGroup(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(expression);
 
                 return CanGetSemanticInfo(expression)
                     ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken))
                     : ImmutableArray<ISymbol>.Empty;
             }
-        }
 
         /// <summary>
         /// Gets a list of method or indexed property symbols for a syntax node.
@@ -943,15 +898,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public ImmutableArray<ISymbol> GetMemberGroup(AttributeSyntax attribute, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(attribute);
 
                 return CanGetSemanticInfo(attribute)
                     ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(attribute, SymbolInfoOptions.DefaultOptions, cancellationToken))
                     : ImmutableArray<ISymbol>.Empty;
             }
-        }
 
         /// <summary>
         /// Gets a list of method or indexed property symbols for a syntax node.
@@ -960,15 +912,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">The cancellation token.</param>
         public ImmutableArray<ISymbol> GetMemberGroup(ConstructorInitializerSyntax initializer, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetMemberGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(initializer);
 
                 return CanGetSemanticInfo(initializer)
                     ? StaticCast<ISymbol>.From(this.GetMemberGroupWorker(initializer, SymbolInfoOptions.DefaultOptions, cancellationToken))
                     : ImmutableArray<ISymbol>.Empty;
             }
-        }
 
         #endregion GetMemberGroup
 
@@ -986,15 +935,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public ImmutableArray<IPropertySymbol> GetIndexerGroup(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetIndexerGroup, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(expression);
 
                 return CanGetSemanticInfo(expression)
                     ? StaticCast<IPropertySymbol>.From(this.GetIndexerGroupWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken))
                     : ImmutableArray<IPropertySymbol>.Empty;
             }
-        }
 
         #endregion GetIndexerGroup
 
@@ -1002,15 +948,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public Optional<object> GetConstantValue(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetConstantValue, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(expression);
 
                 return CanGetSemanticInfo(expression)
                     ? this.GetConstantValueWorker(expression, cancellationToken)
                     : default(Optional<object>);
             }
-        }
 
         #endregion GetConstantValue
 
@@ -1025,8 +968,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public IAliasSymbol GetAliasInfo(IdentifierNameSyntax nameSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetAliasInfo, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CheckSyntaxNode(nameSyntax);
 
                 if (!CanGetSemanticInfo(nameSyntax))
@@ -1035,7 +976,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SymbolInfo info = GetSymbolInfoWorker(nameSyntax, SymbolInfoOptions.PreferTypeToConstructors | SymbolInfoOptions.PreserveAliases, cancellationToken);
                 return info.Symbol as AliasSymbol;
             }
-        }
 
         /// <summary>
         /// Binds the name in the context of the specified location and sees if it resolves to an
@@ -1055,8 +995,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// appeared by itself somewhere within the scope that encloses "position".</remarks>
         public IAliasSymbol GetSpeculativeAliasInfo(int position, IdentifierNameSyntax nameSyntax, SpeculativeBindingOption bindingOption)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetSpeculativeAliasInfo, message: this.SyntaxTree.FilePath))
-            {
                 Binder binder;
                 ImmutableArray<Symbol> crefSymbols;
                 BoundNode boundNode = GetSpeculativelyBoundExpression(position, nameSyntax, bindingOption, out binder, out crefSymbols); //calls CheckAndAdjustPosition
@@ -1073,7 +1011,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return symbolInfo.Symbol as AliasSymbol;
             }
-        }
 
         /// <summary>
         /// Gets the binder that encloses the position.
@@ -1163,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return fullStart;
             }
 
-            throw new ArgumentOutOfRangeException("position", position,
+            throw new ArgumentOutOfRangeException(nameof(position), position,
                 string.Format(CSharpResources.PositionIsNotWithinSyntax, Root.FullSpan));
         }
 
@@ -1214,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntax == null)
             {
-                throw new ArgumentNullException("syntax");
+                throw new ArgumentNullException(nameof(syntax));
             }
 
             if (!IsInTree(syntax))
@@ -1228,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (syntax == null)
             {
-                throw new ArgumentNullException("syntax");
+                throw new ArgumentNullException(nameof(syntax));
             }
 
             if (this.IsSpeculativeSemanticModel)
@@ -1415,8 +1352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             bool useBaseReferenceAccessibility)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_LookupSymbols, message: this.SyntaxTree.FilePath))
-            {
                 Debug.Assert((options & LookupOptions.UseBaseReferenceAccessibility) == 0, "Use the useBaseReferenceAccessibility parameter.");
                 if (useBaseReferenceAccessibility)
                 {
@@ -1478,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder.AddMemberLookupSymbolsInfo(info, container, options, binder);
                 }
 
-                var results = ArrayBuilder<Symbol>.GetInstance(info.Names.Count);
+            var results = ArrayBuilder<Symbol>.GetInstance(info.Count);
 
                 if (name == null)
                 {
@@ -1529,7 +1464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? FilterNotReferencable(sealedResults)
                     : sealedResults;
             }
-        }
 
         private void AppendSymbolsWithName(ArrayBuilder<Symbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
         {
@@ -1660,13 +1594,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public new bool IsAccessible(int position, ISymbol symbol)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_IsAccessible, message: this.SyntaxTree.FilePath))
-            {
                 position = CheckAndAdjustPosition(position);
 
                 if ((object)symbol == null)
                 {
-                    throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
                 }
 
                 var cssymbol = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>("symbol");
@@ -1680,7 +1612,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
-        }
 
         /// <summary>
         /// Field-like events can be used as fields in types that can access private
@@ -2449,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if ((object)destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
 
             var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
@@ -2459,8 +2390,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ClassifyConversionForCast(position, expression, cdestination);
             }
 
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_ClassifyConversion, message: this.SyntaxTree.FilePath))
-            {
                 // Note that it is possible for an expression to be convertible to a type
                 // via both an implicit user-defined conversion and an explicit built-in conversion.
                 // In that case, this method chooses the implicit conversion.
@@ -2482,7 +2411,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return Conversion.NoConversion;
             }
-        }
 
         /// <summary>
         /// Determines what type of conversion, if any, would be used if a given expression was
@@ -2514,11 +2442,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// type), use Compilation.ClassifyConversion.</remarks>
         internal Conversion ClassifyConversionForCast(int position, ExpressionSyntax expression, TypeSymbol destination)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_ClassifyConversionForCast, message: this.SyntaxTree.FilePath))
-            {
                 if ((object)destination == null)
                 {
-                    throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
                 }
 
                 position = CheckAndAdjustPosition(position);
@@ -2538,7 +2464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return Conversion.NoConversion;
             }
-        }
 
         #region "GetDeclaredSymbol overloads for MemberDeclarationSyntax and its subtypes"
 
@@ -2653,7 +2578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Given a syntax node of anonymous object creation expression, get the anonymous object type symbol.
         /// </summary>
-        /// <param name="declaratorSyntax">The syntax node that declares an anonymoust object.</param>
+        /// <param name="declaratorSyntax">The syntax node that declares an anonymous object.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
         public abstract INamedTypeSymbol GetDeclaredSymbol(AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken));
@@ -2767,6 +2692,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="typeParameter"></param>
         public abstract ITypeParameterSymbol GetDeclaredSymbol(TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken));
 
+        internal BinderFlags GetSemanticModelBinderFlags()
+        {
+            return this.IgnoresAccessibility
+                ? BinderFlags.SemanticModel | BinderFlags.IgnoreAccessibility
+                : BinderFlags.SemanticModel;
+        }
+
         /// <summary>
         /// Given a foreach statement, get the symbol for the iteration variable
         /// </summary>
@@ -2774,8 +2706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="forEachStatement"></param>
         public ILocalSymbol GetDeclaredSymbol(ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachStatement));
 
                 if (enclosingBinder == null)
@@ -2791,13 +2721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                foreachBinder = foreachBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
+            foreachBinder = foreachBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
                 LocalSymbol local = foreachBinder.Locals.FirstOrDefault();
                 return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
                     ? local
                     : null;
             }
-        }
 
         /// <summary>
         /// Given a catch declaration, get the symbol for the exception variable
@@ -2806,8 +2735,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="catchDeclaration"></param>
         public ILocalSymbol GetDeclaredSymbol(CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
                 Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
                 Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(catchClause));
@@ -2825,13 +2752,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                catchBinder = catchBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
+            catchBinder = enclosingBinder.GetBinder(catchClause).WithAdditionalFlags(GetSemanticModelBinderFlags());
                 LocalSymbol local = catchBinder.Locals.FirstOrDefault();
                 return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
                     ? local
                     : null;
             }
-        }
 
         public abstract IRangeVariableSymbol GetDeclaredSymbol(QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken));
 
@@ -4211,8 +4137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="node">Preprocessing symbol identifier node.</param>
         public PreprocessingSymbolInfo GetPreprocessingSymbolInfo(IdentifierNameSyntax node)
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetPreprocessorSymbolInfo, message: this.SyntaxTree.FilePath))
-            {
                 CheckSyntaxNode(node);
 
                 if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
@@ -4223,7 +4147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return PreprocessingSymbolInfo.None;
             }
-        }
 
         /// <summary>
         /// Options to control the internal working of GetSymbolInfoWorker. Not currently exposed
@@ -4274,13 +4197,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetEnclosingSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
-            {
                 position = CheckAndAdjustPosition(position);
                 var binder = GetEnclosingBinder(position);
                 return binder == null ? null : binder.ContainingMemberOrLambda;
             }
-        }
 
         #region SemanticModel Members
 
@@ -4320,7 +4240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var expression = node as ExpressionSyntax;
@@ -4366,7 +4286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var expression = node as ExpressionSyntax;
@@ -4400,7 +4320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var expression = node as ExpressionSyntax;
@@ -4651,12 +4571,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (firstStatement == null)
             {
-                throw new ArgumentNullException("firstStatement");
+                throw new ArgumentNullException(nameof(firstStatement));
             }
 
             if (lastStatement == null)
             {
-                throw new ArgumentNullException("lastStatement");
+                throw new ArgumentNullException(nameof(lastStatement));
             }
 
             if (!(firstStatement is StatementSyntax))
@@ -4676,7 +4596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement == null)
             {
-                throw new ArgumentNullException("statement");
+                throw new ArgumentNullException(nameof(statement));
             }
 
             if (!(statement is StatementSyntax))
@@ -4691,12 +4611,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (firstStatement == null)
             {
-                throw new ArgumentNullException("firstStatement");
+                throw new ArgumentNullException(nameof(firstStatement));
             }
 
             if (lastStatement == null)
             {
-                throw new ArgumentNullException("lastStatement");
+                throw new ArgumentNullException(nameof(lastStatement));
             }
 
             if (!(firstStatement is StatementSyntax))
@@ -4716,7 +4636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statementOrExpression == null)
             {
-                throw new ArgumentNullException("statementOrExpression");
+                throw new ArgumentNullException(nameof(statementOrExpression));
             }
 
             if (statementOrExpression is StatementSyntax)
@@ -4737,7 +4657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             return node is ExpressionSyntax

@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic
 
-    Module DiagnosticsExtensions
+    Friend Module DiagnosticsExtensions
 
         <Extension>
         Friend Function VerifyDiagnostics(c As VisualBasicCompilation, ParamArray expected As DiagnosticDescription()) As VisualBasicCompilation

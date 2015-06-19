@@ -1,9 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.Serialization
-Imports System.Threading
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,17 +14,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         <Serializable>
-        Class TestDiagnostic
+        Public Class TestDiagnostic
             Inherits Diagnostic
             Implements ISerializable
 
-            Private ReadOnly m_kind As String
-            Private ReadOnly m_severity As DiagnosticSeverity
-            Private ReadOnly m_location As Location
-            Private ReadOnly m_message As String
-            Private ReadOnly m_isWarningAsError As Boolean
-            Private ReadOnly m_arguments As Object()
-            Private ReadOnly m_descriptor As DiagnosticDescriptor
+            Private ReadOnly _kind As String
+            Private ReadOnly _severity As DiagnosticSeverity
+            Private ReadOnly _location As Location
+            Private ReadOnly _message As String
+            Private ReadOnly _isWarningAsError As Boolean
+            Private ReadOnly _arguments As Object()
+            Private ReadOnly _descriptor As DiagnosticDescriptor
 
             Public Sub New(id As String,
                            kind As String,
@@ -38,13 +37,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Private Sub New(info As SerializationInfo, context As StreamingContext)
                 Dim id = info.GetString("id")
-                Me.m_kind = info.GetString("kind")
-                Me.m_message = info.GetString("message")
-                Me.m_location = CType(info.GetValue("location", GetType(Location)), Location)
-                Me.m_severity = CType(info.GetValue("severity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
+                Me._kind = info.GetString("kind")
+                Me._message = info.GetString("message")
+                Me._location = CType(info.GetValue("location", GetType(Location)), Location)
+                Me._severity = CType(info.GetValue("severity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
                 Dim defaultSeverity = CType(info.GetValue("defaultSeverity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
-                Me.m_arguments = CType(info.GetValue("arguments", GetType(Object())), Object())
-                Me.m_descriptor = New DiagnosticDescriptor(id, String.Empty, m_message, id, defaultSeverity, True)
+                Me._arguments = CType(info.GetValue("arguments", GetType(Object())), Object())
+                Me._descriptor = New DiagnosticDescriptor(id, String.Empty, _message, id, defaultSeverity, True)
             End Sub
 
             Private Sub New(descriptor As DiagnosticDescriptor,
@@ -53,12 +52,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                            location As Location,
                            message As String,
                            ParamArray arguments As Object())
-                Me.m_descriptor = descriptor
-                Me.m_kind = kind
-                Me.m_severity = severity
-                Me.m_location = location
-                Me.m_message = message
-                Me.m_arguments = arguments
+                Me._descriptor = descriptor
+                Me._kind = kind
+                Me._severity = severity
+                Me._location = location
+                Me._message = message
+                Me._arguments = arguments
             End Sub
 
             Public Overrides ReadOnly Property AdditionalLocations As IReadOnlyList(Of Location)
@@ -70,25 +69,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Overrides ReadOnly Property Id As String
                 Get
-                    Return m_descriptor.Id
+                    Return _descriptor.Id
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Descriptor As DiagnosticDescriptor
                 Get
-                    Return m_descriptor
+                    Return _descriptor
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Location As Location
                 Get
-                    Return m_location
+                    Return _location
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Severity As DiagnosticSeverity
                 Get
-                    Return m_severity
+                    Return _severity
                 End Get
             End Property
 
@@ -99,13 +98,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Property
 
             Public Sub GetObjectData(info As SerializationInfo, context As StreamingContext) Implements ISerializable.GetObjectData
-                info.AddValue("id", Me.m_descriptor.Id)
-                info.AddValue("kind", Me.m_kind)
-                info.AddValue("message", Me.m_message)
-                info.AddValue("location", Me.m_location, GetType(Location))
-                info.AddValue("severity", Me.m_severity, GetType(DiagnosticSeverity))
-                info.AddValue("defaultSeverity", Me.m_descriptor.DefaultSeverity, GetType(DiagnosticSeverity))
-                info.AddValue("arguments", Me.m_arguments, GetType(Object()))
+                info.AddValue("id", Me._descriptor.Id)
+                info.AddValue("kind", Me._kind)
+                info.AddValue("message", Me._message)
+                info.AddValue("location", Me._location, GetType(Location))
+                info.AddValue("severity", Me._severity, GetType(DiagnosticSeverity))
+                info.AddValue("defaultSeverity", Me._descriptor.DefaultSeverity, GetType(DiagnosticSeverity))
+                info.AddValue("arguments", Me._arguments, GetType(Object()))
             End Sub
 
             Friend Overrides Function WithLocation(location As Location) As Diagnostic
@@ -113,11 +112,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Function
 
             Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
-                Return String.Format(m_message, m_arguments)
+                Return String.Format(_message, _arguments)
             End Function
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Me.m_descriptor.GetHashCode(), Me.m_kind.GetHashCode())
+                Return Hash.Combine(Me._descriptor.GetHashCode(), Me._kind.GetHashCode())
             End Function
 
             Public Overloads Overrides Function Equals(obj As Object) As Boolean
@@ -130,11 +129,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Overloads Function Equals(other As TestDiagnostic) As Boolean
                 If other Is Nothing OrElse Me.GetType() <> other.GetType() Then Return False
-                Return Me.m_descriptor.Id = other.m_descriptor.Id AndAlso
-                    Me.m_kind = other.m_kind AndAlso
-                    Me.m_location = other.m_location AndAlso
-                    Me.m_message = other.m_message AndAlso
-                    SameData(Me.m_arguments, other.m_arguments)
+                Return Me._descriptor.Id = other._descriptor.Id AndAlso
+                    Me._kind = other._kind AndAlso
+                    Me._location = other._location AndAlso
+                    Me._message = other._message AndAlso
+                    SameData(Me._arguments, other._arguments)
             End Function
 
             Private Shared Function SameData(d1 As Object(), d2 As Object()) As Boolean
@@ -142,18 +141,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Function
 
             Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
-                Return New TestDiagnostic(Me.m_descriptor.Id, Me.m_kind, severity, Me.m_location, Me.m_message, Me.m_arguments)
+                Return New TestDiagnostic(Me._descriptor.Id, Me._kind, severity, Me._location, Me._message, Me._arguments)
             End Function
         End Class
 
-        Class ComplainAboutX
+        Public Class ComplainAboutX
             Inherits DiagnosticAnalyzer
 
-            Private Shared ReadOnly CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999", title:="CA9999_UseOfVariableThatStartsWithX", messageFormat:="Use of variable whose name starts with 'x': '{0}'", category:="Test", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Private Shared ReadOnly s_CA9999_UseOfVariableThatStartsWithX As DiagnosticDescriptor = New DiagnosticDescriptor(id:="CA9999_UseOfVariableThatStartsWithX", title:="CA9999_UseOfVariableThatStartsWithX", messageFormat:="Use of variable whose name starts with 'x': '{0}'", category:="Test", defaultSeverity:=DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
             Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                 Get
-                    Return ImmutableArray.Create(CA9999_UseOfVariableThatStartsWithX)
+                    Return ImmutableArray.Create(s_CA9999_UseOfVariableThatStartsWithX)
                 End Get
             End Property
 
@@ -163,34 +162,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim id = CType(context.Node, IdentifierNameSyntax)
-                If id.Identifier.ValueText.StartsWith("x") Then
-                    context.ReportDiagnostic(New TestDiagnostic("CA9999_UseOfVariableThatStartsWithX", "CsTest", DiagnosticSeverity.Warning, id.GetLocation(), "Use of variable whose name starts with 'x': '{0}'", False, id.Identifier.ValueText))
+                If id.Identifier.ValueText.StartsWith("x", StringComparison.Ordinal) Then
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_CA9999_UseOfVariableThatStartsWithX, id.GetLocation, id.Identifier.ValueText))
                 End If
             End Sub
         End Class
 
         <Fact>
         Public Sub TestGetEffectiveDiagnostics()
-            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
-            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
-            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
-            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault:=True)
+            Dim noneDiagDescriptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
+            Dim infoDiagDescriptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+            Dim warningDiagDescriptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Dim errorDiagDescriptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Error, isEnabledByDefault:=True)
 
-            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
-            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
-            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None)
-            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None)
+            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDescriptor, Location.None)
+            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDescriptor, Location.None)
+            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDescriptor, Location.None)
+            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDescriptor, Location.None)
 
             Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
 
             ' Escalate all diagnostics to error.
             Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.[Error])
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.[Error])
-            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.[Error])
             Dim options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             For Each effectiveDiag In effectiveDiags
@@ -200,25 +199,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             ' Suppress all diagnostics.
             ' NOTE: Diagnostics with default severity error cannot be suppressed and its severity cannot be lowered.
             specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Suppress)
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Suppress)
-            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.Suppress)
-            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.Suppress)
+            specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Suppress)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(0, effectiveDiags.Length)
 
             ' Shuffle diagnostic severity.
             specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)()
-            specificDiagOptions.Add(noneDiagDesciptor.Id, ReportDiagnostic.Info)
-            specificDiagOptions.Add(infoDiagDesciptor.Id, ReportDiagnostic.Hidden)
-            specificDiagOptions.Add(warningDiagDesciptor.Id, ReportDiagnostic.[Error])
-            specificDiagOptions.Add(errorDiagDesciptor.Id, ReportDiagnostic.Warn)
+            specificDiagOptions.Add(noneDiagDescriptor.Id, ReportDiagnostic.Info)
+            specificDiagOptions.Add(infoDiagDescriptor.Id, ReportDiagnostic.Hidden)
+            specificDiagOptions.Add(warningDiagDescriptor.Id, ReportDiagnostic.[Error])
+            specificDiagOptions.Add(errorDiagDescriptor.Id, ReportDiagnostic.Warn)
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
 
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(diags.Length, effectiveDiags.Length)
             Dim diagIds = New HashSet(Of String)(diags.[Select](Function(d) d.Id))
@@ -227,18 +226,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Select Case effectiveDiag.Severity
                     Case DiagnosticSeverity.Hidden
-                        Assert.Equal(infoDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(infoDiagDescriptor.Id, effectiveDiag.Id)
 
                     Case DiagnosticSeverity.Info
-                        Assert.Equal(noneDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(noneDiagDescriptor.Id, effectiveDiag.Id)
                         Exit Select
 
                     Case DiagnosticSeverity.Warning
-                        Assert.Equal(errorDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(errorDiagDescriptor.Id, effectiveDiag.Id)
                         Exit Select
 
                     Case DiagnosticSeverity.Error
-                        Assert.Equal(warningDiagDesciptor.Id, effectiveDiag.Id)
+                        Assert.Equal(warningDiagDescriptor.Id, effectiveDiag.Id)
                         Exit Select
                     Case Else
 
@@ -251,53 +250,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         <Fact>
-        Sub TestGetEffectiveDiagnosticsGlobal()
-            Dim noneDiagDesciptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
-            Dim infoDiagDesciptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
-            Dim warningDiagDesciptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
-            Dim errorDiagDesciptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+        Public Sub TestGetEffectiveDiagnosticsGlobal()
+            Dim noneDiagDescriptor = New DiagnosticDescriptor("XX0001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Hidden, isEnabledByDefault:=True)
+            Dim infoDiagDescriptor = New DiagnosticDescriptor("XX0002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+            Dim warningDiagDescriptor = New DiagnosticDescriptor("XX0003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Dim errorDiagDescriptor = New DiagnosticDescriptor("XX0004", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
 
-            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDesciptor, Location.None)
-            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDesciptor, Location.None)
-            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDesciptor, Location.None)
-            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDesciptor, Location.None)
+            Dim noneDiag = Microsoft.CodeAnalysis.Diagnostic.Create(noneDiagDescriptor, Location.None)
+            Dim infoDiag = Microsoft.CodeAnalysis.Diagnostic.Create(infoDiagDescriptor, Location.None)
+            Dim warningDiag = Microsoft.CodeAnalysis.Diagnostic.Create(warningDiagDescriptor, Location.None)
+            Dim errorDiag = Microsoft.CodeAnalysis.Diagnostic.Create(errorDiagDescriptor, Location.None)
 
             Dim diags = New Diagnostic() {noneDiag, infoDiag, warningDiag, errorDiag}
 
             Dim options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Default)
-            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.IsWarningAsError))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Warn)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Warning))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Info)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Info))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Hidden)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(4, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Hidden))
 
             options = TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(2, effectiveDiags.Length)
             Assert.Equal(1, effectiveDiags.Count(Function(d) d.Severity = DiagnosticSeverity.Error))
@@ -306,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Sub
 
         <Fact>
-        Sub TestDisabledDiagnostics()
+        Public Sub TestDisabledDiagnostics()
             Dim disabledDiagDescriptor = New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
             Dim enabledDiagDescriptor = New DiagnosticDescriptor("XX002", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
@@ -317,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             ' Verify that only the enabled diag shows up after filtering.
             Dim options = TestOptions.ReleaseDll
-            Dim comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            Dim comp = CreateCompilationWithMscorlib({""}, options:=options)
             Dim effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(1, effectiveDiags.Length)
             Assert.Contains(enabledDiag, effectiveDiags)
@@ -328,13 +327,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             specificDiagOptions.Add(enabledDiagDescriptor.Id, ReportDiagnostic.Suppress)
 
             options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
-            comp = CreateCompilationWithMscorlib({""}, compOptions:=options)
+            comp = CreateCompilationWithMscorlib({""}, options:=options)
             effectiveDiags = comp.GetEffectiveDiagnostics(diags).ToArray()
             Assert.Equal(1, effectiveDiags.Length)
             Assert.Contains(disabledDiag, effectiveDiags)
         End Sub
 
-        Class FullyDisabledAnalyzer
+        Public Class FullyDisabledAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
@@ -350,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Sub
         End Class
 
-        Class PartiallyDisabledAnalyzer
+        Public Class PartiallyDisabledAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX003", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=False)
@@ -367,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Class
 
         <Fact>
-        Sub TestDisabledAnalyzers()
+        Public Sub TestDisabledAnalyzers()
             Dim FullyDisabledAnalyzer = New FullyDisabledAnalyzer()
             Dim PartiallyDisabledAnalyzer = New PartiallyDisabledAnalyzer()
 
@@ -384,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Assert.True(PartiallyDisabledAnalyzer.IsDiagnosticAnalyzerSuppressed(options))
         End Sub
 
-        Class ModuleStatementAnalyzer
+        Public Class ModuleStatementAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -406,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         End Class
 
         <Fact>
-        Sub TestModuleStatementSyntaxAnalyzer()
+        Public Sub TestModuleStatementSyntaxAnalyzer()
             Dim analyzer = New ModuleStatementAnalyzer()
             Dim source = <compilation>
                              <file name="c.vb">
@@ -419,11 +418,11 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
-            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            comp.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[Public Module ThisModule]]>))
         End Sub
 
-        Class MockSymbolAnalyzer
+        Public Class MockSymbolAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -446,7 +445,7 @@ End Module
 
         <WorkItem(998724)>
         <Fact>
-        Sub TestSymbolAnalyzerNotInvokedForMyTemplateSymbols()
+        Public Sub TestSymbolAnalyzerNotInvokedForMyTemplateSymbols()
             Dim analyzer = New MockSymbolAnalyzer()
             Dim sources = <compilation>
                               <file name="c.vb">
@@ -465,11 +464,11 @@ End Class
             Assert.NotNull(MyTemplate)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
 
-        Class NamespaceAndTypeNodeAnalyzer
+        Public Class NamespaceAndTypeNodeAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("XX001", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -497,7 +496,7 @@ End Class
         End Class
 
         <Fact>
-        Sub TestSyntaxAnalyzerInvokedForNamespaceBlockAndClassBlock()
+        Public Sub TestSyntaxAnalyzerInvokedForNamespaceBlockAndClassBlock()
             Dim analyzer = New NamespaceAndTypeNodeAnalyzer()
             Dim sources = <compilation>
                               <file name="c.vb">
@@ -515,7 +514,7 @@ End Namespace
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                                            AnalyzerDiagnostic("XX001", <![CDATA[N]]>),
                                            AnalyzerDiagnostic("XX001", <![CDATA[C]]>))
         End Sub
@@ -523,25 +522,25 @@ End Namespace
         Private Class CodeBlockAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private Shared Descriptor As DiagnosticDescriptor = New TriggerDiagnosticDescriptor("CodeBlockDiagnostic")
+            Private Shared ReadOnly s_descriptor As DiagnosticDescriptor = DescriptorFactory.CreateSimpleDescriptor("CodeBlockDiagnostic")
 
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
-                    Return ImmutableArray.Create(Descriptor)
+                    Return ImmutableArray.Create(s_descriptor)
                 End Get
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
-                context.RegisterCodeBlockEndAction(AddressOf OnCodeBlock)
+                context.RegisterCodeBlockAction(AddressOf OnCodeBlock)
             End Sub
 
-            Private Shared Sub OnCodeBlock(context As CodeBlockEndAnalysisContext)
-                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor, context.OwningSymbol.DeclaringSyntaxReferences.First.GetLocation))
+            Private Shared Sub OnCodeBlock(context As CodeBlockAnalysisContext)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, context.OwningSymbol.DeclaringSyntaxReferences.First.GetLocation))
             End Sub
         End Class
 
         <Fact, WorkItem(1008059)>
-        Sub TestCodeBlockAnalyzersForNoExecutableCode()
+        Public Sub TestCodeBlockAnalyzersForNoExecutableCode()
             Dim analyzer = New CodeBlockAnalyzer()
             Dim sources = <compilation>
                               <file name="c.vb">
@@ -564,7 +563,7 @@ End Class
         End Sub
 
         <Fact, WorkItem(1008059)>
-        Sub TestCodeBlockAnalyzersForEmptyMethodBody()
+        Public Sub TestCodeBlockAnalyzersForEmptyMethodBody()
             Dim analyzer = New CodeBlockAnalyzer()
             Dim sources = <compilation>
                               <file name="c.vb">
@@ -582,7 +581,7 @@ End Class
                 options:=TestOptions.ReleaseDll)
 
             compilation.VerifyDiagnostics()
-            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
         End Sub
 
         <Fact, WorkItem(1096600)>
@@ -618,7 +617,7 @@ End Class
             Next
         End Sub
 
-        Class FieldSymbolAnalyzer
+        Public Class FieldSymbolAnalyzer
             Inherits DiagnosticAnalyzer
 
             Public Shared desc1 As New DiagnosticDescriptor("FieldSymbolDiagnostic", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
@@ -637,50 +636,189 @@ End Class
                 Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
             End Sub
+        End Class
 
-            <Fact, WorkItem(1109126)>
-            Sub TestFieldSymbolAnalyzer_EnumField()
-                Dim analyzer = New FieldSymbolAnalyzer()
-                Dim sources = <compilation>
-                                  <file name="c.vb">
-                                      <![CDATA[
+        <Fact, WorkItem(1109126)>
+        Public Sub TestFieldSymbolAnalyzer_EnumField()
+            Dim analyzer = New FieldSymbolAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
 Public Enum E
     X = 0
 End Enum
 ]]>
-                                  </file>
-                              </compilation>
+                              </file>
+                          </compilation>
 
-                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
-                compilation.VerifyDiagnostics()
-                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
-            End Sub
+        End Sub
 
-            <Fact, WorkItem(1111667)>
-            Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
-                Dim analyzer = New FieldSymbolAnalyzer()
-                Dim sources = <compilation>
-                                  <file name="c.vb">
-                                      <![CDATA[
+        <Fact, WorkItem(1111667)>
+        Public Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
+            Dim analyzer = New FieldSymbolAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
 Public Class TestClass
     Public Field As System.IntPtr
 End Class
 ]]>
-                                  </file>
-                              </compilation>
+                              </file>
+                          </compilation>
 
-                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
                     references:={SystemCoreRef, MsvbRef},
                     options:=TestOptions.ReleaseDll)
 
-                compilation.VerifyDiagnostics()
-                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
+        End Sub
+
+        Public Class FieldDeclarationAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared desc1 As New DiagnosticDescriptor("FieldDeclarationDiagnostic", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(desc1)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.FieldDeclaration)
+            End Sub
+
+            Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+                Dim sourceLoc = DirectCast(context.Node, FieldDeclarationSyntax).GetLocation
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
             End Sub
         End Class
+
+        <Fact, WorkItem(565)>
+        Public Sub TestFieldDeclarationAnalyzer()
+            Dim analyzer = New FieldDeclarationAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class C
+    Dim x, y As Integer
+    Dim z As Integer
+    Dim x2 = 0, y2 = 0
+    Dim z2 = 0
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x, y As Integer]]>),
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),
+                    AnalyzerDiagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
+        End Sub
+
+        <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>
+        Public Sub TestReportingNotConfigurableDiagnostic()
+            Dim analyzer = New NotConfigurableDiagnosticAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[]]>
+                              </file>
+                          </compilation>
+
+            ' Verify, not configurable enabled diagnostic is always reported and disabled diagnostic is never reported..
+            Dim options = TestOptions.ReleaseDll
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=options)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+
+            ' Verify not configurable enabled diagnostic cannot be suppressed.
+            Dim specificDiagOptions = New Dictionary(Of String, ReportDiagnostic)
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id, ReportDiagnostic.Suppress)
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=options)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+
+
+            ' Verify not configurable disabled diagnostic cannot be enabled.
+            specificDiagOptions.Clear()
+            specificDiagOptions.Add(NotConfigurableDiagnosticAnalyzer.DisabledRule.Id, ReportDiagnostic.Warn)
+            options = TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(specificDiagOptions)
+
+            compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=options)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(NotConfigurableDiagnosticAnalyzer.EnabledRule.Id))
+        End Sub
+
+        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        Public Sub TestCodeBlockAction()
+            Dim analyzer = New CodeBlockActionAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Class C 
+    Public Sub M()
+    End Sub
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"),
+                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockPerCompilationRule.Id, <![CDATA[M]]>).WithArguments("M"))
+        End Sub
+
+        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        Public Sub TestCodeBlockAction_OnlyStatelessAction()
+            Dim analyzer = New CodeBlockActionAnalyzer(onlyStatelessAction:=True)
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Class C 
+    Public Sub M()
+    End Sub
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources, references:={SystemCoreRef, MsvbRef})
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"))
+        End Sub
     End Class
 End Namespace

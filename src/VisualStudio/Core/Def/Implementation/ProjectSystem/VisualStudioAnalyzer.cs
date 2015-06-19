@@ -6,8 +6,10 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -18,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
         private readonly ProjectId _projectId;
         private readonly Workspace _workspace;
+        private readonly IAnalyzerAssemblyLoader _loader;
         private readonly string _language;
 
         private AnalyzerReference _analyzerReference;
@@ -34,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public event EventHandler UpdatedOnDisk;
 
-        public VisualStudioAnalyzer(string fullPath, IVsFileChangeEx fileChangeService, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, string language)
+        public VisualStudioAnalyzer(string fullPath, IVsFileChangeEx fileChangeService, HostDiagnosticUpdateSource hostDiagnosticUpdateSource, ProjectId projectId, Workspace workspace, IAnalyzerAssemblyLoader loader, string language)
         {
             _fullPath = fullPath;
             _tracker = new FileChangeTracker(fileChangeService, fullPath);
@@ -44,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _projectId = projectId;
             _workspace = workspace;
+            _loader = loader;
             _language = language;
         }
 
@@ -52,13 +56,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             get { return _fullPath; }
         }
 
+        public bool HasLoadErrors
+        {
+            get { return _analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0; }
+        }
+
         public AnalyzerReference GetReference()
         {
             if (_analyzerReference == null)
             {
                 if (File.Exists(_fullPath))
                 {
-                    _analyzerReference = new AnalyzerFileReference(_fullPath);
+                    _analyzerReference = new AnalyzerFileReference(_fullPath, _loader);
                     ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed += OnAnalyzerLoadError;
                 }
                 else
@@ -81,12 +90,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                     id = _language == LanguageNames.CSharp ? WRN_UnableToLoadAnalyzerIdCS : WRN_UnableToLoadAnalyzerIdVB;
                     messageFormat = ServicesVSResources.WRN_UnableToLoadAnalyzer;
-                    message = string.Format(ServicesVSResources.WRN_UnableToLoadAnalyzer, _fullPath, e.Exception.Message);
+                    message = string.Format(ServicesVSResources.WRN_UnableToLoadAnalyzer, _fullPath, e.Message);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = _language == LanguageNames.CSharp ? WRN_AnalyzerCannotBeCreatedIdCS : WRN_AnalyzerCannotBeCreatedIdVB;
                     messageFormat = ServicesVSResources.WRN_AnalyzerCannotBeCreated;
-                    message = string.Format(ServicesVSResources.WRN_AnalyzerCannotBeCreated, e.TypeName, _fullPath, e.Exception.Message);
+                    message = string.Format(ServicesVSResources.WRN_AnalyzerCannotBeCreated, e.TypeName, _fullPath, e.Message);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = _language == LanguageNames.CSharp ? WRN_NoAnalyzerInAssemblyIdCS : WRN_NoAnalyzerInAssemblyIdVB;
@@ -104,10 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 message,
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
-                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 warningLevel: 0,
-                customTags: ImmutableArray<string>.Empty,
                 workspace: _workspace,
                 projectId: _projectId);
 
@@ -119,20 +126,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void Dispose()
         {
-            if (_analyzerReference is AnalyzerFileReference)
+            Reset();
+
+            _tracker.Dispose();
+            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+        }
+
+        public void Reset()
+        {
+            var analyzerFileReference = _analyzerReference as AnalyzerFileReference;
+            if (analyzerFileReference != null)
             {
-                ((AnalyzerFileReference)_analyzerReference).AnalyzerLoadFailed -= OnAnalyzerLoadError;
+                analyzerFileReference.AnalyzerLoadFailed -= OnAnalyzerLoadError;
 
                 if (_analyzerLoadErrors != null && _analyzerLoadErrors.Count > 0)
                 {
                     _hostDiagnosticUpdateSource.ClearDiagnosticsForProject(_projectId, this);
                 }
+
+                _hostDiagnosticUpdateSource.ClearAnalyzerReferenceDiagnostics(analyzerFileReference, _language, _projectId);
             }
 
             _analyzerLoadErrors = null;
-
-            _tracker.Dispose();
-            _tracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+            _analyzerReference = null;
         }
 
         private void OnUpdatedOnDisk(object sender, EventArgs e)

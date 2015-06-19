@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
-    Module DirectiveSyntaxExtensions
+    Friend Module DirectiveSyntaxExtensions
         Private Class DirectiveInfo
             Private ReadOnly _startEndMap As IDictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)
 
@@ -59,11 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End Sub
         End Class
 
-        Private ReadOnly _rootToDirectiveInfo As New ConditionalWeakTable(Of SyntaxNode, DirectiveInfo)()
+        Private ReadOnly s_rootToDirectiveInfo As New ConditionalWeakTable(Of SyntaxNode, DirectiveInfo)()
 
         Private Function GetDirectiveInfo(node As SyntaxNode, cancellationToken As CancellationToken) As DirectiveInfo
             Dim root = node.GetAbsoluteRoot()
-            Dim info = _rootToDirectiveInfo.GetValue(root,
+            Dim info = s_rootToDirectiveInfo.GetValue(root,
                             Function(r)
                                 Dim startEndMap = New Dictionary(Of DirectiveTriviaSyntax, DirectiveTriviaSyntax)(DirectiveSyntaxEqualityComparer.Instance)
                                 Dim conditionalMap = New Dictionary(Of DirectiveTriviaSyntax, IEnumerable(Of DirectiveTriviaSyntax))(DirectiveSyntaxEqualityComparer.Instance)
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetMatchingStartOrEndDirective(directive As DirectiveTriviaSyntax,
                                                        cancellationToken As CancellationToken) As DirectiveTriviaSyntax
             If directive Is Nothing Then
-                Throw New ArgumentNullException("directive")
+                Throw New ArgumentNullException(NameOf(directive))
             End If
 
             If directive.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse directive.Kind = SyntaxKind.ElseDirectiveTrivia Then
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetMatchingConditionalDirectives(directive As DirectiveTriviaSyntax,
                                                          cancellationToken As CancellationToken) As IEnumerable(Of DirectiveTriviaSyntax)
             If directive Is Nothing Then
-                Throw New ArgumentNullException("directive")
+                Throw New ArgumentNullException(NameOf(directive))
             End If
 
             Dim result As IEnumerable(Of DirectiveTriviaSyntax) = Nothing

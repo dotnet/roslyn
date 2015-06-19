@@ -17,7 +17,6 @@ namespace System.Runtime.Analyzers
     {
         internal const string RuleId = "CA1001";
         internal const string Dispose = "Dispose";
-        internal const string IDisposable = "System.IDisposable";
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          new LocalizableResourceString(nameof(SystemRuntimeAnalyzersResources.TypesThatOwnDisposableFieldsShouldBeDisposable), SystemRuntimeAnalyzersResources.ResourceManager, typeof(SystemRuntimeAnalyzersResources)),
@@ -28,27 +27,29 @@ namespace System.Runtime.Analyzers
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182172.aspx",
                                                                          customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(Rule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.RegisterSymbolAction(context =>
+            analysisContext.RegisterCompilationStartAction(compilationContext =>
             {
-                AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
-            },
-            SymbolKind.NamedType);
+                var disposableType = WellKnownTypes.IDisposable(compilationContext.Compilation);
+                if (disposableType == null)
+                {
+                    return;
+                }
+
+                compilationContext.RegisterSymbolAction(context =>
+                {
+                    AnalyzeSymbol((INamedTypeSymbol)context.Symbol, disposableType, context.ReportDiagnostic);
+                },
+                SymbolKind.NamedType);
+            });
         }
 
-        private static void AnalyzeSymbol(INamedTypeSymbol symbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
+        private static void AnalyzeSymbol(INamedTypeSymbol symbol, INamedTypeSymbol disposableType, Action<Diagnostic> addDiagnostic)
         {
-            var disposableType = WellKnownTypes.IDisposable(compilation);
-            if (disposableType != null && !symbol.AllInterfaces.Contains(disposableType))
+            if (!symbol.AllInterfaces.Contains(disposableType))
             {
                 var disposableFields = from member in symbol.GetMembers()
                                        where member.Kind == SymbolKind.Field && !member.IsStatic

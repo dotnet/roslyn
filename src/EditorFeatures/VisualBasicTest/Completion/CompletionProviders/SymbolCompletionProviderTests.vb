@@ -1261,9 +1261,16 @@ Class C
     Sub M()
         10: Dim i As Integer
         Goto $$"
-</Text>.Value
+</Text>.Value.NormalizeLineEndings()
 
-            VerifyItemExists(test, "10")
+            Dim text As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(test, text, position)
+
+            ' We don't trigger intellisense within numeric literals, so we 
+            ' explicitly test only the "nothing typed" case.
+            ' This is also the Dev12 behavior for suggesting labels.
+            VerifyAtPosition(text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False)
         End Sub
 
         <WorkItem(541235)>
@@ -1449,7 +1456,7 @@ Class SomeClass(Of T)
 End Class
                        ]]></Text>
 
-            VerifyItemExists(test.Value, "T", "T in SomeClass(Of T)")
+            VerifyItemExists(test.Value, "T", $"T {FeaturesResources.In} SomeClass(Of T)")
         End Sub
 
         <WorkItem(542225)>
@@ -2754,10 +2761,11 @@ Class C
         End Function
 End Class</Code>.Value
 
-            Dim description = <File>&lt;Awaitable&gt; Function C.Foo() As Task
+            Dim description =
+$"<{VBFeaturesResources.Awaitable}> Function C.Foo() As Task
 Doc Comment!
-Usage:
-  Await Foo()</File>.ConvertTestSourceTag()
+{WorkspacesResources.Usage}
+  {VBFeaturesResources.Await} Foo()"
 
             VerifyItemWithMscorlib45(code, "Foo", description, LanguageNames.VisualBasic)
         End Sub
@@ -2794,7 +2802,7 @@ Class SomeClass
     End Sub
 End Class</Code>.Value
 
-            VerifyItemExists(code, "Foo", "(Deprecated) Sub SomeClass.Foo()")
+            VerifyItemExists(code, "Foo", $"({VBFeaturesResources.Deprecated}) Sub SomeClass.Foo()")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5042,7 +5050,7 @@ end class]]>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            VerifyItemInLinkedFiles(markup, "x", "(field) C.x As Integer")
+            VerifyItemInLinkedFiles(markup, "x", $"({FeaturesResources.Field}) C.x As Integer")
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5065,11 +5073,12 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = "(field) C.x As Integer" + vbCrLf + vbCrLf + "    Proj1 - Available" + vbCrLf + "    Proj2 - Not Available" + vbCrLf + vbCrLf + "You can use the navigation bar to switch context."
+            Dim expectedDescription = $"({FeaturesResources.Field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable) + vbCrLf + vbCrLf + FeaturesResources.UseTheNavigationBarToSwitchContext
             VerifyItemInLinkedFiles(markup, "x", expectedDescription)
         End Sub
 
         <WorkItem(909121)>
+        <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitGenericOnParen()
             Dim text =
@@ -5113,7 +5122,7 @@ End Class
 
         <WorkItem(991466)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DescriptionInAlaisedType()
+        Public Sub DescriptionInAliasedType()
             Dim text =
 <code><![CDATA[
 Imports IAlias = IFoo
@@ -5288,7 +5297,7 @@ End Class
 
         <WorkItem(1041269)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub UnwrapNullableForConditionalAccess()
+        Public Sub NullableForConditionalAccess()
             Dim text =
 <code><![CDATA[
 Class C
@@ -5389,24 +5398,6 @@ End Module
 ]]></code>.Value
 
             VerifyItemExists(text, "ToString")
-        End Sub
-
-        <WorkItem(1079716)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DontThrowForNullPropagatingOperatorAfterNamespace()
-            Dim text =
-<code><![CDATA[
-Option Strict On
-Module Program
-    Sub Main()
-        System?.$$
-    End Sub
-End Module
-]]></code>.Value
-
-            ' NOTE: The current behavior is that we'll still show types for a namespace after ?.
-            ' While the code is not correct, it seems reasonable to allow the user to continue typing.
-            VerifyItemExists(text, "Action")
         End Sub
 
         <WorkItem(1079723)>
@@ -5812,6 +5803,245 @@ End Class
 ]]></code>.Value
 
             VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(1293, "https://github.com/dotnet/roslyn/issues/1293")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub TriggeredAfterDotInWithAfterNumericLiteral()
+            Dim text =
+<code><![CDATA[
+Class Program
+    Public Property P As Long
+
+    Sub M()
+        With Me
+            .P = 122
+            .$$
+        End With
+    End Sub
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "M", usePreviousCharAsTrigger:=True)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes1()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        System?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes2()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Console?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoCompletionForConditionalAccessOnTypes3()
+            Dim text =
+<code><![CDATA[
+Imports a = System
+Module Program
+    Sub Main(args As String())
+        a?.$$
+    End Sub
+End Module
+]]></code>.Value
+
+            VerifyNoItemsExist(text)
+        End Sub
+
+        <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedMembersOffInstanceInColorColor()
+            Dim text =
+<code><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x = C.$$
+    End Sub
+
+    Dim C As New C()
+End Module
+
+Class C
+    Public X As Integer = 1
+    Public Shared Y As Integer = 2
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "X")
+            VerifyItemExists(text, "Y")
+        End Sub
+
+        <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotSharedMembersOffAliasInColorColor()
+            Dim text =
+<code><![CDATA[
+Imports B = C
+Module Program
+    Sub Main(args As String())
+        Dim x = B.$$
+    End Sub
+
+    Dim B As New B()
+End Module
+
+Class C
+    Public X As Integer = 1
+    Public Shared Y As Integer = 2
+End Class
+]]></code>.Value
+
+            VerifyItemExists(text, "X")
+            VerifyItemIsAbsent(text, "Y")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType()
+            Dim text =
+<code><![CDATA[
+MustInherit Class Test
+    Private _field As Integer
+    NotInheritable Class InnerTest
+        Inherits Test
+        Sub SomeTest()
+            Dim x = $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "_field")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType2()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            $$ ' M recommended and accessible
+        End Sub
+        Class NN
+            Sub Test2()
+                ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType3()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            ' M recommended and accessible
+        End Sub
+        Class NN
+            Sub Test2()
+                $$ ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType4()
+            Dim text =
+<code><![CDATA[
+Class C(Of T)
+    Sub M()
+    End Sub
+    Class N
+        Inherits C(Of Integer)
+        Sub Test()
+            M() ' M recommended and accessible
+        End Sub
+        Class NN
+            Inherits N
+            Sub Test2()
+                $$ ' M inaccessible and not recommended
+            End Sub
+        End Class
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "M")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType5()
+            Dim text =
+<code><![CDATA[
+Class D
+    Public Sub Q()
+    End Sub
+End Class
+Class C(Of T)
+    Inherits D
+    Class N
+        Sub Test()
+            $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Q")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InstanceMembersFromBaseOuterType6()
+            Dim text =
+<code><![CDATA[
+Class Base(Of T)
+    Public X As Integer
+End Class
+Class Derived
+    Inherits C(Of Integer)
+    Class Nested
+        Sub Test()
+            $$
+        End Sub
+    End Class
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "X")
         End Sub
 
     End Class

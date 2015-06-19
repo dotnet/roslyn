@@ -4,18 +4,18 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 
-Interface IMockSymbol
+Friend Interface IMockSymbol
     Sub SetContainer(container As Symbol)
 End Interface
 
-Class MockNamespaceSymbol
+Friend Class MockNamespaceSymbol
     Inherits NamespaceSymbol
     Implements IMockSymbol
 
     Private _container As NamespaceSymbol
     Private _extent As NamespaceExtent
     Private _children As ImmutableArray(Of Symbol)
-    Private _name As String
+    Private ReadOnly _name As String
 
     Public Sub New(name As String, extent As NamespaceExtent, children As IEnumerable(Of Symbol))
         Me._name = name
@@ -113,12 +113,12 @@ Class MockNamespaceSymbol
     End Property
 End Class
 
-Class MockNamedTypeSymbol
+Friend Class MockNamedTypeSymbol
     Inherits InstanceTypeSymbol
     Implements IMockSymbol
 
-    Private _name As String
-    Private _kind As TypeKind
+    Private ReadOnly _name As String
+    Private ReadOnly _kind As TypeKind
     Private _children As ImmutableArray(Of Symbol)
     Private _container As NamespaceOrTypeSymbol
 
@@ -372,7 +372,7 @@ Class MockNamedTypeSymbol
     End Sub
 End Class
 
-Class MockMethodSymbol
+Friend Class MockMethodSymbol
     Inherits MethodSymbol
 
     Private _name As String
@@ -613,11 +613,11 @@ Class MockMethodSymbol
     End Function
 End Class
 
-Class MockModuleSymbol
+Friend Class MockModuleSymbol
     Inherits NonMissingModuleSymbol
 
-    Private _name As String
-    Private _assembly As AssemblySymbol
+    Private ReadOnly _name As String
+    Private ReadOnly _assembly As AssemblySymbol
 
     Public Sub New(name As String, assembly As AssemblySymbol)
         _name = name
@@ -707,11 +707,11 @@ Class MockModuleSymbol
     End Property
 End Class
 
-Class MockAssemblySymbol
+Friend Class MockAssemblySymbol
     Inherits NonMissingAssemblySymbol
 
-    Private _name As String
-    Private _module As ModuleSymbol
+    Private ReadOnly _name As String
+    Private ReadOnly _module As ModuleSymbol
 
     Public Sub New(name As String)
         _name = name

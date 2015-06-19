@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
                 }
-                else if (!ContainingType.IsStatic || ContainingType.Arity != 0)
+                else if (!ContainingType.IsScriptClass && !(ContainingType.IsStatic && ContainingType.Arity == 0))
                 {
                     // Duplicate Dev10 behavior by selecting the containing type identifier. However if there
                     // is no containing type (in the interactive case for instance), select the method identifier.
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
             {
-                AddSemanticDiagnostics(diagnostics);
+                AddDeclarationDiagnostics(diagnostics);
                 if (state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks) && IsPartialDefinition)
                 {
                     DeclaringCompilation.SymbolDeclaredEvent(this);
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var diagnostics = DiagnosticBag.GetInstance();
                 if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
                 {
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
                 diagnostics.Free();
             }
@@ -535,11 +535,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LazyMethodChecks();
                 return _lazyIsVararg;
             }
-        }
-
-        internal override LexicalSortKey GetLexicalSortKey()
-        {
-            return new LexicalSortKey(locations[0], this.DeclaringCompilation);
         }
 
         public override ImmutableArray<Location> Locations
@@ -1080,9 +1075,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.CallsAreOmitted(syntaxTree);
         }
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return !IsAsync; }
-        }
+        internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
     }
 }

@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             private readonly RenameLocationSet _renameLocationSet;
             private readonly SymbolInlineRenameInfo _renameInfo;
 
-            public IList<InlineRenameLocation> Locations { get; private set; }
+            public IList<InlineRenameLocation> Locations { get; }
 
             public InlineRenameLocationSet(SymbolInlineRenameInfo renameInfo, RenameLocationSet renameLocationSet)
             {
                 _renameInfo = renameInfo;
                 _renameLocationSet = renameLocationSet;
-                this.Locations = renameLocationSet.Locations.Where(l => !l.IsCandidateLocation).Select(ConvertLocation).ToList();
+                this.Locations = renameLocationSet.Locations.Where(l => !l.IsCandidateLocation || l.IsMethodGroupReference).Select(ConvertLocation).ToList();
             }
 
             private InlineRenameLocation ConvertLocation(RenameLocation location)

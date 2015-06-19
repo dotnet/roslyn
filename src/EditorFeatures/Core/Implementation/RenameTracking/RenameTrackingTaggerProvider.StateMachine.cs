@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly ITextBuffer _buffer;
+            private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
             private int _refCount;
 
@@ -38,12 +41,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public event Action TrackingSessionUpdated = delegate { };
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
 
-            public StateMachine(ITextBuffer buffer, IInlineRenameService inlineRenameService, IAsynchronousOperationListener asyncListener)
+            public StateMachine(
+                ITextBuffer buffer, 
+                IInlineRenameService inlineRenameService, 
+                IAsynchronousOperationListener asyncListener, 
+                IDiagnosticAnalyzerService diagnosticAnalyzerService)
             {
                 _buffer = buffer;
                 _buffer.Changed += Buffer_Changed;
                 _inlineRenameService = inlineRenameService;
                 _asyncListener = asyncListener;
+                _diagnosticAnalyzerService = diagnosticAnalyzerService;
             }
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -59,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 using (Logger.LogBlock(FunctionId.Rename_Tracking_BufferChanged, CancellationToken.None))
                 {
                     // When the buffer changes, several things might be happening:
-                    // 1. If a non-identifer character has been added or deleted, we stop tracking
+                    // 1. If a non-identifier character has been added or deleted, we stop tracking
                     //    completely.
                     // 2. Otherwise, if the changes are completely contained an existing session, then
                     //    continue that session.
@@ -92,16 +100,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         // Continuing an existing tracking session. If there may have been a tag
                         // showing, then update the tags.
-                        if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
-                        {
-                            this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
-                            TrackingSessionUpdated();
-                        }
+                        UpdateTrackingSessionIfRenamable();
                     }
                     else
                     {
                         StartTrackingSession(e);
                     }
+                }
+            }
+
+            public void UpdateTrackingSessionIfRenamable()
+            {
+                AssertIsForeground();
+                if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
+                {
+                    this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
+                    TrackingSessionUpdated();
                 }
             }
 
@@ -203,6 +217,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
                 {
+                    var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
+                    {
+                        // When rename tracking is dismissed via escape, we no longer wish to
+                        // provide a diagnostic/codefix, but nothing has changed in the workspace
+                        // to trigger the diagnostic system to reanalyze, so we trigger it 
+                        // manually.
+
+                        _diagnosticAnalyzerService?.Reanalyze(
+                            document.Project.Solution.Workspace, 
+                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                    }
+
                     // Disallow the existing TrackingSession from triggering IdentifierFound.
                     var previousTrackingSession = this.TrackingSession;
                     this.TrackingSession = null;
@@ -226,8 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 ISyntaxFactsService syntaxFactsService;
-                return TryGetSyntaxFactsService(out syntaxFactsService) &&
-                    trackingSession.CanInvokeRename(syntaxFactsService, isSmartTagCheck, waitForResult, cancellationToken);
+                IRenameTrackingLanguageHeuristicsService languageHeuristicsService;
+                return TryGetSyntaxFactsService(out syntaxFactsService) && TryGetLanguageHeuristicsService(out languageHeuristicsService) &&
+                    trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
             internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
@@ -251,20 +279,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         SnapshotSpan snapshotSpan = trackingSession.TrackingSpan.GetSpan(Buffer.CurrentSnapshot);
                         var textSpan = snapshotSpan.Span.ToTextSpan();
+
+                        var builder = ImmutableDictionary.CreateBuilder<string, string>();
+                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey, trackingSession.OriginalName);
+                        builder.Add(RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey, snapshotSpan.GetText());
+                        var properties = builder.ToImmutable();
+
                         var diagnostic = Diagnostic.Create(diagnosticDescriptor,
                             tree.GetLocation(textSpan),
-                            trackingSession.OriginalName,
-                            snapshotSpan.GetText());
+                            properties);
+
                         return SpecializedCollections.SingletonEnumerable(diagnostic);
                     }
 
                     return SpecializedCollections.EmptyEnumerable<Diagnostic>();
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                }
+            }
 
             public void RestoreTrackingSession(TrackingSession trackingSession)
             {
@@ -297,6 +331,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 return syntaxFactsService != null;
+            }
+
+            private bool TryGetLanguageHeuristicsService(out IRenameTrackingLanguageHeuristicsService languageHeuristicsService)
+            {
+                // Can be called on a background thread
+
+                languageHeuristicsService = null;
+                var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document != null)
+                {
+                    languageHeuristicsService = document.Project.LanguageServices.GetService<IRenameTrackingLanguageHeuristicsService>();
+                }
+
+                return languageHeuristicsService != null;
             }
 
             public void Connect()

@@ -1,12 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -14,17 +11,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private readonly AnalyzersFolderItem _analyzersFolder;
         private readonly AnalyzerReference _analyzerReference;
+        private readonly IContextMenuController _contextMenuController;
 
-        private static readonly ContextMenuController s_itemContextMenuController =
-            new ContextMenuController(
-                ID.RoslynCommands.AnalyzerContextMenu,
-                items => items.All(item => item is AnalyzerItem));
-
-        public AnalyzerItem(AnalyzersFolderItem analyzersFolder, AnalyzerReference analyzerReference)
+        public AnalyzerItem(AnalyzersFolderItem analyzersFolder, AnalyzerReference analyzerReference, IContextMenuController contextMenuController)
             : base(GetNameText(analyzerReference))
         {
             _analyzersFolder = analyzersFolder;
             _analyzerReference = analyzerReference;
+            _contextMenuController = contextMenuController;
         }
 
         public override ImageMoniker IconMoniker
@@ -47,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerReference.IsUnresolved)
+                if (_analyzerReference is UnresolvedAnalyzerReference)
                 {
                     return KnownMonikers.OverlayWarning;
                 }
@@ -70,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override IContextMenuController ContextMenuController
         {
-            get { return s_itemContextMenuController; }
+            get { return _contextMenuController; }
         }
 
         public AnalyzersFolderItem AnalyzersFolder
@@ -88,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private static string GetNameText(AnalyzerReference analyzerReference)
         {
-            if (analyzerReference.IsUnresolved)
+            if (analyzerReference is UnresolvedAnalyzerReference)
             {
                 return analyzerReference.FullPath;
             }

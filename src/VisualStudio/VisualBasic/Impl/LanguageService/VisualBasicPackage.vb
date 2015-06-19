@@ -52,15 +52,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         ' the VB Package and cast it to IVbEntryPointProvider. The property page is managed
         ' and we've redefined the interface, so we have to register a COM aggregate of the
         ' VB package. This is the same pattern we use for the LanguageService and Razor.
-        Private ReadOnly comAggregate As Object
+        Private ReadOnly _comAggregate As Object
 
-        Private libraryManager As ObjectBrowserLibraryManager
-        Private libraryManagerCookie As UInteger
+        Private _libraryManager As ObjectBrowserLibraryManager
+        Private _libraryManagerCookie As UInteger
 
         Public Sub New()
             MyBase.New()
 
-            comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
+            _comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
         Protected Overrides Function CreateWorkspace() As VisualStudioWorkspaceImpl
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             Try
                 MyBase.Initialize()
 
-                RegisterLanguageService(GetType(IVbCompilerService), Function() comAggregate)
+                RegisterLanguageService(GetType(IVbCompilerService), Function() _comAggregate)
 
                 Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(Function() New TempPECompilerFactory(workspace))
@@ -90,28 +90,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Private Sub RegisterObjectBrowserLibraryManager()
             Dim objectManager = TryCast(Me.GetService(GetType(SVsObjectManager)), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Me.libraryManager = New ObjectBrowserLibraryManager(Me)
+                Me._libraryManager = New ObjectBrowserLibraryManager(Me)
 
-                If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me.libraryManager, Me.libraryManagerCookie)) Then
-                    Me.libraryManagerCookie = 0
+                If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
+                    Me._libraryManagerCookie = 0
                 End If
             End If
         End Sub
 
         Private Sub UnregisterObjectBrowserLibraryManager()
-            If libraryManagerCookie <> 0 Then
+            If _libraryManagerCookie <> 0 Then
                 Dim objectManager = TryCast(Me.GetService(GetType(SVsObjectManager)), IVsObjectManager2)
                 If objectManager IsNot Nothing Then
-                    objectManager.UnregisterLibrary(Me.libraryManagerCookie)
-                    Me.libraryManagerCookie = 0
+                    objectManager.UnregisterLibrary(Me._libraryManagerCookie)
+                    Me._libraryManagerCookie = 0
                 End If
 
-                Me.libraryManager.Dispose()
-                Me.libraryManager = Nothing
+                Me._libraryManager.Dispose()
+                Me._libraryManager = Nothing
             End If
         End Sub
 
-        Function NeedExport(pageID As String, <Out> ByRef needExportParam As Integer) As Integer Implements IVsUserSettingsQuery.NeedExport
+        Public Function NeedExport(pageID As String, <Out> ByRef needExportParam As Integer) As Integer Implements IVsUserSettingsQuery.NeedExport
             ' We need to override MPF's definition of NeedExport since it doesn't know about our automation object
             needExportParam = If(pageID = "TextEditor.Basic-Specific", 1, 0)
             Return VSConstants.S_OK

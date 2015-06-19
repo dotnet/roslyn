@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var targetToken = tree.FindTokenOnLeftOfPosition(position, cancellationToken).GetPreviousTokenIfTouchingWord(position);
             if (targetToken.IsKind(SyntaxKind.AliasKeyword) && targetToken.Parent.IsKind(SyntaxKind.ExternAliasDirective))
             {
-                var compilation = await document.GetCSharpCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var aliases = compilation.ExternalReferences.SelectMany(r => r.Properties.Aliases).ToSet();
 
                 if (aliases.Any())

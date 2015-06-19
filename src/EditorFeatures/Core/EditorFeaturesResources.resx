@@ -342,9 +342,6 @@
   <data name="DocumentIsNotCurrentlyBeingTracked" xml:space="preserve">
     <value>document is not currently being tracked</value>
   </data>
-  <data name="RenameTracking" xml:space="preserve">
-    <value>Rename Tracking</value>
-  </data>
   <data name="ComputingRenameInformation" xml:space="preserve">
     <value>Computing Rename information...</value>
   </data>
@@ -367,7 +364,7 @@
     <value>Rename '{0}' to '{1}'</value>
   </data>
   <data name="Warning" xml:space="preserve">
-    <value>Warning</value>
+    <value>Preview Warning</value>
   </data>
   <data name="FromMetadata" xml:space="preserve">
     <value>from metadata</value>
@@ -438,7 +435,7 @@
   <data name="CommentingCurrentlySelected" xml:space="preserve">
     <value>Commenting currently selected text...</value>
   </data>
-  <data name="UncommentingCurrentlySelecte" xml:space="preserve">
+  <data name="UncommentingCurrentlySelected" xml:space="preserve">
     <value>Uncommenting currently selected text...</value>
   </data>
   <data name="InsertNewLine" xml:space="preserve">
@@ -447,7 +444,7 @@
   <data name="DocumentationComment" xml:space="preserve">
     <value>Documentation Comment</value>
   </data>
-  <data name="InsertingDocumentationCommen" xml:space="preserve">
+  <data name="InsertingDocumentationComment" xml:space="preserve">
     <value>Inserting documentation comment...</value>
   </data>
   <data name="ExtractMethod" xml:space="preserve">
@@ -621,12 +618,6 @@
   <data name="PreviewCodeChanges" xml:space="preserve">
     <value>Preview Code Changes:</value>
   </data>
-  <data name="RenameToWithPreview" xml:space="preserve">
-    <value>Rename '{0}' to '{1}' with preview...</value>
-  </data>
-  <data name="WithPreview" xml:space="preserve">
-    <value> with preview...</value>
-  </data>
   <data name="PreviewChanges" xml:space="preserve">
     <value>Preview Changes</value>
   </data>
@@ -706,11 +697,11 @@ Do you want to proceed?</value>
   <data name="PreviewChangesSummaryText" xml:space="preserve">
     <value>Preview changes</value>
   </data>
-  <data name="Intellisense" xml:space="preserve">
-    <value>Intellisense</value>
+  <data name="IntelliSense" xml:space="preserve">
+    <value>IntelliSense</value>
   </data>
-  <data name="IntellisenseCommitFormatting" xml:space="preserve">
-    <value>Intellisense Commit Formatting</value>
+  <data name="IntelliSenseCommitFormatting" xml:space="preserve">
+    <value>IntelliSense Commit Formatting</value>
   </data>
   <data name="FontAndColors_RenameTracking" xml:space="preserve">
     <value>Rename Tracking</value>
@@ -729,5 +720,20 @@ Do you want to proceed?</value>
   </data>
   <data name="FixAllOccurrences" xml:space="preserve">
     <value>Fix all occurrences</value>
+  </data>
+  <data name="CannotApplyOperationWhileRenameSessionIsActive" xml:space="preserve">
+    <value>Cannot apply operation while a rename session is active.</value>
+  </data>
+  <data name="TheRenameTrackingSessionWasCancelledAndIsNoLongerAvailable" xml:space="preserve">
+    <value>The rename tracking session was cancelled and is no longer available.</value>
+  </data>
+  <data name="HighlightedWrittenReference" xml:space="preserve">
+    <value>Highlighted Written Reference</value>
+  </data>
+  <data name="CursorMustBeOnAMemberName" xml:space="preserve">
+    <value>Cursor must be on a member name.</value>
+  </data>
+  <data name="FontAndColors_BraceMatching" xml:space="preserve">
+    <value>Brace Matching</value>
   </data>
 </root>

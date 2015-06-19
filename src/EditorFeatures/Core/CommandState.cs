@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// If true, the command should be visible and enabled in the UI.
         /// </summary>
-        public bool IsAvailable { get; private set; }
+        public bool IsAvailable { get; }
 
         /// <summary>
         /// If true, the command should appear as checked (i.e. toggled) in the UI.
         /// </summary>
-        public bool IsChecked { get; private set; }
+        public bool IsChecked { get; }
 
         /// <summary>
         /// If specified, returns the custom text that should be displayed in the UI.
         /// </summary>
-        public string DisplayText { get; private set; }
+        public string DisplayText { get; }
 
         public CommandState(bool isAvailable = false, bool isChecked = false, string displayText = null)
             : this()

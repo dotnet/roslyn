@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -11,26 +12,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public static void Verify(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource, params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            var actualDiagnostics = diagnostics.ToDescription(newSource).ToArray();
-            AssertEx.Equal(expectedDiagnostics, actualDiagnostics, itemSeparator: ",\r\n");
+            var actualDiagnostics = diagnostics.ToDescription(newSource, expectedDiagnostics.Any(d => d.FirstLine != null)).ToArray();
+            AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, itemSeparator: ",\r\n");
         }
 
-        internal static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource)
+        private static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, string newSource, bool includeFirstLines)
         {
             return diagnostics.Select(d => new RudeEditDiagnosticDescription(
                 d.Kind,
                 d.Span == default(TextSpan) ? null : newSource.Substring(d.Span.Start, d.Span.Length),
-                d.Arguments));
+                d.Arguments,
+                firstLine: includeFirstLines ? GetLineAt(newSource, d.Span.Start) : null));
+        }
+
+        const string LineSeparator = "\r\n";
+
+        private static string GetLineAt(string source, int position)
+        {
+            int start = source.LastIndexOf(LineSeparator, position, position);
+            int end = source.IndexOf(LineSeparator, position);
+            return source.Substring(start + 1, end - start).Trim();
         }
 
         public static IEnumerable<string> ToLines(this string str)
         {
-            const string LineSeparator = "\r\n";
-
             int i = 0;
             while (true)
             {
-                int eoln = str.IndexOf(LineSeparator, i);
+                int eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
                 if (eoln < 0)
                 {
                     yield return str.Substring(i);

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private ICompletionService _completionService;
         private Workspace _workspace;
 
-        public CompletionItem CompletionItem { get; private set; }
+        public CompletionItem CompletionItem { get; }
 
         public DescriptionModifyingCompletionItem(CompletionItem completionItem, ICompletionService completionService, Workspace workspace)
             : base(default(ICompletionProvider),

@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if REPORT_ALL
                     Console.WriteLine("Thread {0}, Field {1}, StartsCycle {2}", Thread.CurrentThread.ManagedThreadId, this, startsCycle);
 #endif
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                     this.state.NotePartComplete(CompletionPart.ConstantValue);
                 }
             }

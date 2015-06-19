@@ -21,14 +21,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitAwaitOperator(node As BoundAwaitOperator) As BoundNode
                 Dim builder As New SpillBuilder
 
-                ' TODO: Do we actually need a temp for the awaiter? We may have problems in case 
+                ' TODO: We may have problems in case 
                 ' TODO: the awaiter is being mutated in the code flow below; revise and get rid 
-                ' TODO: of local *or* make sure mutable awaiter works 
-                Dim awaiterType As TypeSymbol = node.GetAwaiter.Type.InternalSubstituteTypeParameters(Me.TypeMap)
-                Dim awaiterTemp As LocalSymbol = Me.F.SynthesizedLocal(awaiterType)
-                builder.AddLocal(awaiterTemp)
+                ' TODO: of local *or* make sure mutable awaiter works
 
-                builder.AddStatement(Me.F.SequencePoint(If(Me._enclosingSequencePointSyntax, node.Syntax)))
+                ' The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
+                ' It transfers the awaiter objects from the old version of the MoveNext method to the New one.
+                Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression))
+                Dim awaiterType As TypeSymbol = node.GetAwaiter.Type.InternalSubstituteTypeParameters(Me.TypeMap)
+                Dim awaiterTemp As LocalSymbol = Me.F.SynthesizedLocal(awaiterType, kind:=SynthesizedLocalKind.Awaiter, syntax:=node.Syntax)
+                builder.AddLocal(awaiterTemp)
 
                 ' Replace 'awaiter' with the local
                 Dim awaiterInstancePlaceholder As BoundLValuePlaceholder = node.AwaiterInstancePlaceholder
@@ -49,9 +51,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 PlaceholderReplacementMap.Remove(awaiterInstancePlaceholder)
                 PlaceholderReplacementMap.Remove(awaitableInstancePlaceholder)
 
-                ' STMT:   Dim //temp// $awaiterTemp = <expr>.GetAwaiter()
+                ' STMT:   Dim $awaiterTemp = <expr>.GetAwaiter()
                 builder.AddStatement(
                     Me.MakeAssignmentStatement(rewrittenGetAwaiter, awaiterTemp, builder))
+
+                ' hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter
+                builder.AddStatement(F.HiddenSequencePoint())
 
                 ' STMT:   If Not $awaiterTemp.IsCompleted Then <await-for-incomplete-task>
                 Dim awaitForIncompleteTask As BoundStatement = Me.GenerateAwaitForIncompleteTask(awaiterTemp)

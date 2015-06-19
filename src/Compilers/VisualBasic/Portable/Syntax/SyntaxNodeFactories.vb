@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function IntegerLiteralToken(leadingTrivia As SyntaxTriviaList, text As String, base As LiteralBase, typeSuffix As TypeCharacter, value As ULong, trailingTrivia As SyntaxTriviaList) As SyntaxToken
             If text Is Nothing Then
-                Throw New ArgumentNullException("text")
+                Throw New ArgumentNullException(NameOf(text))
             End If
 
             Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.IntegerLiteralToken(text, base, typeSuffix, value, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function FloatingLiteralToken(leadingTrivia As SyntaxTriviaList, text As String, typeSuffix As TypeCharacter, value As Double, trailingTrivia As SyntaxTriviaList) As SyntaxToken
             If text Is Nothing Then
-                Throw New ArgumentNullException("text")
+                Throw New ArgumentNullException(NameOf(text))
             End If
 
             Return New SyntaxToken(Nothing, InternalSyntax.SyntaxFactory.FloatingLiteralToken(text, typeSuffix, value, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function Identifier(leadingTrivia As SyntaxTriviaList, text As String, isBracketed As Boolean, identifierText As String, typeCharacter As TypeCharacter, trailingTrivia As SyntaxTriviaList) As SyntaxToken
             If text Is Nothing Then
-                Throw New ArgumentException("text")
+                Throw New ArgumentException(NameOf(text))
             End If
 
             Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, isBracketed, identifierText, typeCharacter), 0, 0)
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function Identifier(leadingTrivia As SyntaxTriviaList, text As String, trailingTrivia As SyntaxTriviaList) As SyntaxToken
             If text Is Nothing Then
-                Throw New ArgumentException("text")
+                Throw New ArgumentException(NameOf(text))
             End If
 
             Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, text, DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, False, text, TypeCharacter.None), 0, 0)
@@ -325,11 +325,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function BracketedIdentifier(leadingTrivia As SyntaxTriviaList, text As String, trailingTrivia As SyntaxTriviaList) As SyntaxToken
             If text Is Nothing Then
-                Throw New ArgumentException("text")
+                Throw New ArgumentException(NameOf(text))
             End If
 
             If MakeHalfWidthIdentifier(text.First) = "[" AndAlso MakeHalfWidthIdentifier(text.Last) = "]" Then
-                Throw New ArgumentException("text")
+                Throw New ArgumentException(NameOf(text))
             End If
 
             Return New SyntaxToken(Nothing, New InternalSyntax.ComplexIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, "[" + text + "]", DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), SyntaxKind.IdentifierToken, True, text, TypeCharacter.None), 0, 0)
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Create a missing punctutation mark.
+        ''' Create a missing punctuation mark.
         ''' </summary>
         Friend Shared Function MissingPunctuation(kind As SyntaxKind) As SyntaxToken
             Return New SyntaxToken(Nothing, New InternalSyntax.PunctuationSyntax(kind, "",
@@ -695,7 +695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function BadToken(leadingTrivia As SyntaxTriviaList, text As String, trailingTrivia As SyntaxTriviaList) As SyntaxToken
             If text Is Nothing Then
-                Throw New ArgumentException("text")
+                Throw New ArgumentException(NameOf(text))
             End If
             Return New SyntaxToken(Nothing, New InternalSyntax.BadTokenSyntax(SyntaxKind.BadToken, InternalSyntax.SyntaxSubKind.None, Nothing, Nothing, text,
                     DirectCast(leadingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode), DirectCast(trailingTrivia.Node, InternalSyntax.VisualBasicSyntaxNode)), 0, 0)
@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="nodesAndTokens">A sequence of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(nodesAndTokens As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxNodeOrTokenList
             If nodesAndTokens Is Nothing Then
-                Throw New ArgumentNullException("nodesAndTokens")
+                Throw New ArgumentNullException(NameOf(nodesAndTokens))
             End If
 
             Dim builder = New SyntaxNodeOrTokenListBuilder(8)

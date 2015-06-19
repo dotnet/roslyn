@@ -429,7 +429,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("Test.D.M(uint)"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideMethod_FewestCustomModifiers_BothCorrect()
         {
             var il = @"
@@ -481,7 +481,7 @@ public class Derived : Base
             Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideMethod_FewestCustomModifiers_OneCorrect()
         {
             var il = @"
@@ -536,7 +536,7 @@ public class Derived : Base
             Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideProperty_FewestCustomModifiers_BothCorrect()
         {
             var il = @"
@@ -601,7 +601,7 @@ public class Derived : Base
             Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideProperty_FewestCustomModifiers_OneCorrect()
         {
             var il = @"
@@ -669,7 +669,7 @@ public class Derived : Base
             Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideIndexer_FewestCustomModifiers_BothCorrect()
         {
             var il = @"
@@ -740,7 +740,7 @@ public class Derived : Base
             Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideIndexer_FewestCustomModifiers_OneCorrect()
         {
             var il = @"
@@ -814,7 +814,7 @@ public class Derived : Base
             Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideEvent_FewestCustomModifiers_BothCorrect()
         {
             var il = @"
@@ -893,7 +893,7 @@ public class Derived : Base
             Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverrideEvent_FewestCustomModifiers_OneCorrect()
         {
             var il = @"
@@ -976,7 +976,7 @@ public class Derived : Base
             Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModOptTestWithErrors()
         {
             // NOTE: removed Microsoft.VisualC attributes
@@ -1155,7 +1155,7 @@ class M
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("CG<T>.F(T)", "CG<T>.F(T)"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModOptTest()
         {
             // NOTE: removed Microsoft.VisualC attributes

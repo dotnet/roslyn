@@ -11,15 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class AttributeSemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(binder As AttributeBinder) As AttributeSemanticModel
-            Return New AttributeSemanticModel(binder.Root, binder)
+        Friend Shared Function Create(binder As AttributeBinder, Optional ignoreAccessibility As Boolean = False) As AttributeSemanticModel
+            Return New AttributeSemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>

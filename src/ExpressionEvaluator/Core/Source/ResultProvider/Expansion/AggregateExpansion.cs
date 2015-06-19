@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,

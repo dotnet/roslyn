@@ -5,10 +5,25 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
+    internal enum ExpansionKind
+    {
+        Default,
+        DynamicView,
+        Error,
+        NativeView,
+        NonPublicMembers,
+        PointerDereference,
+        RawView,
+        ResultsView,
+        StaticMembers,
+        TypeVariable
+    }
+
     /// <summary>
     /// A pair of DkmClrValue and Expansion, used to store
     /// state on a DkmEvaluationResult.  Also computes the
@@ -21,13 +36,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </remarks>
     internal sealed class EvalResultDataItem : DkmDataItem
     {
-        /// <summary>
-        /// May be null for synthesized nodes like "Results View", etc.
-        /// </summary>
-        public readonly string NameOpt;
-        public readonly Type TypeDeclaringMember;
-        public readonly Type DeclaredType;
+        public readonly ExpansionKind Kind;
+        public readonly string Name;
+        public readonly TypeAndCustomInfo TypeDeclaringMemberAndInfo;
+        public readonly TypeAndCustomInfo DeclaredTypeAndInfo;
+        public readonly EvalResultDataItem Parent;
         public readonly DkmClrValue Value;
+        public readonly string DisplayValue; // overrides the "Value" text displayed for certain kinds of DataItems (errors, invalid pointer dereferences, etc)...not to be confused with DebuggerDisplayAttribute Value...
         public readonly Expansion Expansion;
         public readonly bool ChildShouldParenthesize;
         public readonly string FullNameWithoutFormatSpecifiers;
@@ -53,11 +68,35 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        public EvalResultDataItem(string name, string errorMessage)
+            : this(
+                ExpansionKind.Error,
+                inspectionContext: null,
+                name: name,
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: default(TypeAndCustomInfo),
+                parent: null,
+                value: null,
+                displayValue: errorMessage,
+                expansion: null,
+                childShouldParenthesize: false,
+                fullName: null,
+                childFullNamePrefixOpt: null,
+                formatSpecifiers: Formatter.NoFormatSpecifiers,
+                category: DkmEvaluationResultCategory.Other,
+                flags: DkmEvaluationResultFlags.None,
+                editableValue: null)
+        {
+        }
+
         public EvalResultDataItem(
+            ExpansionKind kind,
             string name,
-            Type typeDeclaringMember,
-            Type declaredType,
+            TypeAndCustomInfo typeDeclaringMemberAndInfo,
+            TypeAndCustomInfo declaredTypeAndInfo,
+            EvalResultDataItem parent,
             DkmClrValue value,
+            string displayValue,
             Expansion expansion,
             bool childShouldParenthesize,
             string fullName,
@@ -65,26 +104,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadOnlyCollection<string> formatSpecifiers,
             DkmEvaluationResultCategory category,
             DkmEvaluationResultFlags flags,
-            string editableValue)
+            string editableValue,
+            DkmInspectionContext inspectionContext)
         {
+            Debug.Assert(name != null);
             Debug.Assert(formatSpecifiers != null);
             Debug.Assert((flags & DkmEvaluationResultFlags.Expandable) == 0);
 
-            this.NameOpt = name;
-            this.TypeDeclaringMember = typeDeclaringMember;
-            this.DeclaredType = declaredType;
+            this.Kind = kind;
+            this.Name = name;
+            this.TypeDeclaringMemberAndInfo = typeDeclaringMemberAndInfo;
+            this.DeclaredTypeAndInfo = declaredTypeAndInfo;
+            this.Parent = parent;
             this.Value = value;
+            this.DisplayValue = displayValue;
             this.ChildShouldParenthesize = childShouldParenthesize;
             this.FullNameWithoutFormatSpecifiers = fullName;
             this.ChildFullNamePrefix = childFullNamePrefixOpt;
             this.FormatSpecifiers = formatSpecifiers;
             this.Category = category;
             this.EditableValue = editableValue;
-            this.Flags = flags | GetFlags(value) | ((expansion == null) ? DkmEvaluationResultFlags.None : DkmEvaluationResultFlags.Expandable);
+            this.Flags = flags | GetFlags(value, inspectionContext) | ((expansion == null) ? DkmEvaluationResultFlags.None : DkmEvaluationResultFlags.Expandable);
             this.Expansion = expansion;
         }
 
-        private static DkmEvaluationResultFlags GetFlags(DkmClrValue value)
+        private static DkmEvaluationResultFlags GetFlags(DkmClrValue value, DkmInspectionContext inspectionContext)
         {
             if (value == null)
             {
@@ -103,9 +147,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            if (!value.IsError() && value.HasUnderlyingString())
+            if (!value.IsError() && value.HasUnderlyingString(inspectionContext))
             {
                 resultFlags |= DkmEvaluationResultFlags.RawString;
+            }
+
+            // As in the old EE, we won't allow editing members of a DynamicView expansion.
+            if (type.IsDynamicProperty())
+            {
+                resultFlags |= DkmEvaluationResultFlags.ReadOnly;
             }
 
             return resultFlags;
@@ -113,8 +163,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected override void OnClose()
         {
-            Debug.WriteLine("Closing " + FullName);
-            Value.Close();
+            // If we have an expansion, there's a danger that more than one data item is 
+            // referring to the same DkmClrValue (e.g. if it's an AggregateExpansion).
+            // To be safe, we'll only call Close when there's no expansion.  Since this
+            // is only an optimization (the debugger will eventually close the value
+            // anyway), a conservative approach is acceptable.
+            if (this.Expansion == null)
+            {
+                Value.Close();
+            }
         }
     }
 }

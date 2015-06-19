@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var rules = ruleFactory.CreateRule(document, start).Concat(Formatter.GetDefaultFormattingRules(document));
 
             // use formatting that return text changes rather than tree rewrite which is more expensive
-            var originalChanges = Formatter.GetFormattedTextChanges(root, adjustedSpan, document.Project.Solution.Workspace, rules: rules, cancellationToken: cancellationToken);
+            var originalChanges = Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), document.Project.Solution.Workspace, options: null, rules: rules, cancellationToken: cancellationToken);
 
             var originalSpan = RoslynTextSpan.FromBounds(start, end);
             var formattedChanges = ruleFactory.FilterFormattedChanges(document, originalSpan, originalChanges);
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             // HACK: The formatting engine is inclusive in it's spans, so it won't insert
             // adjust the indentation if there is a token right at the spans we start at.
-            // Instead, we make sure we include preceeding indentation.
+            // Instead, we make sure we include preceding indentation.
             var prevToken = root.FindToken(start).GetPreviousToken();
             if (prevToken != default(SyntaxToken))
             {

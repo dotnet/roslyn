@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// </summary>
     internal struct TokenPairWithOperations
     {
-        public TokenStream TokenStream { get; private set; }
-        public AdjustSpacesOperation SpaceOperation { get; private set; }
-        public AdjustNewLinesOperation LineOperation { get; private set; }
+        public TokenStream TokenStream { get; }
+        public AdjustSpacesOperation SpaceOperation { get; }
+        public AdjustNewLinesOperation LineOperation { get; }
 
-        public int PairIndex { get; private set; }
+        public int PairIndex { get; }
 
         public TokenPairWithOperations(
             TokenStream tokenStream,

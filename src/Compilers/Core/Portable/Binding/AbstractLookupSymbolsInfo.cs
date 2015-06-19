@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         public struct ArityEnumerator : IEnumerator<int>
         {
             private int _current;
-            private int _low32bits;
+            private readonly int _low32bits;
             private int[] _arities;
 
             private const int resetValue = -1;
@@ -35,20 +35,11 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public int Current
-            {
-                get { return _current; }
-            }
+            public int Current => _current;
 
-            public void Dispose()
-            {
-                _arities = null;
-            }
+            public void Dispose() => _arities = null;
 
-            object System.Collections.IEnumerator.Current
-            {
-                get { return _current; }
-            }
+            object System.Collections.IEnumerator.Current => _current;
 
             public bool MoveNext()
             {
@@ -91,10 +82,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public void Reset()
-            {
-                _current = resetValue;
-            }
+            public void Reset() => _current = resetValue;
         }
 
         // TODO: Is the cost of boxing every instance of UniqueSymbolOrArities that we
@@ -165,13 +153,7 @@ namespace Microsoft.CodeAnalysis
                 AddArity(arity);
             }
 
-            private bool HasUniqueSymbol
-            {
-                get
-                {
-                    return _uniqueSymbolOrArities != null && !(_uniqueSymbolOrArities is HashSet<int>);
-                }
-            }
+            private bool HasUniqueSymbol => _uniqueSymbolOrArities != null && !(_uniqueSymbolOrArities is HashSet<int>);
 
             private void AddArity(int arity)
             {
@@ -236,13 +218,7 @@ namespace Microsoft.CodeAnalysis
             }
 
 #if DEBUG
-            internal TSymbol UniqueSymbol
-            {
-                get
-                {
-                    return _uniqueSymbolOrArities as TSymbol;
-                }
-            }
+            internal TSymbol UniqueSymbol => _uniqueSymbolOrArities as TSymbol;
 #endif
         }
 
@@ -280,13 +256,9 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
-        public ICollection<String> Names
-        {
-            get
-            {
-                return _nameMap.Keys;
-            }
-        }
+        public ICollection<String> Names => _nameMap.Keys;
+
+        public int Count => _nameMap.Count;
 
         /// <summary>
         /// If <paramref name="uniqueSymbol"/> is set, then <paramref name="arities"/> will be null.
@@ -315,9 +287,6 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        public void Clear()
-        {
-            _nameMap.Clear();
-        }
+        public void Clear() => _nameMap.Clear();
     }
 }

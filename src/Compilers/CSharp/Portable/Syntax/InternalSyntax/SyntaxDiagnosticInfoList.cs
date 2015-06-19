@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             private struct NodeIteration
             {
-                internal GreenNode Node;
+                internal readonly GreenNode Node;
                 internal int DiagnosticIndex;
                 internal int SlotIndex;
 

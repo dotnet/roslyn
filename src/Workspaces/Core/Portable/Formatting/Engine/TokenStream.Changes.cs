@@ -9,62 +9,35 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal partial class TokenStream
     {
         /// <summary>
-        /// thread-safe collection that holds onto changes
+        /// Thread-safe collection that holds onto changes
         /// </summary>
-        private class Changes
+        private struct Changes
         {
             public const int BeginningOfTreeKey = -1;
             public const int EndOfTreeKey = -2;
 
-            private readonly ConcurrentDictionary<int, TriviaData> _map;
+            // Created lazily
+            private ConcurrentDictionary<int, TriviaData> _map;
 
-            public Changes()
-            {
-                _map = new ConcurrentDictionary<int, TriviaData>();
-            }
-
-            public bool Contains(int key)
-            {
-                return _map.ContainsKey(key);
-            }
-
-            public TriviaData this[int key]
-            {
-                get
-                {
-                    return _map[key];
-                }
-            }
-
-            public void Add(int key, TriviaData triviaInfo)
-            {
-                Contract.ThrowIfTrue(this.Contains(key));
-
-                _map.TryAdd(key, triviaInfo);
-            }
-
-            public void Replace(int key, TriviaData triviaInfo)
-            {
-                Contract.ThrowIfFalse(this.Contains(key));
-
-                _map[key] = triviaInfo;
-            }
-
-            public void Remove(int pairIndex)
+            public bool TryRemove(int pairIndex)
             {
                 TriviaData temp;
-                _map.TryRemove(pairIndex, out temp);
+                return _map?.TryRemove(pairIndex, out temp) ?? false;
             }
 
             public void AddOrReplace(int key, TriviaData triviaInfo)
             {
-                if (this.Contains(key))
-                {
-                    Replace(key, triviaInfo);
-                    return;
-                }
+                // PERF: Set the concurrency level to 1 because, while the dictionary has to be thread-safe,
+                // there is very little contention in formatting. A lower concurrency level reduces object
+                // allocations which are used internally by ConcurrentDictionary for locking.
+                var map = LazyInitialization.EnsureInitialized(ref _map, () => new ConcurrentDictionary<int, TriviaData>(concurrencyLevel: 1, capacity: 8));
+                map[key] = triviaInfo;
+            }
 
-                Add(key, triviaInfo);
+            public bool TryGet(int key, out TriviaData triviaInfo)
+            {
+                triviaInfo = null;
+                return _map?.TryGetValue(key, out triviaInfo) ?? false;
             }
         }
     }

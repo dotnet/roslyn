@@ -93,7 +93,7 @@ namespace BoundTreeGenerator
             new BoundNodeClassWriter(writer, tree, targetLang).WriteFile();
         }
 
-        private int _indent = 0;
+        private int _indent;
         private bool _needsIndent = true;
 
         private void Write(string format, params object[] args)
@@ -797,7 +797,7 @@ namespace BoundTreeGenerator
                     }
                     else
                     {
-                        WriteLine("public {0}{1} {2} {{ get; private set; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        WriteLine("public {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
                     }
                     break;
 
@@ -977,7 +977,7 @@ namespace BoundTreeGenerator
 
         private string StripBound(string name)
         {
-            if (name.StartsWith("Bound"))
+            if (name.StartsWith("Bound", StringComparison.Ordinal))
             {
                 name = name.Substring(5);
             }
@@ -1237,7 +1237,7 @@ namespace BoundTreeGenerator
                                     Write("new TreeDumperNode(\"{0}\", null, new TreeDumperNode[] {{ Visit(node.{1}, null) }})", ToCamelCase(field.Name), field.Name);
                                 else if (IsListOfDerived("BoundNode", field.Type))
                                 {
-                                    if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt"))
+                                    if (IsImmutableArray(field.Type) && field.Name.EndsWith("Opt", StringComparison.Ordinal))
                                     {
                                         Write("new TreeDumperNode(\"{0}\", null, node.{1}.IsDefault ? SpecializedCollections.EmptyArray<TreeDumperNode>() : from x in node.{1} select Visit(x, null))", ToCamelCase(field.Name), field.Name);
                                     }
@@ -1438,7 +1438,7 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    return typeName.StartsWith("ImmutableArray<");
+                    return typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
                 case TargetLanguage.VB:
                     return typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);
                 default:
@@ -1451,7 +1451,8 @@ namespace BoundTreeGenerator
             switch (_targetLang)
             {
                 case TargetLanguage.CSharp:
-                    return typeName.StartsWith("IList<") || typeName.StartsWith("ImmutableArray<");
+                    return typeName.StartsWith("IList<", StringComparison.Ordinal) ||
+                           typeName.StartsWith("ImmutableArray<", StringComparison.Ordinal);
                 case TargetLanguage.VB:
                     return typeName.StartsWith("IList(Of", StringComparison.OrdinalIgnoreCase) ||
                            typeName.StartsWith("ImmutableArray(Of", StringComparison.OrdinalIgnoreCase);

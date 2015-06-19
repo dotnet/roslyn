@@ -139,14 +139,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (variable == null)
             {
                 var typeNameKind = GeneratedNames.GetKind(symbol.Type.Name);
-                if (typeNameKind != GeneratedNameKind.None)
+                if (typeNameKind != GeneratedNameKind.None && 
+                    typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     // The state machine case is for async lambdas.  The state machine
                     // will have a hoisted "this" field if it needs to access the
                     // containing display class, but the display class may not have a
                     // "this" field.
                     Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||
-                        typeNameKind == GeneratedNameKind.StateMachineType);
+                        typeNameKind == GeneratedNameKind.StateMachineType,
+                        $"Unexpected typeNameKind '{typeNameKind}'");
                     ReportMissingThis(node.Kind, syntax);
                     return node;
                 }

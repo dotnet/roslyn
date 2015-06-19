@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -12,7 +14,7 @@ using System.Text;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 
-class Program : IDisposable
+internal class Program : IDisposable
 {
     private class GenerationData
     {
@@ -22,31 +24,31 @@ class Program : IDisposable
         public object memoryOwner;
     }
 
-    private readonly Arguments arguments;
-    private readonly TextWriter writer;
+    private readonly Arguments _arguments;
+    private readonly TextWriter _writer;
 
-    private string pendingTitle;
+    private string _pendingTitle;
 
     public Program(Arguments arguments)
     {
-        this.arguments = arguments;
-        this.writer = (arguments.OutputPath != null) ? new StreamWriter(File.OpenWrite(arguments.OutputPath), Encoding.UTF8) : Console.Out;
+        _arguments = arguments;
+        _writer = (arguments.OutputPath != null) ? new StreamWriter(File.OpenWrite(arguments.OutputPath), Encoding.UTF8) : Console.Out;
     }
 
     public void Dispose()
     {
-        writer.Dispose();
+        _writer.Dispose();
     }
 
     private void WriteData(string line, params object[] args)
     {
-        if (pendingTitle != null)
+        if (_pendingTitle != null)
         {
-            writer.WriteLine(pendingTitle);
-            pendingTitle = null;
+            _writer.WriteLine(_pendingTitle);
+            _pendingTitle = null;
         }
 
-        writer.WriteLine(line, args);
+        _writer.WriteLine(line, args);
     }
 
     private static int Main(string[] args)
@@ -79,7 +81,7 @@ class Program : IDisposable
         var generation = new GenerationData();
         try
         {
-            var peStream = File.OpenRead(arguments.Path);
+            var peStream = File.OpenRead(_arguments.Path);
             var peReader = new PEReader(peStream);
             try
             {
@@ -99,7 +101,7 @@ class Program : IDisposable
         }
         catch (Exception e)
         {
-            Console.WriteLine("Error reading '{0}': {1}", arguments.Path, e.Message);
+            Console.WriteLine("Error reading '{0}': {1}", _arguments.Path, e.Message);
             return 1;
         }
 
@@ -107,7 +109,7 @@ class Program : IDisposable
 
         // deltas:
         int i = 1;
-        foreach (var delta in arguments.EncDeltas)
+        foreach (var delta in _arguments.EncDeltas)
         {
             var metadataPath = delta.Item1;
             var ilPathOpt = delta.Item2;
@@ -150,11 +152,11 @@ class Program : IDisposable
     private unsafe void VisualizeGenerations(List<GenerationData> generations)
     {
         var mdReaders = generations.Select(g => g.MetadataReader).ToArray();
-        var visualizer = new MetadataVisualizer(mdReaders, writer);
+        var visualizer = new MetadataVisualizer(mdReaders, _writer);
 
         for (int generationIndex = 0; generationIndex < generations.Count; generationIndex++)
         {
-            if (arguments.SkipGenerations.Contains(generationIndex))
+            if (_arguments.SkipGenerations.Contains(generationIndex))
             {
                 continue;
             }
@@ -162,17 +164,17 @@ class Program : IDisposable
             var generation = generations[generationIndex];
             var mdReader = generation.MetadataReader;
 
-            writer.WriteLine(">>>");
-            writer.WriteLine(string.Format(">>> Generation {0}:", generationIndex));
-            writer.WriteLine(">>>");
-            writer.WriteLine();
+            _writer.WriteLine(">>>");
+            _writer.WriteLine(string.Format(">>> Generation {0}:", generationIndex));
+            _writer.WriteLine(">>>");
+            _writer.WriteLine();
 
-            if (arguments.DisplayMetadata)
+            if (_arguments.DisplayMetadata)
             {
                 visualizer.Visualize(generationIndex);
             }
 
-            if (arguments.DisplayIL)
+            if (_arguments.DisplayIL)
             {
                 VisualizeGenerationIL(visualizer, generationIndex, generation, mdReader);
             }
@@ -215,7 +217,7 @@ class Program : IDisposable
         }
     }
 
-    private static readonly string[] PEExtensions = new[] { "*.dll", "*.exe", "*.netmodule", "*.winmd" };
+    private static readonly string[] s_PEExtensions = new[] { "*.dll", "*.exe", "*.netmodule", "*.winmd" };
 
     private static IEnumerable<string> GetAllBinaries(string dir)
     {
@@ -227,7 +229,7 @@ class Program : IDisposable
             }
         }
 
-        foreach (var file in from extension in PEExtensions
+        foreach (var file in from extension in s_PEExtensions
                              from file in Directory.GetFiles(dir, extension)
                              select file)
         {
@@ -237,7 +239,7 @@ class Program : IDisposable
 
     private void VisualizeStatistics(MetadataReader mdReader)
     {
-        if (!arguments.DisplayStatistics)
+        if (!_arguments.DisplayStatistics)
         {
             return;
         }
@@ -249,7 +251,7 @@ class Program : IDisposable
 
     private void VisualizeAssemblyReferences(MetadataReader mdReader)
     {
-        if (!arguments.DisplayAssemblyReferences)
+        if (!_arguments.DisplayAssemblyReferences)
         {
             return;
         }
@@ -267,13 +269,13 @@ class Program : IDisposable
 
     private void VisualizeMemberRefs(MetadataReader mdReader)
     {
-        if (!arguments.FindRefs.Any())
+        if (!_arguments.FindRefs.Any())
         {
             return;
         }
 
         var memberRefs = new HashSet<MemberRefKey>(
-            from arg in arguments.FindRefs
+            from arg in _arguments.FindRefs
             let split = arg.Split(':')
             where split.Length == 3
             select new MemberRefKey(split[0].Trim(), split[1].Trim(), split[2].Trim()));
@@ -378,7 +380,7 @@ class Program : IDisposable
 
         public override string ToString()
         {
-            return (AssemblyNameOpt != null ? $"{AssemblyNameOpt}, Version={AssemblyVersionOpt}" : "") + 
+            return (AssemblyNameOpt != null ? $"{AssemblyNameOpt}, Version={AssemblyVersionOpt}" : "") +
                    $":{Namespace}{(Namespace.Length > 0 ? "." : "")}{TypeName}:{MemberName}";
         }
     }
@@ -387,7 +389,7 @@ class Program : IDisposable
     {
         bool hasError = false;
 
-        foreach (var file in GetAllBinaries(arguments.Path))
+        foreach (var file in GetAllBinaries(_arguments.Path))
         {
             using (var peReader = new PEReader(File.OpenRead(file)))
             {
@@ -400,12 +402,12 @@ class Program : IDisposable
                 }
                 catch (BadImageFormatException e)
                 {
-                    writer.WriteLine("{0}: {1}", file, e.Message);
+                    _writer.WriteLine("{0}: {1}", file, e.Message);
                     hasError = true;
                     continue;
                 }
 
-                pendingTitle = file;
+                _pendingTitle = file;
 
                 try
                 {
@@ -422,12 +424,12 @@ class Program : IDisposable
                     continue;
                 }
 
-                if (pendingTitle == null)
+                if (_pendingTitle == null)
                 {
-                    writer.WriteLine();
+                    _writer.WriteLine();
                 }
 
-                pendingTitle = null;
+                _pendingTitle = null;
             }
         }
 

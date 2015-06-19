@@ -64,29 +64,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        // TODO (DevDiv workitem 966425): replace with Portable profile API when available.
-
-        private static Lazy<Func<XNode, string, IEnumerable<XElement>>> s_XPathNodeSelector = new Lazy<Func<XNode, string, IEnumerable<XElement>>>(() =>
-        {
-            Type type;
-
-            try
-            {
-                type = Type.GetType("System.Xml.XPath.Extensions, System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", false);
-            }
-            catch (Exception)
-            {
-                type = Type.GetType("System.Xml.XPath.Extensions, System.Xml.XPath.XDocument, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", false);
-            }
-
-            MethodInfo method = (from m in type.GetTypeInfo().GetDeclaredMethods("XPathSelectElements")
-                                 let parameters = m.GetParameters()
-                                 where parameters.Length == 2 && parameters[0].ParameterType == typeof(XNode) && parameters[1].ParameterType == typeof(string)
-                                 select m).Single();
-
-            return (Func<XNode, string, IEnumerable<XElement>>)method.CreateDelegate(typeof(Func<XNode, string, IEnumerable<XElement>>));
-        });
-
         internal static XElement[] TrySelectElements(XNode node, string xpath, out string errorMessage, out bool invalidXPath)
         {
             errorMessage = null;
@@ -94,10 +71,10 @@ namespace Roslyn.Utilities
 
             try
             {
-                var xpathResult = s_XPathNodeSelector.Value(node, xpath);
+                var xpathResult = PortableShim.XPath.Extensions.XPathSelectElements(node, xpath);
 
                 // Throws InvalidOperationException if the result of the XPath is an XDocument:
-                return (xpathResult != null) ? xpathResult.ToArray() : null;
+                return xpathResult?.ToArray();
             }
             catch (InvalidOperationException e)
             {

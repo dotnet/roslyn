@@ -14,6 +14,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -21,28 +22,28 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -59,16 +60,11 @@
       <Name>Workspaces</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces.Desktop" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
@@ -120,15 +116,17 @@
     <Compile Include="CodeGeneration\UsingDirectivesAdder.cs" />
     <Compile Include="CodeGeneration\UsingDirectivesAdder.Rewriter.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Extensions\SemanticModelExtensions.cs" />
+    <Compile Include="LanguageServices\CSharpHostBuildDataFactory.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpWorkspaceResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Editing\CSharpImportAdder.cs" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseArgumentListSyntaxExtensions.cs" />
     <Compile Include="Extensions\BaseParameterListSyntaxExtensions.cs" />
-    <Compile Include="Extensions\BreakpointSpans.cs" />
     <Compile Include="Extensions\CastExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="Extensions\ContextQuery\CSharpSyntaxContext.cs" />
@@ -144,8 +142,6 @@
     <Compile Include="Extensions\DocumentationCommentExtensions.cs" />
     <Compile Include="Extensions\ExpressionSyntaxExtensions.cs" />
     <Compile Include="Extensions\ForEachStatementSyntaxExtensions.cs" />
-    <Compile Include="Extensions\IDocumentExtensions.cs" />
-    <Compile Include="Extensions\ISemanticModelExtensions.cs" />
     <Compile Include="Extensions\ITypeParameterSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="Extensions\ITypeSymbolExtensions.ExpressionSyntaxGeneratorVisitor.cs" />

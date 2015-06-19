@@ -127,15 +127,15 @@ namespace Roslyn.Utilities
                 {
                     return continuationFunction(t);
                 }
-                catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-                };
+            };
 
-                // This is the only place in the code where we're allowed to call ContinueWith.
-                return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
-            }
+            // This is the only place in the code where we're allowed to call ContinueWith.
+            return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
+        }
 
         public static Task<TResult> SafeContinueWith<TResult>(
             this Task task,
@@ -303,12 +303,7 @@ namespace Roslyn.Utilities
             // the behavior we want.
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
-
-            nextTask.ContinueWith(ReportFatalError, continuationFunction,
-               CancellationToken.None,
-               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-               TaskScheduler.Default);
-
+            ReportFatalError(nextTask, continuationFunction);
             return nextTask;
         }
 
@@ -340,8 +335,16 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        internal static void ReportFatalError(Task task, object continuationFunction)
+        {
+            task.ContinueWith(ReportFatalErrorWorker, continuationFunction,
+               CancellationToken.None,
+               TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+               TaskScheduler.Default);
+        }
+
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-        private static void ReportFatalError(Task task, object continuationFunction)
+        private static void ReportFatalErrorWorker(Task task, object continuationFunction)
         {
             var exception = task.Exception;
             var methodInfo = ((Delegate)continuationFunction).GetMethodInfo();

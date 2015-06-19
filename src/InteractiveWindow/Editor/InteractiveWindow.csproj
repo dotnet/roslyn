@@ -15,54 +15,8 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs">
-      <Link>InternalUtilities\SpecializedCollections.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Array.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Array.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Collection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Dictionary.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Dictionary.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerable.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerable.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerator.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Enumerator`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.List.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.List.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Set.cs">
-      <Link>InternalUtilities\SpecializedCollections.Empty.Set.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Collection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`2.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Enumerable`2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.ReadOnly.Set.cs">
-      <Link>InternalUtilities\SpecializedCollections.ReadOnly.Set.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Singleton.Collection`1.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs">
-      <Link>InternalUtilities\SpecializedCollections.Singleton.Enumerator`1.cs</Link>
-    </Compile>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -71,14 +25,14 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />

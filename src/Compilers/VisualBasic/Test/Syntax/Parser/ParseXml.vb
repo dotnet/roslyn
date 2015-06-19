@@ -1780,9 +1780,9 @@ End Module]]>)
 Dim x = <?xml version="1.0" standalone=''?><doc/>
 End Module
  ]]>,
- <erors>
+ <errors>
      <error id="31182"/>
- </erors>)
+ </errors>)
     End Sub
 
     <WorkItem(930757, "DevDiv/Personal")>
@@ -4427,14 +4427,14 @@ End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
         Dim source = "
 Imports <xmlns = ""http://xml"">
 "
-        CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.ReleaseDll).VerifyDiagnostics(
+        CreateCompilationWithMscorlib({source}, options:=TestOptions.ReleaseDll).VerifyDiagnostics(
             Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports <xmlns = ""http://xml"">").WithLocation(2, 1))
     End Sub
 
     <WorkItem(969980)>
     <Fact(Skip:="969980")>
     Public Sub UnaliasedXmlImport_Project()
-        CreateCompilationWithMscorlib({""}, compOptions:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("<xmlns = ""http://xml"">"))).VerifyDiagnostics()
+        CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("<xmlns = ""http://xml"">"))).VerifyDiagnostics()
     End Sub
 
     <WorkItem(1042696)>

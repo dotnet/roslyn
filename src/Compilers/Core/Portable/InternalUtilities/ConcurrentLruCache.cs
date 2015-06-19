@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.InternalUtilities
 {
     /// <summary>
-    /// Cache with a fixed size that evictes the least recently used members.
+    /// Cache with a fixed size that evicts the least recently used members.
     /// Thread-safe.
     /// </summary>
     internal class ConcurrentLruCache<K, V>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             if (capacity <= 0)
             {
-                throw new ArgumentOutOfRangeException("capacity");
+                throw new ArgumentOutOfRangeException(nameof(capacity));
             }
             _capacity = capacity;
             _cache = new Dictionary<K, CacheValue>(capacity);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
             {
                 if (throwExceptionIfKeyExists)
                 {
-                    throw new ArgumentException("Key already exists", "key");
+                    throw new ArgumentException("Key already exists", nameof(key));
                 }
                 else if (!result.Value.Equals(value))
                 {

@@ -54,15 +54,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             InitializeComponent();
             DataContext = viewModel;
 
-            Loaded += GenerateTypeDialog_Loaded;
+            IsVisibleChanged += GenerateTypeDialog_IsVisibleChanged;
         }
 
-        private void GenerateTypeDialog_Loaded(object sender, RoutedEventArgs e)
+        private void GenerateTypeDialog_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            var handler = TEST_DialogLoaded;
-            if (handler != null)
+            if ((bool)e.NewValue)
             {
-                handler();
+                IsVisibleChanged -= GenerateTypeDialog_IsVisibleChanged;
+                TEST_DialogLoaded?.Invoke();
             }
         }
 

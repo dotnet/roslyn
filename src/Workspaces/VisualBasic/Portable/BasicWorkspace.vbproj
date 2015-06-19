@@ -12,6 +12,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
@@ -19,28 +20,28 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -133,9 +134,9 @@
     <Compile Include="CodeGeneration\VisualBasicDeclarationComparer.vb" />
     <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
+    <Compile Include="Editing\VisualBasicImportAdder.vb" />
     <Compile Include="Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="Extensions\ArgumentSyntaxExtensions.vb" />
-    <Compile Include="Extensions\BreakpointSpans.vb" />
     <Compile Include="Extensions\CallStatementSyntaxExtensions.vb" />
     <Compile Include="Extensions\CastAnalyzer.vb" />
     <Compile Include="Extensions\CompilationUnitSyntaxExtensions.vb" />
@@ -147,11 +148,9 @@
     <Compile Include="Extensions\DirectiveSyntaxExtensions.vb" />
     <Compile Include="Extensions\ExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\ExpressionSyntaxGeneratorVisitor.vb" />
-    <Compile Include="Extensions\IDocumentExtensions.vb" />
     <Compile Include="Extensions\IMethodSymbolExtensions.vb" />
     <Compile Include="Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="Extensions\InvocationExpressionSyntaxExtensions.vb" />
-    <Compile Include="Extensions\ISemanticModelExtensions.vb" />
     <Compile Include="Extensions\ITypeSymbolExtensions.vb" />
     <Compile Include="Extensions\LocationExtensions.vb" />
     <Compile Include="Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
@@ -161,6 +160,7 @@
     <Compile Include="Extensions\OperatorPrecedence.vb" />
     <Compile Include="Extensions\ParameterSyntaxExtensions.vb" />
     <Compile Include="Extensions\ParenthesizedExpressionSyntaxExtensions.vb" />
+    <Compile Include="Extensions\SemanticModelExtensions.vb" />
     <Compile Include="Extensions\SimpleNameSyntaxExtensions.vb" />
     <Compile Include="Extensions\SingleLineRewriter.vb" />
     <Compile Include="Extensions\StatementSyntaxExtensions.vb" />
@@ -201,6 +201,7 @@
     <Compile Include="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="LanguageServices\VisualBasicCompilationFactoryService.vb" />
+    <Compile Include="LanguageServices\VisualBasicHostBuildDataFactory.vb" />
     <Compile Include="LanguageServices\VisualBasicSemanticFactsService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDeclarationService.vb" />
     <Compile Include="LanguageServices\VisualBasicSyntaxFactsService.vb" />

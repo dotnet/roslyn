@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.VerifyWorker(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph)
         End Sub
 
-        Private Sub VerifyAtPosition(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean)
+        Protected Sub VerifyAtPosition(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean)
             VerifyAtPosition(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph:=glyph, experimental:=experimental)
         End Sub
 
@@ -120,9 +120,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         Protected Sub TestCommonIsCommitCharacter()
-            Dim commitChararacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
+            Dim commitCharacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
 
-            For Each ch In commitChararacters
+            For Each ch In commitCharacters
                 Assert.True(CompletionProvider.IsCommitCharacter(Nothing, ch, Nothing), "Expected '" + ch + "' to be a commit character")
             Next
 

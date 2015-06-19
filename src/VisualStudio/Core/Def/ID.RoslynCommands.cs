@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int SetSeverityHidden = 0x0113;
             public const int SetSeverityNone = 0x0114;
             public const int OpenDiagnosticHelpLink = 0x0116;
+            public const int SetActiveRuleSet = 0x0118;
+            public const int SetSeverityDefault = 0x011b;
         }
     }
 }

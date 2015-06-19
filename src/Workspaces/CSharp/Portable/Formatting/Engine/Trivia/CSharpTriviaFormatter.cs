@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         private bool _succeeded = true;
 
+        private SyntaxTrivia _newLine;
+
         public CSharpTriviaFormatter(
             FormattingContext context,
             ChainedFormattingRules formattingRules,
@@ -54,12 +56,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override SyntaxTrivia CreateWhitespace(string text)
         {
-            return SyntaxFactory.Whitespace(text, elastic: false);
+            return SyntaxFactory.Whitespace(text);
         }
 
         protected override SyntaxTrivia CreateEndOfLine()
         {
-            return SyntaxFactory.CarriageReturnLineFeed;
+            if (_newLine == default(SyntaxTrivia))
+            {
+                var text = this.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
+                _newLine = SyntaxFactory.EndOfLine(text);
+            }
+
+            return _newLine;
         }
 
         protected override SyntaxTrivia Convert(SyntaxTrivia trivia)
@@ -139,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);
                 }
 
-                return LineColumnRule.PreserveLinesWithFollowingPreceedingIndentation();
+                return LineColumnRule.PreserveLinesWithFollowingPrecedingIndentation();
             }
 
             if (trivia2.IsKind(SyntaxKind.SkippedTokensTrivia))
@@ -193,7 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     indentation,
                     indentationDelta,
                     this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp),
-                    this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp));
+                    this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp),
+                    this.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp));
 
                 var multilineCommentTrivia = SyntaxFactory.ParseLeadingTrivia(multiLineComment);
                 Contract.ThrowIfFalse(multilineCommentTrivia.Count == 1);

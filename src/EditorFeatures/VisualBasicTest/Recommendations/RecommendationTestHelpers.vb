@@ -9,11 +9,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
     Public Module RecommendationTestHelpers
-        Private _parts As IEnumerable(Of AbstractKeywordRecommender)
+        Private s_parts As IEnumerable(Of AbstractKeywordRecommender)
 
         Private Function GetRecommendedKeywords(source As String, position As Integer) As IEnumerable(Of RecommendedKeyword)
-            If _parts Is Nothing Then
-                _parts = GetType(AbstractKeywordRecommender).Assembly.
+            If s_parts Is Nothing Then
+                s_parts = GetType(AbstractKeywordRecommender).Assembly.
                     GetTypes().
                     Where(Function(t) t.IsSubclassOf(GetType(AbstractKeywordRecommender))).
                     Select(Function(t) Activator.CreateInstance(t)).
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
             Dim semanticModel = comp.GetSemanticModel(tree)
 
             Dim context = VisualBasicSyntaxContext.CreateContext_Test(semanticModel, position, CancellationToken.None)
-            Return _parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
+            Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
         End Function
 
         Private Function GetRecommendedKeywordStrings(source As String, position As Integer) As IEnumerable(Of String)
@@ -35,17 +35,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
 
         Friend Sub VerifyRecommendationsAreExactly(testSource As XElement, ParamArray recommendations As String())
             Dim source = ConvertTestSourceTag(testSource)
-            Dim recommendedKeywords = GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|")) _
+            Dim recommendedKeywords = GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|"c)) _
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
             Assert.Equal(recommendations.OrderBy(Function(recommendation) recommendation).ToArray(), recommendedKeywords)
         End Sub
 
-        Friend Sub VerifyRecommendationDescriptionTextIs(testSource As XElement, keyword As String, text As XElement)
+        Friend Sub VerifyRecommendationDescriptionTextIs(testSource As XElement, keyword As String, text As String)
             Dim source = ConvertTestSourceTag(testSource)
-            Dim recommendedKeyword = GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|")).Single(Function(r) r.Keyword = keyword)
-            Dim expectedText = text.Value.Replace(vbLf, vbCrLf).Trim()
+            Dim recommendedKeyword = GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|"c)).Single(Function(r) r.Keyword = keyword)
+            Dim expectedText = text.Trim()
             Assert.Equal(expectedText, recommendedKeyword.DescriptionFactory(CancellationToken.None).GetFullText())
         End Sub
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
 
         Private Sub VerifyRecommendationsContainNothingTyped(source As String, ParamArray recommendations As String())
             ' Test with the | removed
-            Dim recommendedKeywords = GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|"))
+            Dim recommendedKeywords = GetRecommendedKeywords(source.Replace("|", ""), source.IndexOf("|"c))
 
             Dim recommendedKeywordStrings = recommendedKeywords.Select(Function(k) k.Keyword)
             For Each recommendation In recommendations
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
         Private Sub VerifyRecommendationsContainPartiallyTyped(source As String, ParamArray recommendations As String())
             ' Test with the | replaced with the first character of the keywords we expect
             For Each partiallyTypedRecommendation In recommendations.Select(Function(recommendation) recommendation(0)).Distinct()
-                Dim recommendedKeywords = GetRecommendedKeywordStrings(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|") + 1).ToArray()
+                Dim recommendedKeywords = GetRecommendedKeywordStrings(source.Replace("|"c, partiallyTypedRecommendation), source.IndexOf("|"c) + 1).ToArray()
 
                 For Each recommendation In recommendations
                     Assert.Contains(recommendation, recommendedKeywords)
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
 
             Dim source = ConvertTestSourceTag(testSource)
 
-            Dim recommendedKeywords = GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|")) _
+            Dim recommendedKeywords = GetRecommendedKeywordStrings(source.Replace("|", ""), source.IndexOf("|"c)) _
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 

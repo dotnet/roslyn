@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
+Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -27,7 +28,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -36,7 +37,7 @@ End Class
             Next
 
             Assert.Equal(DkmEvaluationResultCategory.Method, GetResultProperties(context, "M()").Category)
-            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "P").Category)
+            Assert.Equal(DkmEvaluationResultCategory.Property, GetResultProperties(context, "Me.P").Category)
         End Sub
 
         <Fact>
@@ -60,7 +61,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -137,7 +138,7 @@ Friend Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -165,7 +166,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -195,7 +196,7 @@ MustInherit Class Derived : Inherits Base
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="Derived.Test")
 
@@ -219,7 +220,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -282,7 +283,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -291,9 +292,9 @@ End Class
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData As New CompilationTestData()
             context.CompileAssignment(
-                DefaultInspectionContext.Instance,
                 "P",
                 "1",
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
@@ -318,7 +319,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 
@@ -327,9 +328,9 @@ End Class
             Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData As New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty,
                 "z = 1", ' VB only supports implicit declarations
                 DkmEvaluationFlags.None,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
@@ -354,7 +355,7 @@ Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, compOptions:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
             Dim runtime = CreateRuntimeInstance(comp)
             Dim context = CreateMethodContext(runtime, methodName:="C.Test")
 

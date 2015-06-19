@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.RQName;
@@ -15,10 +16,12 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [Export(typeof(IRefactorNotifyService))]
-    internal sealed class VsRefactorNotifyService : IRefactorNotifyService
+    internal sealed class VsRefactorNotifyService : ForegroundThreadAffinitizedObject, IRefactorNotifyService
     {
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
+            AssertIsForeground();
+
             Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap;
             string[] rqnames;
 
@@ -59,6 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
+            AssertIsForeground();
+
             Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap;
             string[] rqnames;
 
@@ -103,6 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string[] rqnames)
         {
+            AssertIsForeground();
+
             hierarchyToItemIDsMap = null;
             rqnames = null;
 
@@ -126,6 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string rqname)
         {
+            AssertIsForeground();
+
             visualStudioWorkspace = null;
             hierarchyToItemIDsMap = null;
             rqname = null;
@@ -163,11 +172,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-            return RQNameService.TryBuild(symbol, out rqname);
+            rqname = LanguageServices.RQName.From(symbol);
+            return rqname != null;
         }
 
         private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspaceImpl visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
         {
+            AssertIsForeground();
+
             var hierarchyToItemIDsMap = new Dictionary<IVsHierarchy, List<uint>>();
 
             foreach (var docID in changedDocumentIDs)

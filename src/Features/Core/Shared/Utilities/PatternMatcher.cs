@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 if (partCount == 0)
                 {
-                    return SpecializedCollections.EmptyArray<TextChunk>();
+                    return Array.Empty<TextChunk>();
                 }
 
                 var result = new TextChunk[partCount];
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private struct TextChunk
         {
             public readonly string Text;
-            public readonly List<TextSpan> CharacterSpans;
+            public readonly StringBreaks CharacterSpans;
 
             public TextChunk(string text)
             {
@@ -132,16 +132,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static readonly char[] DotCharacterArray = new[] { '.' };
+        private static readonly char[] s_dotCharacterArray = new[] { '.' };
 
         private readonly object _gate = new object();
 
         private readonly bool _invalidPattern;
         private readonly Segment _fullPatternSegment;
-        private readonly Segment[] _dotSeparatedSegements;
+        private readonly Segment[] _dotSeparatedSegments;
 
-        private readonly Dictionary<string, List<TextSpan>> _stringToWordSpans = new Dictionary<string, List<TextSpan>>();
-        private readonly Func<string, List<TextSpan>> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
+        private readonly Dictionary<string, StringBreaks> _stringToWordSpans = new Dictionary<string, StringBreaks>();
+        private readonly Func<string, StringBreaks> _breakIntoWordSpans = StringBreaker.BreakIntoWordParts;
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
@@ -165,13 +165,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             _compareInfo = culture.CompareInfo;
 
             _fullPatternSegment = new Segment(pattern, verbatimIdentifierPrefixIsWordCharacter);
-            _dotSeparatedSegements = pattern.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
-                                            .Select(text => new Segment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter))
-                                            .ToArray();
-            _invalidPattern = _dotSeparatedSegements.Length == 0 || _dotSeparatedSegements.Any(s => s.IsInvalid);
+
+            if (pattern.IndexOf('.') < 0)
+            {
+                // PERF: Avoid string.Split allocations when the pattern doesn't contain a dot.
+                _dotSeparatedSegments = pattern.Length > 0 ? new Segment[1] { _fullPatternSegment } : Array.Empty<Segment>();
+            }
+            else
+            {
+                _dotSeparatedSegments = pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(text => new Segment(text.Trim(), verbatimIdentifierPrefixIsWordCharacter))
+                                                .ToArray();
+            }
+
+            _invalidPattern = _dotSeparatedSegments.Length == 0 || _dotSeparatedSegments.Any(s => s.IsInvalid);
         }
 
-        public bool IsDottedPattern => _dotSeparatedSegements.Length > 1;
+        public bool IsDottedPattern => _dotSeparatedSegments.Length > 1;
 
         private bool SkipMatch(string candidate)
         {
@@ -202,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return null;
             }
 
-            return MatchSegment(candidate, _dotSeparatedSegements.Last());
+            return MatchSegment(candidate, _dotSeparatedSegments.Last());
         }
 
         /// <summary>
@@ -227,18 +237,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // First, check that the last part of the dot separated pattern matches the name of the
             // candidate.  If not, then there's no point in proceeding and doing the more
             // expensive work.
-            var candidateMatch = MatchSegment(candidate, _dotSeparatedSegements.Last());
+            var candidateMatch = MatchSegment(candidate, _dotSeparatedSegments.Last());
             if (candidateMatch == null)
             {
                 return null;
             }
 
             dottedContainer = dottedContainer ?? string.Empty;
-            var containerParts = dottedContainer.Split(DotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
+            var containerParts = dottedContainer.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries);
 
             // -1 because the last part was checked against the name, and only the rest
             // of the parts are checked against the container.
-            if (_dotSeparatedSegements.Length - 1 > containerParts.Length)
+            if (_dotSeparatedSegments.Length - 1 > containerParts.Length)
             {
                 // There weren't enough container parts to match against the pattern parts.
                 // So this definitely doesn't match.
@@ -249,11 +259,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // the dotted parts match up correctly.
             var totalMatch = candidateMatch.ToList();
 
-            for (int i = _dotSeparatedSegements.Length - 2, j = containerParts.Length - 1;
+            for (int i = _dotSeparatedSegments.Length - 2, j = containerParts.Length - 1;
                     i >= 0;
                     i--, j--)
             {
-                var segment = _dotSeparatedSegements[i];
+                var segment = _dotSeparatedSegments[i];
                 var containerName = containerParts[j];
                 var containerMatch = MatchSegment(containerName, segment);
                 if (containerMatch == null)
@@ -292,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return MatchSegment(candidate, _fullPatternSegment, wantAllMatches: false, allMatches: out ignored);
         }
 
-        private List<TextSpan> GetWordSpans(string word)
+        private StringBreaks GetWordSpans(string word)
         {
             lock (_gate)
             {
@@ -351,11 +361,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
                     var wordSpans = GetWordSpans(candidate);
-                    foreach (var span in wordSpans)
+                    for(int i = 0; i < wordSpans.Count; i++)
                     {
+                        var span = wordSpans[i];
                         if (PartStartsWith(candidate, span, chunk.Text, CompareOptions.IgnoreCase))
                         {
-                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, 
+                            return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
                                 isCaseSensitive: PartStartsWith(candidate, span, chunk.Text, CompareOptions.None));
                         }
                     }
@@ -403,8 +414,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // (Pattern: fogbar, Candidate: quuxfogbarFogBar).
                 if (chunk.Text.Length < candidate.Length)
                 {
-                    var firstInstance = _compareInfo.IndexOf(candidate, chunk.Text, CompareOptions.IgnoreCase);
-                    if (firstInstance != -1 && char.IsUpper(candidate[firstInstance]))
+                    if (index != -1 && char.IsUpper(candidate[index]))
                     {
                         return new PatternMatch(PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: false);
                     }
@@ -578,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return PartStartsWith(candidate, candidatePart, pattern, new TextSpan(0, pattern.Length), compareOptions);
         }
 
-        private int? TryCamelCaseMatch(string candidate, List<TextSpan> candidateParts, TextChunk chunk, CompareOptions compareOption)
+        private int? TryCamelCaseMatch(string candidate, StringBreaks candidateParts, TextChunk chunk, CompareOptions compareOption)
         {
             var chunkCharacterSpans = chunk.CharacterSpans;
 

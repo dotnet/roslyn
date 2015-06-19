@@ -3483,10 +3483,8 @@ class A
 
         [WorkItem(1091946)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void TestSimpleConditionalAccess()
+        public void TestConditionalAccessWithConversion()
         {
-            // Note: The expected value here shouldnt have parentheses around args[0]. That's caused by
-            // Bug 1091936.
             Test(
             @"
 class A
@@ -3502,7 +3500,223 @@ class A
 {
     bool M(string[] args)
     {
-        return (args[0])?.Length == 0;
+        return args[0]?.Length == 0;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestSimpleConditionalAccess()
+        {
+            Test(
+            @"
+class A
+{
+    void M(string[] args)
+    {
+        var [|x|] = args.Length.ToString();
+        var y = x?.ToString();
+    }
+}
+", @"
+class A
+{
+    void M(string[] args)
+    {
+        var y = args.Length.ToString()?.ToString();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestConditionalAccessWithConditionalExpression()
+        {
+            Test(
+            @"
+class A
+{
+    void M(string[] args)
+    {
+        var [|x|] = args[0]?.Length ?? 10;
+        var y = x == 10 ? 10 : 4;
+    }
+}
+", @"
+class A
+{
+    void M(string[] args)
+    {
+        var y = (args[0]?.Length ?? 10) == 10 ? 10 : 4;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
+        public void TestConditionalAccessWithExtensionMethodInvocation()
+        {
+            Test(
+            @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var [|assembly|] = t?.Something().First();
+            var identity = assembly?.ToArray();
+        }
+        return null;
+    }
+}
+", @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var identity = t?.Something().First()?.ToArray();
+        }
+        return null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")]
+        public void TestConditionalAccessWithExtensionMethodInvocation_2()
+        {
+            Test(
+            @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var [|assembly|] = (t?.Something2())()?.Something().First();
+            var identity = assembly?.ToArray();
+        }
+        return null;
+    }
+}
+", @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+static class M
+{
+    public static IEnumerable<string> Something(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static Func<C> Something2(this C cust)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+class C
+{
+    private object GetAssemblyIdentity(IEnumerable<C> types)
+    {
+        foreach (var t in types)
+        {
+            var identity = (t?.Something2())()?.Something().First()?.ToArray();
+        }
+        return null;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestAliasQualifiedNameIntoInterpolation()
+        {
+            Test(
+            @"
+class A
+{
+    void M()
+    {
+        var [|g|] = global::System.Guid.Empty;
+        var s = $""{g}"";
+    }
+}
+", @"
+class A
+{
+    void M()
+    {
+        var s = $""{(global::System.Guid.Empty)}"";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public void TestConditionalExpressionIntoInterpolation()
+        {
+            Test(
+            @"
+class A
+{
+    bool M(bool b)
+    {
+        var [|x|] = b ? 19 : 23;
+        var s = $""{x}"";
+    }
+}
+", @"
+class A
+{
+    bool M(bool b)
+    {
+        var s = $""{(b ? 19 : 23)}"";
     }
 }");
         }

@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
                         _lazyAnalyzers = lazyAnalyzers;
-                        _workItemQueue = new AsyncProjectWorkItemQueue();
+                        _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter);
 
                         Start();
                     }
@@ -57,23 +57,42 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         try
                         {
                             // we wait for global operation, higher and normal priority processor to finish its working
-                            await Task.WhenAll(this.Processor._highPriorityProcessor.Running,
-                                this.Processor._normalPriorityProcessor.Running,
-                                GlobalOperationWaitAsync()).ConfigureAwait(false);
+                            await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
-                            // process any available project work, preferring the active project.                            
-                            CancellationTokenSource projectCancellation;
+                            // process any available project work, preferring the active project.
                             WorkItem workItem;
-                            if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), out workItem, out projectCancellation))
+                            CancellationTokenSource projectCancellation;
+                            if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), this.Processor.DependencyGraph, out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
+                    }
+
+                    protected override Task HigherQueueOperationTask
+                    {
+                        get
+                        {
+                            return Task.WhenAll(this.Processor._highPriorityProcessor.Running, this.Processor._normalPriorityProcessor.Running);
                         }
+                    }
+
+                    protected override bool HigherQueueHasWorkItem
+                    {
+                        get
+                        {
+                            return this.Processor._highPriorityProcessor.HasAnyWork || this.Processor._normalPriorityProcessor.HasAnyWork;
+                        }
+                    }
+
+                    protected override void PauseOnGlobalOperation()
+                    {
+                        _workItemQueue.RequestCancellationOnRunningTasks();
+                    }
 
                     public void Enqueue(WorkItem item)
                     {
@@ -84,9 +103,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         var added = _workItemQueue.AddOrReplace(item);
 
+                        // lower priority queue gets lowest time slot possible. if there is any activity going on in higher queue, it drop whatever it has
+                        // and let higher work item run
+                        CancelRunningTaskIfHigherQueueHasWorkItem();
+
                         Logger.Log(FunctionId.WorkCoordinator_Project_Enqueue, s_enqueueLogger, Environment.TickCount, item.ProjectId, !added);
 
                         SolutionCrawlerLogger.LogWorkItemEnqueue(this.Processor._logAggregator, item.ProjectId);
+                    }
+
+                    private void CancelRunningTaskIfHigherQueueHasWorkItem()
+                    {
+                        if (!HigherQueueHasWorkItem)
+                        {
+                            return;
+                        }
+
+                        _workItemQueue.RequestCancellationOnRunningTasks();
                     }
 
                     private async Task ProcessProjectAsync(ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
@@ -111,16 +144,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 if (project != null)
                                 {
                                     var semanticsChanged = workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
-                                        workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
+                                                           workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
 
-                                    if (project.Solution.Services.CacheService != null)
-                                    {
-                                        using (project.Solution.Services.CacheService.EnableCaching(project.Id))
-                                        {
-                                            await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, c), cancellationToken).ConfigureAwait(false);
-                                        }
-                                    }
-                                    else
+                                    using (Processor.EnableCaching(project.Id))
                                     {
                                         await RunAnalyzersAsync(analyzers, project, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, c), cancellationToken).ConfigureAwait(false);
                                     }
@@ -135,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             processedEverything = true;
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

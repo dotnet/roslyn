@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We need to emit this function to compute the hash value into the compiler generate
         // <PrivateImplementationDetails> class. 
         // If we have at least one string switch statement in a module that needs a
-        // hash table based jump table, we generate a single public string hash sythesized method
+        // hash table based jump table, we generate a single public string hash synthesized method
         // that is shared across the module.
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenExpression = (BoundExpression)Visit(node.BoundExpression);
             var rewrittenSections = VisitSwitchSections(node.SwitchSections);
 
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the expression are being executed.
             var rewrittenStatement = MakeSwitchStatement(syntax, AddConditionSequencePoint(rewrittenExpression, node), rewrittenSections, node.ConstantTargetOpt, node.InnerLocals, node.BreakLabel, node);
 
             // Create the sequence point if generating debug info and

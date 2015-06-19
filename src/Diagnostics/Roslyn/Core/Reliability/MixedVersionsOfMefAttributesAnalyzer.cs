@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,8 +16,8 @@ namespace Roslyn.Diagnostics.Analyzers.Reliability
     {
         private static readonly string[] s_mefNamespaces = new[] { "System.ComponentModel.Composition", "System.Composition" };
 
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,

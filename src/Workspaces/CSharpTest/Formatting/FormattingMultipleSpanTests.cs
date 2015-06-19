@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -180,7 +182,7 @@ class A { }";
 
             while (currentIndex < codeWithMarker.Length)
             {
-                int startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex);
+                int startPosition = codeWithMarker.IndexOf("/*1*/", currentIndex, StringComparison.Ordinal);
                 if (startPosition < 0)
                 {
                     // no more markers
@@ -189,7 +191,7 @@ class A { }";
 
                 codeWithMarker = codeWithMarker.Substring(0, startPosition) + codeWithMarker.Substring(startPosition + 5);
 
-                int endPosition = codeWithMarker.IndexOf("/*2*/", startPosition);
+                int endPosition = codeWithMarker.IndexOf("/*2*/", startPosition, StringComparison.Ordinal);
 
                 codeWithMarker = codeWithMarker.Substring(0, endPosition) + codeWithMarker.Substring(endPosition + 5);
 

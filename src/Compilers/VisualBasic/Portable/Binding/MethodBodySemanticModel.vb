@@ -9,15 +9,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class MethodBodySemanticModel
         Inherits MemberSemanticModel
 
-        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0)
-            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition)
+        Private Sub New(root As VisualBasicSyntaxNode, binder As Binder, Optional parentSemanticModelOpt As SyntaxTreeSemanticModel = Nothing, Optional speculatedPosition As Integer = 0, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(root, binder, parentSemanticModelOpt, speculatedPosition, ignoreAccessibility:=ignoreAccessibility)
         End Sub
 
         ''' <summary>
         ''' Creates an MethodBodySemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
-        Friend Shared Function Create(binder As MethodBodyBinder) As MethodBodySemanticModel
-            Return New MethodBodySemanticModel(binder.Root, binder)
+        Friend Shared Function Create(binder As MethodBodyBinder, Optional ignoreAccessibility As Boolean = False) As MethodBodySemanticModel
+            Return New MethodBodySemanticModel(binder.Root, binder, ignoreAccessibility:=ignoreAccessibility)
         End Function
 
         ''' <summary>
@@ -36,15 +36,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' CONSIDER: Do we want to ensure that speculated method and the original method have identical signatures?
 
             ' Create a speculative binder for the method body.
-            Dim methodSymbol = DirectCast(Me.MemberSymbol, MethodSymbol)
+            Dim methodSymbol = DirectCast(Me.MemberSymbol, methodSymbol)
 
-            Dim containingBinder As Binder = Me.RootBinder
+            Dim containingBinder As binder = Me.RootBinder
 
             ' Get up to the NamedTypeBinder
-            Dim namedTypeBinder As NamedTypeBinder
+            Dim namedTypeBinder As namedTypeBinder
 
             Do
-                namedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
+                namedTypeBinder = TryCast(containingBinder, namedTypeBinder)
 
                 If namedTypeBinder IsNot Nothing Then
                     Exit Do
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 containingBinder = containingBinder.ContainingBinder
             Loop
 
-            Dim methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(methodSymbol, method, SemanticModelBinder.Mark(namedTypeBinder))
+            Dim methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(methodSymbol, method, SemanticModelBinder.Mark(namedTypeBinder, IgnoresAccessibility))
 
             ' Wrap this binder with a BlockBaseBinder to hold onto the locals declared within the statement.
             Dim binder = New StatementListBinder(methodBodyBinder, method.Statements)
@@ -91,8 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class TopLevelCodeSemanticModel
         Inherits MemberSemanticModel
 
-        Public Sub New(binder As TopLevelCodeBinder)
-            MyBase.New(binder.Root, binder, parentSemanticModelOpt:=Nothing, speculatedPosition:=0)
+        Public Sub New(binder As TopLevelCodeBinder, Optional ignoreAccessibility As Boolean = False)
+            MyBase.New(binder.Root, binder, parentSemanticModelOpt:=Nothing, speculatedPosition:=0, ignoreAccessibility:=ignoreAccessibility)
         End Sub
 
         Friend Overrides Function TryGetSpeculativeSemanticModelForMethodBodyCore(parentModel As SyntaxTreeSemanticModel, position As Integer, method As MethodBlockBaseSyntax, <Out> ByRef speculativeModel As SemanticModel) As Boolean

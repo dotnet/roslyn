@@ -158,6 +158,7 @@ Public Enum $$E : End Enum
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -210,11 +211,39 @@ End Enum
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Sub
 
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+Enum $$E
+    Foo = 1,
+    Bar
+End Enum
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+''' &lt;summary&gt;&lt;/summary&gt;
+&lt;Flags()&gt;
+Enum E
+    Foo = 1,
+    Bar
+End Enum
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
+        End Sub
+
 #End Region
 
 #Region "Set Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Enum $$Foo
@@ -234,7 +263,7 @@ End Enum
 #Region "GenericExtender"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseTypesCount()
+        Public Sub GenericExtender_GetBaseTypesCount()
             Dim code =
 <Code>
 Enum E$$
@@ -245,7 +274,7 @@ End Enum
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetBaseGenericName()
+        Public Sub GenericExtender_GetBaseGenericName()
             Dim code =
 <Code>
 Enum E$$
@@ -256,7 +285,7 @@ End Enum
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplementedTypesCount()
+        Public Sub GenericExtender_GetImplementedTypesCount()
             Dim code =
 <Code>
 Enum E$$
@@ -267,7 +296,7 @@ End Enum
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub GenericExtender_GetImplTypeGenericName()
+        Public Sub GenericExtender_GetImplTypeGenericName()
             Dim code =
 <Code>
 Enum E$$

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -19,11 +20,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     internal class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
-        private const string Build = "Build";
-        private const string FxCopPrefix = "CA";
-        private const string WMEPrefix = "WME";
-
-        internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Build, WellKnownDiagnosticTags.Telemetry);
+        internal static readonly ImmutableDictionary<string, string> Properties = ImmutableDictionary<string, string>.Empty.Add(WellKnownDiagnosticPropertyNames.Origin, WellKnownDiagnosticTags.Build);
+        internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
@@ -178,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var diagnostic = GetDiagnosticData(
                 hostDocument.Id, bstrErrorId, bstrErrorMessage, severity,
-                bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn,
+                null, iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
 
             _diagnosticProvider.AddNewErrors(hostDocument.Id, diagnostic);
@@ -214,7 +212,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 // right location on closed venus file.
                 return GetDiagnosticData(
                     id, GetErrorId(error), error.bstrText, GetDiagnosticSeverity(error),
-                    error.bstrFileName, error.iLine, error.iCol, error.iLine, error.iCol, error.bstrFileName, line, column, line, column);
+                    null, error.iLine, error.iCol, error.iLine, error.iCol, error.bstrFileName, line, column, line, column);
             }
 
             return GetDiagnosticData(
@@ -228,14 +226,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             return new DiagnosticData(
                 id: errorId,
-                category: Build,
+                category: WellKnownDiagnosticTags.Build,
                 message: message,
-                messageFormat: message,
+                enuMessageForBingSearch: message, // Unfortunately, there is no way to get ENU text for this since this is an external error.
                 severity: severity,
                 defaultSeverity: severity,
                 isEnabledByDefault: true,
                 warningLevel: GetWarningLevel(severity),
                 customTags: CustomTags,
+                properties: Properties,
                 workspace: _workspace,
                 projectId: _projectId,
                 documentId: id,

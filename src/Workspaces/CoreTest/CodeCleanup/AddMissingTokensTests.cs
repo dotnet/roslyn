@@ -2655,7 +2655,7 @@ Class Test
 
         ' Without End Function
         Dim last = Async Function() As Task(Of Integer)    ' Trailing
-        End Function
+                   End Function
 End Class";
 
             Verify(code, expected);
@@ -2723,7 +2723,7 @@ Class Test
 
         ' Without End Function
         Dim last = Iterator Function() As IEnumerable(Of Integer)    ' Trailing
-        End Function
+                   End Function
 End Class";
 
             Verify(code, expected);
@@ -2785,6 +2785,39 @@ Module M
         Dim s = NameOf(Main)
     End Sub
 End Module";
+
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void OptionExplicitOn()
+        {
+            var code = @"[|Option Explicit|]";
+            var expected = @"Option Explicit On
+";
+
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void OptionInferOn()
+        {
+            var code = @"[|Option Infer|]";
+            var expected = @"Option Infer On
+";
+
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void OptionStrictOn()
+        {
+            var code = @"[|Option Strict|]";
+            var expected = @"Option Strict On
+";
 
             Verify(code, expected);
         }

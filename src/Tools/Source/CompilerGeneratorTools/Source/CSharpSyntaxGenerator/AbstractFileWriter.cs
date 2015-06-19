@@ -16,7 +16,7 @@ namespace CSharpSyntaxGenerator
         private readonly IDictionary<string, Node> _nodeMap;
 
         private const int INDENT_SIZE = 4;
-        private int _indentLevel = 0;
+        private int _indentLevel;
         private bool _needIndent = true;
 
         protected AbstractFileWriter(TextWriter writer, Tree tree)
@@ -131,12 +131,12 @@ namespace CSharpSyntaxGenerator
 
         protected static bool IsSeparatedNodeList(string typeName)
         {
-            return typeName.StartsWith("SeparatedSyntaxList<");
+            return typeName.StartsWith("SeparatedSyntaxList<", StringComparison.Ordinal);
         }
 
         protected static bool IsNodeList(string typeName)
         {
-            return typeName.StartsWith("SyntaxList<");
+            return typeName.StartsWith("SyntaxList<", StringComparison.Ordinal);
         }
 
         protected static bool IsAnyNodeList(string typeName)
@@ -234,13 +234,13 @@ namespace CSharpSyntaxGenerator
 
         protected string StripNode(string name)
         {
-            return (_tree.Root.EndsWith("Node")) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
+            return (_tree.Root.EndsWith("Node", StringComparison.Ordinal)) ? _tree.Root.Substring(0, _tree.Root.Length - 4) : _tree.Root;
         }
 
         protected string StripRoot(string name)
         {
             var root = StripNode(_tree.Root);
-            if (name.EndsWith(root))
+            if (name.EndsWith(root, StringComparison.Ordinal))
             {
                 return name.Substring(0, name.Length - root.Length);
             }
@@ -249,7 +249,7 @@ namespace CSharpSyntaxGenerator
 
         protected static string StripPost(string name, string post)
         {
-            return name.EndsWith(post)
+            return name.EndsWith(post, StringComparison.Ordinal)
                 ? name.Substring(0, name.Length - post.Length)
                 : name;
         }

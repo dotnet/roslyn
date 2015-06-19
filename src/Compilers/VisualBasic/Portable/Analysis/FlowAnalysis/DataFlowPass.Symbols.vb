@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Class DataFlowPass
+    Friend Partial Class DataFlowPass
 
         ''' <summary> 
         ''' AmbiguousLocalsPseudoSymbol is a pseudo-symbol used in flow analysis representing 

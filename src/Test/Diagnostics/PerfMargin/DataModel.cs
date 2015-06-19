@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -7,9 +9,9 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
     internal class DataModel
     {
-        public ActivityLevel RootNode { get; private set; }
+        public ActivityLevel RootNode { get; }
 
-        private readonly ActivityLevel[] activities;
+        private readonly ActivityLevel[] _activities;
 
         public DataModel()
         {
@@ -18,7 +20,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                             select f;
 
             var count = functions.Count();
-            this.activities = new ActivityLevel[count];
+            _activities = new ActivityLevel[count];
 
             var features = new Dictionary<string, ActivityLevel>();
             var root = new ActivityLevel("All");
@@ -37,7 +39,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                     features[featureName] = parent;
                 }
 
-                activities[value - 1] = new ActivityLevel(name, parent, createChildList: false);
+                _activities[value - 1] = new ActivityLevel(name, parent, createChildList: false);
             }
 
             root.SortChildren();
@@ -46,12 +48,12 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
 
         public void BlockStart(FunctionId functionId)
         {
-            this.activities[(int)functionId - 1].Start();
+            _activities[(int)functionId - 1].Start();
         }
 
         public void BlockDisposed(FunctionId functionId)
         {
-            this.activities[(int)functionId - 1].Stop();
+            _activities[(int)functionId - 1].Stop();
         }
     }
 }

@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -24,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly bool IsEnabledByDefault;
         public readonly int WarningLevel;
         public readonly IReadOnlyList<string> CustomTags;
+        public readonly ImmutableDictionary<string, string> Properties;
 
-        // temporary until we make diagnostic data to point back to diagnostic descriptor
-        public readonly string MessageFormat;
+        public readonly string ENUMessageForBingSearch;
 
         public readonly Workspace Workspace;
         public readonly ProjectId ProjectId;
@@ -57,12 +59,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string id,
             string category,
             string message,
-            string messageFormat,
+            string enuMessageForBingSearch,
+            DiagnosticSeverity severity,
+            bool isEnabledByDefault,
+            int warningLevel,
+            Workspace workspace,
+            ProjectId projectId,
+            DocumentId documentId = null,
+            TextSpan? span = null,
+            string originalFilePath = null,
+            int originalStartLine = 0,
+            int originalStartColumn = 0,
+            int originalEndLine = 0,
+            int originalEndColumn = 0,
+            string title = null,
+            string description = null,
+            string helpLink = null) :
+                this(
+                    id, category, message, enuMessageForBingSearch,
+                    severity, severity, isEnabledByDefault, warningLevel,
+                    ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
+                    workspace, projectId, documentId, span,
+                    null, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                    originalFilePath, originalStartLine, originalStartColumn, originalEndLine, originalEndColumn,
+                    title, description, helpLink)
+        {
+        }
+
+        public DiagnosticData(
+            string id,
+            string category,
+            string message,
+            string enuMessageForBingSearch,
             DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
             IReadOnlyList<string> customTags,
+            ImmutableDictionary<string, string> properties,
             Workspace workspace,
             ProjectId projectId,
             DocumentId documentId = null,
@@ -84,13 +118,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.Id = id;
             this.Category = category;
             this.Message = message;
-            this.MessageFormat = messageFormat;
+            this.ENUMessageForBingSearch = enuMessageForBingSearch;
 
             this.Severity = severity;
             this.DefaultSeverity = defaultSeverity;
             this.IsEnabledByDefault = isEnabledByDefault;
             this.WarningLevel = warningLevel;
             this.CustomTags = customTags;
+            this.Properties = properties;
 
             this.Workspace = workspace;
             this.ProjectId = projectId;
@@ -179,8 +214,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var span = _textSpan.HasValue ? _textSpan.Value : GetTextSpan(tree.GetText());
                 location = tree.GetLocation(span);
             }
+            else if (OriginalFilePath != null && _textSpan != null)
+            {
+                var span = _textSpan.Value;
+                location = Location.Create(OriginalFilePath, span, new LinePositionSpan(
+                    new LinePosition(OriginalStartLine, OriginalStartColumn),
+                    new LinePosition(OriginalEndLine, OriginalEndColumn)));
+            }
 
-            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags);
+            return Diagnostic.Create(this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, this.Title, this.Description, this.HelpLink, location, customTags: this.CustomTags, properties: this.Properties);
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
@@ -247,28 +289,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public static DiagnosticData Create(Project project, Diagnostic diagnostic)
+        public static DiagnosticData Create(Workspace workspace, Diagnostic diagnostic)
         {
-            if (diagnostic.Location.IsInSource)
-            {
-                // Project diagnostic reported at a document location (e.g. compilation end action diagnostics).
-                var document = project.GetDocument(diagnostic.Location.SourceTree);
-                if (document != null)
-                {
-                    return Create(document, diagnostic);
-                }
-            }
+            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
 
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
+                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Properties,
+                workspace,
+                projectId: null,
+                title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
+                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
+                helpLink: diagnostic.Descriptor.HelpLinkUri);
+        }
+
+        public static DiagnosticData Create(Project project, Diagnostic diagnostic)
+        {
+            Contract.Requires(diagnostic.Location == null || !diagnostic.Location.IsInSource);
+
+            return new DiagnosticData(
+                diagnostic.Id,
+                diagnostic.Descriptor.Category,
+                diagnostic.GetMessage(CultureInfo.CurrentUICulture),
+                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
+                diagnostic.Severity,
+                diagnostic.DefaultSeverity,
+                diagnostic.Descriptor.IsEnabledByDefault,
+                diagnostic.WarningLevel,
+                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Properties,
                 project.Solution.Workspace,
                 project.Id,
                 title: diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture),
@@ -299,17 +356,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.Descriptor.MessageFormat.ToString(USCultureInfo),
+                diagnostic.GetMessage(USCultureInfo), // We use the ENU version of the message for bing search.
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
                 diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Properties,
                 document.Project.Solution.Workspace,
                 document.Project.Id,
                 document.Id,
                 sourceSpan,
-                mappedLineInfo.Path,
+                mappedLineInfo.GetMappedFilePathIfExist(),
                 mappedStartLine,
                 mappedStartColumn,
                 mappedEndLine,

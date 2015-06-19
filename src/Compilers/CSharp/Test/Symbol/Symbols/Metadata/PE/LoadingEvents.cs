@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(1, outerInterface.Arity);
             Assert.Equal(TypeKind.Interface, outerInterface.TypeKind);
 
-            var outerInterfaceEvent = outerInterface.GetMembers().Where(m => m.Kind == SymbolKind.Event).Single();
+            var outerInterfaceEvent = outerInterface.GetMembers().Single(m => m.Kind == SymbolKind.Event);
 
             var outerClass = (NamedTypeSymbol)globalNamespace.GetTypeMembers("Outer").Single();
             Assert.Equal(1, outerClass.Arity);
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(1, innerInterface.Arity);
             Assert.Equal(TypeKind.Interface, innerInterface.TypeKind);
 
-            var innerInterfaceEvent = innerInterface.GetMembers().Where(m => m.Kind == SymbolKind.Event).Single();
+            var innerInterfaceEvent = innerInterface.GetMembers().Single(m => m.Kind == SymbolKind.Event);
 
             var innerClass1 = (NamedTypeSymbol)outerClass.GetTypeMembers("Inner1").Single();
             CheckInnerClassHelper(innerClass1, "IGeneric2<A>.Event", outerInterfaceEvent);

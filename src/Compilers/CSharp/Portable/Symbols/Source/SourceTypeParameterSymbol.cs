@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
                 {
                     this.CheckConstraintTypeConstraints(diagnostics);
-                    this.AddSemanticDiagnostics(diagnostics);
+                    this.AddDeclarationDiagnostics(diagnostics);
                     _state.NotePartComplete(CompletionPart.TypeParameterConstraints);
                 }
 

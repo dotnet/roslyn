@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<TBase> Cast<TDerived, TBase>(this ImmutableArray<TDerived> items)
             where TDerived : class, TBase
         {
-            return ImmutableArray.Create<TBase, TDerived>(items);
+            return ImmutableArray<TBase>.CastUp(items);
         }
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns an empty array if the input array is null (defaut)
+        /// Returns an empty array if the input array is null (default)
         /// </summary>
         public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T> array)
         {

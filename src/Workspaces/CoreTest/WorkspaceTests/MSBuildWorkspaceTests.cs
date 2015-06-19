@@ -2,11 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = document.GetSyntaxTreeAsync().Result;
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -76,6 +77,119 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(5, compReferences.Count);
         }
 
+        [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
+        [Fact(Skip ="Needs target file update. Activate when we move to new base drop.")]
+        public void Test_OpenProjectReferencingPortableProject()
+        {
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { @"CSharpProject\ReferencesPortableProject.csproj", GetResourceText("CSharpProject_ReferencesPortableProject.csproj") },
+                { @"CSharpProject\Program.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
+                { @"CSharpProject\PortableProject.csproj", GetResourceText("CSharpProject_PortableProject.csproj") },
+                { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") }
+
+            });
+
+            CreateFiles(files);
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"CSharpProject\ReferencesPortableProject.csproj")).Result;
+            var hasFacades = project.MetadataReferences.OfType<PortableExecutableReference>().Any(r => r.FilePath.Contains("Facade"));
+            Assert.True(hasFacades);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void Test_SharedMetadataReferences()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+
+            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var p0 = sol.Projects.ElementAt(0);
+            var p1 = sol.Projects.ElementAt(1);
+
+            Assert.NotSame(p0, p1);
+
+            var p0mscorlib = GetMetadataReference(p0, "mscorlib");
+            var p1mscorlib = GetMetadataReference(p1, "mscorlib");
+
+            Assert.NotNull(p0mscorlib);
+            Assert.NotNull(p1mscorlib);
+
+            // metadata references to mscorlib in both projects are the same
+            Assert.Same(p0mscorlib, p1mscorlib);
+        }
+
+        private static MetadataReference GetMetadataReference(Project project, string name)
+        {
+            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr => mr.FilePath.Contains(name));
+        }
+
+        private static MetadataReference GetMetadataReferenceByAlias(Project project, string aliasName)
+        {
+            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr => 
+            !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace), WorkItem(546171, "DevDiv")]
+        public void Test_SharedMetadataReferencesWithAliases()
+        {
+            var projPath1 = @"CSharpProject\CSharpProject_ExternAlias.csproj";
+            var projPath2 = @"CSharpProject\CSharpProject_ExternAlias2.csproj";
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { projPath1, GetResourceText("CSharpProject_CSharpProject_ExternAlias.csproj") },
+                { projPath2, GetResourceText("CSharpProject_CSharpProject_ExternAlias2.csproj") },
+                { @"CSharpProject\CSharpExternAlias.cs", GetResourceText("CSharpProject_CSharpExternAlias.cs") },
+            });
+
+            CreateFiles(files);
+
+            var fullPath1 = Path.Combine(this.SolutionDirectory.Path, projPath1);
+            var fullPath2 = Path.Combine(this.SolutionDirectory.Path, projPath2);
+            using (var ws = MSBuildWorkspace.Create())
+            {
+                var proj1 = ws.OpenProjectAsync(fullPath1).Result;
+                var proj2 = ws.OpenProjectAsync(fullPath2).Result;
+
+                var p1Sys1 = GetMetadataReferenceByAlias(proj1, "Sys1");
+                var p1Sys2 = GetMetadataReferenceByAlias(proj1, "Sys2");
+                var p2Sys1 = GetMetadataReferenceByAlias(proj2, "Sys1");
+                var p2Sys3 = GetMetadataReferenceByAlias(proj2, "Sys3");
+
+                Assert.NotNull(p1Sys1);
+                Assert.NotNull(p1Sys2);
+                Assert.NotNull(p2Sys1);
+                Assert.NotNull(p2Sys3);
+
+                // same filepath but different alias so they are not the same instance
+                Assert.NotSame(p1Sys1, p1Sys2);
+                Assert.NotSame(p2Sys1, p2Sys3);
+
+                // same filepath and alias so they are the same instance
+                Assert.Same(p1Sys1, p2Sys1);
+
+                var mdp1Sys1 = GetMetadata(p1Sys1);
+                var mdp1Sys2 = GetMetadata(p1Sys2);
+                var mdp2Sys1 = GetMetadata(p2Sys1);
+                var mdp2Sys3 = GetMetadata(p2Sys1);
+
+                Assert.NotNull(mdp1Sys1);
+                Assert.NotNull(mdp1Sys2);
+                Assert.NotNull(mdp2Sys1);
+                Assert.NotNull(mdp2Sys3);
+
+                // all references to System.dll share the same metadata bytes
+                Assert.Same(mdp1Sys1, mdp1Sys2);
+                Assert.Same(mdp1Sys1, mdp2Sys1);
+                Assert.Same(mdp1Sys1, mdp2Sys3);
+            }
+        }
+
+        private Metadata GetMetadata(MetadataReference mref)
+        {
+            var fnGetMetadata = mref.GetType().GetMethod("GetMetadata", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            return fnGetMetadata?.Invoke(mref, null) as Metadata;
+        }
+
         [WorkItem(552981, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_DuplicateProjectGuids()
@@ -83,6 +197,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
             CreateFiles(GetSolutionWithDuplicatedGuidFiles());
 
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("DuplicatedGuids.sln")).Result;
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(831379, "DevDiv")]
+        public void GetCompilationWithCircularProjectReferences()
+        {
+            CreateFiles(GetSolutionWithCircularProjectReferences());
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("CircularSolution.sln")).Result;
+
+            // Verify we can get compilations for both projects
+            var projects = solution.Projects.ToArray();
+
+            // Exactly one of them should have a reference to the other. Which one it is is unspecced
+            Assert.True(projects[0].ProjectReferences.Any(r => r.ProjectId == projects[1].Id) ||
+                        projects[1].ProjectReferences.Any(r => r.ProjectId == projects[0].Id));
+
+            var compilation1 = projects[0].GetCompilationAsync().Result;
+            var compilation2 = projects[1].GetCompilationAsync().Result;
+
+            // Exactly one of them should have a compilation to the other. Which one it is is unspecced
+            Assert.True(compilation1.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation2) ||
+                        compilation2.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation1));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -228,7 +365,7 @@ class C1
             Assert.Equal(expectedFileName, tree.FilePath);
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -315,10 +452,53 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CSharp_WithoutCSharpTargetsImported_Succeeds()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_WithoutCSharpTargetsImported.csproj")));
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            var project = solution.Projects.First();
+            var documents = project.Documents.ToList();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CSharp_WithoutCSharpTargetsImported_DocumentsArePickedUp()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText("CSharpProject_CSharpProject_WithoutCSharpTargetsImported.csproj")));
+
+            var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            var project = solution.Projects.First();
+            Assert.True(project.Documents.ToList().Any());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_VisualBasic_WithoutVBTargetsImported_Succeeds()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithoutVBTargetsImported.vbproj")));
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+            var documents = project.Documents.ToList();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_VisualBasic_WithoutVBTargetsImported_DocumentsArePickedUp()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithoutVBTargetsImported.vbproj")));
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+            var documents = project.Documents.ToList();
+            Assert.True(project.Documents.ToList().Any());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(739043, "DevDiv")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndConsoleApplication()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithoutPrefer32Bit.vbproj")));
 
             var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
@@ -330,7 +510,7 @@ class C1
         [WorkItem(739043, "DevDiv")]
         public void TestOpenProject_VisualBasic_WithoutPrefer32BitAndLibrary()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithoutPrefer32Bit.vbproj"))
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "OutputType", "Library"));
 
@@ -343,7 +523,7 @@ class C1
         [WorkItem(739043, "DevDiv")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndConsoleApplication()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj")));
 
             var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
@@ -355,7 +535,7 @@ class C1
         [WorkItem(739043, "DevDiv")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndLibrary()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj"))
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "OutputType", "Library"));
 
@@ -368,7 +548,7 @@ class C1
         [WorkItem(739043, "DevDiv")]
         public void TestOpenProject_VisualBasic_WithPrefer32BitAndWinMDObj()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj"))
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "OutputType", "winmdobj"));
 
@@ -380,7 +560,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_VisualBasic_WithoutOutputPath()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj"))
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "OutputPath", ""));
 
@@ -391,7 +571,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_VisualBasic_WithoutAssemblyName()
         {
-            CreateFiles(GetSimpleCSharpSolutionFiles()
+            CreateFiles(GetMultiProjectSolutionFiles()
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText("VisualBasicProject_VisualBasicProject_WithPrefer32Bit.vbproj"))
                 .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "AssemblyName", ""));
 
@@ -399,7 +579,21 @@ class C1
             Assert.NotEmpty(project.OutputFilePath);
         }
 
-        [Fact(Skip = "707107"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public async Task Test_Respect_ReferenceOutputassembly_Flag()
+        {
+            const string top = @"VisualBasicProject_Circular_Top.vbproj";
+            const string target = @"VisualBasicProject_Circular_Target.vbproj";
+            var projFile = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(top, GetResourceText(top))
+                .WithFile(target, GetResourceText(target)));
+
+            var project = await MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(top)).ConfigureAwait(false);
+            Assert.Empty(project.ProjectReferences);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithXaml()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -420,7 +614,7 @@ class C1
             Assert.Equal(true, documents.Contains(d => d.Name == "MainWindow.xaml.cs"));
 
             // prove no xaml files are documents
-            Assert.Equal(false, documents.Contains(d => d.Name.EndsWith(".xaml")));
+            Assert.Equal(false, documents.Contains(d => d.Name.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase)));
 
             // prove that generated source files for xaml files are included in documents list
             Assert.Equal(true, documents.Contains(d => d.Name == "App.g.cs"));
@@ -441,7 +635,7 @@ class C1
             Assert.NotNull(csharpLib);
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/452"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531631, "DevDiv")]
         public void TestOpenProject_AssemblyNameIsPath()
         {
@@ -457,7 +651,7 @@ class C1
             Assert.Equal(expectedOutputPath, Path.GetDirectoryName(project.OutputFilePath));
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/453"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [WorkItem(531631, "DevDiv")]
         public void TestOpenProject_AssemblyNameIsPath2()
         {
@@ -593,6 +787,82 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenSolution_WithTemporaryLockedFile_SucceedsWithoutFailureEvent()
+        {
+            // when skipped we should see a diagnostic for the invalid project
+
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create();
+
+            bool failed = false;
+            ws.WorkspaceFailed += (s, args) =>
+            {
+                failed |= args.Diagnostic is DocumentDiagnostic;
+            };
+
+            // open source file so it cannot be read by workspace;
+            var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
+            var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
+            try
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+                var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
+
+                // start reading text
+                var getTextTask = doc.GetTextAsync();
+
+                // wait 1 unit of retry delay then close file
+                var delay = TextDocumentState.RetryDelay;
+                Task.Delay(delay).ContinueWith(t => file.Close(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+                // finish reading text
+                var text = getTextTask.Result.ToString();
+                Assert.NotEqual(0, text.Length);
+            }
+            finally
+            {
+                file.Close();
+            }
+
+            Assert.Equal(false, failed);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenSolution_WithLockedFile_FailsWithFailureEvent()
+        {
+            // when skipped we should see a diagnostic for the invalid project
+
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create();
+
+            bool failed = false;
+            ws.WorkspaceFailed += (s, args) =>
+            {
+                failed |= args.Diagnostic is DocumentDiagnostic;
+            };
+
+            // open source file so it cannot be read by workspace;
+            var sourceFile = GetSolutionFileName(@"CSharpProject\CSharpClass.cs");
+            var file = File.Open(sourceFile, FileMode.Open, FileAccess.Write, FileShare.None);
+            try
+            {
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+                var doc = solution.Projects.First().Documents.First(d => d.FilePath == sourceFile);
+                var text = doc.GetTextAsync().Result.ToString();
+                Assert.Equal(0, text.Length);
+            }
+            finally
+            {
+                file.Close();
+            }
+
+            Assert.Equal(true, failed);
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
         {
             // when skipped we should see a diagnostic for the invalid project
@@ -614,7 +884,7 @@ class C1
         }
 
         [WorkItem(985906)]
-        [Fact(Skip = "Issue #317"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void HandleSolutionProjectTypeSolutionFolder()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles()
@@ -891,7 +1161,7 @@ class C1
             });
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/457"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipTrue_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -912,7 +1182,7 @@ class C1
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/455"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_WithMetadata_SkipFalse_SucceedsByLoadingMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -933,6 +1203,33 @@ class C1
 
             var metaRefs = project.MetadataReferences.ToList();
             Assert.Equal(true, metaRefs.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_WithUnrecognizedProjectReferenceFileExtension_BadMsbuildProject_SkipTrue_SucceedsWithDanglingProjectReference()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", GetResourceText(@"VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj"))
+                .WithFile(@"CSharpProject\CSharpProject.noproj", GetResourceBytes("CSharpProject.dll"))); // use metadata file as stand-in for bad project file
+
+            // keep metadata reference from holding files open
+            Workspace.TestHookStandaloneProjectsDoNotHoldReferences = true;
+
+            var ws = MSBuildWorkspace.Create();
+
+            var diags = new List<WorkspaceDiagnostic>();
+            ws.WorkspaceFailed += (s, args) =>            
+            {
+                diags.Add(args.Diagnostic);
+            };
+
+            ws.SkipUnrecognizedProjects = true;
+            var project = ws.OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+
+            Assert.Equal(1, project.Solution.ProjectIds.Count);
+            Assert.Equal(0, project.ProjectReferences.Count());
+            Assert.Equal(1, project.AllProjectReferences.Count());
+            Assert.Equal(2, diags.Count);
         }
 
         [Fact(Skip = "https://roslyn.codeplex.com/workitem/451"), Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -974,7 +1271,7 @@ class C1
             Assert.False(metaRefs.Any(r => r.Properties.Aliases.Contains("CSharpProject")));
         }
 
-        [Fact(Skip = "https://roslyn.codeplex.com/workitem/454"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_UpdateExistingReferences()
         {
             CreateFiles(GetMultiProjectSolutionFiles()
@@ -1862,7 +2159,7 @@ class C1
                     Assert.Equal(1, proj.AnalyzerReferences.Count);
                     var analyzerReference = proj.AnalyzerReferences.First() as AnalyzerFileReference;
                     Assert.NotNull(analyzerReference);
-                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll"));
+                    Assert.True(analyzerReference.FullPath.EndsWith("CSharpProject.dll", StringComparison.OrdinalIgnoreCase));
                 }
 
                 // prove that project gets opened instead.
@@ -1889,7 +2186,7 @@ class C1
                     Assert.Equal(1, proj.AdditionalDocuments.Count());
                     var doc = proj.AdditionalDocuments.First();
                     Assert.Equal("XamlFile.xaml", doc.Name);
-                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString());
+                    Assert.Contains("Window", doc.GetTextAsync().WaitAndGetResult(CancellationToken.None).ToString(), StringComparison.Ordinal);
                 }
             }
 #endif
@@ -2196,10 +2493,15 @@ class C1
             CreateFiles(files);
 
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("DuplicatedGuids.sln")).Result;
-            foreach (var p in solution.Projects)
-            {
-                var c = p.GetCompilationAsync().Result;
-            }
+            Assert.Equal(2, solution.ProjectIds.Count);
+
+            var testProject = solution.Projects.FirstOrDefault(p => p.Name == "ReferenceTest");
+            Assert.NotNull(testProject);
+            Assert.Equal(1, testProject.AllProjectReferences.Count);
+
+            var libraryProject = solution.Projects.FirstOrDefault(p => p.Name == "Library1");
+            Assert.NotNull(libraryProject);
+            Assert.Equal(0, libraryProject.AllProjectReferences.Count);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2217,10 +2519,19 @@ class C1
             CreateFiles(files);
 
             var solution = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("DuplicatedGuids.sln")).Result;
-            foreach (var p in solution.Projects)
-            {
-                var c = p.GetCompilationAsync().Result;
-            }
+            Assert.Equal(3, solution.ProjectIds.Count);
+
+            var testProject = solution.Projects.FirstOrDefault(p => p.Name == "ReferenceTest");
+            Assert.NotNull(testProject);
+            Assert.Equal(1, testProject.AllProjectReferences.Count);
+
+            var library1Project = solution.Projects.FirstOrDefault(p => p.Name == "Library1");
+            Assert.NotNull(library1Project);
+            Assert.Equal(1, library1Project.AllProjectReferences.Count);
+
+            var library2Project = solution.Projects.FirstOrDefault(p => p.Name == "Library2");
+            Assert.NotNull(library2Project);
+            Assert.Equal(0, library2Project.AllProjectReferences.Count);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -2320,7 +2631,7 @@ class C1
             var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
             var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
             Assert.NotNull(type);
-            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass", StringComparison.Ordinal));
             Assert.NotNull(compilation);
 
             var cacheService = new WeakReference(sol.Workspace.CurrentSolution.Services.CacheService);
@@ -2362,19 +2673,40 @@ class C { }";
             var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
 
             var document = project.Documents.First(d => d.Name == "class1.cs");
+
+            // update root without first looking at text (no encoding is known)
+            var gen = Editing.SyntaxGenerator.GetGenerator(document);
+            var doc2 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
+            var doc2text = doc2.GetTextAsync().Result;
+            Assert.Null(doc2text.Encoding);
+            var doc2tree = doc2.GetSyntaxTreeAsync().Result;
+            Assert.Null(doc2tree.Encoding);
+            Assert.Null(doc2tree.GetText().Encoding);
+
+            // observe original text to discover encoding
             var text = document.GetTextAsync().Result;
             Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
+            // update root blindly again, after observing encoding, see that now encoding is known
+            var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
+            var doc3text = doc3.GetTextAsync().Result;
+            Assert.NotNull(doc3text.Encoding);
+            Assert.Equal(encoding.EncodingName, doc3text.Encoding.EncodingName);
+            var doc3tree = doc3.GetSyntaxTreeAsync().Result;
+            Assert.Equal(doc3text.Encoding, doc3tree.GetText().Encoding);
+            Assert.Equal(doc3text.Encoding, doc3tree.Encoding);
+
+            // change doc to have no encoding, still succeeds at writing to disk with old encoding
             var root = document.GetSyntaxRootAsync().Result;
-            var trivia = SpecializedCollections.SingletonEnumerable(CSharp.SyntaxFactory.CarriageReturnLineFeed).Concat(root.GetLeadingTrivia());
-            var newDocument = document.WithSyntaxRoot(root.WithLeadingTrivia(trivia));
-            var newEncoding = newDocument.GetTextAsync().Result.Encoding;
-            Assert.Null(newEncoding);
+            var noEncodingDoc = document.WithText(SourceText.From(text.ToString(), encoding: null));
+            Assert.Null(noEncodingDoc.GetTextAsync().Result.Encoding);
+            
+            // apply changes (this writes the changed document)
+            var noEncodingSolution = noEncodingDoc.Project.Solution;
+            Assert.True(noEncodingSolution.Workspace.TryApplyChanges(noEncodingSolution));
 
-            var newSolution = newDocument.Project.Solution;
-            Assert.True(newSolution.Workspace.TryApplyChanges(newSolution));
-
+            // prove the written document still has the same encoding
             var filePath = Path.Combine(this.SolutionDirectory.Path, "Class1.cs");
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -2397,7 +2729,7 @@ class C { }";
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
                 var project = solution.Projects.First();
 
-                var mref = MetadataReference.CreateFromAssembly(typeof(System.Xaml.XamlObjectReader).Assembly);
+                var mref = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlObjectReader).Assembly.Location);
 
                 // add reference to System.Xaml
                 ws.TryApplyChanges(project.AddMetadataReference(mref).Solution);
@@ -2457,14 +2789,14 @@ class C { }";
                 var project = solution.Projects.First();
 
                 var myAnalyzerPath = GetSolutionFileName(@"Analyzers\MyAnalyzer.dll");
-                var aref = new AnalyzerFileReference(myAnalyzerPath);
+                var aref = new AnalyzerFileReference(myAnalyzerPath, new InMemoryAssemblyLoader());
 
                 // add reference to MyAnalyzer.dll
                 ws.TryApplyChanges(project.AddAnalyzerReference(aref).Solution);
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(true, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
 
-                // remove reference MyAnalzyer.dll
+                // remove reference MyAnalyzer.dll
                 ws.TryApplyChanges(ws.CurrentSolution.GetProject(project.Id).RemoveAnalyzerReference(aref).Solution);
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(false, projFileText.Contains(@"<Analyzer Include=""..\Analyzers\MyAnalyzer.dll"));
@@ -2499,6 +2831,32 @@ class C { }";
 
                 projFileText = File.ReadAllText(projFile);
                 Assert.Equal(true, projFileText.Contains(@"<ProjectReference Include=""..\CSharpProject\CSharpProject.csproj"">"));
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(1101040)]
+        public void TestOpenProject_BadLink()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", GetResourceText(@"CSharpProject_CSharpProject_BadLink.csproj")));
+
+            var ws = MSBuildWorkspace.Create();
+            var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
+            var docs = proj.Documents.ToList();
+            Assert.Equal(3, docs.Count);
+        }
+
+        private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
+        {
+            public void AddDependencyLocation(string fullPath)
+            {
+            }
+
+            public Assembly LoadFromPath(string fullPath)
+            {
+                var bytes = File.ReadAllBytes(fullPath);
+                return Assembly.Load(bytes);
             }
         }
     }

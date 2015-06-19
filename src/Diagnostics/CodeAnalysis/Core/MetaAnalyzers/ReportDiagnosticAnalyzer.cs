@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         where TIdentifierNameSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor InvalidReportDiagnosticRule = new DiagnosticDescriptor(
             DiagnosticIds.InvalidReportDiagnosticRuleId,
@@ -39,8 +39,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
         }
 
-        protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
+            var compilation = compilationContext.Compilation;
+
             var compilationEndAnalysisContext = compilation.GetTypeByMetadataName(CompilationEndAnalysisContextFullName);
             if (compilationEndAnalysisContext == null)
             {
@@ -139,21 +141,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 descriptorFields = default(ImmutableArray<IFieldSymbol>);
 
-                var supportedDiagnosticsProperty = analyzer.GetMembers()
-                    .OfType<IPropertySymbol>()
-                    .SingleOrDefault(p => p.OverriddenProperty != null &&
-                        p.OverriddenProperty.Equals(this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).Single()));
-                if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
+                var supportedDiagnosticBaseProperty = this.DiagnosticAnalyzer.GetMembers(SupportedDiagnosticsName).FirstOrDefault() as IPropertySymbol;
+                if (supportedDiagnosticBaseProperty != null)
                 {
-                    var syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
-                    if (syntaxRef != null)
+                    var supportedDiagnosticsProperty = analyzer.GetMembers()
+                        .OfType<IPropertySymbol>()
+                        .FirstOrDefault(p => p.OverriddenProperty != null &&
+                            p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
+                    if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
                     {
-                        var syntax = syntaxRef.GetSyntax(cancellationToken);
-                        syntax = GetPropertyGetterBlockSyntax(syntax);
-                        if (syntax != null)
+                        var syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
+                        if (syntaxRef != null)
                         {
-                            var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                            descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                            var syntax = syntaxRef.GetSyntax(cancellationToken);
+                            syntax = GetPropertyGetterBlockSyntax(syntax);
+                            if (syntax != null)
+                            {
+                                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                                descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                            }
                         }
                     }
                 }

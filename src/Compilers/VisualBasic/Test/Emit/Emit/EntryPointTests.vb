@@ -132,7 +132,7 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
         End Sub
@@ -546,7 +546,7 @@ End Class
 System.Console.WriteLine(1)
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
-                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, compOptions:=TestOptions.ReleaseExe)
+                {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
@@ -566,7 +566,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -593,7 +593,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, compOptions:=TestOptions.ReleaseExe)
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=VisualBasicParseOptions.Default)}, options:=TestOptions.ReleaseExe)
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("C.Main()"), Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("D.Main()"))
             CompileAndVerify(compilation, expectedOutput:="1")
@@ -745,7 +745,7 @@ End Class
 </text>
             Dim compilation = CreateCompilationWithMscorlib(
                 {VisualBasicSyntaxTree.ParseText(vbx.Value, options:=TestOptions.Script),
-                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, compOptions:=TestOptions.ReleaseExe.WithMainTypeName("C"))
+                 VisualBasicSyntaxTree.ParseText(vb.Value, options:=TestOptions.Regular)}, options:=TestOptions.ReleaseExe.WithMainTypeName("C"))
 
             ' TODO: compilation.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored).WithArguments("C"))
         End Sub
@@ -978,7 +978,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B, args As String())
             End Sub
@@ -997,7 +997,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B)
             End Sub
@@ -1016,7 +1016,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As String)
             End Sub
@@ -1269,7 +1269,7 @@ End Class
         Imports System.Runtime.CompilerServices
         Class B
         End Class
-        Module extention
+        Module Extension
             &lt;Extension()&gt;
             Public Sub Main(x As B, args As String())
             End Sub
@@ -1279,8 +1279,8 @@ End Class
             CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("B")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
 
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("extention")).VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("extention"))
+            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe.WithMainTypeName("Extension")).VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("Extension"))
         End Sub
 
         <Fact()>

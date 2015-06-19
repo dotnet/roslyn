@@ -11,22 +11,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure RegionAnalysisContext
 
         ''' <summary> Current compilation </summary>
-        Private ReadOnly compilation As VisualBasicCompilation
+        Private ReadOnly _compilation As VisualBasicCompilation
 
         ''' <summary> Method, field or property symbol </summary>
-        Private ReadOnly symbol As Symbol
+        Private ReadOnly _symbol As Symbol
 
         ''' <summary> Bound node defining the root of the bound subtree to be analyzed </summary>
-        Private ReadOnly boundNode As BoundNode
+        Private ReadOnly _boundNode As BoundNode
 
         ''' <summary> Region being analyzed: start node </summary>
-        Private ReadOnly firstInRegion As BoundNode
+        Private ReadOnly _firstInRegion As BoundNode
 
         ''' <summary> Region being analyzed: end node </summary>
-        Private ReadOnly lastInRegion As BoundNode
+        Private ReadOnly _lastInRegion As BoundNode
 
         ''' <summary> Region itself </summary>
-        Private ReadOnly region As TextSpan
+        Private ReadOnly _region As TextSpan
 
         ''' <summary> True if the input was bad, such as no first and last nodes </summary>
         Public ReadOnly Failed As Boolean
@@ -49,18 +49,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' a separate parameter because we do have it anyways)
         ''' </summary>
         Friend Sub New(compilation As VisualBasicCompilation, member As Symbol, boundNode As BoundNode, firstInRegion As BoundNode, lastInRegion As BoundNode, region As textspan)
-            Me.compilation = compilation
-            Me.symbol = member
-            Me.boundNode = boundNode
+            Me._compilation = compilation
+            Me._symbol = member
+            Me._boundNode = boundNode
 
-            Me.region = region
-            Me.firstInRegion = firstInRegion
-            Me.lastInRegion = lastInRegion
-            Me.Failed = Me.symbol Is Nothing OrElse Me.boundNode Is Nothing OrElse Me.firstInRegion Is Nothing OrElse Me.lastInRegion Is Nothing
+            Me._region = region
+            Me._firstInRegion = firstInRegion
+            Me._lastInRegion = lastInRegion
+            Me.Failed = Me._symbol Is Nothing OrElse Me._boundNode Is Nothing OrElse Me._firstInRegion Is Nothing OrElse Me._lastInRegion Is Nothing
 
-            If Not Me.Failed AndAlso Me.firstInRegion Is Me.lastInRegion Then
+            If Not Me.Failed AndAlso Me._firstInRegion Is Me._lastInRegion Then
 
-                Select Case Me.firstInRegion.Kind
+                Select Case Me._firstInRegion.Kind
                     Case BoundKind.NamespaceExpression,
                          BoundKind.TypeExpression
 
@@ -72,29 +72,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Construct context wiht Failed flag
+        ''' Construct context with Failed flag
         ''' </summary>
         Friend Sub New(compilation As VisualBasicCompilation)
-            Me.compilation = compilation
-            Me.symbol = Nothing
-            Me.boundNode = Nothing
-            Me.region = Nothing
-            Me.firstInRegion = Nothing
-            Me.lastInRegion = Nothing
+            Me._compilation = compilation
+            Me._symbol = Nothing
+            Me._boundNode = Nothing
+            Me._region = Nothing
+            Me._firstInRegion = Nothing
+            Me._lastInRegion = Nothing
             Me.Failed = True
         End Sub
 
         Friend ReadOnly Property AnalysisInfo As FlowAnalysisInfo
             Get
                 Debug.Assert(Not Me.Failed)
-                Return New FlowAnalysisInfo(Me.compilation, Me.symbol, Me.boundNode)
+                Return New FlowAnalysisInfo(Me._compilation, Me._symbol, Me._boundNode)
             End Get
         End Property
 
         Friend ReadOnly Property RegionInfo As FlowAnalysisRegionInfo
             Get
                 Debug.Assert(Not Me.Failed)
-                Return New FlowAnalysisRegionInfo(Me.firstInRegion, Me.lastInRegion, Me.region)
+                Return New FlowAnalysisRegionInfo(Me._firstInRegion, Me._lastInRegion, Me._region)
             End Get
         End Property
 

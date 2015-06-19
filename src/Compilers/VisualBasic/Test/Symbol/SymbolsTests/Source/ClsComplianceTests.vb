@@ -1548,7 +1548,7 @@ End Class
             comp.AssertNoDiagnostics()
 
             Dim accessor = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").GetMethod
-            Assert.True(accessor.MetadataName.StartsWith("_"))
+            Assert.True(accessor.MetadataName.StartsWith("_", StringComparison.Ordinal))
         End Sub
 
         <Fact>
@@ -2023,7 +2023,7 @@ Imports System
 
 <Assembly: CLSCompliant(True)>
                         ]]>
-                                                                                                                                               </file>
+                    </file>
                 </compilation>
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithRootNamespace("_A.B.C")).AssertTheseDiagnostics(<errors><![CDATA[
@@ -2713,7 +2713,7 @@ End Namespace
 
             Dim tree1 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 1), path:="a.vb")
             Dim tree2 = VisualBasicSyntaxTree.ParseText(String.Format(sourceTemplate, 2), path:="b.vb")
-            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, TestOptions.ReleaseDll)
+            Dim comp = CreateCompilationWithMscorlib({tree1, tree2}, options:=TestOptions.ReleaseDll)
 
             ' Two copies of each diagnostic - one from each file.
             comp.AssertTheseDiagnostics(<errors><![CDATA[

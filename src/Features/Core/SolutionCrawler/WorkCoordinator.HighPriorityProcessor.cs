@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal sealed partial class WorkCoordinatorRegistrationService
+    internal sealed partial class SolutionCrawlerRegistrationService
     {
         private sealed partial class WorkCoordinator
         {
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _lazyAnalyzers = lazyAnalyzers;
 
                         _running = SpecializedTasks.EmptyTask;
-                        _workItemQueue = new AsyncDocumentWorkItemQueue();
+                        _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
 
                         Start();
                     }
@@ -56,6 +56,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         get
                         {
                             return _running;
+                        }
+                    }
+
+                    public bool HasAnyWork
+                    {
+                        get
+                        {
+                            return _workItemQueue.HasAnyWork;
                         }
                     }
 
@@ -87,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         this.UpdateLastAccessTime();
                         var added = _workItemQueue.AddOrReplace(item);
 
-                        Logger.Log(FunctionId.WorkCoordinator_ActivieFileEnqueue, s_enqueueLogger, Environment.TickCount, item.DocumentId, !added);
+                        Logger.Log(FunctionId.WorkCoordinator_ActiveFileEnqueue, s_enqueueLogger, Environment.TickCount, item.DocumentId, !added);
                         SolutionCrawlerLogger.LogActiveFileEnqueue(_processor._logAggregator);
                     }
 
@@ -121,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // okay now we have work to do
                             await ProcessDocumentAsync(solution, this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -134,6 +142,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private bool GetNextWorkItem(out WorkItem workItem, out CancellationTokenSource documentCancellation)
                     {
+                        // GetNextWorkItem since it can't fail. we still return bool to confirm that this never fail.
                         var documentId = _processor._documentTracker.GetActiveDocument();
                         if (documentId != null)
                         {
@@ -143,7 +152,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             }
                         }
 
-                        return _workItemQueue.TryTakeAnyWork(preferableProjectId: null, workItem: out workItem, source: out documentCancellation);
+                        return _workItemQueue.TryTakeAnyWork(
+                            preferableProjectId: null,
+                            dependencyGraph: this._processor.DependencyGraph,
+                            workItem: out workItem,
+                            source: out documentCancellation);
                     }
 
                     private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationTokenSource source)
@@ -173,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }

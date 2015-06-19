@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
     // [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf)]
     internal partial class InvertIfCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
+        private static readonly Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
             new Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>>(SyntaxFacts.EqualityComparer)
                 {
                     { SyntaxKind.EqualsExpression, Tuple.Create(SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken) },
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 return;
             }
 
-            var root = await document.GetCSharpSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var ifStatement = root.FindToken(textSpan.Start).GetAncestor<IfStatementSyntax>();
             if (ifStatement == null || ifStatement.Else == null)
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         private async Task<Document> InvertIfAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
         {
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var ifNode = ifStatement;
 
             // In the case that the else clause is actually an else if clause, place the if

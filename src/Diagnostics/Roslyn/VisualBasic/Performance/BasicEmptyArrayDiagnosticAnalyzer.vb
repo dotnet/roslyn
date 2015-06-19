@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Performance
         ''' The kinds of array creation syntax kinds to be analyzed.  We care about ArrayCreationExpression (e.g. "New Byte(1) { }" or "New Byte() { 1, 2 }")
         ''' and CollectionInitializer (e.g. "Dim arr as Byte() = { }")
         ''' </summary>
-        Private Shared ReadOnly expressionKinds() As SyntaxKind = {SyntaxKind.ArrayCreationExpression, SyntaxKind.CollectionInitializer}
+        Private Shared ReadOnly s_expressionKinds() As SyntaxKind = {SyntaxKind.ArrayCreationExpression, SyntaxKind.CollectionInitializer}
 
         ''' <summary>Called once at session start to register actions in the analysis context.</summary>
         ''' <param name="context">The analysis context.</param>
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Performance
                         Report(ctx, If(isArrayCreationExpression, ctx.Node, initializerExpr))
                     End If
 
-                End Sub, expressionKinds)
+                End Sub, s_expressionKinds)
         End Sub
 
     End Class

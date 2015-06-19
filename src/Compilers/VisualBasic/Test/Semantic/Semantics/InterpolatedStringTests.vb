@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class InterpolatedStringTests
         Inherits BasicTestBase
 
-        Private ReadOnly FormattableStringSource As Xml.Linq.XElement =
+        Private ReadOnly _formattableStringSource As Xml.Linq.XElement =
 <file name="FormattableString.vb">
 Namespace System
 
@@ -64,7 +64,7 @@ End Namespace
 </file>
 
         <Fact>
-        Sub SimpleInterpolation()
+        Public Sub SimpleInterpolation()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -83,7 +83,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub InterpolationWithAlignment()
+        Public Sub InterpolationWithAlignment()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -102,7 +102,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub InterpolationWithAlignmentWithNonDecimalBaseAndOrTypeSuffix()
+        Public Sub InterpolationWithAlignmentWithNonDecimalBaseAndOrTypeSuffix()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -121,7 +121,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub InterpolationWithFormat()
+        Public Sub InterpolationWithFormat()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -140,7 +140,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub InterpolationWithFormatAndAlignment()
+        Public Sub InterpolationWithFormatAndAlignment()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -159,7 +159,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub TwoInterpolations()
+        Public Sub TwoInterpolations()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -178,7 +178,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub EscapeSequences()
+        Public Sub EscapeSequences()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -197,7 +197,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub EscapeSequencesWitNoInterpolations()
+        Public Sub EscapeSequencesWitNoInterpolations()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -215,7 +215,7 @@ End Module
         End Sub
 
         <Fact, WorkItem(1102783)>
-        Sub SmartQuotes()
+        Public Sub SmartQuotes()
 
             CompileAndVerify(
 <compilation>
@@ -243,7 +243,7 @@ End Module    </file>
         End Sub
 
         <Fact, WorkItem(1102800)>
-        Sub FullwidthDelimiters()
+        Public Sub FullwidthDelimiters()
 
             ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.
             ' We insert that curly brace doubled and because this is the escaping sequence understood by String.Format, that will be replaced by a single brace.
@@ -285,7 +285,7 @@ True")
         End Sub
 
         <Fact>
-        Sub NestedInterpolations()
+        Public Sub NestedInterpolations()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -303,10 +303,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub StringToCharArrayConversion()
+        Public Sub StringToCharArrayConversion()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -323,10 +323,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub UserDefinedConversions()
+        Public Sub UserDefinedConversions()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -349,10 +349,10 @@ End Class
         End Sub
 
         <Fact>
-        Sub TargetTyping()
+        Public Sub TargetTyping()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -385,10 +385,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub TargetTypingThroughArrayLiteralsAndLambdas()
+        Public Sub TargetTypingThroughArrayLiteralsAndLambdas()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -436,10 +436,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub TargetTypingExplicitConversions()
+        Public Sub TargetTypingExplicitConversions()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -466,10 +466,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub TargetTypingThroughArrayLiteralsAndLambdasWithNarrowingConversionFromString()
+        Public Sub TargetTypingThroughArrayLiteralsAndLambdasWithNarrowingConversionFromString()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -503,10 +503,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub InterpolatedStringConversionIsWidening()
+        Public Sub InterpolatedStringConversionIsWidening()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Option Strict On
 
@@ -525,10 +525,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub ParenthesizationPreventsTargetTyping()
+        Public Sub ParenthesizationPreventsTargetTyping()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -551,13 +551,13 @@ BC42322: Runtime errors might occur when converting 'String' to 'IFormattable'.
         End Sub
 
         <Fact>
-        Sub InvariantCulture()
+        Public Sub InvariantCulture()
 
             Dim previousCulture = Threading.Thread.CurrentThread.CurrentCulture
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -587,11 +587,11 @@ End Module
         End Sub
 
         <Fact>
-        Sub OverloadResolutionWithStringAndIFormattablePrefersString()
+        Public Sub OverloadResolutionWithStringAndIFormattablePrefersString()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -615,11 +615,11 @@ End Module
         End Sub
 
         <Fact>
-        Sub OverloadResolutionWithStringAndFormattableStringPrefersString()
+        Public Sub OverloadResolutionWithStringAndFormattableStringPrefersString()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -643,11 +643,11 @@ End Module
         End Sub
 
         <Fact>
-        Sub OverloadResolutionWithIFormattableAndFormattableStringPrefersFormattableString()
+        Public Sub OverloadResolutionWithIFormattableAndFormattableStringPrefersFormattableString()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -671,11 +671,11 @@ End Module
         End Sub
 
         <Fact>
-        Sub OverloadResolutionWithStringIFormattableAndFormattableStringPrefersString()
+        Public Sub OverloadResolutionWithStringIFormattableAndFormattableStringPrefersString()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -703,11 +703,11 @@ End Module
         End Sub
 
         <Fact>
-        Sub OverloadResolutionWithFuncOfStringAndFuncOfFormattableStringPrefersFuncOfString()
+        Public Sub OverloadResolutionWithFuncOfStringAndFuncOfFormattableStringPrefersFuncOfString()
 
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -731,10 +731,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub TypeInferredAsString()
+        Public Sub TypeInferredAsString()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -777,10 +777,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub DominantTypeWithNothingLiteralInferredAsString()
+        Public Sub DominantTypeWithNothingLiteralInferredAsString()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -829,10 +829,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub DominantTypeWithIFormattableCannotBeInferred()
+        Public Sub DominantTypeWithIFormattableCannotBeInferred()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -886,10 +886,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub DominantTypeWithFormattableStringCannotBeInferred()
+        Public Sub DominantTypeWithFormattableStringCannotBeInferred()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -943,10 +943,10 @@ End Module
         End Sub
 
         <Fact>
-        Sub DominantTypeWithIFormattableAndFormattableStringCannotBeInferred()
+        Public Sub DominantTypeWithIFormattableAndFormattableStringCannotBeInferred()
             Dim verifier = CompileAndVerify(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -1010,11 +1010,11 @@ End Module
         End Sub
 
         <Fact>
-        Sub ERR_InterpolationAlignmentOutOfRange()
+        Public Sub ERR_InterpolationAlignmentOutOfRange()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -1047,11 +1047,11 @@ BC30036: Overflow.
         End Sub
 
         <Fact>
-        Sub Error_AmbiguousTypeArgumentInferenceWithIFormattable()
+        Public Sub Error_AmbiguousTypeArgumentInferenceWithIFormattable()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -1080,11 +1080,11 @@ BC36651: Data type(s) of the type parameter(s) in method 'Public Sub M(Of T)(a A
         End Sub
 
         <Fact>
-        Sub Error_AmbiguousTypeArgumentInferenceWithFormattableString()
+        Public Sub Error_AmbiguousTypeArgumentInferenceWithFormattableString()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -1113,11 +1113,11 @@ BC36657: Data type(s) of the type parameter(s) in method 'Public Sub M(Of T)(a A
         End Sub
 
         <Fact>
-        Sub Error_InterpolationExpressionNotAValue()
+        Public Sub Error_InterpolationExpressionNotAValue()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
-    <%= FormattableStringSource %>
+    <%= _formattableStringSource %>
     <file name="a.vb">
 Imports System
 Imports System.Console
@@ -1140,7 +1140,158 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact>
-        Sub Lowering_MissingFormattableStringDoesntProduceErrorIfFactoryMethodReturnsTypeConvertableToIFormattable()
+        Public Sub FlowAnalysis_Warning_InterpoledVariableUsedBeforeBeingAssigned()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim v As Object
+
+        Write($"{v}")
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertTheseCompileDiagnostics(compilation,
+<expected>
+BC42104: Variable 'v' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Write($"{v}")
+                 ~
+</expected>)
+
+        End Sub
+
+        <Fact>
+        Public Sub FlowAnalysis_InterpolatedLocalConstNotConsideredUnused()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Const v As Object = Nothing
+
+        Write($"{v}")
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertNoDiagnostics(compilation)
+
+        End Sub
+
+        <Fact>
+        Public Sub FlowAnalysis_AnalyzeDataFlowReportsCorrectResultsForVariablesUsedInInterpolations()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim v As Object = Nothing
+
+        WriteLine($"{v}")
+
+        WriteLine(v)
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertNoDiagnostics(compilation)
+
+            Dim mainTree = Aggregate t In compilation.SyntaxTrees Where t.FilePath = "a.vb" Into [Single]()
+            Dim root = mainTree.GetRoot()
+            Dim sm = compilation.GetSemanticModel(mainTree)
+
+            Dim vSymbol = CType(sm.GetDeclaredSymbol(root.DescendantNodes().OfType(Of ModifiedIdentifierSyntax).Single()), ILocalSymbol)
+
+            Dim writeLineCall = root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First()
+            Assert.Equal("WriteLine($""{v}"")", writeLineCall.ToString())
+
+            Dim analysis = sm.AnalyzeDataFlow(writeLineCall)
+
+            Assert.True(analysis.Succeeded)
+            Assert.DoesNotContain(vSymbol, analysis.AlwaysAssigned)
+            Assert.DoesNotContain(vSymbol, analysis.Captured)
+            Assert.Contains(vSymbol, analysis.DataFlowsIn)
+            Assert.DoesNotContain(vSymbol, analysis.DataFlowsOut)
+            Assert.Contains(vSymbol, analysis.ReadInside)
+            Assert.Contains(vSymbol, analysis.ReadOutside)
+            Assert.DoesNotContain(vSymbol, analysis.UnsafeAddressTaken)
+            Assert.DoesNotContain(vSymbol, analysis.VariablesDeclared)
+            Assert.DoesNotContain(vSymbol, analysis.WrittenInside)
+            Assert.Contains(vSymbol, analysis.WrittenOutside)
+
+        End Sub
+
+        <Fact>
+        Public Sub FlowAnalysis_AnalyzeDataFlowReportsCorrectResultsForVariablesCapturedInInterpolations()
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+<compilation>
+    <%= _formattableStringSource %>
+    <file name="a.vb">
+Imports System
+Imports System.Console
+
+Module Program
+    Sub Main()
+        Dim v As Object = Nothing
+
+        WriteLine($"{(Function() v)()}")
+
+        WriteLine(v)
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            AssertNoDiagnostics(compilation)
+
+            Dim mainTree = Aggregate t In compilation.SyntaxTrees Where t.FilePath = "a.vb" Into [Single]()
+            Dim root = mainTree.GetRoot()
+            Dim sm = compilation.GetSemanticModel(mainTree)
+
+            Dim vSymbol = CType(sm.GetDeclaredSymbol(root.DescendantNodes().OfType(Of ModifiedIdentifierSyntax).Single()), ILocalSymbol)
+
+            Dim writeLineCall = root.DescendantNodes().OfType(Of ExpressionStatementSyntax).First()
+            Assert.Equal("WriteLine($""{(Function() v)()}"")", writeLineCall.ToString())
+
+            Dim analysis = sm.AnalyzeDataFlow(writeLineCall)
+
+            Assert.True(analysis.Succeeded)
+            Assert.DoesNotContain(vSymbol, analysis.AlwaysAssigned)
+            Assert.Contains(vSymbol, analysis.Captured)
+            Assert.Contains(vSymbol, analysis.DataFlowsIn)
+            Assert.DoesNotContain(vSymbol, analysis.DataFlowsOut)
+            Assert.Contains(vSymbol, analysis.ReadInside)
+            Assert.Contains(vSymbol, analysis.ReadOutside)
+            Assert.DoesNotContain(vSymbol, analysis.UnsafeAddressTaken)
+            Assert.DoesNotContain(vSymbol, analysis.VariablesDeclared)
+            Assert.DoesNotContain(vSymbol, analysis.WrittenInside)
+            Assert.Contains(vSymbol, analysis.WrittenOutside)
+
+        End Sub
+
+        <Fact>
+        Public Sub Lowering_MissingFormattableStringDoesntProduceErrorIfFactoryMethodReturnsTypeConvertableToIFormattable()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -1172,7 +1323,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub Lowering_CallsMostOptimalStringFormatOverload()
+        Public Sub Lowering_CallsMostOptimalStringFormatOverload()
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="FormattableString.vb">
@@ -1237,7 +1388,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub Lowering_DoesNotCallFactoryMethodWithParamArrayInNormalForm()
+        Public Sub Lowering_DoesNotCallFactoryMethodWithParamArrayInNormalForm()
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="FormattableString.vb">
@@ -1282,7 +1433,7 @@ End Module
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsMissing()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsMissing()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1356,7 +1507,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsSub()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsSub()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1437,7 +1588,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsNotAMethod()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsNotAMethod()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1518,7 +1669,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_CreateMethodIsShadowedByField()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateMethodIsShadowedByField()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1604,7 +1755,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsInAccessible()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateIsInAccessible()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1686,7 +1837,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_CreateReturnIsNotConvertable()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_CreateReturnIsNotConvertible()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>
@@ -1768,7 +1919,7 @@ BC37251: There were one or more errors emitting a call to FormattableStringFacto
         End Sub
 
         <Fact>
-        Sub Lowering_ERR_InterpolatedStringFactoryError_ArgArrayIsNotConvertable()
+        Public Sub Lowering_ERR_InterpolatedStringFactoryError_ArgArrayIsNotConvertible()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>

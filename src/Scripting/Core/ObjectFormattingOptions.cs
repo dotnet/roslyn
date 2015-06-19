@@ -9,15 +9,15 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         public static readonly ObjectFormattingOptions Default = new ObjectFormattingOptions();
 
-        public bool QuoteStrings { get; private set; }
-        public MemberDisplayFormat MemberFormat { get; private set; }
-        public int MaxLineLength { get; private set; }
-        public int MaxOutputLength { get; private set; }
-        public bool UseHexadecimalNumbers { get; private set; }
-        public string MemberIndentation { get; private set; }
-        public string Ellipsis { get; private set; }
-        public string NewLine { get; private set; }
-        public bool IncludeCodePoints { get; private set; }
+        public bool QuoteStrings { get; }
+        public MemberDisplayFormat MemberFormat { get; }
+        public int MaxLineLength { get; }
+        public int MaxOutputLength { get; }
+        public bool UseHexadecimalNumbers { get; }
+        public string MemberIndentation { get; }
+        public string Ellipsis { get; }
+        public string NewLine { get; }
+        public bool IncludeCodePoints { get; }
 
         public ObjectFormattingOptions(
             MemberDisplayFormat memberFormat = MemberDisplayFormat.NoMembers,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (!memberFormat.IsValid())
             {
-                throw new ArgumentOutOfRangeException("memberFormat");
+                throw new ArgumentOutOfRangeException(nameof(memberFormat));
             }
 
             this.MemberFormat = memberFormat;

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -473,6 +474,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
+            // If we are a conditional access expression:
+            // case (1) : obj?.Method(), obj1.obj2?.Property
+            // case (2) : obj?.GetAnotherObj()?.Length, obj?.AnotherObj?.Length
+            // in case (1), the entire expression forms the conditional access expression, which can be replaced with an LValue.
+            // in case (2), the nested conditional access expression is ".GetAnotherObj()?.Length" or ".AnotherObj()?.Length"
+            // essentially, the first expression (before the operator) in a nested conditional access expression 
+            // is some form of member binding expression and they cannot be replaced with an LValue.
+            if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
+            {
+                return expression.Parent.Kind() != SyntaxKind.ConditionalAccessExpression;
+            }
+
             switch (expression.Parent.Kind())
             {
                 case SyntaxKind.InvocationExpression:
@@ -493,6 +506,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
 
+                // If the parent is a conditional access expression, we could introduce an LValue
+                // for the given expression, unless it is itself a MemberBindingExpression or starts with one.
+                // Case (1) : The WhenNotNull clause always starts with a memberbindingexpression.
+                //              expression '.Method()' in a?.Method()
+                // Case (2) : The Expression clause always starts with a memberbindingexpression if 
+                // the grandparent is a conditional access expression.
+                //              expression '.Method' in a?.Method()?.Length
+                // Case (3) : The child Conditional access expression always starts with a memberbindingexpression if
+                // the parent is a conditional access expression. This case is already covered before the parent kind switch
+                case SyntaxKind.ConditionalAccessExpression:
+                    var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
+                    return expression != parentConditionalAccessExpression.WhenNotNull && 
+                            !parentConditionalAccessExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression);
+
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                     // Can't introduce a variable for the type portion of an is/as check.
@@ -502,7 +529,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.ArrayInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
-                case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.Argument:
                 case SyntaxKind.AttributeArgument:
                 case SyntaxKind.AnonymousObjectMemberDeclarator:
@@ -761,7 +787,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            replacementNode = memberAccess.Name.WithLeadingTrivia(memberAccess.GetLeadingTrivia()).WithTrailingTrivia(memberAccess.GetTrailingTrivia());
+            replacementNode = memberAccess.Name
+                .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess())
+                .WithTrailingTrivia(memberAccess.GetTrailingTrivia());
             issueSpan = memberAccess.Expression.Span;
 
             if (replacementNode == null)
@@ -770,6 +798,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
+        }
+
+        private static SyntaxTriviaList GetLeadingTriviaForSimplifiedMemberAccess(this MemberAccessExpressionSyntax memberAccess)
+        {
+            // We want to include any user-typed trivia that may be present between the 'Expression', 'OperatorToken' and 'Identifier' of the MemberAccessExpression.
+            // However, we don't want to include any elastic trivia that may have been introduced by the expander in these locations. This is to avoid triggering
+            // aggressive formatting. Otherwise, formatter will see this elastic trivia added by the expander and use that as a cue to introduce unnecessary blank lines
+            // etc. around the user's original code.
+            return memberAccess.GetLeadingTrivia()
+                .AddRange(memberAccess.Expression.GetTrailingTrivia().WithoutElasticTrivia())
+                .AddRange(memberAccess.OperatorToken.LeadingTrivia.WithoutElasticTrivia())
+                .AddRange(memberAccess.OperatorToken.TrailingTrivia.WithoutElasticTrivia())
+                .AddRange(memberAccess.Name.GetLeadingTrivia().WithoutElasticTrivia());
+        }
+
+        private static IEnumerable<SyntaxTrivia> WithoutElasticTrivia(this IEnumerable<SyntaxTrivia> list)
+        {
+            return list.Where(t => !t.IsElastic());
         }
 
         private static bool InsideCrefReference(ExpressionSyntax expr)
@@ -1299,8 +1345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
-                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel))
+                        // Don't simplify to predefined type if name is part of a QualifiedName.
+                        // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
+                        // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
+                        if (!name.Parent.IsKind(SyntaxKind.QualifiedName) &&
+                            (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
+                             PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel)))
                         {
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)
@@ -1331,9 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
                         var type = (INamedTypeSymbol)symbol;
-                        if (!type.IsUnboundGenericType && // Don't rewrite unbound generic type "Nullable<>"
-                            type.IsNullable() &&
-                            aliasInfo == null)
+                        if (aliasInfo == null && CanSimplifyNullable(type, name))
                         {
                             GenericNameSyntax genericName;
                             if (name.Kind() == SyntaxKind.QualifiedName)
@@ -1408,6 +1456,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
 
+        private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name)
+        {
+            if (!type.IsNullable())
+            {
+                return false;
+            }
+
+            if (type.IsUnboundGenericType)
+            {
+                // Don't simplify unbound generic type "Nullable<>".
+                return false;
+            }
+
+            if (!InsideCrefReference(name))
+            {
+                // Nullable<T> can always be simplified to T? outside crefs.
+                return true;
+            }
+
+            // Inside crefs, if the T in this Nullable{T} is being declared right here
+            // then this Nullable{T} is not a constructed generic type and we should
+            // not offer to simplify this to T?.
+            //
+            // For example, we should not offer the simplification in the following cases where
+            // T does not bind to an existing type / type parameter in the user's code.
+            // - <see cref="Nullable{T}"/>
+            // - <see cref="System.Nullable{T}.Value"/>
+            //
+            // And we should offer the simplification in the following cases where SomeType and
+            // SomeMethod bind to a type and method declared elsewhere in the users code.
+            // - <see cref="SomeType.SomeMethod(Nullable{SomeType})"/>
+
+            var argument = type.TypeArguments.SingleOrDefault();
+            if (argument == null || argument.IsErrorType())
+            {
+                return false;
+            }
+
+            var argumentDecl = argument.DeclaringSyntaxReferences.FirstOrDefault();
+            if (argumentDecl == null)
+            {
+                // The type argument is a type from metadata - so this is a constructed generic nullable type that can be simplified (e.g. Nullable(Of Integer)).
+                return true;
+            }
+
+            return !name.Span.Contains(argumentDecl.Span);
+        }
+
         private static bool CanReplaceWithPredefinedTypeKeywordInContext(NameSyntax name, SemanticModel semanticModel, out TypeSyntax replacementNode, ref TextSpan issueSpan, SyntaxKind keywordKind, CancellationToken cancellationToken)
         {
             replacementNode = CreatePredefinedTypeSyntax(name, keywordKind);
@@ -1441,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     const string AttributeName = "Attribute";
 
                     // an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation
-                    if (identifierToken.ValueText != AttributeName && identifierToken.ValueText.EndsWith(AttributeName) && !identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
+                    if (identifierToken.ValueText != AttributeName && identifierToken.ValueText.EndsWith(AttributeName, StringComparison.Ordinal) && !identifierToken.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
                     {
                         // weird. the semantic model is able to bind attribute syntax like "[as()]" although it's not valid code.
                         // so we need another check for keywords manually.
@@ -2230,6 +2326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             switch (expression.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.ConditionalAccessExpression:
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ElementAccessExpression:
                 case SyntaxKind.PostIncrementExpression:

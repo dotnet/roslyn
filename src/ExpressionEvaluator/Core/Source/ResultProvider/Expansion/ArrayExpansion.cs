@@ -1,21 +1,23 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.Debugger.Evaluation;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Evaluation;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
+using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class ArrayExpansion : Expansion
     {
+        private readonly TypeAndCustomInfo _elementTypeAndInfo;
         private readonly ReadOnlyCollection<int> _divisors;
         private readonly ReadOnlyCollection<int> _lowerBounds;
         private readonly int _count;
 
-        internal static ArrayExpansion CreateExpansion(ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds)
+        internal static ArrayExpansion CreateExpansion(TypeAndCustomInfo elementTypeAndInfo, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds)
         {
+            Debug.Assert(elementTypeAndInfo.Type != null);
             Debug.Assert(sizes != null);
             Debug.Assert(lowerBounds != null);
             Debug.Assert(sizes.Count > 0);
@@ -26,12 +28,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 count *= size;
             }
-            return (count > 0) ? new ArrayExpansion(sizes, lowerBounds, count) : null;
+            return (count > 0) ? new ArrayExpansion(elementTypeAndInfo, sizes, lowerBounds, count) : null;
         }
 
-        private ArrayExpansion(ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, int count)
+        private ArrayExpansion(TypeAndCustomInfo elementTypeAndInfo, ReadOnlyCollection<int> sizes, ReadOnlyCollection<int> lowerBounds, int count)
         {
             Debug.Assert(count > 0);
+            _elementTypeAndInfo = elementTypeAndInfo;
             _divisors = CalculateDivisors(sizes);
             _lowerBounds = lowerBounds;
             _count = count;
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index += _count;
         }
 
-        private DkmEvaluationResult GetRow(
+        private EvalResultDataItem GetRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue value,
@@ -71,14 +74,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var indices = GetIndices(index);
             var formatter = resultProvider.Formatter;
             var name = formatter.GetArrayIndexExpression(indices);
-            var elementType = value.Type.ElementType;
-            var element = value.GetArrayElement(indices);
+            var element = value.GetArrayElement(indices, inspectionContext);
             var fullName = GetFullName(parent, name, formatter);
-            var dataItem = resultProvider.CreateDataItem(
+            return resultProvider.CreateDataItem(
                 inspectionContext,
                 name,
-                typeDeclaringMember: null,
-                declaredType: elementType.GetLmrType(),
+                typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                declaredTypeAndInfo: _elementTypeAndInfo,
                 value: element,
                 parent: parent,
                 expansionFlags: ExpansionFlags.IncludeBaseMembers,
@@ -88,7 +90,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 category: DkmEvaluationResultCategory.Other,
                 flags: element.EvalFlags,
                 evalFlags: inspectionContext.EvaluationFlags);
-            return resultProvider.GetResult(dataItem, element.Type, elementType, parent);
         }
 
         private int[] GetIndices(int index)
@@ -134,11 +135,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 parentFullName = $"({parentFullName})";
             }
             var parentRuntimeType = parent.Value.Type.GetLmrType();
-            if (!parent.DeclaredType.Equals(parentRuntimeType))
+            if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType))
             {
                 parentFullName = formatter.GetCastExpression(
                     parentFullName,
-                    formatter.GetTypeName(parentRuntimeType, escapeKeywordIdentifiers: true),
+                    formatter.GetTypeName(new TypeAndCustomInfo(parentRuntimeType), escapeKeywordIdentifiers: true),
                     parenthesizeEntireExpression: true);
             }
             return parentFullName + name;

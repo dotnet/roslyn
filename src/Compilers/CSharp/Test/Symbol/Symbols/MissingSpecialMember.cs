@@ -551,7 +551,6 @@ namespace System
             {
                 switch (wkt)
                 {
-                    case WellKnownType.My_InternalXmlHelper:
                     case WellKnownType.Microsoft_VisualBasic_Embedded:
                     case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators:
                         // Not applicable in C#.
@@ -592,7 +591,6 @@ namespace System
                     case WellKnownMember.Count:
                         // Not a real value;
                         continue;
-                    case WellKnownMember.My_InternalXmlHelper__Value:
                     case WellKnownMember.Microsoft_VisualBasic_Embedded__ctor:
                     case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean:
                         // C# can't embed VB core.

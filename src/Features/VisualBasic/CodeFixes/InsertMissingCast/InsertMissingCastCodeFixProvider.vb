@@ -12,10 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
         Inherits CodeFixProvider
 
         Friend Const BC30512 As String = "BC30512" ' Option Strict On disallows implicit conversions from '{0}' to '{1}'.
+        Friend Const BC42016 As String = "BC42016" ' Implicit conversions from '{0}' to '{1}'.
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30512)
+                Return ImmutableArray.Create(BC30512, BC42016)
             End Get
         End Property
 
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.InsertMissingCast
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim node = TryCast(root.FindNode(span, getInnermostNodeForTie:=True), ExpressionSyntax)
 
             If node Is Nothing Then

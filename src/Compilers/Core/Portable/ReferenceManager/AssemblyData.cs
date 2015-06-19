@@ -58,7 +58,11 @@ namespace Microsoft.CodeAnalysis
 
             public abstract bool DeclaresTheObjectClass { get; }
 
-            public abstract bool GetWinMdVersion(out int majorVersion, out int minorVersion);
+            /// <summary>
+            /// Get the source compilation backing this assembly, if one exists.
+            /// Returns null otherwise.
+            /// </summary>
+            public abstract Compilation SourceCompilation { get; }
         }
     }
 }

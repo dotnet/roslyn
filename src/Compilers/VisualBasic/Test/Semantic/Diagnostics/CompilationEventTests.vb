@@ -6,6 +6,7 @@ Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -21,9 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Next
 
             Dim actual = ArrayBuilder(Of CompilationEvent).GetInstance()
-            While queue.Count > 0 OrElse Not queue.IsCompleted
+            While queue.Count > 0
                 Dim te = queue.DequeueAsync(CancellationToken.None)
-                Assert.True(te.IsCompleted)
                 actual.Add(te.Result)
             End While
             Dim unexpected = False
@@ -116,6 +116,40 @@ End Namespace
                 "SymbolDeclaredCompilationEvent(N Sub C(Of T1).N(Of T2)(y As Integer = 12) @ TestQueuedSymbols.vb: (8,8)-(8,56))",
                 "CompilationUnitCompletedEvent(TestQueuedSymbols.vb)",
                 "CompilationCompletedEvent")
+            Assert.True(q.IsCompleted)
+        End Sub
+
+        <Fact>
+        <WorkItem(1958, "https://github.com/dotnet/roslyn/issues/1958")>
+        Public Sub TestMyEvents()
+            Dim source =
+    <compilation>
+        <file name="TestMyEvents.vb"><![CDATA[
+Module Module1
+    Sub Main()
+        System.Console.WriteLine(My.Computer.Clock.LocalTime)
+    End Sub
+End Module
+]]>
+        </file>
+    </compilation>
+            Dim q = New AsyncQueue(Of CompilationEvent)()
+            Dim defines = PredefinedPreprocessorSymbols.AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication)
+            defines = defines.Add(KeyValuePair.Create("_MyType", CObj("Console")))
+            Dim parseOptions = New VisualBasicParseOptions(preprocessorSymbols:=defines)
+            Dim compilationOptions = TestOptions.ReleaseExe.WithParseOptions(parseOptions)
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, options:=compilationOptions).WithEventQueue(q)
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            compilation.VerifyDiagnostics()
+            VerifyEvents(q,
+                "CompilationStartedEvent",
+                "SymbolDeclaredCompilationEvent(<empty>  @ TestMyEvents.vb: (0,0)-(5,0))",
+                "SymbolDeclaredCompilationEvent(Module1 Module1 @ TestMyEvents.vb: (0,0)-(4,10))",
+                "SymbolDeclaredCompilationEvent(Main Sub Module1.Main() @ TestMyEvents.vb: (1,4)-(1,14))",
+                "CompilationUnitCompletedEvent(TestMyEvents.vb)",
+                "CompilationCompletedEvent")
+            Assert.True(q.IsCompleted)
         End Sub
     End Class
 

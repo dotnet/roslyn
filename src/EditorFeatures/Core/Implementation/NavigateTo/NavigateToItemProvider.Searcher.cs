@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     result.SecondarySort,
                     result,
                     result.MatchKind,
-                    result.IsCaseSensitive, 
+                    result.IsCaseSensitive,
                     _displayFactory);
                 _callback.AddItem(navigateToItem);
             }

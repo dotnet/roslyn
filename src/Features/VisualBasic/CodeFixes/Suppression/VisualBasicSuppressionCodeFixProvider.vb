@@ -20,10 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, True, needsTrailingEndOfLine)
         End Function
 
-        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, needsLeadinEndOfLine As Boolean) As SyntaxTriviaList
+        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, needsLeadingEndOfLine As Boolean) As SyntaxTriviaList
             Dim errorCodes = GetErrorCodes(diagnostic)
             Dim pragmaDirective = SyntaxFactory.DisableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, needsLeadinEndOfLine, True)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, diagnostic, needsLeadingEndOfLine, True)
         End Function
 
         Private Shared Function GetErrorCodes(diagnostic As Diagnostic) As SeparatedSyntaxList(Of IdentifierNameSyntax)
@@ -36,8 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
 
         Private Function CreatePragmaDirectiveTrivia(enableOrDisablePragmaDirective As StructuredTriviaSyntax, diagnostic As Diagnostic, needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
             Dim pragmaDirectiveTrivia = SyntaxFactory.Trivia(enableOrDisablePragmaDirective.WithAdditionalAnnotations(Formatter.Annotation))
-            Dim endOfLineTrivia = SyntaxFactory.EndOfLine("
-")
+            Dim endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
             Dim triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia)
 
             Dim title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture)

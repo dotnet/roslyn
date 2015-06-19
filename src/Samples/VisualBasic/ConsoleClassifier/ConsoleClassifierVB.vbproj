@@ -18,7 +18,7 @@
     <AssemblyName>ConsoleClassifier</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>Console</MyType>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <ScrubbedSamplePath>VisualBasic\ConsoleClassifier</ScrubbedSamplePath>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
   </PropertyGroup>
@@ -51,9 +51,9 @@
       <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -65,7 +65,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DocumentationFile>ConsoleClassifier.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <DefineConstants>_MyType="Empty"</DefineConstants>
+    <DefineConstants>$(DefineConstants),_MyType="Empty"</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>

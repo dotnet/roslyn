@@ -566,7 +566,7 @@ End Class
 
 #Region "Name tests"
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Name1()
+        Public Sub Name1()
             Dim code =
 <Code>
 Class C
@@ -645,10 +645,140 @@ End Class
 
 #End Region
 
+#Region "AddAttribute tests"
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_SimpleEvent()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Event $$E()
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Public Event E()
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_CustomEvent()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    Public Custom Event $$E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    &lt;Serializable()&gt;
+    Public Custom Event E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_SimpleEvent_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Public Event $$E()
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;CLSCompliant(true)&gt;
+    Public Event E()
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_CustomEvent_BelowDocComment()
+            Dim code =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Public Custom Event $$E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    &lt;CLSCompliant(true)&gt;
+    Public Custom Event E As EventHandler
+        AddHandler(ByVal value As EventHandler)
+        End AddHandler
+        RemoveHandler(ByVal value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+        End RaiseEvent
+     End Event
+End Class
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
+#End Region
+
 #Region "Set IsShared tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared1()
+        Public Sub SetIsShared1()
             Dim code =
 <Code>
 Class C
@@ -667,7 +797,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared2()
+        Public Sub SetIsShared2()
             Dim code =
 <Code>
 Class C
@@ -686,7 +816,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared3()
+        Public Sub SetIsShared3()
             Dim code =
 <Code>
 Class C
@@ -705,7 +835,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared4()
+        Public Sub SetIsShared4()
             Dim code =
 <Code>
 Class C
@@ -724,7 +854,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared5()
+        Public Sub SetIsShared5()
             Dim code =
 <Code>
 Class C
@@ -767,7 +897,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared6()
+        Public Sub SetIsShared6()
             Dim code =
 <Code>
 Class C
@@ -810,7 +940,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared7()
+        Public Sub SetIsShared7()
             Dim code =
 <Code>
 Class C
@@ -853,7 +983,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetIsShared8()
+        Public Sub SetIsShared8()
             Dim code =
 <Code>
 Class C
@@ -900,7 +1030,7 @@ End Class
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Class C

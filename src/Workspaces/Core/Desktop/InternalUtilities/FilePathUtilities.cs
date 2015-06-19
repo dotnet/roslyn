@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
             return fullPath;
         }
 
-        private static char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private static readonly char[] s_pathChars = new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
         public static string GetRelativePath(string baseDirectory, string fullPath)
         {
@@ -73,7 +73,7 @@ namespace Roslyn.Utilities
                 string directorySeparator = Path.DirectorySeparatorChar.ToString();
                 for (int i = 0; i < remainingParts; i++)
                 {
-                    relativePath += relativePath + ".." + directorySeparator;
+                    relativePath = relativePath + ".." + directorySeparator;
                 }
             }
 
@@ -102,6 +102,21 @@ namespace Roslyn.Utilities
         public static bool PathsEqual(string path1, string path2)
         {
             return string.Compare(path1, path2, StringComparison.OrdinalIgnoreCase) == 0;
+        }
+
+        public static bool TryCombine(string path1, string path2, out string result)
+        {
+            try
+            {
+                // don't throw exception when either path1 or path2 contains illegal path char
+                result = Path.Combine(path1, path2);
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
         }
     }
 }

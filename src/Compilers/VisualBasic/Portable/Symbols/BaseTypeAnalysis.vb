@@ -138,14 +138,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function GetInheritanceDetails(chain As ConsList(Of DependencyDesc)) As DiagnosticInfo
-            Return GetInheritanceOrDependanceDetails(chain, ERRID.ERR_InheritsFrom2)
+            Return GetInheritanceOrDependenceDetails(chain, ERRID.ERR_InheritsFrom2)
         End Function
 
         Private Function GetBaseTypeReferenceDetails(chain As ConsList(Of DependencyDesc)) As DiagnosticInfo
-            Return GetInheritanceOrDependanceDetails(chain, ERRID.ERR_BaseTypeReferences2)
+            Return GetInheritanceOrDependenceDetails(chain, ERRID.ERR_BaseTypeReferences2)
         End Function
 
-        Private Function GetInheritanceOrDependanceDetails(chain As ConsList(Of DependencyDesc), inheritsOrDepends As ERRID) As DiagnosticInfo
+        Private Function GetInheritanceOrDependenceDetails(chain As ConsList(Of DependencyDesc), inheritsOrDepends As ERRID) As DiagnosticInfo
             Dim details = ArrayBuilder(Of DiagnosticInfo).GetInstance()
 
             Dim dependent As DependencyDesc = chain.Head

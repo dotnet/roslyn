@@ -142,16 +142,16 @@
     <value>{0} Keyword</value>
   </data>
   <data name="EncapsulateFieldUsages" xml:space="preserve">
-    <value>Encapsulate field: '{0}' (usages reference field)</value>
+    <value>Encapsulate field: '{0}' (and use property)</value>
   </data>
   <data name="EncapsulateField" xml:space="preserve">
-    <value>Encapsulate field: '{0}'</value>
+    <value>Encapsulate field: '{0}' (but still use field)</value>
   </data>
   <data name="EncapsulateFieldsUsages" xml:space="preserve">
-    <value>Encapsulate fields (usages reference field)</value>
+    <value>Encapsulate fields (and use property)</value>
   </data>
   <data name="EncapsulateFields" xml:space="preserve">
-    <value>Encapsulate fields</value>
+    <value>Encapsulate fields (but still use field)</value>
   </data>
   <data name="CouldNotExtractInterfaceSelection" xml:space="preserve">
     <value>Could not extract interface: The selection is not inside a class/interface/struct.</value>
@@ -177,7 +177,7 @@
   <data name="TheAddressOfAVariableIsUsed" xml:space="preserve">
     <value>The address of a variable is used inside the selected code.</value>
   </data>
-  <data name="AssingingToReadonlyFields" xml:space="preserve">
+  <data name="AssigningToReadonlyFields" xml:space="preserve">
     <value>Assigning to readonly fields must be done in a constructor : [{0}].</value>
   </data>
   <data name="GeneratedCodeIsOverlapping" xml:space="preserve">
@@ -369,27 +369,6 @@
   <data name="ChangeTo" xml:space="preserve">
     <value>Change '{0}' to '{1}.{2}'.</value>
   </data>
-  <data name="EditingOrDeletingBeingExecuted" xml:space="preserve">
-    <value>Editing or deleting an active statement which is being executed will prevent the debug session from continuing.</value>
-  </data>
-  <data name="EditingOrDeletingNotAtTheTop" xml:space="preserve">
-    <value>Editing or deleting an active statement which is not at the top of the callstack will prevent the debug session from continuing.</value>
-  </data>
-  <data name="EditingOrDeletingConstructorDeclaration" xml:space="preserve">
-    <value>Editing or deleting an active statement on a constructor declaration will prevent the debug session from continuing.</value>
-  </data>
-  <data name="EditingOrDeletingFieldInitializer" xml:space="preserve">
-    <value>Editing or deleting an active statement in a field initializer will prevent the debug session from continuing.</value>
-  </data>
-  <data name="AnActiveStatementMarkerHasBeenDeleted" xml:space="preserve">
-    <value>An active statement marker has been deleted. You must revert your changes to continue or restart the debugging session.</value>
-  </data>
-  <data name="AnActiveStatementMarkerHasBeenDeletedAnd" xml:space="preserve">
-    <value>An active statement marker has been deleted and cannot be remapped in the current source file. You must revert your changes to continue or restart the debugging session.</value>
-  </data>
-  <data name="EditingOrCommentingOut" xml:space="preserve">
-    <value>Editing or commenting out an active statement inside a readonly section will prevent the debug session from continuing.</value>
-  </data>
   <data name="UpdatingAWillPrevent" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
   </data>
@@ -398,6 +377,42 @@
   </data>
   <data name="ChangingVisibilityOfConstructor" xml:space="preserve">
     <value>Changing visibility of a constructor will prevent the debug session from continuing.</value>
+  </data>
+  <data name="CapturingVariable" xml:space="preserve">
+    <value>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</value>
+  </data>
+  <data name="NotCapturingVariable" xml:space="preserve">
+    <value>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeletingCapturedVariable" xml:space="preserve">
+    <value>Deleting captured variable '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingCapturedVariableType" xml:space="preserve">
+    <value>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingLambdaParameters" xml:space="preserve">
+    <value>Changing the parameters of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingLambdaReturnType" xml:space="preserve">
+    <value>Changing the return type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingQueryLambdaType" xml:space="preserve">
+    <value>Changing the type of '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="ChangingCapturedVariableScope" xml:space="preserve">
+    <value>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="AccessingCapturedVariableInLambda" xml:space="preserve">
+    <value>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</value>
+  </data>
+  <data name="NotAccessingCapturedVariableInLambda" xml:space="preserve">
+    <value>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</value>
+  </data>
+  <data name="InsertLambdaWithMultiScopeCapture" xml:space="preserve">
+    <value>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</value>
+  </data>
+  <data name="DeleteLambdaWithMultiScopeCapture" xml:space="preserve">
+    <value>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</value>
   </data>
   <data name="AddingInto" xml:space="preserve">
     <value>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</value>
@@ -498,9 +513,6 @@
   <data name="DeletingAMethodBodyWillPrevent" xml:space="preserve">
     <value>Deleting a method body will prevent the debug session from continuing.</value>
   </data>
-  <data name="ErrorLocatingAnActiveStatement" xml:space="preserve">
-    <value>Error locating an active statement in source file. You must restart the debugging session.</value>
-  </data>
   <data name="AnActiveStatementHasBeenRemoved" xml:space="preserve">
     <value>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</value>
   </data>
@@ -525,6 +537,12 @@
   <data name="ModifyingTheInitializerInPartialType" xml:space="preserve">
     <value>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</value>
   </data>
+  <data name="InsertConstructorToTypeWithInitializersWithLambdas" xml:space="preserve">
+    <value>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</value>
+  </data>
+  <data name="RenamingCapturedVariable" xml:space="preserve">
+    <value>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</value>
+  </data>
   <data name="ModifyingACatchFinallyHandler" xml:space="preserve">
     <value>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</value>
   </data>
@@ -540,119 +558,11 @@
   <data name="ModifyingAWhichContainsOnErrorResume" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
   </data>
-  <data name="ModifyingAWhichContainsAnonymousMethod" xml:space="preserve">
-    <value>Modifying '{0}' which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsYield" xml:space="preserve">
-    <value>Modifying '{0}' which contains 'yield return' or 'yield break' statement will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAInitializerWithAnonymousMethod" xml:space="preserve">
-    <value>Modifying '{0}' initializer with an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAContainingAnActiveStatement" xml:space="preserve">
-    <value>Modifying '{0}' containing an active statement in compiler generated code will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ConstructorCannotBeModifiedAnonymousMethod" xml:space="preserve">
-    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer using an anonymous method.</value>
-  </data>
-  <data name="ModifyingAWhichContainsLambda" xml:space="preserve">
-    <value>Modifying '{0}' which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsQuery" xml:space="preserve">
-    <value>Modifying '{0}' which contains a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsAnonymousType" xml:space="preserve">
-    <value>Modifying '{0}' which contains an anonymous type will prevent the debug session from continuing.</value>
+  <data name="ModifyingAWhichContainsComplexQuery" xml:space="preserve">
+    <value>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</value>
   </data>
   <data name="ModifyingAFileWithExperimentalFeaturesEnabled" xml:space="preserve">
     <value>Modifying source with experimental language features enabled will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ConstructorCannotBeModifiedLambda" xml:space="preserve">
-    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer using a lambda expression.</value>
-  </data>
-  <data name="ConstructorCannotBeModifiedQuery" xml:space="preserve">
-    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer using a query expression.</value>
-  </data>
-  <data name="ModifyingAInitializerWithLambda" xml:space="preserve">
-    <value>Modifying '{0}' initializer with a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAInitializerWithQuery" xml:space="preserve">
-    <value>Modifying '{0}' initializer with a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ConstructorCannotBeModifiedAnonymousType" xml:space="preserve">
-    <value>Constructor cannot be modified while debugging because field '{0}' has an initializer with an anonymous type.</value>
-  </data>
-  <data name="ModifyingAInitializerWithAnonymousType" xml:space="preserve">
-    <value>Modifying '{0}' initializer with an anonymous type will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsDynamic" xml:space="preserve">
-    <value>Modifying '{0}' which contains a dynamic invocation will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAWhichContainsEmbeddedInterop" xml:space="preserve">
-    <value>Modifying '{0}' which contains a usage of an embedded interop type/member will prevent the debug session from continuing.\r\nTo enable Edit and Continue, try setting \"Embed Interop Types\" property to \"False\" for COM references when debugging.</value>
-  </data>
-  <data name="ModifyingAStatementWhichContainsAnonymousMethod" xml:space="preserve">
-    <value>Modifying a statement which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="AddingAStatementWhichContainsAnAnonymousMethod" xml:space="preserve">
-    <value>Adding a statement which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="DeletingAStatementWhichContainsAnonymousMethod" xml:space="preserve">
-    <value>Deleting a statement which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="MovingAStatementWhichContainsAnonymousMethod" xml:space="preserve">
-    <value>Moving a statement which contains an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingLocalReferencedInAnonymousMethod" xml:space="preserve">
-    <value>Modifying local '{0}' which is referenced in an anonymous method will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAStatementWhichContainsLambda" xml:space="preserve">
-    <value>Modifying a statement which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="AddingAStatementWhichContainsALambda" xml:space="preserve">
-    <value>Adding a statement which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="DeletingAStatementWhichContainsLambda" xml:space="preserve">
-    <value>Deleting a statement which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="MovingAStatementWhichContainsLambda" xml:space="preserve">
-    <value>Moving a statement which contains a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingLocalReferencedInLambda" xml:space="preserve">
-    <value>Modifying local '{0}' which is referenced in a lambda expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAStatementWhichContainsQuery" xml:space="preserve">
-    <value>Modifying a statement which contains a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="AddingAStatementWhichContainsAQuery" xml:space="preserve">
-    <value>Adding a statement which contains a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="DeletingAStatementWhichContainsQuery" xml:space="preserve">
-    <value>Deleting a statement which contains a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="MovingAStatementWhichContainsQuery" xml:space="preserve">
-    <value>Moving a statement which contains a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingLocalReferencedInQuery" xml:space="preserve">
-    <value>Modifying local '{0}' which is referenced in a query expression will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAStatementWhichContainsAnonymousType" xml:space="preserve">
-    <value>Modifying a statement which contains an anonymous type will prevent the debug session from continuing.</value>
-  </data>
-  <data name="AddingAStatementWhichContainsAnAnonymousType" xml:space="preserve">
-    <value>Adding a statement which contains an anonymous type will prevent the debug session from continuing.</value>
-  </data>
-  <data name="DeletingAStatementWhichContainsAnonymousType" xml:space="preserve">
-    <value>Deleting a statement which contains an anonymous type will prevent the debug session from continuing.</value>
-  </data>
-  <data name="MovingAStatementWhichContainsAnonymousType" xml:space="preserve">
-    <value>Moving a statement which contains an anonymous type will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingAnAsynchronous" xml:space="preserve">
-    <value>Modifying an asynchronous '{0}' will prevent the debug session from continuing.</value>
-  </data>
-  <data name="ModifyingTriviaOfAnAsynchronous" xml:space="preserve">
-    <value>Modifying whitespace or comments in an asynchronous '{0}' will prevent the debug session from continuing.</value>
   </data>
   <data name="UpdatingAnActiveStatement" xml:space="preserve">
     <value>Updating an active statement will prevent the debug session from continuing.</value>
@@ -744,7 +654,11 @@ Do you want to continue?</value>
     <value>User Diagnostic Analyzer Failure.</value>
   </data>
   <data name="UserDiagnosticAnalyzerThrows" xml:space="preserve">
-    <value>The User Diagnostic Analyzer '{0}' threw an exception with message '{1}'.</value>
+    <value>The User Diagnostic Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
+  </data>
+  <data name="UserDiagnosticAnalyzerThrowsDescription" xml:space="preserve">
+    <value>Analyzer '{0}' threw the following exception:
+'{1}'.</value>
   </data>
   <data name="RemoveUnnecessaryCast" xml:space="preserve">
     <value>Remove Unnecessary Cast</value>
@@ -821,6 +735,9 @@ Do you want to continue?</value>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
   </data>
+  <data name="UnsupportedDiagnosticReported" xml:space="preserve">
+    <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
+  </data>
   <data name="FixAllTitle_Document" xml:space="preserve">
     <value>Document</value>
   </data>
@@ -829,5 +746,85 @@ Do you want to continue?</value>
   </data>
   <data name="FixAllTitle_Solution" xml:space="preserve">
     <value>Solution</value>
+  </data>
+  <data name="DisposeManagedStateTodo" xml:space="preserve">
+    <value>TODO: dispose managed state (managed objects).</value>
+  </data>
+  <data name="SetLargeFieldsToNullTodo" xml:space="preserve">
+    <value>TODO: set large fields to null.</value>
+  </data>
+  <data name="ToDetectRedundantCalls" xml:space="preserve">
+    <value>To detect redundant calls</value>
+  </data>
+  <data name="ModifyingAWhichContainsStaticLocal" xml:space="preserve">
+    <value>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</value>
+  </data>
+  <data name="BuildToolBuild" xml:space="preserve">
+    <value>Compiler</value>
+  </data>
+  <data name="BuildToolEnC" xml:space="preserve">
+    <value>Edit And Continue</value>
+  </data>
+  <data name="BuildToolLive" xml:space="preserve">
+    <value>Live</value>
+  </data>
+  <data name="Namespace" xml:space="preserve">
+    <value>namespace</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="Class" xml:space="preserve">
+    <value>class</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="Interface" xml:space="preserve">
+    <value>interface</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="Enum" xml:space="preserve">
+    <value>enum</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="EnumValue" xml:space="preserve">
+    <value>enum value</value>
+    <comment>{Locked="enum"} "enum" is a C#/VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Delegate" xml:space="preserve">
+    <value>delegate</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="ConstField" xml:space="preserve">
+    <value>const field</value>
+    <comment>{Locked="const"} "const" is a C#/VB keyword and should not be localized.</comment>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>method</value>
+  </data>
+  <data name="Operator" xml:space="preserve">
+    <value>operator</value>
+  </data>
+  <data name="Constructor" xml:space="preserve">
+    <value>constructor</value>
+  </data>
+  <data name="AutoProperty" xml:space="preserve">
+    <value>auto-property</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>property</value>
+  </data>
+  <data name="Event" xml:space="preserve">
+    <value>event</value>
+    <comment>{Locked}</comment>
+  </data>
+  <data name="EventAccessor" xml:space="preserve">
+    <value>event accessor</value>
+  </data>
+  <data name="TypeConstraint" xml:space="preserve">
+    <value>type constraint</value>
+  </data>
+  <data name="TypeParameter" xml:space="preserve">
+    <value>type parameter</value>
+  </data>
+  <data name="Attribute" xml:space="preserve">
+    <value>attribute</value>
   </data>
 </root>

@@ -13,8 +13,8 @@ namespace Roslyn.Test.Utilities
         {
             get
             {
-                var currentUICulture = Thread.CurrentThread.CurrentUICulture;
-                if (currentUICulture.Name.StartsWith("en") || currentUICulture.Name == "")
+                var currentUICultureName = Thread.CurrentThread.CurrentUICulture.Name;
+                if (currentUICultureName.Length == 0 || currentUICultureName.StartsWith("en", StringComparison.OrdinalIgnoreCase))
                 {
                     return null;
                 }

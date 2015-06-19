@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenTryFinallyTests : CSharpTestBase
     {
-        [Fact(Skip = "563799")]
+        [Fact]
         public void EmptyTryFinally()
         {
             var source =
@@ -74,27 +74,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
   }
   IL_0004:  ret       
 }");
+            // the nop below is to work around a verifier bug.
+            // See DevDiv 563799.
             compilation.VerifyIL("C.EmptyTryFinallyInFinally",
 @"{
-  // Code size        7 (0x7)
+  // Code size        8 (0x8)
   .maxstack  0
   .try
   {
-    IL_0000:  leave.s    IL_0006
+    IL_0000:  leave.s    IL_0007
   }
   finally
   {
+    IL_0002:  nop
     .try
     {
-      IL_0002:  leave.s    IL_0005
+      IL_0003:  leave.s    IL_0006
     }
     finally
     {
-      IL_0004:  endfinally
+      IL_0005:  endfinally
     }
-    IL_0005:  endfinally
+    IL_0006:  endfinally
   }
-  IL_0006:  ret       
+  IL_0007:  ret
 }");
         }
 
@@ -1997,7 +2000,7 @@ class D
         }
 
         [WorkItem(540716, "DevDiv")]
-        [Fact(Skip = "563799")]
+        [Fact]
         public void ThrowInFinally()
         {
             var source =
@@ -2100,28 +2103,31 @@ class D
     IL_000a:  endfinally
   }
 }");
+            // The nop below is to work around a verifier bug.
+            // See DevDiv 563799.
             compilation.VerifyIL("C.ThrowInFinallyInFinally",
 @"{
-  // Code size       14 (0xe)
+  // Code size       15 (0xf)
   .maxstack  1
   .try
   {
-    IL_0000:  leave.s    IL_000c
+    IL_0000:  leave.s    IL_000d
   }
   finally
   {
+    IL_0002:  nop
     .try
     {
-      IL_0002:  leave.s    IL_000a
+      IL_0003:  leave.s    IL_000b
     }
     finally
     {
-      IL_0004:  newobj     ""System.Exception..ctor()""
-      IL_0009:  throw     
+      IL_0005:  newobj     ""System.Exception..ctor()""
+      IL_000a:  throw
     }
-    IL_000a:  br.s       IL_000a
+    IL_000b:  br.s       IL_000b
   }
-  IL_000c:  br.s       IL_000c
+  IL_000d:  br.s       IL_000d
 }");
             compilation.VerifyIL("D.ThrowInFinally",
 @"{
@@ -2148,7 +2154,7 @@ class D
 }");
             compilation.VerifyIL("D.ThrowInFinallyInTry",
 @"{
-  // Code size       18 (0x12)
+  // Code size       20 (0x14)
   .maxstack  1
   .try
   {
@@ -2158,73 +2164,74 @@ class D
       {
         .try
         {
-          IL_0000:  leave.s    IL_000b
+          IL_0000:  leave.s    IL_0005
         }
         catch object
         {
-          IL_0002:  pop       
-          IL_0003:  leave.s    IL_000b
+          IL_0002:  pop
+          IL_0003:  leave.s    IL_0005
         }
+        IL_0005:  leave.s    IL_000d
       }
       finally
       {
-        IL_0005:  newobj     ""System.Exception..ctor()""
-        IL_000a:  throw     
+        IL_0007:  newobj     ""System.Exception..ctor()""
+        IL_000c:  throw
       }
-      IL_000b:  br.s       IL_000b
+      IL_000d:  br.s       IL_000d
     }
     catch object
     {
-      IL_000d:  pop       
-      IL_000e:  leave.s    IL_0011
+      IL_000f:  pop
+      IL_0010:  leave.s    IL_0013
     }
   }
   finally
   {
-    IL_0010:  endfinally
+    IL_0012:  endfinally
   }
-  IL_0011:  ret       
+  IL_0013:  ret
 }");
             compilation.VerifyIL("D.ThrowInFinallyInFinally",
 @"{
-  // Code size       20 (0x14)
+  // Code size       21 (0x15)
   .maxstack  1
   .try
   {
     .try
     {
-      IL_0000:  leave.s    IL_0012
+      IL_0000:  leave.s    IL_0013
     }
     catch object
     {
-      IL_0002:  pop       
-      IL_0003:  leave.s    IL_0012
+      IL_0002:  pop
+      IL_0003:  leave.s    IL_0013
     }
   }
   finally
   {
+    IL_0005:  nop
     .try
     {
       .try
       {
-        IL_0005:  leave.s    IL_0010
+        IL_0006:  leave.s    IL_0011
       }
       catch object
       {
-        IL_0007:  pop       
-        IL_0008:  leave.s    IL_0010
+        IL_0008:  pop
+        IL_0009:  leave.s    IL_0011
       }
     }
     finally
     {
-      IL_000a:  newobj     ""System.Exception..ctor()""
-      IL_000f:  throw     
+      IL_000b:  newobj     ""System.Exception..ctor()""
+      IL_0010:  throw
     }
-    IL_0010:  br.s       IL_0010
+    IL_0011:  br.s       IL_0011
   }
-  IL_0012:  br.s       IL_0012
-}
-");
+  IL_0013:  br.s       IL_0013
+}");
         }
 
         [Fact]

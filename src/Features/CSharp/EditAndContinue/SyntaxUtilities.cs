@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static void AssertIsBody(SyntaxNode syntax, bool allowLambda)
         {
             // lambda/query
-            if (SyntaxFacts.IsLambdaBody(syntax))
+            if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
                 Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);
@@ -157,36 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return rightNode;
         }
 
-        public static bool IsNotLambda(SyntaxNode node)
-        {
-            return !IsLambda(node.Kind());
-        }
-
-        public static bool IsLambda(SyntaxKind kind)
-        {
-            switch (kind)
-            {
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.LetClause:
-                case SyntaxKind.WhereClause:
-                case SyntaxKind.AscendingOrdering:
-                case SyntaxKind.DescendingOrdering:
-                case SyntaxKind.SelectClause:
-                case SyntaxKind.JoinClause:
-                case SyntaxKind.GroupClause:
-                    return true;
-
-                case SyntaxKind.FromClause:
-                    // Although from clause only creates a lambda if it is in a query body,
-                    // for the purpose of node matching we consider all from clauses the same.
-                    return true;
-            }
-
-            return false;
-        }
-
         public static bool Any(TypeParameterListSyntax listOpt)
         {
             return listOpt != null && listOpt.ChildNodesAndTokens().Count != 0;
@@ -249,6 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.DestructorDeclaration:
                     return true;
 
+                case SyntaxKind.IndexerDeclaration:
+                    // expression bodied indexer
+                    return ((IndexerDeclarationSyntax)declaration).ExpressionBody != null;
+
                 default:
                     return false;
             }
@@ -279,31 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
         {
-            if (declaration.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+            var anonymousFunction = declaration as AnonymousFunctionExpressionSyntax;
+            if (anonymousFunction != null)
             {
-                var lambda = (ParenthesizedLambdaExpressionSyntax)declaration;
-                if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
-                {
-                    return true;
-                }
-            }
-
-            if (declaration.IsKind(SyntaxKind.SimpleLambdaExpression))
-            {
-                var lambda = (SimpleLambdaExpressionSyntax)declaration;
-                if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
-                {
-                    return true;
-                }
-            }
-
-            if (declaration.IsKind(SyntaxKind.AnonymousMethodExpression))
-            {
-                var lambda = (AnonymousMethodExpressionSyntax)declaration;
-                if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
-                {
-                    return true;
-                }
+                return anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword);
             }
 
             // expression bodied methods:
@@ -324,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         public static ImmutableArray<SyntaxNode> GetAwaitExpressions(SyntaxNode body)
         {
             // skip lambda bodies:
-            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
+            return ImmutableArray.CreateRange(body.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).Where(n => n.IsKind(SyntaxKind.AwaitExpression)));
         }
 
         public static ImmutableArray<SyntaxNode> GetYieldStatements(SyntaxNode body)

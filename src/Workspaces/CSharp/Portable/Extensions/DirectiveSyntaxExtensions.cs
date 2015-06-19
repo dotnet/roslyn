@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (directive == null)
             {
-                throw new ArgumentNullException("directive");
+                throw new ArgumentNullException(nameof(directive));
             }
 
             var directiveSyntaxMap = GetDirectiveInfo(directive, cancellationToken).DirectiveMap;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (directive == null)
             {
-                throw new ArgumentNullException("directive");
+                throw new ArgumentNullException(nameof(directive));
             }
 
             var directiveConditionalMap = GetDirectiveInfo(directive, cancellationToken).ConditionalMap;

@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     /// </summary>
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(RenameTrackingTag))]
+    [TagType(typeof(IErrorTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Editable)]
     internal sealed partial class RenameTrackingTaggerProvider : ITaggerProvider
@@ -35,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IWaitIndicator _waitIndicator;
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         [ImportingConstructor]
         public RenameTrackingTaggerProvider(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IWaitIndicator waitIndicator,
             IInlineRenameService inlineRenameService,
+            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
@@ -48,12 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             _waitIndicator = waitIndicator;
             _inlineRenameService = inlineRenameService;
             _refactorNotifyServices = refactorNotifyServices;
+            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(buffer, _inlineRenameService, _asyncListener));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(buffer, _inlineRenameService, _asyncListener, _diagnosticAnalyzerService));
             return new Tagger(stateMachine, _undoHistoryRegistry, _waitIndicator, _refactorNotifyServices) as ITagger<T>;
         }
 
@@ -122,29 +127,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 return SpecializedCollections.EmptyEnumerable<Diagnostic>();
             }
-            catch (Exception e) when(FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            }
+        }
 
         internal static CodeAction CreateCodeAction(
             Document document,
             Diagnostic diagnostic,
             IWaitIndicator waitIndicator,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            bool showPreview)
+            ITextUndoHistoryRegistry undoHistoryRegistry)
         {
             // This can run on a background thread.
-            string message = diagnostic.GetMessage();
 
-            if (showPreview)
-            {
-                message += EditorFeaturesResources.WithPreview;
-            }
+            var message = string.Format(
+                EditorFeaturesResources.RenameTo,
+                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameFromPropertyKey],
+                diagnostic.Properties[RenameTrackingDiagnosticAnalyzer.RenameToPropertyKey]);
 
-            return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry, showPreview);
+            return new RenameTrackingCodeAction(document, message, refactorNotifyServices, undoHistoryRegistry);
         }
 
         internal static bool IsRenamableIdentifier(Task<TriggerIdentifierKind> isRenamableIdentifierTask, bool waitForResult, CancellationToken cancellationToken)
@@ -173,12 +176,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 return isRenamableIdentifierTask.WaitAndGetResult(cancellationToken) != TriggerIdentifierKind.NotRenamable;
             }
-            catch (AggregateException e) when(e.InnerException is OperationCanceledException)
+            catch (AggregateException e) when (e.InnerException is OperationCanceledException)
             {
                 // We passed in a different cancellationToken, so if there's a race and 
                 // isRenamableIdentifierTask was cancelled, we'll get an AggregateException
                 return false;
             }
+        }
+
+        internal static bool CanInvokeRename(Document document)
+        {
+            SourceText text;
+            StateMachine stateMachine;
+            ITextBuffer textBuffer;
+            TrackingSession unused;
+
+            if (document == null || !document.TryGetText(out text))
+            {
+                return false;
             }
+
+            textBuffer = text.Container.TryGetTextBuffer();
+            return textBuffer != null &&
+                textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine) &&
+                stateMachine.CanInvokeRename(out unused);
         }
     }
+}

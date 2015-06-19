@@ -13,8 +13,12 @@
     <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+      <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -24,12 +28,11 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>GacFileResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
+      <Link>AssemblyIdentityExtensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
@@ -61,31 +64,35 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>TRACE;DEBUG;SCRIPTING</DefineConstants>
+    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>TRACE;SCRIPTING</DefineConstants>
+    <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+      <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="AssemblyLoader.cs" />
     <Compile Include="AssemblyLoadResult.cs" />
     <Compile Include="ObjectFormatter.cs" />
     <Compile Include="ObjectFormatter.Formatter.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
+    <Compile Include="ScriptCompilerUtil.cs" />
     <Compile Include="ScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -93,9 +100,6 @@
     </Compile>
     <Compile Include="CompilationErrorException.cs" />
     <Compile Include="Emit\CommonCompilationExtensions.cs" />
-    <Compile Include="Emit\ReflectionEmitResult.cs" />
-    <Compile Include="Emit\ReflectionEmitter.cs" />
-    <Compile Include="Emit\ReflectionEmitter.Refs.cs" />
     <Compile Include="InteractiveAssemblyLoader.cs" />
     <Compile Include="MemberDisplayFormat.cs" />
     <Compile Include="MetadataShadowCopy.cs" />

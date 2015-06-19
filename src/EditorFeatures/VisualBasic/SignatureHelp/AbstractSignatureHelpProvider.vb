@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
         Protected Shared Sub AddExtensionPreamble(symbol As ISymbol, result As IList(Of SymbolDisplayPart))
             If symbol.GetOriginalUnreducedDefinition().IsExtensionMethod() Then
                 result.Add(Punctuation(SyntaxKind.LessThanToken))
-                result.Add(Text(VBEditorResources.Extension))
+                result.Add(Text(VBFeaturesResources.Extension))
                 result.Add(Punctuation(SyntaxKind.GreaterThanToken))
                 result.Add(Space())
             End If

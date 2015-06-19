@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
 
         private static bool CheckTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
         {
-            if (AnalyzerHelper.IsCompilerAnalyzer(analyzer))
+            if (analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }

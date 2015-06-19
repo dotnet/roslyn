@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rolsyn reproduces Dev10 compiler behavior which doesn't report an error if one of the 
             // lookups is single viable and other lookup is ambiguous. If one of the lookup results 
             // (either with or without "Attribute" suffix) is single viable and is an attribute type we 
-            // use it  disregarding the second result which may be ambigous. 
+            // use it  disregarding the second result which may be ambiguous. 
 
             // Note: if both are single and attribute types, we still report ambiguity.
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!result.IsClear)
                 {
-                    if ((object)symbolWithoutSuffix != null) // was not ambigous, but not viable
+                    if ((object)symbolWithoutSuffix != null) // was not ambiguous, but not viable
                     {
                         result.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithoutSuffix, result.Error, diagnose));
                     }
@@ -1097,6 +1097,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return LookupResult.NotInvocable(unwrappedSymbol, symbol, diagnose);
             }
+            else if (InCref && !this.IsCrefAccessible(unwrappedSymbol))
+            {
+                var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
+                diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
+                return LookupResult.Inaccessible(symbol, diagInfo);
+            }
             else if (!InCref &&
                      !this.IsAccessible(unwrappedSymbol,
                                         RefineAccessThroughType(options, accessThroughType),
@@ -1210,7 +1216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (!InCref && !this.IsAccessible(symbol, ref useSiteDiagnostics, RefineAccessThroughType(options, accessThroughType)))
+            else if (InCref ? !this.IsCrefAccessible(symbol)
+                            : !this.IsAccessible(symbol, ref useSiteDiagnostics, RefineAccessThroughType(options, accessThroughType)))
             {
                 return false;
             }
@@ -1246,6 +1253,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// A symbol is accessible for referencing in a cref if it is in the same assembly as the reference
+        /// or the symbols's effective visibility is not private.
+        /// </summary>
+        private bool IsCrefAccessible(Symbol symbol)
+        {
+            return !IsEffectivelyPrivate(symbol) || symbol.ContainingAssembly == this.Compilation.Assembly;
+        }
+
+        private static bool IsEffectivelyPrivate(Symbol symbol)
+        {
+            for (Symbol s = symbol; (object)s != null; s = s.ContainingSymbol)
+            {
+                if (s.DeclaredAccessibility == Accessibility.Private)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Check whether "symbol" is accessible from this binder.
         /// Also checks protected access via "accessThroughType".
         /// </summary>
@@ -1260,10 +1289,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Also checks protected access via "accessThroughType", and sets "failedThroughTypeCheck" if fails
         /// the protected access check.
         /// </summary>
-        internal virtual bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+        {
+            if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
+            {
+                failedThroughTypeCheck = false;
+                return true;
+            }
+
+            return IsAccessibleHelper(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+        }
+
+        /// <remarks>
+        /// Should only be called by <see cref="IsAccessible(Symbol, TypeSymbol, out bool, ref HashSet{DiagnosticInfo}, ConsList{Symbol})"/>,
+        /// which will already have checked for <see cref="BinderFlags.IgnoreAccessibility"/>.
+        /// </remarks>
+        internal virtual bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             // By default, just delegate to containing binder.
-            return Next.IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+            return Next.IsAccessibleHelper(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
         }
 
         internal bool IsNonInvocableMember(Symbol symbol)

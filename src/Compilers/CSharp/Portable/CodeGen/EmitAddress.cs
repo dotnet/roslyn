@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -44,7 +45,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ConditionalReceiver:
                     // do nothing receiver ref must be already pushed
                     Debug.Assert(!expression.Type.IsReferenceType);
-                    Debug.Assert(!expression.Type.IsValueType);
+                    Debug.Assert(!expression.Type.IsValueType || expression.Type.IsNullableType());
+                    break;
+
+                case BoundKind.ComplexConditionalReceiver:
+                    EmitComplexConditionalReceiverAddress((BoundComplexConditionalReceiver)expression);
                     break;
 
                 case BoundKind.Parameter:
@@ -93,6 +98,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return null;
+        }
+
+        private void EmitComplexConditionalReceiverAddress(BoundComplexConditionalReceiver expression)
+        {
+            Debug.Assert(!expression.Type.IsReferenceType);
+            Debug.Assert(!expression.Type.IsValueType);
+
+            var receiverType = expression.Type;
+
+            var whenValueTypeLabel = new Object();
+            var doneLabel = new Object();
+
+            EmitInitObj(receiverType, true, expression.Syntax);
+            EmitBox(receiverType, expression.Syntax);
+            _builder.EmitBranch(ILOpCode.Brtrue, whenValueTypeLabel);
+
+            var receiverTemp = EmitAddress(expression.ReferenceTypeReceiver, addressKind: AddressKind.ReadOnly);
+            Debug.Assert(receiverTemp == null);
+            _builder.EmitBranch(ILOpCode.Br, doneLabel);
+            _builder.AdjustStack(-1);
+
+            _builder.MarkLabel(whenValueTypeLabel);
+            EmitReceiverRef(expression.ValueTypeReceiver, isAccessConstrained: true);
+
+            _builder.MarkLabel(doneLabel);
         }
 
         private void EmitLocalAddress(BoundLocal localAccess)
@@ -171,57 +201,52 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // when a sequence is happened to be a byref receiver
             // we may need to extend the life time of the target until we are done accessing it
-            // {.v ; v = Foo(); v}.Bar()     // v should be released after Bar() is over.
+            // {.v ; v = Foo(); v}.Bar()     // v should be released only after Bar() is done.
             LocalSymbol doNotRelease = null;
             if (tempOpt == null)
             {
-                BoundLocal referencedLocal = DigForLocal(sequence.Value);
-                if (referencedLocal != null)
+                doNotRelease = DigForValueLocal(sequence);
+                if (doNotRelease != null)
                 {
-                    doNotRelease = referencedLocal.LocalSymbol;
+                    tempOpt = GetLocal(doNotRelease);
                 }
             }
 
-            if (hasLocals)
-            {
-                _builder.CloseLocalScope();
-
-                foreach (var local in sequence.Locals)
-                {
-                    if (local != doNotRelease)
-                    {
-                        FreeLocal(local);
-                    }
-                    else
-                    {
-                        tempOpt = GetLocal(doNotRelease);
-                    }
-                }
-            }
-
+            FreeLocals(sequence, doNotRelease);
             return tempOpt;
         }
 
-        private BoundLocal DigForLocal(BoundExpression value)
+        // if sequence value is a local scoped to the sequence, return that local
+        private LocalSymbol DigForValueLocal(BoundSequence topSequence)
+        {
+            return DigForValueLocal(topSequence, topSequence.Value);
+        }
+
+        private LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
         {
             switch (value.Kind)
             {
                 case BoundKind.Local:
                     var local = (BoundLocal)value;
-                    if (local.LocalSymbol.RefKind == RefKind.None)
+                    var symbol = local.LocalSymbol;
+                    if (topSequence.Locals.Contains(symbol))
                     {
-                        return local;
+                        return symbol;
                     }
                     break;
 
                 case BoundKind.Sequence:
-                    return DigForLocal(((BoundSequence)value).Value);
+                    return DigForValueLocal(topSequence, ((BoundSequence)value).Value);
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)value;
                     if (!fieldAccess.FieldSymbol.IsStatic)
                     {
-                        return DigForLocal(fieldAccess.ReceiverOpt);
+                        var receiver = fieldAccess.ReceiverOpt;
+                        if (!receiver.Type.IsReferenceType)
+                        {
+                            return DigForValueLocal(topSequence, receiver);
+                        }
                     }
                     break;
             }
@@ -259,6 +284,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     return HasHome(((BoundSequence)expression).Value);
+
+                case BoundKind.ComplexConditionalReceiver:
+                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver));
+                    Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ReferenceTypeReceiver));
+                    goto case BoundKind.ConditionalReceiver;
+
+                case BoundKind.ConditionalReceiver:
+                    return true;
 
                 default:
                     return false;
@@ -390,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// receiver with readonly intent. For the value types it is an address of the receiver.
         /// 
         /// isAccessConstrained indicates that receiver is a target of a constrained callvirt
-        /// in such case it is unnecessary to box a receier that is typed to a type parameter
+        /// in such case it is unnecessary to box a receiver that is typed to a type parameter
         /// 
         /// May introduce a temp which it will return. (otherwise returns null)
         /// </summary>

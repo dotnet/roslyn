@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 
         <Fact()>
-        Sub Erl_Property_SimpleBehaviourMultipleLabels()
+        Public Sub Erl_Property_SimpleBehaviourMultipleLabels()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -40,7 +40,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NestedTryCatch()
+        Public Sub Erl_Property_NestedTryCatch()
             'The ERL is correct even though the error occurred within a nested try catch construct
             Dim source =
     <compilation name="ErrorHandling">
@@ -80,7 +80,7 @@ No Error]]>)
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NestedTryCatchNoPropagateToOuter()
+        Public Sub Erl_Property_NestedTryCatchNoPropagateToOuter()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -119,7 +119,7 @@ No Error]]>)
         End Sub
 
         <Fact()>
-        Sub Erl_Property_DuplicateLabels()
+        Public Sub Erl_Property_DuplicateLabels()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -153,7 +153,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NonSequentialLineNumbers()
+        Public Sub Erl_Property_NonSequentialLineNumbers()
             'The line numbers do not need to be sequential
             Dim source =
     <compilation name="ErrorHandling">
@@ -188,7 +188,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_LabelIntegerMaxValueValue()
+        Public Sub Erl_Property_LabelIntegerMaxValueValue()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -222,7 +222,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_LabelGreaterThanIntegerMaxValueValue()
+        Public Sub Erl_Property_LabelGreaterThanIntegerMaxValueValue()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -256,7 +256,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NonNumericLabels()
+        Public Sub Erl_Property_NonNumericLabels()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -290,7 +290,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NoLabels()
+        Public Sub Erl_Property_NoLabels()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -321,7 +321,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_ThrowExceptionInsteadOfErrorRaiseLambdaInvocation()
+        Public Sub Erl_Property_ThrowExceptionInsteadOfErrorRaiseLambdaInvocation()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -357,7 +357,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NestedLambdasAndLabelInLambdaSameLabelInCallerAndLambda()
+        Public Sub Erl_Property_NestedLambdasAndLabelInLambdaSameLabelInCallerAndLambda()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -402,7 +402,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_OnErrorRetainsValueUntilCleared()
+        Public Sub Erl_Property_OnErrorRetainsValueUntilCleared()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -436,7 +436,7 @@ Finish
         End Sub
 
         <Fact()>
-        Sub Erl_Property_OnErrorRetainsValueUntilClearedWithClear()
+        Public Sub Erl_Property_OnErrorRetainsValueUntilClearedWithClear()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -471,7 +471,7 @@ Finish
         End Sub
 
         <Fact()>
-        Sub Erl_Property_UnhandledErrorDontBubbleUp()
+        Public Sub Erl_Property_UnhandledErrorDontBubbleUp()
             'There is no label in main and the label from SubMethod is not bubbled up.
             Dim source =
     <compilation name="ErrorHandling">
@@ -513,7 +513,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_InClassAndStructureTypes()
+        Public Sub Erl_Property_InClassAndStructureTypes()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -634,7 +634,7 @@ End Structure
         End Sub
 
         <Fact()>
-        Sub Erl_Property_InGenericType()
+        Public Sub Erl_Property_InGenericType()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -676,7 +676,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub Erl_Property_InGenericTypeSharedMethod()
+        Public Sub Erl_Property_InGenericTypeSharedMethod()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -716,7 +716,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub Erl_Property_InheritenceScenario()
+        Public Sub Erl_Property_InheritenceScenario()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -771,7 +771,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub Erl_Property_CallingMethodThroughInterface()
+        Public Sub Erl_Property_CallingMethodThroughInterface()
             'Verify No problems with erl because of calling using interface
             Dim source =
     <compilation name="ErrorHandling">
@@ -819,7 +819,7 @@ End Interface
         End Sub
 
         <Fact()>
-        Sub Erl_Property_CallingMethodWithDelegate()
+        Public Sub Erl_Property_CallingMethodWithDelegate()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -863,7 +863,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_CollectionInitializer()
+        Public Sub Erl_Property_CollectionInitializer()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -913,7 +913,7 @@ End Class
         End Sub
 
         <Fact()>
-        Sub Erl_Property_MultipleHandlers()
+        Public Sub Erl_Property_MultipleHandlers()
             ' Known behaviour with multiple handlers causing bogus out of memory exception
             ' Won't Fix the VB Runtime in Roslyn but captured the current behaviour
             Dim source =
@@ -962,7 +962,7 @@ Expected Exception Occurred
         End Sub
 
         <Fact()>
-        Sub Erl_Property_MultipleHandlersWithResume()
+        Public Sub Erl_Property_MultipleHandlersWithResume()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -1007,7 +1007,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_InvalidNumericLabel()
+        Public Sub Erl_Property_InvalidNumericLabel()
             'More a test of Invalid Label but as the label is used for ERL I wanted to make sure that this didnt compile
             Dim source =
     <compilation name="ErrorHandling">
@@ -1045,7 +1045,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_NoHandlerOnInner_WithDuplicateLabelInDifferentMethod()
+        Public Sub Erl_Property_NoHandlerOnInner_WithDuplicateLabelInDifferentMethod()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -1080,7 +1080,7 @@ End Module]]>
         End Sub
 
         <Fact()>
-        Sub Erl_Property_TypeCharsOnLabels()
+        Public Sub Erl_Property_TypeCharsOnLabels()
             'More a test of Invalid Label but as the label is used for ERL I wanted to make sure that this didnt compile
             'Using type characters which would be valid for numerics
             Dim source =
@@ -1123,7 +1123,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_WithinAsyncMethods()
+        Public Sub Erl_Property_WithinAsyncMethods()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -1187,7 +1187,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_WithinAsyncMethods_Bug654704()
+        Public Sub Erl_Property_WithinAsyncMethods_Bug654704()
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">
@@ -1240,7 +1240,7 @@ End Module
         End Sub
 
         <Fact()>
-        Sub Erl_Property_WithinIteratorMethods()
+        Public Sub Erl_Property_WithinIteratorMethods()
             'This is having try catches at each level and ensuring the 
             Dim source =
     <compilation name="ErrorHandling">
@@ -1373,7 +1373,7 @@ Exception
         End Sub
 
         <Fact()>
-        Sub Erl_Property_With_VBCore()
+        Public Sub Erl_Property_With_VBCore()
             'Error Object Doesn't exist for VBCore - so this should generate correct diagnostics
             Dim source =
     <compilation name="ErrorHandling">

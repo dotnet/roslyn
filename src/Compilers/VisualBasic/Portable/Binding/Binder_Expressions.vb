@@ -618,7 +618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim receiver = group.ReceiverOpt
             If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
                 receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
- 
+
                 Select Case group.Kind
                     Case BoundKind.MethodGroup
                         Dim methodGroup = DirectCast(group, BoundMethodGroup)
@@ -641,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End If
 
-           Return receiver
+            Return receiver
         End Function
 
 
@@ -701,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         expr.Syntax,
                                                         ExtractTypeCharacter(expr.Syntax),
                                                         group,
-                                                        NoArguments,
+                                                        s_noArguments,
                                                         Nothing,
                                                         diagnostics,
                                                         callerInfoOpt:=expr.Syntax)
@@ -836,13 +836,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnosticsBagFor_ERR_CantReferToMyGroupInsideGroupType1, typeExpr.Syntax, ERRID.ERR_CantReferToMyGroupInsideGroupType1, classType)
             End If
 
+            ' We need to change syntax node for the result to match typeExpr's syntax node.
+            ' This will allow SemanticModel to report the node as a default instance access rather than 
+            ' as a type reference.
+            Select Case result.Kind
+                Case BoundKind.PropertyAccess
+                    Dim access = DirectCast(result, BoundPropertyAccess)
+                    result = New BoundPropertyAccess(typeExpr.Syntax, access.PropertySymbol, access.PropertyGroupOpt, access.AccessKind,
+                                                     access.IsWriteable, access.ReceiverOpt, access.Arguments, access.Type, access.HasErrors)
+
+                Case BoundKind.FieldAccess
+                    Dim access = DirectCast(result, BoundFieldAccess)
+                    result = New BoundFieldAccess(typeExpr.Syntax, access.ReceiverOpt, access.FieldSymbol, access.IsLValue,
+                                                  access.SuppressVirtualCalls, access.ConstantsInProgressOpt, access.Type, access.HasErrors)
+
+                Case BoundKind.Call
+                    Dim [call] = DirectCast(result, BoundCall)
+                    result = New BoundCall(typeExpr.Syntax, [call].Method, [call].MethodGroupOpt, [call].ReceiverOpt, [call].Arguments,
+                                           [call].ConstantValueOpt, [call].SuppressObjectClone, [call].Type, [call].HasErrors)
+
+                Case Else
+                    Debug.Assert(False)
+            End Select
+
             Return result
         End Function
 
         Private Class DefaultInstancePropertyBinder
             Inherits Binder
 
-            Sub New(containingBinder As Binder)
+            Public Sub New(containingBinder As Binder)
                 MyBase.New(containingBinder)
             End Sub
 
@@ -1070,7 +1093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Get
-                    ' Nothing to do.
+                        ' Nothing to do.
 
                     Case PropertyAccessKind.Unknown
                         Debug.Assert(propertyAccess.PropertySymbol.IsReadable)
@@ -1085,7 +1108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case expr.GetLateBoundAccessKind()
                     Case LateBoundAccessKind.Get
-                    ' Nothing to do.
+                        ' Nothing to do.
 
                     Case LateBoundAccessKind.Unknown
                         expr = expr.SetLateBoundAccessKind(LateBoundAccessKind.Get)
@@ -1551,11 +1574,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' an LValue. In this case, containingMember will be a LambdaSymbol rather than a symbol for
             ' constructor.
 
-            If Me.ContainingMember.ContainingSymbol Is field.ContainingSymbol Then
-                Return True
-            End If
-
-            Return False
+            ' We duplicate a bug in the native compiler for compatibility in non-strict mode
+            Return If(Me.Compilation.FeatureStrictEnabled,
+                Me.ContainingMember.ContainingSymbol Is field.ContainingSymbol,
+                Me.ContainingMember.ContainingSymbol.OriginalDefinition Is field.ContainingSymbol.OriginalDefinition)
         End Function
 
         ''' <summary>
@@ -1869,7 +1891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' True if inside in binding arguments of constructor 
-        ''' call with {'Me'/'MyClass'/'MyBase'}.New(...) from anothir constructor
+        ''' call with {'Me'/'MyClass'/'MyBase'}.New(...) from another constructor
         ''' </summary>
         Protected Overridable ReadOnly Property IsInsideChainedConstructorCallArguments As Boolean
             Get
@@ -4016,7 +4038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          Optional errorOnEmptyBound As Boolean = False) As ImmutableArray(Of BoundExpression)
 
             If arrayBoundsOpt Is Nothing Then
-                Return NoArguments
+                Return s_noArguments
             End If
 
             Dim arguments As SeparatedSyntaxList(Of ArgumentSyntax) = arrayBoundsOpt.Arguments
@@ -4621,7 +4643,7 @@ lElseClause:
                              ERRID.ERR_UseOfObsoletePropertyAccessor3,
                              ERRID.ERR_UseOfObsoleteSymbolNoMessage1,
                              ERRID.ERR_UseOfObsoleteSymbol2
-                        ' ignore
+                            ' ignore
 
                         Case Else
                             Return True

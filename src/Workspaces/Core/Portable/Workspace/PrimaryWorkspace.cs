@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis
 
         private static Workspace s_primaryWorkspace;
 
-        private static List<TaskCompletionSource<Workspace>> s_primaryWorkspaceTaskSourceList =
+        private static readonly List<TaskCompletionSource<Workspace>> s_primaryWorkspaceTaskSourceList =
             new List<TaskCompletionSource<Workspace>>();
 
         /// <summary>
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (workspace == null)
             {
-                throw new ArgumentNullException("workspace");
+                throw new ArgumentNullException(nameof(workspace));
             }
 
             using (s_registryGate.DisposableWrite())

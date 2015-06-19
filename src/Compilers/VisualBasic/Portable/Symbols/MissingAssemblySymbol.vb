@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Protected ReadOnly m_Identity As AssemblyIdentity
         Protected ReadOnly m_ModuleSymbol As MissingModuleSymbol
 
-        Private m_LazyModules As ImmutableArray(Of ModuleSymbol)
+        Private _lazyModules As ImmutableArray(Of ModuleSymbol)
 
         Public Sub New(identity As AssemblyIdentity)
             Debug.Assert(identity IsNot Nothing)
@@ -60,11 +60,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Modules As ImmutableArray(Of ModuleSymbol)
             Get
-                If m_LazyModules.IsDefault Then
-                    m_LazyModules = ImmutableArray.Create(Of ModuleSymbol)(m_ModuleSymbol)
+                If _lazyModules.IsDefault Then
+                    _lazyModules = ImmutableArray.Create(Of ModuleSymbol)(m_ModuleSymbol)
                 End If
 
-                Return m_LazyModules
+                Return _lazyModules
             End Get
         End Property
 
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' An array of cached Cor types defined in this assembly.
         ''' Lazily filled by GetDeclaredSpecialType method.
         ''' </summary>
-        Private m_LazySpecialTypes() As NamedTypeSymbol
+        Private _lazySpecialTypes() As NamedTypeSymbol
 
         Private Sub New()
             MyBase.New(New AssemblyIdentity("<Missing Core Assembly>"))
@@ -178,17 +178,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 #End If
 
-            If m_LazySpecialTypes Is Nothing Then
-                Interlocked.CompareExchange(m_LazySpecialTypes, New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
+            If _lazySpecialTypes Is Nothing Then
+                Interlocked.CompareExchange(_lazySpecialTypes, New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
             End If
 
-            If m_LazySpecialTypes(type) Is Nothing Then
+            If _lazySpecialTypes(type) Is Nothing Then
                 Dim emittedFullName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
                 Dim corType As NamedTypeSymbol = New MissingMetadataTypeSymbol.TopLevel(m_ModuleSymbol, emittedFullName, type)
-                Interlocked.CompareExchange(m_LazySpecialTypes(type), corType, Nothing)
+                Interlocked.CompareExchange(_lazySpecialTypes(type), corType, Nothing)
             End If
 
-            Return m_LazySpecialTypes(type)
+            Return _lazySpecialTypes(type)
 
         End Function
     End Class

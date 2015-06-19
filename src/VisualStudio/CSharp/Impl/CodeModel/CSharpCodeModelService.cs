@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         private static readonly SymbolDisplayFormat s_fullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
@@ -138,6 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
@@ -323,6 +324,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 return GetAttributeNodes(parent.Parent);
             }
+            else if (parent is AccessorDeclarationSyntax)
+            {
+                return GetAttributeNodes(((AccessorDeclarationSyntax)parent).AttributeLists);
+            }
 
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
@@ -356,113 +361,112 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
 
-        private static bool HasMembers(SyntaxNode node)
+        private static bool IsContainerNode(SyntaxNode container)
         {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CompilationUnit:
-                case SyntaxKind.NamespaceDeclaration:
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.EnumDeclaration:
-                    return true;
-
-                default:
-                    return false;
-            }
+            return container is CompilationUnitSyntax
+                || container is NamespaceDeclarationSyntax
+                || container is TypeDeclarationSyntax
+                || container is EnumDeclarationSyntax;
         }
 
-        private static IEnumerable<SyntaxNode> GetFlattenedMembers(IEnumerable<MemberDeclarationSyntax> members)
+        private static IEnumerable<SyntaxNode> GetChildMemberNodes(SyntaxNode container)
         {
-            foreach (var member in members)
+            if (container is CompilationUnitSyntax)
             {
-                if (member is BaseFieldDeclarationSyntax)
+                foreach (var member in ((CompilationUnitSyntax)container).Members)
                 {
-                    foreach (var declarator in ((BaseFieldDeclarationSyntax)member).Declaration.Variables)
-                    {
-                        yield return declarator;
-                    }
-                }
-                else
-                {
-                    if (IsNameableNode(member))
-                    {
-                        yield return member;
-                    }
+                    yield return member;
                 }
             }
-        }
-
-        private static IEnumerable<SyntaxNode> GetFlattenedMembers(SyntaxNode node)
-        {
-            switch (node.Kind())
+            else if (container is NamespaceDeclarationSyntax)
             {
-                case SyntaxKind.CompilationUnit:
-                    return GetFlattenedMembers(((CompilationUnitSyntax)node).Members);
-
-                case SyntaxKind.NamespaceDeclaration:
-                    return GetFlattenedMembers(((NamespaceDeclarationSyntax)node).Members);
-
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.StructDeclaration:
-                    return GetFlattenedMembers(((TypeDeclarationSyntax)node).Members);
-
-                case SyntaxKind.EnumDeclaration:
-                    return GetFlattenedMembers(((EnumDeclarationSyntax)node).Members);
-
-                default:
-                    return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                foreach (var member in ((NamespaceDeclarationSyntax)container).Members)
+                {
+                    yield return member;
+                }
             }
-        }
-
-        private static IEnumerable<SyntaxNode> GetNodeAndFlattenedMembers(SyntaxNode node)
-        {
-            if (IsNameableNode(node))
+            else if (container is TypeDeclarationSyntax)
             {
-                yield return node;
+                foreach (var member in ((TypeDeclarationSyntax)container).Members)
+                {
+                    yield return member;
+                }
             }
-
-            if (HasMembers(node))
+            else if (container is EnumDeclarationSyntax)
             {
-                foreach (var member in GetFlattenedMembers(node).SelectMany(GetNodeAndFlattenedMembers))
+                foreach (var member in ((EnumDeclarationSyntax)container).Members)
                 {
                     yield return member;
                 }
             }
         }
 
-        protected override IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxTree syntaxTree)
+        private static bool NodeIsSupported(bool test, SyntaxNode node)
         {
-            return GetNodeAndFlattenedMembers((CompilationUnitSyntax)syntaxTree.GetRoot());
+            return !test || IsNameableNode(node);
         }
 
-        public override IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxNode node)
+        /// <summary>
+        /// Retrieves the members of a specified <paramref name="container"/> node. The members that are
+        /// returned can be controlled by passing various parameters.
+        /// </summary>
+        /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
+        /// <param name="includeSelf">If true, the container is returned as well.</param>
+        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// as immediate children. For example, a namespace would return the namespaces and types within.
+        /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
+        /// also be returned.</param>
+        /// <param name="logicalFields">If true, field declarations are broken into their respective declarators.
+        /// For example, the field "int x, y" would return two declarators, one for x and one for y in place
+        /// of the field.</param>
+        /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
+        public override IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes)
         {
-            return GetFlattenedMembers((CSharpSyntaxNode)node);
-        }
-
-        protected override IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container)
-        {
-            if (container is CompilationUnitSyntax)
+            if (!IsContainerNode(container))
             {
-                return ((CompilationUnitSyntax)container).Members;
-            }
-            else if (container is NamespaceDeclarationSyntax)
-            {
-                return ((NamespaceDeclarationSyntax)container).Members;
-            }
-            else if (container is TypeDeclarationSyntax)
-            {
-                return ((TypeDeclarationSyntax)container).Members;
-            }
-            else if (container is EnumDeclarationSyntax)
-            {
-                return ((EnumDeclarationSyntax)container).Members;
+                yield break;
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            if (includeSelf && NodeIsSupported(onlySupportedNodes, container))
+            {
+                yield return container;
+            }
+
+            foreach (var member in GetChildMemberNodes(container))
+            {
+                if (member is BaseFieldDeclarationSyntax)
+                {
+                    // For fields, the 'logical' and 'supported' flags are intrinsically tied.
+                    //   * If 'logical' is true, only declarators should be returned, regardless of the value of 'supported'.
+                    //   * If 'logical' is false, the field should only be returned if 'supported' is also false.
+
+                    if (logicalFields)
+                    {
+                        foreach (var declarator in ((BaseFieldDeclarationSyntax)member).Declaration.Variables)
+                        {
+                            // We know that variable declarators are supported, so there's no need to check them here.
+                            yield return declarator;
+                        }
+                    }
+                    else if (!onlySupportedNodes)
+                    {
+                        // Only return field declarations if the supported flag is false.
+                        yield return member;
+                    }
+                }
+                else if (NodeIsSupported(onlySupportedNodes, member))
+                {
+                    yield return member;
+                }
+
+                if (recursive && IsContainerNode(member))
+                {
+                    foreach (var innerMember in GetMemberNodes(member, includeSelf: false, recursive: true, logicalFields: logicalFields, onlySupportedNodes: onlySupportedNodes))
+                    {
+                        yield return innerMember;
+                    }
+                }
+            }
         }
 
         public override string Language
@@ -478,6 +482,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
         }
 
+        /// <summary>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// </summary>
         public override EnvDTE.CodeElement CreateInternalCodeElement(
             CodeModelState state,
             FileCodeModel fileCodeModel,
@@ -577,6 +584,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
                     return (EnvDTE.CodeElement)CodeFunction.CreateUnknown(state, fileCodeModel, node.RawKind, GetName(node));
 
                 case SyntaxKind.PropertyDeclaration:
@@ -792,17 +800,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)node).Identifier.ToString();
+                    return ((MethodDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((MethodDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.ConstructorDeclaration:
                     return ((ConstructorDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.DestructorDeclaration:
                     return "~" + ((DestructorDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)node).Identifier.ToString();
+                    return ((PropertyDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((PropertyDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)node).ThisKeyword.ToString();
+                    return ((IndexerDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((IndexerDeclarationSyntax)node).ThisKeyword.ToString();
                 case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)node).Identifier.ToString();
+                    return ((EventDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
+                        ((EventDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)node).Identifier.ToString();
                 case SyntaxKind.NamespaceDeclaration:
@@ -1309,7 +1321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             for (int i = 1; i < lines.Length; i++)
             {
                 var line = lines[i].TrimStart();
-                if (line.StartsWith("///"))
+                if (line.StartsWith("///", StringComparison.Ordinal))
                 {
                     line = line.Substring(3);
                 }
@@ -1701,9 +1713,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode GetEffectiveParentForAttribute(SyntaxNode node)
         {
-            if (node.HasAncestor<FieldDeclarationSyntax>())
+            if (node.HasAncestor<BaseFieldDeclarationSyntax>())
             {
-                return node.GetAncestor<FieldDeclarationSyntax>().Declaration.Variables.FirstOrDefault();
+                return node.GetAncestor<BaseFieldDeclarationSyntax>().Declaration.Variables.FirstOrDefault();
             }
             else if (node.HasAncestor<ParameterSyntax>())
             {
@@ -2139,6 +2151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return EnvDTE.vsCMFunction.vsCMFunctionDestructor;
 
                 case MethodKind.UserDefinedOperator:
+                case MethodKind.Conversion:
                     return EnvDTE.vsCMFunction.vsCMFunctionOperator;
 
                 case MethodKind.PropertyGet:
@@ -3092,7 +3105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override int GetMemberIndexInContainer(SyntaxNode containerNode, Func<SyntaxNode, bool> predicate)
         {
-            var members = GetFlattenedMemberNodes(containerNode).ToArray();
+            var members = GetLogicalMemberNodes(containerNode).ToArray();
 
             int index = 0;
             while (index < members.Length)
@@ -3286,15 +3299,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 if (argumentList == null)
                 {
                     newArgumentList = SyntaxFactory.AttributeArgumentList(
-                                        SyntaxFactory.SingletonSeparatedList<AttributeArgumentSyntax>(
+                                        SyntaxFactory.SingletonSeparatedList(
                                             (AttributeArgumentSyntax)attributeArgument));
                 }
                 else
                 {
-                    SeparatedSyntaxList<AttributeArgumentSyntax> newArguments;
-
-                    newArguments = argumentList.Arguments.Insert(index, (AttributeArgumentSyntax)attributeArgument);
-
+                    var newArguments = argumentList.Arguments.Insert(index, (AttributeArgumentSyntax)attributeArgument);
                     newArgumentList = argumentList.WithArguments(newArguments);
                 }
 
@@ -3306,113 +3316,127 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override SyntaxNode InsertAttributeListIntoContainer(int index, SyntaxNode list, SyntaxNode container)
         {
+            // If the attribute list is being inserted at the first index and the container is not the compilation unit, copy leading trivia
+            // to the list that is being inserted.
+            if (index == 0 && !(container is CompilationUnitSyntax))
+            {
+                var firstToken = container.GetFirstToken();
+                if (firstToken.HasLeadingTrivia)
+                {
+                    var trivia = firstToken.LeadingTrivia;
+
+                    container = container.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
+                    list = list.WithLeadingTrivia(trivia);
+                }
+            }
+
             if (container is CompilationUnitSyntax)
             {
                 var compilationUnit = (CompilationUnitSyntax)container;
-                var attributeLists = compilationUnit.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return compilationUnit.WithAttributeLists(attributeLists);
+                var newAttributeLists = compilationUnit.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return compilationUnit.WithAttributeLists(newAttributeLists);
             }
             else if (container is EnumDeclarationSyntax)
             {
                 var enumDeclaration = (EnumDeclarationSyntax)container;
-                var attributeLists = enumDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return enumDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = enumDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return enumDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is ClassDeclarationSyntax)
             {
                 var classDeclaration = (ClassDeclarationSyntax)container;
-                var attributeLists = classDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return classDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = classDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return classDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is StructDeclarationSyntax)
             {
                 var structDeclaration = (StructDeclarationSyntax)container;
-                var attributeLists = structDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return structDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = structDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return structDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is InterfaceDeclarationSyntax)
             {
                 var interfaceDeclaration = (InterfaceDeclarationSyntax)container;
-                var attributeLists = interfaceDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return interfaceDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = interfaceDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return interfaceDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is MethodDeclarationSyntax)
             {
                 var method = (MethodDeclarationSyntax)container;
-                var attributeLists = method.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return method.WithAttributeLists(attributeLists);
+                var newAttributeLists = method.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return method.WithAttributeLists(newAttributeLists);
             }
             else if (container is OperatorDeclarationSyntax)
             {
                 var operationDeclaration = (OperatorDeclarationSyntax)container;
-                var attributeLists = operationDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return operationDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = operationDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return operationDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is ConversionOperatorDeclarationSyntax)
             {
                 var conversion = (ConversionOperatorDeclarationSyntax)container;
-                var attributeLists = conversion.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return conversion.WithAttributeLists(attributeLists);
+                var newAttributeLists = conversion.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return conversion.WithAttributeLists(newAttributeLists);
             }
             else if (container is ConstructorDeclarationSyntax)
             {
                 var constructor = (ConstructorDeclarationSyntax)container;
-                var attributeLists = constructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return constructor.WithAttributeLists(attributeLists);
+                var newAttributeLists = constructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return constructor.WithAttributeLists(newAttributeLists);
             }
             else if (container is DestructorDeclarationSyntax)
             {
                 var destructor = (DestructorDeclarationSyntax)container;
-                var attributeLists = destructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return destructor.WithAttributeLists(attributeLists);
+                var newAttributeLists = destructor.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return destructor.WithAttributeLists(newAttributeLists);
             }
             else if (container is PropertyDeclarationSyntax)
             {
                 var property = (PropertyDeclarationSyntax)container;
-                var attributeLists = property.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return property.WithAttributeLists(attributeLists);
+                var newAttributeLists = property.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return property.WithAttributeLists(newAttributeLists);
             }
             else if (container is EventDeclarationSyntax)
             {
                 var eventDeclaration = (EventDeclarationSyntax)container;
-                var attributeLists = eventDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return eventDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = eventDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return eventDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is IndexerDeclarationSyntax)
             {
                 var indexer = (IndexerDeclarationSyntax)container;
-                var attributeLists = indexer.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return indexer.WithAttributeLists(attributeLists);
+                var newAttributeLists = indexer.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return indexer.WithAttributeLists(newAttributeLists);
             }
             else if (container is FieldDeclarationSyntax)
             {
                 var field = (FieldDeclarationSyntax)container;
-                var attributeLists = field.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return field.WithAttributeLists(attributeLists);
+                var newAttributeLists = field.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return field.WithAttributeLists(newAttributeLists);
             }
             else if (container is EventFieldDeclarationSyntax)
             {
                 var eventFieldDeclaration = (EventFieldDeclarationSyntax)container;
-                var attributeLists = eventFieldDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return eventFieldDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = eventFieldDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return eventFieldDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is DelegateDeclarationSyntax)
             {
                 var delegateDeclaration = (DelegateDeclarationSyntax)container;
-                var attributeLists = delegateDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return delegateDeclaration.WithAttributeLists(attributeLists);
+                var newAttributeLists = delegateDeclaration.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return delegateDeclaration.WithAttributeLists(newAttributeLists);
             }
             else if (container is EnumMemberDeclarationSyntax)
             {
                 var member = (EnumMemberDeclarationSyntax)container;
-                var attributeLists = member.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return member.WithAttributeLists(attributeLists);
+                var newAttributeLists = member.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return member.WithAttributeLists(newAttributeLists);
             }
             else if (container is ParameterSyntax)
             {
                 var parameter = (ParameterSyntax)container;
-                var attributeLists = parameter.AttributeLists.Insert(index, (AttributeListSyntax)list);
-                return parameter.WithAttributeLists(attributeLists);
+                var newAttributeLists = parameter.AttributeLists.Insert(index, (AttributeListSyntax)list);
+                return parameter.WithAttributeLists(newAttributeLists);
             }
             else if (container is VariableDeclaratorSyntax ||
                      container is VariableDeclarationSyntax)
@@ -3661,7 +3685,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string[] GetTypeExtenderNames()
         {
-            return new string[0];
+            return Array.Empty<string>();
         }
 
         public override object GetTypeExtender(string name, AbstractCodeType symbol)

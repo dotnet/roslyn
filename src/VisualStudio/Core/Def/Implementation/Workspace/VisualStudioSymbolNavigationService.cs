@@ -8,14 +8,14 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.RQName;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -26,7 +26,7 @@ using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    internal partial class VisualStudioSymbolNavigationService : ISymbolNavigationService
+    internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAffinitizedObject, ISymbolNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
@@ -123,38 +123,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TrySymbolNavigationNotify(ISymbol symbol, Solution solution)
         {
-            foreach (var s in GetAllNavigationSymbols(symbol))
-            {
-                if (TryNotifyForSpecificSymbol(s, solution))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// If the symbol being navigated to is a constructor, then try navigating to the
-        /// constructor itself. If no third parties choose to navigate to the constructor, then try
-        /// the constructor's containing type.
-        /// </summary>
-        private IEnumerable<ISymbol> GetAllNavigationSymbols(ISymbol symbol)
-        {
-            yield return symbol;
-
-            if (symbol.IsConstructor())
-            {
-                yield return symbol.ContainingType;
-            }
+            return TryNotifyForSpecificSymbol(symbol, solution);
         }
 
         private bool TryNotifyForSpecificSymbol(ISymbol symbol, Solution solution)
         {
+            AssertIsForeground();
+
             IVsHierarchy hierarchy;
             IVsSymbolicNavigationNotify navigationNotify;
             string rqname;
-            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out navigationNotify, out rqname))
+            uint itemID;
+            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out itemID, out navigationNotify, out rqname))
             {
                 return false;
             }
@@ -162,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             int navigationHandled;
             int returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
-                (uint)VSConstants.VSITEMID.Nil,
+                itemID,
                 rqname,
                 out navigationHandled);
 
@@ -176,12 +156,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool WouldNavigateToSymbol(ISymbol symbol, Solution solution, out string filePath, out int lineNumber, out int charOffset)
         {
-            foreach (var s in GetAllNavigationSymbols(symbol))
+            if (WouldNotifyToSpecificSymbol(symbol, solution, out filePath, out lineNumber, out charOffset))
             {
-                if (WouldNotifyToSpecificSymbol(s, solution, out filePath, out lineNumber, out charOffset))
-                {
-                    return true;
-                }
+                return true;
+            }
+
+            // If the symbol being considered is a constructor and no third parties choose to
+            // navigate to the constructor, then try the constructor's containing type.
+            if (symbol.IsConstructor() && WouldNotifyToSpecificSymbol(symbol.ContainingType, solution, out filePath, out lineNumber, out charOffset))
+            {
+                return true;
             }
 
             filePath = null;
@@ -192,6 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool WouldNotifyToSpecificSymbol(ISymbol symbol, Solution solution, out string filePath, out int lineNumber, out int charOffset)
         {
+            AssertIsForeground();
+
             filePath = null;
             lineNumber = 0;
             charOffset = 0;
@@ -199,7 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsHierarchy hierarchy;
             IVsSymbolicNavigationNotify navigationNotify;
             string rqname;
-            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out navigationNotify, out rqname))
+            uint itemID;
+            if (!TryGetNavigationAPIRequiredArguments(symbol, solution, out hierarchy, out itemID, out navigationNotify, out rqname))
             {
                 return false;
             }
@@ -211,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             int queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
-                (uint)VSConstants.VSITEMID.Nil,
+                itemID,
                 rqname,
                 out navigateToHierarchy,
                 out navigateToItem,
@@ -229,24 +216,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
-        private bool TryGetNavigationAPIRequiredArguments(ISymbol symbol, Solution solution, out IVsHierarchy hierarchy, out IVsSymbolicNavigationNotify navigationNotify, out string rqname)
+        private bool TryGetNavigationAPIRequiredArguments(
+            ISymbol symbol, 
+            Solution solution, 
+            out IVsHierarchy hierarchy, 
+            out uint itemID, 
+            out IVsSymbolicNavigationNotify navigationNotify, 
+            out string rqname)
         {
+            AssertIsForeground();
+
             hierarchy = null;
             navigationNotify = null;
             rqname = null;
+            itemID = (uint)VSConstants.VSITEMID.Nil;
 
-            if (!symbol.Locations.Any() || !symbol.Locations[0].IsInSource)
+            if (!symbol.Locations.Any())
             {
                 return false;
             }
 
-            var document = solution.GetDocument(symbol.Locations[0].SourceTree);
-            if (document == null)
+            var sourceLocations = symbol.Locations.Where(loc => loc.IsInSource);
+            if (!sourceLocations.Any())
             {
                 return false;
             }
 
-            hierarchy = GetVsHierarchy(document.Project);
+            var documents = sourceLocations.Select(loc => solution.GetDocument(loc.SourceTree)).WhereNotNull();
+            if (!documents.Any())
+            {
+                return false;
+            }
+
+            // We can only pass one itemid to IVsSymbolicNavigationNotify, so prefer itemids from
+            // documents we consider to be "generated" to give external language services the best
+            // chance of participating.
+
+            var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
+            var generatedDocuments = documents.Where(d => generatedCodeRecognitionService.IsGeneratedCode(d));
+
+            var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
+            if (!TryGetVsHierarchyAndItemId(documentToUse, out hierarchy, out itemID))
+            {
+                return false;
+            }
 
             navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
             if (navigationNotify == null)
@@ -254,19 +267,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            return RQNameService.TryBuild(symbol, out rqname);
+            rqname = LanguageServices.RQName.From(symbol);
+            return rqname != null;
         }
 
-        private IVsHierarchy GetVsHierarchy(Project project)
+        private bool TryGetVsHierarchyAndItemId(Document document, out IVsHierarchy hierarchy, out uint itemID)
         {
-            var visualStudioWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
+            AssertIsForeground();
+
+            var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
             if (visualStudioWorkspace != null)
             {
-                var hierarchy = visualStudioWorkspace.GetHierarchy(project.Id);
-                return hierarchy;
+                var hostProject = visualStudioWorkspace.GetHostProject(document.Project.Id);
+                hierarchy = hostProject.Hierarchy;
+                itemID = hostProject.GetDocumentOrAdditionalDocument(document.Id).GetItemId();
+
+                return true;
             }
 
-            return null;
+            hierarchy = null;
+            itemID = (uint)VSConstants.VSITEMID.Nil;
+            return false;
         }
 
         private I GetService<S, I>()

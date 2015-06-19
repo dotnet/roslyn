@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static bool IsKeyword(this SyntaxToken n)
         {
             var kind = n.GetKind();
-            return kind.EndsWith("Keyword") || (kind.Contains("Identifier") && n.Parent != null && !n.Parent.GetKind().Contains("Name"));
+            return kind.EndsWith("Keyword", StringComparison.Ordinal) || (kind.Contains("Identifier") && n.Parent != null && !n.Parent.GetKind().Contains("Name"));
         }
 
         public static bool IsLiteral(this SyntaxToken n)

@@ -4001,7 +4001,7 @@ End Namespace
                     end synclock
 
                     '
-                    ' test this case in the else part of the single line if statment
+                    ' test this case in the else part of the single line if statement
 
                     If True Then else try : 
                     finally
@@ -4154,7 +4154,7 @@ End Module
     End Sub
 
     <WorkItem(545543, "DevDiv")>
-    <Fact>
+    <ConditionalFact(GetType(WindowsOnly))>
     Public Sub ParseValidUseOfBlockWithinMultiLineLambda()
         Dim compilationDef =
 <compilation name="LambdaTests_err">
@@ -4182,7 +4182,7 @@ End Module
     End Sub
 
     <WorkItem(545543, "DevDiv")>
-    <Fact>
+    <ConditionalFact(GetType(WindowsOnly))>
     Public Sub ParseValidUseOfNonBlockWithinSingleLineLambda()
         Dim compilationDef =
 <compilation name="LambdaTests_err">
@@ -4212,7 +4212,7 @@ End Module
     End Sub
 
     <WorkItem(545543, "DevDiv")>
-    <Fact>
+    <ConditionalFact(GetType(WindowsOnly))>
     Public Sub ParseValidUseOfBlockWithinSingleLineLambda()
         'Subtle Variation with Single line Statement Lambda and a Block Construct
         Dim compilationDef =

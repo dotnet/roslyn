@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.FlowAnalysis
                 Dim f As Func(Of Object) = Function() x
                 x = 1|]
             ]]>,
-            alwaysAssigned:={"x", "f"},
+            alwaysAssigned:={"f", "x"},
             captured:={"x"},
             variablesDeclared:={"f"},
             dataFlowsIn:={"x"},

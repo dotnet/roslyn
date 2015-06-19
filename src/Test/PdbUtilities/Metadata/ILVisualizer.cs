@@ -16,13 +16,13 @@ namespace Roslyn.Test.MetadataUtilities
 {
     public abstract class ILVisualizer
     {
-        private static readonly OpCode[] OneByteOpCodes;
-        private static readonly OpCode[] TwoByteOpCodes;
-         
+        private static readonly OpCode[] s_oneByteOpCodes;
+        private static readonly OpCode[] s_twoByteOpCodes;
+
         static ILVisualizer()
         {
-            OneByteOpCodes = new OpCode[0x100];
-            TwoByteOpCodes = new OpCode[0x100];
+            s_oneByteOpCodes = new OpCode[0x100];
+            s_twoByteOpCodes = new OpCode[0x100];
 
             var typeOfOpCode = typeof(OpCode);
 
@@ -37,11 +37,11 @@ namespace Roslyn.Test.MetadataUtilities
                 var value = unchecked((ushort)opCode.Value);
                 if (value < 0x100)
                 {
-                    OneByteOpCodes[value] = opCode;
+                    s_oneByteOpCodes[value] = opCode;
                 }
                 else if ((value & 0xff00) == 0xfe00)
                 {
-                    TwoByteOpCodes[value & 0xff] = opCode;
+                    s_twoByteOpCodes[value & 0xff] = opCode;
                 }
             }
         }
@@ -187,15 +187,19 @@ namespace Roslyn.Test.MetadataUtilities
 
         public void VisualizeHeader(StringBuilder sb, int codeSize, int maxStack, ImmutableArray<LocalInfo> locals)
         {
-            if (codeSize == 0)
+            if (codeSize >= 0 && maxStack >= 0)
             {
-                sb.AppendLine("  // Unrealized IL");
+                if (codeSize == 0)
+                {
+                    sb.AppendLine("  // Unrealized IL");
+                }
+                else
+                {
+                    sb.AppendLine(string.Format("  // Code size {0,8} (0x{0:x})", codeSize));
+                }
+
+                sb.AppendLine(string.Format("  .maxstack  {0}", maxStack));
             }
-            else
-            {
-                sb.AppendLine(string.Format("  // Code size {0,8} (0x{0:x})", codeSize));
-            }
-            sb.AppendLine(string.Format("  .maxstack  {0}", maxStack));
 
             int i = 0;
             foreach (var local in locals)
@@ -307,7 +311,7 @@ namespace Roslyn.Test.MetadataUtilities
                     sb.Append("{  // handler");
                     sb.AppendLine();
                 }
-                
+
                 if (StartsSpan(spans, spanIndex, curIndex + blockOffset))
                 {
                     sb.Append(indent);
@@ -346,12 +350,12 @@ namespace Roslyn.Test.MetadataUtilities
                     if (op1 == 0xfe && curIndex < length)
                     {
                         byte op2 = ilBytes[curIndex++];
-                        opCode = TwoByteOpCodes[op2];
+                        opCode = s_twoByteOpCodes[op2];
                         expectedSize = 2;
                     }
                     else
                     {
-                        opCode = OneByteOpCodes[op1];
+                        opCode = s_oneByteOpCodes[op1];
                         expectedSize = 1;
                     }
 

@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
+namespace Microsoft.AnalyzerPowerPack.Utilities
 {
     /// <summary>
     ///   Defines the word parsing and delimiting options for use with <see cref="WordParser.Parse(String,WordParserOptions)"/>.

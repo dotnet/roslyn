@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
-    NotInheritable Class GetTypeExpressionDocumentation
+    Friend NotInheritable Class GetTypeExpressionDocumentation
         Inherits AbstractIntrinsicOperatorDocumentation
 
         Public Overrides Function GetParameterDocumentation(index As Integer) As String
@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 0
                     Return VBWorkspaceResources.TypeToReturnObjectFor
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
                 Case 0
                     Return VBWorkspaceResources.Typename
                 Case Else
-                    Throw New ArgumentException("index")
+                    Throw New ArgumentException(NameOf(index))
             End Select
         End Function
 

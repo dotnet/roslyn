@@ -14,10 +14,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
     Friend Class VisualBasicOutliningService
         Inherits AbstractOutliningService
 
-        Private Shared ReadOnly _defaultNodeOutlinerMap As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner)) = CreateDefaultNodeOutlinerMap()
-        Private Shared ReadOnly _defaultTriviaOutlinerMap As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner)) = CreateDefaultTriviaOutlinerMap()
+        Private Shared ReadOnly s_defaultNodeOutlinerMap As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner)) = CreateDefaultNodeOutlinerMap()
+        Private Shared ReadOnly s_defaultTriviaOutlinerMap As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner)) = CreateDefaultTriviaOutlinerMap()
 
-        Shared Function CreateDefaultNodeOutlinerMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner))
+        Public Shared Function CreateDefaultNodeOutlinerMap() As ImmutableDictionary(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner))
             Dim builder = ImmutableDictionary.CreateBuilder(Of Type, ImmutableArray(Of AbstractSyntaxNodeOutliner))()
 
             builder.Add(Of AccessorStatementSyntax, AccessorDeclarationOutliner)()
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
             Return builder.ToImmutable()
         End Function
 
-        Shared Function CreateDefaultTriviaOutlinerMap() As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner))
+        Public Shared Function CreateDefaultTriviaOutlinerMap() As ImmutableDictionary(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner))
             Dim builder = ImmutableDictionary.CreateBuilder(Of Integer, ImmutableArray(Of AbstractSyntaxTriviaOutliner))()
 
             builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxTriviaOutliner)(New DisabledTextTriviaOutliner()))
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
         End Function
 
         Private Sub New()
-            MyBase.New(_defaultNodeOutlinerMap, _defaultTriviaOutlinerMap)
+            MyBase.New(s_defaultNodeOutlinerMap, s_defaultTriviaOutlinerMap)
         End Sub
 
     End Class

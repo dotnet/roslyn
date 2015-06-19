@@ -1,16 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Linq
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -185,12 +179,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' Matches the following:
         '
         ' (whitespace* newline)+ 
-        Private ReadOnly OneOrMoreBlankLines As Matcher(Of SyntaxTrivia)
+        Private ReadOnly s_oneOrMoreBlankLines As Matcher(Of SyntaxTrivia)
 
         ' Matches the following:
         '
         ' (whitespace* comment whitespace* newline)+ OneOrMoreBlankLines
-        Private ReadOnly BannerMatcher As Matcher(Of SyntaxTrivia)
+        Private ReadOnly s_bannerMatcher As Matcher(Of SyntaxTrivia)
+
+        ' Used to match the following:
+        '
+        ' <start-of-file> (whitespace* comment whitespace* newline)+ blankLine*
+        Private ReadOnly s_fileBannerMatcher As Matcher(Of SyntaxTrivia)
 
         Sub New()
             Dim whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"))
@@ -200,11 +199,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim comment = Match(SyntaxKind.CommentTrivia, "'")
             Dim commentLine = Matcher.Sequence(whitespace, comment, whitespace, endOfLine)
 
-            OneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine)
-            BannerMatcher =
+            s_oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine)
+            s_bannerMatcher =
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
-                    OneOrMoreBlankLines)
+                    s_oneOrMoreBlankLines)
+            s_fileBannerMatcher =
+                Matcher.Sequence(
+                    Matcher.OneOrMore(commentLine),
+                    Matcher.Repeat(singleBlankLine))
         End Sub
 
         Private Function Match(kind As SyntaxKind, description As String) As Matcher(Of SyntaxTrivia)
@@ -253,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case TypeCharacter.String
                     Return "$"
                 Case Else
-                    Throw New ArgumentException("Unexpected TypeCharacter.", "type")
+                    Throw New ArgumentException("Unexpected TypeCharacter.", NameOf(type))
             End Select
         End Function
 
@@ -482,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim leadingTriviaToKeep = New List(Of SyntaxTrivia)(node.GetLeadingTrivia())
 
             Dim index = 0
-            OneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index)
+            s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index)
 
             strippedTrivia = New List(Of SyntaxTrivia)(leadingTriviaToKeep.Take(index))
 
@@ -537,11 +540,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 leadingTriviaToStrip = New List(Of SyntaxTrivia)()
             End If
 
-            ' Now, consume as many banners as we can.
+            ' Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
+            ' the start of the file.
             Dim index = 0
             While (
-                OneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
-                BannerMatcher.TryMatch(leadingTriviaToKeep, index))
+                s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
+                s_bannerMatcher.TryMatch(leadingTriviaToKeep, index) OrElse
+                (node.FullSpan.Start = 0 AndAlso s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, index)))
             End While
 
             leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index))
@@ -672,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim skippedTokenFinder As Func(Of SyntaxTriviaList, Integer, SyntaxToken) = Nothing
 
             skippedTokenFinder =
-                If(includeSkipped, FindSkippedTokenForward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
+                If(includeSkipped, s_findSkippedTokenForward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
 
             Return FindTokenHelper.FindTokenOnRightOfPosition(Of CompilationUnitSyntax)(
                     root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments)
@@ -692,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim skippedTokenFinder As Func(Of SyntaxTriviaList, Integer, SyntaxToken) = Nothing
 
             skippedTokenFinder =
-                If(includeSkipped, FindSkippedTokenBackward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
+                If(includeSkipped, s_findSkippedTokenBackward, CType(Nothing, Func(Of SyntaxTriviaList, Integer, SyntaxToken)))
 
             Return FindTokenHelper.FindTokenOnLeftOfPosition(Of CompilationUnitSyntax)(
                     root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments)
@@ -724,20 +729,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End While
 
             Debug.Assert(Not self.FullSpan.Contains(position), "Position is valid. How could we not find a child?")
-            Throw New ArgumentOutOfRangeException("position")
+            Throw New ArgumentOutOfRangeException(NameOf(position))
         End Function
 
 
         ''' <summary>
         ''' Look inside a trivia list for a skipped token that contains the given position.
         ''' </summary>
-        Private FindSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
+        Private ReadOnly s_findSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
             Function(l, p) FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p)
 
         ''' <summary>
         ''' Look inside a trivia list for a skipped token that contains the given position.
         ''' </summary>
-        Private FindSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
+        Private ReadOnly s_findSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
             Function(l, p) FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p)
 
         ''' <summary>

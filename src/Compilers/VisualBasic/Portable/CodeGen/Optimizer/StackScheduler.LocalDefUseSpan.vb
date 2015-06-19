@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' <summary>
         ''' Represents a span of a value between definition and use. Start/end positions are 
         ''' specified in terms of global node count as visited by StackOptimizer visitors. 
-        ''' (i.e. recursive walk not looking into constats)
+        ''' (i.e. recursive walk not looking into constants)
         ''' </summary>
         Private Class LocalDefUseSpan
 

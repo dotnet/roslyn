@@ -782,7 +782,7 @@ End Namespace
 #Region "Type tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Type1()
+        Public Sub Type1()
             Dim code =
 <Code>
 Class C
@@ -800,7 +800,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Type2()
+        Public Sub Type2()
             Dim code =
 <Code>
 Class C
@@ -818,7 +818,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub Type3()
+        Public Sub Type3()
             Dim code =
 <Code>
 Class C
@@ -838,6 +838,7 @@ End Class
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -887,9 +888,36 @@ End Class
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Sub
 
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code><![CDATA[
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    Dim $$foo As Integer
+End Class
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+Imports System
+
+Class C
+    ''' &lt;summary&gt;&lt;/summary&gt;
+    <CLSCompliant(True)>
+    Dim foo As Integer
+End Class
+]]></Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
+        End Sub
+
 #End Region
 
 #Region "Set Access tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetEnumAccess1()
             Dim code =
@@ -2001,7 +2029,7 @@ End Enum
 #Region "Set Name tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName1()
+        Public Sub SetName1()
             Dim code =
 <Code>
 Class C
@@ -2020,7 +2048,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetName2()
+        Public Sub SetName2()
             Dim code =
 <Code>
 Class C
@@ -2093,7 +2121,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType3()
+        Public Sub SetType3()
             Dim code =
 <Code>
 Class C
@@ -2112,7 +2140,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType4()
+        Public Sub SetType4()
             Dim code =
 <Code>
 Class C
@@ -2131,7 +2159,7 @@ End Class
         End Sub
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Sub SetType5()
+        Public Sub SetType5()
             Dim code =
 <Code>
 Class C

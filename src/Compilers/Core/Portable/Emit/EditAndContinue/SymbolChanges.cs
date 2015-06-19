@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 var generator = synthesizedDef.Method;
                 var synthesizedSymbol = (ISymbol)synthesizedDef;
 
-                switch (GetChange(generator))
+                switch (GetChange((IDefinition)generator))
                 {
                     case SymbolChange.Updated:
                         // The generator has been updated. Some synthesized members should be reused, others updated or added.
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             // The method body might have been updated.
                             return SymbolChange.Updated;
                         }
-                        
+
                         return SymbolChange.None;
 
                     case SymbolChange.Added:
@@ -193,14 +193,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var symbol in _changes.Keys)
             {
-                var typeDef = symbol as ITypeDefinition;
-                if (typeDef != null)
+                var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                if (namespaceTypeDef != null)
                 {
-                    var namespaceTypeDef = typeDef.AsNamespaceTypeDefinition(context);
-                    if (namespaceTypeDef != null)
-                    {
-                        yield return namespaceTypeDef;
-                    }
+                    yield return namespaceTypeDef;
                 }
             }
         }

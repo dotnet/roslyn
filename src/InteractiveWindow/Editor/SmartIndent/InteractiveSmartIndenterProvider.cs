@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
@@ -10,8 +12,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     [ContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName)]
     internal class InteractiveSmartIndenterProvider : ISmartIndentProvider
     {
-        private readonly ITextEditorFactoryService editorFactory;
-        private readonly IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> indentProviders;
+        private readonly ITextEditorFactoryService _editorFactory;
+        private readonly IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> _indentProviders;
 
         [ImportingConstructor]
         public InteractiveSmartIndenterProvider(
@@ -20,16 +22,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             if (editorFactory == null)
             {
-                throw new ArgumentNullException("editorFactory");
+                throw new ArgumentNullException(nameof(editorFactory));
             }
 
             if (indentProviders == null)
             {
-                throw new ArgumentNullException("indentProviders");
+                throw new ArgumentNullException(nameof(indentProviders));
             }
 
-            this.editorFactory = editorFactory;
-            this.indentProviders = indentProviders;
+            _editorFactory = editorFactory;
+            _indentProviders = indentProviders;
         }
 
         public ISmartIndent CreateSmartIndent(ITextView view)
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return null;
             }
 
-            return InteractiveSmartIndenter.Create(this.indentProviders, window.CurrentLanguageBuffer.ContentType, view);
+            return InteractiveSmartIndenter.Create(_indentProviders, window.CurrentLanguageBuffer.ContentType, view);
         }
     }
 }

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     ' //============ Methods to encapsulate scanning ========================
     ' //
 
-    Partial Class Parser
+    Friend Partial Class Parser
 
         ' File: Scanner.h
         ' Lines: 301 - 301
@@ -198,13 +198,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function PeekAheadFor(ParamArray kinds As SyntaxKind()) As SyntaxKind
             Dim token As SyntaxToken = Nothing
-            PeekAheadFor(IsTokenOrKeywordFunc, kinds, token)
+            PeekAheadFor(s_isTokenOrKeywordFunc, kinds, token)
             Return If(token Is Nothing, Nothing, token.Kind)
         End Function
 
         Private Function PeekAheadForToken(ParamArray kinds As SyntaxKind()) As Integer
             Dim token As SyntaxToken = Nothing
-            Dim index = PeekAheadFor(IsTokenOrKeywordFunc, kinds, token)
+            Dim index = PeekAheadFor(s_isTokenOrKeywordFunc, kinds, token)
             Return index
         End Function
 
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If CurrentToken.Kind = SyntaxKind.StatementTerminatorToken AndAlso
                 PeekEndStatement(1) = SyntaxKind.None AndAlso
-                Not m_EvaluatingConditionCompilationExpression Then
+                Not _evaluatingConditionCompilationExpression Then
 
                 If Not NextLineStartsWithStatementTerminator() Then
                     _hadImplicitLineContinuation = True

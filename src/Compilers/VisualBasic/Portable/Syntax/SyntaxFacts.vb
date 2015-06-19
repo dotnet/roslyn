@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "Finally"
 
                 Case Else
-                    Throw New ArgumentOutOfRangeException("kind")
+                    Throw New ArgumentOutOfRangeException(NameOf(kind))
             End Select
         End Function
 
@@ -833,12 +833,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
 
                 ' After an open parenthesis (() or before a closing parenthesis ()).
-                ' After an open curly brace ({) or before a closing curly brace (}).
                 ' After an open embedded expression (<%=) or before the close of an embedded expression (%>) within an XML literal.
                 Case SyntaxKind.OpenParenToken,
-                     SyntaxKind.OpenBraceToken,
                      SyntaxKind.LessThanPercentEqualsToken,
                      SyntaxKind.PercentGreaterThanToken
+
+                    Return True
+
+                ' After an open curly brace ({) or before a closing curly brace (})
+                ' However, a line-continuation character is required following the open curly brace of a string interpolation.
+                Case SyntaxKind.OpenBraceToken
+
+                    If parentKind = SyntaxKind.Interpolation Then
+                        Return False
+                    End If
 
                     Return True
 
@@ -892,12 +900,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Order By, Select, Skip, Skip While, Take, Take While, Where, In, Into, On, Ascending, and Descending). 
                 ' After the From keyword in a collection initializer.
                 Case SyntaxKind.AggregateKeyword,
-                        SyntaxKind.ByKeyword,
-                        SyntaxKind.EqualsKeyword,
-                        SyntaxKind.FromKeyword,
-                        SyntaxKind.IntoKeyword,
-                        SyntaxKind.JoinKeyword,
-                        SyntaxKind.WhereKeyword
+                     SyntaxKind.ByKeyword,
+                     SyntaxKind.EqualsKeyword,
+                     SyntaxKind.FromKeyword,
+                     SyntaxKind.IntoKeyword,
+                     SyntaxKind.JoinKeyword,
+                     SyntaxKind.WhereKeyword
 
                     Return True
 
@@ -932,27 +940,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Keywords that may appear outside of query clauses
                 Case SyntaxKind.OnKeyword,
-                        SyntaxKind.LetKeyword,
-                        SyntaxKind.SelectKeyword,
-                        SyntaxKind.WhileKeyword
+                     SyntaxKind.LetKeyword,
+                     SyntaxKind.SelectKeyword,
+                     SyntaxKind.WhileKeyword
 
                     Return TypeOf token.Parent Is QueryClauseSyntax
 
                 ' XML Literals
                 Case SyntaxKind.BeginCDataToken,
-                        SyntaxKind.DoubleQuoteToken,
-                        SyntaxKind.LessThanExclamationMinusMinusToken,
-                        SyntaxKind.LessThanQuestionToken,
-                        SyntaxKind.XmlKeyword,
-                        SyntaxKind.XmlNameToken,
-                        SyntaxKind.XmlTextLiteralToken
+                     SyntaxKind.DoubleQuoteToken,
+                     SyntaxKind.LessThanExclamationMinusMinusToken,
+                     SyntaxKind.LessThanQuestionToken,
+                     SyntaxKind.XmlKeyword,
+                     SyntaxKind.XmlNameToken,
+                     SyntaxKind.XmlTextLiteralToken
 
                     Return True
 
                 Case SyntaxKind.EndCDataToken,
-                        SyntaxKind.MinusMinusGreaterThanToken,
-                        SyntaxKind.QuestionGreaterThanToken,
-                        SyntaxKind.SlashGreaterThanToken
+                     SyntaxKind.MinusMinusGreaterThanToken,
+                     SyntaxKind.QuestionGreaterThanToken,
+                     SyntaxKind.SlashGreaterThanToken
 
                     ' An implicit line continuation is allowed only if the token is not the end of
                     ' the xml literal. Walk up the parent chain and see if there is a parent node
@@ -1042,11 +1050,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return parentKind = SyntaxKind.AttributeList
 
                 ' After an open parenthesis (() or before a closing parenthesis ()).
-                ' After an open curly brace ({) or before a closing curly brace (}).
                 ' After an open embedded expression (<%=) or before the close of an embedded expression (%>) within an XML literal.
                 Case SyntaxKind.CloseParenToken,
-                     SyntaxKind.CloseBraceToken,
                      SyntaxKind.PercentGreaterThanToken
+
+                    Return True
+                    Return True
+
+                ' After an open curly brace ({) or before a closing curly brace (})
+                ' However, a line-continuation character is required before the closing curly brace of a string interpolation.
+                Case SyntaxKind.CloseBraceToken
+
+                    If parentKind = SyntaxKind.Interpolation Then
+                        Return False
+                    End If
 
                     Return True
 
@@ -1152,6 +1169,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return False
         End Function
-
     End Class
 End Namespace

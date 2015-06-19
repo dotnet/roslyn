@@ -1,22 +1,27 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal struct ClosureDebugInfo : IEquatable<ClosureDebugInfo>
     {
         public readonly int SyntaxOffset;
+        public readonly DebugId ClosureId;
 
-        public ClosureDebugInfo(int syntaxOffset)
+        public ClosureDebugInfo(int syntaxOffset, DebugId closureId)
         {
-            this.SyntaxOffset = syntaxOffset;
+            SyntaxOffset = syntaxOffset;
+            ClosureId = closureId;
         }
 
         public bool Equals(ClosureDebugInfo other)
         {
-            return this.SyntaxOffset == other.SyntaxOffset;
+            return SyntaxOffset == other.SyntaxOffset &&
+                   ClosureId.Equals(other.ClosureId);
         }
 
         public override bool Equals(object obj)
@@ -26,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override int GetHashCode()
         {
-            return SyntaxOffset.GetHashCode();
+            return Hash.Combine(SyntaxOffset, ClosureId.GetHashCode());
         }
 
-        public override string ToString()
+        internal string GetDebuggerDisplay()
         {
-            return $"({SyntaxOffset})";
+            return $"({ClosureId.GetDebuggerDisplay()} @{SyntaxOffset})";
         }
     }
 }

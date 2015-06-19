@@ -3,7 +3,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
@@ -21,19 +20,39 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal sealed class MemberExpansion : Expansion
     {
         internal static Expansion CreateExpansion(
-            Type declaredType,
+            DkmInspectionContext inspectionContext,
+            TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
             ExpansionFlags flags,
             Predicate<MemberInfo> predicate,
             Formatter formatter)
         {
-            var runtimeType = value.Type.GetLmrType();
+            // For members of type DynamicProperty (part of Dynamic View expansion), we want
+            // to expand the underlying value (not the members of the DynamicProperty type).
+            var type = value.Type;
+            var isDynamicProperty = type.GetLmrType().IsDynamicProperty();
+            if (isDynamicProperty)
+            {
+                Debug.Assert(!value.IsNull);
+                value = value.GetFieldValue("value", inspectionContext);
+            }
+
+            var runtimeType = type.GetLmrType();
             // Primitives, enums and null values with a declared type that is an interface have no visible members.
             Debug.Assert(!runtimeType.IsInterface || value.IsNull);
             if (formatter.IsPredefinedType(runtimeType) || runtimeType.IsEnum || runtimeType.IsInterface)
             {
                 return null;
             }
+
+            // As in the old C# EE, DynamicProperty members are only expandable if they have a Dynamic View expansion.
+            var dynamicViewExpansion = DynamicViewExpansion.CreateExpansion(inspectionContext, value, formatter);
+            if (isDynamicProperty && (dynamicViewExpansion == null))
+            {
+                return null;
+            }
+
+            var dynamicFlagsMap = DynamicFlagsMap.Create(declaredTypeAndInfo);
 
             var expansions = ArrayBuilder<Expansion>.GetInstance();
 
@@ -46,8 +65,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Expand members. (Ideally, this should be done lazily.)
             var allMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
-            var hideNonPublic = (value.InspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
-            runtimeType.AppendTypeMembers(allMembers, predicate, declaredType, appDomain, includeInherited, hideNonPublic);
+            var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
+            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic);
 
             foreach (var member in allMembers)
             {
@@ -73,6 +92,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Expansion nonPublicInstanceExpansion;
             GetPublicAndNonPublicMembers(
                 instanceMembers,
+                dynamicFlagsMap,
                 out publicInstanceExpansion,
                 out nonPublicInstanceExpansion);
 
@@ -81,6 +101,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Expansion nonPublicStaticExpansion;
             GetPublicAndNonPublicMembers(
                 staticMembers,
+                dynamicFlagsMap,
                 out publicStaticExpansion,
                 out nonPublicStaticExpansion);
 
@@ -108,6 +129,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 expansions.Add(staticMembersExpansion);
             }
 
+            if (value.NativeComPointer != 0)
+            {
+                expansions.Add(NativeViewExpansion.Instance);
+            }
+
             if (nonPublicInstanceExpansion != null)
             {
                 expansions.Add(nonPublicInstanceExpansion);
@@ -116,11 +142,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // Include Results View if necessary.
             if ((flags & ExpansionFlags.IncludeResultsView) != 0)
             {
-                var resultsViewExpansion = ResultsViewExpansion.CreateExpansion(value, formatter);
+                var resultsViewExpansion = ResultsViewExpansion.CreateExpansion(inspectionContext, value, formatter);
                 if (resultsViewExpansion != null)
                 {
                     expansions.Add(resultsViewExpansion);
                 }
+            }
+
+            if (dynamicViewExpansion != null)
+            {
+                expansions.Add(dynamicViewExpansion);
             }
 
             var result = AggregateExpansion.CreateExpansion(expansions);
@@ -130,6 +161,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static void GetPublicAndNonPublicMembers(
             ArrayBuilder<MemberAndDeclarationInfo> allMembers,
+            DynamicFlagsMap dynamicFlagsMap,
             out Expansion publicExpansion,
             out Expansion nonPublicExpansion)
         {
@@ -146,10 +178,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         case DkmClrDebuggerBrowsableAttributeState.RootHidden:
                             if (publicMembers.Count > 0)
                             {
-                                publicExpansions.Add(new MemberExpansion(publicMembers.ToArray()));
+                                publicExpansions.Add(new MemberExpansion(publicMembers.ToArray(), dynamicFlagsMap));
                                 publicMembers.Clear();
                             }
-                            publicExpansions.Add(new RootHiddenExpansion(member));
+                            publicExpansions.Add(new RootHiddenExpansion(member, dynamicFlagsMap));
                             continue;
                         case DkmClrDebuggerBrowsableAttributeState.Never:
                             continue;
@@ -168,7 +200,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (publicMembers.Count > 0)
             {
-                publicExpansions.Add(new MemberExpansion(publicMembers.ToArray()));
+                publicExpansions.Add(new MemberExpansion(publicMembers.ToArray(), dynamicFlagsMap));
             }
             publicMembers.Free();
 
@@ -177,25 +209,27 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             nonPublicExpansion = (nonPublicMembers.Count > 0) ?
                 new NonPublicMembersExpansion(
-                    declaredType: null,
-                    members: new MemberExpansion(nonPublicMembers.ToArray())) :
+                    members: new MemberExpansion(nonPublicMembers.ToArray(), dynamicFlagsMap)) :
                 null;
             nonPublicMembers.Free();
         }
 
         private readonly MemberAndDeclarationInfo[] _members;
+        private readonly DynamicFlagsMap _dynamicFlagsMap;
 
-        private MemberExpansion(MemberAndDeclarationInfo[] members)
+        private MemberExpansion(MemberAndDeclarationInfo[] members, DynamicFlagsMap dynamicFlagsMap)
         {
             Debug.Assert(members != null);
             Debug.Assert(members.Length > 0);
+            Debug.Assert(dynamicFlagsMap != null);
 
             _members = members;
+            _dynamicFlagsMap = dynamicFlagsMap;
         }
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<DkmEvaluationResult> rows,
+            ArrayBuilder<EvalResultDataItem> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -211,95 +245,29 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int offset = startIndex2 - index;
             for (int i = 0; i < count2; i++)
             {
-                rows.Add(GetMemberRow(resultProvider, inspectionContext, value, _members[i + offset], parent));
+                rows.Add(GetMemberRow(resultProvider, inspectionContext, value, _members[i + offset], parent, _dynamicFlagsMap));
             }
 
             index += _members.Length;
         }
 
-        private static DkmEvaluationResult GetMemberRow(
+        private static EvalResultDataItem GetMemberRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue value,
             MemberAndDeclarationInfo member,
-            EvalResultDataItem parent)
+            EvalResultDataItem parent,
+            DynamicFlagsMap dynamicFlagsMap)
         {
-            var memberValue = GetMemberValue(value, member);
-            var dataItem = CreateMemberDataItem(
+            var memberValue = value.GetMemberValue(member, inspectionContext);
+            return CreateMemberDataItem(
                 resultProvider,
                 inspectionContext,
                 member,
                 memberValue,
                 parent,
+                dynamicFlagsMap,
                 ExpansionFlags.All);
-            return resultProvider.GetResult(
-                dataItem,
-                memberValue.Type,
-                DkmClrType.Create(memberValue.Type.AppDomain, member.Type),
-                parent);
-        }
-
-        private static DkmClrValue GetMemberValue(DkmClrValue container, MemberAndDeclarationInfo member)
-        {
-            // Note: GetMemberValue() may return special value
-            // when func-eval of properties is disabled.
-            return container.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName);
-        }
-
-        private sealed class RootHiddenExpansion : Expansion
-        {
-            private readonly MemberAndDeclarationInfo _member;
-
-            internal RootHiddenExpansion(MemberAndDeclarationInfo member)
-            {
-                _member = member;
-            }
-
-            internal override void GetRows(
-                ResultProvider resultProvider,
-                ArrayBuilder<DkmEvaluationResult> rows,
-                DkmInspectionContext inspectionContext,
-                EvalResultDataItem parent,
-                DkmClrValue value,
-                int startIndex,
-                int count,
-                bool visitAll,
-                ref int index)
-            {
-                var memberValue = GetMemberValue(value, _member);
-                if (memberValue.IsError())
-                {
-                    if (InRange(startIndex, count, index))
-                    {
-                        var row = DkmFailedEvaluationResult.Create(
-                            InspectionContext: value.InspectionContext,
-                            StackFrame: value.StackFrame,
-                            Name: Resources.ErrorName,
-                            FullName: null,
-                            ErrorMessage: (string)memberValue.HostObjectValue,
-                            Flags: DkmEvaluationResultFlags.None,
-                            Type: null,
-                            DataItem: null);
-                        rows.Add(row);
-                    }
-                    index++;
-                }
-                else
-                {
-                    parent = CreateMemberDataItem(
-                        resultProvider,
-                        inspectionContext,
-                        _member,
-                        memberValue,
-                        parent,
-                        ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView);
-                    var expansion = parent.Expansion;
-                    if (expansion != null)
-                    {
-                        expansion.GetRows(resultProvider, rows, inspectionContext, parent, parent.Value, startIndex, count, visitAll, ref index);
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -308,18 +276,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         private sealed class NonPublicMembersExpansion : Expansion
         {
-            private readonly Type declaredType;
-            private readonly Expansion members;
+            private readonly Expansion _members;
 
-            internal NonPublicMembersExpansion(Type declaredType, Expansion members)
+            internal NonPublicMembersExpansion(Expansion members)
             {
-                this.declaredType = declaredType;
-                this.members = members;
+                _members = members;
             }
 
             internal override void GetRows(
                 ResultProvider resultProvider,
-                ArrayBuilder<DkmEvaluationResult> rows,
+                ArrayBuilder<EvalResultDataItem> rows,
                 DkmInspectionContext inspectionContext,
                 EvalResultDataItem parent,
                 DkmClrValue value,
@@ -332,43 +298,41 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     rows.Add(GetRow(
                         resultProvider,
-                        this.declaredType,
+                        inspectionContext,
                         value,
-                        this.members,
+                        _members,
                         parent));
                 }
 
                 index++;
             }
 
-            private static readonly ReadOnlyCollection<string> HiddenFormatSpecifiers = new ReadOnlyCollection<string>(new[] { "hidden" });
+            private static readonly ReadOnlyCollection<string> s_hiddenFormatSpecifiers = new ReadOnlyCollection<string>(new[] { "hidden" });
 
-            private static DkmEvaluationResult GetRow(
+            private static EvalResultDataItem GetRow(
                 ResultProvider resultProvider,
-                Type declaredType,
+                DkmInspectionContext inspectionContext,
                 DkmClrValue value,
                 Expansion expansion,
                 EvalResultDataItem parent)
             {
-                var dataItem = new EvalResultDataItem(
-                    name: null,
-                    typeDeclaringMember: null,
-                    declaredType: declaredType,
+                return new EvalResultDataItem(
+                    ExpansionKind.NonPublicMembers,
+                    name: Resources.NonPublicMembers,
+                    typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                    declaredTypeAndInfo: default(TypeAndCustomInfo),
+                    parent: null,
                     value: value,
+                    displayValue: null,
                     expansion: expansion,
                     childShouldParenthesize: parent.ChildShouldParenthesize,
                     fullName: parent.FullNameWithoutFormatSpecifiers,
                     childFullNamePrefixOpt: parent.ChildFullNamePrefix,
-                    formatSpecifiers: HiddenFormatSpecifiers,
+                    formatSpecifiers: s_hiddenFormatSpecifiers,
                     category: DkmEvaluationResultCategory.Data,
                     flags: DkmEvaluationResultFlags.ReadOnly,
-                    editableValue: null);
-                return ResultProvider.CreateEvaluationResult(
-                    value,
-                    Resources.NonPublicMembers,
-                    typeName: "",
-                    display: null,
-                    dataItem: dataItem);
+                    editableValue: null,
+                    inspectionContext: inspectionContext);
             }
         }
 
@@ -377,18 +341,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// </summary>
         private sealed class StaticMembersExpansion : Expansion
         {
-            private readonly Type declaredType;
-            private readonly Expansion members;
+            private readonly Type _runtimeType;
+            private readonly Expansion _members;
 
-            internal StaticMembersExpansion(Type declaredType, Expansion members)
+            internal StaticMembersExpansion(Type runtimeType, Expansion members)
             {
-                this.declaredType = declaredType;
-                this.members = members;
+                _runtimeType = runtimeType;
+                _members = members;
             }
 
             internal override void GetRows(
                 ResultProvider resultProvider,
-                ArrayBuilder<DkmEvaluationResult> rows,
+                ArrayBuilder<EvalResultDataItem> rows,
                 DkmInspectionContext inspectionContext,
                 EvalResultDataItem parent,
                 DkmClrValue value,
@@ -401,27 +365,32 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     rows.Add(GetRow(
                         resultProvider,
-                        this.declaredType,
+                        inspectionContext,
+                        new TypeAndCustomInfo(_runtimeType),
                         value,
-                        this.members));
+                        _members));
                 }
 
                 index++;
             }
 
-            private static DkmEvaluationResult GetRow(
+            private static EvalResultDataItem GetRow(
                 ResultProvider resultProvider,
-                Type declaredType,
+                DkmInspectionContext inspectionContext,
+                TypeAndCustomInfo declaredTypeAndInfo,
                 DkmClrValue value,
                 Expansion expansion)
             {
                 var formatter = resultProvider.Formatter;
-                var fullName = formatter.GetTypeName(declaredType, escapeKeywordIdentifiers: true);
-                var dataItem = new EvalResultDataItem(
-                    name: null,
-                    typeDeclaringMember: null,
-                    declaredType: declaredType,
+                var fullName = formatter.GetTypeName(declaredTypeAndInfo, escapeKeywordIdentifiers: true);
+                return new EvalResultDataItem(
+                    ExpansionKind.StaticMembers,
+                    name: formatter.StaticMembersString,
+                    typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
+                    declaredTypeAndInfo: declaredTypeAndInfo,
+                    parent: null,
                     value: value,
+                    displayValue: null,
                     expansion: expansion,
                     childShouldParenthesize: false,
                     fullName: fullName,
@@ -429,45 +398,42 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers: Formatter.NoFormatSpecifiers,
                     category: DkmEvaluationResultCategory.Class,
                     flags: DkmEvaluationResultFlags.ReadOnly,
-                    editableValue: null);
-                return ResultProvider.CreateEvaluationResult(
-                    value,
-                    formatter.StaticMembersString,
-                    typeName: "",
-                    display: null,
-                    dataItem: dataItem);
+                    editableValue: null,
+                    inspectionContext: inspectionContext);
             }
         }
 
-        private static EvalResultDataItem CreateMemberDataItem(
+        internal static EvalResultDataItem CreateMemberDataItem(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             MemberAndDeclarationInfo member,
             DkmClrValue memberValue,
             EvalResultDataItem parent,
+            DynamicFlagsMap dynamicFlagsMap,
             ExpansionFlags flags)
         {
-            var formatter = resultProvider.Formatter;
+            var declaredType = member.Type;
+            var declaredTypeInfo = dynamicFlagsMap.SubstituteDynamicFlags(member.OriginalDefinitionType, DynamicFlagsCustomTypeInfo.Create(member.TypeInfo)).GetCustomTypeInfo();
             string memberName;
+            // Considering, we're not handling the case of a member inherited from a generic base type.
             var typeDeclaringMember = member.GetExplicitlyImplementedInterface(out memberName) ?? member.DeclaringType;
+            var typeDeclaringMemberInfo = typeDeclaringMember.IsInterface
+                ? dynamicFlagsMap.SubstituteDynamicFlags(typeDeclaringMember.GetInterfaceListEntry(member.DeclaringType), originalDynamicFlags: default(DynamicFlagsCustomTypeInfo)).GetCustomTypeInfo()
+                : null;
+            var formatter = resultProvider.Formatter;
             memberName = formatter.GetIdentifierEscapingPotentialKeywords(memberName);
-            // If the value is actually an exception that was thrown, we can't expect it to
-            // have any relation to the declared type of the value.  Therefore, we will
-            // pretend that the exception type was the declared type for the purposes
-            // of creating the full name and expansion.
-            var declaredType = memberValue.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown) ? memberValue.Type.GetLmrType() : member.Type;
             var fullName = MakeFullName(
                 formatter,
                 memberName,
-                typeDeclaringMember,
+                new TypeAndCustomInfo(typeDeclaringMember, typeDeclaringMemberInfo), // Note: Won't include DynamicAttribute.
                 member.RequiresExplicitCast,
                 member.IsStatic,
                 parent);
             return resultProvider.CreateDataItem(
                 inspectionContext,
                 memberName,
-                typeDeclaringMember: (member.IncludeTypeInMemberName || typeDeclaringMember.IsInterface) ? typeDeclaringMember : null,
-                declaredType: declaredType,
+                typeDeclaringMemberAndInfo: (member.IncludeTypeInMemberName || typeDeclaringMember.IsInterface) ? new TypeAndCustomInfo(typeDeclaringMember, typeDeclaringMemberInfo) : default(TypeAndCustomInfo), // Note: Won't include DynamicAttribute.
+                declaredTypeAndInfo: new TypeAndCustomInfo(declaredType, declaredTypeInfo),
                 value: memberValue,
                 parent: parent,
                 expansionFlags: flags,
@@ -482,7 +448,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static string MakeFullName(
             Formatter formatter,
             string name,
-            Type typeDeclaringMember,
+            TypeAndCustomInfo typeDeclaringMemberAndInfo,
             bool memberAccessRequiresExplicitCast,
             bool memberIsStatic,
             EvalResultDataItem parent)
@@ -505,16 +471,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 parentFullName = $"({parentFullName})";
             }
 
-            if (!typeDeclaringMember.IsInterface)
+            if (!typeDeclaringMemberAndInfo.Type.IsInterface)
             {
                 string qualifier;
                 if (memberIsStatic)
                 {
-                    qualifier = formatter.GetTypeName(typeDeclaringMember, escapeKeywordIdentifiers: false);
+                    qualifier = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: false);
                 }
                 else if (memberAccessRequiresExplicitCast)
                 {
-                    var typeName = formatter.GetTypeName(typeDeclaringMember, escapeKeywordIdentifiers: true);
+                    var typeName = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
                     qualifier = formatter.GetCastExpression(
                         parentFullName,
                         typeName,
@@ -531,7 +497,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // NOTE: This should never interact with debugger proxy types:
                 //   1) Interfaces cannot have debugger proxy types.
                 //   2) Debugger proxy types cannot be interfaces.
-                if (typeDeclaringMember.Equals(parent.DeclaredType))
+                if (typeDeclaringMemberAndInfo.Type.Equals(parent.DeclaredTypeAndInfo.Type))
                 {
                     var memberAccessTemplate = parent.ChildShouldParenthesize
                         ? "({0}).{1}"
@@ -540,7 +506,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
-                    var interfaceName = formatter.GetTypeName(typeDeclaringMember, escapeKeywordIdentifiers: true);
+                    var interfaceName = formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
                     var memberAccessTemplate = parent.ChildShouldParenthesize
                         ? "(({0})({1})).{2}"
                         : "(({0}){1}).{2}";
