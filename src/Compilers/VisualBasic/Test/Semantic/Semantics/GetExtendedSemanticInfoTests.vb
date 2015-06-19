@@ -10323,5 +10323,51 @@ End Class
             Assert.True(typeComparer.Equals(typeInfo2))
         End Sub
 
+        <Fact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")>
+        Public Sub AliasWithAnError()
+            Dim compilation = CreateCompilationWithMscorlib(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports ShortName = LongNamespace
+Namespace NS
+    Class Test
+        Public Function Method1() As Object
+            Return (New ShortName.Class1()).Prop
+        End Function
+    End Class
+End Namespace
+    ]]></file>
+</compilation>, options:=TestOptions.DebugDll)
+
+            compilation.AssertTheseDiagnostics(<expected>
+BC40056: Namespace or type specified in the Imports 'LongNamespace' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports ShortName = LongNamespace
+                    ~~~~~~~~~~~~~
+BC30002: Type 'ShortName.Class1' is not defined.
+            Return (New ShortName.Class1()).Prop
+                        ~~~~~~~~~~~~~~~~
+                                               </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(id) id.Identifier.ValueText = "ShortName").Single()
+
+            Assert.Equal("ShortName.Class1", node.Parent.ToString())
+
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim [alias] = model.GetAliasInfo(node)
+            Assert.Equal("ShortName=LongNamespace", [alias].ToTestDisplayString())
+            Assert.Equal(SymbolKind.ErrorType, [alias].Target.Kind)
+            Assert.Equal("LongNamespace", [alias].Target.ToTestDisplayString())
+
+            Dim symbolInfo = model.GetSymbolInfo(node)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+        End Sub
+
     End Class
 End Namespace
