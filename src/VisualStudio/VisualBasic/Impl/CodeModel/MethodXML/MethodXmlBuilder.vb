@@ -268,7 +268,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
             Dim kind = MyBase.GetVariableKind(symbol)
 
             ' need to special case WithEvent properties. CodeModel wants them as fields.
-            If symbol.Kind = SymbolKind.Property Then
+            If symbol?.Kind = SymbolKind.Property Then
                 Dim propertySymbol = TryCast(symbol, IPropertySymbol)
                 If propertySymbol IsNot Nothing AndAlso propertySymbol.IsWithEvents Then
                     kind = VariableKind.Field

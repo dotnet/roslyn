@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertHandlesClause = 70,
         InsertFile = 71,
         PartiallyExecutedActiveStatementUpdate = 72,
+        PartiallyExecutedActiveStatementDelete = 73,
 
         // TODO: remove values below
         RUDE_EDIT_COMPLEX_QUERY_EXPRESSION = 0x103,

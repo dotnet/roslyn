@@ -96,6 +96,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
+        <Fact()>
+        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WorkItem(3477, "https://github.com/dotnet/roslyn/issues/3477")>
+        Public Sub ProjectWithEmptySdkPathHasNoReferences()
+            Using environment = New TestEnvironment()
+                Dim project = CreateVisualBasicProject(environment, "Test", compilerHost:=MockCompilerHost.NoSdkCompilerHost)
+
+                project.SetCompilerOptions(CreateMinimalCompilerOptions(project))
+
+                ' We should have no references
+                Dim workspaceProject = environment.Workspace.CurrentSolution.Projects.Single()
+                Assert.Empty(workspaceProject.MetadataReferences)
+
+                project.Disconnect()
+            End Using
+        End Sub
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>

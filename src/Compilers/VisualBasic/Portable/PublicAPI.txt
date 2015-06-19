@@ -3293,9 +3293,6 @@ NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgument
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.RangeArgumentSyntax.IsNamed() -> Boolean
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.GetExpression() -> Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleArgumentSyntax.IsNamed() -> Boolean
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.EquivalentToCore(other As Microsoft.CodeAnalysis.SyntaxNode) -> Boolean
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.FindTokenCore(position As Integer, findInsideTrivia As Boolean) -> Microsoft.CodeAnalysis.SyntaxToken
-NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.FindTriviaCore(position As Integer, findInsideTrivia As Boolean) -> Microsoft.CodeAnalysis.SyntaxTrivia
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToFullString() -> String
 NotOverridable Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ToString() -> String
 Overloads Microsoft.CodeAnalysis.VisualBasic.Conversion.Equals(other As Microsoft.CodeAnalysis.VisualBasic.Conversion) -> Boolean
@@ -4356,34 +4353,6 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax.Accept(Of TRes
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.CompilationOptionsCore() -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments.ParseOptionsCore() -> Microsoft.CodeAnalysis.ParseOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.AppendDefaultVersionResource(resourceStream As System.IO.Stream) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonAddSyntaxTrees(trees As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree)) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonAssembly() -> Microsoft.CodeAnalysis.IAssemblySymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonClone() -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonContainsSyntaxTree(syntaxTree As Microsoft.CodeAnalysis.SyntaxTree) -> Boolean
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonCreateArrayTypeSymbol(elementType As Microsoft.CodeAnalysis.ITypeSymbol, rank As Integer) -> Microsoft.CodeAnalysis.IArrayTypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonCreatePointerTypeSymbol(elementType As Microsoft.CodeAnalysis.ITypeSymbol) -> Microsoft.CodeAnalysis.IPointerTypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonDynamicType() -> Microsoft.CodeAnalysis.ITypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetAssemblyOrModuleSymbol(reference As Microsoft.CodeAnalysis.MetadataReference) -> Microsoft.CodeAnalysis.ISymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetCompilationNamespace(namespaceSymbol As Microsoft.CodeAnalysis.INamespaceSymbol) -> Microsoft.CodeAnalysis.INamespaceSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetEntryPoint(cancellationToken As System.Threading.CancellationToken) -> Microsoft.CodeAnalysis.IMethodSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetMetadataReference(_assemblySymbol As Microsoft.CodeAnalysis.IAssemblySymbol) -> Microsoft.CodeAnalysis.MetadataReference
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetSemanticModel(syntaxTree As Microsoft.CodeAnalysis.SyntaxTree, ignoreAccessibility As Boolean) -> Microsoft.CodeAnalysis.SemanticModel
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetSpecialType(specialType As Microsoft.CodeAnalysis.SpecialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGetTypeByMetadataName(metadataName As String) -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonGlobalNamespace() -> Microsoft.CodeAnalysis.INamespaceSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonObjectType() -> Microsoft.CodeAnalysis.INamedTypeSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonOptions() -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonRemoveAllSyntaxTrees() -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonRemoveSyntaxTrees(trees As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree)) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonReplaceSyntaxTree(oldTree As Microsoft.CodeAnalysis.SyntaxTree, newTree As Microsoft.CodeAnalysis.SyntaxTree) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonSourceModule() -> Microsoft.CodeAnalysis.IModuleSymbol
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonSyntaxTrees() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTree)
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithAssemblyName(assemblyName As String) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithOptions(options As Microsoft.CodeAnalysis.CompilationOptions) -> Microsoft.CodeAnalysis.Compilation
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CommonWithReferences(newReferences As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.MetadataReference)) -> Microsoft.CodeAnalysis.Compilation
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(predicate As System.Func(Of String, Boolean), filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateErrorTypeSymbol(container As Microsoft.CodeAnalysis.INamespaceOrTypeSymbol, name As String, arity As Integer) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DirectiveReferences() -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.MetadataReference)
@@ -4396,43 +4365,16 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.IsCaseSensit
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.Language() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ReferencedAssemblyNames() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.AssemblyIdentity)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ToMetadataReference(aliases As System.Collections.Immutable.ImmutableArray(Of String) = Nothing, embedInteropTypes As Boolean = False) -> Microsoft.CodeAnalysis.CompilationReference
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithAssemblyIdentityComparer(comparer As Microsoft.CodeAnalysis.AssemblyIdentityComparer) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithFeatures(features As System.Collections.Immutable.ImmutableArray(Of String)) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithGeneralDiagnosticOption(value As Microsoft.CodeAnalysis.ReportDiagnostic) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithMetadataReferenceResolver(resolver As Microsoft.CodeAnalysis.MetadataReferenceResolver) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithOptimizationLevel(value As Microsoft.CodeAnalysis.OptimizationLevel) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithOutputKind(kind As Microsoft.CodeAnalysis.OutputKind) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithPlatform(platform As Microsoft.CodeAnalysis.Platform) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithSourceReferenceResolver(resolver As Microsoft.CodeAnalysis.SourceReferenceResolver) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Microsoft.CodeAnalysis.ReportDiagnostic))) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithSpecificDiagnosticOptions(specificDiagnosticOptions As System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic)) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithStrongNameProvider(provider As Microsoft.CodeAnalysis.StrongNameProvider) -> Microsoft.CodeAnalysis.CompilationOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.CommonWithXmlReferenceResolver(resolver As Microsoft.CodeAnalysis.XmlReferenceResolver) -> Microsoft.CodeAnalysis.CompilationOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.Equals(obj As Object) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode() -> Integer
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithDocumentationMode(documentationMode As Microsoft.CodeAnalysis.DocumentationMode) -> Microsoft.CodeAnalysis.ParseOptions
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithFeatures(features As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, String))) -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.CommonWithKind(kind As Microsoft.CodeAnalysis.SourceCodeKind) -> Microsoft.CodeAnalysis.ParseOptions
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Equals(obj As Object) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Features() -> System.Collections.Generic.IReadOnlyDictionary(Of String, String)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.GetHashCode() -> Integer
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.PreprocessorSymbolNames() -> System.Collections.Generic.IEnumerable(Of String)
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ChildThatContainsPosition(position As Integer) -> Microsoft.CodeAnalysis.SyntaxNodeOrToken
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.FindTokenCore(position As Integer, stepInto As System.Func(Of Microsoft.CodeAnalysis.SyntaxTrivia, Boolean)) -> Microsoft.CodeAnalysis.SyntaxToken
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.InsertNodesInListCore(nodeInList As Microsoft.CodeAnalysis.SyntaxNode, nodesToInsert As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxNode), insertBefore As Boolean) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.InsertTokensInListCore(originalToken As Microsoft.CodeAnalysis.SyntaxToken, newTokens As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxToken), insertBefore As Boolean) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.InsertTriviaInListCore(originalTrivia As Microsoft.CodeAnalysis.SyntaxTrivia, newTrivia As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTrivia), insertBefore As Boolean) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.IsEquivalentToCore(node As Microsoft.CodeAnalysis.SyntaxNode, topLevel As Boolean = False) -> Boolean
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.KindText() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.Language() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.NormalizeWhitespaceCore(indentation As String, eol As String, elasticTrivia As Boolean) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.RemoveNodesCore(nodes As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxNode), options As Microsoft.CodeAnalysis.SyntaxRemoveOptions) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ReplaceCore(Of TNode)(nodes As System.Collections.Generic.IEnumerable(Of TNode) = Nothing, computeReplacementNode As System.Func(Of TNode, TNode, Microsoft.CodeAnalysis.SyntaxNode) = Nothing, tokens As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxToken) = Nothing, computeReplacementToken As System.Func(Of Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken) = Nothing, trivia As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTrivia) = Nothing, computeReplacementTrivia As System.Func(Of Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia) = Nothing) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ReplaceNodeInListCore(originalNode As Microsoft.CodeAnalysis.SyntaxNode, replacementNodes As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxNode)) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ReplaceTokenInListCore(originalToken As Microsoft.CodeAnalysis.SyntaxToken, newTokens As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxToken)) -> Microsoft.CodeAnalysis.SyntaxNode
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.ReplaceTriviaInListCore(originalTrivia As Microsoft.CodeAnalysis.SyntaxTrivia, newTrivia As System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.SyntaxTrivia)) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.SerializeTo(stream As System.IO.Stream, cancellationToken As System.Threading.CancellationToken = Nothing) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.SyntaxTreeCore() -> Microsoft.CodeAnalysis.SyntaxTree
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode.WriteTo(writer As System.IO.TextWriter) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.Visit(node As Microsoft.CodeAnalysis.SyntaxNode) -> Microsoft.CodeAnalysis.SyntaxNode
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitAccessorBlock(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorBlockSyntax) -> Microsoft.CodeAnalysis.SyntaxNode
