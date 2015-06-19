@@ -15,6 +15,8 @@ Uses
 
 Sometimes an analyzer needs access to information that is not available through normal compiler inputs--source files, references, and options. To support these scenarios the C# and Visual Basic compilers can accept additional, non-source text files as inputs.
 
+For example, an analyzer may enforce that a set of banned terms is not used within a project, or that every source file has a certain copyright header. The terms or copyright header could be passed to the analyzer as an additional file, rather than being hard-coded in the analyzer itself.
+
 On the Command Line
 ===================
 
@@ -29,11 +31,11 @@ In a Project File
 Passing an Individual File
 --------------------------
 
-To specify an individual project item as an additional file, set the item type to `AdditionalFile`:
+To specify an individual project item as an additional file, set the item type to `AdditionalFiles`:
 
 ``` XML
 <ItemGroup>
-  <AdditionalFile Include="terms.txt" />
+  <AdditionalFiles Include="terms.txt" />
 </ItemGroup>
 ```
 
@@ -151,7 +153,15 @@ public class CheckTermsAnalyzer : DiagnosticAnalyzer
 Converting a File to a Stream
 -----------------------------
 
-In cases where an additional file contains structured data (e.g., XML or JSON) the line-by-line access provided by the `SourceText` may not be desirable. This sample demonstrates how to convert a `SourceText` to a `Stream` for consumption by other libraries.
+In cases where an additional file contains structured data (e.g., XML or JSON) the line-by-line access provided by the `SourceText` may not be desirable. This sample demonstrates how to convert a `SourceText` to a `Stream` for consumption by other libraries. The terms file is assumed to have the following format:
+
+``` XML
+<Terms>
+  <Term>frob</Term>
+  <Term>wizbang</Term>
+  <Term>orange</Term
+</Terms>
+```
 
 ``` C#
 using System.Collections.Generic;
