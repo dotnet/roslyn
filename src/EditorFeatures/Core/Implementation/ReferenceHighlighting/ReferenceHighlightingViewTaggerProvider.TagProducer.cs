@@ -144,6 +144,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         return ReferenceHighlightTag.Instance;
                 }
             }
+
+            public IEnumerable<DocumentSnapshotSpan> GetPrioritySpans(IEnumerable<DocumentSnapshotSpan> snapshotSpans)
+            {
+                return null;
+            }
         }
     }
 }

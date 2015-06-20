@@ -8,11 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -404,9 +406,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var caretPosition = this.GetCaretPoint();
                 var textChangeRange = _accumulatedTextChanges;
 
+                // If there's a region that's high priority, then compute that portion first.
+                var prioritySpans = _tagProducer.GetPrioritySpans(spansToTag);
+                if (prioritySpans != null && prioritySpans != spansToTag)
+                {
+                    if (!prioritySpans.IsEmpty())
+                    {
+                        this.WorkQueue.EnqueueBackgroundTask(
+                            ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, prioritySpans, ct),
+                            GetType().Name + ".RecomputeTags-priority", cancellationToken);
+                    }
+                }
+
+                // Then compute the full set of spans.
                 this.WorkQueue.EnqueueBackgroundTask(
                     ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, spansToTag, ct),
-                    GetType().Name + ".RecomputeTags", cancellationToken);
+                    GetType().Name + ".RecomputeTags-non-priority", cancellationToken);
             }
         }
 
