@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public static readonly IntervalTree<T> Empty = new IntervalTree<T>();
 
         protected Node root;
+        private readonly int count;
 
         private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector);
         private static readonly TestInterval s_intersectsWithTest = IntersectsWith;
@@ -36,10 +37,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public IntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
             : this(root: null)
         {
+            var count = 0;
             foreach (var value in values)
             {
                 root = Insert(root, new Node(introspector, value), introspector, inPlace: true);
+                count++;
             }
+            this.count = count;
         }
 
         protected static bool Contains(T value, int start, int length, IIntervalIntrospector<T> introspector)
@@ -309,17 +313,51 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 yield break;
             }
 
+            // The bool indicates if this is the first time we are seeing the node.
+            var candidates = new Stack<ValueTuple<Node,bool>>();
+            candidates.Push(ValueTuple.Create(root, true));
+            while (candidates.Count != 0)
+            {
+                var currentTuple = candidates.Pop();
+                var currentNode = currentTuple.Item1;
+                if (currentNode != null)
+                {
+                    if (currentTuple.Item2)
+                    {
+                        // First time seeing this node.  Mark that we've been seen and recurse
+                        // down the left side.  The next time we see this node we'll yield it
+                        // out.
+                        candidates.Push(ValueTuple.Create(currentNode.Right, true));
+                        candidates.Push(ValueTuple.Create(currentNode, false));
+                        candidates.Push(ValueTuple.Create(currentNode.Left, true));
+                    }
+                    else
+                    {
+                        yield return currentNode.Value;
+                    }
+                }
+            }
+        }
+
+        // For testing purposes only.  Allows a test to verify the actual AVL structure of the tree.
+        internal IEnumerable<T> GetPreOrder() 
+        {
+            if (root == null)
+            {
+                yield break;
+            }
+
+            // The bool indicates if this is the first time we are seeing the node.
             var candidates = new Stack<Node>();
             candidates.Push(root);
             while (candidates.Count != 0)
             {
-                var current = candidates.Pop();
-                if (current != null)
+                var currentNode = candidates.Pop();
+                if (currentNode != null)
                 {
-                    candidates.Push(current.Right);
-                    candidates.Push(current.Left);
-
-                    yield return current.Value;
+                    candidates.Push(currentNode.Right);
+                    candidates.Push(currentNode.Left);
+                    yield return currentNode.Value;
                 }
             }
         }

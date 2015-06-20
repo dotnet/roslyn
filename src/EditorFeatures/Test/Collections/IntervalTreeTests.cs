@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             };
             foreach (var tree in CreateTrees(nodes))
             {
-                Assert.True(tree.Select(t => t.Item3).SequenceEqual(
+                Assert.True(tree.GetPreOrder().Select(t => t.Item3).SequenceEqual(
                     List("c", "e", "f", "a", "d", "b")));
             }
         }
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             };
             foreach (var tree in CreateTrees(nodes))
             {
-                Assert.True(tree.Select(t => t.Item3).SequenceEqual(
+                Assert.True(tree.GetPreOrder().Select(t => t.Item3).SequenceEqual(
                     List("d", "c", "e", "a", "f", "b")));
             }
         }
@@ -305,6 +305,70 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             var tree = CreateTrees(Tuple.Create(0, 0, "A")).Last();
 
             Assert.Equal(1, tree.Count());
+        }
+
+        private class Int32Introspector: IIntervalIntrospector<int>
+        {
+            public static Int32Introspector Instance = new Int32Introspector();
+
+            public int GetLength(int value)
+            {
+                return 0;
+            }
+
+            public int GetStart(int value)
+            {
+                return value;
+            }
+        }
+
+        private IntervalTree<int> CreateIntTree(params int[] values)
+        {
+            return new IntervalTree<int>(Int32Introspector.Instance, values);
+        }
+
+        [Fact]
+        public void TestSortedEnumerable1()
+        {
+            var tree = new IntervalTree<int>(Int32Introspector.Instance, new[] { 0, 0, 0 });
+
+            Assert.Equal(CreateIntTree(0, 0, 0), new[] { 0, 0, 0 });
+            Assert.Equal(CreateIntTree(0, 0, 1), new[] { 0, 0, 1 });
+            Assert.Equal(CreateIntTree(0, 0, 2), new[] { 0, 0, 2 });
+            Assert.Equal(CreateIntTree(0, 1, 0), new[] { 0, 0, 1 });
+            Assert.Equal(CreateIntTree(0, 1, 1), new[] { 0, 1, 1 });
+            Assert.Equal(CreateIntTree(0, 1, 2), new[] { 0, 1, 2 });
+            Assert.Equal(CreateIntTree(0, 2, 0), new[] { 0, 0, 2 });
+            Assert.Equal(CreateIntTree(0, 2, 1), new[] { 0, 1, 2 });
+            Assert.Equal(CreateIntTree(0, 2, 2), new[] { 0, 2, 2 });
+
+            Assert.Equal(CreateIntTree(1, 0, 0), new[] { 0, 0, 1 });
+            Assert.Equal(CreateIntTree(1, 0, 1), new[] { 0, 1, 1 });
+            Assert.Equal(CreateIntTree(1, 0, 2), new[] { 0, 1, 2 });
+            Assert.Equal(CreateIntTree(1, 1, 0), new[] { 0, 1, 1 });
+            Assert.Equal(CreateIntTree(1, 1, 1), new[] { 1, 1, 1 });
+            Assert.Equal(CreateIntTree(1, 1, 2), new[] { 1, 1, 2 });
+            Assert.Equal(CreateIntTree(1, 2, 0), new[] { 0, 1, 2 });
+            Assert.Equal(CreateIntTree(1, 2, 1), new[] { 1, 1, 2 });
+            Assert.Equal(CreateIntTree(1, 2, 2), new[] { 1, 2, 2 });
+
+            Assert.Equal(CreateIntTree(2, 0, 0), new[] { 0, 0, 2 });
+            Assert.Equal(CreateIntTree(2, 0, 1), new[] { 0, 1, 2 });
+            Assert.Equal(CreateIntTree(2, 0, 2), new[] { 0, 2, 2 });
+            Assert.Equal(CreateIntTree(2, 1, 0), new[] { 0, 1, 2 });
+            Assert.Equal(CreateIntTree(2, 1, 1), new[] { 1, 1, 2 });
+            Assert.Equal(CreateIntTree(2, 1, 2), new[] { 1, 2, 2 });
+            Assert.Equal(CreateIntTree(2, 2, 0), new[] { 0, 2, 2 });
+            Assert.Equal(CreateIntTree(2, 2, 1), new[] { 1, 2, 2 });
+            Assert.Equal(CreateIntTree(2, 2, 2), new[] { 2, 2, 2 });
+        }
+
+        [Fact]
+        public void TestSortedEnumerable2()
+        {
+            var tree = new IntervalTree<int>(Int32Introspector.Instance, new[] { 1, 0 });
+
+            Assert.Equal(tree, new[] { 0, 1 });
         }
 
         private static void TestOverlapsAndIntersects(IList<Tuple<int, int, string>> spans)
