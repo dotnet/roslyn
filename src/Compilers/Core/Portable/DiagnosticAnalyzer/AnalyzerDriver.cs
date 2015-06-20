@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -924,7 +922,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (executableCodeBlocks.Any())
                 {
                     // Execute stateless operation actions.
-                    if (shouldExecuteOperationActions)get
+                    if (shouldExecuteOperationActions)
                     {
                         foreach (var analyzerAndActions in this.OperationActionsByKind)
                         {
@@ -1041,7 +1039,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Eliminate syntax nodes for descendant member declarations within declarations.
             // There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
-            HashSet<SyntaxNode> descendantDeclsToSkip = GetDescendentDeclsToSkip(declaredNode, declaredSymbol, declarationsInNode, semanticModel, cancellationToken);
+            bool skipAll;
+            HashSet<SyntaxNode> descendantDeclsToSkip = GetDescendentDeclsToSkip(declaredNode, declaredSymbol, declarationsInNode, semanticModel, analyzerExecutor.CancellationToken, out skipAll);
+
+            if (skipAll)
+            {
+                return ImmutableArray<SyntaxNode>.Empty;
+            }
 
             var nodesToAnalyze = descendantDeclsToSkip == null ?
                 declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
@@ -1050,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return nodesToAnalyze.ToImmutableArray();
         }
 
-        private static HashSet<SyntaxNode> GetDescendentDeclsToSkip(SyntaxNode declaredNode, ISymbol declaredSymbol, IEnumerable<DeclarationInfo> declarationsInNode, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static HashSet<SyntaxNode> GetDescendentDeclsToSkip(SyntaxNode declaredNode, ISymbol declaredSymbol, IEnumerable<DeclarationInfo> declarationsInNode, SemanticModel semanticModel, CancellationToken cancellationToken, out bool skipAll)
         {
             // Eliminate syntax nodes for descendant member declarations within declarations.
             // There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
@@ -1070,12 +1074,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
                         }
 
-                        return ImmutableArray<SyntaxNode>.Empty;
+                        skipAll = true;
+                        return null;
                     }
 
                     // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.
                     var declarationNodeToSkip = declInNode.DeclaredNode;
-                    var declaredSymbolOfDeclInNode = declInNode.DeclaredSymbol ?? semanticModel.GetDeclaredSymbol(declInNode.DeclaredNode, analyzerExecutor.CancellationToken);
+                    var declaredSymbolOfDeclInNode = declInNode.DeclaredSymbol ?? semanticModel.GetDeclaredSymbol(declInNode.DeclaredNode, cancellationToken);
                     if (declaredSymbolOfDeclInNode != null)
                     {
                         declarationNodeToSkip = semanticModel.GetTopmostNodeForDiagnosticAnalysis(declaredSymbolOfDeclInNode, declInNode.DeclaredNode);
@@ -1088,6 +1093,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 first = false;
             }
 
+            skipAll = false;
             return descendantDeclsToSkip;
         }
 
@@ -1100,11 +1106,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-			// Eliminate syntax nodes for descendant member declarations within declarations.
-			// There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
-			HashSet<SyntaxNode> descendantDeclsToSkip = GetDescendentDeclsToSkip(declaredNode, declaredSymbol, declarationsInNode, semanticModel, cancellationToken);
+            // Eliminate syntax nodes for descendant member declarations within declarations.
+            // There will be separate symbols declared for the members, hence we avoid duplicate syntax analysis by skipping these here.
+            bool skipAll;
+			HashSet<SyntaxNode> descendantDeclsToSkip = GetDescendentDeclsToSkip(declaredNode, declaredSymbol, declarationsInNode, semanticModel, cancellationToken, out skipAll);
 
-            if (descendantDeclsToSkip != null && descendantDeclsToSkip.Contains(declaredNode))
+            if (skipAll || (descendantDeclsToSkip != null && descendantDeclsToSkip.Contains(declaredNode)))
             {
                 return;
             }
@@ -1122,16 +1129,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantDeclsToSkip)
-            {
+        {
             Debug.Assert(declaredNode != null);
             Debug.Assert(descendantDeclsToSkip != null);
 
             foreach (var node in declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true))
             {
                 if (!descendantDeclsToSkip.Contains(node))
-            {
+                {
                     yield return node;
-        }
+                }
             }
         }
     }

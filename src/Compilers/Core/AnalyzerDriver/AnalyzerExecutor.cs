@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IOperation operation,
             DiagnosticAnalyzer analyzer)
         {
-            var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, _cancellationToken);
+            var operationContext = new OperationAnalysisContext(operation, _analyzerOptions, _addDiagnostic, d => IsSupportedDiagnostic(analyzer, d), _cancellationToken);
             ExecuteAndCatchIfThrows(analyzer, () => operationAction(operationContext));
         }
 
