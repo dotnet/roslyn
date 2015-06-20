@@ -66,6 +66,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
 
             public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
+                if (!document.SupportsSyntaxTree)
+                {
+                    return;
+                }
+
                 // getting tree is cheap since tree always stays in memory
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var length = tree.Length;
