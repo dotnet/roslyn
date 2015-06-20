@@ -724,32 +724,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct OperationAnalysisContext
     {
-        private readonly IOperation operation;
-        private readonly AnalyzerOptions options;
-        private readonly Action<Diagnostic> reportDiagnostic;
-        private readonly CancellationToken cancellationToken;
+        private readonly IOperation _operation;
+        private readonly AnalyzerOptions _options;
+        private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// <see cref="IOperation"/> that is the subject of the analysis.
         /// </summary>
-        public IOperation Operation { get { return this.operation; } }
+        public IOperation Operation { get { return _operation; } }
         
         /// <summary>
         /// Options specified for the analysis.
         /// </summary>
-        public AnalyzerOptions Options { get { return this.options; } }
+        public AnalyzerOptions Options { get { return _options; } }
 
         /// <summary>
         /// Token to check for requested cancellation of the analysis.
         /// </summary>
-        public CancellationToken CancellationToken { get { return this.cancellationToken; } }
+        public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
-        public OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
-            this.operation = operation;
-            this.options = options;
-            this.reportDiagnostic = reportDiagnostic;
-            this.cancellationToken = cancellationToken;
+            _operation = operation;
+            _options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            _cancellationToken = cancellationToken;
         }
 
         /// <summary>
@@ -758,10 +760,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
-            lock (this.reportDiagnostic)
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            lock (_reportDiagnostic)
             {
-                this.reportDiagnostic(diagnostic);
+                _reportDiagnostic(diagnostic);
             }
         }
     }
