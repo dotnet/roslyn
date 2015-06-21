@@ -267,8 +267,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim condLineStart = _lineBufferOffset
             Dim c As Char
             While Peep(c)
-                Dim c As Char = Peek()
-
                 Select Case (c)
 
                     Case CARRIAGE_RETURN, LINE_FEED
@@ -488,7 +486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function LengthOfLineBreak(StartCharacter As Char, Optional here As Integer = 0) As Integer
 #If DEBUG Then
             Dim c As Char
-            Dim res = Peep( here, c )
+            Dim res = Peep(here, c)
             Debug.Assert(res)
             Debug.Assert(IsNewLine(StartCharacter))
             Debug.Assert(StartCharacter = c)
@@ -535,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
             Dim ch As Char
-            If Not Peep(c) OrElse IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
+            If Not Peep(ch) OrElse IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
                 Return False
             End If
             Dim Here = 1
@@ -865,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function GetWhitespaceLength(len As Integer) As Integer
             ' eat until linebreak or nonwhitespace
             Dim ch As Char
-            While Peek(len, ch) AndAlso IsWhitespace(ch)
+            While Peep(len, ch) AndAlso IsWhitespace(ch)
                 len += 1
             End While
             Return len
@@ -874,7 +872,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function GetXmlWhitespaceLength(len As Integer) As Integer
             ' eat until linebreak or nonwhitespace
             Dim ch As Char
-            While Peek(len, ch) AndAlso IsXmlWhitespace(ch)
+            While Peep(len, ch) AndAlso IsXmlWhitespace(ch)
                 len += 1
             End While
             Return len
@@ -900,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim c As Char
 #If DEBUG Then
             Dim OK = Peep(c)
-            Debug.Assert(ok)
+            Debug.Assert(OK)
             Debug.Assert(IsWhitespace(c))
 #End If
 
@@ -1204,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim Here = Index
             Dim eq As Char
 
-            While Peep(Here, ch)
+            While Peep(Here, eq)
                 Here += 1
                 If Not IsWhitespace(eq) Then
                     If eq = "="c OrElse eq = FULLWIDTH_EQUALS_SIGN Then
@@ -1221,7 +1219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
             Dim c As Char
 #If DEBUG Then
-            Dim ok = Peek(ch)
+            Dim ok = Peep(c)
             Debug.Assert(ok)  ' >
             Debug.Assert(c = ">"c OrElse c = FULLWIDTH_GREATER_THAN_SIGN)
 
@@ -1286,7 +1284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // Allow whitespace between the characters of a two-character token.
             length = GetWhitespaceLength(length)
 
-            If Peep(length, ch) Then
+            If Peep(length, c) Then
                 If c = "="c OrElse c = FULLWIDTH_EQUALS_SIGN Then
                     length += 1
                     Return MakeLessThanEqualsToken(precedingTrivia, length)
@@ -1451,7 +1449,7 @@ FullWidthRepeat:
         End Function
 
         Private Function ScanBracketedIdentifier(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Dim ch As Char
+            Dim ch, cx As Char
 #If DEBUG Then
             Dim ok = Peep(ch)
             Debug.Assert(ok)  ' [
@@ -1522,7 +1520,7 @@ FullWidthRepeat:
         End Enum
 
         Private Function ScanNumericLiteral(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
-            Dim ch As Char
+            Dim ch, cx As Char
             Dim ok = Peep(ch)
             Debug.Assert(ok)
 
@@ -1715,7 +1713,7 @@ FullWidthRepeat2:
 
                     Case "U"c, "u"c
                         Dim NextChar As Char
-                        If literalKind <> NumericLiteralKind.Float AndAlso CanGet(Here + 1, NextChar) Then
+                        If literalKind <> NumericLiteralKind.Float AndAlso Peep(Here + 1, NextChar) Then
                             'unsigned suffixes - US, UL, UI
                             If MatchOneOrAnotherOrFullwidth(NextChar, "S"c, "s"c) Then
                                 TypeCharacter = TypeCharacter.UShortLiteral
@@ -2206,7 +2204,7 @@ baddate:
             ' // If we can find a closing #, then assume it's a malformed date,
             ' // otherwise, it's not a date
 
-            While Peep(Here, ch) AndAlso Not (IsHash(ch) OrElse IsNewLine(ch))
+            While Peep(Here, c) AndAlso Not (IsHash(c) OrElse IsNewLine(c))
                 Here += 1
             End While
 
