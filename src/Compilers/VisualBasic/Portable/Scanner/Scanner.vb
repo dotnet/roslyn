@@ -225,16 +225,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanNextCharAsToken(leadingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Dim token As SyntaxToken
-
-            If Not CanGet() Then
+            Dim c As Char
+            If Not Peep(c) Then
                 token = MakeEofToken(leadingTrivia)
             Else
                 _badTokenCount += 1
 
                 If _badTokenCount < BadTokenCountLimit Then
                     ' // Don't break up surrogate pairs
-                    Dim c = Peek()
-                    Dim length = If(IsHighSurrogate(c) AndAlso CanGet(1) AndAlso IsLowSurrogate(Peek(1)), 2, 1)
+                    c = Peek()
+                    Dim length = If(IsHighSurrogate(c) AndAlso Peep(1, c) AndAlso IsLowSurrogate(c), 2, 1)
                     token = MakeBadToken(leadingTrivia, length, ERRID.ERR_IllegalChar)
                 Else
                     ' If we get too many characters that we cannot make sense of, absorb the rest of the input.
@@ -265,8 +265,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim condLineStart = _lineBufferOffset
-
-            While (CanGet())
+            Dim c As Char
+            While Peep(c)
                 Dim c As Char = Peek()
 
                 Select Case (c)
@@ -322,9 +322,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub EatThroughLine()
-            While CanGet()
-                Dim c As Char = Peek()
-
+            Dim c As Char
+            While Peep(c)
                 If IsNewLine(c) Then
                     EatThroughLineBreak(c)
                     Return
@@ -487,11 +486,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function LengthOfLineBreak(StartCharacter As Char, Optional here As Integer = 0) As Integer
-            Debug.Assert(CanGet(here))
+#If DEBUG Then
+            Dim c As Char
+            Dim res = Peep( here, c )
+            Debug.Assert(res)
             Debug.Assert(IsNewLine(StartCharacter))
-
-            Debug.Assert(StartCharacter = Peek(here))
-
+            Debug.Assert(StartCharacter = c)
+#End If
             If StartCharacter = CARRIAGE_RETURN AndAlso NextIs(here + 1, LINE_FEED) Then
                 Return 2
             End If
@@ -533,27 +534,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ScanLineContinuation(tList As SyntaxListBuilder) As Boolean
-            If Not CanGet() Then
+            Dim ch As Char
+            If Not Peep(c) OrElse IsAfterWhitespace() OrElse Not IsUnderscore(ch) Then
                 Return False
             End If
-
-            If Not IsAfterWhitespace() Then
-                Return False
-            End If
-
-            Dim ch As Char = Peek()
-            If Not IsUnderscore(ch) Then
-                Return False
-            End If
-
             Dim Here = 1
-            While CanGet(Here)
-                ch = Peek(Here)
-                If IsWhitespace(ch) Then
-                    Here += 1
-                Else
-                    Exit While
-                End If
+            While Peep(Here, ch) AndAlso IsWhitespace(ch)
+                Here += 1
             End While
 
             ' Line continuation is valid at the end of the
@@ -578,10 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' do not include the new line character since that would confuse code handling
                 ' implicit line continuations. (See Scanner::EatLineContinuation.) Otherwise,
                 ' include the new line and any additional spaces as trivia.
-                If startComment = 0 AndAlso
-                    CanGet(Here) AndAlso
-                    Not IsNewLine(Peek(Here)) Then
-
+                If startComment = 0 AndAlso Peep(Here, ch) AndAlso Not IsNewLine(ch) Then
                     tList.Add(MakeEndOfLineTrivia(GetText(newLine)))
                     If spaces > 0 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(spaces)))
@@ -601,12 +585,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Consumes all trivia until a nontrivia char is found
         ''' </summary>
         Friend Function ScanMultilineTrivia() As SyntaxList(Of VisualBasicSyntaxNode)
-            If Not CanGet() Then
+            Dim ch As Char
+            If Not Peep(ch) Then
                 Return Nothing
             End If
-
-            Dim ch = Peek()
-
             ' optimization for a common case
             ' the ASCII range between ': and ~ , with exception of except "'", "_" and R cannot start trivia
             If ch > ":"c AndAlso ch <= "~"c AndAlso ch <> "'"c AndAlso ch <> "_"c AndAlso ch <> "R"c AndAlso ch <> "r"c Then
@@ -626,7 +608,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' Scans a single piece of trivia
         ''' </summary>
         Private Function TryScanSinglePieceOfMultilineTrivia(tList As SyntaxListBuilder) As Boolean
-            If CanGet() Then
+            Dim ch As Char
+            If Peep(ch) Then
 
                 Dim atNewLine = IsAtNewLine()
 
@@ -640,8 +623,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return TryScanDirective(tList)
                     End If
                 End If
-
-                Dim ch = Peek()
                 If IsWhitespace(ch) Then
                     ' eat until linebreak or nonwhitespace
                     Dim wslen = GetWhitespaceLength(1)
@@ -686,11 +667,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' check for #
         Private Function StartsDirective(Here As Integer) As Boolean
-            If CanGet(Here) Then
-                Dim ch = Peek(Here)
-                Return IsHash(ch)
-            End If
-            Return False
+            Dim ch As Char
+            Return Peep(Here, ch) AndAlso IsHash(ch)
         End Function
 
         Private Function IsAtNewLine() As Boolean
@@ -730,8 +708,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Sub ScanSingleLineTriviaInXmlDoc(tList As SyntaxListBuilder)
-            If CanGet() Then
-                Dim c As Char = Peek()
+            Dim c As Char
+            If Peep(c) Then
                 Select Case (c)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
@@ -763,7 +741,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub ScanWhitespaceAndLineContinuations(tList As SyntaxListBuilder)
-            If CanGet() AndAlso IsWhitespace(Peek()) Then
+            Dim c As Char
+            If Peep(c) AndAlso IsWhitespace(c) Then
                 tList.Add(ScanWhitespace(1))
                 ' collect { lineCont, ws }
                 While ScanLineContinuation(tList)
@@ -832,10 +811,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Case 3 is required to parse single line if's and numeric labels. 
             ' Case 4 is required to limit explicit line continuations to single new line
-
-            If CanGet() Then
-
-                Dim ch As Char = Peek()
+            Dim ch As Char
+            If Peep(ch) Then
                 Dim startOfTerminatorTrivia = _lineBufferOffset
 
                 If IsNewLine(ch) Then
@@ -847,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' collect { ws, colon }
                     Do
                         Dim len = GetWhitespaceLength(0)
-                        If Not CanGet(len) Then
+                        If Not Peep(len,ch) Then
                             Exit Do
                         End If
 
@@ -887,7 +864,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetWhitespaceLength(len As Integer) As Integer
             ' eat until linebreak or nonwhitespace
-            While CanGet(len) AndAlso IsWhitespace(Peek(len))
+            Dim ch As Char
+            While Peek(len, ch) AndAlso IsWhitespace(ch)
                 len += 1
             End While
             Return len
@@ -895,7 +873,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function GetXmlWhitespaceLength(len As Integer) As Integer
             ' eat until linebreak or nonwhitespace
-            While CanGet(len) AndAlso IsXmlWhitespace(Peek(len))
+            Dim ch As Char
+            While Peek(len, ch) AndAlso IsXmlWhitespace(ch)
                 len += 1
             End While
             Return len
@@ -918,32 +897,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub EatWhitespace()
-            Debug.Assert(CanGet)
-            Debug.Assert(IsWhitespace(Peek()))
+            Dim c As Char
+            #If DEBUG Then
+            Dim OK = Peep(c)
+            Debug.Assert(ok)
+            Debug.Assert(IsWhitespace(c))
+#End If
+
 
             AdvanceChar()
 
             ' eat until linebreak or nonwhitespace
-            While CanGet() AndAlso IsWhitespace(Peek)
+            While Peep(c) AndAlso IsWhitespace(c)
                 AdvanceChar()
             End While
         End Sub
 
         Private Function PeekStartComment(i As Integer) As Integer
+            Dim ch As Char
 
-            If CanGet(i) Then
-                Dim ch = Peek(i)
-
+            If Peep(i, ch) Then
                 If IsSingleQuote(ch) Then
                     Return 1
                 ElseIf MatchOneOrAnotherOrFullwidth(ch, "R"c, "r"c) AndAlso
-                    CanGet(i + 2) AndAlso MatchOneOrAnotherOrFullwidth(Peek(i + 1), "E"c, "e"c) AndAlso
-                    MatchOneOrAnotherOrFullwidth(Peek(i + 2), "M"c, "m"c) Then
+                    Peep(i + 2,ch) AndAlso MatchOneOrAnotherOrFullwidth(Peek(i + 1), "E"c, "e"c) AndAlso
+                    MatchOneOrAnotherOrFullwidth(ch, "M"c, "m"c) Then
 
-                    If Not CanGet(i + 3) OrElse IsNewLine(Peek(i + 3)) Then
+                    If Not Peep(i + 3, ch) OrElse IsNewLine(ch) Then
                         ' have only 'REM'
                         Return 3
-                    ElseIf Not IsIdentifierPartCharacter(Peek(i + 3)) Then
+                    ElseIf Not IsIdentifierPartCharacter(ch) Then
                         ' have 'REM '
                         Return 4
                     End If
@@ -961,9 +944,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim looksLikeDocComment As Boolean = StartsXmlDoc(0)
 
                 ' eat all chars until EoL
-                While CanGet(length) AndAlso
-                    Not IsNewLine(Peek(length))
-
+                Dim ch As Char
+                While Peep(length, ch) AndAlso Not IsNewLine(ch)
                     length += 1
                 End While
 
