@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Analysis _analysis;
         private readonly MethodSymbol _topLevelMethod;
+        private readonly MethodSymbol _substitutedSourceMethod;
         private readonly int _topLevelMethodOrdinal;
 
         // lambda frame for static lambdas. 
@@ -137,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol thisParameterOpt,
             MethodSymbol method,
             int methodOrdinal,
+            MethodSymbol substitutedSourceMethod,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
@@ -151,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(diagnostics != null);
 
             _topLevelMethod = method;
+            _substitutedSourceMethod = substitutedSourceMethod;
             _topLevelMethodOrdinal = methodOrdinal;
             _lambdaDebugInfoBuilder = lambdaDebugInfoBuilder;
             _currentMethod = method;
@@ -182,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="thisParameter">The "this" parameter in the top-most frame, or null if static method</param>
         /// <param name="method">The containing method of the node to be rewritten</param>
         /// <param name="methodOrdinal">Index of the method symbol in its containing type member list.</param>
+        /// <param name="substitutedSourceMethod">If this is non-null, then <paramref name="method"/> will be treated as this for uses of parent symbols. For use in EE.</param>
         /// <param name="lambdaDebugInfoBuilder">Information on lambdas defined in <paramref name="method"/> needed for debugging.</param>
         /// <param name="closureDebugInfoBuilder">Information on closures defined in <paramref name="method"/> needed for debugging.</param>
         /// <param name="slotAllocatorOpt">Slot allocator.</param>
@@ -194,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol thisParameter,
             MethodSymbol method,
             int methodOrdinal,
+            MethodSymbol substitutedSourceMethod,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
@@ -223,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 thisParameter,
                 method,
                 methodOrdinal,
+                substitutedSourceMethod,
                 lambdaDebugInfoBuilder,
                 slotAllocatorOpt,
                 compilationState,
@@ -324,6 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugId closureId = GetClosureId(syntax, closureDebugInfo);
 
                 var containingMethod = _analysis.scopeOwner[scope];
+                if (_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
+                {
+                    containingMethod = _substitutedSourceMethod;
+                }
                 frame = new LambdaFrame(_topLevelMethod, containingMethod, syntax, methodId, closureId);
                 _frames.Add(scope, frame);
 
@@ -361,7 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     DebugId closureId = default(DebugId);
                     // using _topLevelMethod as containing member because the static frame does not have generic parameters, except for the top level method's
-                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, isNonGeneric ? null : _topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
+                    var containingMethod = isNonGeneric ? null : (_substitutedSourceMethod ?? _topLevelMethod);
+                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, containingMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
                     // nongeneric static lambdas can share the frame
                     if (isNonGeneric)

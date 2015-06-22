@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeMap WithConcatAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters, MethodSymbol stopAt = null)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
+            Debug.Assert(stopAt == null || stopAt.ConstructedFrom == stopAt);
 
             // Build the array up backwards, then reverse it.
             // The following example goes through the do-loop in order M3, M2, M1
@@ -152,19 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameters.Add(currentParameters[i]);
                 }
 
-                oldOwner = oldOwner.ContainingSymbol as MethodSymbol;
+                oldOwner = oldOwner.ContainingSymbol.OriginalDefinition as MethodSymbol;
             }
             parameters.ReverseContents();
 
             // Ensure that if stopAt was provided, it actually was in the chain and we stopped at it.
             // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain)
-
-            // TODO: Expression Evaluator breaks this assert. In EEMethodSymbol.GenerateMethodBody call to LambdaRewriter.Rewrite,
-            // "method: this" is passed in, when really the method being compiled is "method: this.SubstitutedSourceMethod".
-            // However, we can't just do that, because it breaks things: e.g. the assembly of EEMethod.SubSourceMethod != assembly of EEMethod.
-            // We might have to refactor LambdaRewriter to accept two MethodSymbols, one for the EE one, one for the SubSource one.
-            // Note that ignoring this assert does break things, if EEMethodSymbol is generic then things blow up.
-            //Debug.Assert(stopAt == oldOwner);
+            Debug.Assert(stopAt == oldOwner);
 
             return WithAlphaRename(parameters.ToImmutableAndFree(), newOwner, out newTypeParameters);
         }

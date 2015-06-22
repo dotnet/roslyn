@@ -1209,6 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.ThisParameter,
                     method,
                     methodOrdinal,
+                    null,
                     lambdaDebugInfoBuilder,
                     closureDebugInfoBuilder,
                     lazyVariableSlotAllocator,

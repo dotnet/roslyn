@@ -1586,6 +1586,44 @@ System.Object
         }
 
         [Fact]
+        public void Dynamic()
+        {
+            object f = 0;
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // TODO: Fix local functions with dynamic arguments
+        //void Local(int x)
+        //{
+        //    Console.WriteLine(x);
+        //}
+        //dynamic val = 2;
+        //Local(val);
+        dynamic RetDyn()
+        {
+            return 2;
+        }
+        Console.WriteLine(RetDyn());
+        var RetDynVar()
+        {
+            return (dynamic)2;
+        }
+        Console.WriteLine(RetDynVar());
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+2
+2
+");
+        }
+
+        [Fact]
         public void Shadows()
         {
             var source = @"

@@ -567,6 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     thisParameter: _thisParameter,
                     method: this,
                     methodOrdinal: _methodOrdinal,
+                    substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
                     closureDebugInfoBuilder: closureDebugInfoBuilder,
                     lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
                     slotAllocatorOpt: null,

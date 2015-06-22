@@ -2515,8 +2515,7 @@ class C
             Assert.Equal(((Cci.IMethodDefinition)methodData.Method).CallingConvention, Cci.CallingConvention.Default);
         }
 
-        // TODO: fix this before merging local functions into dotnet/future
-        [Fact(Skip = "See comment in TypeMap.WithConcatAlphaRename next to assert for why this is skipped.")]
+        [Fact]
         public void GenericClosureClass()
         {
             var source =
