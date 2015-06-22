@@ -6249,4 +6249,38 @@ class Program
             AssertFormat(code, code);
         }
     }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+    public void NewLinesForBracesInPropertiesTest()
+    {
+        var changingOptions = new Dictionary<OptionKey, object>();
+        changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+        AssertFormat(@"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", @"class Class2
+{
+    int Foo {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+    }
 }

@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static readonly Option<bool> NewLinesForBracesInMethods = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInMethods", defaultValue: true);
 
+        public static readonly Option<bool> NewLinesForBracesInProperties = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInProperties", defaultValue: true);
+
         public static readonly Option<bool> NewLinesForBracesInAnonymousMethods = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAnonymousMethods", defaultValue: true);
 
         public static readonly Option<bool> NewLinesForBracesInControlBlocks = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInControlBlocks", defaultValue: true);
