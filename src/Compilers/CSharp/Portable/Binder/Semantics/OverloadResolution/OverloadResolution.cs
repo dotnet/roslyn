@@ -1034,6 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (better == BetterResult.Right)
                         {
                             worse[c1Idx] = worseThanSomething;
+                            break;
                         }
                     }
                 }
@@ -1044,15 +1045,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // See we have a winner, otherwise we might need to perform additional analysis
+            // in order to improve diagnostics
+            bool haveBestCandidate = false;
+            int countOfNotBestCandidates = 0;
+            int notBestIdx = -1;
             for (int i = 0; i < worse.Count; ++i)
             {
                 Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
-                if (worse[i] == worseThanSomething || worse[i] == notBetterThanEverything)
+                if (worse[i] == betterThanEverything)
                 {
-                    // UNDONE: We can do a better job of error reporting if we make a new analysis result for 
-                    // UNDONE: "NotBetterThanEverything". That way if we have two candidates that are not better
-                    // UNDONE: than everything then we can report them as the ambiguous ones.
-                    results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    haveBestCandidate = true;
+                    break;
+                }
+                else if (worse[i] == notBetterThanEverything)
+                {
+                    countOfNotBestCandidates++;
+                    notBestIdx = i;
+                }
+            }
+
+            Debug.Assert(countOfNotBestCandidates == 0 || !haveBestCandidate);
+
+            if (haveBestCandidate || countOfNotBestCandidates == 0)
+            {
+                for (int i = 0; i < worse.Count; ++i)
+                {
+                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething || worse[i] == notBetterThanEverything)
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    }
+                }
+            }
+            else if (countOfNotBestCandidates == 1)
+            {
+                for (int i = 0; i < worse.Count; ++i)
+                {
+                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething)
+                    {
+                        // Mark those candidates, that are worse than the single notBest candidate, as Worst in order to improve error reporting.
+                        var analysisResult = BetterFunctionMember(results[notBestIdx], results[i], arguments.Arguments, ref useSiteDiagnostics) == BetterResult.Left ?
+                                                MemberAnalysisResult.Worst() :
+                                                MemberAnalysisResult.Worse();
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, analysisResult);
+                    }
+                    else 
+                    {
+                        Debug.Assert(worse[i] != notBetterThanEverything || i == notBestIdx);
+                    }
+                }
+
+                Debug.Assert(worse[notBestIdx] == notBetterThanEverything);
+                results[notBestIdx] = new MemberResolutionResult<TMember>(results[notBestIdx].Member, results[notBestIdx].LeastOverriddenMember, MemberAnalysisResult.Worse());
+            }
+            else
+            {
+                Debug.Assert(countOfNotBestCandidates > 1);
+
+                for (int i = 0; i < worse.Count; ++i)
+                {
+                    Debug.Assert(!results[i].Result.IsValid || worse[i] != unknown);
+                    if (worse[i] == worseThanSomething)
+                    {
+                        // Mark those candidates, that are worse than something, as Worst in order to improve error reporting.
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worst());
+                    }
+                    else if (worse[i] == notBetterThanEverything)
+                    {
+                        results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    }
                 }
             }
 
