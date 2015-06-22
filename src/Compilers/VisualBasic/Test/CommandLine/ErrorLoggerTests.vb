@@ -132,7 +132,7 @@ End Class
       }}
     }}
   ]
-}}", sourceFilePath, Path.GetFileNameWithoutExtension(sourceFilePath))
+}}", AnalyzerForErrorLogTest.EscapeDirectorySeparatorChar(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)
@@ -174,7 +174,7 @@ End Class
             Dim actualOutput = File.ReadAllText(errorLogFile).Trim()
 
             Dim expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd)
-            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogIssuesText(cmd.Compilation, outputFilePath)
+            Dim expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogIssuesText(cmd.Compilation)
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)
