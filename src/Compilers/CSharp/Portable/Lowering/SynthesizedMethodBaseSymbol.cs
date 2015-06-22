@@ -13,11 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SynthesizedMethodBaseSymbol : SourceMethodSymbol
     {
         protected readonly MethodSymbol BaseMethod;
-        protected TypeMap TypeMap { get; private set; }
+        internal TypeMap TypeMap { get; private set; }
 
         private readonly string _name;
         private ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
+        private TypeSymbol _iteratorElementType;
 
         protected SynthesizedMethodBaseSymbol(NamedTypeSymbol containingType,
                                               MethodSymbol baseMethod,
@@ -139,8 +140,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbol IteratorElementType
         {
-            get { return BaseMethod.IteratorElementType; }
-            set { BaseMethod.IteratorElementType = value; }
+            get
+            {
+                if (_iteratorElementType == null)
+                {
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType);
+                }
+                return _iteratorElementType;
+            }
+            set
+            {
+                Debug.Assert(value != null);
+                _iteratorElementType = value;
+            }
         }
     }
 }

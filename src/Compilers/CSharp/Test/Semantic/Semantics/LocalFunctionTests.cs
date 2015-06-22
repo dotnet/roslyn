@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LocalFunctionTests : CSharpTestBase
     {
-        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithFeatures(new SmallDictionary<string, string> { { "localFunctions", "true" } });
+        private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
         [Fact]
         public void EndToEnd()
@@ -45,11 +47,14 @@ class Program
     {
         int Local() => 2;
         Console.WriteLine(Local());
+        void VoidLocal() => Console.WriteLine(2);
+        VoidLocal();
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
+2
 2
 ");
         }
@@ -108,6 +113,54 @@ class Program
 LocalFuncName
 Main
 ");
+        }
+
+        [Fact]
+        public void BadStandardMethodFeatures()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Params(params int x)
+        {
+            Console.WriteLine(x);
+        }
+        void RefOut(ref int x = 2)
+        {
+            x++;
+        }
+        void NamedOptional(string x = 2)
+        {
+            Console.WriteLine(x);
+        }
+        void CallerMemberName([CallerMemberName] int s = 2)
+        {
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            // TODO: SourceComplexParameterSymbol reports to AddDeclarationDiagnostics, which is frozen at the time local functions are bound.
+            var option = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlib45(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (9,21): error CS0225: The params parameter must be a single dimensional array
+    //         void Params(params int x)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(9, 21),
+    // (13,21): error CS1741: A ref or out parameter cannot have a default value
+    //         void RefOut(ref int x = 2)
+    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(13, 21),
+    // (17,35): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'string'
+    //         void NamedOptional(string x = 2)
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("int", "string").WithLocation(17, 35),
+    // (21,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
+    //         void CallerMemberName([CallerMemberName] int s = 2)
+    Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(21, 32)
+                );
         }
 
         [Fact]
@@ -343,6 +396,204 @@ class Program
         }
 
         [Fact]
+        public void ClosureTripleNested()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Print(int a)
+    {
+        Console.Write(' ');
+        Console.Write(a);
+    }
+
+    static void A()
+    {
+        int a = 0;
+        void M1()
+        {
+            int b = a;
+            void M2()
+            {
+                int c = b;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+                b = 2;
+            }
+            M2();
+            Print(b);
+            a = 2;
+        }
+        M1();
+        Print(a);
+    }
+
+    static void B()
+    {
+        int a = 0;
+        void M1()
+        {
+            int b = a;
+            void M2()
+            {
+                void M3()
+                {
+                    b = 2;
+                }
+                M3();
+                Print(b);
+            }
+            M2();
+            Print(b);
+            a = 2;
+        }
+        M1();
+        Print(a);
+    }
+
+    static void C()
+    {
+        int a = 0;
+        void M1()
+        {
+            void M2()
+            {
+                int c = a;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+                a = 2;
+            }
+            M2();
+            Print(a);
+        }
+        M1();
+        Print(a);
+    }
+
+    static void D()
+    {
+        void M1()
+        {
+            int b = 0;
+            void M2()
+            {
+                int c = b;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+                b = 2;
+            }
+            M2();
+            Print(b);
+        }
+        M1();
+    }
+
+    static void E()
+    {
+        int a = 0;
+        void M1()
+        {
+            void M2()
+            {
+                void M3()
+                {
+                    a = 2;
+                }
+                M3();
+                Print(a);
+            }
+            M2();
+            Print(a);
+        }
+        M1();
+        Print(a);
+    }
+
+    static void F()
+    {
+        void M1()
+        {
+            int b = 0;
+            void M2()
+            {
+                void M3()
+                {
+                    b = 2;
+                }
+                M3();
+                Print(b);
+            }
+            M2();
+            Print(b);
+        }
+        M1();
+    }
+
+    static void G()
+    {
+        void M1()
+        {
+            void M2()
+            {
+                int c = 0;
+                void M3()
+                {
+                    c = 2;
+                }
+                M3();
+                Print(c);
+            }
+            M2();
+        }
+        M1();
+    }
+
+    static void Main(string[] args)
+    {
+        A();
+        Console.WriteLine();
+        B();
+        Console.WriteLine();
+        C();
+        Console.WriteLine();
+        D();
+        Console.WriteLine();
+        E();
+        Console.WriteLine();
+        F();
+        Console.WriteLine();
+        G();
+        Console.WriteLine();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+ 2 2 2
+ 2 2 2
+ 2 2 2
+ 2 2
+ 2 2 2
+ 2 2
+ 2
+");
+        }
+
+        [Fact]
         public void InstanceClosure()
         {
             var source = @"
@@ -493,6 +744,10 @@ class Program
         {
             yield return 2;
         }
+        IEnumerable<T> LocalGeneric<T>(T val)
+        {
+            yield return val;
+        }
         IEnumerable LocalNongen()
         {
             yield return 2;
@@ -502,6 +757,7 @@ class Program
             yield return 2;
         }
         Console.WriteLine(string.Join("","", Local()));
+        Console.WriteLine(string.Join("","", LocalGeneric(2)));
         foreach (int x in LocalNongen())
         {
             Console.WriteLine(x);
@@ -514,6 +770,7 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
+2
 2
 2
 2
@@ -537,6 +794,22 @@ class Program
             return await Task.FromResult(2);
         }
         Console.WriteLine(Local().Result);
+        async Task<int> LocalParam(int x)
+        {
+            return await Task.FromResult(x);
+        }
+        Console.WriteLine(LocalParam(2).Result);
+        async Task<T> LocalGeneric<T>(T x)
+        {
+            return await Task.FromResult(x);
+        }
+        Console.WriteLine(LocalGeneric(2).Result);
+        // had bug with parser where 'async [keyword]' didn't parse.
+        async void LocalVoid()
+        {
+            Console.WriteLine(2);
+        }
+        LocalVoid();
     }
 }
 ";
@@ -545,26 +818,55 @@ class Program
                 parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
 2
+2
+2
+2
 ");
         }
 
         [Fact]
-        public void AsyncParam()
+        public void AsyncKeyword()
         {
             var source = @"
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
+struct async
+{
+    public override string ToString() => ""2"";
+}
 
 class Program
 {
+    static string A()
+    {
+        async async()
+        {
+            return new async();
+        }
+        return async().ToString();
+    }
+    static string B()
+    {
+        string async()
+        {
+            return ""2"";
+        }
+        return async();
+    }
+    static string C()
+    {
+        async Foo()
+        {
+            return new async();
+        }
+        return Foo().ToString();
+    }
+
     static void Main(string[] args)
     {
-        async Task<int> Local(int x)
-        {
-            return await Task.FromResult(x);
-        }
-        Console.WriteLine(Local(2).Result);
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+        Console.WriteLine(C());
     }
 }
 ";
@@ -572,6 +874,50 @@ class Program
                 options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
                 parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void AsyncUnsafeKeyword()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static string A()
+    {
+        async unsafe Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+    static string B()
+    {
+        unsafe async Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true).WithWarningLevel(0),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
 2
 ");
         }
@@ -584,35 +930,8 @@ using System;
 
 class Program
 {
-    static void Main(string[] args)
-    {
-        T Local<T>(T val)
-        {
-            return val;
-        }
-        Console.WriteLine(Local<int>(2));
-    }
-}
-";
-            // TODO: Eventually support this
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (8,16): error CS1519: Invalid token '<T>' in class, struct, or interface member declaration
-    //         T Local<T>(T val)
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "<T>").WithArguments("<T>").WithLocation(8, 16)
-                );
-        }
-
-        [Fact]
-        public void GenericClosure()
-        {
-            var source = @"
-using System;
-using System.Collections.Generic;
-
-class Program
-{
-    static T Outer<T>(T val)
+    // No closure. Return 'valu'.
+    static T A1<T>(T val)
     {
         T Local(T valu)
         {
@@ -620,14 +939,648 @@ class Program
         }
         return Local(val);
     }
+    static int B1(int val)
+    {
+        T Local<T>(T valu)
+        {
+            return valu;
+        }
+        return Local(val);
+    }
+    static T1 C1<T1>(T1 val)
+    {
+        T2 Local<T2>(T2 valu)
+        {
+            return valu;
+        }
+        return Local<T1>(val);
+    }
+    // General closure. Return 'val'.
+    static T A2<T>(T val)
+    {
+        T Local(T valu)
+        {
+            return val;
+        }
+        return Local(val);
+    }
+    static int B2(int val)
+    {
+        T Local<T>(T valu)
+        {
+            return (T)(object)val;
+        }
+        return Local(val);
+    }
+    static T1 C2<T1>(T1 val)
+    {
+        T2 Local<T2>(T2 valu)
+        {
+            return (T2)(object)val;
+        }
+        return Local<T1>(val);
+    }
+    // This-only closure. Return 'field'.
+    int field = 2;
+    T A3<T>(T val)
+    {
+        T Local(T valu)
+        {
+            return (T)(object)field;
+        }
+        return Local(val);
+    }
+    int B3(int val)
+    {
+        T Local<T>(T valu)
+        {
+            return (T)(object)field;
+        }
+        return Local(val);
+    }
+    T1 C3<T1>(T1 val)
+    {
+        T2 Local<T2>(T2 valu)
+        {
+            return (T2)(object)field;
+        }
+        return Local<T1>(val);
+    }
     static void Main(string[] args)
     {
-        Console.WriteLine(Outer(2));
+        var program = new Program();
+        Console.WriteLine(Program.A1(2));
+        Console.WriteLine(Program.B1(2));
+        Console.WriteLine(Program.C1(2));
+        Console.WriteLine(Program.A2(2));
+        Console.WriteLine(Program.B2(2));
+        Console.WriteLine(Program.C2(2));
+        Console.WriteLine(program.A3(2));
+        Console.WriteLine(program.B3(2));
+        Console.WriteLine(program.C3(2));
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
-            var verify = CompileAndVerify(comp, expectedOutput: @"
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedNoClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        int Local(int aa)
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T2 Local2(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngg(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Three generic
+    static T1 Tggg<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+        Console.WriteLine(Program.Tngg(2));
+        Console.WriteLine(Program.Tggg(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedMiddleClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        int Local(int aa)
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return (T1)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T2 Local2(T2 aaa)
+            {
+                return (T2)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngg(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Three generic
+    static T1 Tggg<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                return (T3)(object)aa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+        Console.WriteLine(Program.Tngg(2));
+        Console.WriteLine(Program.Tggg(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedOuterClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T1 Local2(T1 aaa)
+            {
+                return (T1)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        int Local(int aa)
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return (T1)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T2 Local2(T2 aaa)
+            {
+                return (T2)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        T1 Local(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tngg(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return (T2)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    // Three generic
+    static T1 Tggg<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                return (T3)(object)a;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+        Console.WriteLine(Program.Tngg(2));
+        Console.WriteLine(Program.Tggg(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericTripleNestedNoClosureLambda()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    // Name of method is T[outer][middle][inner] where brackets are g=generic n=nongeneric
+    // One generic
+    static T1 Tgnn<T1>(T1 a)
+    {
+        Func<T1, T1> Local = aa =>
+        {
+            Func<T1, T1> Local2 = aaa =>
+            {
+                return aaa;
+            };
+            return Local2(aa);
+        };
+        return Local(a);
+    }
+    static int Tngn(int a)
+    {
+        T1 Local<T1>(T1 aa)
+        {
+            Func<T1, T1> Local2 = aaa =>
+            {
+                return aaa;
+            };
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static int Tnng(int a)
+    {
+        Func<int, int> Local = aa =>
+        {
+            T1 Local2<T1>(T1 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        };
+        return Local(a);
+    }
+    // Two generic
+    static T1 Tggn<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            Func<T2, T2> Local2 = aaa =>
+            {
+                return aaa;
+            };
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 Tgng<T1>(T1 a)
+    {
+        Func<T1, T1> Local = aa =>
+        {
+            T2 Local2<T2>(T2 aaa)
+            {
+                return aaa;
+            }
+            return Local2(aa);
+        };
+        return Local(a);
+    }
+    // Tngg and Tggg are impossible with lambdas
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.Tgnn(2));
+        Console.WriteLine(Program.Tngn(2));
+        Console.WriteLine(Program.Tnng(2));
+        Console.WriteLine(Program.Tggn(2));
+        Console.WriteLine(Program.Tgng(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void GenericUpperCall()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static T1 InnerToOuter<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                if ((object)aaa == null)
+                    return InnerToOuter((T3)new object());
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 InnerToMiddle<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                if ((object)aaa == null)
+                    return InnerToMiddle((T3)new object());
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 InnerToOuterScoping<T1>(T1 a)
+    {
+        T2 Local<T2>(T2 aa)
+        {
+            T3 Local2<T3>(T3 aaa)
+            {
+                if ((object)aaa == null)
+                    return (T3)(object)InnerToOuter((T1)new object());
+                return aaa;
+            }
+            return Local2(aa);
+        }
+        return Local(a);
+    }
+    static T1 M1<T1>(T1 a)
+    {
+        T2 M2<T2>(T2 aa)
+        {
+            T2 x = aa;
+            T3 M3<T3>(T3 aaa)
+            {
+                T4 M4<T4>(T4 aaaa)
+                {
+                    return (T4)(object)x;
+                }
+                return M4(aaa);
+            }
+            return M3(aa);
+        }
+        return M2(a);
+    }
+    // Tngg and Tggg are impossible with lambdas
+    static void Main(string[] args)
+    {
+        Console.WriteLine(Program.InnerToOuter((object)null));
+        Console.WriteLine(Program.InnerToMiddle((object)null));
+        Console.WriteLine(Program.InnerToOuterScoping((object)null));
+        Console.WriteLine(Program.M1(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+System.Object
+System.Object
+System.Object
 2
 ");
         }
@@ -707,14 +1660,23 @@ class Program
             }
         }
         Local();
+
+        Local2();
+        void Local2()
+        {
+            Console.WriteLine(2);
+        }
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (15,9): error CS0103: The name 'Local' does not exist in the current context
     //         Local();
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9),
+    // (17,9): error CS0841: Cannot use local variable 'Local2' before it is declared
+    //         Local2();
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(17, 9)
                 );
         }
 
@@ -777,7 +1739,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -807,14 +1768,78 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0).WithAllowUnsafe(true);
+            var option = TestOptions.ReleaseExe.WithAllowUnsafe(true);
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (12,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
     //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(12, 32),
-    // (21,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32),
+    // (20,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
     //             Console.WriteLine(*&x);
-    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(21, 32)
+    Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(20, 32)
+                );
+        }
+
+        [Fact]
+        public void DefiniteAssignment()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void A()
+    {
+        goto Label;
+        int x = 2;
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Label:
+        Local();
+    }
+    static void B()
+    {
+        goto Label;
+        int x = 2;
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Label:
+        Action foo = Local;
+    }
+    static void C()
+    {
+        goto Label;
+        int x = 2;
+        void Local()
+        {
+            Console.WriteLine(x);
+        }
+        Label:
+        var bar = new Action(Local);
+    }
+
+    static void Main(string[] args)
+    {
+        A();
+        B();
+        C();
+    }
+}
+";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (15,9): error CS0165: Use of unassigned local variable 'Local'
+    //         Local();
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(15, 9),
+    // (26,22): error CS0165: Use of unassigned local variable 'Local'
+    //         Action foo = Local;
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local").WithArguments("Local").WithLocation(26, 22),
+    // (37,19): error CS0165: Use of unassigned local variable 'Local'
+    //         var bar = new Action(Local);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "new Action(Local)").WithArguments("Local").WithLocation(37, 19)
                 );
         }
 
@@ -826,7 +1851,7 @@ using System;
 
 class Program
 {
-    int _a;
+    int _a = 0;
 
     static void A(ref int x)
     {
@@ -869,7 +1894,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (12,31): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
     //             Console.WriteLine(x);
@@ -890,30 +1915,35 @@ class Program
         }
 
         [Fact]
-        public void ByRefIterator()
+        public void BadStateMachine()
         {
             var source = @"
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 class Program
 {
     static void Main(string[] args)
     {
-        IEnumerable<int> Local(ref int x)
+        IEnumerable<int> RefEnumerable(ref int x)
         {
             yield return x;
         }
-        int y = 2;
-        Console.WriteLine(string.Join("","", Local(ref y)));
+        async Task<int> RefAsync(ref int x)
+        {
+            return await Task.FromResult(x);
+        }
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,40): error CS1623: Iterators cannot have ref or out parameters
-    //         IEnumerable<int> Local(ref int x)
-    Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(9, 40)
+            var option = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlib45(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (13,42): error CS1988: Async methods cannot have ref or out parameters
+    //         async Task<int> RefAsync(ref int x)
+    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(13, 42),
+    // (9,48): error CS1623: Iterators cannot have ref or out parameters
+    //         IEnumerable<int> RefEnumerable(ref int x)
+    Diagnostic(ErrorCode.ERR_BadIteratorArgType, "x").WithLocation(9, 48)
                 );
         }
 
@@ -922,7 +1952,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -936,11 +1965,51 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,13): error CS1106: Extension method must be defined in a non-generic static class
+    // (8,13): error CS1106: Extension method must be defined in a non-generic static class
     //         int Local(this int x)
-    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(9, 13)
+    Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Local").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void BadModifiers()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        const void LocalConst()
+        {
+        }
+        static void LocalStatic()
+        {
+        }
+        readonly void LocalReadonly()
+        {
+        }
+        volatile void LocalVolatile()
+        {
+        }
+    }
+}
+";
+            var option = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
+    // (6,9): error CS0106: The modifier 'const' is not valid for this item
+    //         const void LocalConst()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "const").WithArguments("const").WithLocation(6, 9),
+    // (9,9): error CS0106: The modifier 'static' is not valid for this item
+    //         static void LocalStatic()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(9, 9),
+    // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+    //         readonly void LocalReadonly()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9),
+    // (15,9): error CS0106: The modifier 'volatile' is not valid for this item
+    //         volatile void LocalVolatile()
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(15, 9)
                 );
         }
 
@@ -949,7 +2018,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -959,16 +2027,74 @@ class Program
         {
             return 2;
         }
+        var LocalIf(bool cond)
+        {
+            if (cond)
+            {
+                return 2;
+            }
+            else
+            {
+                return 3;
+            }
+        }
+        var LocalNest()
+        {
+            var Inner()
+            {
+                return 2;
+            }
+            return Inner();
+        }
         Console.WriteLine(Local());
+        Console.WriteLine(LocalIf(true));
+        Console.WriteLine(LocalNest());
     }
 }
 ";
-            // message is temporary
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+2
+2
+2
+");
+        }
+
+        [Fact]
+        public void BadInferredReturn()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var Local()
+        {
+            return Local() + 1;
+        }
+        var LocalRec()
+        {
+            var Inner()
+            {
+                return LocalRec();
+            }
+            return Inner();
+        }
+        Console.WriteLine(Local());
+        Console.WriteLine(LocalRec());
+    }
+}
+";
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,9): error CS7019: Type of 'Program.Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    // (8,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
     //         var Local()
-    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Program.Local()").WithLocation(9, 9)
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(8, 9),
+    // (12,9): error CS7019: Type of 'LocalRec()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    //         var LocalRec()
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("LocalRec()").WithLocation(12, 9)
                 );
         }
 
@@ -991,7 +2117,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
     // (9,26): error CS1636: __arglist is not allowed in the parameter list of iterators
     //         IEnumerable<int> Local(__arglist)
@@ -1004,7 +2130,6 @@ class Program
         {
             var source = @"
 using System;
-using System.Collections.Generic;
 
 class Program
 {
@@ -1015,11 +2140,35 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (9,27): error CS0841: Cannot use local variable 'Local' before it is declared
+    // (8,27): error CS0841: Cannot use local variable 'Local' before it is declared
     //         Console.WriteLine(Local());
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(9, 27)
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(8, 27)
+                );
+        }
+
+        [Fact]
+        public void NoFeatureSwitch()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+        }
+    }
+}
+";
+            var option = TestOptions.ReleaseExe;
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+    // (6,9): error CS8058: Feature 'local functions' is only available in 'experimental' language version.
+    //         void Local()
+    Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local()
+        {
+        }").WithArguments("local functions").WithLocation(6, 9)
                 );
         }
     }

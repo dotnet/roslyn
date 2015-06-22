@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
         private TypeSymbol _returnType;
+        private bool _isVar;
         private bool _isVararg;
         private TypeSymbol _iteratorElementType;
         // TODO: Find a better way to report diagnostics.
@@ -46,8 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_syntax.TypeParameterList != null)
             {
-                // TODO: Generics are broken. Fix binder issues when allowing generics.
-                diagnostics.Add(ErrorCode.ERR_InvalidMemberDecl, syntax.TypeParameterList.Location, syntax.TypeParameterList);
                 binder = new WithMethodTypeParametersBinder(this, binder);
                 _typeParameters = MakeTypeParameters(diagnostics);
             }
@@ -61,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadExtensionAgg, Locations[0]);
             }
 
+            _isVar = false;
+
             _binder = binder;
             _diagnostics = diagnostics.ToReadOnlyAndFree();
         }
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // force lazy init
             ComputeParameters();
-            ComputeReturnType();
+            ComputeReturnType(null, true);
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
             if (!diags.IsDefault)
@@ -120,8 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             var diagnostics = DiagnosticBag.GetInstance();
             SyntaxToken arglistToken;
-            _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics);
+            _parameters = ParameterHelpers.MakeParameters(_binder, this, _syntax.ParameterList, true, out arglistToken, diagnostics, true);
             _isVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            if (diagnostics.IsEmptyWithoutResolution)
+            {
+                SourceMemberMethodSymbol.ReportAsyncParameterErrors(this, diagnostics, this.Locations[0]);
+            }
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
 
@@ -129,30 +134,69 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType();
+                ComputeReturnType(null, true);
                 return _returnType;
             }
         }
 
-        private void ComputeReturnType()
+        public TypeSymbol ReturnTypeNoForce
+        {
+            get
+            {
+                ComputeReturnType(null, false);
+                return _returnType;
+            }
+        }
+
+        internal void ComputeReturnType(BoundBlock body, bool forceNotNull)
         {
             if (_returnType != null)
             {
                 return;
             }
             var diagnostics = DiagnosticBag.GetInstance();
-            bool isVar;
-            _returnType = _binder.BindType(_syntax.ReturnType, diagnostics, out isVar);
-            if (isVar)
+            // we might call this multiple times if it's var. Only bind the first time, and cache if it's var.
+            TypeSymbol returnType = null; // guaranteed to be assigned, but compiler doesn't know that.
+            if (!_isVar)
             {
-                // TODO: Add a better message for this
-                diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
-                _returnType = _binder.CreateErrorType("var");
+                bool isVar;
+                returnType = _binder.BindType(_syntax.ReturnType, diagnostics, out isVar);
+                _isVar = isVar;
+            }
+            if (_isVar)
+            {
+                if (body == null)
+                {
+                    if (forceNotNull)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
+                        returnType = _binder.CreateErrorType("var");
+                    }
+                    else
+                    {
+                        return; // leave _returnType null
+                    }
+                }
+                else
+                {
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    bool inferredFromSingleType;
+                    returnType = BoundLambda.InferReturnType(body, _binder, IsAsync, ref useSiteDiagnostics, out inferredFromSingleType);
+                }
+            }
+            if (Interlocked.CompareExchange(ref _returnType, returnType, null) != null)
+            {
+                return;
+            }
+            if (this.IsAsync && !this.IsGenericTaskReturningAsync(_binder.Compilation) && !this.IsTaskReturningAsync(_binder.Compilation) && !this.IsVoidReturningAsync())
+            {
+                // The return type of an async method must be void, Task or Task<T>
+                diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
 
-        public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => ReturnType?.SpecialType == SpecialType.System_Void;
 
         public override int Arity => TypeParameters.Length;
 
@@ -241,7 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
         public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
-
 
         public override DllImportData GetDllImportData() => null;
 

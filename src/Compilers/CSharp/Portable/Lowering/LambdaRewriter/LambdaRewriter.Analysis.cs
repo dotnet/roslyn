@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly Dictionary<Symbol, BoundNode> variableScope = new Dictionary<Symbol, BoundNode>();
 
             /// <summary>
+            /// For each value in variableScope, identifies the closest owning method, lambda, or local function.
+            /// </summary>
+            public readonly Dictionary<BoundNode, MethodSymbol> scopeOwner = new Dictionary<BoundNode, MethodSymbol>();
+
+            /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
             public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
@@ -105,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(!_inExpressionLambda);
                 Debug.Assert((object)_topLevelMethod != null);
+                Debug.Assert((object)_currentParent != null);
 
                 foreach (ParameterSymbol parameter in _topLevelMethod.Parameters)
                 {
@@ -113,6 +119,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Visit(node);
+
+                // scopeOwner may already contain the same key/value if _currentScope is a BoundBlock.
+                MethodSymbol shouldBeCurrentParent;
+                if (scopeOwner.TryGetValue(_currentScope, out shouldBeCurrentParent))
+                {
+                    // Check to make sure the above comment is right.
+                    Debug.Assert(_currentParent == shouldBeCurrentParent);
+                }
+                else
+                {
+                    scopeOwner.Add(_currentScope, _currentParent);
+                }
             }
 
             private static BoundNode FindNodeToAnalyze(BoundNode node)
@@ -267,6 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     variableScope[local] = _currentScope;
                 }
 
+                scopeOwner.Add(_currentScope, _currentParent);
+
                 return previousBlock;
             }
 
@@ -362,6 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _currentParent = node.Symbol;
                 _currentScope = node.Body;
                 scopeParent[_currentScope] = oldBlock;
+                scopeOwner.Add(_currentScope, _currentParent);
                 var wasInExpressionLambda = _inExpressionLambda;
                 _inExpressionLambda = _inExpressionLambda || ((node as BoundLambda)?.Type.IsExpressionTree() ?? false);
 

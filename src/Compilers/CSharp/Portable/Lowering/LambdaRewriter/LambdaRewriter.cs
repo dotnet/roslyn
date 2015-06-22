@@ -323,7 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugId methodId = GetTopLevelMethodId();
                 DebugId closureId = GetClosureId(syntax, closureDebugInfo);
 
-                frame = new LambdaFrame(_topLevelMethod, syntax, methodId, closureId);
+                var containingMethod = _analysis.scopeOwner[scope];
+                frame = new LambdaFrame(_topLevelMethod, containingMethod, syntax, methodId, closureId);
                 _frames.Add(scope, frame);
 
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
@@ -359,7 +360,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     DebugId closureId = default(DebugId);
-                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
+                    // using _topLevelMethod as containing member because the static frame does not have generic parameters, except for the top level method's
+                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, isNonGeneric ? null : _topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
                     // nongeneric static lambdas can share the frame
                     if (isNonGeneric)
@@ -465,7 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The translated statement, as returned from F</returns>
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
-            NamedTypeSymbol frameType = frame.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters));
+            var frameTypeParameters = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters), 0, frame.Arity);
+            NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
             LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
@@ -644,30 +647,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : FramePointer(node.Syntax, _topLevelMethod.ContainingType); // technically, not the correct static type
         }
 
-        private void RemapLocalFunction(CSharpSyntaxNode syntax, MethodSymbol symbol, out BoundExpression receiver, out MethodSymbol method)
+        private void RemapLambdaOrLocalFunction(
+            CSharpSyntaxNode syntax,
+            MethodSymbol originalMethod,
+            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            ClosureKind closureKind,
+            ref MethodSymbol synthesizedMethod,
+            out BoundExpression receiver,
+            out NamedTypeSymbol constructedFrame)
         {
-            Debug.Assert(symbol.MethodKind == MethodKind.LocalFunction);
-
-            var constructed = symbol as SubstitutedMethodSymbol;
-            if (constructed != null)
-            {
-                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method);
-                return;
-            }
-
-            var mappedLocalFunction = _localFunctionMap[(LocalFunctionSymbol)symbol];
-            method = mappedLocalFunction.Symbol;
-            var translatedLambdaContainer = method.ContainingType;
+            var translatedLambdaContainer = synthesizedMethod.ContainingType;
             var containerAsFrame = translatedLambdaContainer as LambdaFrame;
 
-            // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
-            NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ?
-                translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters)) :
-                translatedLambdaContainer;
+            // All of _currentTypeParameters might not be preserved here due to recursively calling upwards in the chain of local functions/lambdas
+            Debug.Assert((typeArgumentsOpt.IsDefault && !originalMethod.IsGenericMethod) || (typeArgumentsOpt.Length == originalMethod.Arity));
+            var totalTypeArgumentCount = (containerAsFrame?.Arity ?? 0) + synthesizedMethod.Arity;
+            var realTypeArguments = ImmutableArray.Create(StaticCast<TypeSymbol>.From(_currentTypeParameters), 0, totalTypeArgumentCount - originalMethod.Arity);
+            if (!typeArgumentsOpt.IsDefault)
+            {
+                realTypeArguments = realTypeArguments.Concat(typeArgumentsOpt);
+            }
+
+            if (containerAsFrame != null && containerAsFrame.Arity != 0)
+            {
+                var containerTypeArguments = ImmutableArray.Create(realTypeArguments, 0, containerAsFrame.Arity);
+                realTypeArguments = ImmutableArray.Create(realTypeArguments, containerAsFrame.Arity, realTypeArguments.Length - containerAsFrame.Arity);
+                constructedFrame = containerAsFrame.Construct(containerTypeArguments);
+            }
+            else
+            {
+                constructedFrame = translatedLambdaContainer;
+            }
 
             // for instance lambdas, receiver is the frame
             // for static lambdas, get the singleton receiver
-            if (mappedLocalFunction.ClosureKind != ClosureKind.Static)
+            if (closureKind != ClosureKind.Static)
             {
                 receiver = FrameOfType(syntax, constructedFrame);
             }
@@ -677,11 +691,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = new BoundFieldAccess(syntax, null, field, constantValueOpt: null);
             }
 
-            method = method.AsMember(constructedFrame);
-            if (method.IsGenericMethod)
+            synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
+            if (synthesizedMethod.IsGenericMethod)
             {
-                method = method.Construct(StaticCast<TypeSymbol>.From(_currentTypeParameters));
+                synthesizedMethod = synthesizedMethod.Construct(StaticCast<TypeSymbol>.From(realTypeArguments));
             }
+            else
+            {
+                Debug.Assert(realTypeArguments.Length == 0);
+            }
+        }
+
+        private void RemapLocalFunction(
+            CSharpSyntaxNode syntax, MethodSymbol symbol,
+            out BoundExpression receiver, out MethodSymbol method,
+            ImmutableArray<TypeSymbol> typeArguments = default(ImmutableArray<TypeSymbol>))
+        {
+            Debug.Assert(symbol.MethodKind == MethodKind.LocalFunction);
+
+            var constructed = symbol as ConstructedMethodSymbol;
+            if (constructed != null)
+            {
+                RemapLocalFunction(syntax, constructed.ConstructedFrom, out receiver, out method, this.TypeMap.SubstituteTypes(constructed.TypeArguments));
+                return;
+            }
+
+            var mappedLocalFunction = _localFunctionMap[(LocalFunctionSymbol)symbol];
+            method = mappedLocalFunction.Symbol;
+
+            NamedTypeSymbol constructedFrame;
+            RemapLambdaOrLocalFunction(syntax, symbol, typeArguments, mappedLocalFunction.ClosureKind, ref method, out receiver, out constructedFrame);
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -1160,16 +1199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _framePointers.TryGetValue(translatedLambdaContainer, out _innermostFramePointer);
             }
 
-            if ((object)containerAsFrame != null)
-            {
-                _currentTypeParameters = translatedLambdaContainer.TypeParameters;
-                _currentLambdaBodyTypeMap = ((LambdaFrame)translatedLambdaContainer).TypeMap;
-            }
-            else
-            {
-                _currentTypeParameters = synthesizedMethod.TypeParameters;
-                _currentLambdaBodyTypeMap = new TypeMap(_topLevelMethod.TypeParameters, _currentTypeParameters);
-            }
+            _currentTypeParameters = translatedLambdaContainer?.TypeParameters.Concat(synthesizedMethod.TypeParameters) ?? synthesizedMethod.TypeParameters;
+            _currentLambdaBodyTypeMap = synthesizedMethod.TypeMap;
 
             var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
             CheckLocalsDefined(body);
@@ -1218,29 +1249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out topLevelMethodId,
                 out lambdaId);
 
-            // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
-            NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ?
-                translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters)) :
-                translatedLambdaContainer;
-
-            // for instance lambdas, receiver is the frame
-            // for static lambdas, get the singleton receiver 
+            MethodSymbol referencedMethod = synthesizedMethod;
             BoundExpression receiver;
-            if (closureKind != ClosureKind.Static)
-            {
-                receiver = FrameOfType(node.Syntax, constructedFrame);
-            }
-            else
-            {
-                var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
-                receiver = new BoundFieldAccess(node.Syntax, null, field, constantValueOpt: null);
-            }
+            NamedTypeSymbol constructedFrame;
+            RemapLambdaOrLocalFunction(node.Syntax, node.Symbol, default(ImmutableArray<TypeSymbol>), closureKind, ref referencedMethod, out receiver, out constructedFrame);
 
-            MethodSymbol referencedMethod = synthesizedMethod.AsMember(constructedFrame);
-            if (referencedMethod.IsGenericMethod)
-            {
-                referencedMethod = referencedMethod.Construct(StaticCast<TypeSymbol>.From(_currentTypeParameters));
-            }
+            // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
 
             TypeSymbol type = this.VisitType(node.Type);
 

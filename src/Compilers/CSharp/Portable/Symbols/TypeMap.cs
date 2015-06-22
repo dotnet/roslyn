@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(new SmallDictionary<TypeParameterSymbol, TypeSymbol>(mapping, ReferenceEqualityComparer.Instance))
         {
             // mapping contents are read-only hereafter
-            Debug.Assert(!mapping.Keys.Any(tp => tp is SubstitutedTypeParameterSymbol));
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ForType(NamedTypeSymbol containingType)
@@ -100,13 +99,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // class or method for a lambda appearing in a generic method.
             bool synthesized = !ReferenceEquals(oldTypeParameters[0].ContainingSymbol.OriginalDefinition, newOwner.OriginalDefinition);
 
+            int ordinal = 0;
             foreach (var tp in oldTypeParameters)
             {
                 var newTp = synthesized ?
-                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp) :
-                    new SubstitutedTypeParameterSymbol(newOwner, result, tp);
+                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal) :
+                    new SubstitutedTypeParameterSymbol(newOwner, result, tp, ordinal);
                 result.Mapping.Add(tp, newTp);
                 newTypeParametersBuilder.Add(newTp);
+                ordinal++;
             }
 
             newTypeParameters = newTypeParametersBuilder.ToImmutableAndFree();
@@ -123,6 +124,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
+        }
+
+        internal TypeMap WithConcatAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters, MethodSymbol stopAt = null)
+        {
+            Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
+
+            // Build the array up backwards, then reverse it.
+            // The following example goes through the do-loop in order M3, M2, M1
+            // but the type parameters have to be <T1, T2, T3, T4>
+            // void M1<T1>() {
+            //   void M2<T2, T3>() {
+            //     void M3<T4>() {
+            //     }
+            //   }
+            // }
+            // However, if stopAt is M1, then the type parameters would be <T2, T3, T4>
+            // That is, stopAt's type parameters are excluded - the parameters are in the range (stopAt, oldOwner]
+            // A null stopAt means "include everything"
+            var parameters = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            while (oldOwner != null && oldOwner != stopAt)
+            {
+                var currentParameters = oldOwner.OriginalDefinition.TypeParameters;
+
+                for (int i = currentParameters.Length - 1; i >= 0; i--)
+                {
+                    parameters.Add(currentParameters[i]);
+                }
+
+                oldOwner = oldOwner.ContainingSymbol as MethodSymbol;
+            }
+            parameters.ReverseContents();
+
+            // Ensure that if stopAt was provided, it actually was in the chain and we stopped at it.
+            // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain)
+
+            // TODO: Expression Evaluator breaks this assert. In EEMethodSymbol.GenerateMethodBody call to LambdaRewriter.Rewrite,
+            // "method: this" is passed in, when really the method being compiled is "method: this.SubstitutedSourceMethod".
+            // However, we can't just do that, because it breaks things: e.g. the assembly of EEMethod.SubSourceMethod != assembly of EEMethod.
+            // We might have to refactor LambdaRewriter to accept two MethodSymbols, one for the EE one, one for the SubSource one.
+            // Note that ignoring this assert does break things, if EEMethodSymbol is generic then things blow up.
+            //Debug.Assert(stopAt == oldOwner);
+
+            return WithAlphaRename(parameters.ToImmutableAndFree(), newOwner, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to)

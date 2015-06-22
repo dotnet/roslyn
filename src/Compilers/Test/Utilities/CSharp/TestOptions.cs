@@ -51,5 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("deterministic", "true");
         }
+
+        public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("localFunctions", "true");
+        }
     }
 }

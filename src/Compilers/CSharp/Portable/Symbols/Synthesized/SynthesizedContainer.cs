@@ -27,13 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typeParameters = CreateTypeParameters(parameterCount, returnsVoid);
         }
 
-        protected SynthesizedContainer(string name, MethodSymbol topLevelMethod)
+        protected SynthesizedContainer(string name, MethodSymbol containingMethod)
         {
             Debug.Assert(name != null);
-            Debug.Assert(topLevelMethod != null);
-
             _name = name;
-            _typeMap = TypeMap.Empty.WithAlphaRename(topLevelMethod, this, out _typeParameters);
+            if (containingMethod == null)
+            {
+                _typeMap = TypeMap.Empty;
+                _typeParameters = ImmutableArray<TypeParameterSymbol>.Empty;
+            }
+            else
+            {
+                _typeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, out _typeParameters);
+            }
         }
 
         protected SynthesizedContainer(string name, ImmutableArray<TypeParameterSymbol> typeParameters, TypeMap typeMap)

@@ -1294,6 +1294,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.AnonymousObjectCreationExpression:
                     return ((AnonymousObjectCreationExpressionSyntax)node).NewKeyword.Span;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    return GetDiagnosticSpan(localFunction.Modifiers, localFunction.ReturnType, localFunction.ParameterList);
+
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)node).ParameterList.Span;
 
@@ -1583,6 +1587,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.QueryContinuation:
                     return CSharpFeaturesResources.IntoClause;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    return CSharpFeaturesResources.LocalFunction;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());

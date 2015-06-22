@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private ThreeState _lazyHasOptionalAttribute;
-        private ConstantValue _lazyDefaultSyntaxValue;
+        protected ConstantValue _lazyDefaultSyntaxValue;
 
         internal SourceComplexParameterSymbol(
             Symbol owner,
@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = defaultSyntaxValue;
             _customModifiers = customModifiers;
             _hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers;
+        }
+
+        protected virtual Binder ParameterBinder
+        {
+            get { return null; }
         }
 
         internal override SyntaxReference SyntaxReference
@@ -203,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    if (Interlocked.CompareExchange(ref _lazyDefaultSyntaxValue, MakeDefaultExpression(diagnostics), ConstantValue.Unset) == ConstantValue.Unset)
+                    if (Interlocked.CompareExchange(ref _lazyDefaultSyntaxValue, MakeDefaultExpression(diagnostics, ParameterBinder), ConstantValue.Unset) == ConstantValue.Unset)
                     {
                         AddDeclarationDiagnostics(diagnostics);
                     }
@@ -215,7 +220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics)
+        // If binder is null, then get it from the compilation. Otherwise use the provided binder.
+        // Don't always get it from the compilation because we might be in a speculative context (local function parameter),
+        // in which case the declaring compilation is the wrong one.
+        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
         {
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
@@ -229,10 +237,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ConstantValue.NotAvailable;
             }
 
-            var syntaxTree = _syntaxRef.SyntaxTree;
-            var compilation = this.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(defaultSyntax);
+            if (binder == null)
+            {
+                var syntaxTree = _syntaxRef.SyntaxTree;
+                var compilation = this.DeclaringCompilation;
+                var binderFactory = compilation.GetBinderFactory(syntaxTree);
+                binder = binderFactory.GetBinder(defaultSyntax);
+            }
 
             BoundExpression valueBeforeConversion;
             var convertedExpression = binder.CreateBinderForParameterDefaultValue(this, defaultSyntax).BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
@@ -389,12 +400,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal CommonParameterWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        internal CommonParameterWellKnownAttributeData GetDecodedWellKnownAttributeData(DiagnosticBag diagnosticsOpt = null)
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
-                attributesBag = this.GetAttributesBag();
+                attributesBag = this.GetAttributesBag(diagnosticsOpt);
             }
 
             return (CommonParameterWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
@@ -406,12 +417,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal ParameterEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
+        internal ParameterEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData(DiagnosticBag diagnosticsOpt = null)
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
-                attributesBag = this.GetAttributesBag();
+                attributesBag = this.GetAttributesBag(diagnosticsOpt);
             }
 
             return (ParameterEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
@@ -423,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal sealed override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        internal sealed override CustomAttributesBag<CSharpAttributeData> GetAttributesBag(DiagnosticBag diagnosticsOpt)
         {
             if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
@@ -435,13 +446,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool bagCreatedOnThisThread;
                 if ((object)copyFrom != null)
                 {
-                    var attributesBag = copyFrom.GetAttributesBag();
+                    var attributesBag = copyFrom.GetAttributesBag(diagnosticsOpt);
                     bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
                 }
                 else
                 {
                     var attributeSyntax = this.GetAttributeDeclarations();
-                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag);
+                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, addToDiagnostics: diagnosticsOpt, binderOpt: ParameterBinder);
                 }
 
                 if (bagCreatedOnThisThread)
@@ -645,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private void VerifyParamDefaultValueMatchesAttributeIfAny(ConstantValue value, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
-            var data = GetEarlyDecodedWellKnownAttributeData();
+            var data = GetEarlyDecodedWellKnownAttributeData(diagnostics);
             if (data != null)
             {
                 var attrValue = data.DefaultParameterValue;
