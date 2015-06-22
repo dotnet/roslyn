@@ -168,6 +168,8 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 
         private static TextSpan GetSpanFromTokens(TextSpan span, SyntaxToken token1, SyntaxToken token2)
         {
+            var tree = token1.SyntaxTree;
+
             // adjust span to include all whitespace before and after the given span.
             var start = token1.Span.End;
 
@@ -176,9 +178,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             {
                 token1 = token1.GetPreviousToken();
                 start = token1.Span.End;
+
+                // If token1, that was passed, is the first visible token of the tree then we want to
+                // the beginning of the span to start from the beginning of the tree
                 if (token1.RawKind == 0)
                 {
-                    start = token1.FullSpan.Start;
+                    start = 0;
                 }
             }
 
@@ -189,9 +194,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             {
                 token2 = token2.GetNextToken();
                 end = token2.Span.Start;
+
+                // If token2, that was passed, was the last visible token of the tree then we want the
+                // span to expand till the end of the tree
                 if (token2.RawKind == 0)
                 {
-                    end = token2.FullSpan.End;
+                    end = tree.Length;
                 }
             }
 
