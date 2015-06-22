@@ -12,5 +12,9 @@
         Public Const CodeBlockStartedAnalyzerRuleId As String = "VBS0101"
         Public Const CompilationStartedAnalyzerRuleId As String = "VBS0102"
         Public Const CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId As String = "VBS0103"
+
+        ' Additional File analyzer IDs.
+        Public Const SimpleAdditionalFileAnalyzerRuleId = "VBS0201"
+        Public Const XmlAdditionalFileAnalyzerRuleId = "VBS0202"
     End Module
 End Namespace

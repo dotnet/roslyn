@@ -68,6 +68,8 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdditionalFileAnalyzers\SimpleAdditionalFileAnalyzer.vb" />
+    <Compile Include="AdditionalFileAnalyzers\XmlAdditionalFileAnalyzer.vb" />
     <Compile Include="DiagnosticCategories.vb" />
     <Compile Include="DiagnosticIds.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
