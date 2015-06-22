@@ -32,6 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AdditionalFileAnalyzers\SimpleAdditionalFileAnalyzer.cs" />
+    <Compile Include="AdditionalFileAnalyzers\XmlAdditionalFileAnalyzer.cs" />
     <Compile Include="DiagnosticCategories.cs" />
     <Compile Include="DiagnosticIds.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

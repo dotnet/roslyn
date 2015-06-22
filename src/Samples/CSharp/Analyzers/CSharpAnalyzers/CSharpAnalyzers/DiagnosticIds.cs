@@ -14,5 +14,9 @@
         public const string CodeBlockStartedAnalyzerRuleId = "CSS0101";
         public const string CompilationStartedAnalyzerRuleId = "CSS0102";
         public const string CompilationStartedAnalyzerWithCompilationWideAnalysisRuleId = "CSS0103";
+
+        // Additional File analyzer IDs.
+        public const string SimpleAdditionalFileAnalyzerRuleId = "CSS0201";
+        public const string XmlAdditionalFileAnalyzerRuleId = "CSS0202";
     }
 }
