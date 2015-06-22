@@ -159,7 +159,7 @@ In cases where an additional file contains structured data (e.g., XML or JSON) t
 <Terms>
   <Term>frob</Term>
   <Term>wizbang</Term>
-  <Term>orange</Term
+  <Term>orange</Term>
 </Terms>
 ```
 
