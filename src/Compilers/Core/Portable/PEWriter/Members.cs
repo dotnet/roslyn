@@ -413,7 +413,7 @@ namespace Microsoft.Cci
         ImmutableArray<SequencePoint> GetLocations();
 
         /// <summary>
-        /// Returns true if there is atleast one dynamic local within the MethodBody
+        /// Returns true if there is at least one dynamic local within the MethodBody
         /// </summary>
         bool HasDynamicLocalVariables { get; }
 

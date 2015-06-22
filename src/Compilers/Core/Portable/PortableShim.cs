@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
     /// from moving to the 4.6 framework until post VS 2015.
     /// 
     /// This puts us in a difficult position.  These APIs are necessary for us to have our public API set
-    /// in the DLLS we prefer (non Desktop variants) but we can't use them directly when targetting 
+    /// in the DLLS we prefer (non Desktop variants) but we can't use them directly when targeting 
     /// the 4.5 framework.  Putting the APIs into the Desktop variants would create instant legacy for 
     /// the Roslyn project that we'd have to maintain forever (even if it was just as assemblies with
     /// only type forward entries).  This is not a place we'd like to be in.  

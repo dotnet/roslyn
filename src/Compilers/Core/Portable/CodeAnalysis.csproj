@@ -524,7 +524,7 @@
     <Compile Include="Symbols\Attributes\SecurityWellKnownAttributeData.cs" />
     <Compile Include="Symbols\Attributes\WellKnownAttributeData.cs" />
     <Compile Include="Symbols\CommonAttributeDataExtensions.cs" />
-    <Compile Include="Symbols\CustomModifer.cs" />
+    <Compile Include="Symbols\CustomModifier.cs" />
     <Compile Include="Symbols\IAliasSymbol.cs" />
     <Compile Include="Symbols\IArrayTypeSymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbol.cs" />

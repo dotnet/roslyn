@@ -1099,7 +1099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '         delegate types in M are widening conversions, but not all are in N, eliminate N from the set.
             '
             ' The spec implies that this rule is applied to the set of most applicable candidate as one of the tie breaking rules.
-            ' However, doing it there wouldn’t have any effect because all candidates in the set of most applicable candidates
+            ' However, doing it there wouldn't have any effect because all candidates in the set of most applicable candidates
             ' are equally applicable, therefore, have the same types for corresponding parameters. Thus all the candidates
             ' have exactly the same delegate relaxation level and none would be eliminated. 
             ' Dev10 applies this rule much earlier, even before eliminating narrowing candidates, and it does it across the board.
@@ -4198,7 +4198,7 @@ ContinueCandidatesLoop:
             '    respect to type parameters on the type, then M is less generic than N.
             '
             ' A parameter M is considered to be equally generic to a parameter N if their types Mt and Nt 
-            ' both refer to type parameters or both don’t refer to type parameters. M is considered to be less 
+            ' both refer to type parameters or both don't refer to type parameters. M is considered to be less 
             ' generic than N if Mt does not refer to a type parameter and Nt does.
             ' 
             ' Extension method type parameters that were fixed during currying are considered type parameters on the type, 
