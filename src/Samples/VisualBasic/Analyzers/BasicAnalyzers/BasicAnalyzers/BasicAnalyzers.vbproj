@@ -115,8 +115,8 @@
     <PackagesDir Condition="'$(PackagesDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\..\..\packages'))</PackagesDir>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\portable50\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\portable50\vb\Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
+    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.Analyzers.dll" />
+    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\vb\Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
