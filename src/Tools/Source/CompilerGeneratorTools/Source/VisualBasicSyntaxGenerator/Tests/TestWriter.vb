@@ -176,7 +176,7 @@ Public Class TestWriter
                 If nodeKind.Name.EndsWith("LiteralToken", StringComparison.Ordinal) OrElse
                    nodeKind.Name.EndsWith("XmlNameToken", StringComparison.Ordinal) OrElse
                    nodeKind.Name.EndsWith("DocumentationCommentLineBreakToken", StringComparison.Ordinal) OrElse
-                   nodeKind.Name = "InterpolatedStringTextToken" _
+                   nodeKind.Name = "InterpolatedStringTextToken" _ 
                 Then
                     If Not first Then callTokens.Add(", ")
                     callTokens.Add("String.Empty")
