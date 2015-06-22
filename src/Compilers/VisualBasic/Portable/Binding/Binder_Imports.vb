@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If aliasTarget.Kind <> SymbolKind.ErrorType Then
                             Dim useSiteErrorInfo As DiagnosticInfo = aliasTarget.GetUseSiteErrorInfo()
 
-                            If ReportUseSiteErrorForAlias(useSiteErrorInfo) Then
+                            If ShouldReportUseSiteErrorForAlias(useSiteErrorInfo) Then
                                 Binder.ReportDiagnostic(diagBag, aliasImportSyntax, useSiteErrorInfo)
                             End If
                         End If
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Checks use site error and returns True in case it should be reported for the alias. 
             ''' In current implementation checks for errors #36924 and #36925
             ''' </summary>
-            Private Shared Function ReportUseSiteErrorForAlias(useSiteErrorInfo As DiagnosticInfo) As Boolean
+            Private Shared Function ShouldReportUseSiteErrorForAlias(useSiteErrorInfo As DiagnosticInfo) As Boolean
                 Return useSiteErrorInfo IsNot Nothing AndAlso
                        useSiteErrorInfo.Code <> ERRID.ERR_CannotUseGenericTypeAcrossAssemblyBoundaries AndAlso
                        useSiteErrorInfo.Code <> ERRID.ERR_CannotUseGenericBaseTypeAcrossAssemblyBoundaries
