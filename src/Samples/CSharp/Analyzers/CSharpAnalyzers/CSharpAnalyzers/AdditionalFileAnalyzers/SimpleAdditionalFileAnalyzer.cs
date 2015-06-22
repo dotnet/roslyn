@@ -42,8 +42,8 @@ namespace CSharpAnalyzers
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
                 // Find the additional file with the terms.
-                ImmutableArray<AdditionalText> additionFiles = compilationStartContext.Options.AdditionalFiles;
-                AdditionalText termsFile = additionFiles.FirstOrDefault(file => Path.GetFileName(file.Path).Equals("Terms.txt"));
+                ImmutableArray<AdditionalText> additionalFiles = compilationStartContext.Options.AdditionalFiles;
+                AdditionalText termsFile = additionalFiles.FirstOrDefault(file => Path.GetFileName(file.Path).Equals("Terms.txt"));
 
                 if (termsFile != null)
                 {

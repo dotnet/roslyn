@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace CSharpAnalyzers
 {
     /// <summary>
-    /// Analyzer to demonstrate reading an additional file line-by-line.
+    /// Analyzer to demonstrate reading an additional file with a structured format.
     /// It looks for an additional file named "Terms.xml" and dumps it to a stream
     /// so that it can be loaded into an <see cref="XDocument"/>. It then extracts
     /// terms from the XML, detects type names that use those terms and reports
@@ -44,8 +44,8 @@ namespace CSharpAnalyzers
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
                 // Find the additional file with the terms.
-                ImmutableArray<AdditionalText> additionFiles = compilationStartContext.Options.AdditionalFiles;
-                AdditionalText termsFile = additionFiles.FirstOrDefault(file => Path.GetFileName(file.Path).Equals("Terms.xml"));
+                ImmutableArray<AdditionalText> additionalFiles = compilationStartContext.Options.AdditionalFiles;
+                AdditionalText termsFile = additionalFiles.FirstOrDefault(file => Path.GetFileName(file.Path).Equals("Terms.xml"));
 
                 if (termsFile != null)
                 {
