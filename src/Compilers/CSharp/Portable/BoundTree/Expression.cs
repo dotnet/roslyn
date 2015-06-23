@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected virtual OperationKind ExpressionKind{ get { return OperationKind.None; } }
-        // protected abstract Unified.ExpressionKind ExpressionKind { get; }
+        // protected abstract OperationKind ExpressionKind { get; }
     }
 
     internal abstract partial class BoundNode : IOperationSearchable
