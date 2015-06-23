@@ -97,7 +97,7 @@ namespace Microsoft.Cci
             _cancellationToken = cancellationToken;
 
             this.heaps = heaps;
-            this.debugHeapsOpt = debugHeapsOpt;
+            this._debugHeapsOpt = debugHeapsOpt;
             _smallMethodBodies = new Dictionary<byte[], uint>(ByteSequenceComparer.Instance);
         }
 
@@ -424,9 +424,9 @@ namespace Microsoft.Cci
         // A heap builder distinct from heaps if we are emitting debug information into a separate Portable PDB stream.
         // Shared heap builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
         // Null otherwise.
-        private readonly MetadataHeapsBuilder debugHeapsOpt;
+        private readonly MetadataHeapsBuilder _debugHeapsOpt;
 
-        private bool EmitStandaloneDebugMetadata => debugHeapsOpt != null && heaps != debugHeapsOpt;
+        private bool EmitStandaloneDebugMetadata => _debugHeapsOpt != null && heaps != _debugHeapsOpt;
 
         private readonly Dictionary<ICustomAttribute, uint> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, uint>();
         private readonly Dictionary<ITypeReference, uint> _typeSpecSignatureIndex = new Dictionary<ITypeReference, uint>();
@@ -453,9 +453,7 @@ namespace Microsoft.Cci
         {
             var rowCounts = new int[MetadataTokens.TableCount];
 
-            // module row is in both debug and regular metadata
             rowCounts[(int)TableIndex.Module] = 1;
-
             rowCounts[(int)TableIndex.Assembly] = (this.module.AsAssembly != null) ? 1 : 0;
             rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
             rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
@@ -2091,7 +2089,7 @@ namespace Microsoft.Cci
             // Extract information from object model into tables, indices and streams
             CreateIndices();
 
-            if (debugHeapsOpt != null)
+            if (_debugHeapsOpt != null)
             {
                 DefineModuleImportScope();
             }
@@ -2150,12 +2148,12 @@ namespace Microsoft.Cci
 
             // serialize debug metadata stream
 
-            Debug.Assert(debugHeapsOpt != null);
-            debugHeapsOpt.Complete();
+            Debug.Assert(_debugHeapsOpt != null);
+            _debugHeapsOpt.Complete();
 
             var debugMetadataSizes = new MetadataSizes(
                 rowCounts: tableRowCounts,
-                heapSizes: debugHeapsOpt.GetHeapSizes(),
+                heapSizes: _debugHeapsOpt.GetHeapSizes(),
                 ilStreamSize: 0,
                 mappedFieldDataSize: 0,
                 resourceDataSize: 0,
@@ -2184,7 +2182,7 @@ namespace Microsoft.Cci
             SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
-            (metadataSizes.IsStandaloneDebugMetadata ? debugHeapsOpt : heaps).WriteTo(metadataWriter.BaseStream, out guidHeapStartOffset);
+            (metadataSizes.IsStandaloneDebugMetadata ? _debugHeapsOpt : heaps).WriteTo(metadataWriter.BaseStream, out guidHeapStartOffset);
 
             // #Pdb stream
             if (metadataSizes.IsStandaloneDebugMetadata)
@@ -2222,14 +2220,9 @@ namespace Microsoft.Cci
 
             this.SerializeTablesHeader(writer, metadataSizes);
 
-            Debug.Assert(metadataSizes.IsPresent(TableIndex.Module));
-            if (metadataSizes.IsStandaloneDebugMetadata)
+            if (metadataSizes.IsPresent(TableIndex.Module))
             {
-                SerializeModuleTable(writer, metadataSizes, debugHeapsOpt, ref _debugModuleRow);
-            }
-            else
-            {
-                SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
+                SerializeModuleTable(writer, metadataSizes, heaps);
             }
 
             if (metadataSizes.IsPresent(TableIndex.TypeRef))
@@ -3536,11 +3529,6 @@ namespace Microsoft.Cci
             }
 
             _moduleRow = MakeModuleRow(heaps, mvid);
-
-            if (debugHeapsOpt != null)
-            {
-                _debugModuleRow = MakeModuleRow(debugHeapsOpt, mvid);
-            }
         }
 
         private ModuleRow MakeModuleRow(MetadataHeapsBuilder heaps, Guid mvid)
@@ -3558,7 +3546,6 @@ namespace Microsoft.Cci
         private struct ModuleRow { public ushort Generation; public StringIdx Name; public uint ModuleVersionId; public uint EncId; public uint EncBaseId; }
 
         private ModuleRow _moduleRow;
-        private ModuleRow _debugModuleRow;
 
         private void PopulateNestedClassTableRows()
         {
@@ -3790,13 +3777,13 @@ namespace Microsoft.Cci
             }
         }
 
-        private static void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps, ref ModuleRow moduleRow)
+        private void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps)
         {
-            writer.WriteUshort(moduleRow.Generation);
-            writer.WriteReference(heaps.ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
-            writer.WriteReference(moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
-            writer.WriteReference(moduleRow.EncId, metadataSizes.GuidIndexSize);
-            writer.WriteReference(moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
+            writer.WriteUshort(_moduleRow.Generation);
+            writer.WriteReference(heaps.ResolveStringIndex(_moduleRow.Name), metadataSizes.StringIndexSize);
+            writer.WriteReference(_moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
+            writer.WriteReference(_moduleRow.EncId, metadataSizes.GuidIndexSize);
+            writer.WriteReference(_moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
         }
 
         private void SerializeEncLogTable(BinaryWriter writer)
@@ -4221,7 +4208,7 @@ namespace Microsoft.Cci
                     localSignatureRid = 0;
                 }
 
-                if (debugHeapsOpt != null)
+                if (_debugHeapsOpt != null)
                 {
                     SerializeMethodDebugInfo(body, methodRid, localSignatureRid);
                 }

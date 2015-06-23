@@ -1674,7 +1674,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Func<Stream> getPortablePdbStream;
-                if (emitPortablePdb)
+                if (emitPortablePdb && pdbStreamProvider != null)
                 {
                     getPortablePdbStream = () =>
                     {

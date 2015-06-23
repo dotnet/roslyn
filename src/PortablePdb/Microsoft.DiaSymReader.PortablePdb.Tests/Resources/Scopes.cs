@@ -1,3 +1,7 @@
+#line 1 "C:\Scopes.cs"
+#pragma checksum "C:\Scopes.cs" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "DBEB2A067B2F0E0D678A002C587A2806056C3DCE"
+#pragma warning disable 219 // unused const
+
 using System;
 using System.Collections.Generic;
 

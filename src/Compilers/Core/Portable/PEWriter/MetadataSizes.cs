@@ -143,8 +143,8 @@ namespace Microsoft.Cci
             }
             else if (isStandaloneDebugMetadata)
             {
-                // debug tables and Module table:
-                PresentTablesMask = allTables & (DebugMetadataTablesMask | (1UL << (int)TableIndex.Module));
+                // debug tables:
+                PresentTablesMask = allTables & DebugMetadataTablesMask;
                 ExternalTablesMask = allTables & ~DebugMetadataTablesMask;
             }
             else

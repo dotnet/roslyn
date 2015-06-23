@@ -37,6 +37,7 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
+            bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
@@ -44,7 +45,7 @@ namespace Microsoft.Cci
             switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
-                    debugHeapsOpt = new MetadataHeapsBuilder();
+                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
                     break;
 
                 case DebugInformationFormat.Embedded:

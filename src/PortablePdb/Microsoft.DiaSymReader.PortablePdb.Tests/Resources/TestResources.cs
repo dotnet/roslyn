@@ -6,10 +6,10 @@ using System.Reflection;
 
 namespace TestResources
 {
-    internal static class Z
+    internal static class Documents
     {
-        public static readonly byte[] dll = ResourceHelper.GetResource("z.dll");
-        public static readonly byte[] pdb = ResourceHelper.GetResource("z.pdbx");
+        public static readonly byte[] dll = ResourceHelper.GetResource("Documents.dll");
+        public static readonly byte[] pdb = ResourceHelper.GetResource("Documents.pdbx");
     }
 
     internal static class ResourceHelper

@@ -370,9 +370,9 @@ namespace Roslyn.Test.MetadataUtilities
             return Literal(handle, BlobKind.None, (r, h) => GetHashAlgorithm(r.GetGuid((GuidHandle)h)));
         }
 
-        private string DocumentName(BlobHandle handle)
+        private string Literal(DocumentNameBlobHandle handle)
         {
-            return Literal(handle, BlobKind.DocumentName, (r, h) => "'" + r.ReadDocumentName((BlobHandle)h) + "'");
+            return Literal((BlobHandle)handle, BlobKind.DocumentName, (r, h) => "'" + r.GetString((DocumentNameBlobHandle)(BlobHandle)h) + "'");
         }
 
         private string Literal(BlobHandle handle, BlobKind kind)
@@ -618,6 +618,11 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteModule()
         {
+            if (_reader.DebugMetadataHeader != null)
+            {
+                return;
+            }
+
             var def = _reader.GetModuleDefinition();
 
             AddHeader(
@@ -1049,30 +1054,32 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteAssembly()
         {
-            if (_reader.IsAssembly)
+            if (!_reader.IsAssembly)
             {
-                AddHeader(
-                    "Name",
-                    "Version",
-                    "Culture",
-                    "PublicKey",
-                    "Flags",
-                    "HashAlgorithm"
-                );
-
-                var entry = _reader.GetAssemblyDefinition();
-
-                AddRow(
-                    Literal(entry.Name),
-                    entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
-                    Literal(entry.Culture),
-                    Literal(entry.PublicKey, BlobKind.Key),
-                    EnumValue<int>(entry.Flags),
-                    EnumValue<int>(entry.HashAlgorithm)
-                );
-
-                WriteRows("Assembly (0x20):");
+                return;
             }
+
+            AddHeader(
+                "Name",
+                "Version",
+                "Culture",
+                "PublicKey",
+                "Flags",
+                "HashAlgorithm"
+            );
+
+            var entry = _reader.GetAssemblyDefinition();
+
+            AddRow(
+                Literal(entry.Name),
+                entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
+                Literal(entry.Culture),
+                Literal(entry.PublicKey, BlobKind.Key),
+                EnumValue<int>(entry.Flags),
+                EnumValue<int>(entry.HashAlgorithm)
+            );
+
+            WriteRows("Assembly (0x20):");
         }
 
         private void WriteAssemblyRef()
@@ -1416,7 +1423,7 @@ namespace Roslyn.Test.MetadataUtilities
                 var entry = _reader.GetDocument(handle);
 
                 AddRow(
-                    DocumentName(entry.Name),
+                    Literal(entry.Name),
                     Language(entry.Language),
                     HashAlgorithm(entry.HashAlgorithm),
                     Literal(entry.Hash, BlobKind.DocumentHash)

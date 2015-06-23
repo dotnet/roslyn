@@ -79,7 +79,7 @@ namespace Microsoft.Cci
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
             var peWriter = new PeWriter(context.Module, pdbPathOpt, deterministic);
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
             return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
         }
@@ -128,7 +128,7 @@ namespace Microsoft.Cci
                 out entryPointToken,
                 out metadataSizes);
 
-            ContentId pdbContentId;
+            ContentId nativePdbContentId;
             if (nativePdbWriterOpt != null)
             {
                 if (entryPointToken != 0)
@@ -152,15 +152,14 @@ namespace Microsoft.Cci
 #endif
                 }
 
-                pdbContentId = nativePdbWriterOpt.GetContentId();
+                nativePdbContentId = nativePdbWriterOpt.GetContentId();
 
                 // the writer shall not be used after this point for writing:
                 nativePdbWriterOpt = null;
             }
             else
             {
-                // TODO: calculate content hash
-                pdbContentId = new ContentId(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, new byte[] { 0, 0, 0, 0 });
+                nativePdbContentId = default(ContentId);
             }
 
             FillInSectionHeaders();
@@ -169,15 +168,25 @@ namespace Microsoft.Cci
             FillInNtHeader(metadataSizes, CalculateMappedFieldDataStreamRva(metadataSizes));
             var corHeader = CreateCorHeader(metadataSizes, entryPointToken);
 
-            // write to streams
-
-            if (getPortablePdbStreamOpt != null)
+            // write to Portable PDB stream:
+            ContentId portablePdbContentId;
+            Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
+            if (portablePdbStream != null)
             {
-                Stream pdbStream = getPortablePdbStreamOpt();
-                if (pdbStream != null)
+                debugMetadataBuffer.WriteTo(portablePdbStream);
+
+                if (_deterministic)
                 {
-                    debugMetadataBuffer.WriteTo(pdbStream);
+                    portablePdbContentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(portablePdbStream));
                 }
+                else
+                {
+                    portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(_ntHeader.TimeDateStamp));
+                }
+            }
+            else
+            {
+                portablePdbContentId = default(ContentId);
             }
 
             // write to pe stream.
@@ -200,8 +209,8 @@ namespace Microsoft.Cci
                 mappedFieldDataBuffer,
                 managedResourceBuffer,
                 metadataSizes,
-                pdbContentId,
-                getPortablePdbStreamOpt != null,
+                nativePdbContentId,
+                portablePdbContentId,
                 out metadataPosition);
 
             WriteRdataSection(peStream);
@@ -1251,7 +1260,7 @@ namespace Microsoft.Cci
             MemoryStream managedResourceStream,
             MetadataSizes metadataSizes,
             ContentId pdbContentId,
-            bool portablePdb,
+            ContentId portablePdbContentId,
             out long metadataPosition)
         {
             peStream.Position = _textSection.PointerToRawData;
@@ -1268,7 +1277,7 @@ namespace Microsoft.Cci
 
             WriteManagedResources(peStream, managedResourceStream);
             WriteSpaceForHash(peStream, (int)corHeader.StrongNameSignature.Size);
-            WriteDebugTable(peStream, pdbContentId, portablePdb, metadataSizes);
+            WriteDebugTable(peStream, pdbContentId, portablePdbContentId, metadataSizes);
 
             if (_emitRuntimeStartupStub)
             {
@@ -1431,12 +1440,14 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteDebugTable(Stream peStream, ContentId pdbContentId, bool portablePdb, MetadataSizes metadataSizes)
+        private void WriteDebugTable(Stream peStream, ContentId nativePdbContentId, ContentId portablePdbContentId, MetadataSizes metadataSizes)
         {
             if (!EmitPdb)
             {
                 return;
             }
+
+            Debug.Assert(nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault);
 
             MemoryStream stream = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(stream);
@@ -1444,12 +1455,18 @@ namespace Microsoft.Cci
             // characteristics:
             writer.WriteUint(0);
 
-            // PDB stamp
-            writer.WriteBytes(pdbContentId.Stamp);
-
-            // version
-            writer.WriteUint((uint)(portablePdb ? ('P' << 24 | 'M' << 16 | 0x00 << 8 | 0x01) : 0));
-
+            // PDB stamp & version
+            if (portablePdbContentId.IsDefault)
+            {
+                writer.WriteBytes(nativePdbContentId.Stamp);
+                writer.WriteUint(0);
+            }
+            else
+            {
+                writer.WriteBytes(portablePdbContentId.Stamp);
+                writer.WriteUint('P' << 24 | 'M' << 16 | 0x00 << 8 | 0x01);
+            }
+            
             // type: 
             const int ImageDebugTypeCodeView = 2;
             writer.WriteUint(ImageDebugTypeCodeView);
@@ -1471,7 +1488,7 @@ namespace Microsoft.Cci
             writer.WriteByte((byte)'S');
 
             // PDB id:
-            writer.WriteBytes(pdbContentId.Guid);
+            writer.WriteBytes(nativePdbContentId.Guid ?? portablePdbContentId.Guid);
 
             // age
             writer.WriteUint(PdbWriter.Age);
