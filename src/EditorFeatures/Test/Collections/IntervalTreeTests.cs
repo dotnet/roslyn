@@ -154,44 +154,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         }
 
         [Fact]
-        public void TestRightRotation()
-        {
-            var nodes = new[]
-            {
-                Tuple.Create(8, 1, "a"),
-                Tuple.Create(10, 1, "b"),
-                Tuple.Create(4, 1, "c"),
-                Tuple.Create(6, 1, "d"),
-                Tuple.Create(0, 1, "e"),
-                Tuple.Create(2, 1, "f")
-            };
-            foreach (var tree in CreateTrees(nodes))
-            {
-                Assert.True(tree.GetPreOrder().Select(t => t.Item3).SequenceEqual(
-                    List("c", "e", "f", "a", "d", "b")));
-            }
-        }
-
-        [Fact]
-        public void InnerLeftOuterRightRotation()
-        {
-            var nodes = new[]
-            {
-                Tuple.Create(8, 1, "a"),
-                Tuple.Create(10, 1, "b"),
-                Tuple.Create(2, 1, "c"),
-                Tuple.Create(0, 1, "e"),
-                Tuple.Create(4, 1, "d"),
-                Tuple.Create(6, 1, "f")
-            };
-            foreach (var tree in CreateTrees(nodes))
-            {
-                Assert.True(tree.GetPreOrder().Select(t => t.Item3).SequenceEqual(
-                    List("d", "c", "e", "a", "f", "b")));
-            }
-        }
-
-        [Fact]
         public void TestOverlappingEnd()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))

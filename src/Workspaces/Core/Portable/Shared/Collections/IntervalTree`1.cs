@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public static readonly IntervalTree<T> Empty = new IntervalTree<T>();
 
         protected Node root;
-        private readonly int count;
 
         private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector);
         private static readonly TestInterval s_intersectsWithTest = IntersectsWith;
@@ -37,13 +36,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public IntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
             : this(root: null)
         {
-            var count = 0;
             foreach (var value in values)
             {
                 root = Insert(root, new Node(introspector, value), introspector, inPlace: true);
-                count++;
             }
-            this.count = count;
         }
 
         protected static bool Contains(T value, int start, int length, IIntervalIntrospector<T> introspector)
@@ -335,29 +331,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     {
                         yield return currentNode.Value;
                     }
-                }
-            }
-        }
-
-        // For testing purposes only.  Allows a test to verify the actual AVL structure of the tree.
-        internal IEnumerable<T> GetPreOrder() 
-        {
-            if (root == null)
-            {
-                yield break;
-            }
-
-            // The bool indicates if this is the first time we are seeing the node.
-            var candidates = new Stack<Node>();
-            candidates.Push(root);
-            while (candidates.Count != 0)
-            {
-                var currentNode = candidates.Pop();
-                if (currentNode != null)
-                {
-                    candidates.Push(currentNode.Right);
-                    candidates.Push(currentNode.Left);
-                    yield return currentNode.Value;
                 }
             }
         }
