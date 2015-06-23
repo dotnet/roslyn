@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -85,11 +86,12 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedErrorLogIssuesText(Compilation compilation, string outputFilePath)
+            public static string GetExpectedErrorLogIssuesText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = EscapeDirectorySeparatorChar(tree.FilePath);
 
                 return @"
   ""issues"": [
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         {
           ""analysisTarget"": [
             {
-              ""uri"": """ + tree.FilePath + @""",
+              ""uri"": """ + filePath + @""",
               ""region"": {
                 ""startLine"": " + expectedLineSpan.StartLinePosition.Line + @",
                 ""startColumn"": " + expectedLineSpan.StartLinePosition.Character + @",
@@ -145,6 +147,10 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
+            public static string EscapeDirectorySeparatorChar(string input)
+            {
+                return input.Replace(Path.DirectorySeparatorChar.ToString(), @"\" + Path.DirectorySeparatorChar);
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
