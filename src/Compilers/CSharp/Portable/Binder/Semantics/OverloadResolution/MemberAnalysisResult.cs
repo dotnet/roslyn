@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case MemberResolutionKind.ApplicableInNormalForm:
                     case MemberResolutionKind.ApplicableInExpandedForm:
                     case MemberResolutionKind.Worse:
+                    case MemberResolutionKind.Worst:
                         return true;
                     default:
                         return false;
@@ -259,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static MemberAnalysisResult Worse()
         {
             return new MemberAnalysisResult(MemberResolutionKind.Worse);
+        }
+
+        public static MemberAnalysisResult Worst()
+        {
+            return new MemberAnalysisResult(MemberResolutionKind.Worst);
         }
     }
 }
