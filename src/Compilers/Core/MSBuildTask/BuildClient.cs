@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // they are show-stoppers then they will crash the in-proc
             // compilation as well
             // TODO: Put in non-fatal Watson code so we still get info
-            // when things unexpectedely fail
+            // when things unexpectedly fail
             catch { }
             return Task.FromResult<BuildResponse>(null);
         }
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return null;
                 }
 
-                // Wait for the compilation and a monitor to dectect if the server disconnects
+                // Wait for the compilation and a monitor to detect if the server disconnects
                 var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
                 Log("Begin reading response");
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     return pipe;
                 }
 
-                // Append an integer counter to the pipename
+                // Append an integer counter to the pipe name
                 pipeName = basePipeName + "." + counter.ToString(CultureInfo.InvariantCulture);
             }
             newPipeName = pipeName;

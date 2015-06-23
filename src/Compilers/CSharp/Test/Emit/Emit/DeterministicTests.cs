@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 parseOptions: TestOptions.Regular.WithDeterministicFeature());
 
             Guid result = default(Guid);
-            base.CompileAndVerify(compilation, emitters: TestEmitters.CCI, validator: (a, eo) =>
+            base.CompileAndVerify(compilation, validator: a =>
             {
                 var module = a.Modules[0];
                 result = module.GetModuleVersionIdOrThrow();

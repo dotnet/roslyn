@@ -557,7 +557,7 @@ partial class C
     }
 }";
             // Dev12 would emit "2, 1 | T1, T2 | x, y".
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "2, 1 | T, U | x, y");
+            CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
         }
 
         [Fact, WorkItem(529279, "DevDiv")]
@@ -1291,15 +1291,15 @@ static int Main()
             // var y = ObsoleteType.field1;
             //
             // then the native compiler reports ObsoleteType as obsolete only once. This is because the native compiler caches
-            // the lookup of typenames for certain cases and doesn’t report errors on the second lookup as that just comes 
+            // the lookup of typenames for certain cases and doesn't report errors on the second lookup as that just comes 
             // from the cache. Note how I said caches sometimes. If you simply say -
             //
             // var x= new ObsoleteType();
             // var y = new ObsoleteType();
             //
-            // Then the native compiler reports the error twice. I don’t think we should replicate this in Roslyn. Note however
+            // Then the native compiler reports the error twice. I don't think we should replicate this in Roslyn. Note however
             // that this is a breaking change because if the first line had been #pragma disabled, then the code would compile
-            // without warnings in Dev11 but we will report warnings. I think it’s a corner enough scenario and the native
+            // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
             // behavior is quirky enough to warrant a break.
             // </quote>
             CompileAndVerify(@"
@@ -1344,7 +1344,7 @@ public class Program
 @"public class CS3 : CS2<CS1> {}",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
-            var cs3Verifier = CompileAndVerify(cs3Compilation, emitters: TestEmitters.RefEmitBug);
+            var cs3Verifier = CompileAndVerify(cs3Compilation);
             cs3Verifier.VerifyDiagnostics();
 
             var cs4Compilation = CreateCSharpCompilation("CS4",

@@ -32,6 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AdditionalFileAnalyzers\SimpleAdditionalFileAnalyzer.cs" />
+    <Compile Include="AdditionalFileAnalyzers\XmlAdditionalFileAnalyzer.cs" />
     <Compile Include="DiagnosticCategories.cs" />
     <Compile Include="DiagnosticIds.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -76,8 +78,8 @@
     <PackagesDir Condition="'$(PackagesDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\..\..\packages'))</PackagesDir>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\portable50\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\portable50\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
+    <Analyzer Include="$(PackagesDir)\Microsoft.CodeAnalysis.Analyzers.1.0.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

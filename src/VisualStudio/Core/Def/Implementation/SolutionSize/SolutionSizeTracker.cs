@@ -2,8 +2,6 @@
 
 using System.Collections.Concurrent;
 using System.Composition;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -23,6 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();
 
+        /// <summary>
+        /// Get approximate solution size at the point of call.
+        /// 
+        /// This API is not supposed to return 100% accurate size. 
+        /// 
+        /// if a feature require 100% accurate size, use Solution to calculate it. this API is supposed to
+        /// lazy and very cheap on answering that question.
+        /// </summary>
         public long GetSolutionSize(Workspace workspace, SolutionId solutionId)
         {
             return workspace is VisualStudioWorkspaceImpl ? _tracker.GetSolutionSize(solutionId) : -1;
@@ -33,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             return workspace is VisualStudioWorkspaceImpl ? _tracker : null;
         }
 
-        private class IncrementalAnalyzer : IIncrementalAnalyzer
+        internal class IncrementalAnalyzer : IIncrementalAnalyzer
         {
-            private readonly ConcurrentDictionary<ProjectId, long> _map = new ConcurrentDictionary<ProjectId, long>(concurrencyLevel: 2, capacity: 10);
+            private readonly ConcurrentDictionary<DocumentId, long> _map = new ConcurrentDictionary<DocumentId, long>(concurrencyLevel: 2, capacity: 10);
 
             private SolutionId _solutionId;
             private long _size;
@@ -49,97 +55,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
             {
                 if (_solutionId != solution.Id)
                 {
-                    _map.Clear();
+                    Interlocked.Exchange(ref _solutionId, solution.Id);
+                    Interlocked.Exchange(ref _size, 0);
 
-                    _solutionId = solution.Id;
+                    _map.Clear();
                 }
 
                 return SpecializedTasks.EmptyTask;
             }
 
-            public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
-                var sum = await GetProjectSizeAsync(project, cancellationToken).ConfigureAwait(false);
-
-                _map.AddOrUpdate(project.Id, sum, (id, existing) => sum);
-
-                _size = _map.Values.Sum();
-            }
-
-            public void RemoveProject(ProjectId projectId)
-            {
-                long unused;
-                _map.TryRemove(projectId, out unused);
-
-                _size = _map.Values.Sum();
-            }
-
-            private static async Task<long> GetProjectSizeAsync(Project project, CancellationToken cancellationToken)
-            {
-                if (project == null)
+                if (!document.SupportsSyntaxTree)
                 {
-                    return 0;
+                    return;
                 }
 
-                var sum = 0L;
-                foreach (var document in project.Documents)
+                // getting tree is cheap since tree always stays in memory
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var length = tree.Length;
+
+                while (true)
                 {
-                    sum += await GetDocumentSizeAsync(document, cancellationToken).ConfigureAwait(false);
-                }
-
-                return sum;
-            }
-
-            private static async Task<long> GetDocumentSizeAsync(Document document, CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (document == null)
-                {
-                    return 0;
-                }
-
-                var result = GetFileSize(document.FilePath);
-                if (result >= 0)
-                {
-                    return result;
-                }
-
-                // not a physical file, in that case, use text as a fallback.
-                var text = await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
-                return text.Length;
-            }
-
-            private static long GetFileSize(string filepath)
-            {
-                if (filepath == null)
-                {
-                    return -1;
-                }
-
-                try
-                {
-                    // just to reduce exception thrown
-                    if (!File.Exists(filepath))
+                    if (_map.TryAdd(document.Id, length))
                     {
-                        return -1;
+                        Interlocked.Add(ref _size, length);
+                        return;
                     }
 
-                    return new FileInfo(filepath).Length;
+                    long size;
+                    if (_map.TryGetValue(document.Id, out size))
+                    {
+                        if (size == length)
+                        {
+                            return;
+                        }
+
+                        if (_map.TryUpdate(document.Id, length, size))
+                        {
+                            Interlocked.Add(ref _size, length - size);
+                            return;
+                        }
+                    }
                 }
-                catch
+            }
+
+            public void RemoveDocument(DocumentId documentId)
+            {
+                long size;
+                if (_map.TryRemove(documentId, out size))
                 {
-                    return -1;
+                    Interlocked.Add(ref _size, -size);
                 }
             }
 
             #region Not Used
             public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.EmptyTask;
-            }
-
-            public Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
             }
@@ -164,7 +135,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
                 return false;
             }
 
-            public void RemoveDocument(DocumentId documentId)
+            public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            public void RemoveProject(ProjectId projectId)
             {
             }
             #endregion

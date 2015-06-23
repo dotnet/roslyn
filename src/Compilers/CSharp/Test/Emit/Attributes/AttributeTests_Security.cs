@@ -60,7 +60,7 @@ public struct EventDescriptor
                 }
             };
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
         [Fact, WorkItem(544956, "DevDiv")]
@@ -73,7 +73,7 @@ class Foo
     [System.Security.SuppressUnmanagedCodeSecurityAttribute]
     public static void Main() {}
 }";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
         [WorkItem(544929, "DevDiv")]
@@ -272,7 +272,7 @@ class MyCodeAccessSecurityAttribute : CodeAccessSecurityAttribute
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
         [WorkItem(544918, "DevDiv")]
@@ -417,7 +417,7 @@ class Test
     public static void Main() {}
 }
 ";
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source);
         }
 
         [WorkItem(544918, "DevDiv")]
@@ -1361,7 +1361,7 @@ namespace N
                 }
             };
 
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, emitters: TestEmitters.RefEmitBug, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, symbolValidator: attributeValidator(false), sourceSymbolValidator: attributeValidator(true));
         }
 
         [WorkItem(545084, "DevDiv"), WorkItem(529492, "DevDiv")]

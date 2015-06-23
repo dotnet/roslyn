@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         public override string ResolveReference(string path, string baseFilePath)
         {
             // Dev11: first look relative to the directory containing the file with the <include> element (baseFilepath)
-            // and then look look in the base directory (i.e. current working directory of the compiler).
+            // and then look in the base directory (i.e. current working directory of the compiler).
 
             string resolvedPath;
 

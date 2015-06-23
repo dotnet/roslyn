@@ -68,8 +68,8 @@ ValueD,
             var text =
 @"public enum Suits : byte 
 { 
-ValueA = ""3"", // Can’t implicitly convert 
-ValueB = 2.2, // Can’t implicitly convert 
+ValueA = ""3"", // Can't implicitly convert 
+ValueB = 2.2, // Can't implicitly convert 
 ValueC = 257 // Out of underlying range 
 }; 
 ";
@@ -654,7 +654,7 @@ public class c1
         }
 
         [WorkItem(539178, "DevDiv")]
-        // No underlying type after ‘:’ 
+        // No underlying type after ':' 
         [Fact]
         public void CS3031ERR_TypeExpected_NoUnderlyingTypeForEnum()
         {
@@ -688,7 +688,7 @@ enum Figure : C { One, Two, Three }
             VerifyEnumsValue(comp, "Figure", SpecialType.System_Int32, 0, 1, 2);
         }
 
-        // ‘partial’ as Enum name
+        // 'partial' as Enum name
         [Fact]
         public void partialAsEnumName()
         {

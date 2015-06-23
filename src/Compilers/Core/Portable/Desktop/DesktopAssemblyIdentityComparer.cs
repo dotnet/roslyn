@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
 
             // Notes:
             // an assembly might be both retargetable and portable
-            // in that case retargeatable table acts as an override.
+            // in that case retargetable table acts as an override.
 
             // Apply portability policy transforms first (e.g. rewrites references to SL assemblies to their desktop equivalents)
             // If the reference is partial and is missing version or PKT it is not ported.

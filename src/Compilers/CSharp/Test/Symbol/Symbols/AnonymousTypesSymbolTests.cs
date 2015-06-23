@@ -1290,8 +1290,7 @@ class Query
 ";
             CompileAndVerify(
                 source,
-                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
-                emitters: TestEmitters.RefEmitUnsupported_646023);
+                additionalRefs: new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll });
         }
 
         [ClrOnlyFact]

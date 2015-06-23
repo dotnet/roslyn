@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         //Last seen key file blob and corresponding public key.
-        //In IDE typing scenarios scenarios we often need to infer public key from the same 
+        //In IDE typing scenarios we often need to infer public key from the same 
         //key file blob repeatedly and it is relatively expensive.
         //So we will store last seen blob and corresponding key here.
         private static Tuple<byte[], ImmutableArray<byte>> s_lastSeenKeyPair;

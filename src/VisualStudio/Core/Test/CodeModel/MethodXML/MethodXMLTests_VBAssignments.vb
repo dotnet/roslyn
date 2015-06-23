@@ -873,5 +873,70 @@ End Class
             End Try
         End Sub
 
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        Public Sub VBAssignments_DontThrowWhenLeftHandSideDoesntBind()
+            Dim definition =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <CompilationOptions RootNamespace="ClassLibrary1"/>
+        <Document>
+Public Class A
+    Public Property Prop As B
+End Class
+
+Public Class C
+    Dim x As New A
+
+    $$Sub M()
+        x.Prop.NestedProp = "Text"
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<Block>
+    <ExpressionStatement line="9">
+        <Expression>
+            <Assignment>
+                <Expression>
+                    <NameRef variablekind="unknown">
+                        <Expression>
+                            <NameRef variablekind="property">
+                                <Expression>
+                                    <NameRef variablekind="field">
+                                        <Expression>
+                                            <ThisReference/>
+                                        </Expression>
+                                        <Name>x</Name>
+                                    </NameRef>
+                                </Expression>
+                                <Name>Prop</Name>
+                            </NameRef>
+                        </Expression>
+                        <Name>NestedProp</Name>
+                    </NameRef>
+                </Expression>
+                <Expression>
+                    <Literal>
+                        <String>Text</String>
+                    </Literal>
+                </Expression>
+            </Assignment>
+        </Expression>
+    </ExpressionStatement>
+</Block>
+
+            Dim currentThread = Thread.CurrentThread
+            Dim oldCulture = currentThread.CurrentCulture
+            Try
+                currentThread.CurrentCulture = CultureInfo.GetCultureInfo("de-DE")
+                Test(definition, expected)
+            Finally
+                currentThread.CurrentCulture = oldCulture
+            End Try
+        End Sub
+
     End Class
 End Namespace

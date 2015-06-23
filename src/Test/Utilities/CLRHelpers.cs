@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             // Work around CLR bug: 
             // PE Verifier adds a handler to ReflectionOnlyAssemblyResolve event in AppDomain.EnableResolveAssembliesForIntrospection
-            // (called from ValidateWorker in Validator.cpp) i nwhich it directly calls Assembly.ReflectionOnlyLoad.
+            // (called from ValidateWorker in Validator.cpp) in which it directly calls Assembly.ReflectionOnlyLoad.
             // If that happens before we get a chance to resolve the assembly the resolution fails.
             // 
             // The handlers are invoked in the order they were added until one of them returns non-null assembly.

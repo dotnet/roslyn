@@ -37,7 +37,21 @@ namespace Microsoft.CodeAnalysis
         {
             _languageServices = languageServices;
             _options = options;
-            _treeSource = treeSource;
+
+            // If this is document that doesn't support syntax, then don't even bother holding
+            // onto any tree source.  It will never be used to get a tree, and can only hurt us
+            // by possibly holding onto data that might cause a slow memory leak.
+            _treeSource = this.SupportsSyntaxTree
+                ? treeSource
+                : ValueSource<TreeAndVersion>.Empty;
+        }
+
+        internal bool SupportsSyntaxTree
+        {
+            get
+            {
+                return this._languageServices.SyntaxTreeFactory != null;
+            }
         }
 
         public static DocumentState Create(
@@ -320,7 +334,14 @@ namespace Microsoft.CodeAnalysis
             // always chain incremental parsing request, it will internally put 
             // appropriate request such as full parsing request if there are too many pending 
             // incremental parsing requests hanging around.
-            var newTreeSource = CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
+            //
+            // However, don't bother with the chaining if this is a document that doesn't support
+            // syntax trees.  The chaininig will keep old data alive (like the old tree source,
+            // which itself is keeping an old tree source which itself is keeping a ... alive),
+            // causing a slow memory leak.
+            var newTreeSource = !this.SupportsSyntaxTree
+                ? ValueSource<TreeAndVersion>.Empty
+                : CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
 
             return new DocumentState(
                 this.LanguageServices,
@@ -342,14 +363,19 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: true)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: true);
 
-            var newTreeSource = CreateLazyFullyParsedTree(
-                newTextSource,
-                this.Id.ProjectId,
-                GetSyntaxTreeFilePath(this.info),
-                _options,
-                _languageServices,
-                this.solutionServices,
-                mode);
+            // Only create the ValueSource for creating the SyntaxTree if this is a Document that
+            // supports SyntaxTrees.  There's no point in creating the async lazy and holding onto
+            // this data otherwise.
+            var newTreeSource = !this.SupportsSyntaxTree
+                ? ValueSource<TreeAndVersion>.Empty
+                : CreateLazyFullyParsedTree(
+                    newTextSource,
+                    this.Id.ProjectId,
+                    GetSyntaxTreeFilePath(this.info),
+                    _options,
+                    _languageServices,
+                    this.solutionServices,
+                    mode);
 
             return new DocumentState(
                 this.LanguageServices,
@@ -517,7 +543,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
             TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion))
+            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
             {
                 version = treeAndVersion.Version;
                 return true;
@@ -531,16 +557,15 @@ namespace Microsoft.CodeAnalysis
 
         public override async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
         {
-            TreeAndVersion treeAndVersion;
-            if (_treeSource.TryGetValue(out treeAndVersion))
-            {
-                return treeAndVersion.Version;
-            }
-
-            var syntaxTreeFactory = this.LanguageServices.GetService<ISyntaxTreeFactoryService>();
-            if (syntaxTreeFactory == null)
+            if (!this.SupportsSyntaxTree)
             {
                 return await this.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            TreeAndVersion treeAndVersion;
+            if (_treeSource.TryGetValue(out treeAndVersion) && treeAndVersion != null)
+            {
+                return treeAndVersion.Version;
             }
 
             treeAndVersion = await _treeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
