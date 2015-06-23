@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,51 +18,90 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 private readonly StateManager _owner;
 
-                private ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, StateSet>> _stateMap;
+                private ImmutableDictionary<string, DiagnosticAnalyzerMap> _stateMap;
 
                 public HostStates(StateManager owner)
                 {
                     _owner = owner;
-                    _stateMap = ImmutableDictionary<string, ImmutableDictionary<DiagnosticAnalyzer, StateSet>>.Empty;
+                    _stateMap = ImmutableDictionary<string, DiagnosticAnalyzerMap>.Empty;
                 }
 
                 public IEnumerable<StateSet> GetStateSets()
                 {
-                    return _stateMap.Values.SelectMany(v => v.Values);
+                    return _stateMap.Values.SelectMany(v => v.GetStateSets());
                 }
 
                 public IEnumerable<StateSet> GetOrCreateStateSets(string language)
                 {
-                    var map = GetAnalyzerMap(language);
-                    return map.Values;
+                    return GetAnalyzerMap(language).GetStateSets();
                 }
 
                 public StateSet GetOrCreateStateSet(string language, DiagnosticAnalyzer analyzer)
                 {
-                    var map = GetAnalyzerMap(language);
-
-                    StateSet set;
-                    if (map.TryGetValue(analyzer, out set))
-                    {
-                        return set;
-                    }
-
-                    return null;
+                    return GetAnalyzerMap(language).GetStateSet(analyzer);
                 }
 
-                private ImmutableDictionary<DiagnosticAnalyzer, StateSet> GetAnalyzerMap(string language)
+                private DiagnosticAnalyzerMap GetAnalyzerMap(string language)
                 {
                     return ImmutableInterlocked.GetOrAdd(ref _stateMap, language, CreateLanguageSpecificAnalyzerMap, this);
                 }
 
-                private ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateLanguageSpecificAnalyzerMap(string language, HostStates @this)
+                private DiagnosticAnalyzerMap CreateLanguageSpecificAnalyzerMap(string language, HostStates @this)
                 {
                     var analyzersPerReference = _owner.AnalyzerManager.GetHostDiagnosticAnalyzersPerReference(language);
 
                     var analyzerMap = CreateAnalyzerMap(_owner.AnalyzerManager, language, analyzersPerReference.Values);
                     VerifyDiagnosticStates(analyzerMap.Values);
 
-                    return analyzerMap;
+                    return new DiagnosticAnalyzerMap(_owner.AnalyzerManager, language, analyzerMap);
+                }
+
+                private class DiagnosticAnalyzerMap
+                {
+                    private readonly DiagnosticAnalyzer _compilerAnalyzer;
+                    private readonly StateSet _compilerStateSet;
+
+                    private readonly ImmutableDictionary<DiagnosticAnalyzer, StateSet> _map;
+
+                    public DiagnosticAnalyzerMap(HostAnalyzerManager analyzerManager, string language, ImmutableDictionary<DiagnosticAnalyzer, StateSet> analyzerMap)
+                    {
+                        // hold directly on to compiler analyzer
+                        _compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
+                        Contract.ThrowIfNull(_compilerAnalyzer);
+
+                        _compilerStateSet = analyzerMap[_compilerAnalyzer];
+
+                        // hold rest of analyzers
+                        _map = analyzerMap.Remove(_compilerAnalyzer);
+                    }
+
+                    public IEnumerable<StateSet> GetStateSets()
+                    {
+                        // always return compiler one first
+                        yield return _compilerStateSet;
+
+                        // TODO: for now, this is static, but in future, we might consider making this a dynamic so that we process cheaper analyzer first.
+                        foreach (var set in _map.Values)
+                        {
+                            yield return set;
+                        }
+                    }
+
+                    public StateSet GetStateSet(DiagnosticAnalyzer analyzer)
+                    {
+                        if (_compilerAnalyzer == analyzer)
+                        {
+                            return _compilerStateSet;
+                        }
+
+                        StateSet set;
+                        if (_map.TryGetValue(analyzer, out set))
+                        {
+                            return set;
+                        }
+
+                        return null;
+                    }
                 }
             }
         }
