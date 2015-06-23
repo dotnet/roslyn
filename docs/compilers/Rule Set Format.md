@@ -29,6 +29,35 @@ The following demonstrates a small but complete example of a .ruleset file.
 </RuleSet>
 ```
 
+Passing Rule Sets to the Compiler
+=================================
+
+Command Line
+------------
+
+Rule set files can be passed to csc.exe and vbc.exe using the `/ruleset` switch, which takes an absolute or relative file path. For example:
+```
+vbc.exe /ruleset:ProjectRules.ruleset ...
+vbc.exe /ruleset:..\..\..\SolutionRules.ruleset ...
+vbc.exe /ruleset:D:\WizbangCorp\Development\CompanyRules.ruleset ...
+```
+
+MSBuild Projects
+----------------
+
+Within MSBuild project files the rule set can be specified via the `CodeAnalysisRuleSet` property. For example:
+``` XML
+<PropertyGroup>
+  <CodeAnalysisRuleSet>ProjectRules.ruleset</CodeAnalysisRuleSet>
+</PropertyGroup>
+```
+
+Note that because the rule set is specific via a *property* rather than an *item*, IDEs like Visual Studio will not show the rule set as a file in your project by default. For this reason it is common to explicitly include the file as an item as well:
+``` XML
+<ItemGroup>
+  <None Include="ProjectRules.ruleset" />
+</ItemGroup>
+```
 
 Elements
 ========
