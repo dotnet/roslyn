@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis
 
                 case 'E': // C# (namespace) using
                     // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
-                    // but they were probably implementation details that do not affect roslyn.
+                    // but they were probably implementation details that do not affect Roslyn.
                     if (!TrySplit(import, 1, ' ', out target, out externAlias))
                     {
                         return false;

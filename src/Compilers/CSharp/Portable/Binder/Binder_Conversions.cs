@@ -415,9 +415,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///
         /// Spec 7.5.4: Compile-time checking of dynamic overload resolution 
         ///   If F is a static method, the method group must have resulted from a simple-name, a member-access through a type, 
-        ///   or a member-access whose receiver can’t be classified as a type or value until after overload resolution (see §7.6.4.1). 
+        ///   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1). 
         ///   If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value,
-        ///   or a member-access whose receiver can’t be classified as a type or value until after overload resolution (see §7.6.4.1).
+        ///   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
         /// </summary>
         /// <returns>
         /// True if there is any error.
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression)
             {
                 // TypeOrValue expression isn't replaced only if the invocation is late bound, in which case it can't be extension method.
-                // None of the checks below apply if the receiver can’t be classified as a type or value. 
+                // None of the checks below apply if the receiver can't be classified as a type or value. 
                 Debug.Assert(!invokedAsExtensionMethod);
             }
             else if (memberSymbol.IsStatic)

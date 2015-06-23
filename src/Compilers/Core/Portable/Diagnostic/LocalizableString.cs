@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Fired when an exception is raised by any of the public methods of <see cref="LocalizableString"/>.
-        /// If the exception handler itself throwns an exception, that exception is ignored.
+        /// If the exception handler itself throws an exception, that exception is ignored.
         /// </summary>
         public event EventHandler<Exception> OnException;
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CompoundAssignmentForDelegate : EmitMetadataTestBase
     {
-        // The method  to removal or concatenation with ‘optional’ parameter
+        // The method to removal or concatenation with 'optional' parameter
         [Fact]
         public void OptionalParaInCompAssignOperator()
         {

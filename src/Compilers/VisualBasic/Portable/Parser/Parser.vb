@@ -2636,6 +2636,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
+        ' TODO - davidsch - handle annonymous type initialization
+        ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
+
         ' /*********************************************************************
         ' *
         ' * Function:
@@ -5992,29 +5995,36 @@ checkNullable:
         ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
         ''' </summary>
         Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
-            Dim parseOptions = _scanner.Options
-            If CheckFeatureAvailability(parseOptions, feature) Then
+            Dim languageVersion = _scanner.Options.LanguageVersion
+            If CheckFeatureAvailability(languageVersion, feature) Then
                 Return node
             End If
 
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, parseOptions.LanguageVersion.GetErrorName(), featureName)
+            If feature = Feature.InterpolatedStrings Then
+                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
+                ' an unlocalized string and fix this to be localized in the next release.
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+            Else
+                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            End If
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean
-            Return CheckFeatureAvailability(_scanner.Options, feature)
+            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
         End Function
 
-        Private Shared Function CheckFeatureAvailability(parseOptions As VisualBasicParseOptions, feature As Feature) As Boolean
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                Return parseOptions.Features.ContainsKey(featureFlag)
-            End If
-
+        Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
             Dim required = feature.GetLanguageVersion()
-            Dim actual = parseOptions.LanguageVersion
-            Return CInt(required) <= CInt(actual)
+            Return CInt(required) <= CInt(languageVersion)
         End Function
+
+        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
+            If Not CheckFeatureAvailability(languageVersion, feature) Then
+                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+            End If
+        End Sub
 
     End Class
 

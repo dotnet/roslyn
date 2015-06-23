@@ -608,7 +608,7 @@ namespace Microsoft.Cci
         Boolean,
 
         /// <summary>
-        /// An usigned 16 bit integer representing a Unicode UTF16 code point.
+        /// An unsigned 16 bit integer representing a Unicode UTF16 code point.
         /// </summary>
         Char,
 

@@ -5692,15 +5692,14 @@ class baz
     }
 }
 ";
-            // TODO: We could do a better job of choosing which two methods are the ambiguous ones.
-
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-// (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(sbyte, bar)'
-//         overload1(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(sbyte, bar)"),
-// (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(sbyte, bar)'
-//         overload2(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(sbyte, bar)"));
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(int, baz)'
+    //         overload1(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(int, baz)").WithLocation(6, 9),
+    // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(byte, foo)'
+    //         overload2(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(byte, foo)").WithLocation(7, 9)
+                );
         }
 
         [WorkItem(545382, "DevDiv")]
@@ -7896,7 +7895,7 @@ public class Test
         }
 
         [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
-        public void BetterErrorMessage()
+        public void BetterErrorMessage_01()
         {
             string source1 = @"
 class C
@@ -8099,5 +8098,54 @@ class C
             compilation.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(1171723, "DevDiv"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
+        public void BetterErrorMessage_02()
+        {
+            string source1 = @"
+using FluentAssertions;
+using Extensions;
+using System;
+using System.Collections.Generic;
+using System.Collections;
+
+namespace FluentAssertions
+{
+    public static class AssertionExtensions
+    {
+        public static object Should(this object actualValue) { throw null; }
+        public static object Should(this IEnumerable actualValue) { throw null; }
+        public static object Should<T>(this IEnumerable<T> actualValue) { throw null; }
+        public static object Should<TKey, TValue>(this IDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace Extensions
+{
+    public static class TestExtensions
+    {
+        public static object Should<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace ClassLibraryOverloadResolution
+{    
+    public class Class1
+    {
+        void foo()
+        {
+            Dictionary<String, String> dict = null;
+            dict.Should();
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source1);
+
+            compilation.VerifyDiagnostics(
+    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
+    //             dict.Should();
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
+                );
+        }
     }
 }

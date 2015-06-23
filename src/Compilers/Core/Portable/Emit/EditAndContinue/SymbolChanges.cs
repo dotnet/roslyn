@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         if (!_definitionMap.DefinitionExists(def))
                         {
-                            // A method was changed to a method containing a lambda, to an interator, or to an async method.
+                            // A method was changed to a method containing a lambda, to an iterator, or to an async method.
                             // The state machine or closure class has been added.
                             return SymbolChange.Added;
                         }
