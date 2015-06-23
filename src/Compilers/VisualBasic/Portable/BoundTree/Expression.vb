@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        'Protected MustOverride Function ExpressionKind() As Unified.ExpressionKind
+        'Protected MustOverride Function ExpressionKind() As OperationKind
 
         Protected Overridable Function ExpressionKind() As OperationKind
             Return OperationKind.None

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        ' Protected MustOverride Function StatementKind() As Unified.StatementKind
+        ' Protected MustOverride Function StatementKind() As OperationKind
 
         Protected Overridable Function StatementKind() As OperationKind
             Return OperationKind.None
@@ -781,9 +781,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.LockStatement
         End Function
     End Class
-
-    Module Statement
-        Friend ReadOnly EmptyStatementArray As ImmutableArray(Of IStatement) = ImmutableArray.Create(Of IStatement)()
-    End Module
 
 End Namespace
