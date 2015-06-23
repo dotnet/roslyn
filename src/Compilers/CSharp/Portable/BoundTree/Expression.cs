@@ -6,19 +6,19 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class BoundExpression : Semantics.IExpression
+    partial class BoundExpression : IExpression
     {
-        ITypeSymbol Semantics.IExpression.ResultType
+        ITypeSymbol IExpression.ResultType
         {
             get { return this.Type; }
         }
 
-        Semantics.OperationKind Semantics.IOperation.Kind
+        OperationKind IOperation.Kind
         {
             get { return this.ExpressionKind; }
         }
 
-        object Semantics.IExpression.ConstantValue
+        object IExpression.ConstantValue
         {
             get
             {
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        SyntaxNode Semantics.IOperation.Syntax
+        SyntaxNode IOperation.Syntax
         {
             get { return this.Syntax; }
         }
 
-        protected virtual Semantics.OperationKind ExpressionKind{ get { return Semantics.OperationKind.None; } }
+        protected virtual OperationKind ExpressionKind{ get { return OperationKind.None; } }
         // protected abstract Unified.ExpressionKind ExpressionKind { get; }
     }
 
@@ -75,53 +75,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundCall : Semantics.IInvocation
+    partial class BoundCall : IInvocation
     {
-        IMethodSymbol Semantics.IInvocation.TargetMethod
+        IMethodSymbol IInvocation.TargetMethod
         {
             get { return this.Method; }
         }
 
-        Semantics.IExpression Semantics.IInvocation.Instance
+        IExpression IInvocation.Instance
         {
             get { return this.ReceiverOpt; }
         }
 
-        Semantics.InvocationKind Semantics.IInvocation.InvocationClass
+        InvocationKind IInvocation.InvocationClass
         {
             get
             {
                 if (this.Method.IsStatic)
                 {
-                    return Semantics.InvocationKind.Static;
+                    return InvocationKind.Static;
                 }
 
                 if (this.Method.IsVirtual && !this.ReceiverOpt.SuppressVirtualCalls)
                 {
-                    return Semantics.InvocationKind.Virtual;
+                    return InvocationKind.Virtual;
                 }
 
-                return Semantics.InvocationKind.NonVirtualInstance;
+                return InvocationKind.NonVirtualInstance;
             }
         }
-        ImmutableArray<Semantics.IArgument> Semantics.IInvocation.Arguments
+        ImmutableArray<IArgument> IInvocation.Arguments
         {
             get { return DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt); }
         }
 
-        Semantics.IArgument Semantics.IInvocation.ArgumentMatchingParameter(IParameterSymbol parameter)
+        IArgument IInvocation.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameter.ContainingSymbol as IMethodSymbol, parameter);
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Invocation; }
+            get { return OperationKind.Invocation; }
         }
 
-        internal static ImmutableArray<Semantics.IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds)
+        internal static ImmutableArray<IArgument> DeriveArguments(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds)
         {
-            ArrayBuilder<Semantics.IArgument> arguments = ArrayBuilder<Semantics.IArgument>.GetInstance(boundArguments.Length);
+            ArrayBuilder<IArgument> arguments = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
             for (int index = 0; index < boundArguments.Length; index++)
             {
                 arguments[index] = DeriveArgument(index, boundArguments, argumentNames, argumentRefKinds);
@@ -130,25 +130,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments.ToImmutableAndFree();
         }
 
-        private static Semantics.IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds)
-        {
-            BoundExpression argument = boundArguments[index];
-            string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[index] : null;
-            RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[index] : RefKind.None;
-            Semantics.ArgumentMode mode = refMode == RefKind.None ? Semantics.ArgumentMode.In : (refMode == RefKind.Out ? Semantics.ArgumentMode.Out : Semantics.ArgumentMode.Reference);
-            if (name == null)
-            {
-                return
-                    mode == Semantics.ArgumentMode.In
-                    ? new SimpleArgument(argument)
-                    // ZZZ Figure out which arguments match a params parameter.
-                    : (Semantics.IArgument)new Argument(Semantics.ArgumentKind.Positional, mode, argument);
-            }
+        private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument> ArgumentMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundExpression, IArgument>();
 
-            return new NamedArgument(mode, argument, name);
+        private static IArgument DeriveArgument(int index, ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds)
+        {
+            return ArgumentMappings.GetValue(
+                boundArguments[index],
+                (argument) =>
+                {
+                    string name = !argumentNames.IsDefaultOrEmpty ? argumentNames[index] : null;
+                    RefKind refMode = !argumentRefKinds.IsDefaultOrEmpty ? argumentRefKinds[index] : RefKind.None;
+
+                    ArgumentMode mode = refMode == RefKind.None ? ArgumentMode.In : (refMode == RefKind.Out ? ArgumentMode.Out : ArgumentMode.Reference);
+                    if (name == null)
+                    {
+                        return
+                            mode == ArgumentMode.In
+                            ? new SimpleArgument(argument)
+                            // ZZZ Figure out which arguments match a params parameter.
+                            : (IArgument)new Argument(ArgumentKind.Positional, mode, argument);
+                    }
+
+                    return new NamedArgument(mode, argument, name);
+                });
         }
 
-        internal static Semantics.IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IMethodSymbol targetMethod, IParameterSymbol parameter)
+        internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, IMethodSymbol targetMethod, IParameterSymbol parameter)
         {
             int index = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, parameter.ContainingSymbol as IMethodSymbol, parameter);
             if (index >= 0)
@@ -182,83 +189,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        class SimpleArgument : Semantics.IArgument
+        class SimpleArgument : IArgument
         {
-            readonly Semantics.IExpression ArgumentValue;
-            public SimpleArgument(Semantics.IExpression value)
+            readonly IExpression ArgumentValue;
+            public SimpleArgument(IExpression value)
             {
                 this.ArgumentValue = value;
             }
 
-            public Semantics.ArgumentKind ArgumentClass
+            public ArgumentKind ArgumentClass
             {
-                get { return Semantics.ArgumentKind.Positional; }
+                get { return ArgumentKind.Positional; }
             }
 
-            public Semantics.ArgumentMode Mode
+            public ArgumentMode Mode
             {
-                get { return Semantics.ArgumentMode.In; }
+                get { return ArgumentMode.In; }
             }
 
-            public Semantics.IExpression Value
+            public IExpression Value
             {
                 get { return this.ArgumentValue; }
             }
 
-            public Semantics.IExpression InConversion
+            public IExpression InConversion
             {
                 get { return null; }
             }
 
-            public Semantics.IExpression OutConversion
+            public IExpression OutConversion
             {
                 get { return null; }
             }
         }
 
-        class Argument : Semantics.IArgument
+        class Argument : IArgument
         {
-            readonly Semantics.IExpression ArgumentValue;
-            readonly Semantics.ArgumentKind ArgumentKind;
-            readonly Semantics.ArgumentMode ArgumentMode;
-            public Argument(Semantics.ArgumentKind kind, Semantics.ArgumentMode mode, Semantics.IExpression value)
+            readonly IExpression ArgumentValue;
+            readonly ArgumentKind ArgumentKind;
+            readonly ArgumentMode ArgumentMode;
+            public Argument(ArgumentKind kind, ArgumentMode mode, IExpression value)
             {
                 this.ArgumentValue = value;
                 this.ArgumentKind = kind;
                 this.ArgumentMode = mode;
             }
 
-            public Semantics.ArgumentKind ArgumentClass
+            public ArgumentKind ArgumentClass
             {
                 get { return this.ArgumentKind; }
             }
 
-            public Semantics.ArgumentMode Mode
+            public ArgumentMode Mode
             {
                 get { return this.ArgumentMode; }
             }
 
-            public Semantics.IExpression Value
+            public IExpression Value
             {
                 get { return this.ArgumentValue; }
             }
 
-            public Semantics.IExpression InConversion
+            public IExpression InConversion
             {
                 get { return null; }
             }
 
-            public Semantics.IExpression OutConversion
+            public IExpression OutConversion
             {
                 get { return null; }
             }
         }
 
-        class NamedArgument : Argument, Semantics.INamedArgument
+        class NamedArgument : Argument, INamedArgument
         {
             readonly string ArgumentName;
-            public NamedArgument(Semantics.ArgumentMode mode, Semantics.IExpression value, string name)
-                : base(Semantics.ArgumentKind.Named, mode, value)
+            public NamedArgument(ArgumentMode mode, IExpression value, string name)
+                : base(ArgumentKind.Named, mode, value)
             {
                 this.ArgumentName = name;
             }
@@ -269,124 +276,124 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundLocal : Semantics.ILocalReference
+    partial class BoundLocal : ILocalReference
     {
-        ILocalSymbol Semantics.ILocalReference.Local
+        ILocalSymbol ILocalReference.Local
         {
             get { return this.LocalSymbol; }
         }
 
-        Semantics.ReferenceKind Semantics.IReference.ReferenceClass
+        ReferenceKind IReference.ReferenceClass
         {
-            get { return Semantics.ReferenceKind.Local; }
+            get { return ReferenceKind.Local; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.LocalReference; }
+            get { return OperationKind.LocalReference; }
         }
     }
 
-    partial class BoundFieldAccess : Semantics.IFieldReference
+    partial class BoundFieldAccess : IFieldReference
     {
-        Semantics.IExpression Semantics.IMemberReference.Instance
+        IExpression IMemberReference.Instance
         {
             get { return this.ReceiverOpt; }
         }
 
-        IFieldSymbol Semantics.IFieldReference.Field
+        IFieldSymbol IFieldReference.Field
         {
             get { return this.FieldSymbol; }
         }
 
-        Semantics.ReferenceKind Semantics.IReference.ReferenceClass
+        ReferenceKind IReference.ReferenceClass
         {
-            get { return this.FieldSymbol.IsStatic ? Semantics.ReferenceKind.StaticField : Semantics.ReferenceKind.InstanceField; }
+            get { return this.FieldSymbol.IsStatic ? ReferenceKind.StaticField : ReferenceKind.InstanceField; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.FieldReference; }
+            get { return OperationKind.FieldReference; }
         }
     }
 
-    partial class BoundPropertyAccess : Semantics.IPropertyReference
+    partial class BoundPropertyAccess : IPropertyReference
     {
-        IPropertySymbol Semantics.IPropertyReference.Property
+        IPropertySymbol IPropertyReference.Property
         {
             get { return this.PropertySymbol; }
         }
 
-        Semantics.IExpression Semantics.IMemberReference.Instance
+        IExpression IMemberReference.Instance
         {
             get { return this.ReceiverOpt; }
         }
 
-        Semantics.ReferenceKind Semantics.IReference.ReferenceClass
+        ReferenceKind IReference.ReferenceClass
         {
-            get { return this.PropertySymbol.IsStatic ? Semantics.ReferenceKind.StaticProperty : Semantics.ReferenceKind.InstanceProperty; }
+            get { return this.PropertySymbol.IsStatic ? ReferenceKind.StaticProperty : ReferenceKind.InstanceProperty; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.PropertyReference; }
+            get { return OperationKind.PropertyReference; }
         }
     }
 
-    partial class BoundParameter : Semantics.IParameterReference
+    partial class BoundParameter : IParameterReference
     {
-        IParameterSymbol Semantics.IParameterReference.Parameter
+        IParameterSymbol IParameterReference.Parameter
         {
             get { return this.ParameterSymbol; }
         }
 
-        Semantics.ReferenceKind Semantics.IReference.ReferenceClass
+        ReferenceKind IReference.ReferenceClass
         {
-            get { return Semantics.ReferenceKind.Parameter; }
+            get { return ReferenceKind.Parameter; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.ParameterReference; }
+            get { return OperationKind.ParameterReference; }
         }
     }
 
-    partial class BoundLiteral : Semantics.ILiteral
+    partial class BoundLiteral : ILiteral
     {
-        Semantics.LiteralKind Semantics.ILiteral.LiteralClass
+        LiteralKind ILiteral.LiteralClass
         {
             get { return Semantics.Expression.DeriveLiteralKind(this.Type); }
         }
 
-        string Semantics.ILiteral.Spelling
+        string ILiteral.Spelling
         {
             get { return this.Syntax.ToString(); }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Literal; }
+            get { return OperationKind.Literal; }
         }
     }
 
-    partial class BoundObjectCreationExpression : Semantics.IObjectCreation
+    partial class BoundObjectCreationExpression : IObjectCreation
     {
-        IMethodSymbol Semantics.IObjectCreation.Constructor
+        IMethodSymbol IObjectCreation.Constructor
         {
             get { return this.Constructor; }
         }
 
-        ImmutableArray<Semantics.IArgument> Semantics.IObjectCreation.ConstructorArguments
+        ImmutableArray<IArgument> IObjectCreation.ConstructorArguments
         {
             get { return BoundCall.DeriveArguments(this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt); }
         }
 
-        Semantics.IArgument Semantics.IObjectCreation.ArgumentMatchingParameter(IParameterSymbol parameter)
+        IArgument IObjectCreation.ArgumentMatchingParameter(IParameterSymbol parameter)
         {
             return BoundCall.ArgumentMatchingParameter(this.Arguments, this.ArgsToParamsOpt, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, this.Constructor, parameter);
         }
 
-        ImmutableArray<Semantics.IMemberInitializer> Semantics.IObjectCreation.MemberInitializers
+        ImmutableArray<IMemberInitializer> IObjectCreation.MemberInitializers
         {
             get
             {
@@ -396,50 +403,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // ZZZ What's the representation in bound trees?
                 }
 
-                return ImmutableArray.Create<Semantics.IMemberInitializer>();
+                return ImmutableArray.Create<IMemberInitializer>();
             }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.ObjectCreation; }
+            get { return OperationKind.ObjectCreation; }
         }
     }
 
     partial class UnboundLambda
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.UnboundLambda; }
+            get { return OperationKind.UnboundLambda; }
         }
     }
 
-    partial class BoundLambda : Semantics.ILambda
+    partial class BoundLambda : ILambda
     {
-        IMethodSymbol Semantics.ILambda.Signature
+        IMethodSymbol ILambda.Signature
         {
             get { return this.Symbol; }
         }
 
-        Semantics.IBlock Semantics.ILambda.Body
+        IBlock ILambda.Body
         {
             get { return this.Body; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Lambda; }
+            get { return OperationKind.Lambda; }
         }
     }
 
-    partial class BoundConversion : Semantics.IConversion
+    partial class BoundConversion : IConversion
     {
-        Semantics.IExpression Semantics.IConversion.Operand
+        IExpression IConversion.Operand
         {
             get { return this.Operand; }
         }
 
-        Semantics.ConversionKind Semantics.IConversion.Conversion
+        Semantics.ConversionKind IConversion.Conversion
         {
             get
             {
@@ -480,117 +487,117 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool Semantics.IConversion.IsExplicit
+        bool IConversion.IsExplicit
         {
             get { return this.ExplicitCastInCode; }
         }
 
-        IMethodSymbol Semantics.IOperator.Operator
+        IMethodSymbol IOperator.Operator
         {
             get { return this.SymbolOpt; }
         }
 
-        bool Semantics.IOperator.UsesOperatorMethod
+        bool IOperator.UsesOperatorMethod
         {
             get { return this.ConversionKind == CSharp.ConversionKind.ExplicitUserDefined || this.ConversionKind == CSharp.ConversionKind.ImplicitUserDefined; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Conversion; }
+            get { return OperationKind.Conversion; }
         }
     }
 
-    partial class BoundAsOperator : Semantics.IConversion
+    partial class BoundAsOperator : IConversion
     {
-        Semantics.IExpression Semantics.IConversion.Operand
+        IExpression IConversion.Operand
         {
             get { return this.Operand; }
         }
 
-        Semantics.ConversionKind Semantics.IConversion.Conversion
+        Semantics.ConversionKind IConversion.Conversion
         {
             get { return Semantics.ConversionKind.AsCast; }
         }
 
-        bool Semantics.IConversion.IsExplicit
+        bool IConversion.IsExplicit
         {
             get { return true; }
         }
 
-        IMethodSymbol Semantics.IOperator.Operator
+        IMethodSymbol IOperator.Operator
         {
             get { return null; }
         }
 
-        bool Semantics.IOperator.UsesOperatorMethod
+        bool IOperator.UsesOperatorMethod
         {
             get { return false; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Conversion; }
+            get { return OperationKind.Conversion; }
         }
     }
 
-    partial class BoundIsOperator : Semantics.IIs
+    partial class BoundIsOperator : IIs
     {
-        Semantics.IExpression Semantics.IIs.Operand
+        IExpression IIs.Operand
         {
             get { return this.Operand; }
         }
 
-        ITypeSymbol Semantics.IIs.IsType
+        ITypeSymbol IIs.IsType
         {
             get { return this.TargetType.Type; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Is; }
+            get { return OperationKind.Is; }
         }
     }
 
-    partial class BoundSizeOfOperator : Semantics.ITypeOperation
+    partial class BoundSizeOfOperator : ITypeOperation
     {
-        Semantics.TypeOperationKind Semantics.ITypeOperation.TypeOperationClass
+        TypeOperationKind ITypeOperation.TypeOperationClass
         {
-            get { return CodeAnalysis.Semantics.TypeOperationKind.SizeOf; }
+            get { return TypeOperationKind.SizeOf; }
         }
 
-        ITypeSymbol Semantics.ITypeOperation.TypeOperand
+        ITypeSymbol ITypeOperation.TypeOperand
         {
             get { return this.SourceType.Type; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.TypeOperation; }
+            get { return OperationKind.TypeOperation; }
         }
     }
 
-    partial class BoundTypeOfOperator : Semantics.ITypeOperation
+    partial class BoundTypeOfOperator : ITypeOperation
     {
-        Semantics.TypeOperationKind Semantics.ITypeOperation.TypeOperationClass
+        TypeOperationKind ITypeOperation.TypeOperationClass
         {
-            get { return CodeAnalysis.Semantics.TypeOperationKind.TypeOf; }
+            get { return TypeOperationKind.TypeOf; }
         }
 
-        ITypeSymbol Semantics.ITypeOperation.TypeOperand
+        ITypeSymbol ITypeOperation.TypeOperand
         {
             get { return this.SourceType.Type; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.TypeOperation; }
+            get { return OperationKind.TypeOperation; }
         }
     }
 
-    partial class BoundArrayCreation : Semantics.IArrayCreation
+    partial class BoundArrayCreation : IArrayCreation
     {
-        ITypeSymbol Semantics.IArrayCreation.ElementType
+        ITypeSymbol IArrayCreation.ElementType
         {
             get
             {
@@ -604,12 +611,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ImmutableArray<Semantics.IExpression> Semantics.IArrayCreation.DimensionSizes
+        ImmutableArray<IExpression> IArrayCreation.DimensionSizes
         {
-            get { return this.Bounds.As<Semantics.IExpression>(); }
+            get { return this.Bounds.As<IExpression>(); }
         }
 
-        Semantics.IArrayInitializer Semantics.IArrayCreation.ElementValues
+        IArrayInitializer IArrayCreation.ElementValues
         {
             get
             {
@@ -623,25 +630,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        Semantics.IArrayInitializer MakeInitializer(BoundArrayInitialization initializer)
-        {
-            ArrayBuilder<Semantics.IArrayInitializer> dimension = ArrayBuilder<Semantics.IArrayInitializer>.GetInstance(initializer.Initializers.Length);
-            for (int index = 0; index < initializer.Initializers.Length; index++)
-            {
-                BoundExpression elementInitializer = initializer.Initializers[index];
-                BoundArrayInitialization elementArray = elementInitializer as BoundArrayInitialization;
-                dimension[index] = elementArray != null ? MakeInitializer(elementArray) : new ElementInitializer(elementInitializer);
-            }
+        private static System.Runtime.CompilerServices.ConditionalWeakTable<BoundArrayInitialization, IArrayInitializer> ArrayInitializerMappings = new System.Runtime.CompilerServices.ConditionalWeakTable<BoundArrayInitialization, IArrayInitializer>();
 
-            return new DimensionInitializer(dimension.ToImmutableAndFree());
+        IArrayInitializer MakeInitializer(BoundArrayInitialization initializer)
+        {
+            return ArrayInitializerMappings.GetValue(
+                initializer,
+                (arrayInitializer) =>
+                {
+                    ArrayBuilder<IArrayInitializer> dimension = ArrayBuilder<IArrayInitializer>.GetInstance(arrayInitializer.Initializers.Length);
+                    for (int index = 0; index < arrayInitializer.Initializers.Length; index++)
+                    {
+                        BoundExpression elementInitializer = arrayInitializer.Initializers[index];
+                        BoundArrayInitialization elementArray = elementInitializer as BoundArrayInitialization;
+                        dimension[index] = elementArray != null ? MakeInitializer(elementArray) : new ElementInitializer(elementInitializer);
+                    }
+
+                    return new DimensionInitializer(dimension.ToImmutableAndFree());
+                });
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.ArrayCreation; }
+            get { return OperationKind.ArrayCreation; }
         }
 
-        class ElementInitializer : Semantics.IExpressionArrayInitializer
+        class ElementInitializer : IExpressionArrayInitializer
         {
             readonly BoundExpression element;
 
@@ -650,215 +664,215 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.element = element;
             }
 
-            public Semantics.IExpression ElementValue
+            public IExpression ElementValue
             {
                 get { return this.element; }
             }
 
-            public Semantics.ArrayInitializerKind ArrayClass
+            public ArrayInitializerKind ArrayClass
             {
-                get { return Semantics.ArrayInitializerKind.Expression; }
+                get { return ArrayInitializerKind.Expression; }
             }
         }
 
-        class DimensionInitializer : Semantics.IDimensionArrayInitializer
+        class DimensionInitializer : IDimensionArrayInitializer
         {
-            readonly ImmutableArray<Semantics.IArrayInitializer> dimension;
+            readonly ImmutableArray<IArrayInitializer> dimension;
 
-            public DimensionInitializer(ImmutableArray<Semantics.IArrayInitializer> dimension)
+            public DimensionInitializer(ImmutableArray<IArrayInitializer> dimension)
             {
                 this.dimension = dimension;
             }
 
-            public ImmutableArray<Semantics.IArrayInitializer> ElementValues
+            public ImmutableArray<IArrayInitializer> ElementValues
             {
                 get { return this.dimension; }
             }
 
-            public Semantics.ArrayInitializerKind ArrayClass
+            public ArrayInitializerKind ArrayClass
             {
-                get { return Semantics.ArrayInitializerKind.Dimension; }
+                get { return ArrayInitializerKind.Dimension; }
             }
         }
     }
 
     partial class BoundArrayInitialization
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.None; }
+            get { return OperationKind.None; }
         }
     }
 
     partial class BoundDefaultOperator
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.DefaultValue; }
+            get { return OperationKind.DefaultValue; }
         }
     }
 
     partial class BoundDup
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.None; }
+            get { return OperationKind.None; }
         }
     }
 
     partial class BoundBaseReference
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.BaseClassInstance; }
+            get { return OperationKind.BaseClassInstance; }
         }
     }
 
     partial class BoundThisReference
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Instance; }
+            get { return OperationKind.Instance; }
         }
     }
 
-    partial class BoundAssignmentOperator : Semantics.IAssignment
+    partial class BoundAssignmentOperator : IAssignment
     {
-        Semantics.IReference Semantics.IAssignment.Target
+        IReference IAssignment.Target
         {
-            get { return this.Left as Semantics.IReference; }
+            get { return this.Left as IReference; }
         }
 
-        Semantics.IExpression Semantics.IAssignment.Value
+        IExpression IAssignment.Value
         {
             get { return this.Right; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Assignment; }
+            get { return OperationKind.Assignment; }
         }
     }
 
-    partial class BoundCompoundAssignmentOperator : Semantics.ICompoundAssignment
+    partial class BoundCompoundAssignmentOperator : ICompoundAssignment
     {
-        Semantics.BinaryOperatorCode Semantics.ICompoundAssignment.Operation
+        BinaryOperatorCode ICompoundAssignment.Operation
         {
             get { return Expression.DeriveBinaryOperatorCode(this.Operator.Kind); }
         }
 
-        Semantics.IReference Semantics.IAssignment.Target
+        IReference IAssignment.Target
         {
-            get { return this.Left as Semantics.IReference; }
+            get { return this.Left as IReference; }
         }
 
-        Semantics.IExpression Semantics.IAssignment.Value
+        IExpression IAssignment.Value
         {
             get { return this.Right; }
         }
 
-        bool Semantics.IOperator.UsesOperatorMethod
+        bool IOperator.UsesOperatorMethod
         {
             get { return (this.Operator.Kind & BinaryOperatorKind.UserDefined) != 0; }
         }
 
-        IMethodSymbol Semantics.IOperator.Operator
+        IMethodSymbol IOperator.Operator
         {
             get { return this.Operator.Method; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.CompoundAssignment; }
+            get { return OperationKind.CompoundAssignment; }
         }
     }
 
     partial class BoundBadExpression
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.None; }
+            get { return OperationKind.None; }
         }
     }
 
     partial class BoundNewT
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.TypeParameterObjectCreation; }
+            get { return OperationKind.TypeParameterObjectCreation; }
         }
     }
 
-    partial class BoundUnaryOperator : Semantics.IUnary
+    partial class BoundUnaryOperator : IUnary
     {
-        Semantics.UnaryOperatorCode Semantics.IUnary.Operation
+        UnaryOperatorCode IUnary.Operation
         {
             get { return Expression.DeriveUnaryOperatorCode(this.OperatorKind); }
         }
 
-        Semantics.IExpression Semantics.IUnary.Operand
+        IExpression IUnary.Operand
         {
             get { return this.Operand; }
         }
 
-        bool Semantics.IOperator.UsesOperatorMethod
+        bool IOperator.UsesOperatorMethod
         {
             get { return (this.OperatorKind & UnaryOperatorKind.UserDefined) != 0; }
         }
-        IMethodSymbol Semantics.IOperator.Operator
+        IMethodSymbol IOperator.Operator
         {
             get { return this.MethodOpt; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.UnaryOperator; }
+            get { return OperationKind.UnaryOperator; }
         }
     }
 
-    partial class BoundBinaryOperator : Semantics.IBinary, Semantics.IRelational
+    partial class BoundBinaryOperator : IBinary, IRelational
     {
-        Semantics.BinaryOperatorCode Semantics.IBinary.Operation
+        BinaryOperatorCode IBinary.Operation
         {
             get { return Expression.DeriveBinaryOperatorCode(this.OperatorKind); }
         }
 
-        Semantics.IExpression Semantics.IBinary.Left
+        IExpression IBinary.Left
         {
             get { return this.Left; }
         }
 
-        Semantics.IExpression Semantics.IBinary.Right
+        IExpression IBinary.Right
         {
             get { return this.Right; }
         }
 
-        Semantics.RelationalOperatorCode Semantics.IRelational.RelationalCode
+        RelationalOperatorCode IRelational.RelationalCode
         {
             get { return Expression.DeriveRelationalOperatorCode(this.OperatorKind); }
         }
 
-        Semantics.IExpression Semantics.IRelational.Left
+        IExpression IRelational.Left
         {
             get { return this.Left; }
         }
 
-        Semantics.IExpression Semantics.IRelational.Right
+        IExpression IRelational.Right
         {
             get { return this.Right; }
         }
    
-        bool Semantics.IOperator.UsesOperatorMethod
+        bool IOperator.UsesOperatorMethod
         {
             get { return (this.OperatorKind & BinaryOperatorKind.UserDefined) != 0; }
         }
 
-        IMethodSymbol Semantics.IOperator.Operator
+        IMethodSymbol IOperator.Operator
         {
             get { return this.MethodOpt; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
             get
             {
@@ -874,165 +888,165 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.And:
                     case BinaryOperatorKind.Or:
                     case BinaryOperatorKind.Xor:
-                        return Semantics.OperationKind.BinaryOperator;
+                        return OperationKind.BinaryOperator;
                     case BinaryOperatorKind.LessThan:
                     case BinaryOperatorKind.LessThanOrEqual:
                     case BinaryOperatorKind.Equal:
                     case BinaryOperatorKind.NotEqual:
                     case BinaryOperatorKind.GreaterThan:
                     case BinaryOperatorKind.GreaterThanOrEqual:
-                        return Semantics.OperationKind.RelationalOperator;
+                        return OperationKind.RelationalOperator;
                 }
 
-                return Semantics.OperationKind.None;
+                return OperationKind.None;
             }
         }
     }
 
-    partial class BoundConditionalOperator : Semantics.IConditionalChoice
+    partial class BoundConditionalOperator : IConditionalChoice
     {
-        Semantics.IExpression Semantics.IConditionalChoice.Condition
+        IExpression IConditionalChoice.Condition
         {
             get { return this.Condition; }
         }
 
-        Semantics.IExpression Semantics.IConditionalChoice.IfTrue
+        IExpression IConditionalChoice.IfTrue
         {
             get { return this.Consequence; }
         }
 
-        Semantics.IExpression Semantics.IConditionalChoice.IfFalse
+        IExpression IConditionalChoice.IfFalse
         {
             get { return this.Alternative; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.ConditionalChoice; }
+            get { return OperationKind.ConditionalChoice; }
         }
     }
 
-    partial class BoundNullCoalescingOperator : Semantics.INullCoalescing
+    partial class BoundNullCoalescingOperator : INullCoalescing
     {
-        Semantics.IExpression Semantics.INullCoalescing.Primary
+        IExpression INullCoalescing.Primary
         {
             get { return this.LeftOperand; }
         }
 
-        Semantics.IExpression Semantics.INullCoalescing.Secondary
+        IExpression INullCoalescing.Secondary
         {
             get { return this.RightOperand; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.NullCoalescing; }
+            get { return OperationKind.NullCoalescing; }
         }
     }
 
-    partial class BoundAwaitExpression : Semantics.IAwait
+    partial class BoundAwaitExpression : IAwait
     {
-        Semantics.IExpression Semantics.IAwait.Upon
+        IExpression IAwait.Upon
         {
             get { return this.Expression; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.Await; }
+            get { return OperationKind.Await; }
         }
     }
 
-    partial class BoundArrayAccess : Semantics.IArrayElementReference
+    partial class BoundArrayAccess : IArrayElementReference
     {
-        Semantics.IExpression Semantics.IArrayElementReference.ArrayReference
+        IExpression IArrayElementReference.ArrayReference
         {
             get { return this.Expression; }
         }
 
-        ImmutableArray<Semantics.IExpression> Semantics.IArrayElementReference.Indices
+        ImmutableArray<IExpression> IArrayElementReference.Indices
         {
-            get { return this.Indices.As<Semantics.IExpression>(); }
+            get { return this.Indices.As<IExpression>(); }
         }
 
-        Semantics.ReferenceKind Semantics.IReference.ReferenceClass
+        ReferenceKind IReference.ReferenceClass
         {
-            get { return Semantics.ReferenceKind.ArrayElement; }
+            get { return ReferenceKind.ArrayElement; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.ArrayElementReference; }
+            get { return OperationKind.ArrayElementReference; }
         }
     }
 
-    partial class BoundPointerIndirectionOperator : Semantics.IPointerIndirectionReference
+    partial class BoundPointerIndirectionOperator : IPointerIndirectionReference
     {
-        Semantics.IExpression Semantics.IPointerIndirectionReference.Pointer
+        IExpression IPointerIndirectionReference.Pointer
         {
             get { return this.Operand; }
         }
 
-        Semantics.ReferenceKind Semantics.IReference.ReferenceClass
+        ReferenceKind IReference.ReferenceClass
         {
-            get { return Semantics.ReferenceKind.PointerIndirection; }
+            get { return ReferenceKind.PointerIndirection; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.PointerIndirectionReference; }
+            get { return OperationKind.PointerIndirectionReference; }
         }
     }
 
-    partial class BoundAddressOfOperator : Semantics.IAddressOf
+    partial class BoundAddressOfOperator : IAddressOf
     {
-        Semantics.IReference Semantics.IAddressOf.Addressed
+        IReference IAddressOf.Addressed
         {
-            get { return (Semantics.IReference)this.Operand; }
+            get { return (IReference)this.Operand; }
         }
 
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.AddressOf; }
+            get { return OperationKind.AddressOf; }
         }
     }
 
     partial class BoundImplicitReceiver
     {
-        protected override Semantics.OperationKind ExpressionKind
+        protected override OperationKind ExpressionKind
         {
-            get { return Semantics.OperationKind.ImplicitInstance; }
+            get { return OperationKind.ImplicitInstance; }
         }
     }
 
     class Expression
     {
-        internal static Semantics.UnaryOperatorCode DeriveUnaryOperatorCode(UnaryOperatorKind operatorKind)
+        internal static UnaryOperatorCode DeriveUnaryOperatorCode(UnaryOperatorKind operatorKind)
         {
             if ((operatorKind & UnaryOperatorKind.UserDefined) != 0)
             {
                 switch (operatorKind & UnaryOperatorKind.OpMask)
                 {
                     case UnaryOperatorKind.PostfixIncrement:
-                        return Semantics.UnaryOperatorCode.OperatorPostfixIncrement;
+                        return UnaryOperatorCode.OperatorPostfixIncrement;
                     case UnaryOperatorKind.PostfixDecrement:
-                        return Semantics.UnaryOperatorCode.OperatorPostfixDecrement;
+                        return UnaryOperatorCode.OperatorPostfixDecrement;
                     case UnaryOperatorKind.PrefixIncrement:
-                        return Semantics.UnaryOperatorCode.OperatorPrefixIncrement;
+                        return UnaryOperatorCode.OperatorPrefixIncrement;
                     case UnaryOperatorKind.PrefixDecrement:
-                        return Semantics.UnaryOperatorCode.OperatorPrefixDecrement;
+                        return UnaryOperatorCode.OperatorPrefixDecrement;
                     case UnaryOperatorKind.UnaryPlus:
-                        return Semantics.UnaryOperatorCode.OperatorPlus;
+                        return UnaryOperatorCode.OperatorPlus;
                     case UnaryOperatorKind.UnaryMinus:
-                        return Semantics.UnaryOperatorCode.OperatorMinus;
+                        return UnaryOperatorCode.OperatorMinus;
                     case UnaryOperatorKind.LogicalNegation:
-                        return Semantics.UnaryOperatorCode.OperatorLogicalNot;
+                        return UnaryOperatorCode.OperatorLogicalNot;
                     case UnaryOperatorKind.BitwiseComplement:
-                        return Semantics.UnaryOperatorCode.OperatorBitwiseNegation;
+                        return UnaryOperatorCode.OperatorBitwiseNegation;
                     case UnaryOperatorKind.True:
-                        return Semantics.UnaryOperatorCode.OperatorTrue;
+                        return UnaryOperatorCode.OperatorTrue;
                     case UnaryOperatorKind.False:
-                        return Semantics.UnaryOperatorCode.OperatorFalse;
+                        return UnaryOperatorCode.OperatorFalse;
                 }
             }
 
@@ -1045,24 +1059,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.SByte:
                         case UnaryOperatorKind.Short:
-                            return Semantics.UnaryOperatorCode.IntegerPostfixIncrement;
+                            return UnaryOperatorCode.IntegerPostfixIncrement;
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.ULong:
                         case UnaryOperatorKind.Byte:
                         case UnaryOperatorKind.UShort:
                         case UnaryOperatorKind.Char:
-                            return Semantics.UnaryOperatorCode.UnsignedPostfixIncrement;
+                            return UnaryOperatorCode.UnsignedPostfixIncrement;
                         case UnaryOperatorKind.Float:
                         case UnaryOperatorKind.Double:
-                            return Semantics.UnaryOperatorCode.FloatingPostfixIncrement;
+                            return UnaryOperatorCode.FloatingPostfixIncrement;
                         case UnaryOperatorKind.Decimal:
-                            return Semantics.UnaryOperatorCode.DecimalPostfixIncrement;
+                            return UnaryOperatorCode.DecimalPostfixIncrement;
                         case UnaryOperatorKind.Enum:
-                            return Semantics.UnaryOperatorCode.EnumPostfixIncrement;
+                            return UnaryOperatorCode.EnumPostfixIncrement;
                         case UnaryOperatorKind.Pointer:
-                            return Semantics.UnaryOperatorCode.PointerPostfixIncrement;
+                            return UnaryOperatorCode.PointerPostfixIncrement;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicPostfixIncrement;
+                            return UnaryOperatorCode.DynamicPostfixIncrement;
                     }
 
                     break;
@@ -1074,24 +1088,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.SByte:
                         case UnaryOperatorKind.Short:
-                            return Semantics.UnaryOperatorCode.IntegerPostfixDecrement;
+                            return UnaryOperatorCode.IntegerPostfixDecrement;
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.ULong:
                         case UnaryOperatorKind.Byte:
                         case UnaryOperatorKind.UShort:
                         case UnaryOperatorKind.Char:
-                            return Semantics.UnaryOperatorCode.UnsignedPostfixDecrement;
+                            return UnaryOperatorCode.UnsignedPostfixDecrement;
                         case UnaryOperatorKind.Float:
                         case UnaryOperatorKind.Double:
-                            return Semantics.UnaryOperatorCode.FloatingPostfixDecrement;
+                            return UnaryOperatorCode.FloatingPostfixDecrement;
                         case UnaryOperatorKind.Decimal:
-                            return Semantics.UnaryOperatorCode.DecimalPostfixDecrement;
+                            return UnaryOperatorCode.DecimalPostfixDecrement;
                         case UnaryOperatorKind.Enum:
-                            return Semantics.UnaryOperatorCode.EnumPostfixDecrement;
+                            return UnaryOperatorCode.EnumPostfixDecrement;
                         case UnaryOperatorKind.Pointer:
-                            return Semantics.UnaryOperatorCode.PointerPostfixIncrement;
+                            return UnaryOperatorCode.PointerPostfixIncrement;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicPostfixDecrement;
+                            return UnaryOperatorCode.DynamicPostfixDecrement;
                     }
 
                     break;
@@ -1103,24 +1117,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.SByte:
                         case UnaryOperatorKind.Short:
-                            return Semantics.UnaryOperatorCode.IntegerPrefixIncrement;
+                            return UnaryOperatorCode.IntegerPrefixIncrement;
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.ULong:
                         case UnaryOperatorKind.Byte:
                         case UnaryOperatorKind.UShort:
                         case UnaryOperatorKind.Char:
-                            return Semantics.UnaryOperatorCode.UnsignedPrefixIncrement;
+                            return UnaryOperatorCode.UnsignedPrefixIncrement;
                         case UnaryOperatorKind.Float:
                         case UnaryOperatorKind.Double:
-                            return Semantics.UnaryOperatorCode.FloatingPrefixIncrement;
+                            return UnaryOperatorCode.FloatingPrefixIncrement;
                         case UnaryOperatorKind.Decimal:
-                            return Semantics.UnaryOperatorCode.DecimalPrefixIncrement;
+                            return UnaryOperatorCode.DecimalPrefixIncrement;
                         case UnaryOperatorKind.Enum:
-                            return Semantics.UnaryOperatorCode.EnumPrefixIncrement;
+                            return UnaryOperatorCode.EnumPrefixIncrement;
                         case UnaryOperatorKind.Pointer:
-                            return Semantics.UnaryOperatorCode.PointerPrefixIncrement;
+                            return UnaryOperatorCode.PointerPrefixIncrement;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicPrefixIncrement;
+                            return UnaryOperatorCode.DynamicPrefixIncrement;
                     }
 
                     break;
@@ -1132,24 +1146,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.SByte:
                         case UnaryOperatorKind.Short:
-                            return Semantics.UnaryOperatorCode.IntegerPrefixDecrement;
+                            return UnaryOperatorCode.IntegerPrefixDecrement;
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.ULong:
                         case UnaryOperatorKind.Byte:
                         case UnaryOperatorKind.UShort:
                         case UnaryOperatorKind.Char:
-                            return Semantics.UnaryOperatorCode.UnsignedPrefixDecrement;
+                            return UnaryOperatorCode.UnsignedPrefixDecrement;
                         case UnaryOperatorKind.Float:
                         case UnaryOperatorKind.Double:
-                            return Semantics.UnaryOperatorCode.FloatingPrefixDecrement;
+                            return UnaryOperatorCode.FloatingPrefixDecrement;
                         case UnaryOperatorKind.Decimal:
-                            return Semantics.UnaryOperatorCode.DecimalPrefixDecrement;
+                            return UnaryOperatorCode.DecimalPrefixDecrement;
                         case UnaryOperatorKind.Enum:
-                            return Semantics.UnaryOperatorCode.EnumPrefixDecrement;
+                            return UnaryOperatorCode.EnumPrefixDecrement;
                         case UnaryOperatorKind.Pointer:
-                            return Semantics.UnaryOperatorCode.PointerPrefixIncrement;
+                            return UnaryOperatorCode.PointerPrefixIncrement;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicPrefixDecrement;
+                            return UnaryOperatorCode.DynamicPrefixDecrement;
                     }
 
                     break;
@@ -1161,14 +1175,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.ULong:
-                            return Semantics.UnaryOperatorCode.IntegerPlus;
+                            return UnaryOperatorCode.IntegerPlus;
                         case UnaryOperatorKind.Float:
                         case UnaryOperatorKind.Double:
-                            return Semantics.UnaryOperatorCode.FloatingPlus;
+                            return UnaryOperatorCode.FloatingPlus;
                         case UnaryOperatorKind.Decimal:
-                            return Semantics.UnaryOperatorCode.DecimalPlus;
+                            return UnaryOperatorCode.DecimalPlus;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicPlus;
+                            return UnaryOperatorCode.DynamicPlus;
                     }
 
                     break;
@@ -1180,14 +1194,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.ULong:
-                            return Semantics.UnaryOperatorCode.IntegerMinus;
+                            return UnaryOperatorCode.IntegerMinus;
                         case UnaryOperatorKind.Float:
                         case UnaryOperatorKind.Double:
-                            return Semantics.UnaryOperatorCode.FloatingMinus;
+                            return UnaryOperatorCode.FloatingMinus;
                         case UnaryOperatorKind.Decimal:
-                            return Semantics.UnaryOperatorCode.DecimalMinus;
+                            return UnaryOperatorCode.DecimalMinus;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicMinus;
+                            return UnaryOperatorCode.DynamicMinus;
                     }
 
                     break;
@@ -1196,9 +1210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (operatorKind & UnaryOperatorKind.TypeMask)
                     {
                         case UnaryOperatorKind.Bool:
-                            return Semantics.UnaryOperatorCode.BooleanLogicalNot;
+                            return UnaryOperatorCode.BooleanLogicalNot;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicLogicalNot;
+                            return UnaryOperatorCode.DynamicLogicalNot;
                     }
 
                     break;
@@ -1209,11 +1223,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case UnaryOperatorKind.UInt:
                         case UnaryOperatorKind.Long:
                         case UnaryOperatorKind.ULong:
-                            return Semantics.UnaryOperatorCode.IntegerBitwiseNegation;
+                            return UnaryOperatorCode.IntegerBitwiseNegation;
                         case UnaryOperatorKind.Bool:
-                            return Semantics.UnaryOperatorCode.BooleanBitwiseNegation;
+                            return UnaryOperatorCode.BooleanBitwiseNegation;
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicBitwiseNegation;
+                            return UnaryOperatorCode.DynamicBitwiseNegation;
                     }
 
                     break;
@@ -1222,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (operatorKind & UnaryOperatorKind.TypeMask)
                     {
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicTrue;
+                            return UnaryOperatorCode.DynamicTrue;
                     }
 
                     break;
@@ -1231,51 +1245,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (operatorKind & UnaryOperatorKind.TypeMask)
                     {
                         case UnaryOperatorKind.Dynamic:
-                            return Semantics.UnaryOperatorCode.DynamicFalse;
+                            return UnaryOperatorCode.DynamicFalse;
                     }
 
                     break;
             }
 
-            return Semantics.UnaryOperatorCode.None;
+            return UnaryOperatorCode.None;
         }
 
-        internal static Semantics.BinaryOperatorCode DeriveBinaryOperatorCode(BinaryOperatorKind operatorKind)
+        internal static BinaryOperatorCode DeriveBinaryOperatorCode(BinaryOperatorKind operatorKind)
         {
             if ((operatorKind & BinaryOperatorKind.UserDefined) != 0)
             {
                 switch (operatorKind & BinaryOperatorKind.OpMask)
                 {
                     case BinaryOperatorKind.Addition:
-                        return Semantics.BinaryOperatorCode.OperatorAdd;
+                        return BinaryOperatorCode.OperatorAdd;
                     case BinaryOperatorKind.Subtraction:
-                        return Semantics.BinaryOperatorCode.OperatorSubtract;
+                        return BinaryOperatorCode.OperatorSubtract;
                     case BinaryOperatorKind.Multiplication:
-                        return Semantics.BinaryOperatorCode.OperatorMultiply;
+                        return BinaryOperatorCode.OperatorMultiply;
                     case BinaryOperatorKind.Division:
-                        return Semantics.BinaryOperatorCode.OperatorDivide;
+                        return BinaryOperatorCode.OperatorDivide;
                     case BinaryOperatorKind.Remainder:
-                        return Semantics.BinaryOperatorCode.OperatorRemainder;
+                        return BinaryOperatorCode.OperatorRemainder;
                     case BinaryOperatorKind.LeftShift:
-                        return Semantics.BinaryOperatorCode.OperatorLeftShift;
+                        return BinaryOperatorCode.OperatorLeftShift;
                     case BinaryOperatorKind.RightShift:
-                        return Semantics.BinaryOperatorCode.OperatorRightShift;
+                        return BinaryOperatorCode.OperatorRightShift;
                     case BinaryOperatorKind.And:
                         if ((operatorKind & BinaryOperatorKind.Logical) != 0)
                         {
-                            return Semantics.BinaryOperatorCode.OperatorConditionalAnd;
+                            return BinaryOperatorCode.OperatorConditionalAnd;
                         }
 
-                        return Semantics.BinaryOperatorCode.OperatorAnd;
+                        return BinaryOperatorCode.OperatorAnd;
                     case BinaryOperatorKind.Or:
                         if ((operatorKind & BinaryOperatorKind.Logical) != 0)
                         {
-                            return Semantics.BinaryOperatorCode.OperatorConditionalOr;
+                            return BinaryOperatorCode.OperatorConditionalOr;
                         }
 
-                        return Semantics.BinaryOperatorCode.OperatorOr;
+                        return BinaryOperatorCode.OperatorOr;
                     case BinaryOperatorKind.Xor:
-                        return Semantics.BinaryOperatorCode.OperatorXor;
+                        return BinaryOperatorCode.OperatorXor;
                 }
             }
 
@@ -1286,34 +1300,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerAdd;
+                            return BinaryOperatorCode.IntegerAdd;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedAdd;
+                            return BinaryOperatorCode.UnsignedAdd;
                         case BinaryOperatorKind.Double:
                         case BinaryOperatorKind.Float:
-                            return Semantics.BinaryOperatorCode.FloatingAdd;
+                            return BinaryOperatorCode.FloatingAdd;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.BinaryOperatorCode.DecimalAdd;
+                            return BinaryOperatorCode.DecimalAdd;
                         case BinaryOperatorKind.EnumAndUnderlying:
                         case BinaryOperatorKind.UnderlyingAndEnum:
-                            return Semantics.BinaryOperatorCode.EnumAdd;
+                            return BinaryOperatorCode.EnumAdd;
                         case BinaryOperatorKind.PointerAndInt:
                         case BinaryOperatorKind.PointerAndUInt:
                         case BinaryOperatorKind.PointerAndLong:
                         case BinaryOperatorKind.PointerAndULong:
-                            return Semantics.BinaryOperatorCode.PointerIntegerAdd;
+                            return BinaryOperatorCode.PointerIntegerAdd;
                         case BinaryOperatorKind.IntAndPointer:
                         case BinaryOperatorKind.UIntAndPointer:
                         case BinaryOperatorKind.LongAndPointer:
                         case BinaryOperatorKind.ULongAndPointer:
-                            return Semantics.BinaryOperatorCode.IntegerPointerAdd;
+                            return BinaryOperatorCode.IntegerPointerAdd;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicAdd;
+                            return BinaryOperatorCode.DynamicAdd;
                         case BinaryOperatorKind.String:
                         case BinaryOperatorKind.StringAndObject:
                         case BinaryOperatorKind.ObjectAndString:
-                            return Semantics.BinaryOperatorCode.StringConcatenation;
+                            return BinaryOperatorCode.StringConcatenation;
                     }
 
                     break;
@@ -1323,27 +1337,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerSubtract;
+                            return BinaryOperatorCode.IntegerSubtract;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedSubtract;
+                            return BinaryOperatorCode.UnsignedSubtract;
                         case BinaryOperatorKind.Double:
                         case BinaryOperatorKind.Float:
-                            return Semantics.BinaryOperatorCode.FloatingSubtract;
+                            return BinaryOperatorCode.FloatingSubtract;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.BinaryOperatorCode.DecimalSubtract;
+                            return BinaryOperatorCode.DecimalSubtract;
                         case BinaryOperatorKind.EnumAndUnderlying:
                         case BinaryOperatorKind.UnderlyingAndEnum:
-                            return Semantics.BinaryOperatorCode.EnumSubtract;
+                            return BinaryOperatorCode.EnumSubtract;
                         case BinaryOperatorKind.PointerAndInt:
                         case BinaryOperatorKind.PointerAndUInt:
                         case BinaryOperatorKind.PointerAndLong:
                         case BinaryOperatorKind.PointerAndULong:
-                            return Semantics.BinaryOperatorCode.PointerIntegerSubtract;
+                            return BinaryOperatorCode.PointerIntegerSubtract;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.BinaryOperatorCode.PointerSubtract;
+                            return BinaryOperatorCode.PointerSubtract;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicSubtract;
+                            return BinaryOperatorCode.DynamicSubtract;
                     }
 
                     break;
@@ -1353,17 +1367,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerMultiply;
+                            return BinaryOperatorCode.IntegerMultiply;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedMultiply;
+                            return BinaryOperatorCode.UnsignedMultiply;
                         case BinaryOperatorKind.Double:
                         case BinaryOperatorKind.Float:
-                            return Semantics.BinaryOperatorCode.FloatingMultiply;
+                            return BinaryOperatorCode.FloatingMultiply;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.BinaryOperatorCode.DecimalMultiply;
+                            return BinaryOperatorCode.DecimalMultiply;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicMultiply;
+                            return BinaryOperatorCode.DynamicMultiply;
                     }
 
                     break;
@@ -1373,17 +1387,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerDivide;
+                            return BinaryOperatorCode.IntegerDivide;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedDivide;
+                            return BinaryOperatorCode.UnsignedDivide;
                         case BinaryOperatorKind.Double:
                         case BinaryOperatorKind.Float:
-                            return Semantics.BinaryOperatorCode.FloatingDivide;
+                            return BinaryOperatorCode.FloatingDivide;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.BinaryOperatorCode.DecimalDivide;
+                            return BinaryOperatorCode.DecimalDivide;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicDivide;
+                            return BinaryOperatorCode.DynamicDivide;
                     }
 
                     break;
@@ -1393,15 +1407,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerRemainder;
+                            return BinaryOperatorCode.IntegerRemainder;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedRemainder;
+                            return BinaryOperatorCode.UnsignedRemainder;
                         case BinaryOperatorKind.Double:
                         case BinaryOperatorKind.Float:
-                            return Semantics.BinaryOperatorCode.FloatingRemainder;
+                            return BinaryOperatorCode.FloatingRemainder;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicRemainder;
+                            return BinaryOperatorCode.DynamicRemainder;
                     }
 
                     break;
@@ -1411,12 +1425,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerLeftShift;
+                            return BinaryOperatorCode.IntegerLeftShift;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedLeftShift;
+                            return BinaryOperatorCode.UnsignedLeftShift;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicLeftShift;
+                            return BinaryOperatorCode.DynamicLeftShift;
                     }
 
                     break;
@@ -1426,12 +1440,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerRightShift;
+                            return BinaryOperatorCode.IntegerRightShift;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedRightShift;
+                            return BinaryOperatorCode.UnsignedRightShift;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicRightShift;
+                            return BinaryOperatorCode.DynamicRightShift;
                     }
 
                     break;
@@ -1441,21 +1455,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerAnd;
+                            return BinaryOperatorCode.IntegerAnd;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedAnd;
+                            return BinaryOperatorCode.UnsignedAnd;
                         case BinaryOperatorKind.Bool:
                             if ((operatorKind & BinaryOperatorKind.Logical) != 0)
                             {
-                                return Semantics.BinaryOperatorCode.BooleanConditionalAnd;
+                                return BinaryOperatorCode.BooleanConditionalAnd;
                             }
 
-                            return Semantics.BinaryOperatorCode.BooleanAnd;
+                            return BinaryOperatorCode.BooleanAnd;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.BinaryOperatorCode.EnumAnd;
+                            return BinaryOperatorCode.EnumAnd;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicAnd;
+                            return BinaryOperatorCode.DynamicAnd;
                     }
 
                     break;
@@ -1465,21 +1479,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerOr;
+                            return BinaryOperatorCode.IntegerOr;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedOr;
+                            return BinaryOperatorCode.UnsignedOr;
                         case BinaryOperatorKind.Bool:
                             if ((operatorKind & BinaryOperatorKind.Logical) != 0)
                             {
-                                return Semantics.BinaryOperatorCode.BooleanConditionalOr;
+                                return BinaryOperatorCode.BooleanConditionalOr;
                             }
 
-                            return Semantics.BinaryOperatorCode.BooleanOr;
+                            return BinaryOperatorCode.BooleanOr;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.BinaryOperatorCode.EnumOr;
+                            return BinaryOperatorCode.EnumOr;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicOr;
+                            return BinaryOperatorCode.DynamicOr;
                     }
 
                     break;
@@ -1489,42 +1503,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.BinaryOperatorCode.IntegerXor;
+                            return BinaryOperatorCode.IntegerXor;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.BinaryOperatorCode.UnsignedXor;
+                            return BinaryOperatorCode.UnsignedXor;
                         case BinaryOperatorKind.Bool:
-                            return Semantics.BinaryOperatorCode.BooleanXor;
+                            return BinaryOperatorCode.BooleanXor;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.BinaryOperatorCode.EnumXor;
+                            return BinaryOperatorCode.EnumXor;
                         case BinaryOperatorKind.Dynamic:
-                            return Semantics.BinaryOperatorCode.DynamicXor;
+                            return BinaryOperatorCode.DynamicXor;
                     }
 
                     break;
             }
 
-            return Semantics.BinaryOperatorCode.None;
+            return BinaryOperatorCode.None;
         }
 
-        internal static Semantics.RelationalOperatorCode DeriveRelationalOperatorCode(BinaryOperatorKind operatorKind)
+        internal static RelationalOperatorCode DeriveRelationalOperatorCode(BinaryOperatorKind operatorKind)
         {
             if ((operatorKind & BinaryOperatorKind.UserDefined) != 0)
             {
                 switch (operatorKind & BinaryOperatorKind.OpMask)
                 {
                     case BinaryOperatorKind.LessThan:
-                        return Semantics.RelationalOperatorCode.OperatorLess;
+                        return RelationalOperatorCode.OperatorLess;
                     case BinaryOperatorKind.LessThanOrEqual:
-                        return Semantics.RelationalOperatorCode.OperatorLessEqual;
+                        return RelationalOperatorCode.OperatorLessEqual;
                     case BinaryOperatorKind.Equal:
-                        return Semantics.RelationalOperatorCode.OperatorEqual;
+                        return RelationalOperatorCode.OperatorEqual;
                     case BinaryOperatorKind.NotEqual:
-                        return Semantics.RelationalOperatorCode.OperatorNotEqual;
+                        return RelationalOperatorCode.OperatorNotEqual;
                     case BinaryOperatorKind.GreaterThanOrEqual:
-                        return Semantics.RelationalOperatorCode.OperatorGreaterEqual;
+                        return RelationalOperatorCode.OperatorGreaterEqual;
                     case BinaryOperatorKind.GreaterThan:
-                        return Semantics.RelationalOperatorCode.OperatorGreater;
+                        return RelationalOperatorCode.OperatorGreater;
                 }
             }
 
@@ -1535,19 +1549,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.RelationalOperatorCode.IntegerLess;
+                            return RelationalOperatorCode.IntegerLess;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.RelationalOperatorCode.UnsignedLess;
+                            return RelationalOperatorCode.UnsignedLess;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return Semantics.RelationalOperatorCode.FloatingLess;
+                            return RelationalOperatorCode.FloatingLess;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.RelationalOperatorCode.DecimalLess;
+                            return RelationalOperatorCode.DecimalLess;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.RelationalOperatorCode.PointerLess;
+                            return RelationalOperatorCode.PointerLess;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.RelationalOperatorCode.EnumLess;
+                            return RelationalOperatorCode.EnumLess;
                     }
 
                     break;
@@ -1557,19 +1571,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.RelationalOperatorCode.IntegerLessEqual;
+                            return RelationalOperatorCode.IntegerLessEqual;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.RelationalOperatorCode.UnsignedLessEqual;
+                            return RelationalOperatorCode.UnsignedLessEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return Semantics.RelationalOperatorCode.FloatingLessEqual;
+                            return RelationalOperatorCode.FloatingLessEqual;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.RelationalOperatorCode.DecimalLessEqual;
+                            return RelationalOperatorCode.DecimalLessEqual;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.RelationalOperatorCode.PointerLessEqual;
+                            return RelationalOperatorCode.PointerLessEqual;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.RelationalOperatorCode.EnumLessEqual;
+                            return RelationalOperatorCode.EnumLessEqual;
                     }
 
                     break;
@@ -1581,26 +1595,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Long:
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.RelationalOperatorCode.IntegerEqual;
+                            return RelationalOperatorCode.IntegerEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return Semantics.RelationalOperatorCode.FloatingEqual;
+                            return RelationalOperatorCode.FloatingEqual;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.RelationalOperatorCode.DecimalEqual;
+                            return RelationalOperatorCode.DecimalEqual;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.RelationalOperatorCode.PointerEqual;
+                            return RelationalOperatorCode.PointerEqual;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.RelationalOperatorCode.EnumEqual;
+                            return RelationalOperatorCode.EnumEqual;
                         case BinaryOperatorKind.Bool:
-                            return Semantics.RelationalOperatorCode.BooleanEqual;
+                            return RelationalOperatorCode.BooleanEqual;
                         case BinaryOperatorKind.String:
-                            return Semantics.RelationalOperatorCode.StringEqual;
+                            return RelationalOperatorCode.StringEqual;
                         case BinaryOperatorKind.Object:
-                            return Semantics.RelationalOperatorCode.ObjectEqual;
+                            return RelationalOperatorCode.ObjectEqual;
                         case BinaryOperatorKind.Delegate:
-                            return Semantics.RelationalOperatorCode.DelegateEqual;
+                            return RelationalOperatorCode.DelegateEqual;
                         case BinaryOperatorKind.NullableNull:
-                            return Semantics.RelationalOperatorCode.NullableEqual;
+                            return RelationalOperatorCode.NullableEqual;
                     }
 
                     break;
@@ -1612,26 +1626,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BinaryOperatorKind.Long:
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.RelationalOperatorCode.IntegerNotEqual;
+                            return RelationalOperatorCode.IntegerNotEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return Semantics.RelationalOperatorCode.FloatingNotEqual;
+                            return RelationalOperatorCode.FloatingNotEqual;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.RelationalOperatorCode.DecimalNotEqual;
+                            return RelationalOperatorCode.DecimalNotEqual;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.RelationalOperatorCode.PointerNotEqual;
+                            return RelationalOperatorCode.PointerNotEqual;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.RelationalOperatorCode.EnumNotEqual;
+                            return RelationalOperatorCode.EnumNotEqual;
                         case BinaryOperatorKind.Bool:
-                            return Semantics.RelationalOperatorCode.BooleanNotEqual;
+                            return RelationalOperatorCode.BooleanNotEqual;
                         case BinaryOperatorKind.String:
-                            return Semantics.RelationalOperatorCode.StringNotEqual;
+                            return RelationalOperatorCode.StringNotEqual;
                         case BinaryOperatorKind.Object:
-                            return Semantics.RelationalOperatorCode.ObjectNotEqual;
+                            return RelationalOperatorCode.ObjectNotEqual;
                         case BinaryOperatorKind.Delegate:
-                            return Semantics.RelationalOperatorCode.DelegateNotEqual;
+                            return RelationalOperatorCode.DelegateNotEqual;
                         case BinaryOperatorKind.NullableNull:
-                            return Semantics.RelationalOperatorCode.NullableNotEqual;
+                            return RelationalOperatorCode.NullableNotEqual;
                     }
 
                     break;
@@ -1641,19 +1655,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.RelationalOperatorCode.IntegerGreaterEqual;
+                            return RelationalOperatorCode.IntegerGreaterEqual;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.RelationalOperatorCode.UnsignedGreaterEqual;
+                            return RelationalOperatorCode.UnsignedGreaterEqual;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return Semantics.RelationalOperatorCode.FloatingGreaterEqual;
+                            return RelationalOperatorCode.FloatingGreaterEqual;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.RelationalOperatorCode.DecimalGreaterEqual;
+                            return RelationalOperatorCode.DecimalGreaterEqual;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.RelationalOperatorCode.PointerGreaterEqual;
+                            return RelationalOperatorCode.PointerGreaterEqual;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.RelationalOperatorCode.EnumGreaterEqual;
+                            return RelationalOperatorCode.EnumGreaterEqual;
                     }
 
                     break;
@@ -1663,25 +1677,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BinaryOperatorKind.Int:
                         case BinaryOperatorKind.Long:
-                            return Semantics.RelationalOperatorCode.IntegerGreater;
+                            return RelationalOperatorCode.IntegerGreater;
                         case BinaryOperatorKind.UInt:
                         case BinaryOperatorKind.ULong:
-                            return Semantics.RelationalOperatorCode.UnsignedGreater;
+                            return RelationalOperatorCode.UnsignedGreater;
                         case BinaryOperatorKind.Float:
                         case BinaryOperatorKind.Double:
-                            return Semantics.RelationalOperatorCode.FloatingGreater;
+                            return RelationalOperatorCode.FloatingGreater;
                         case BinaryOperatorKind.Decimal:
-                            return Semantics.RelationalOperatorCode.DecimalGreater;
+                            return RelationalOperatorCode.DecimalGreater;
                         case BinaryOperatorKind.Pointer:
-                            return Semantics.RelationalOperatorCode.PointerGreater;
+                            return RelationalOperatorCode.PointerGreater;
                         case BinaryOperatorKind.Enum:
-                            return Semantics.RelationalOperatorCode.EnumGreater;
+                            return RelationalOperatorCode.EnumGreater;
                     }
 
                     break;
             }
 
-            return Semantics.RelationalOperatorCode.None;
+            return RelationalOperatorCode.None;
         }
     }
 }

@@ -40,9 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundExpression
-        Implements Semantics.IExpression
+        Implements IExpression
 
-        Private ReadOnly Property IConstantValue As Object Implements Semantics.IExpression.ConstantValue
+        Private ReadOnly Property IConstantValue As Object Implements IExpression.ConstantValue
             Get
                 Dim value As ConstantValue = Me.ConstantValueOpt
                 If value Is Nothing Then
@@ -53,19 +53,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IKind As Semantics.OperationKind Implements Semantics.IOperation.Kind
+        Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
                 Return Me.ExpressionKind()
             End Get
         End Property
 
-        Private ReadOnly Property IResultType As ITypeSymbol Implements Semantics.IExpression.ResultType
+        Private ReadOnly Property IResultType As ITypeSymbol Implements IExpression.ResultType
             Get
                 Return Me.Type
             End Get
         End Property
 
-        Private ReadOnly Property ISyntax As SyntaxNode Implements Semantics.IOperation.Syntax
+        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
             End Get
@@ -73,24 +73,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         'Protected MustOverride Function ExpressionKind() As Unified.ExpressionKind
 
-        Protected Overridable Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.None
+        Protected Overridable Function ExpressionKind() As OperationKind
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundAssignmentOperator
-        Implements Semantics.IAssignment
-        Implements Semantics.ICompoundAssignment
+        Implements IAssignment
+        Implements ICompoundAssignment
 
-        Private ReadOnly Property ITarget As Semantics.IReference Implements Semantics.IAssignment.Target
+        Private ReadOnly Property ITarget As IReference Implements IAssignment.Target
             Get
-                Return TryCast(Me.Left, Semantics.IReference)
+                Return TryCast(Me.Left, IReference)
             End Get
         End Property
 
-        Private ReadOnly Property IValue As Semantics.IExpression Implements Semantics.IAssignment.Value
+        Private ReadOnly Property IValue As IExpression Implements IAssignment.Value
             Get
-                If ExpressionKind() = Semantics.OperationKind.CompoundAssignment Then
+                If ExpressionKind() = OperationKind.CompoundAssignment Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
                     If rightBinary IsNot Nothing Then
                         Return rightBinary.Right
@@ -106,9 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IOperation As Semantics.BinaryOperatorCode Implements Semantics.ICompoundAssignment.Operation
+        Private ReadOnly Property IOperation As BinaryOperatorCode Implements ICompoundAssignment.Operation
             Get
-                If ExpressionKind() = Semantics.OperationKind.CompoundAssignment Then
+                If ExpressionKind() = OperationKind.CompoundAssignment Then
                     Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
                     If rightBinary IsNot Nothing Then
                         Return Expression.DeriveBinaryOperatorCode(rightBinary.OperatorKind, Me.Left)
@@ -120,11 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                Return Semantics.BinaryOperatorCode.None
+                Return BinaryOperatorCode.None
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 If Me.IUsesOperatorMethod Then
                     Return DirectCast(Me.Right, BoundUserDefinedBinaryOperator).Call.Method
@@ -134,9 +134,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
-                If ExpressionKind() = Semantics.OperationKind.CompoundAssignment Then
+                If ExpressionKind() = OperationKind.CompoundAssignment Then
                     Return TypeOf Me.Right Is BoundUserDefinedBinaryOperator
                 End If
 
@@ -144,141 +144,141 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
+        Protected Overrides Function ExpressionKind() As OperationKind
             Dim rightBinary As BoundBinaryOperator = TryCast(Me.Right, BoundBinaryOperator)
             If rightBinary IsNot Nothing Then
                 If TypeOf rightBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
-                    Return Semantics.OperationKind.CompoundAssignment
+                    Return OperationKind.CompoundAssignment
                 End If
             End If
 
             Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = TryCast(Me.Right, BoundUserDefinedBinaryOperator)
             If rightOperatorBinary IsNot Nothing Then
                 If TypeOf rightOperatorBinary.Left Is BoundCompoundAssignmentTargetPlaceholder Then
-                    Return Semantics.OperationKind.CompoundAssignment
+                    Return OperationKind.CompoundAssignment
                 End If
             End If
 
-            Return Semantics.OperationKind.Assignment
+            Return OperationKind.Assignment
         End Function
     End Class
 
     Partial Class BoundMeReference
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Instance
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Instance
         End Function
     End Class
 
     Partial Class BoundMyBaseReference
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.BaseClassInstance
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.BaseClassInstance
         End Function
     End Class
 
     Partial Class BoundMyClassReference
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ClassInstance
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ClassInstance
         End Function
     End Class
 
     Partial Class BoundLiteral
-        Implements Semantics.ILiteral
+        Implements ILiteral
 
-        Private ReadOnly Property ILiteralClass As Semantics.LiteralKind Implements Semantics.ILiteral.LiteralClass
+        Private ReadOnly Property ILiteralClass As LiteralKind Implements ILiteral.LiteralClass
             Get
                 Return Semantics.Expression.DeriveLiteralKind(Me.Type)
             End Get
         End Property
 
-        Private ReadOnly Property ISpelling As String Implements Semantics.ILiteral.Spelling
+        Private ReadOnly Property ISpelling As String Implements ILiteral.Spelling
             Get
                 Return Me.Syntax.ToString()
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Literal
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Literal
         End Function
     End Class
 
     Partial Class BoundAwaitOperator
-        Implements Semantics.IAwait
+        Implements IAwait
 
-        Private ReadOnly Property IUpon As Semantics.IExpression Implements Semantics.IAwait.Upon
+        Private ReadOnly Property IUpon As IExpression Implements IAwait.Upon
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Await
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Await
         End Function
     End Class
 
     Partial Class BoundLambda
-        Implements Semantics.ILambda
+        Implements ILambda
 
-        Private ReadOnly Property IBody As Semantics.IBlock Implements Semantics.ILambda.Body
+        Private ReadOnly Property IBody As IBlock Implements ILambda.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ISignature As IMethodSymbol Implements Semantics.ILambda.Signature
+        Private ReadOnly Property ISignature As IMethodSymbol Implements ILambda.Signature
             Get
                 Return Me.LambdaSymbol
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Lambda
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Lambda
         End Function
     End Class
 
     Partial Class BoundCall
-        Implements Semantics.IInvocation
+        Implements IInvocation
 
-        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As Semantics.IArgument Implements Semantics.IInvocation.ArgumentMatchingParameter
+        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IInvocation.ArgumentMatchingParameter
             Return ArgumentMatchingParameter(Me.Arguments, parameter)
         End Function
 
-        Private ReadOnly Property IArguments As ImmutableArray(Of Semantics.IArgument) Implements Semantics.IInvocation.Arguments
+        Private ReadOnly Property IArguments As ImmutableArray(Of IArgument) Implements IInvocation.Arguments
             Get
                 Return DeriveArguments(Me.Arguments)
             End Get
         End Property
 
-        Private ReadOnly Property IInvocationClass As Semantics.InvocationKind Implements Semantics.IInvocation.InvocationClass
+        Private ReadOnly Property IInvocationClass As InvocationKind Implements IInvocation.InvocationClass
             Get
                 If Me.Method.IsShared Then
-                    Return Semantics.InvocationKind.Static
+                    Return InvocationKind.Static
                 End If
 
                 If Me.Method.IsOverridable AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso Me.ReceiverOpt.Kind <> BoundKind.MyClassReference Then
-                    Return Semantics.InvocationKind.Virtual
+                    Return InvocationKind.Virtual
                 End If
 
-                Return Semantics.InvocationKind.NonVirtualInstance
+                Return InvocationKind.NonVirtualInstance
             End Get
         End Property
 
-        Private ReadOnly Property TargetMethod As IMethodSymbol Implements Semantics.IInvocation.TargetMethod
+        Private ReadOnly Property TargetMethod As IMethodSymbol Implements IInvocation.TargetMethod
             Get
                 Return Me.Method
             End Get
         End Property
 
-        Private ReadOnly Property IInstance As Semantics.IExpression Implements Semantics.IInvocation.Instance
+        Private ReadOnly Property IInstance As IExpression Implements IInvocation.Instance
             Get
                 Return Me.ReceiverOpt
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Invocation
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Invocation
         End Function
 
-        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol) As Semantics.IArgument
+        Friend Shared Function ArgumentMatchingParameter(arguments As ImmutableArray(Of BoundExpression), parameter As IParameterSymbol) As IArgument
             Dim index As Integer = parameter.Ordinal
             If index <= arguments.Length Then
                 Return DeriveArgument(arguments(index))
@@ -287,9 +287,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Semantics.IArgument)
+        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
-            Dim arguments As ArrayBuilder(Of Semantics.IArgument) = ArrayBuilder(Of Semantics.IArgument).GetInstance(argumentsLength)
+            Dim arguments As ArrayBuilder(Of IArgument) = ArrayBuilder(Of IArgument).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
                 arguments(index) = DeriveArgument(boundArguments(index))
             Next
@@ -297,50 +297,52 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return arguments.ToImmutableAndFree()
         End Function
 
-        Private Shared Function DeriveArgument(argument As BoundExpression) As Semantics.IArgument
+        Private Shared ArgumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
+
+        Private Shared Function DeriveArgument(argument As BoundExpression) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Return DirectCast(argument, BoundByRefArgumentWithCopyBack)
                 Case Else
-                    Return New Argument(argument)
+                    Return ArgumentMappings.GetValue(argument, Function(a) New Argument(a))
             End Select
         End Function
 
         Private Class Argument
-            Implements Semantics.IArgument
+            Implements IArgument
 
-            Private ReadOnly _Value As Semantics.IExpression
+            Private ReadOnly _Value As IExpression
 
-            Public Sub New(value As Semantics.IExpression)
+            Public Sub New(value As IExpression)
                 Me._Value = value
             End Sub
 
-            Public ReadOnly Property ArgumentClass As Semantics.ArgumentKind Implements Semantics.IArgument.ArgumentClass
+            Public ReadOnly Property ArgumentClass As ArgumentKind Implements IArgument.ArgumentClass
                 Get
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
-                    Return Semantics.ArgumentKind.Positional
+                    Return ArgumentKind.Positional
                 End Get
             End Property
 
-            Public ReadOnly Property Mode As Semantics.ArgumentMode Implements Semantics.IArgument.Mode
+            Public ReadOnly Property Mode As ArgumentMode Implements IArgument.Mode
                 Get
-                    Return Semantics.ArgumentMode.In
+                    Return ArgumentMode.In
                 End Get
             End Property
 
-            Public ReadOnly Property Value As Semantics.IExpression Implements Semantics.IArgument.Value
+            Public ReadOnly Property Value As IExpression Implements IArgument.Value
                 Get
                     Return Me._Value
                 End Get
             End Property
 
-            Public ReadOnly Property InConversion As Semantics.IExpression Implements Semantics.IArgument.InConversion
+            Public ReadOnly Property InConversion As IExpression Implements IArgument.InConversion
                 Get
                     Return Nothing
                 End Get
             End Property
 
-            Public ReadOnly Property OutConversion As Semantics.IExpression Implements Semantics.IArgument.OutConversion
+            Public ReadOnly Property OutConversion As IExpression Implements IArgument.OutConversion
                 Get
                     Return Nothing
                 End Get
@@ -349,626 +351,626 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundByRefArgumentWithCopyBack
-        Implements Semantics.IArgument
+        Implements IArgument
 
-        Private ReadOnly Property IArgumentClass As Semantics.ArgumentKind Implements Semantics.IArgument.ArgumentClass
+        Private ReadOnly Property IArgumentClass As ArgumentKind Implements IArgument.ArgumentClass
             Get
                 ' Do the VB bound trees encode named arguments?
-                Return Semantics.ArgumentKind.Positional
+                Return ArgumentKind.Positional
             End Get
         End Property
 
-        Private ReadOnly Property IMode As Semantics.ArgumentMode Implements Semantics.IArgument.Mode
+        Private ReadOnly Property IMode As ArgumentMode Implements IArgument.Mode
             Get
                 If Me.InPlaceholder IsNot Nothing AndAlso Me.InPlaceholder.IsOut Then
-                    Return Semantics.ArgumentMode.Out
+                    Return ArgumentMode.Out
                 End If
 
-                Return Semantics.ArgumentMode.Reference
+                Return ArgumentMode.Reference
             End Get
         End Property
 
-        Private ReadOnly Property IValue As Semantics.IExpression Implements Semantics.IArgument.Value
+        Private ReadOnly Property IValue As IExpression Implements IArgument.Value
             Get
                 Return Me.OriginalArgument
             End Get
         End Property
 
-        Private ReadOnly Property IInConversion As Semantics.IExpression Implements Semantics.IArgument.InConversion
+        Private ReadOnly Property IInConversion As IExpression Implements IArgument.InConversion
             Get
                 Return Me.InConversion
             End Get
         End Property
 
-        Private ReadOnly Property IOutConversion As Semantics.IExpression Implements Semantics.IArgument.OutConversion
+        Private ReadOnly Property IOutConversion As IExpression Implements IArgument.OutConversion
             Get
                 Return Me.OutConversion
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.None
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundOmittedArgument
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Omitted
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Omitted
         End Function
     End Class
 
     Partial Class BoundParenthesized
-        Implements Semantics.IParenthesized
+        Implements IParenthesized
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IParenthesized.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IParenthesized.Operand
             Get
                 Return Me.Expression
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Parenthesized
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Parenthesized
         End Function
     End Class
 
     Partial Class BoundArrayAccess
-        Implements Semantics.IArrayElementReference
+        Implements IArrayElementReference
 
-        Private ReadOnly Property IArrayReference As Semantics.IExpression Implements Semantics.IArrayElementReference.ArrayReference
+        Private ReadOnly Property IArrayReference As IExpression Implements IArrayElementReference.ArrayReference
             Get
                 Return Me.Expression
             End Get
         End Property
 
-        Private ReadOnly Property IIndices As ImmutableArray(Of Semantics.IExpression) Implements Semantics.IArrayElementReference.Indices
+        Private ReadOnly Property IIndices As ImmutableArray(Of IExpression) Implements IArrayElementReference.Indices
             Get
-                Return Me.Indices.As(Of Semantics.IExpression)()
+                Return Me.Indices.As(Of IExpression)()
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+        Private ReadOnly Property IReferenceClass As ReferenceKind Implements IReference.ReferenceClass
             Get
-                Return Semantics.ReferenceKind.ArrayElement
+                Return ReferenceKind.ArrayElement
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ArrayElementReference
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ArrayElementReference
         End Function
     End Class
 
     Partial Class BoundUnaryOperator
-        Implements Semantics.IUnary
+        Implements IUnary
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return False
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IUnary.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IUnary.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperation As Semantics.UnaryOperatorCode Implements Semantics.IUnary.Operation
+        Private ReadOnly Property IOperation As UnaryOperatorCode Implements IUnary.Operation
             Get
                 Return DeriveUnaryOperatorCode(Me.OperatorKind, Me.Operand)
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.UnaryOperator
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.UnaryOperator
         End Function
     End Class
 
     Partial Class BoundUserDefinedUnaryOperator
-        Implements Semantics.IUnary
+        Implements IUnary
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IUnary.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IUnary.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperation As Semantics.UnaryOperatorCode Implements Semantics.IUnary.Operation
+        Private ReadOnly Property IOperation As UnaryOperatorCode Implements IUnary.Operation
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
-                        Return Semantics.UnaryOperatorCode.OperatorPlus
+                        Return UnaryOperatorCode.OperatorPlus
                     Case UnaryOperatorKind.Minus
-                        Return Semantics.UnaryOperatorCode.OperatorMinus
+                        Return UnaryOperatorCode.OperatorMinus
                     Case UnaryOperatorKind.Not
-                        Return Semantics.UnaryOperatorCode.OperatorBitwiseNegation
+                        Return UnaryOperatorCode.OperatorBitwiseNegation
                 End Select
 
-                Return Semantics.UnaryOperatorCode.None
+                Return UnaryOperatorCode.None
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.UnaryOperator
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.UnaryOperator
         End Function
     End Class
 
     Partial Class BoundBinaryOperator
-        Implements Semantics.IBinary
-        Implements Semantics.IRelational
+        Implements IBinary
+        Implements IRelational
 
-        Private ReadOnly Property ILeft As Semantics.IExpression Implements Semantics.IBinary.Left, Semantics.IRelational.Left
+        Private ReadOnly Property ILeft As IExpression Implements IBinary.Left, IRelational.Left
             Get
                 Return Me.Left
             End Get
         End Property
 
-        Private ReadOnly Property IOperation As Semantics.BinaryOperatorCode Implements Semantics.IBinary.Operation
+        Private ReadOnly Property IOperation As BinaryOperatorCode Implements IBinary.Operation
             Get
                 Return DeriveBinaryOperatorCode(Me.OperatorKind, Me.Left)
             End Get
         End Property
 
-        Private ReadOnly Property IRight As Semantics.IExpression Implements Semantics.IBinary.Right, Semantics.IRelational.Right
+        Private ReadOnly Property IRight As IExpression Implements IBinary.Right, IRelational.Right
             Get
                 Return Me.Right
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return False
             End Get
         End Property
 
-        Public ReadOnly Property RelationalCode As Semantics.RelationalOperatorCode Implements Semantics.IRelational.RelationalCode
+        Public ReadOnly Property RelationalCode As RelationalOperatorCode Implements IRelational.RelationalCode
             Get
                 Return DeriveRelationalOperatorCode(Me.OperatorKind, Me.Left)
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.BinaryOperator
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.BinaryOperator
         End Function
 
     End Class
 
     Partial Class BoundUserDefinedBinaryOperator
-        Implements Semantics.IBinary
-        Implements Semantics.IRelational
+        Implements IBinary
+        Implements IRelational
 
-        Private ReadOnly Property ILeft As Semantics.IExpression Implements Semantics.IBinary.Left, Semantics.IRelational.Left
+        Private ReadOnly Property ILeft As IExpression Implements IBinary.Left, IRelational.Left
             Get
                 Return Me.Left
             End Get
         End Property
 
-        Private ReadOnly Property IOperation As Semantics.BinaryOperatorCode Implements Semantics.IBinary.Operation
+        Private ReadOnly Property IOperation As BinaryOperatorCode Implements IBinary.Operation
             Get
                 Select Case OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.Add
-                        Return Semantics.BinaryOperatorCode.OperatorAdd
+                        Return BinaryOperatorCode.OperatorAdd
                     Case BinaryOperatorKind.Subtract
-                        Return Semantics.BinaryOperatorCode.OperatorSubtract
+                        Return BinaryOperatorCode.OperatorSubtract
                     Case BinaryOperatorKind.Multiply
-                        Return Semantics.BinaryOperatorCode.OperatorMultiply
+                        Return BinaryOperatorCode.OperatorMultiply
                     Case BinaryOperatorKind.Divide
-                        Return Semantics.BinaryOperatorCode.OperatorDivide
+                        Return BinaryOperatorCode.OperatorDivide
                     Case BinaryOperatorKind.Modulo
-                        Return Semantics.BinaryOperatorCode.OperatorRemainder
+                        Return BinaryOperatorCode.OperatorRemainder
                     Case BinaryOperatorKind.And
-                        Return Semantics.BinaryOperatorCode.OperatorAnd
+                        Return BinaryOperatorCode.OperatorAnd
                     Case BinaryOperatorKind.Or
-                        Return Semantics.BinaryOperatorCode.OperatorOr
+                        Return BinaryOperatorCode.OperatorOr
                     Case BinaryOperatorKind.Xor
-                        Return Semantics.BinaryOperatorCode.OperatorXor
+                        Return BinaryOperatorCode.OperatorXor
                     Case BinaryOperatorKind.AndAlso
-                        Return Semantics.BinaryOperatorCode.OperatorConditionalAnd
+                        Return BinaryOperatorCode.OperatorConditionalAnd
                     Case BinaryOperatorKind.OrElse
-                        Return Semantics.BinaryOperatorCode.OperatorConditionalOr
+                        Return BinaryOperatorCode.OperatorConditionalOr
                     Case BinaryOperatorKind.LeftShift
-                        Return Semantics.BinaryOperatorCode.OperatorLeftShift
+                        Return BinaryOperatorCode.OperatorLeftShift
                     Case BinaryOperatorKind.RightShift
-                        Return Semantics.BinaryOperatorCode.OperatorRightShift
+                        Return BinaryOperatorCode.OperatorRightShift
                 End Select
 
-                Return Semantics.BinaryOperatorCode.None
+                Return BinaryOperatorCode.None
             End Get
         End Property
 
-        Private ReadOnly Property IRelationalCode As Semantics.RelationalOperatorCode Implements Semantics.IRelational.RelationalCode
+        Private ReadOnly Property IRelationalCode As RelationalOperatorCode Implements IRelational.RelationalCode
             Get
                 Select Case OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.LessThan
-                        Return Semantics.RelationalOperatorCode.OperatorLess
+                        Return RelationalOperatorCode.OperatorLess
                     Case BinaryOperatorKind.LessThanOrEqual
-                        Return Semantics.RelationalOperatorCode.OperatorLessEqual
+                        Return RelationalOperatorCode.OperatorLessEqual
                     Case BinaryOperatorKind.Equals
-                        Return Semantics.RelationalOperatorCode.OperatorEqual
+                        Return RelationalOperatorCode.OperatorEqual
                     Case BinaryOperatorKind.NotEquals
-                        Return Semantics.RelationalOperatorCode.OperatorNotEqual
+                        Return RelationalOperatorCode.OperatorNotEqual
                     Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return Semantics.RelationalOperatorCode.OperatorGreaterEqual
+                        Return RelationalOperatorCode.OperatorGreaterEqual
                     Case BinaryOperatorKind.GreaterThan
-                        Return Semantics.RelationalOperatorCode.OperatorGreater
+                        Return RelationalOperatorCode.OperatorGreater
                 End Select
 
-                Return Semantics.RelationalOperatorCode.None
+                Return RelationalOperatorCode.None
             End Get
         End Property
 
-        Private ReadOnly Property IRight As Semantics.IExpression Implements Semantics.IBinary.Right, Semantics.IRelational.Right
+        Private ReadOnly Property IRight As IExpression Implements IBinary.Right, IRelational.Right
             Get
                 Return Me.Right
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return True
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
+        Protected Overrides Function ExpressionKind() As OperationKind
             Select Case Me.OperatorKind And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.Add, BinaryOperatorKind.Concatenate, BinaryOperatorKind.Subtract, BinaryOperatorKind.Multiply, BinaryOperatorKind.Divide,
                     BinaryOperatorKind.IntegerDivide, BinaryOperatorKind.Modulo, BinaryOperatorKind.Power, BinaryOperatorKind.LeftShift, BinaryOperatorKind.RightShift,
                     BinaryOperatorKind.And, BinaryOperatorKind.Or, BinaryOperatorKind.Xor, BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
 
-                    Return Semantics.OperationKind.BinaryOperator
+                    Return OperationKind.BinaryOperator
 
                 Case BinaryOperatorKind.LessThan, BinaryOperatorKind.LessThanOrEqual, BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals,
                     BinaryOperatorKind.Is, BinaryOperatorKind.IsNot, BinaryOperatorKind.Like, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.GreaterThan
 
-                    Return Semantics.OperationKind.RelationalOperator
+                    Return OperationKind.RelationalOperator
             End Select
 
-            Return Semantics.OperationKind.None
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundBinaryConditionalExpression
-        Implements Semantics.INullCoalescing
+        Implements INullCoalescing
 
-        Private ReadOnly Property IPrimary As Semantics.IExpression Implements Semantics.INullCoalescing.Primary
+        Private ReadOnly Property IPrimary As IExpression Implements INullCoalescing.Primary
             Get
                 Return Me.TestExpression
             End Get
         End Property
 
-        Private ReadOnly Property ISecondary As Semantics.IExpression Implements Semantics.INullCoalescing.Secondary
+        Private ReadOnly Property ISecondary As IExpression Implements INullCoalescing.Secondary
             Get
                 Return Me.ElseExpression
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.NullCoalescing
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.NullCoalescing
         End Function
     End Class
 
     Partial Class BoundUserDefinedShortCircuitingOperator
-        Implements Semantics.IBinary
+        Implements IBinary
 
-        Private ReadOnly Property ILeft As Semantics.IExpression Implements Semantics.IBinary.Left
+        Private ReadOnly Property ILeft As IExpression Implements IBinary.Left
             Get
                 Return Me.LeftOperand
             End Get
         End Property
 
-        Private ReadOnly Property IOperation As Semantics.BinaryOperatorCode Implements Semantics.IBinary.Operation
+        Private ReadOnly Property IOperation As BinaryOperatorCode Implements IBinary.Operation
             Get
-                Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, Semantics.BinaryOperatorCode.OperatorConditionalAnd, Semantics.BinaryOperatorCode.OperatorConditionalOr)
+                Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperatorCode.OperatorConditionalAnd, BinaryOperatorCode.OperatorConditionalOr)
             End Get
         End Property
 
-        Private ReadOnly Property IRight As Semantics.IExpression Implements Semantics.IBinary.Right
+        Private ReadOnly Property IRight As IExpression Implements IBinary.Right
             Get
                 Return Me.BitwiseOperator.Right
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Me.BitwiseOperator.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return True
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.BinaryOperator
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.BinaryOperator
         End Function
     End Class
 
     Partial Class BoundBadExpression
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.None
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundTryCast
-        Implements Semantics.IConversion
+        Implements IConversion
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements Semantics.IConversion.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversion.Conversion
             Get
                 Return Semantics.ConversionKind.AsCast
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements Semantics.IConversion.IsExplicit
+        Private ReadOnly Property IIsExplicit As Boolean Implements IConversion.IsExplicit
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IConversion.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IConversion.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return False
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Conversion
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Conversion
         End Function
     End Class
 
     Partial Class BoundDirectCast
-        Implements Semantics.IConversion
+        Implements IConversion
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements Semantics.IConversion.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversion.Conversion
             Get
                 Return Semantics.ConversionKind.Cast
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements Semantics.IConversion.IsExplicit
+        Private ReadOnly Property IIsExplicit As Boolean Implements IConversion.IsExplicit
             Get
                 Return True
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IConversion.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IConversion.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return False
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Conversion
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Conversion
         End Function
     End Class
 
     Partial Class BoundConversion
-        Implements Semantics.IConversion
+        Implements IConversion
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements Semantics.IConversion.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversion.Conversion
             Get
                 Return Semantics.ConversionKind.Basic
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements Semantics.IConversion.IsExplicit
+        Private ReadOnly Property IIsExplicit As Boolean Implements IConversion.IsExplicit
             Get
                 Return Me.ExplicitCastInCode
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IConversion.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IConversion.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Nothing
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return False
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Conversion
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Conversion
         End Function
     End Class
 
     Partial Class BoundUserDefinedConversion
-        Implements Semantics.IConversion
+        Implements IConversion
 
-        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements Semantics.IConversion.Conversion
+        Private ReadOnly Property IConversion As Semantics.ConversionKind Implements IConversion.Conversion
             Get
                 Return Semantics.ConversionKind.Operator
             End Get
         End Property
 
-        Private ReadOnly Property IIsExplicit As Boolean Implements Semantics.IConversion.IsExplicit
+        Private ReadOnly Property IIsExplicit As Boolean Implements IConversion.IsExplicit
             Get
                 Return Not Me.WasCompilerGenerated
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IConversion.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IConversion.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Private ReadOnly Property IOperator As IMethodSymbol Implements Semantics.IOperator.Operator
+        Private ReadOnly Property IOperator As IMethodSymbol Implements IOperator.Operator
             Get
                 Return Me.Call.Method
             End Get
         End Property
 
-        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements Semantics.IOperator.UsesOperatorMethod
+        Private ReadOnly Property IUsesOperatorMethod As Boolean Implements IOperator.UsesOperatorMethod
             Get
                 Return True
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Conversion
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Conversion
         End Function
     End Class
 
     Partial Class BoundTernaryConditionalExpression
-        Implements Semantics.IConditionalChoice
+        Implements IConditionalChoice
 
-        Private ReadOnly Property ICondition As Semantics.IExpression Implements Semantics.IConditionalChoice.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IConditionalChoice.Condition
             Get
                 Return Me.Condition
             End Get
         End Property
 
-        Private ReadOnly Property IIfFalse As Semantics.IExpression Implements Semantics.IConditionalChoice.IfFalse
+        Private ReadOnly Property IIfFalse As IExpression Implements IConditionalChoice.IfFalse
             Get
                 Return Me.WhenFalse
             End Get
         End Property
 
-        Private ReadOnly Property IIfTrue As Semantics.IExpression Implements Semantics.IConditionalChoice.IfTrue
+        Private ReadOnly Property IIfTrue As IExpression Implements IConditionalChoice.IfTrue
             Get
                 Return Me.WhenTrue
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ConditionalChoice
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ConditionalChoice
         End Function
     End Class
 
     Partial Class BoundTypeOf
-        Implements Semantics.IIs
+        Implements IIs
 
-        Private ReadOnly Property IIsType As ITypeSymbol Implements Semantics.IIs.IsType
+        Private ReadOnly Property IIsType As ITypeSymbol Implements IIs.IsType
             Get
                 Return Me.TargetType
             End Get
         End Property
 
-        Private ReadOnly Property IOperand As Semantics.IExpression Implements Semantics.IIs.Operand
+        Private ReadOnly Property IOperand As IExpression Implements IIs.Operand
             Get
                 Return Me.Operand
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.Is
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.Is
         End Function
     End Class
 
     Partial Class BoundObjectCreationExpression
-        Implements Semantics.IObjectCreation
+        Implements IObjectCreation
 
-        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As Semantics.IArgument Implements Semantics.IObjectCreation.ArgumentMatchingParameter
+        Private Function IArgumentMatchingParameter(parameter As IParameterSymbol) As IArgument Implements IObjectCreation.ArgumentMatchingParameter
             Return BoundCall.ArgumentMatchingParameter(Me.Arguments, parameter)
         End Function
 
-        Private ReadOnly Property IConstructor As IMethodSymbol Implements Semantics.IObjectCreation.Constructor
+        Private ReadOnly Property IConstructor As IMethodSymbol Implements IObjectCreation.Constructor
             Get
                 Return Me.ConstructorOpt
             End Get
         End Property
 
-        Private ReadOnly Property IConstructorArguments As ImmutableArray(Of Semantics.IArgument) Implements Semantics.IObjectCreation.ConstructorArguments
+        Private ReadOnly Property IConstructorArguments As ImmutableArray(Of IArgument) Implements IObjectCreation.ConstructorArguments
             Get
                 Return BoundCall.DeriveArguments(Me.Arguments)
             End Get
         End Property
 
-        Private ReadOnly Property IMemberInitializers As ImmutableArray(Of Semantics.IMemberInitializer) Implements Semantics.IObjectCreation.MemberInitializers
+        Private ReadOnly Property IMemberInitializers As ImmutableArray(Of IMemberInitializer) Implements IObjectCreation.MemberInitializers
             Get
                 Dim initializer As BoundObjectInitializerExpressionBase = Me.InitializerOpt
                 If initializer IsNot Nothing Then
                     ' ZZZ What's the representation in bound trees?
                 End If
 
-                Return ImmutableArray.Create(Of Semantics.IMemberInitializer)()
+                Return ImmutableArray.Create(Of IMemberInitializer)()
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ObjectCreation
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ObjectCreation
         End Function
     End Class
 
     Partial Class BoundNewT
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.TypeParameterObjectCreation
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.TypeParameterObjectCreation
         End Function
     End Class
 
     Partial Class BoundArrayCreation
-        Implements Semantics.IArrayCreation
+        Implements IArrayCreation
 
-        Private ReadOnly Property IDimensionSizes As ImmutableArray(Of Semantics.IExpression) Implements Semantics.IArrayCreation.DimensionSizes
+        Private ReadOnly Property IDimensionSizes As ImmutableArray(Of IExpression) Implements IArrayCreation.DimensionSizes
             Get
-                Return Me.Bounds.As(Of Semantics.IExpression)()
+                Return Me.Bounds.As(Of IExpression)()
             End Get
         End Property
 
-        Private ReadOnly Property IElementType As ITypeSymbol Implements Semantics.IArrayCreation.ElementType
+        Private ReadOnly Property IElementType As ITypeSymbol Implements IArrayCreation.ElementType
             Get
                 Dim arrayType As IArrayTypeSymbol = TryCast(Me.Type, IArrayTypeSymbol)
                 If arrayType IsNot Nothing Then
@@ -979,7 +981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IElementValues As Semantics.IArrayInitializer Implements Semantics.IArrayCreation.ElementValues
+        Private ReadOnly Property IElementValues As IArrayInitializer Implements IArrayCreation.ElementValues
             Get
                 Dim initializer As BoundArrayInitialization = Me.InitializerOpt
                 If initializer IsNot Nothing Then
@@ -990,24 +992,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ArrayCreation
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ArrayCreation
         End Function
 
-        Private Function MakeInitializer(initializer As BoundArrayInitialization) As Semantics.IArrayInitializer
-            Dim dimension As ArrayBuilder(Of Semantics.IArrayInitializer) = ArrayBuilder(Of Semantics.IArrayInitializer).GetInstance(initializer.Initializers.Length)
+        Private Shared ArrayInitializerMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundArrayInitialization, IArrayInitializer)
 
-            For index As Integer = 0 To initializer.Initializers.Length - 1
-                Dim elementInitializer As BoundExpression = initializer.Initializers(index)
-                Dim elementArray As BoundArrayInitialization = TryCast(elementInitializer, BoundArrayInitialization)
-                dimension(index) = If(elementArray IsNot Nothing, MakeInitializer(elementArray), New ElementInitializer(elementInitializer))
-            Next
+        Private Function MakeInitializer(initializer As BoundArrayInitialization) As IArrayInitializer
+            Return ArrayInitializerMappings.GetValue(
+                initializer,
+                Function(arrayInitalizer)
+                    Dim dimension As ArrayBuilder(Of IArrayInitializer) = ArrayBuilder(Of IArrayInitializer).GetInstance(arrayInitalizer.Initializers.Length)
 
-            Return New DimensionInitializer(dimension.ToImmutableAndFree())
+                    For index As Integer = 0 To arrayInitalizer.Initializers.Length - 1
+                        Dim elementInitializer As BoundExpression = arrayInitalizer.Initializers(index)
+                        Dim elementArray As BoundArrayInitialization = TryCast(elementInitializer, BoundArrayInitialization)
+                        dimension(index) = If(elementArray IsNot Nothing, MakeInitializer(elementArray), New ElementInitializer(elementInitializer))
+                    Next
+
+                    Return New DimensionInitializer(dimension.ToImmutableAndFree())
+                End Function)
+
         End Function
 
         Private Class ElementInitializer
-            Implements Semantics.IExpressionArrayInitializer
+            Implements IExpressionArrayInitializer
 
             ReadOnly _element As BoundExpression
 
@@ -1015,469 +1024,469 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._element = element
             End Sub
 
-            ReadOnly Property ElementValue As Semantics.IExpression Implements Semantics.IExpressionArrayInitializer.ElementValue
+            ReadOnly Property ElementValue As IExpression Implements IExpressionArrayInitializer.ElementValue
                 Get
                     Return Me._element
                 End Get
             End Property
 
-            ReadOnly Property ArrayClass As Semantics.ArrayInitializerKind Implements Semantics.IExpressionArrayInitializer.ArrayClass
+            ReadOnly Property ArrayClass As ArrayInitializerKind Implements IExpressionArrayInitializer.ArrayClass
                 Get
-                    Return Semantics.ArrayInitializerKind.Expression
+                    Return ArrayInitializerKind.Expression
                 End Get
             End Property
         End Class
 
         Private Class DimensionInitializer
-            Implements Semantics.IDimensionArrayInitializer
+            Implements IDimensionArrayInitializer
 
-            ReadOnly _dimension As ImmutableArray(Of Semantics.IArrayInitializer)
+            ReadOnly _dimension As ImmutableArray(Of IArrayInitializer)
 
-            Public Sub New(dimension As ImmutableArray(Of Semantics.IArrayInitializer))
+            Public Sub New(dimension As ImmutableArray(Of IArrayInitializer))
                 Me._dimension = dimension
             End Sub
 
-            ReadOnly Property ElementValues As ImmutableArray(Of Semantics.IArrayInitializer) Implements Semantics.IDimensionArrayInitializer.ElementValues
+            ReadOnly Property ElementValues As ImmutableArray(Of IArrayInitializer) Implements IDimensionArrayInitializer.ElementValues
                 Get
                     Return Me._dimension
                 End Get
             End Property
 
-            ReadOnly Property ArrayClass As Semantics.ArrayInitializerKind Implements Semantics.IDimensionArrayInitializer.ArrayClass
+            ReadOnly Property ArrayClass As ArrayInitializerKind Implements IDimensionArrayInitializer.ArrayClass
                 Get
-                    Return Semantics.ArrayInitializerKind.Dimension
+                    Return ArrayInitializerKind.Dimension
                 End Get
             End Property
         End Class
     End Class
 
     Partial Class BoundPropertyAccess
-        Implements Semantics.IPropertyReference
+        Implements IPropertyReference
 
-        Private ReadOnly Property IInstance As Semantics.IExpression Implements Semantics.IMemberReference.Instance
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReference.Instance
             Get
                 Return Me.ReceiverOpt
             End Get
         End Property
 
-        Private ReadOnly Property IProperty As IPropertySymbol Implements Semantics.IPropertyReference.Property
+        Private ReadOnly Property IProperty As IPropertySymbol Implements IPropertyReference.Property
             Get
                 Return Me.PropertySymbol
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+        Private ReadOnly Property IReferenceClass As ReferenceKind Implements IReference.ReferenceClass
             Get
-                Return If(Me.ReceiverOpt IsNot Nothing, Semantics.ReferenceKind.InstanceProperty, Semantics.ReferenceKind.StaticProperty)
+                Return If(Me.ReceiverOpt IsNot Nothing, ReferenceKind.InstanceProperty, ReferenceKind.StaticProperty)
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.PropertyReference
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.PropertyReference
         End Function
     End Class
 
     Partial Class BoundFieldAccess
-        Implements Semantics.IFieldReference
+        Implements IFieldReference
 
-        Private ReadOnly Property IField As IFieldSymbol Implements Semantics.IFieldReference.Field
+        Private ReadOnly Property IField As IFieldSymbol Implements IFieldReference.Field
             Get
                 Return Me.FieldSymbol
             End Get
         End Property
 
-        Private ReadOnly Property IInstance As Semantics.IExpression Implements Semantics.IMemberReference.Instance
+        Private ReadOnly Property IInstance As IExpression Implements IMemberReference.Instance
             Get
                 Return Me.ReceiverOpt
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+        Private ReadOnly Property IReferenceClass As ReferenceKind Implements IReference.ReferenceClass
             Get
-                Return If(Me.ReceiverOpt IsNot Nothing, Semantics.ReferenceKind.InstanceField, Semantics.ReferenceKind.StaticField)
+                Return If(Me.ReceiverOpt IsNot Nothing, ReferenceKind.InstanceField, ReferenceKind.StaticField)
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.FieldReference
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.FieldReference
         End Function
     End Class
 
     Partial Class BoundParameter
-        Implements Semantics.IParameterReference
+        Implements IParameterReference
 
-        Private ReadOnly Property IParameter As IParameterSymbol Implements Semantics.IParameterReference.Parameter
+        Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReference.Parameter
             Get
                 Return Me.ParameterSymbol
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+        Private ReadOnly Property IReferenceClass As ReferenceKind Implements IReference.ReferenceClass
             Get
-                Return Semantics.ReferenceKind.Parameter
+                Return ReferenceKind.Parameter
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ParameterReference
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ParameterReference
         End Function
     End Class
 
     Partial Class BoundLocal
-        Implements Semantics.ILocalReference
+        Implements ILocalReference
 
-        Private ReadOnly Property ILocal As ILocalSymbol Implements Semantics.ILocalReference.Local
+        Private ReadOnly Property ILocal As ILocalSymbol Implements ILocalReference.Local
             Get
                 Return Me.LocalSymbol
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+        Private ReadOnly Property IReferenceClass As ReferenceKind Implements IReference.ReferenceClass
             Get
-                Return Semantics.ReferenceKind.Local
+                Return ReferenceKind.Local
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LocalReference
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.LocalReference
         End Function
     End Class
 
     Partial Class BoundLateMemberAccess
-        Implements Semantics.ILateBoundMemberReference
+        Implements ILateBoundMemberReference
 
-        Private ReadOnly Property IInstance As Semantics.IExpression Implements Semantics.ILateBoundMemberReference.Instance
+        Private ReadOnly Property IInstance As IExpression Implements ILateBoundMemberReference.Instance
             Get
                 Return Me.ReceiverOpt
             End Get
         End Property
 
-        Private ReadOnly Property IMemberName As String Implements Semantics.ILateBoundMemberReference.MemberName
+        Private ReadOnly Property IMemberName As String Implements ILateBoundMemberReference.MemberName
             Get
                 Return Me.NameOpt
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+        Private ReadOnly Property IReferenceClass As ReferenceKind Implements IReference.ReferenceClass
             Get
-                Return Semantics.ReferenceKind.LateBoundMember
+                Return ReferenceKind.LateBoundMember
             End Get
         End Property
 
-        Protected Overrides Function ExpressionKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LateBoundMemberReference
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.LateBoundMemberReference
         End Function
     End Class
 
     Module Expression
-        Friend Function DeriveUnaryOperatorCode(operatorKind As UnaryOperatorKind, operand As BoundExpression) As Semantics.UnaryOperatorCode
+        Friend Function DeriveUnaryOperatorCode(operatorKind As UnaryOperatorKind, operand As BoundExpression) As UnaryOperatorCode
             Select Case operand.Type.SpecialType
                 Case SpecialType.System_Byte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
                     Select Case operatorKind And UnaryOperatorKind.OpMask
                         Case UnaryOperatorKind.Plus
-                            Return Semantics.UnaryOperatorCode.IntegerPlus
+                            Return UnaryOperatorCode.IntegerPlus
                         Case UnaryOperatorKind.Minus
-                            Return Semantics.UnaryOperatorCode.IntegerMinus
+                            Return UnaryOperatorCode.IntegerMinus
                         Case UnaryOperatorKind.Not
-                            Return Semantics.UnaryOperatorCode.IntegerBitwiseNegation
+                            Return UnaryOperatorCode.IntegerBitwiseNegation
                     End Select
                 Case SpecialType.System_Single, SpecialType.System_Double
                     Select Case operatorKind And UnaryOperatorKind.OpMask
                         Case UnaryOperatorKind.Plus
-                            Return Semantics.UnaryOperatorCode.FloatingPlus
+                            Return UnaryOperatorCode.FloatingPlus
                         Case UnaryOperatorKind.Minus
-                            Return Semantics.UnaryOperatorCode.FloatingMinus
+                            Return UnaryOperatorCode.FloatingMinus
                     End Select
                 Case SpecialType.System_Decimal
                     Select Case operatorKind And UnaryOperatorKind.OpMask
                         Case UnaryOperatorKind.Plus
-                            Return Semantics.UnaryOperatorCode.DecimalPlus
+                            Return UnaryOperatorCode.DecimalPlus
                         Case UnaryOperatorKind.Minus
-                            Return Semantics.UnaryOperatorCode.DecimalMinus
+                            Return UnaryOperatorCode.DecimalMinus
                     End Select
                 Case SpecialType.System_Boolean
                     Select Case operatorKind And UnaryOperatorKind.OpMask
                         Case UnaryOperatorKind.Not
-                            Return Semantics.UnaryOperatorCode.BooleanBitwiseNegation
+                            Return UnaryOperatorCode.BooleanBitwiseNegation
                     End Select
                 Case SpecialType.System_Object
                     Select Case operatorKind And UnaryOperatorKind.OpMask
                         Case UnaryOperatorKind.Plus
-                            Return Semantics.UnaryOperatorCode.ObjectPlus
+                            Return UnaryOperatorCode.ObjectPlus
                         Case UnaryOperatorKind.Minus
-                            Return Semantics.UnaryOperatorCode.ObjectMinus
+                            Return UnaryOperatorCode.ObjectMinus
                         Case UnaryOperatorKind.Not
-                            Return Semantics.UnaryOperatorCode.ObjectNot
+                            Return UnaryOperatorCode.ObjectNot
                     End Select
             End Select
 
-            Return Semantics.UnaryOperatorCode.None
+            Return UnaryOperatorCode.None
         End Function
 
-        Friend Function DeriveBinaryOperatorCode(operatorKind As BinaryOperatorKind, left As BoundExpression) As Semantics.BinaryOperatorCode
+        Friend Function DeriveBinaryOperatorCode(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperatorCode
             Select Case left.Type.SpecialType
                 Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
-                            Return Semantics.BinaryOperatorCode.IntegerAdd
+                            Return BinaryOperatorCode.IntegerAdd
                         Case BinaryOperatorKind.Subtract
-                            Return Semantics.BinaryOperatorCode.IntegerSubtract
+                            Return BinaryOperatorCode.IntegerSubtract
                         Case BinaryOperatorKind.Multiply
-                            Return Semantics.BinaryOperatorCode.IntegerMultiply
+                            Return BinaryOperatorCode.IntegerMultiply
                         Case BinaryOperatorKind.IntegerDivide
-                            Return Semantics.BinaryOperatorCode.IntegerDivide
+                            Return BinaryOperatorCode.IntegerDivide
                         Case BinaryOperatorKind.Modulo
-                            Return Semantics.BinaryOperatorCode.IntegerRemainder
+                            Return BinaryOperatorCode.IntegerRemainder
                         Case BinaryOperatorKind.And
-                            Return Semantics.BinaryOperatorCode.IntegerAnd
+                            Return BinaryOperatorCode.IntegerAnd
                         Case BinaryOperatorKind.Or
-                            Return Semantics.BinaryOperatorCode.IntegerOr
+                            Return BinaryOperatorCode.IntegerOr
                         Case BinaryOperatorKind.Xor
-                            Return Semantics.BinaryOperatorCode.IntegerXor
+                            Return BinaryOperatorCode.IntegerXor
                         Case BinaryOperatorKind.LeftShift
-                            Return Semantics.BinaryOperatorCode.IntegerLeftShift
+                            Return BinaryOperatorCode.IntegerLeftShift
                         Case BinaryOperatorKind.RightShift
-                            Return Semantics.BinaryOperatorCode.IntegerRightShift
+                            Return BinaryOperatorCode.IntegerRightShift
                     End Select
                 Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
-                            Return Semantics.BinaryOperatorCode.UnsignedAdd
+                            Return BinaryOperatorCode.UnsignedAdd
                         Case BinaryOperatorKind.Subtract
-                            Return Semantics.BinaryOperatorCode.UnsignedSubtract
+                            Return BinaryOperatorCode.UnsignedSubtract
                         Case BinaryOperatorKind.Multiply
-                            Return Semantics.BinaryOperatorCode.UnsignedMultiply
+                            Return BinaryOperatorCode.UnsignedMultiply
                         Case BinaryOperatorKind.IntegerDivide
-                            Return Semantics.BinaryOperatorCode.UnsignedDivide
+                            Return BinaryOperatorCode.UnsignedDivide
                         Case BinaryOperatorKind.Modulo
-                            Return Semantics.BinaryOperatorCode.UnsignedRemainder
+                            Return BinaryOperatorCode.UnsignedRemainder
                         Case BinaryOperatorKind.And
-                            Return Semantics.BinaryOperatorCode.UnsignedAnd
+                            Return BinaryOperatorCode.UnsignedAnd
                         Case BinaryOperatorKind.Or
-                            Return Semantics.BinaryOperatorCode.UnsignedOr
+                            Return BinaryOperatorCode.UnsignedOr
                         Case BinaryOperatorKind.Xor
-                            Return Semantics.BinaryOperatorCode.UnsignedXor
+                            Return BinaryOperatorCode.UnsignedXor
                         Case BinaryOperatorKind.LeftShift
-                            Return Semantics.BinaryOperatorCode.UnsignedLeftShift
+                            Return BinaryOperatorCode.UnsignedLeftShift
                         Case BinaryOperatorKind.RightShift
-                            Return Semantics.BinaryOperatorCode.UnsignedRightShift
+                            Return BinaryOperatorCode.UnsignedRightShift
                     End Select
                 Case SpecialType.System_Single, SpecialType.System_Double
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
-                            Return Semantics.BinaryOperatorCode.FloatingAdd
+                            Return BinaryOperatorCode.FloatingAdd
                         Case BinaryOperatorKind.Subtract
-                            Return Semantics.BinaryOperatorCode.FloatingSubtract
+                            Return BinaryOperatorCode.FloatingSubtract
                         Case BinaryOperatorKind.Multiply
-                            Return Semantics.BinaryOperatorCode.FloatingMultiply
+                            Return BinaryOperatorCode.FloatingMultiply
                         Case BinaryOperatorKind.Divide
-                            Return Semantics.BinaryOperatorCode.FloatingDivide
+                            Return BinaryOperatorCode.FloatingDivide
                         Case BinaryOperatorKind.Modulo
-                            Return Semantics.BinaryOperatorCode.FloatingRemainder
+                            Return BinaryOperatorCode.FloatingRemainder
                         Case BinaryOperatorKind.Power
-                            Return Semantics.BinaryOperatorCode.FloatingPower
+                            Return BinaryOperatorCode.FloatingPower
                     End Select
                 Case SpecialType.System_Decimal
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
-                            Return Semantics.BinaryOperatorCode.DecimalAdd
+                            Return BinaryOperatorCode.DecimalAdd
                         Case BinaryOperatorKind.Subtract
-                            Return Semantics.BinaryOperatorCode.DecimalSubtract
+                            Return BinaryOperatorCode.DecimalSubtract
                         Case BinaryOperatorKind.Multiply
-                            Return Semantics.BinaryOperatorCode.DecimalMultiply
+                            Return BinaryOperatorCode.DecimalMultiply
                         Case BinaryOperatorKind.Divide
-                            Return Semantics.BinaryOperatorCode.DecimalDivide
+                            Return BinaryOperatorCode.DecimalDivide
                     End Select
                 Case SpecialType.System_Boolean
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.And
-                            Return Semantics.BinaryOperatorCode.BooleanAnd
+                            Return BinaryOperatorCode.BooleanAnd
                         Case BinaryOperatorKind.Or
-                            Return Semantics.BinaryOperatorCode.BooleanOr
+                            Return BinaryOperatorCode.BooleanOr
                         Case BinaryOperatorKind.Xor
-                            Return Semantics.BinaryOperatorCode.BooleanXor
+                            Return BinaryOperatorCode.BooleanXor
                         Case BinaryOperatorKind.AndAlso
-                            Return Semantics.BinaryOperatorCode.BooleanConditionalAnd
+                            Return BinaryOperatorCode.BooleanConditionalAnd
                         Case BinaryOperatorKind.OrElse
-                            Return Semantics.BinaryOperatorCode.BooleanConditionalOr
+                            Return BinaryOperatorCode.BooleanConditionalOr
                     End Select
                 Case SpecialType.System_String
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Concatenate
-                            Return Semantics.BinaryOperatorCode.StringConcatenation
+                            Return BinaryOperatorCode.StringConcatenation
                     End Select
                 Case SpecialType.System_Object
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Add
-                            Return Semantics.BinaryOperatorCode.ObjectAdd
+                            Return BinaryOperatorCode.ObjectAdd
                         Case BinaryOperatorKind.Subtract
-                            Return Semantics.BinaryOperatorCode.ObjectSubtract
+                            Return BinaryOperatorCode.ObjectSubtract
                         Case BinaryOperatorKind.Multiply
-                            Return Semantics.BinaryOperatorCode.ObjectMultiply
+                            Return BinaryOperatorCode.ObjectMultiply
                         Case BinaryOperatorKind.Power
-                            Return Semantics.BinaryOperatorCode.ObjectPower
+                            Return BinaryOperatorCode.ObjectPower
                         Case BinaryOperatorKind.IntegerDivide
-                            Return Semantics.BinaryOperatorCode.ObjectIntegerDivide
+                            Return BinaryOperatorCode.ObjectIntegerDivide
                         Case BinaryOperatorKind.Divide
-                            Return Semantics.BinaryOperatorCode.ObjectDivide
+                            Return BinaryOperatorCode.ObjectDivide
                         Case BinaryOperatorKind.Modulo
-                            Return Semantics.BinaryOperatorCode.ObjectRemainder
+                            Return BinaryOperatorCode.ObjectRemainder
                         Case BinaryOperatorKind.Concatenate
-                            Return Semantics.BinaryOperatorCode.ObjectConcatenation
+                            Return BinaryOperatorCode.ObjectConcatenation
                         Case BinaryOperatorKind.And
-                            Return Semantics.BinaryOperatorCode.ObjectAnd
+                            Return BinaryOperatorCode.ObjectAnd
                         Case BinaryOperatorKind.Or
-                            Return Semantics.BinaryOperatorCode.ObjectOr
+                            Return BinaryOperatorCode.ObjectOr
                         Case BinaryOperatorKind.Xor
-                            Return Semantics.BinaryOperatorCode.ObjectXor
+                            Return BinaryOperatorCode.ObjectXor
                         Case BinaryOperatorKind.AndAlso
-                            Return Semantics.BinaryOperatorCode.ObjectConditionalAnd
+                            Return BinaryOperatorCode.ObjectConditionalAnd
                         Case BinaryOperatorKind.OrElse
-                            Return Semantics.BinaryOperatorCode.ObjectConditionalOr
+                            Return BinaryOperatorCode.ObjectConditionalOr
                         Case BinaryOperatorKind.LeftShift
-                            Return Semantics.BinaryOperatorCode.ObjectLeftShift
+                            Return BinaryOperatorCode.ObjectLeftShift
                         Case BinaryOperatorKind.RightShift
-                            Return Semantics.BinaryOperatorCode.ObjectRightShift
+                            Return BinaryOperatorCode.ObjectRightShift
                     End Select
             End Select
 
             If left.Type.TypeKind = TypeKind.Enum Then
                 Select Case operatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.Add
-                        Return Semantics.BinaryOperatorCode.EnumAdd
+                        Return BinaryOperatorCode.EnumAdd
                     Case BinaryOperatorKind.Subtract
-                        Return Semantics.BinaryOperatorCode.EnumSubtract
+                        Return BinaryOperatorCode.EnumSubtract
                     Case BinaryOperatorKind.And
-                        Return Semantics.BinaryOperatorCode.EnumAnd
+                        Return BinaryOperatorCode.EnumAnd
                     Case BinaryOperatorKind.Or
-                        Return Semantics.BinaryOperatorCode.EnumOr
+                        Return BinaryOperatorCode.EnumOr
                     Case BinaryOperatorKind.Xor
-                        Return Semantics.BinaryOperatorCode.EnumXor
+                        Return BinaryOperatorCode.EnumXor
                 End Select
             End If
 
-            Return Semantics.BinaryOperatorCode.None
+            Return BinaryOperatorCode.None
         End Function
 
-        Friend Function DeriveRelationalOperatorCode(operatorKind As BinaryOperatorKind, left As BoundExpression) As Semantics.RelationalOperatorCode
+        Friend Function DeriveRelationalOperatorCode(operatorKind As BinaryOperatorKind, left As BoundExpression) As RelationalOperatorCode
             Select Case left.Type.SpecialType
                 Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.LessThan
-                            Return Semantics.RelationalOperatorCode.UnsignedLess
+                            Return RelationalOperatorCode.UnsignedLess
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return Semantics.RelationalOperatorCode.UnsignedLessEqual
+                            Return RelationalOperatorCode.UnsignedLessEqual
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.IntegerEqual
+                            Return RelationalOperatorCode.IntegerEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.IntegerNotEqual
+                            Return RelationalOperatorCode.IntegerNotEqual
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return Semantics.RelationalOperatorCode.UnsignedGreaterEqual
+                            Return RelationalOperatorCode.UnsignedGreaterEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return Semantics.RelationalOperatorCode.UnsignedGreater
+                            Return RelationalOperatorCode.UnsignedGreater
                     End Select
                 Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.LessThan
-                            Return Semantics.RelationalOperatorCode.IntegerLess
+                            Return RelationalOperatorCode.IntegerLess
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return Semantics.RelationalOperatorCode.IntegerLessEqual
+                            Return RelationalOperatorCode.IntegerLessEqual
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.IntegerEqual
+                            Return RelationalOperatorCode.IntegerEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.IntegerNotEqual
+                            Return RelationalOperatorCode.IntegerNotEqual
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return Semantics.RelationalOperatorCode.IntegerGreaterEqual
+                            Return RelationalOperatorCode.IntegerGreaterEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return Semantics.RelationalOperatorCode.IntegerGreater
+                            Return RelationalOperatorCode.IntegerGreater
                     End Select
                 Case SpecialType.System_Single, SpecialType.System_Double
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.LessThan
-                            Return Semantics.RelationalOperatorCode.FloatingLess
+                            Return RelationalOperatorCode.FloatingLess
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return Semantics.RelationalOperatorCode.FloatingLessEqual
+                            Return RelationalOperatorCode.FloatingLessEqual
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.FloatingEqual
+                            Return RelationalOperatorCode.FloatingEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.FloatingNotEqual
+                            Return RelationalOperatorCode.FloatingNotEqual
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return Semantics.RelationalOperatorCode.FloatingGreaterEqual
+                            Return RelationalOperatorCode.FloatingGreaterEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return Semantics.RelationalOperatorCode.FloatingGreater
+                            Return RelationalOperatorCode.FloatingGreater
                     End Select
                 Case SpecialType.System_Decimal
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.LessThan
-                            Return Semantics.RelationalOperatorCode.DecimalLess
+                            Return RelationalOperatorCode.DecimalLess
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return Semantics.RelationalOperatorCode.DecimalLessEqual
+                            Return RelationalOperatorCode.DecimalLessEqual
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.DecimalEqual
+                            Return RelationalOperatorCode.DecimalEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.DecimalNotEqual
+                            Return RelationalOperatorCode.DecimalNotEqual
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return Semantics.RelationalOperatorCode.DecimalGreaterEqual
+                            Return RelationalOperatorCode.DecimalGreaterEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return Semantics.RelationalOperatorCode.DecimalGreater
+                            Return RelationalOperatorCode.DecimalGreater
                     End Select
                 Case SpecialType.System_Boolean
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.BooleanEqual
+                            Return RelationalOperatorCode.BooleanEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.BooleanNotEqual
+                            Return RelationalOperatorCode.BooleanNotEqual
                     End Select
                 Case SpecialType.System_String
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.StringEqual
+                            Return RelationalOperatorCode.StringEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.StringNotEqual
+                            Return RelationalOperatorCode.StringNotEqual
                         Case BinaryOperatorKind.Like
-                            Return Semantics.RelationalOperatorCode.StringLike
+                            Return RelationalOperatorCode.StringLike
                     End Select
                 Case SpecialType.System_Object
                     Select Case operatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.LessThan
-                            Return Semantics.RelationalOperatorCode.ObjectLess
+                            Return RelationalOperatorCode.ObjectLess
                         Case BinaryOperatorKind.LessThanOrEqual
-                            Return Semantics.RelationalOperatorCode.ObjectLessEqual
+                            Return RelationalOperatorCode.ObjectLessEqual
                         Case BinaryOperatorKind.Equals
-                            Return Semantics.RelationalOperatorCode.ObjectVBEqual
+                            Return RelationalOperatorCode.ObjectVBEqual
                         Case BinaryOperatorKind.Is
-                            Return Semantics.RelationalOperatorCode.ObjectEqual
+                            Return RelationalOperatorCode.ObjectEqual
                         Case BinaryOperatorKind.IsNot
-                            Return Semantics.RelationalOperatorCode.ObjectNotEqual
+                            Return RelationalOperatorCode.ObjectNotEqual
                         Case BinaryOperatorKind.NotEquals
-                            Return Semantics.RelationalOperatorCode.ObjectVBNotEqual
+                            Return RelationalOperatorCode.ObjectVBNotEqual
                         Case BinaryOperatorKind.Like
-                            Return Semantics.RelationalOperatorCode.ObjectLike
+                            Return RelationalOperatorCode.ObjectLike
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return Semantics.RelationalOperatorCode.ObjectGreaterEqual
+                            Return RelationalOperatorCode.ObjectGreaterEqual
                         Case BinaryOperatorKind.GreaterThan
-                            Return Semantics.RelationalOperatorCode.ObjectGreater
+                            Return RelationalOperatorCode.ObjectGreater
                     End Select
             End Select
 
             If left.Type.TypeKind = TypeKind.Enum Then
                 Select Case operatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.LessThan
-                        Return Semantics.RelationalOperatorCode.EnumLess
+                        Return RelationalOperatorCode.EnumLess
                     Case BinaryOperatorKind.LessThanOrEqual
-                        Return Semantics.RelationalOperatorCode.EnumLessEqual
+                        Return RelationalOperatorCode.EnumLessEqual
                     Case BinaryOperatorKind.Equals
-                        Return Semantics.RelationalOperatorCode.EnumEqual
+                        Return RelationalOperatorCode.EnumEqual
                     Case BinaryOperatorKind.NotEquals
-                        Return Semantics.RelationalOperatorCode.EnumNotEqual
+                        Return RelationalOperatorCode.EnumNotEqual
                     Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return Semantics.RelationalOperatorCode.EnumGreaterEqual
+                        Return RelationalOperatorCode.EnumGreaterEqual
                     Case BinaryOperatorKind.GreaterThan
-                        Return Semantics.RelationalOperatorCode.EnumGreater
+                        Return RelationalOperatorCode.EnumGreater
                 End Select
             End If
 
-            Return Semantics.RelationalOperatorCode.None
+            Return RelationalOperatorCode.None
         End Function
     End Module
 End Namespace

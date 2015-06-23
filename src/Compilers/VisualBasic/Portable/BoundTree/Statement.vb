@@ -5,15 +5,15 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Class BoundStatement
-        Implements Semantics.IStatement
+        Implements IStatement
 
-        Private ReadOnly Property IKind As Semantics.OperationKind Implements Semantics.IOperation.Kind
+        Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
                 Return Me.StatementKind()
             End Get
         End Property
 
-        Private ReadOnly Property ISyntax As SyntaxNode Implements Semantics.IOperation.Syntax
+        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
             End Get
@@ -21,382 +21,404 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Protected MustOverride Function StatementKind() As Unified.StatementKind
 
-        Protected Overridable Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.None
+        Protected Overridable Function StatementKind() As OperationKind
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundIfStatement
-        Implements Semantics.IIf
-        Implements Semantics.IIfClause
+        Implements IIf
+        Implements IIfClause
 
-        Private ReadOnly Property IElse As Semantics.IStatement Implements Semantics.IIf.Else
+        Private ReadOnly Property IElse As IStatement Implements IIf.Else
             Get
                 Return Me.AlternativeOpt
             End Get
         End Property
 
-        Private ReadOnly Property IIfClauses As ImmutableArray(Of Semantics.IIfClause) Implements Semantics.IIf.IfClauses
+        Private ReadOnly Property IIfClauses As ImmutableArray(Of IIfClause) Implements IIf.IfClauses
             Get
                 ' Apparently the VB bound trees do not preserve multi-clause if statements. This is disappointing.
-                Return ImmutableArray.Create(Of Semantics.IIfClause)(Me)
+                Return ImmutableArray.Create(Of IIfClause)(Me)
             End Get
         End Property
 
-        Private ReadOnly Property IBody As Semantics.IStatement Implements Semantics.IIfClause.Body
+        Private ReadOnly Property IBody As IStatement Implements IIfClause.Body
             Get
                 Return Me.Consequence
             End Get
         End Property
 
-        Private ReadOnly Property ICondition As Semantics.IExpression Implements Semantics.IIfClause.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IIfClause.Condition
             Get
                 Return Me.Condition
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.IfStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.IfStatement
         End Function
 
     End Class
 
     Partial Class BoundSelectStatement
-        Implements Semantics.ISwitch
+        Implements ISwitch
 
-        Private ReadOnly Property ICases As ImmutableArray(Of Semantics.ICase) Implements Semantics.ISwitch.Cases
+        Private ReadOnly Property ICases As ImmutableArray(Of ICase) Implements ISwitch.Cases
             Get
-                Return Me.CaseBlocks.As(Of Semantics.ICase)()
+                Return Me.CaseBlocks.As(Of ICase)()
             End Get
         End Property
 
-        Private ReadOnly Property IValue As Semantics.IExpression Implements Semantics.ISwitch.Value
+        Private ReadOnly Property IValue As IExpression Implements ISwitch.Value
             Get
                 Return Me.ExpressionStatement.Expression
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.SwitchStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.SwitchStatement
         End Function
     End Class
 
     Partial Class BoundCaseBlock
-        Implements Semantics.ICase
+        Implements ICase
 
-        Private ReadOnly Property IBody As ImmutableArray(Of Semantics.IStatement) Implements Semantics.ICase.Body
+        Private ReadOnly Property IBody As ImmutableArray(Of IStatement) Implements ICase.Body
             Get
-                Return ImmutableArray.Create(Of Semantics.IStatement)(Me.Body)
+                Return ImmutableArray.Create(Of IStatement)(Me.Body)
             End Get
         End Property
 
-        Private ReadOnly Property IClauses As ImmutableArray(Of Semantics.ICaseClause) Implements Semantics.ICase.Clauses
+        Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
-                Return Me.CaseStatement.CaseClauses.As(Of Semantics.ICaseClause)()
+                Return Me.CaseStatement.CaseClauses.As(Of ICaseClause)()
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.None
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundCaseClause
-        Implements Semantics.ICaseClause
+        Implements ICaseClause
 
-        Protected MustOverride ReadOnly Property ICaseClass As Semantics.CaseKind Implements Semantics.ICaseClause.CaseClass
+        Protected MustOverride ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseClass
     End Class
 
     Partial Class BoundSimpleCaseClause
-        Implements Semantics.ISingleValueCaseClause
+        Implements ISingleValueCaseClause
 
-        Private ReadOnly Property IEquality As Semantics.RelationalOperatorCode Implements Semantics.ISingleValueCaseClause.Equality
+        Private ReadOnly Property IEquality As RelationalOperatorCode Implements ISingleValueCaseClause.Equality
             Get
                 Dim caseValue As BoundExpression = Me.ValueOpt
                 If caseValue IsNot Nothing Then
                     Select Case caseValue.Type.SpecialType
                         Case SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UInt16, SpecialType.System_Int16, SpecialType.System_SByte, SpecialType.System_Byte, SpecialType.System_Char
-                            Return Semantics.RelationalOperatorCode.IntegerEqual
+                            Return RelationalOperatorCode.IntegerEqual
 
                         Case SpecialType.System_Boolean
-                            Return Semantics.RelationalOperatorCode.BooleanEqual
+                            Return RelationalOperatorCode.BooleanEqual
 
                         Case SpecialType.System_String
-                            Return Semantics.RelationalOperatorCode.StringEqual
+                            Return RelationalOperatorCode.StringEqual
                     End Select
 
                     If caseValue.Type.TypeKind = TypeKind.Enum Then
-                        Return Semantics.RelationalOperatorCode.EnumEqual
+                        Return RelationalOperatorCode.EnumEqual
                     End If
                 End If
 
-                Return Semantics.RelationalOperatorCode.None
+                Return RelationalOperatorCode.None
             End Get
         End Property
 
-        Private ReadOnly Property IValue As Semantics.IExpression Implements Semantics.ISingleValueCaseClause.Value
+        Private ReadOnly Property IValue As IExpression Implements ISingleValueCaseClause.Value
             Get
                 Return Me.ValueOpt
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As Semantics.CaseKind
+        Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return If(Me.ValueOpt IsNot Nothing, Semantics.CaseKind.SingleValue, Semantics.CaseKind.Default)
+                Return If(Me.ValueOpt IsNot Nothing, CaseKind.SingleValue, CaseKind.Default)
             End Get
         End Property
     End Class
 
     Partial Class BoundRangeCaseClause
-        Implements Semantics.IRangeCaseClause
+        Implements IRangeCaseClause
 
-        Private ReadOnly Property IMaximumValue As Semantics.IExpression Implements Semantics.IRangeCaseClause.MaximumValue
+        Private ReadOnly Property IMaximumValue As IExpression Implements IRangeCaseClause.MaximumValue
             Get
                 Return Me.UpperBoundOpt
             End Get
         End Property
 
-        Private ReadOnly Property IMinimumValue As Semantics.IExpression Implements Semantics.IRangeCaseClause.MinimumValue
+        Private ReadOnly Property IMinimumValue As IExpression Implements IRangeCaseClause.MinimumValue
             Get
                 Return Me.LowerBoundOpt
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As Semantics.CaseKind
+        Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return Semantics.CaseKind.Range
+                Return CaseKind.Range
             End Get
         End Property
     End Class
 
     Partial Class BoundRelationalCaseClause
-        Implements Semantics.IRelationalCaseClause
+        Implements IRelationalCaseClause
 
-        Private ReadOnly Property Relation As Semantics.RelationalOperatorCode Implements Semantics.IRelationalCaseClause.Relation
+        Private ReadOnly Property Relation As RelationalOperatorCode Implements IRelationalCaseClause.Relation
             Get
                 If Me.OperandOpt IsNot Nothing Then
                     Return DeriveRelationalOperatorCode(Me.OperatorKind, Me.OperandOpt)
                 End If
 
-                Return Semantics.RelationalOperatorCode.None
+                Return RelationalOperatorCode.None
             End Get
         End Property
 
-        Private ReadOnly Property Value As Semantics.IExpression Implements Semantics.IRelationalCaseClause.Value
+        Private ReadOnly Property Value As IExpression Implements IRelationalCaseClause.Value
             Get
                 Return Me.OperandOpt
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property ICaseClass As Semantics.CaseKind
+        Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return Semantics.CaseKind.Relational
+                Return CaseKind.Relational
             End Get
         End Property
     End Class
 
     Partial Class BoundDoLoopStatement
-        Implements Semantics.IWhileUntil
+        Implements IWhileUntil
 
-        Private ReadOnly Property ICondition As Semantics.IExpression Implements Semantics.IForWhileUntil.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntil.Condition
             Get
                 Return Me.ConditionOpt
             End Get
         End Property
 
-        Private ReadOnly Property IBody As Semantics.IStatement Implements Semantics.ILoop.Body
+        Private ReadOnly Property IBody As IStatement Implements ILoop.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As Semantics.LoopKind Implements Semantics.ILoop.LoopClass
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopClass
             Get
-                Return Semantics.LoopKind.WhileUntil
+                Return LoopKind.WhileUntil
             End Get
         End Property
 
-        Private ReadOnly Property IIsTopTest As Boolean Implements Semantics.IWhileUntil.IsTopTest
+        Private ReadOnly Property IIsTopTest As Boolean Implements IWhileUntil.IsTopTest
             Get
                 Return Me.ConditionIsTop
             End Get
         End Property
 
-        Private ReadOnly Property IIsWhile As Boolean Implements Semantics.IWhileUntil.IsWhile
+        Private ReadOnly Property IIsWhile As Boolean Implements IWhileUntil.IsWhile
             Get
                 Return Not Me.ConditionIsUntil
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LoopStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.LoopStatement
         End Function
 
     End Class
 
     Partial Class BoundForToStatement
-        Implements Semantics.IFor
+        Implements IFor
 
-        Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of Semantics.IStatement) Implements Semantics.IFor.AtLoopBottom
+        Private Shared LoopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+
+        Private ReadOnly Property IAtLoopBottom As ImmutableArray(Of IStatement) Implements IFor.AtLoopBottom
             Get
-                Dim statements As ArrayBuilder(Of Semantics.IStatement) = ArrayBuilder(Of Semantics.IStatement).GetInstance()
-                Dim operators As BoundForToUserDefinedOperators = Me.OperatorsOpt
-                If operators IsNot Nothing Then
-                    ' Use the operator methods. Figure out the precise rules first.
-                Else
-                    Dim controlReference As Semantics.IReference = TryCast(Me.ControlVariable, Semantics.IReference)
-                    If controlReference IsNot Nothing Then
+                Dim result = LoopBottomMappings.GetValue(
+                    Me,
+                    Function(BoundFor)
+                        Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
+                        Dim operators As BoundForToUserDefinedOperators = BoundFor.OperatorsOpt
+                        If operators IsNot Nothing Then
+                            ' Use the operator methods. Figure out the precise rules first.
+                        Else
+                            Dim controlReference As IReference = TryCast(BoundFor.ControlVariable, IReference)
+                            If controlReference IsNot Nothing Then
 
-                        ' ControlVariable += StepValue
+                                ' ControlVariable += StepValue
 
-                        Dim controlType As TypeSymbol = Me.ControlVariable.Type
+                                Dim controlType As TypeSymbol = BoundFor.ControlVariable.Type
 
-                        Dim stepValue As BoundExpression = Me.StepValue
-                        If stepValue Is Nothing Then
-                            stepValue = New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType)
+                                Dim stepValue As BoundExpression = BoundFor.StepValue
+                                If stepValue Is Nothing Then
+                                    stepValue = New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(controlType, 1), controlType)
+                                End If
+
+                                Dim stepOperand As IExpression = If(stepValue.IsConstant, DirectCast(stepValue, IExpression), New Temporary(TemporaryKind.StepValue, BoundFor, stepValue))
+                                statements.Add(New CompoundAssignment(controlReference, stepOperand, Semantics.Expression.DeriveAdditionCode(controlType), Nothing, stepValue.Syntax))
+                            End If
                         End If
 
-                        Dim stepOperand As Semantics.IExpression = If(stepValue.IsConstant, DirectCast(stepValue, Semantics.IExpression), New Temporary(Semantics.TemporaryKind.StepValue, Me, stepValue))
-                        statements.Add(New Semantics.CompoundAssignment(controlReference, stepOperand, Semantics.Expression.DeriveAdditionCode(controlType), Nothing, stepValue.Syntax))
-                    End If
-                End If
+                        Return statements.ToImmutableAndFree()
+                    End Function)
 
-                Return statements.ToImmutableAndFree()
+                Return DirectCast(result, ImmutableArray(Of IStatement))
             End Get
         End Property
 
-        Private ReadOnly Property IBefore As ImmutableArray(Of Semantics.IStatement) Implements Semantics.IFor.Before
+        Private Shared LoopTopMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
+
+        Private ReadOnly Property IBefore As ImmutableArray(Of IStatement) Implements IFor.Before
             Get
-                Dim statements As ArrayBuilder(Of Semantics.IStatement) = ArrayBuilder(Of Semantics.IStatement).GetInstance()
+                Dim result = LoopTopMappings.GetValue(
+                    Me,
+                    Function(BoundFor)
+                        Dim statements As ArrayBuilder(Of IStatement) = ArrayBuilder(Of IStatement).GetInstance()
 
-                ' ControlVariable = InitialValue
-                Dim controlReference As Semantics.IReference = TryCast(Me.ControlVariable, Semantics.IReference)
-                If controlReference IsNot Nothing Then
-                    statements.Add(New Semantics.Assignment(controlReference, Me.InitialValue, Me.InitialValue.Syntax))
-                End If
+                        ' ControlVariable = InitialValue
+                        Dim controlReference As IReference = TryCast(BoundFor.ControlVariable, IReference)
+                        If controlReference IsNot Nothing Then
+                            statements.Add(New Assignment(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
+                        End If
 
-                ' T0 = LimitValue
-                If Not Me.LimitValue.IsConstant Then
-                    statements.Add(New Semantics.Assignment(New Temporary(Semantics.TemporaryKind.LimitValue, Me, Me.LimitValue), Me.LimitValue, Me.LimitValue.Syntax))
-                End If
+                        ' T0 = LimitValue
+                        If Not Me.LimitValue.IsConstant Then
+                            statements.Add(New Assignment(New Temporary(TemporaryKind.LimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
+                        End If
 
-                ' T1 = StepValue
-                If Me.StepValue IsNot Nothing AndAlso Not Me.StepValue.IsConstant Then
-                    statements.Add(New Semantics.Assignment(New Temporary(Semantics.TemporaryKind.StepValue, Me, Me.StepValue), Me.StepValue, Me.StepValue.Syntax))
-                End If
+                        ' T1 = StepValue
+                        If BoundFor.StepValue IsNot Nothing AndAlso Not BoundFor.StepValue.IsConstant Then
+                            statements.Add(New Assignment(New Temporary(TemporaryKind.StepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
+                        End If
 
-                Return statements.ToImmutableAndFree()
+                        Return statements.ToImmutableAndFree()
+                    End Function)
+
+                Return DirectCast(result, ImmutableArray(Of IStatement))
             End Get
         End Property
 
-        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements Semantics.IFor.Locals
+        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IFor.Locals
             Get
-                Return ImmutableArray.Create(Of ILocalSymbol)()
+                Return ImmutableArray(Of ILocalSymbol).Empty
             End Get
         End Property
 
-        Private ReadOnly Property ICondition As Semantics.IExpression Implements Semantics.IForWhileUntil.Condition
+        Private Shared LoopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IExpression)
+
+        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntil.Condition
             Get
-                Dim limitValue As Semantics.IExpression = If(Me.LimitValue.IsConstant, DirectCast(Me.LimitValue, Semantics.IExpression), New Temporary(Semantics.TemporaryKind.LimitValue, Me, Me.LimitValue))
-                Dim controlVariable As BoundExpression = Me.ControlVariable
+                Return LoopConditionMappings.GetValue(
+                    Me,
+                    Function(BoundFor)
+                        Dim limitValue As IExpression = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IExpression), New Temporary(TemporaryKind.LimitValue, BoundFor, BoundFor.LimitValue))
+                        Dim controlVariable As BoundExpression = BoundFor.ControlVariable
 
-                Dim booleanType As ITypeSymbol = Me.ControlVariable.Type.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
+                        Dim booleanType As ITypeSymbol = BoundFor.ControlVariable.Type.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
 
-                Dim operators As BoundForToUserDefinedOperators = Me.OperatorsOpt
-                If operators IsNot Nothing Then
-                    ' Use the operator methods. Figure out the precise rules first.
-                    Return Nothing
-                Else
-                    If Me.StepValue Is Nothing OrElse (Me.StepValue.IsConstant AndAlso Me.StepValue.ConstantValueOpt IsNot Nothing) Then
-                        ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
+                        Dim operators As BoundForToUserDefinedOperators = Me.OperatorsOpt
+                        If operators IsNot Nothing Then
+                            ' Use the operator methods. Figure out the precise rules first.
+                            Return Nothing
+                        Else
+                            If BoundFor.StepValue Is Nothing OrElse (BoundFor.StepValue.IsConstant AndAlso BoundFor.StepValue.ConstantValueOpt IsNot Nothing) Then
+                                ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
-                        Dim relationalCode As Semantics.RelationalOperatorCode = DeriveRelationalOperatorCode(If(Me.StepValue IsNot Nothing AndAlso Me.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                        Return New Semantics.Relational(relationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
-                    Else
-                        ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
+                                Dim relationalCode As RelationalOperatorCode = DeriveRelationalOperatorCode(If(BoundFor.StepValue IsNot Nothing AndAlso BoundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
+                                Return New Relational(relationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
+                            Else
+                                ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
-                        Dim stepValue As Semantics.IExpression = New Temporary(Semantics.TemporaryKind.StepValue, Me, Me.StepValue)
-                        Dim stepRelationalCode As Semantics.RelationalOperatorCode = DeriveRelationalOperatorCode(BinaryOperatorKind.GreaterThanOrEqual, Me.StepValue)
-                        Dim stepCondition As Semantics.IExpression = New Semantics.Relational(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.ResultType, 0), Me.StepValue.Type), booleanType, Nothing, Me.StepValue.Syntax)
+                                Dim stepValue As IExpression = New Temporary(TemporaryKind.StepValue, BoundFor, BoundFor.StepValue)
+                                Dim stepRelationalCode As RelationalOperatorCode = DeriveRelationalOperatorCode(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
+                                Dim stepCondition As IExpression = New Relational(stepRelationalCode, stepValue, New BoundLiteral(Nothing, Semantics.Expression.SynthesizeNumeric(stepValue.ResultType, 0), BoundFor.StepValue.Type), booleanType, Nothing, BoundFor.StepValue.Syntax)
 
-                        Dim positiveStepRelationalCode As Semantics.RelationalOperatorCode = DeriveRelationalOperatorCode(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                        Dim positiveStepCondition As Semantics.IExpression = New Semantics.Relational(positiveStepRelationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
+                                Dim positiveStepRelationalCode As RelationalOperatorCode = DeriveRelationalOperatorCode(BinaryOperatorKind.LessThanOrEqual, controlVariable)
+                                Dim positiveStepCondition As IExpression = New Relational(positiveStepRelationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
 
-                        Dim negativeStepRelationalCode As Semantics.RelationalOperatorCode = DeriveRelationalOperatorCode(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                        Dim negativeStepCondition As Semantics.IExpression = New Semantics.Relational(negativeStepRelationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
+                                Dim negativeStepRelationalCode As RelationalOperatorCode = DeriveRelationalOperatorCode(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
+                                Dim negativeStepCondition As IExpression = New Relational(negativeStepRelationalCode, controlVariable, limitValue, booleanType, Nothing, limitValue.Syntax)
 
-                        Return New Semantics.ConditionalChoice(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
-                    End If
-                End If
+                                Return New ConditionalChoice(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
+                            End If
+                        End If
+                    End Function)
             End Get
         End Property
 
-        Private ReadOnly Property IBody As Semantics.IStatement Implements Semantics.ILoop.Body
+        Private ReadOnly Property IBody As IStatement Implements ILoop.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As Semantics.LoopKind Implements Semantics.ILoop.LoopClass
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopClass
             Get
-                Return Semantics.LoopKind.For
+                Return LoopKind.For
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LoopStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.LoopStatement
         End Function
 
         Private Class Temporary
-            Implements Semantics.ITemporaryReference
+            Implements ITemporaryReference
 
-            Private _temporaryKind As Semantics.TemporaryKind
-            Private _containingStatement As Semantics.IStatement
-            Private _capturedValue As Semantics.IExpression
+            Private _temporaryKind As TemporaryKind
+            Private _containingStatement As IStatement
+            Private _capturedValue As IExpression
 
-            Public Sub New(temporaryKind As Semantics.TemporaryKind, containingStatement As Semantics.IStatement, capturedValue As Semantics.IExpression)
+            Public Sub New(temporaryKind As TemporaryKind, containingStatement As IStatement, capturedValue As IExpression)
                 Me._temporaryKind = temporaryKind
                 Me._containingStatement = containingStatement
                 Me._capturedValue = capturedValue
             End Sub
 
-            Public ReadOnly Property ConstantValue As Object Implements Semantics.IExpression.ConstantValue
+            Public ReadOnly Property ConstantValue As Object Implements IExpression.ConstantValue
                 Get
                     Return Nothing
                 End Get
             End Property
 
-            Public ReadOnly Property Kind As Semantics.OperationKind Implements Semantics.IOperation.Kind
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return Semantics.OperationKind.TemporaryReference
+                    Return OperationKind.TemporaryReference
                 End Get
             End Property
 
-            Public ReadOnly Property ResultType As ITypeSymbol Implements Semantics.IExpression.ResultType
+            Public ReadOnly Property ResultType As ITypeSymbol Implements IExpression.ResultType
                 Get
                     Return Me._capturedValue.ResultType
                 End Get
             End Property
 
-            Public ReadOnly Property Syntax As SyntaxNode Implements Semantics.IExpression.Syntax
+            Public ReadOnly Property Syntax As SyntaxNode Implements IExpression.Syntax
                 Get
                     Return Me._capturedValue.Syntax
                 End Get
             End Property
 
-            Public ReadOnly Property ReferenceClass As Semantics.ReferenceKind Implements Semantics.IReference.ReferenceClass
+            Public ReadOnly Property ReferenceClass As ReferenceKind Implements IReference.ReferenceClass
                 Get
-                    Return Semantics.ReferenceKind.Temporary
+                    Return ReferenceKind.Temporary
                 End Get
             End Property
 
-            Public ReadOnly Property ContainingStatement As Semantics.IStatement Implements Semantics.ITemporaryReference.ContainingStatement
+            Public ReadOnly Property ContainingStatement As IStatement Implements ITemporaryReference.ContainingStatement
                 Get
                     Return Me._containingStatement
                 End Get
             End Property
 
-            Public ReadOnly Property TemporaryKind As Semantics.TemporaryKind Implements Semantics.ITemporaryReference.TemporaryKind
+            Public ReadOnly Property TemporaryKind As TemporaryKind Implements ITemporaryReference.TemporaryKind
                 Get
                     Return Me._temporaryKind
                 End Get
@@ -405,11 +427,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundForEachStatement
-        Implements Semantics.IForEach
+        Implements IForEach
 
         Private ReadOnly Property IterationVariable As ILocalSymbol Implements IForEach.IterationVariable
             Get
-                Dim controlReference As Semantics.ILocalReference = TryCast(Me.ControlVariable, Semantics.ILocalReference)
+                Dim controlReference As ILocalReference = TryCast(Me.ControlVariable, ILocalReference)
                 If controlReference IsNot Nothing Then
                     Return controlReference.Local
                 End If
@@ -438,35 +460,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundTryStatement
-        Implements Semantics.ITry
+        Implements ITry
 
-        Private ReadOnly Property IBody As Semantics.IBlock Implements Semantics.ITry.Body
+        Private ReadOnly Property IBody As IBlock Implements ITry.Body
             Get
                 Return Me.TryBlock
             End Get
         End Property
 
-        Private ReadOnly Property ICatches As ImmutableArray(Of Semantics.ICatch) Implements Semantics.ITry.Catches
+        Private ReadOnly Property ICatches As ImmutableArray(Of ICatch) Implements ITry.Catches
             Get
-                Return Me.CatchBlocks.As(Of Semantics.ICatch)()
+                Return Me.CatchBlocks.As(Of ICatch)()
             End Get
         End Property
 
-        Private ReadOnly Property IFinallyHandler As Semantics.IBlock Implements Semantics.ITry.FinallyHandler
+        Private ReadOnly Property IFinallyHandler As IBlock Implements ITry.FinallyHandler
             Get
                 Return Me.FinallyBlockOpt
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.TryStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.TryStatement
         End Function
     End Class
 
     Partial Class BoundCatchBlock
-        Implements Semantics.ICatch
+        Implements ICatch
 
-        Private ReadOnly Property ICaughtType As ITypeSymbol Implements Semantics.ICatch.CaughtType
+        Private ReadOnly Property ICaughtType As ITypeSymbol Implements ICatch.CaughtType
             Get
                 If Me.ExceptionSourceOpt IsNot Nothing Then
                     Return Me.ExceptionSourceOpt.Type
@@ -477,31 +499,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IFilter As Semantics.IExpression Implements Semantics.ICatch.Filter
+        Private ReadOnly Property IFilter As IExpression Implements ICatch.Filter
             Get
                 Return Me.ExceptionFilterOpt
             End Get
         End Property
 
-        Private ReadOnly Property IHandler As Semantics.IBlock Implements Semantics.ICatch.Handler
+        Private ReadOnly Property IHandler As IBlock Implements ICatch.Handler
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILocals As ILocalSymbol Implements Semantics.ICatch.ExceptionLocal
+        Private ReadOnly Property ILocals As ILocalSymbol Implements ICatch.ExceptionLocal
             Get
                 Return Me.LocalOpt
             End Get
         End Property
 
-        Private ReadOnly Property IKind As Semantics.OperationKind Implements Semantics.IOperation.Kind
+        Private ReadOnly Property IKind As OperationKind Implements IOperation.Kind
             Get
-                Return Semantics.OperationKind.CatchHandler
+                Return OperationKind.CatchHandler
             End Get
         End Property
 
-        Private ReadOnly Property ISyntax As SyntaxNode Implements Semantics.IOperation.Syntax
+        Private ReadOnly Property ISyntax As SyntaxNode Implements IOperation.Syntax
             Get
                 Return Me.Syntax
             End Get
@@ -509,115 +531,115 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundBlock
-        Implements Semantics.IBlock
+        Implements IBlock
 
-        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements Semantics.IBlock.Locals
+        Private ReadOnly Property ILocals As ImmutableArray(Of ILocalSymbol) Implements IBlock.Locals
             Get
                 Return Me.Locals.As(Of ILocalSymbol)()
             End Get
         End Property
 
-        Private ReadOnly Property IStatements As ImmutableArray(Of Semantics.IStatement) Implements Semantics.IBlock.Statements
+        Private ReadOnly Property IStatements As ImmutableArray(Of IStatement) Implements IBlock.Statements
             Get
-                Return Me.Statements.As(Of Semantics.IStatement)()
+                Return Me.Statements.As(Of IStatement)()
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.BlockStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.BlockStatement
         End Function
     End Class
 
     Partial Class BoundBadStatement
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.None
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
         End Function
     End Class
 
     Partial Class BoundReturnStatement
-        Implements Semantics.IReturn
+        Implements IReturn
 
-        Private ReadOnly Property IReturned As Semantics.IExpression Implements Semantics.IReturn.Returned
+        Private ReadOnly Property IReturned As IExpression Implements IReturn.Returned
             Get
                 Return Me.ExpressionOpt
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ReturnStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.ReturnStatement
         End Function
     End Class
 
     Partial Class BoundThrowStatement
-        Implements Semantics.IThrow
+        Implements IThrow
 
-        Private ReadOnly Property IThrown As Semantics.IExpression Implements Semantics.IThrow.Thrown
+        Private ReadOnly Property IThrown As IExpression Implements IThrow.Thrown
             Get
                 Return Me.ExpressionOpt
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ThrowStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.ThrowStatement
         End Function
     End Class
 
     Partial Class BoundWhileStatement
-        Implements Semantics.IWhileUntil
+        Implements IWhileUntil
 
-        Private ReadOnly Property ICondition As Semantics.IExpression Implements Semantics.IForWhileUntil.Condition
+        Private ReadOnly Property ICondition As IExpression Implements IForWhileUntil.Condition
             Get
                 Return Me.Condition
             End Get
         End Property
 
-        Private ReadOnly Property IBody As Semantics.IStatement Implements Semantics.ILoop.Body
+        Private ReadOnly Property IBody As IStatement Implements ILoop.Body
             Get
                 Return Me.Body
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As Semantics.LoopKind Implements Semantics.ILoop.LoopClass
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopClass
             Get
-                Return Semantics.LoopKind.WhileUntil
+                Return LoopKind.WhileUntil
             End Get
         End Property
 
-        Private ReadOnly Property IIsTopTest As Boolean Implements Semantics.IWhileUntil.IsTopTest
-            Get
-                Return True
-            End Get
-        End Property
-
-        Private ReadOnly Property IIsWhile As Boolean Implements Semantics.IWhileUntil.IsWhile
+        Private ReadOnly Property IIsTopTest As Boolean Implements IWhileUntil.IsTopTest
             Get
                 Return True
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LoopStatement
+        Private ReadOnly Property IIsWhile As Boolean Implements IWhileUntil.IsWhile
+            Get
+                Return True
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.LoopStatement
         End Function
     End Class
 
     Partial Class BoundLocalDeclarationBase
-        Implements Semantics.IVariable
+        Implements IVariable
 
-        Protected MustOverride ReadOnly Property IInitialValue As Semantics.IExpression Implements Semantics.IVariable.InitialValue
+        Protected MustOverride ReadOnly Property IInitialValue As IExpression Implements IVariable.InitialValue
 
-        Protected MustOverride ReadOnly Property IVariable As ILocalSymbol Implements Semantics.IVariable.Variable
+        Protected MustOverride ReadOnly Property IVariable As ILocalSymbol Implements IVariable.Variable
     End Class
 
     Partial Class BoundLocalDeclaration
-        Implements Semantics.IVariableDeclaration
+        Implements IVariableDeclaration
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of Semantics.IVariable) Implements Semantics.IVariableDeclaration.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
             Get
-                Return ImmutableArray.Create(Of Semantics.IVariable)(Me)
+                Return ImmutableArray.Create(Of IVariable)(Me)
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property IInitialValue As Semantics.IExpression
+        Protected Overrides ReadOnly Property IInitialValue As IExpression
             Get
                 Return Me.InitializerOpt
             End Get
@@ -629,21 +651,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.VariableDeclarationStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.VariableDeclarationStatement
         End Function
     End Class
 
     Partial Class BoundAsNewLocalDeclarations
-        Implements Semantics.IVariableDeclaration
+        Implements IVariableDeclaration
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of Semantics.IVariable) Implements Semantics.IVariableDeclaration.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
             Get
-                Return Me.LocalDeclarations.As(Of Semantics.IVariable)()
+                Return Me.LocalDeclarations.As(Of IVariable)()
             End Get
         End Property
 
-        Protected Overrides ReadOnly Property IInitialValue As Semantics.IExpression
+        Protected Overrides ReadOnly Property IInitialValue As IExpression
             Get
                 Return Me.Initializer
             End Get
@@ -658,110 +680,110 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.VariableDeclarationStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.VariableDeclarationStatement
         End Function
     End Class
 
     Partial Class BoundDimStatement
-        Implements Semantics.IVariableDeclaration
+        Implements IVariableDeclaration
 
-        Private ReadOnly Property IVariables As ImmutableArray(Of Semantics.IVariable) Implements Semantics.IVariableDeclaration.Variables
+        Private ReadOnly Property IVariables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
             Get
-                Return Me.LocalDeclarations.As(Of Semantics.IVariable)()
+                Return Me.LocalDeclarations.As(Of IVariable)()
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.VariableDeclarationStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.VariableDeclarationStatement
         End Function
     End Class
 
     Partial Class BoundYieldStatement
-        Implements Semantics.IReturn
-        Private ReadOnly Property IReturned As Semantics.IExpression Implements Semantics.IReturn.Returned
+        Implements IReturn
+        Private ReadOnly Property IReturned As IExpression Implements IReturn.Returned
             Get
                 Return Me.Expression
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.YieldReturnStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.YieldReturnStatement
         End Function
     End Class
 
     Partial Class BoundLabelStatement
-        Implements Semantics.ILabel
+        Implements ILabel
 
-        Private ReadOnly Property ILabel As ILabelSymbol Implements Semantics.ILabel.Label
+        Private ReadOnly Property ILabel As ILabelSymbol Implements ILabel.Label
             Get
                 Return Me.Label
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LabelStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.LabelStatement
         End Function
     End Class
 
     Partial Class BoundGotoStatement
-        Implements Semantics.IBranch
+        Implements IBranch
 
-        Private ReadOnly Property ITarget As ILabelSymbol Implements Semantics.IBranch.Target
+        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranch.Target
             Get
                 Return Me.Label
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.GoToStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.GoToStatement
         End Function
     End Class
 
     Partial Class BoundContinueStatement
-        Implements Semantics.IBranch
+        Implements IBranch
 
-        Private ReadOnly Property ITarget As ILabelSymbol Implements Semantics.IBranch.Target
+        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranch.Target
             Get
                 Return Me.Label
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.ContinueStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.ContinueStatement
         End Function
     End Class
 
     Partial Class BoundExitStatement
-        Implements Semantics.IBranch
+        Implements IBranch
 
-        Private ReadOnly Property ITarget As ILabelSymbol Implements Semantics.IBranch.Target
+        Private ReadOnly Property ITarget As ILabelSymbol Implements IBranch.Target
             Get
                 Return Me.Label
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.BreakStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.BreakStatement
         End Function
     End Class
 
     Partial Class BoundSyncLockStatement
-        Implements Semantics.ILock
+        Implements ILock
 
-        Private ReadOnly Property ILocked As Semantics.IExpression Implements Semantics.ILock.Locked
+        Private ReadOnly Property ILocked As IExpression Implements ILock.Locked
             Get
                 Return Me.LockExpression
             End Get
         End Property
 
-        Protected Overrides Function StatementKind() As Semantics.OperationKind
-            Return Semantics.OperationKind.LockStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.LockStatement
         End Function
     End Class
 
     Module Statement
-        Friend ReadOnly EmptyStatementArray As ImmutableArray(Of Semantics.IStatement) = ImmutableArray.Create(Of Semantics.IStatement)()
+        Friend ReadOnly EmptyStatementArray As ImmutableArray(Of IStatement) = ImmutableArray.Create(Of IStatement)()
     End Module
 
 End Namespace
