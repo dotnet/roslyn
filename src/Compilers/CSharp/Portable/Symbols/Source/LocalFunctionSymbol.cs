@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // force lazy init
             ComputeParameters();
-            ComputeReturnType(null, true);
+            ComputeReturnType(null, true, false);
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
             if (!diags.IsDefault)
@@ -134,21 +134,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(null, true);
+                ComputeReturnType(null, true, false);
                 return _returnType;
             }
         }
 
+        // Reason for ReturnTypeNoForce and ReturnTypeIterator:
+        // When computing the return type, sometimes we want to return null (ReturnTypeNoForce) instead of reporting a diagnostic
+        // or sometimes we want to disallow var and report an error about iterators (ReturnTypeIterator)
         public TypeSymbol ReturnTypeNoForce
         {
             get
             {
-                ComputeReturnType(null, false);
+                ComputeReturnType(null, false, false);
                 return _returnType;
             }
         }
 
-        internal void ComputeReturnType(BoundBlock body, bool forceNotNull)
+        public TypeSymbol ReturnTypeIterator
+        {
+            get
+            {
+                ComputeReturnType(null, true, true);
+                return _returnType;
+            }
+        }
+
+        internal void ComputeReturnType(BoundBlock body, bool forceNotNull, bool isIterator)
         {
             if (_returnType != null)
             {
@@ -165,12 +177,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             if (_isVar)
             {
-                if (body == null)
+                if (isIterator) // cannot use IsIterator (the property) because that gets computed after the body is bound, which hasn't happened yet.
+                {
+                    // Completely disallow use of var inferred in an iterator context.
+                    // This is because we may have IAsyncEnumerable and similar types, which determine the type of state machine to emit.
+                    // If we infer the return type, we won't know which state machine to generate.
+                    returnType = _binder.CreateErrorType("var");
+                    // InMethodBinder reports ERR_BadIteratorReturn, so no need to report a diagnostic here.
+                }
+                else if (body == null)
                 {
                     if (forceNotNull)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                         returnType = _binder.CreateErrorType("var");
+                        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                     }
                     else
                     {
@@ -182,6 +202,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool inferredFromSingleType;
                     returnType = BoundLambda.InferReturnType(body, _binder, IsAsync, ref useSiteDiagnostics, out inferredFromSingleType);
+                    if (returnType == null)
+                    {
+                        if (IsAsync)
+                        {
+                            returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                        }
+                        else
+                        {
+                            returnType = _binder.Compilation.GetSpecialType(SpecialType.System_Void);
+                        }
+                    }
+                    diagnostics.Add(Locations[0], useSiteDiagnostics);
                 }
             }
             if (Interlocked.CompareExchange(ref _returnType, returnType, null) != null)

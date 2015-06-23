@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using System;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -810,6 +808,18 @@ class Program
             Console.WriteLine(2);
         }
         LocalVoid();
+
+        Task<int> Fun(int x)
+        {
+            return Task.FromResult(x);
+        }
+        async Task<int> AwaitAwait()
+        {
+            var a = Fun(2);
+            await Fun(await a);
+            return await Fun(await a);
+        }
+        Console.WriteLine(AwaitAwait().Result);
     }
 }
 ";
@@ -817,6 +827,7 @@ class Program
                 options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
                 parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
 2
 2
 2
@@ -831,6 +842,10 @@ class Program
 using System;
 
 struct async
+{
+    public override string ToString() => ""2"";
+}
+struct await
 {
     public override string ToString() => ""2"";
 }
@@ -861,12 +876,21 @@ class Program
         }
         return Foo().ToString();
     }
+    static string D()
+    {
+        await Fun(await x)
+        {
+            return x;
+        }
+        return Fun(new await()).ToString();
+    }
 
     static void Main(string[] args)
     {
         Console.WriteLine(A());
         Console.WriteLine(B());
         Console.WriteLine(C());
+        Console.WriteLine(D());
     }
 }
 ";
@@ -874,6 +898,7 @@ class Program
                 options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
                 parseOptions: _parseOptions);
             var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
 2
 2
 2
@@ -1858,6 +1883,12 @@ class Program
         Label:
         var bar = new Action(Local);
     }
+    static void D()
+    {
+        void Local()
+        {
+        }
+    }
 
     static void Main(string[] args)
     {
@@ -2056,6 +2087,8 @@ class Program
         {
             var source = @"
 using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 class Program
 {
@@ -2084,14 +2117,33 @@ class Program
             }
             return Inner();
         }
+        var LocalVoid()
+        {
+            Console.WriteLine(2);
+        }
+        async var LocalAsyncRet()
+        {
+            return await Task.FromResult(2);
+        }
+        async var LocalAsyncVoid()
+        {
+            await Task.Yield();
+            Console.WriteLine(2);
+        }
         Console.WriteLine(Local());
         Console.WriteLine(LocalIf(true));
         Console.WriteLine(LocalNest());
+        LocalVoid();
+        Console.WriteLine(LocalAsyncRet().Result);
+        LocalAsyncVoid().Wait();
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
+2
+2
+2
 2
 2
 2
@@ -2102,8 +2154,6 @@ class Program
         public void BadInferredReturn()
         {
             var source = @"
-using System;
-
 class Program
 {
     static void Main(string[] args)
@@ -2120,19 +2170,31 @@ class Program
             }
             return Inner();
         }
-        Console.WriteLine(Local());
-        Console.WriteLine(LocalRec());
+        var IteratorReturn()
+        {
+            yield return 2;
+        }
+        var IteratorVoid()
+        {
+            yield break;
+        }
     }
 }
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlibAndSystemCore(source, options: option, parseOptions: _parseOptions).VerifyDiagnostics(
-    // (8,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    // (6,9): error CS7019: Type of 'Local()' cannot be inferred since its initializer directly or indirectly refers to the definition.
     //         var Local()
-    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(8, 9),
-    // (12,9): error CS7019: Type of 'LocalRec()' cannot be inferred since its initializer directly or indirectly refers to the definition.
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("Local()").WithLocation(6, 9),
+    // (10,9): error CS7019: Type of 'LocalRec()' cannot be inferred since its initializer directly or indirectly refers to the definition.
     //         var LocalRec()
-    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("LocalRec()").WithLocation(12, 9)
+    Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "var").WithArguments("LocalRec()").WithLocation(10, 9),
+    // (18,13): error CS1624: The body of 'IteratorReturn()' cannot be an iterator block because 'var' is not an iterator interface type
+    //         var IteratorReturn()
+    Diagnostic(ErrorCode.ERR_BadIteratorReturn, "IteratorReturn").WithArguments("IteratorReturn()", "var").WithLocation(18, 13),
+    // (22,13): error CS1624: The body of 'IteratorVoid()' cannot be an iterator block because 'var' is not an iterator interface type
+    //         var IteratorVoid()
+    Diagnostic(ErrorCode.ERR_BadIteratorReturn, "IteratorVoid").WithArguments("IteratorVoid()", "var").WithLocation(22, 13)
                 );
         }
 
