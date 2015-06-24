@@ -768,8 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Addition: member = SpecialMember.System_Decimal__op_Increment; break;
                 case BinaryOperatorKind.Subtraction: member = SpecialMember.System_Decimal__op_Decrement; break;
                 default:
-                    Debug.Assert(false); // Cannot reach here
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(oper.Operator());
             }
 
             var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
@@ -907,9 +906,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node.Type;
                 case UnaryOperatorKind.UserDefined:
                 case UnaryOperatorKind.Bool:
-                    Debug.Assert(false, "Unexpected unary operator kind");
-                    goto default;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

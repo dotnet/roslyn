@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -572,43 +573,43 @@ class C
             Assert.Equal(expectedMissingAssemblyIdentity, actualMissingAssemblyIdentities.Single());
         }
 
-        [WorkItem(1154988)] 
-        [Fact] 
+        [WorkItem(1154988)]
+        [Fact]
         public void CompileWithRetrySameErrorReported()
-        { 
+        {
             var source = @" 
 class C 
 { 
     void M() 
     { 
     } 
-}"; 
-            var comp = CreateCompilationWithMscorlib(source); 
-            var runtime = CreateRuntimeInstance(comp); 
-            var context = CreateMethodContext(runtime, "C.M"); 
- 
-            var missingModule = runtime.Modules.First(); 
-            var missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow(); 
- 
-            var numRetries = 0; 
+}";
+            var comp = CreateCompilationWithMscorlib(source);
+            var runtime = CreateRuntimeInstance(comp);
+            var context = CreateMethodContext(runtime, "C.M");
+
+            var missingModule = runtime.Modules.First();
+            var missingIdentity = missingModule.MetadataReader.ReadAssemblyIdentityOrThrow();
+
+            var numRetries = 0;
             string errorMessage;
-            ExpressionCompilerTestHelpers.CompileExpressionWithRetry( 
-                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(), 
-                context, 
-                (_, diagnostics) => 
+            ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                context,
+                (_, diagnostics) =>
                 {
                     numRetries++;
                     Assert.InRange(numRetries, 0, 2); // We don't want to loop forever... 
                     diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
-                    return null;   
-                }, 
-                (AssemblyIdentity assemblyIdentity, out uint uSize) => 
-                { 
-                    uSize = (uint)missingModule.MetadataLength; 
-                    return missingModule.MetadataAddress; 
-                }, 
-                out errorMessage); 
- 
+                    return null;
+                },
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    uSize = (uint)missingModule.MetadataLength;
+                    return missingModule.MetadataAddress;
+                },
+                out errorMessage);
+
             Assert.Equal(2, numRetries); // Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
             Assert.Equal($"error CS0012: The type 'MissingType' is defined in an assembly that is not referenced. You must add a reference to assembly '{missingIdentity}'.", errorMessage);
         }
@@ -660,6 +661,66 @@ class C
             Assert.Null(errorMessage);
         }
 
+        [WorkItem(2547)]
+        [Fact]
+        public void TryDifferentLinqLibraryOnRetry()
+        {
+            var source = @"
+using System.Linq;
+class C 
+{ 
+    void M(string[] args) 
+    {
+    } 
+}
+class UseLinq
+{
+    bool b = Enumerable.Any<int>(null);
+}";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            byte[] exeBytes, pdbBytes;
+            ImmutableArray<MetadataReference> references;
+            compilation.EmitAndGetReferences(out exeBytes, out pdbBytes, out references);
+            var systemCore = SystemCoreRef.ToModuleInstance(fullImage: null, symReader: null);
+            var referencesWithoutSystemCore = references.Where(r => r != SystemCoreRef).ToImmutableArray();
+            var runtime = CreateRuntimeInstance(ExpressionCompilerUtilities.GenerateUniqueName(), referencesWithoutSystemCore.AddIntrinsicAssembly(), exeBytes, symReader: null);
+            var context = CreateMethodContext(runtime, "C.M");
+            var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").EmitToImageReference().ToModuleInstance(fullImage: null, symReader: null);
+
+            string errorMessage;
+            CompilationTestData testData;
+            int retryCount = 0;
+            var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
+                runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
+                "args.Where(a => a.Length > 0)",
+                (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
+                {
+                    retryCount++;
+                    MetadataBlock block;
+                    switch (retryCount)
+                    {
+                        case 1:
+                            Assert.Equal(EvaluationContextBase.SystemLinqIdentity, assemblyIdentity);
+                            block = fakeSystemLinq.MetadataBlock;
+                            break;
+                        case 2:
+                            Assert.Equal(EvaluationContextBase.SystemCoreIdentity, assemblyIdentity);
+                            block = systemCore.MetadataBlock;
+                            break;
+                        default:
+                            throw ExceptionUtilities.Unreachable;
+                    }
+                    uSize = (uint)block.Size;
+                    return block.Pointer;
+                },
+                errorMessage: out errorMessage,
+                testData: out testData);
+
+            Assert.Equal(2, retryCount);
+        }
+
         private sealed class TestCompileResult : CompileResult
         {
             public static readonly CompileResult Instance = new TestCompileResult();
@@ -694,7 +755,7 @@ class C
 
         private static AssemblyIdentity GetMissingAssemblyIdentity(ErrorCode code, params object[] arguments)
         {
-            var missingAssemblyIdentities = EvaluationContext.GetMissingAssemblyIdentitiesHelper(code, arguments);
+            var missingAssemblyIdentities = EvaluationContext.GetMissingAssemblyIdentitiesHelper(code, arguments, EvaluationContextBase.SystemCoreIdentity);
             return missingAssemblyIdentities.IsDefault ? null : missingAssemblyIdentities.Single();
         }
 

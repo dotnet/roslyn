@@ -1622,5 +1622,37 @@ public class Test
         }
 
         #endregion
+
+        [Fact, WorkItem(431)]
+        public void BaseMethodWrapper()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    public virtual async Task<int> GetIntAsync()
+    {
+        return 42;
+    }
+}
+class B : A
+{
+    public override async Task<int> GetIntAsync()
+    {
+        return await base.GetIntAsync();
+    }
+}
+";
+            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
+            {
+                var reference = CreateCompilationWithMscorlib45(source, options: options).EmitToImageReference();
+                var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+                var baseMethodWrapper = comp.GetMember<MethodSymbol>("B.<>n__0");
+
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+            }
+        }
     }
 }
