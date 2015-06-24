@@ -290,5 +290,44 @@ namespace Microsoft.CodeAnalysis
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DummyRule);
             public override void Initialize(AnalysisContext context) { }
         }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                new MyLocalizableStringThatThrows(),
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+
+            private sealed class MyLocalizableStringThatThrows : LocalizableString
+            {
+                protected override bool AreEqual(object other)
+                {
+                    return ReferenceEquals(this, other);
+                }
+
+                protected override int GetHash()
+                {
+                    return 0;
+                }
+
+                protected override string GetText(IFormatProvider formatProvider)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
     }
 }
