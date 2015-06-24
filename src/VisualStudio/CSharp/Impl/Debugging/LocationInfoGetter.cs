@@ -24,7 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
             var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, position, useFullSpan: true);
 
-            if (memberDeclaration == null)
+            // It might be reasonable to return an empty Name and a LineOffset from the beginning of the
+            // file for GlobalStatements.  However, the only known caller (Breakpoints Window) doesn't
+            // appear to consume this information, so we'll just return the simplest thing (no location).
+            if ((memberDeclaration == null) || (memberDeclaration.Kind() == SyntaxKind.GlobalStatement))
             {
                 return default(DebugLocationInfo);
             }
