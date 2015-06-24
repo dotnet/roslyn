@@ -1112,6 +1112,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Partial Class BoundConditionalAccess
+        Implements IConditionalAccess
+
+        Private ReadOnly Property IAccess As IExpression Implements IConditionalAccess.Access
+            Get
+                Return Me.AccessExpression
+            End Get
+        End Property
+
+        Protected Overrides Function ExpressionKind() As OperationKind
+            Return OperationKind.ConditionalAccess
+        End Function
+    End Class
+
     Partial Class BoundParameter
         Implements IParameterReference
 

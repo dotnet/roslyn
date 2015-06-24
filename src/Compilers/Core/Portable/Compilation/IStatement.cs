@@ -187,4 +187,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         IExpression Expression { get; }
     }
+
+    public interface IWith : IStatement
+    {
+        IStatement Body { get; }
+        IExpression Value { get; }
+    }
 }
