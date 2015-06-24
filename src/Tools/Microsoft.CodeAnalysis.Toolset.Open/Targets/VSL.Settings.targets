@@ -227,7 +227,7 @@
     <EditBinToolPath>$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\VC\bin\editbin.exe</EditBinToolPath>
   </PropertyGroup>
   
-  <Import Project="$(MSBuildThisFileDirectory)..\..\..\..\..\LocalInternalsVisibleTo.props"
-    Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\..\LocalInternalsVisibleTo.props')" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\..\..\LocalInternalsVisibleTo.props"
+    Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\LocalInternalsVisibleTo.props')" />
 
 </Project>
