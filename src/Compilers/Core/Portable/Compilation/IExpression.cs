@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         bool IsExplicit { get; }
     }
 
-    public interface IMemberReference :IReference
+    public interface IMemberReference : IReference
     {
         IExpression Instance { get; }
     }
@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         LateBoundMember
     }
 
+    public interface IConditionalAccess : IExpression
+    {
+        IExpression Access { get; }
+    }
+
     public interface IOperator : IExpression
     {
         bool UsesOperatorMethod { get; }
@@ -152,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression IfTrue { get; }
         IExpression IfFalse { get; }
     }
-
+    
     public interface INullCoalescing : IExpression
     {
         IExpression Primary { get; }

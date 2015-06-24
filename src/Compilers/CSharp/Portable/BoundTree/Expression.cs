@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Syntax; }
         }
 
-        protected virtual OperationKind ExpressionKind{ get { return OperationKind.None; } }
+        protected virtual OperationKind ExpressionKind { get { return OperationKind.None; } }
         // protected abstract OperationKind ExpressionKind { get; }
     }
 
@@ -1016,6 +1017,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind ExpressionKind
         {
             get { return OperationKind.ImplicitInstance; }
+        }
+    }
+
+    partial class BoundConditionalAccess : IConditionalAccess
+    {
+        IExpression IConditionalAccess.Access
+        {
+            get { return AccessExpression; }
+        }
+
+        protected override OperationKind ExpressionKind
+        {
+            get { return OperationKind.ConditionalAccess; }
         }
     }
 

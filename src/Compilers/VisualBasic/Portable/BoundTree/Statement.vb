@@ -195,6 +195,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
+    Partial Class BoundCaseStatement
+
+        ' Cases are found by going through ISwitch, so the VB Case statement is orphaned.
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+    End Class
+
     Partial Class BoundDoLoopStatement
         Implements IWhileUntil
 
@@ -457,6 +465,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.Body
             End Get
         End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.LoopStatement
+        End Function
     End Class
 
     Partial Class BoundTryStatement
@@ -782,4 +794,93 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
+    Partial Class BoundNoOpStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.EmptyStatement
+        End Function
+    End Class
+
+    Partial Class BoundSequencePoint
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+    End Class
+
+    Partial Class BoundSequencePointWithSpan
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+    End Class
+
+    Partial Class BoundStateMachineScope
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+    End Class
+
+    Partial Class BoundStopStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.StopStatement
+        End Function
+    End Class
+
+    Partial Class BoundEndStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.EndStatement
+        End Function
+    End Class
+
+    Partial Class BoundWithStatement
+        Implements IWith
+
+        Private ReadOnly Property IBody As IStatement Implements IWith.Body
+            Get
+                Return Me.Body
+            End Get
+        End Property
+
+        Private ReadOnly Property IValue As IExpression Implements IWith.Value
+            Get
+                Return Me.OriginalExpression
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.WithStatement
+        End Function
+    End Class
+
+    Partial Class BoundUsingStatement
+        Implements IUsingWithExpression
+
+        Private ReadOnly Property IValue As IExpression Implements IUsingWithExpression.Value
+            Get
+                Return Me.ResourceExpressionOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IBody As IStatement Implements IUsing.Body
+            Get
+                Return Me.Body
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.UsingWithExpressionStatement
+        End Function
+    End Class
+
+    Partial Class BoundExpressionStatement
+        Implements IExpressionStatement
+
+        Private ReadOnly Property IExpression As IExpression Implements IExpressionStatement.Expression
+            Get
+                Return Me.Expression
+            End Get
+        End Property
+
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.ExpressionStatement
+        End Function
+    End Class
 End Namespace

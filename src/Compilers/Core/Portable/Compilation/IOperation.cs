@@ -75,6 +75,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         // VB only
 
-        Omitted
+        Omitted,
+        StopStatement,
+        EndStatement,
+        WithStatement,
+
+        // Newly added
+
+        ConditionalAccess
     }
 }
