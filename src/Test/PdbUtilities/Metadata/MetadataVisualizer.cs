@@ -143,7 +143,6 @@ namespace Roslyn.Test.MetadataUtilities
             WriteLocalVariable();
             WriteLocalConstant();
             WriteLocalImport();
-            WriteAsyncMethod();
             WriteCustomDebugInformation();
 
             // heaps:
@@ -1451,9 +1450,9 @@ namespace Roslyn.Test.MetadataUtilities
                 }
 
                 var entry = _reader.GetMethodBody(handle);
-
-                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePoints)}");
                 
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePoints)}");
+
                 if (entry.SequencePoints.IsNil)
                 {
                     continue;
@@ -1462,6 +1461,26 @@ namespace Roslyn.Test.MetadataUtilities
                 _blobKinds[entry.SequencePoints] = BlobKind.SequencePoints;
 
                 _writer.WriteLine("{");
+
+                bool addLineBreak = false;
+
+                var kickoffMethod = entry.GetStateMachineKickoffMethod();
+                if (!kickoffMethod.IsNil)
+                {
+                    _writer.WriteLine($"  Kickoff Method: {Token(kickoffMethod)}");
+                    addLineBreak = true;
+                }
+
+                if (!entry.LocalSignature.IsNil)
+                {
+                    _writer.WriteLine($"  Locals: {Token(entry.LocalSignature)}");
+                    addLineBreak = true;
+                }
+
+                if (addLineBreak)
+                {
+                    _writer.WriteLine();
+                }
 
                 try
                 {
@@ -1650,28 +1669,6 @@ namespace Roslyn.Test.MetadataUtilities
                 default:
                     return false;
             }
-        }
-
-        private void WriteAsyncMethod()
-        {
-            AddHeader(
-                "Kickoff",
-                "Catch",
-                "Awaits"
-            );
-
-            foreach (var handle in _reader.AsyncMethods)
-            {
-                var entry = _reader.GetAsyncMethod(handle);
-
-                AddRow(
-                    Token(entry.KickoffMethod),
-                    entry.CatchHandlerOffset.ToString(),
-                    FormatAwaits(entry.Awaits)
-               );
-            }
-
-            WriteTableName(TableIndex.AsyncMethod);
         }
 
         private void WriteLocalImport()

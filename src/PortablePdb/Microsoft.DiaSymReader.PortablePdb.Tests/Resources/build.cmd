@@ -6,3 +6,7 @@ csc /target:library /debug:portable /optimize- /features:deterministic Documents
 copy /y Documents.pdb Documents.pdbx
 del Documents.pdb
 
+csc /target:library /debug:portable /optimize- /features:deterministic Async.cs
+copy /y Async.pdb Async.pdbx
+del Async.pdb
+

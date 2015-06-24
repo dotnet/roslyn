@@ -54,11 +54,10 @@ namespace Microsoft.Cci
             public uint Imports;       // Blob index
         }
 
-        private struct AsyncMethodRow
+        private struct StateMachineMethodRow
         {
+            public uint MoveNextMethod;      // MethodRid
             public uint KickoffMethod;       // MethodRid
-            public uint CatchHandlerOffset;  // 0 = no catch handler, otherwise ILOffset + 1
-            public uint Awaits;              // Blob - sequence of uints: (yield offset, result offset, MethodDef rid)+
         }
 
         private struct CustomDebugInformationRow
@@ -74,7 +73,7 @@ namespace Microsoft.Cci
         private readonly List<LocalVariableRow> _localVariableTable = new List<LocalVariableRow>();
         private readonly List<LocalConstantRow> _localConstantTable = new List<LocalConstantRow>();
         private readonly List<ImportScopeRow> _importScopeTable = new List<ImportScopeRow>();
-        private readonly List<AsyncMethodRow> _asyncMethodTable = new List<AsyncMethodRow>();
+        private readonly List<StateMachineMethodRow> _stateMachineMethodTable = new List<StateMachineMethodRow>();
         private readonly List<CustomDebugInformationRow> _customDebugInformationTable = new List<CustomDebugInformationRow>();
 
         private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
@@ -167,13 +166,13 @@ namespace Microsoft.Cci
             var asyncDebugInfo = bodyOpt.AsyncDebugInfo;
             if (asyncDebugInfo != null)
             {
-                // TODO: sort by KickoffMethod
-                _asyncMethodTable.Add(new AsyncMethodRow
+                _stateMachineMethodTable.Add(new StateMachineMethodRow
                 {
-                    KickoffMethod = GetMethodDefIndex(asyncDebugInfo.KickoffMethod),
-                    CatchHandlerOffset = (uint)(asyncDebugInfo.CatchHandlerOffset + 1),
-                    Awaits = SerializeAwaitsBlob(asyncDebugInfo, methodRid),
+                    MoveNextMethod = (uint)methodRid,
+                    KickoffMethod = GetMethodDefIndex(asyncDebugInfo.KickoffMethod)
                 });
+
+                SerializeAsyncMethodSteppingInfo(asyncDebugInfo, methodRid);
             }
 
             SerializeStateMachineLocalScopes(bodyOpt, methodRid);
@@ -510,21 +509,29 @@ namespace Microsoft.Cci
         
         #region State Machines
 
-        private uint SerializeAwaitsBlob(AsyncMethodBodyDebugInfo asyncInfo, int moveNextMethodRid)
+        private void SerializeAsyncMethodSteppingInfo(AsyncMethodBodyDebugInfo asyncInfo, int moveNextMethodRid)
         {
-            MemoryStream sig = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(sig);
-
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
+            Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
+
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.WriteUint((uint)((long)asyncInfo.CatchHandlerOffset + 1));
 
             for (int i = 0; i < asyncInfo.ResumeOffsets.Length; i++)
             {
-                writer.WriteCompressedUInt((uint)asyncInfo.YieldOffsets[i]);
-                writer.WriteCompressedUInt((uint)asyncInfo.ResumeOffsets[i]);
+                writer.WriteUint((uint)asyncInfo.YieldOffsets[i]);
+                writer.WriteUint((uint)asyncInfo.ResumeOffsets[i]);
                 writer.WriteCompressedUInt((uint)moveNextMethodRid);
             }
 
-            return _debugHeapsOpt.GetBlobIndex(sig);
+            _customDebugInformationTable.Add(new CustomDebugInformationRow
+            {
+                Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, moveNextMethodRid),
+                Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.AsyncMethodSteppingInformationBlob),
+                Value = _debugHeapsOpt.GetBlobIndex(stream),
+            });
         }
 
         private void SerializeStateMachineLocalScopes(IMethodBody methodBody, int methodRowId)
@@ -813,13 +820,12 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeAsyncMethodTable(BinaryWriter writer, MetadataSizes metadataSizes)
+        private void SerializeStateMachineMethodTable(BinaryWriter writer, MetadataSizes metadataSizes)
         {
-            foreach (var row in _asyncMethodTable)
+            foreach (var row in _stateMachineMethodTable)
             {
+                writer.WriteReference(row.MoveNextMethod, metadataSizes.MethodDefIndexSize);
                 writer.WriteReference(row.KickoffMethod, metadataSizes.MethodDefIndexSize);
-                writer.WriteUint(row.CatchHandlerOffset);
-                writer.WriteReference(row.Awaits, metadataSizes.BlobIndexSize);
             }
         }
 

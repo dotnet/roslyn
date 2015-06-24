@@ -77,13 +77,16 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\Async.pdbx" />
     <None Include="Resources\build.cmd" />
+    <EmbeddedResource Include="Resources\Async.dll" />
     <Content Include="Resources\Documents.cs" />
     <EmbeddedResource Include="Resources\Documents.dll" />
     <EmbeddedResource Include="Resources\Documents.pdbx" />
     <None Include="Resources\Scopes.cs" />
     <EmbeddedResource Include="Resources\Scopes.dll" />
     <EmbeddedResource Include="Resources\Scopes.pdbx" />
+    <None Include="Resources\Async.cs" />
     <Compile Include="Resources\TestResources.cs" />
   </ItemGroup>
   <ItemGroup>

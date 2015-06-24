@@ -495,7 +495,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.LocalScope] = _localScopeTable.Count;
             rowCounts[(int)TableIndex.LocalVariable] = _localVariableTable.Count;
             rowCounts[(int)TableIndex.LocalConstant] = _localConstantTable.Count;
-            rowCounts[(int)TableIndex.AsyncMethod] = _asyncMethodTable.Count;
+            rowCounts[(int)TableIndex.StateMachineMethod] = _stateMachineMethodTable.Count;
             rowCounts[(int)TableIndex.ImportScope] = _importScopeTable.Count;
             rowCounts[(int)TableIndex.CustomDebugInformation] = _customDebugInformationTable.Count;
 
@@ -2432,9 +2432,9 @@ namespace Microsoft.Cci
                 this.SerializeImportScopeTable(writer, metadataSizes);
             }
 
-            if (metadataSizes.IsPresent(TableIndex.AsyncMethod))
+            if (metadataSizes.IsPresent(TableIndex.StateMachineMethod))
             {
-                this.SerializeAsyncMethodTable(writer, metadataSizes);
+                this.SerializeStateMachineMethodTable(writer, metadataSizes);
             }
 
             if (metadataSizes.IsPresent(TableIndex.CustomDebugInformation))

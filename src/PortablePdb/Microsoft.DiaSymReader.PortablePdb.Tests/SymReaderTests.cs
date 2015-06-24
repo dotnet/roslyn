@@ -188,6 +188,56 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             return variables;
         }
 
+        private void ValidateAsyncMethod(ISymUnmanagedReader symReader, int moveNextMethodToken, int kickoffMethodToken, int catchHandlerOffset, int[] yieldOffsets, int[] resumeOffsets)
+        {
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(moveNextMethodToken, out method));
+
+            var asyncMethod = (ISymUnmanagedAsyncMethod)method;
+
+            bool isAsync;
+            Assert.Equal(HResult.S_OK, asyncMethod.IsAsyncMethod(out isAsync));
+            Assert.True(isAsync);
+
+            int actualKickoffMethodToken;
+            Assert.Equal(HResult.S_OK, asyncMethod.GetKickoffMethod(out actualKickoffMethodToken));
+            Assert.Equal(kickoffMethodToken, actualKickoffMethodToken);
+
+            bool hasCatchHandlerILOffset;
+            Assert.Equal(HResult.S_OK, asyncMethod.HasCatchHandlerILOffset(out hasCatchHandlerILOffset));
+            Assert.Equal(catchHandlerOffset >= 0, hasCatchHandlerILOffset);
+
+            int actualCatchHandlerOffset;
+            if (hasCatchHandlerILOffset)
+            {
+                Assert.Equal(HResult.S_OK, asyncMethod.GetCatchHandlerILOffset(out actualCatchHandlerOffset));
+                Assert.Equal(catchHandlerOffset, actualCatchHandlerOffset);
+            }
+            else
+            {
+                Assert.Equal(HResult.E_UNEXPECTED, asyncMethod.GetCatchHandlerILOffset(out actualCatchHandlerOffset));
+            }
+
+            int count, count2;
+            Assert.Equal(HResult.S_OK, asyncMethod.GetAsyncStepInfoCount(out count));
+            Assert.Equal(yieldOffsets.Length, count);
+            Assert.Equal(resumeOffsets.Length, count);
+
+            var actualYieldOffsets = new int[count];
+            var actualResumeOffsets = new int[count];
+            var actualResumeMethods = new int[count];
+            
+            Assert.Equal(HResult.S_OK, asyncMethod.GetAsyncStepInfo(count, out count2, actualYieldOffsets, actualResumeOffsets, actualResumeMethods));
+
+            AssertEx.Equal(yieldOffsets, actualYieldOffsets);
+            AssertEx.Equal(resumeOffsets, actualResumeOffsets);
+
+            foreach (int actualResumeMethod in actualResumeMethods)
+            {
+                Assert.Equal(moveNextMethodToken, actualResumeMethod);
+            }
+        }
+
         [Fact]
         public unsafe void TestMetadataHeaders1()
         {
@@ -406,6 +456,101 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Assert.Equal(HResult.E_NOTIMPL, mF.GetParameters(0, out count, ps));
             // TODO:
             // f.GetScopeFromOffset()
+        }
+
+        [Fact]
+        public void TestAsyncMethods()
+        {
+            var symReader = CreateSymReaderFromResource("Async");
+
+            ValidateAsyncMethod(
+                symReader, 
+                moveNextMethodToken: 0x06000005,
+                kickoffMethodToken: 0x06000001,
+                catchHandlerOffset: -1,
+                yieldOffsets: new[] { 0x46, 0xAF, 0x11A }, 
+                resumeOffsets: new[] { 0x64, 0xCE, 0x136 });
+
+            ValidateAsyncMethod(
+                symReader,
+                moveNextMethodToken: 0x06000008,
+                kickoffMethodToken: 0x06000002,
+                catchHandlerOffset: 0x76,
+                yieldOffsets: new[] { 0x2D },
+                resumeOffsets: new[] { 0x48 });
+        }
+
+        [Fact]
+        public void TestAsyncMethods_GetAsyncStepInfo()
+        {
+            var symReader = CreateSymReaderFromResource("Async");
+
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(0x06000005, out method));
+
+            var asyncMethod = (ISymUnmanagedAsyncMethod)method;
+
+            var actualYieldOffsets = new int[1];
+            var actualResumeOffsets = new int[1];
+            var actualResumeMethods = new int[1];
+
+            int count2;
+            Assert.Equal(HResult.S_OK, asyncMethod.GetAsyncStepInfo(1, out count2, actualYieldOffsets, actualResumeOffsets, actualResumeMethods));
+
+            Assert.Equal(1, count2);
+            Assert.NotEqual(0, actualYieldOffsets[0]);
+            Assert.NotEqual(0, actualResumeOffsets[0]);
+            Assert.NotEqual(0, actualResumeMethods[0]);
+
+            actualYieldOffsets = new int[5];
+            actualResumeOffsets = new int[5];
+            actualResumeMethods = new int[5];
+
+            Assert.Equal(HResult.S_OK, asyncMethod.GetAsyncStepInfo(4, out count2, actualYieldOffsets, actualResumeOffsets, actualResumeMethods));
+
+            Assert.Equal(3, count2);
+
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.NotEqual(0, actualYieldOffsets[i]);
+                Assert.NotEqual(0, actualResumeOffsets[i]);
+                Assert.NotEqual(0, actualResumeMethods[i]);
+            }
+
+            for (int i = 3; i < 5; i++)
+            {
+                Assert.Equal(0, actualYieldOffsets[i]);
+                Assert.Equal(0, actualResumeOffsets[i]);
+                Assert.Equal(0, actualResumeMethods[i]);
+            }
+        }
+
+        [Fact]
+        public void TestAsyncMethods_Errors()
+        {
+            var symReader = CreateSymReaderFromResource("Scopes");
+
+            ISymUnmanagedMethod method;
+            Assert.Equal(HResult.S_OK, symReader.GetMethod(0x06000002, out method));
+
+            var asyncMethod = (ISymUnmanagedAsyncMethod)method;
+
+            bool isAsync;
+            Assert.Equal(HResult.S_OK, asyncMethod.IsAsyncMethod(out isAsync));
+            Assert.False(isAsync);
+
+            int actualKickoffMethodToken;
+            Assert.Equal(HResult.E_UNEXPECTED, asyncMethod.GetKickoffMethod(out actualKickoffMethodToken));
+
+            bool hasCatchHandlerILOffset;
+            Assert.Equal(HResult.E_UNEXPECTED, asyncMethod.HasCatchHandlerILOffset(out hasCatchHandlerILOffset));
+
+            int actualCatchHandlerOffset;
+            Assert.Equal(HResult.E_UNEXPECTED, asyncMethod.GetCatchHandlerILOffset(out actualCatchHandlerOffset));
+
+            int count, count2;
+            Assert.Equal(HResult.E_UNEXPECTED, asyncMethod.GetAsyncStepInfoCount(out count));
+            Assert.Equal(HResult.E_UNEXPECTED, asyncMethod.GetAsyncStepInfo(count, out count2, null, null, null));
         }
     }
 }
