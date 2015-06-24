@@ -1052,35 +1052,15 @@ namespace Microsoft.CodeAnalysis
         /// Given an input string changes it to be acceptable as a part of a type name.
         /// </summary>
         internal static string MangleForTypeNameIfNeeded(string moduleName)
-        {            
-            var s = new StringBuilder();
-            foreach (var c in moduleName)
-            {
-                //Any character that can appear in an identifier maps to itself, except Q and _
-                var qOr_ = (c == 'Q' || c == '_');
-                if ((!qOr_) && char.IsLetterOrDigit(c))
-                {
-                    s.Append(c);
-                    continue;
-                }
-                switch (c)
-                {
-                    case ('Q'): //Q maps to QQ
-                        s.Append("QQ");
-                        break;
-                    case ('_'): //_ maps to Q_
-                        s.Append("Q_");
-                        break;
-                    case ('.'): //. maps to _
-                        s.Append('_');
-                        break;
-                    default: //any other character maps to Q followed by four hex digits for its unicode value.
-                        s.AppendFormat("{0}{1:X}", 'Q', c);
-                        break;
-                }
-            }
+        {
+            var pooledStrBuilder = PooledStringBuilder.GetInstance();
+            var s = pooledStrBuilder.Builder;
+            s.Append(moduleName);
+            s.Replace("Q", "QQ");
+            s.Replace("_", "Q_");
+            s.Replace('.', '_');
 
-            return s.ToString();
+            return pooledStrBuilder.ToStringAndFree();
         }
     }
 }
