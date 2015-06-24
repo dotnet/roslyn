@@ -44,12 +44,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const string HTML = "HTML";
         private const string Razor = "Razor";
+        private const string TypeScript = "TypeScript";
         private const string XOML = "XOML";
 
         private const char RazorExplicit = '@';
 
         private const string CSharpRazorBlock = "{";
         private const string VBRazorBlock = "code";
+
+        private const string JSFileExtension = ".js";
 
         private const string HelperRazor = "helper";
         private const string FunctionsRazor = "functions";
@@ -136,6 +139,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
             if (projectionBuffer != null)
             {
+                // Projection buffers can have source buffers of multiple supported types. 
+                // First check to see if the subject buffer is the TypeScript content type.
+                if (_containedLanguage.SubjectBuffer.ContentType.IsOfType(TypeScript))
+                {
+                    return HostType.TypeScript;
+                }
+
                 if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML)))
                 {
                     return HostType.HTML;
@@ -168,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 folders: this.Folders,
                 sourceCodeKind: _sourceCodeKind,
                 loader: this.Loader,
-                filePath: this.Key.Moniker);
+                filePath: this.FilePath);
         }
 
         public bool IsOpen
@@ -213,11 +223,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             {
                 try
                 {
-                    return Path.GetFileName(this.FilePath);
+                    return Path.GetFileName(Key.Moniker);
                 }
                 catch (ArgumentException)
                 {
-                    return this.FilePath;
+                    return Key.Moniker;
                 }
             }
         }
@@ -234,6 +244,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             get
             {
+                if (_hostType == HostType.TypeScript)
+                {
+                    // Append a .js extension to the path 
+                    // so that the contained document will  
+                    // be processed as JavaScript.
+                    return Key.Moniker + JSFileExtension;
+                }
+
                 return Key.Moniker;
             }
         }
@@ -801,6 +819,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var snapshot = subjectBuffer.CurrentSnapshot;
             var document = _workspace.CurrentSolution.GetDocument(this.Id);
+            if (!document.SupportsSyntaxTree)
+            {
+                return;
+            }
+
             var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
@@ -1197,6 +1220,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             HTML,
             Razor,
+            TypeScript,
             XOML
         }
     }
