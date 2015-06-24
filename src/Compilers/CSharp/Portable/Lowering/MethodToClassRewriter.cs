@@ -650,6 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 AssignTypeMapAndTypeParameters(typeMap, typeParameters);
             }
+
+            internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            {
+                base.AddSynthesizedAttributes(compilationState, ref attributes);
+
+                AddSynthesizedAttribute(ref attributes, this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
+            }
         }
     }
 }
