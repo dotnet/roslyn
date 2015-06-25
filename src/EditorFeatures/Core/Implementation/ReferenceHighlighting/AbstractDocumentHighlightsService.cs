@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 return additionalReferenceProvider.GetAdditionalReferencesAsync(document, symbol, cancellationToken);
             }
 
-            return Task.FromResult<IEnumerable<Location>>(Array.Empty<Location>());
+            return Task.FromResult<IEnumerable<Location>>(SpecializedCollections.EmptyEnumerable<Location>());
         }
 
         private async Task<IEnumerable<DocumentHighlights>> CreateSpansAsync(
