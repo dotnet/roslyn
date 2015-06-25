@@ -476,8 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.PropertySet:
                     return true;
                 default:
-                    Debug.Assert(false, $"Unexpected method kind '{kind}'");
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 

@@ -64,7 +64,6 @@
     <ProjectReference Include="..\Core\AnalyzerPowerPack.Common.csproj">
       <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
       <Name>AnalyzerPowerPack.Common</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -72,7 +71,6 @@
     <ProjectReference Include="..\CSharp\AnalyzerPowerPack.CSharp.csproj">
       <Project>{3ba13187-2a3b-4b08-9199-c11fda1d5ad0}</Project>
       <Name>AnalyzerPowerPack.CSharp</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>

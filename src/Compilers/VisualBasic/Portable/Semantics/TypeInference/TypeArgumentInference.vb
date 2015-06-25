@@ -799,9 +799,7 @@ HandleAsAGeneralExpression:
                                 '               modifications in the future. However, we still need an assert to guard
                                 '               against graph traversal bugs, and in the event that such changes are
                                 '               made, leave it to the modifier to remove the assert if necessary.
-                                Debug.Assert(False)
-                                restartAlgorithm = True
-                                Exit For
+                                Throw ExceptionUtilities.Unreachable
                             End If
 
                         Else

@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
@@ -12,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
     public class LocationInfoGetterTests
     {
-        private void Test(string markup, string expectedName, int expectedLineOffset)
+        private void Test(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(markup))
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { markup }, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
@@ -468,7 +469,7 @@ class C1
         {
             Test(
 @"$$int f1;
-", "f1", 0);
+", "f1", 0, new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
@@ -478,7 +479,17 @@ class C1
 @"int M1(int x)
 {
 $$}
-", "M1(int x)", 2);
+", "M1(int x)", 2, new CSharpParseOptions(kind: SourceCodeKind.Script));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TopLevelStatement()
+        {
+            Test(
+@"
+
+$$System.Console.WriteLine(""Hello"")
+", null, 0, new CSharpParseOptions(kind: SourceCodeKind.Interactive));
         }
     }
 }

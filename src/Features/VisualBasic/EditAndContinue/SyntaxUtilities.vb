@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return
             End If
 
-            Debug.Assert(False)
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
         Public Shared Function GetBody(node As LambdaExpressionSyntax) As SyntaxList(Of SyntaxNode)

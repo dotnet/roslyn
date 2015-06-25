@@ -202,10 +202,27 @@ namespace N
         VerifyNoBlock("$$", languageName:="NoCompilation")
     End Sub
 
-    Private Sub VerifyNoBlock(markup As String, languageName As String)
+    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
+    Public Sub GetCurrentBlock_NotInGlobalCode_CS()
+        VerifyNoBlock("
+var message = ""Hello"";
+System.Console$$.WriteLine(message);
+", LanguageNames.CSharp, SourceCodeKind.Script)
+    End Sub
+
+    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
+    Public Sub GetCurrentBlock_NotInGlobalCode_VB()
+        VerifyNoBlock("
+Dim message = ""Hello""
+System.Console$$.WriteLine(message)
+", LanguageNames.VisualBasic, SourceCodeKind.Script)
+    End Sub
+
+    Private Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
         Dim xml = <Workspace>
                       <Project Language=<%= languageName %> CommonReferences="True">
                           <Document>
+                              <ParseOptions Kind=<%= sourceCodeKind %>/>
                               <%= markup %>
                           </Document>
                       </Project>

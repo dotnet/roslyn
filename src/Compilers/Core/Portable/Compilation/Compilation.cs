@@ -914,13 +914,6 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
 
-        /// <summary>
-        /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null).
-        /// </summary>
-        /// <param name="diagnostic"></param>
-        /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
-
         #endregion
 
         #region Resources

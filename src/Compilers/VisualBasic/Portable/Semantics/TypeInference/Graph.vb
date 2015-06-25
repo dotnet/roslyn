@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Debug.Assert(False)
+                Throw ExceptionUtilities.Unreachable
             End Sub
 
 
