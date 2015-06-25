@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
             Dim vbnode = DirectCast(node, VisualBasicSyntaxNode)
             CheckSyntaxNode(vbnode)
-            Return GetOperationWorker(vbnode, GetOperationOptions.Lowest, cancellationToken)
+            Return GetOperationWorker(vbnode, GetOperationOptions.Highest, cancellationToken)
         End Function
 
         Friend Overridable Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation

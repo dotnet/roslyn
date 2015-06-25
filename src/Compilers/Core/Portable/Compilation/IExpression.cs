@@ -301,6 +301,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         BinaryOperatorCode Operation { get; }
     }
 
+    public interface IIncrement : ICompoundAssignment
+    {
+        UnaryOperatorCode IncrementOperation { get; }
+    }
+
     public interface IParenthesized: IExpression
     {
         IExpression Operand { get; }
