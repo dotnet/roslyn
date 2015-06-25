@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBTests
         Inherits BasicTestBase
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestBasic()
             Dim source =
 <compilation>
@@ -264,7 +264,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TryCatchFinally()
             Dim source =
 <compilation>

@@ -13,7 +13,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
         public const SignatureTypeCode SignatureTypeCode_ValueType = (SignatureTypeCode)0x11;
         public const SignatureTypeCode SignatureTypeCode_Class = (SignatureTypeCode)0x12;
         public static int MethodDefToken(int rowId) => 0x06000000 | rowId;
-        public static readonly Guid MethodSteppingInformationBlob = new Guid("54FD2AC5-E925-401A-9C2A-F94F171072F8");
+
+        // Custom Attribute kinds:
+        public static readonly Guid MethodSteppingInformationBlobId = new Guid("54FD2AC5-E925-401A-9C2A-F94F171072F8");
+        public static readonly Guid VbDefaultNamespaceId = new Guid("58b2eab6-209f-4e4e-a22c-b2d0f910c782");
 
         internal static int GetTypeDefOrRefOrSpecCodedIndex(EntityHandle typeHandle)
         {

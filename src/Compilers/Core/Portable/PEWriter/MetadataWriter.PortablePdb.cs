@@ -424,6 +424,8 @@ namespace Microsoft.Cci
 
         private void SerializeModuleDefaultNamespace()
         {
+            // C#: DefaultNamespace is null.
+            // VB: DefaultNamespace is non-null.
             if (module.DefaultNamespace == null)
             {
                 return;

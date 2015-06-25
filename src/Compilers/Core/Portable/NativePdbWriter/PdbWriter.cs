@@ -412,7 +412,7 @@ namespace Microsoft.Cci
             {
                 string defaultNamespace = module.DefaultNamespace;
 
-                if (defaultNamespace != null)
+                if (!string.IsNullOrEmpty(defaultNamespace))
                 {
                     // VB marks the default/root namespace with an asterisk
                     UsingNamespace("*" + defaultNamespace, module);

@@ -128,12 +128,11 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Assert.Equal(HResult.S_OK, variable.GetAddressKind(out value));
             Assert.Equal(1, value);
             
-            // TODO: signature:
-            //Assert.Equal(HResult.S_OK, variable.GetSignature(0, out length, null));
-            //var actualSignature = new byte[length];
-            //Assert.Equal(HResult.S_OK, variable.GetSignature(length, out length2, actualSignature));
-            //Assert.Equal(length, length2);
-            //AssertEx.Equal(signature, actualSignature);
+            Assert.Equal(HResult.S_OK, variable.GetSignature(0, out length, null));
+            var actualSignature = new byte[length];
+            Assert.Equal(HResult.S_OK, variable.GetSignature(length, out length2, actualSignature));
+            Assert.Equal(length, length2);
+            AssertEx.Equal(signature, actualSignature);
         }
 
         private void ValidateRootScope(ISymUnmanagedScope scope)

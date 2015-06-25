@@ -205,7 +205,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return AsyncMethodData.None;
             }
 
-            var value = reader.GetCustomDebugInformation(_handle, MetadataUtilities.MethodSteppingInformationBlob);
+            var value = reader.GetCustomDebugInformation(_handle, MetadataUtilities.MethodSteppingInformationBlobId);
             if (value.IsNil)
             {
                 return AsyncMethodData.None;
