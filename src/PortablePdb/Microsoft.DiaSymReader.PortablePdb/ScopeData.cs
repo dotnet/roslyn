@@ -30,7 +30,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int AdjustEndOffset(int value)
         {
-            return SymMethod.SymReader.VbSemantics.Value ? value + 1 : value;
+            // Portable PDB uses edge-exclusive semantics like C#.
+            // VB end offset is inclusive.
+            return SymMethod.SymReader.VbSemantics.Value && !(Parent is RootScopeData) ? value - 1 : value;
         }
 
         protected abstract ImmutableArray<ChildScopeData> CreateChildren();

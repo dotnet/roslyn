@@ -363,7 +363,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TryCatchWhen_Debug()
             Dim source =
 <compilation>
@@ -540,7 +540,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TryCatchWhen_Release()
             Dim source =
 <compilation>
@@ -632,7 +632,7 @@ End Module
 ", sequencePoints:="M1.Main")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestBasic1()
             Dim source =
 <compilation>
@@ -690,7 +690,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestBasicCtor()
             Dim source =
 <compilation>
@@ -722,7 +722,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestLabels()
             Dim source =
 <compilation>
@@ -995,7 +995,7 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub ForStatement()
             Dim source =
 <compilation>
@@ -1310,7 +1310,7 @@ End Class
 
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestIfThenAndBlocks()
             Dim source =
 <compilation>
@@ -1446,7 +1446,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestTopConditionDoLoop()
             Dim source =
 <compilation>
@@ -1551,7 +1551,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestBottomConditionDoLoop()
             Dim source =
 <compilation>
@@ -1658,7 +1658,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestInfiniteLoop()
             Dim source =
 <compilation>
@@ -1772,7 +1772,7 @@ End Module
         End Sub
 
         <WorkItem(538821, "DevDiv")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub MissingSequencePointForOptimizedIfThen()
             Dim source =
 <compilation>
@@ -1856,7 +1856,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub MissingSequencePointForTrivialIfThen()
             Dim source =
 <compilation>
@@ -1944,7 +1944,7 @@ End Module
         End Sub
 
         <WorkItem(538944, "DevDiv")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub MissingEndWhileSequencePoint()
             Dim source =
 <compilation>
@@ -2069,7 +2069,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub TestImplicitLocals()
             Dim source =
 <compilation>
@@ -2140,7 +2140,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub AddRemoveHandler()
             Dim source =
 <compilation>
@@ -2202,7 +2202,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_NoCaseBlocks()
             Dim source =
 <compilation>
@@ -2249,7 +2249,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_SingleCaseStatement()
             Dim source =
 <compilation>
@@ -2305,7 +2305,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_OnlyCaseStatements()
             Dim source =
 <compilation>
@@ -2415,7 +2415,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_SwitchTable()
             Dim source =
 <compilation>
@@ -2476,7 +2476,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_SwitchTable_TempUsed()
             Dim source =
 <compilation>
@@ -2540,7 +2540,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_IfList()
             Dim source =
 <compilation>
@@ -2605,7 +2605,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_IfList_TempUsed()
             Dim source =
 <compilation>
@@ -2672,7 +2672,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_String_SwitchTable_Hash()
             Dim source =
 <compilation>
@@ -2734,7 +2734,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_String_SwitchTable_NonHash()
             Dim source =
 <compilation>
@@ -2793,7 +2793,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SelectCase_String_IfList()
             Dim source =
 <compilation>
@@ -2856,7 +2856,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="00")
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub DontEmit_AnonymousType_NoKeys()
             Dim source =
 <compilation>
@@ -2894,7 +2894,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub DontEmit_AnonymousType_WithKeys()
             Dim source =
 <compilation>
@@ -3970,7 +3970,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub Constant_AllTypes()
             Dim source =
 <compilation>

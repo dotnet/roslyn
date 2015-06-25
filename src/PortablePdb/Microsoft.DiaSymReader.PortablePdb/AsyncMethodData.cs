@@ -31,9 +31,6 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             Debug.Assert(!kickoffMethod.IsNil);
             Debug.Assert(catchHandlerOffset >= -1);
-            Debug.Assert(!yieldOffsets.IsDefaultOrEmpty);
-            Debug.Assert(!resumeOffsets.IsDefaultOrEmpty);
-            Debug.Assert(!resumeMethods.IsDefaultOrEmpty);
 
             Debug.Assert(yieldOffsets.Length == resumeOffsets.Length);
             Debug.Assert(yieldOffsets.Length == resumeMethods.Length);

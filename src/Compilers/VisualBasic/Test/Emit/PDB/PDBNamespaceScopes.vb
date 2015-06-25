@@ -386,7 +386,7 @@ End Class
             SharedCompilationUtils.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub ImportedNoPiaTypes()
             Dim sourceLib =
 <compilation name="ImportedNoPiaTypesAssemblyName">
