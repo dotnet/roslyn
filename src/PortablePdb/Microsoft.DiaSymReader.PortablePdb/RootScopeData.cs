@@ -24,7 +24,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 foreach (var handle in allScopes)
                 {
                     // the first scope spans the entire body
-                    return mdReader.GetLocalScope(handle).EndOffset;
+                    return AdjustEndOffset(mdReader.GetLocalScope(handle).EndOffset);
                 }
 
                 // method has no body

@@ -95,6 +95,17 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             resolutionScope = MetadataTokens.GetToken(typeRef.ResolutionScope);
         }
 
+        public unsafe int GetSigFromToken(int tkSignature, out byte* ppvSig, out int pcbSig)
+        {
+            var signatureHandle = (StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature);
+            var bytes = MetadataReader.GetBlobBytes(MetadataReader.GetStandaloneSignature(signatureHandle).Signature);
+
+            var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            ppvSig = (byte*)pinned.AddrOfPinnedObject();
+            pcbSig = bytes.Length;
+            return HResult.S_OK;
+        }
+
         #region Not Implemented
 
         public void CloseEnum(uint handleEnum)
@@ -358,11 +369,6 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         }
 
         public Guid GetScopeProps(StringBuilder stringName, uint cchName, out uint pchName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public unsafe int GetSigFromToken(int tkSignature, out byte* ppvSig, out int pcbSig)
         {
             throw new NotImplementedException();
         }

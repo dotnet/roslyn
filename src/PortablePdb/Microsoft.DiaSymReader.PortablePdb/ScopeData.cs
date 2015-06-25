@@ -28,6 +28,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return _lazyChildren;
         }
 
+        public int AdjustEndOffset(int value)
+        {
+            return SymMethod.SymReader.VbSemantics.Value ? value + 1 : value;
+        }
+
         protected abstract ImmutableArray<ChildScopeData> CreateChildren();
         
         internal abstract int StartOffset { get; }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
@@ -9,11 +10,12 @@ using System.Runtime.InteropServices;
 namespace Microsoft.DiaSymReader.PortablePdb
 {
     [ComVisible(false)]
-    public sealed class SymMethod : ISymUnmanagedMethod
+    public sealed class SymMethod : ISymUnmanagedMethod, ISymUnmanagedAsyncMethod
     {
         private readonly MethodDefinitionHandle _handle;
         private readonly SymReader _symReader;
         private RootScopeData _lazyRootScopeData;
+        private AsyncMethodData _lazyAsyncMethodData;
 
         internal SymMethod(SymReader symReader, MethodDefinitionHandle handle)
         {
@@ -25,6 +27,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
         internal SymReader SymReader => _symReader;
         internal MetadataReader MetadataReader => _symReader.MetadataReader;
         internal MethodDefinitionHandle Handle => _handle;
+
+        #region ISymUnmanagedMethod
 
         public int GetNamespace([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedNamespace @namespace)
         {
@@ -172,6 +176,169 @@ namespace Microsoft.DiaSymReader.PortablePdb
             methodToken = MetadataTokens.GetToken(_handle);
             return HResult.S_OK;
         }
+
+        #endregion
+
+        #region ISymUnmanagedAsyncMethod
+
+        private AsyncMethodData AsyncMethodData
+        {
+            get
+            {
+                if (_lazyAsyncMethodData == null)
+                {
+                    _lazyAsyncMethodData = ReadAsyncMethodData();
+                }
+
+                return _lazyAsyncMethodData;
+            }
+        }
+
+        private AsyncMethodData ReadAsyncMethodData()
+        {
+            var reader = MetadataReader;
+            var body = reader.GetMethodBody(_handle);
+            var kickoffMethod = body.GetStateMachineKickoffMethod();
+
+            if (kickoffMethod.IsNil)
+            {
+                return AsyncMethodData.None;
+            }
+
+            var value = reader.GetCustomDebugInformation(_handle, MetadataUtilities.MethodSteppingInformationBlobId);
+            if (value.IsNil)
+            {
+                return AsyncMethodData.None;
+            }
+
+            var blobReader = reader.GetBlobReader(value);
+
+            long catchHandlerOffset = blobReader.ReadUInt32();
+            if (catchHandlerOffset > (uint)int.MaxValue + 1)
+            {
+                throw new BadImageFormatException();
+            }
+
+            var yieldOffsets = ImmutableArray.CreateBuilder<int>();
+            var resultOffsets = ImmutableArray.CreateBuilder<int>();
+            var resumeMethods = ImmutableArray.CreateBuilder<int>();
+
+            while (blobReader.RemainingBytes > 0)
+            {
+                uint yieldOffset = blobReader.ReadUInt32();
+                if (yieldOffset > int.MaxValue)
+                {
+                    throw new BadImageFormatException();
+                }
+
+                uint resultOffset = blobReader.ReadUInt32();
+                if (resultOffset > int.MaxValue)
+                {
+                    throw new BadImageFormatException();
+                }
+
+                yieldOffsets.Add((int)yieldOffset);
+                resultOffsets.Add((int)resultOffset);
+                resumeMethods.Add(MetadataUtilities.MethodDefToken(blobReader.ReadCompressedInteger()));
+            }
+
+            return new AsyncMethodData(
+                kickoffMethod, 
+                (int)(catchHandlerOffset - 1),
+                yieldOffsets.ToImmutable(), 
+                resultOffsets.ToImmutable(), 
+                resumeMethods.ToImmutable());
+        }
+
+        public int IsAsyncMethod(out bool value)
+        {
+            value = !AsyncMethodData.IsNone;
+            return HResult.S_OK;
+        }
+
+        public int GetKickoffMethod(out int kickoffMethodToken)
+        {
+            if (AsyncMethodData.IsNone)
+            {
+                kickoffMethodToken = 0;
+                return HResult.E_UNEXPECTED;
+            }
+
+            kickoffMethodToken = MetadataTokens.GetToken(AsyncMethodData.KickoffMethod);
+            return HResult.S_OK;
+        }
+
+        public int HasCatchHandlerILOffset(out bool value)
+        {
+            if (AsyncMethodData.IsNone)
+            {
+                value = false;
+                return HResult.E_UNEXPECTED;
+            }
+
+            value = AsyncMethodData.CatchHandlerOffset >= 0;
+            return HResult.S_OK;
+        }
+
+        public int GetCatchHandlerILOffset(out int offset)
+        {
+            if (AsyncMethodData.IsNone || AsyncMethodData.CatchHandlerOffset < 0)
+            {
+                offset = 0;
+                return HResult.E_UNEXPECTED;
+            }
+
+            offset = AsyncMethodData.CatchHandlerOffset;
+            return HResult.S_OK;
+        }
+
+        public int GetAsyncStepInfoCount(out int count)
+        {
+            if (AsyncMethodData.IsNone)
+            {
+                count = 0;
+                return HResult.E_UNEXPECTED;
+            }
+
+            count = AsyncMethodData.YieldOffsets.Length;
+            return HResult.S_OK;
+        }
+
+        public int GetAsyncStepInfo(
+            int bufferLength,
+            out int count,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] yieldOffsets,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointOffsets,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]int[] breakpointMethods)
+        {
+            if (AsyncMethodData.IsNone)
+            {
+                count = 0;
+                return HResult.E_UNEXPECTED;
+            }
+
+            int length = Math.Min(bufferLength, AsyncMethodData.YieldOffsets.Length);
+
+            if (yieldOffsets != null)
+            {
+                AsyncMethodData.YieldOffsets.CopyTo(0, yieldOffsets, 0, length);
+            }
+
+            if (breakpointOffsets != null)
+            {
+                AsyncMethodData.ResumeOffsets.CopyTo(0, breakpointOffsets, 0, length);
+            }
+
+            if (breakpointMethods != null)
+            {
+                AsyncMethodData.ResumeMethods.CopyTo(0, breakpointMethods, 0, length);
+            }
+
+            count = length;
+            return HResult.S_OK;
+        }
+
+        #endregion
     }
 }
 

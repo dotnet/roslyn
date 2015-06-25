@@ -75,23 +75,25 @@
     <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22405\lib\net45\System.IO.FileSystem.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Async.pdbx" />
+    <None Include="Resources\build.cmd" />
+    <EmbeddedResource Include="Resources\Async.dll" />
+    <Content Include="Resources\Documents.cs" />
+    <EmbeddedResource Include="Resources\Documents.dll" />
+    <EmbeddedResource Include="Resources\Documents.pdbx" />
+    <None Include="Resources\Scopes.cs" />
     <EmbeddedResource Include="Resources\Scopes.dll" />
     <EmbeddedResource Include="Resources\Scopes.pdbx" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Scopes.cs" />
-    <Compile Include="SymMetadataImport.cs" />
+    <None Include="Resources\Async.cs" />
     <Compile Include="Resources\TestResources.cs" />
-    <Compile Include="SymReaderTests.cs" />
-    <Compile Include="TestHelpers\AssertEx.cs" />
   </ItemGroup>
   <ItemGroup>
-    <!--
-    <EmbeddedResource Include="Resources\HelloWorld.dll" />
-    <EmbeddedResource Include="Resources\HelloWorld.pdb" />
-    -->
-    <EmbeddedResource Include="Resources\z.dll" />
-    <EmbeddedResource Include="Resources\z.pdbx" />
+    <Compile Include="TestHelpers\AssertEx.cs" />
+    <Compile Include="Utilities\EnumerableHelpersTests.cs" />
+    <Compile Include="SymMetadataImport.cs" />
+    <Compile Include="SymReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

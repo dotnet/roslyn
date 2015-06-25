@@ -43,6 +43,12 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] checksum)
         {
             var document = _symReader.MetadataReader.GetDocument(_handle);
+            if (document.Hash.IsNil)
+            {
+                count = 0;
+                return HResult.S_FALSE;
+            }
+
             var hash = _symReader.MetadataReader.GetBlobBytes(document.Hash);
             return InteropUtilities.BytesToBuffer(hash, bufferLength, out count, checksum);
         }
@@ -101,7 +107,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] url)
         {
-            string name = _symReader.MetadataReader.GetDocument(_handle).GetNameString();
+            string name = _symReader.MetadataReader.GetString(_symReader.MetadataReader.GetDocument(_handle).Name);
             return InteropUtilities.StringToBuffer(name, bufferLength, out count, url);
         }
 
