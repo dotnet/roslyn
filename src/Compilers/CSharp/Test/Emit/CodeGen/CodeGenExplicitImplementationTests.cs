@@ -692,7 +692,7 @@ Derived1.Method`2",
             // Tests:
             // Implement I<string> explicitly in base class and I<int> explicitly in derived class –
             // assuming I<string> and I<int> have members with same signature (i.e. members 
-            // that don’t depend on generic-ness of the interface) test which (base / derived class) 
+            // that don't depend on generic-ness of the interface) test which (base / derived class) 
             // members are invoked when calling through each interface
 
             var source = @"

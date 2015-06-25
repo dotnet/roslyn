@@ -15,7 +15,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.
         ''' Returns the system SDK directory, where mscorlib.dll and Microsoft.VisualBasic.dll is
         ''' located.
         ''' </summary>
-        Function GetSdkPath() As <MarshalAs(UnmanagedType.BStr)> String
+        <PreserveSig>
+        Function GetSdkPath(<MarshalAs(UnmanagedType.BStr), Out> ByRef sdkPath As String) As Integer
 
         ''' <summary>
         ''' Get the target library type.

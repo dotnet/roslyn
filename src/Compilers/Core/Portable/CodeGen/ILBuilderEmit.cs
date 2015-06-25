@@ -92,13 +92,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var curStack = _emitState.CurStack;
 
                 // we have already seen a branch to this label so we know its stack.
-                // Now we will require that fallthrough must agree with that stack value.
+                // Now we will require that fall-through must agree with that stack value.
                 // For the purpose of this assert we assume that all codepaths are reachable. 
                 // This is a minor additional burden for languages to makes sure that stack is balanced 
                 // even at labels that follow unconditional branches.
                 // What we get is an invariant that satisfies 1.7.5 in reachable code 
                 // even though we do not know yet what is reachable.
-                Debug.Assert(curStack == labelStack, "forward branches and fallthrough must agree on stack depth");
+                Debug.Assert(curStack == labelStack, "forward branches and fall-through must agree on stack depth");
 
                 _labelInfos[label] = labelInfo.WithNewTarget(block);
             }

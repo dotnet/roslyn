@@ -247,7 +247,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            Debug.Assert(dynamicLocals.Any()); // There must be atleast one dynamic local if this point is reached
+            Debug.Assert(dynamicLocals.Any()); // There must be at least one dynamic local if this point is reached
 
             const int blobSize = 200;//DynamicAttribute - 64, DynamicAttributeLength - 4, SlotIndex -4, IdentifierName - 128
             MemoryStream customMetadata = new MemoryStream();

@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -85,11 +86,12 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedErrorLogIssuesText(Compilation compilation, string outputFilePath)
+            public static string GetExpectedErrorLogIssuesText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = EscapeDirectorySeparatorChar(tree.FilePath);
 
                 return @"
   ""issues"": [
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         {
           ""analysisTarget"": [
             {
-              ""uri"": """ + tree.FilePath + @""",
+              ""uri"": """ + filePath + @""",
               ""region"": {
                 ""startLine"": " + expectedLineSpan.StartLinePosition.Line + @",
                 ""startColumn"": " + expectedLineSpan.StartLinePosition.Character + @",
@@ -145,6 +147,10 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
+            public static string EscapeDirectorySeparatorChar(string input)
+            {
+                return input.Replace(Path.DirectorySeparatorChar.ToString(), @"\" + Path.DirectorySeparatorChar);
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -283,6 +289,45 @@ namespace Microsoft.CodeAnalysis
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DummyRule);
             public override void Initialize(AnalysisContext context) { }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                new MyLocalizableStringThatThrows(),
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+
+            private sealed class MyLocalizableStringThatThrows : LocalizableString
+            {
+                protected override bool AreEqual(object other)
+                {
+                    return ReferenceEquals(this, other);
+                }
+
+                protected override int GetHash()
+                {
+                    return 0;
+                }
+
+                protected override string GetText(IFormatProvider formatProvider)
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
     }
 }

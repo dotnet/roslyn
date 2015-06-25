@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// name, the number of type parameters and the number, modifiers, and types of its formal
     /// parameters. For these purposes, any type parameter of the method that occurs in the type of
     /// a formal parameter is identified not by its name, but by its ordinal position in the type
-    /// argument list of the method. The return type is not part of a method’s signature, nor are
+    /// argument list of the method. The return type is not part of a method's signature, nor are
     /// the names of the type parameters or the formal parameters.
     /// </para>
     /// <para>
@@ -650,9 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return member.IsStatic ? 0 : Cci.CallingConvention.HasThis;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return (member.IsStatic ? 0 : Cci.CallingConvention.HasThis) |
-                        (member.GetMemberArity() > 0 ? Cci.CallingConvention.Generic : 0);
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

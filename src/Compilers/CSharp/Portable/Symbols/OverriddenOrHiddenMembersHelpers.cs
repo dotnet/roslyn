@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -812,8 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MethodSymbol methodSymbol = (MethodSymbol)member;
                     return MethodSymbol.CanOverrideOrHide(methodSymbol.MethodKind) && ReferenceEquals(methodSymbol, methodSymbol.ConstructedFrom);
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -831,8 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     EventSymbol @event = (EventSymbol)member;
                     return @event.Type.HasCustomModifiers(); //can't have custom modifiers on (vs in) type
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -850,8 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     EventSymbol @event = (EventSymbol)member;
                     return @event.Type.CustomModifierCount();
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

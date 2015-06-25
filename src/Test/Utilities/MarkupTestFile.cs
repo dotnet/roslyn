@@ -15,7 +15,7 @@ namespace Roslyn.Test.Utilities
     /// To aid with testing, we define a special type of text file that can encode additional
     /// information in it.  This prevents a test writer from having to carry around multiple sources
     /// of information that must be reconstituted.  For example, instead of having to keep around the
-    /// contents of a file *and* and the location of of the cursor, the tester can just provide a
+    /// contents of a file *and* and the location of the cursor, the tester can just provide a
     /// string with the "$" character in it.  This allows for easy creation of "FIT" tests where all
     /// that needs to be provided are strings that encode every bit of state necessary in the string
     /// itself.

@@ -325,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitUserDefined:
                                     return false;
                                 default:
-                                    Debug.Assert(false, "Unhandled conversion kind in reordering logic");
-                                    return false;
+                                    // Unhandled conversion kind in reordering logic
+                                    throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
                             }
                             break;
                         }

@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns whether this method is using CLI VARARG calling convention. This is used for C-style variable
-        /// argument lists. This is used extremely rarely in C# code and is represented using the undocumented “__arglist” keyword.
+        /// argument lists. This is used extremely rarely in C# code and is represented using the undocumented "__arglist" keyword.
         ///
-        /// Note that methods with “params” on the last parameter are indicated with the “IsParams” property on ParameterSymbol, and
+        /// Note that methods with "params" on the last parameter are indicated with the "IsParams" property on ParameterSymbol, and
         /// are not represented with this property.
         /// </summary>
         public abstract bool IsVararg { get; }
@@ -476,8 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.PropertySet:
                     return true;
                 default:
-                    Debug.Assert(false, $"Unexpected method kind '{kind}'");
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 

@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// Comments from the C# design document for Dynamic:
     /// SPEC:   To represent the dynamic type in metadata, any indexer, field or return value typed as dynamic or known to be a constructed type
     /// SPEC:   containing dynamic will have each occurrence of dynamic erased to object and will be annotated with a [DynamicAttribute].
-    /// SPEC:   If the relevant type is a constructed type, the attribute’s constructor is passed a bool array.
-    /// SPEC:   This array represents a preorder traversal of each “node” in the constructed type’s “tree of types”,
-    /// SPEC:   with true set for each “node” that is dynamic, and false set for all other types.
+    /// SPEC:   If the relevant type is a constructed type, the attribute's constructor is passed a bool array.
+    /// SPEC:   This array represents a preorder traversal of each "node" in the constructed type's "tree of types",
+    /// SPEC:   with true set for each "node" that is dynamic, and false set for all other types.
     /// SPEC:   When dynamic occurs as part of the base type of a type, the applicable [DynamicAttribute] is applied to the type itself.
     /// </remarks>
     internal struct DynamicTypeDecoder

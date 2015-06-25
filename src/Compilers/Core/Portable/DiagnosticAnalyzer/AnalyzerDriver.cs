@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Verify that the diagnostics are already filtered.
             Debug.Assert(_compilation == null ||
-                diagnostics.All(diag => _compilation.FilterDiagnostic(diag)?.Severity == diag.Severity));
+                diagnostics.All(diag => _compilation.Options.FilterDiagnostic(diag)?.Severity == diag.Severity));
 
             return diagnostics;
         }
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
         {
-            var filteredDiagnostic = compilation.FilterDiagnostic(diagnostic);
+            var filteredDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
             if (filteredDiagnostic != null)
             {
                 var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));

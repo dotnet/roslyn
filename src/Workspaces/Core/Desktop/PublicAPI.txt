@@ -18,19 +18,7 @@ Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Properties.get -> System.Collect
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.get -> bool
 Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.SkipUnrecognizedProjects.set -> void
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
-override Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.CreateWorkspaceServices(Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Host.HostWorkspaceServices
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyAnalyzerReferenceAdded(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference analyzerReference) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyAnalyzerReferenceRemoved(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference analyzerReference) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo info, Microsoft.CodeAnalysis.Text.SourceText text) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText text) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyMetadataReferenceAdded(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.MetadataReference metadataReference) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyMetadataReferenceRemoved(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.MetadataReference metadataReference) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyProjectChanges(Microsoft.CodeAnalysis.ProjectChanges projectChanges) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyProjectReferenceAdded(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.ProjectReference projectReference) -> void
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ApplyProjectReferenceRemoved(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.ProjectReference projectReference) -> void
 override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.CanApplyChange(Microsoft.CodeAnalysis.ApplyChangesKind feature) -> bool
-override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.ClearSolutionData() -> void
 override Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.TryApplyChanges(Microsoft.CodeAnalysis.Solution newSolution) -> bool
 static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, System.Collections.Generic.IEnumerable<string> commandLineArgs, string projectDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
 static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
