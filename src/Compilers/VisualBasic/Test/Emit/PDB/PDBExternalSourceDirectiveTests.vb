@@ -739,7 +739,7 @@ End Module
         End Sub
 
         <WorkItem(545307, "DevDiv")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
         Public Sub OverflowLineNumbers()
             Dim source =
     <compilation>

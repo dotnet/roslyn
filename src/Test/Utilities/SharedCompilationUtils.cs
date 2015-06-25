@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                             e.Name == "alias" ||
                                             e.Name == "namespace" ||
                                             e.Name == "type" ||
+                                            e.Name == "defunct" ||
                                             e.Name == "extern" ||
                                             e.Name == "externinfo"
                                       select e;
