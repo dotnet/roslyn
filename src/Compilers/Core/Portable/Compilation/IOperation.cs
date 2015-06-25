@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         // Newly added
 
-        ConditionalAccess
+        ConditionalAccess,
+        Increment
     }
 }

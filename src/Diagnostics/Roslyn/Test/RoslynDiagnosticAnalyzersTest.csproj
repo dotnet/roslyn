@@ -92,6 +92,7 @@
     <Compile Include="Performance\LinqAnalyzerTests.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzerTests.cs" />
     <Compile Include="Reliability\ImmutableCollectionAnalyzerTests.cs" />
+    <Compile Include="Reliability\OperationAnalyzerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Performance
         private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.BoxingDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.BoxingMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         
-        /// <summary>The diagnostic descriptor used when Array.Empty should be used instead of a new array allocation.</summary>
+        /// <summary>The diagnostic descriptor used when boxing is detected.</summary>
         internal static readonly DiagnosticDescriptor BoxingDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.BoxingRuleId,
             localizableTitle,
