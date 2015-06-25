@@ -1,13 +1,7 @@
 Co-located core types
 =====================
 
-## 1. Overview
-
-### 1.1 Related Documents
-
-ECMA 335 specification.
-
-## 2. Customer Scenario and Context
+## Customer Scenario and Context
 
 The ECMA 335 spec indicates that a few types, such as `System.Object`, or `System.Int16`, can be referenced in metadata as an integer value rather than a type ref token (built-in types). Additionally, the spec indicates that certain conversions are allowed between these types and a small set of token-referenced types – we shall refer to these as special types. Finally, a few types have special runtime treatment without being referenced like the other built-in types.
 
@@ -19,19 +13,7 @@ Scenarios
 
 3. A compiler is asked to type check two references to a built-in type, one of which is originating from a library compiled to an incompatible definition of core types
 
-## 3. Customer Experience
-
-Compilers may choose to identify the core library in any number of ways, e.g. heuristics or explicit user switch
-
-## 4. Scope
-
-This affects runtimes, API surface areas, and compilers targeting the new factored surface area.
-
-## 5. Dependencies
-
-None identified
-
-## 6. Design
+## Design
 
 Compilers may assume that there is exactly one assembly representing the "core assembly". This core assembly is either referenced or is currently being compiled.
 
