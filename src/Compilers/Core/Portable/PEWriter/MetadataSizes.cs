@@ -18,7 +18,7 @@ namespace Microsoft.Cci
             1UL << (int)TableIndex.LocalVariable |
             1UL << (int)TableIndex.LocalConstant |
             1UL << (int)TableIndex.ImportScope |
-            1UL << (int)TableIndex.AsyncMethod |
+            1UL << (int)TableIndex.StateMachineMethod |
             1UL << (int)TableIndex.CustomDebugInformation;
 
         public readonly bool IsMinimalDelta;
@@ -143,8 +143,8 @@ namespace Microsoft.Cci
             }
             else if (isStandaloneDebugMetadata)
             {
-                // debug tables and Module table:
-                PresentTablesMask = allTables & (DebugMetadataTablesMask | (1UL << (int)TableIndex.Module));
+                // debug tables:
+                PresentTablesMask = allTables & DebugMetadataTablesMask;
                 ExternalTablesMask = allTables & ~DebugMetadataTablesMask;
             }
             else
@@ -287,7 +287,7 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
             size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.ImportScope, this.ImportScopeIndexSize + this.BlobIndexSize);
-            size += GetTableSize(TableIndex.AsyncMethod, this.MethodDefIndexSize + 4 + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.StateMachineMethod, this.MethodDefIndexSize + this.MethodDefIndexSize);
             size += GetTableSize(TableIndex.CustomDebugInformation, this.HasCustomDebugInformationSize + this.GuidIndexSize + this.BlobIndexSize);
 
             // +1 for terminating 0 byte

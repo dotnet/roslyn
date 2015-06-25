@@ -54,11 +54,10 @@ namespace Microsoft.Cci
             public uint Imports;       // Blob index
         }
 
-        private struct AsyncMethodRow
+        private struct StateMachineMethodRow
         {
+            public uint MoveNextMethod;      // MethodRid
             public uint KickoffMethod;       // MethodRid
-            public uint CatchHandlerOffset;  // 0 = no catch handler, otherwise ILOffset + 1
-            public uint Awaits;              // Blob - sequence of uints: (yield offset, result offset, MethodDef rid)+
         }
 
         private struct CustomDebugInformationRow
@@ -74,7 +73,7 @@ namespace Microsoft.Cci
         private readonly List<LocalVariableRow> _localVariableTable = new List<LocalVariableRow>();
         private readonly List<LocalConstantRow> _localConstantTable = new List<LocalConstantRow>();
         private readonly List<ImportScopeRow> _importScopeTable = new List<ImportScopeRow>();
-        private readonly List<AsyncMethodRow> _asyncMethodTable = new List<AsyncMethodRow>();
+        private readonly List<StateMachineMethodRow> _stateMachineMethodTable = new List<StateMachineMethodRow>();
         private readonly List<CustomDebugInformationRow> _customDebugInformationTable = new List<CustomDebugInformationRow>();
 
         private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
@@ -142,7 +141,7 @@ namespace Microsoft.Cci
                         {
                             Attributes = (ushort)local.PdbAttributes,
                             Index = (ushort)local.SlotIndex,
-                            Name = debugHeapsOpt.GetStringIndex(local.Name)
+                            Name = _debugHeapsOpt.GetStringIndex(local.Name)
                         });
 
                         SerializeDynamicLocalInfo(local, rowId: _localVariableTable.Count, isConstant: false);
@@ -155,7 +154,7 @@ namespace Microsoft.Cci
 
                         _localConstantTable.Add(new LocalConstantRow
                         {
-                            Name = debugHeapsOpt.GetStringIndex(constant.Name),
+                            Name = _debugHeapsOpt.GetStringIndex(constant.Name),
                             Signature = SerializeLocalConstantSignature(constant)
                         });
 
@@ -167,13 +166,13 @@ namespace Microsoft.Cci
             var asyncDebugInfo = bodyOpt.AsyncDebugInfo;
             if (asyncDebugInfo != null)
             {
-                // TODO: sort by KickoffMethod
-                _asyncMethodTable.Add(new AsyncMethodRow
+                _stateMachineMethodTable.Add(new StateMachineMethodRow
                 {
-                    KickoffMethod = GetMethodDefIndex(asyncDebugInfo.KickoffMethod),
-                    CatchHandlerOffset = (uint)(asyncDebugInfo.CatchHandlerOffset + 1),
-                    Awaits = SerializeAwaitsBlob(asyncDebugInfo, methodRid),
+                    MoveNextMethod = (uint)methodRid,
+                    KickoffMethod = GetMethodDefIndex(asyncDebugInfo.KickoffMethod)
                 });
+
+                SerializeAsyncMethodSteppingInfo(asyncDebugInfo, methodRid);
             }
 
             SerializeStateMachineLocalScopes(bodyOpt, methodRid);
@@ -249,7 +248,7 @@ namespace Microsoft.Cci
                 writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
             }
 
-            uint blobIndex = debugHeapsOpt.GetBlobIndex(signature);
+            uint blobIndex = _debugHeapsOpt.GetBlobIndex(signature);
             signature.Free();
             return blobIndex;
         }
@@ -276,7 +275,7 @@ namespace Microsoft.Cci
         {
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
-            writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(alias.Name));
+            writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(alias.Name));
             writer.WriteCompressedUInt(GetOrAddAssemblyRefIndex(alias.Assembly));
         }
 
@@ -290,8 +289,8 @@ namespace Microsoft.Cci
 
                 // <import> ::= ImportXmlNamespace <alias> <target-namespace>
                 writer.WriteByte((byte)ImportDefinitionKind.ImportXmlNamespace);
-                writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
-                writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.TargetXmlNamespaceOpt));
+                writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
+                writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(import.TargetXmlNamespaceOpt));
             }
             else if (import.TargetTypeOpt != null)
             {
@@ -302,7 +301,7 @@ namespace Microsoft.Cci
                 {
                     // <import> ::= AliasType <alias> <target-type>
                     writer.WriteByte((byte)ImportDefinitionKind.AliasType);
-                    writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
+                    writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                 }
                 else
                 {
@@ -320,7 +319,7 @@ namespace Microsoft.Cci
                     {
                         // <import> ::= AliasAssemblyNamespace <alias> <target-assembly> <target-namespace>
                         writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyNamespace);
-                        writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
+                        writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                     }
                     else
                     {
@@ -336,7 +335,7 @@ namespace Microsoft.Cci
                     {
                         // <import> ::= AliasNamespace <alias> <target-namespace>
                         writer.WriteByte((byte)ImportDefinitionKind.AliasNamespace);
-                        writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
+                        writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
                     }
                     else
                     {
@@ -347,7 +346,7 @@ namespace Microsoft.Cci
 
                 // TODO: cache?
                 string namespaceName = TypeNameSerializer.BuildQualifiedNamespaceName(import.TargetNamespaceOpt);
-                writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(namespaceName));
+                writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(namespaceName));
             } 
             else
             {
@@ -356,7 +355,7 @@ namespace Microsoft.Cci
                 Debug.Assert(import.TargetAssemblyOpt == null);
 
                 writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyReferenceAlias);
-                writer.WriteCompressedUInt(debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
+                writer.WriteCompressedUInt(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt));
             }
         }
 
@@ -381,7 +380,7 @@ namespace Microsoft.Cci
             _importScopeTable.Add(new ImportScopeRow
             {
                 Parent = 0,
-                Imports = debugHeapsOpt.GetBlobIndex(imports)
+                Imports = _debugHeapsOpt.GetBlobIndex(imports)
             });
 
             Debug.Assert(_importScopeTable.Count == ModuleImportScopeRid);
@@ -420,11 +419,13 @@ namespace Microsoft.Cci
                 SerializeImport(writer, import);
             }
 
-            return debugHeapsOpt.GetBlobIndex(imports);
+            return _debugHeapsOpt.GetBlobIndex(imports);
         }
 
         private void SerializeModuleDefaultNamespace()
         {
+            // C#: DefaultNamespace is null.
+            // VB: DefaultNamespace is non-null.
             if (module.DefaultNamespace == null)
             {
                 return;
@@ -433,8 +434,8 @@ namespace Microsoft.Cci
             _customDebugInformationTable.Add(new CustomDebugInformationRow
             {
                 Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.Module, 1),
-                Kind = debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.DefaultNamespace),
-                Value = debugHeapsOpt.GetBlobIndexUtf8(module.DefaultNamespace)
+                Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.DefaultNamespace),
+                Value = _debugHeapsOpt.GetBlobIndexUtf8(module.DefaultNamespace)
             });
         }
 
@@ -457,8 +458,8 @@ namespace Microsoft.Cci
             _customDebugInformationTable.Add(new CustomDebugInformationRow
             {
                 Parent = HasCustomDebugInformation(tag, rowId),
-                Kind = debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.DynamicLocalVariables),
-                Value = debugHeapsOpt.GetBlobIndex(value),
+                Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.DynamicLocalVariables),
+                Value = _debugHeapsOpt.GetBlobIndex(value),
             });
         }
 
@@ -510,21 +511,29 @@ namespace Microsoft.Cci
         
         #region State Machines
 
-        private uint SerializeAwaitsBlob(AsyncMethodBodyDebugInfo asyncInfo, int moveNextMethodRid)
+        private void SerializeAsyncMethodSteppingInfo(AsyncMethodBodyDebugInfo asyncInfo, int moveNextMethodRid)
         {
-            MemoryStream sig = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(sig);
-
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
+            Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
+
+            MemoryStream stream = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(stream);
+
+            writer.WriteUint((uint)((long)asyncInfo.CatchHandlerOffset + 1));
 
             for (int i = 0; i < asyncInfo.ResumeOffsets.Length; i++)
             {
-                writer.WriteCompressedUInt((uint)asyncInfo.YieldOffsets[i]);
-                writer.WriteCompressedUInt((uint)asyncInfo.ResumeOffsets[i]);
+                writer.WriteUint((uint)asyncInfo.YieldOffsets[i]);
+                writer.WriteUint((uint)asyncInfo.ResumeOffsets[i]);
                 writer.WriteCompressedUInt((uint)moveNextMethodRid);
             }
 
-            return debugHeapsOpt.GetBlobIndex(sig);
+            _customDebugInformationTable.Add(new CustomDebugInformationRow
+            {
+                Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, moveNextMethodRid),
+                Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.AsyncMethodSteppingInformationBlob),
+                Value = _debugHeapsOpt.GetBlobIndex(stream),
+            });
         }
 
         private void SerializeStateMachineLocalScopes(IMethodBody methodBody, int methodRowId)
@@ -547,8 +556,8 @@ namespace Microsoft.Cci
             _customDebugInformationTable.Add(new CustomDebugInformationRow
             {
                 Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, methodRowId),
-                Kind = debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes),
-                Value = debugHeapsOpt.GetBlobIndex(stream),
+                Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes),
+                Value = _debugHeapsOpt.GetBlobIndex(stream),
             });
         }
 
@@ -622,7 +631,7 @@ namespace Microsoft.Cci
                 previousNonHiddenStartColumn = sequencePoints[i].StartColumn;
             }
 
-            return debugHeapsOpt.GetBlobIndex(sig);
+            return _debugHeapsOpt.GetBlobIndex(sig);
         }
 
         private void SerializeDeltaLinesAndColumns(BinaryWriter writer, SequencePoint sequencePoint)
@@ -661,9 +670,9 @@ namespace Microsoft.Cci
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
-                    HashAlgorithm = checksumAndAlgorithm.Item1.IsDefault ? 0 : debugHeapsOpt.GetGuidIndex(checksumAndAlgorithm.Item2),
-                    Hash = checksumAndAlgorithm.Item1.IsDefault ? 0 : debugHeapsOpt.GetBlobIndex(checksumAndAlgorithm.Item1),
-                    Language = debugHeapsOpt.GetGuidIndex(document.Language),
+                    HashAlgorithm = checksumAndAlgorithm.Item1.IsDefault ? 0 : _debugHeapsOpt.GetGuidIndex(checksumAndAlgorithm.Item2),
+                    Hash = checksumAndAlgorithm.Item1.IsDefault ? 0 : _debugHeapsOpt.GetBlobIndex(checksumAndAlgorithm.Item1),
+                    Language = _debugHeapsOpt.GetGuidIndex(document.Language),
                 });
             }
 
@@ -689,11 +698,11 @@ namespace Microsoft.Cci
             // TODO: avoid allocations
             foreach (var part in name.Split(separator))
             {
-                var partIndex = debugHeapsOpt.GetBlobIndex(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
+                var partIndex = _debugHeapsOpt.GetBlobIndex(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
                 writer.WriteCompressedUInt(partIndex);
             }
 
-            return debugHeapsOpt.GetBlobIndex(sig);
+            return _debugHeapsOpt.GetBlobIndex(sig);
         }
 
         private static int Count(string str, char c)
@@ -728,8 +737,8 @@ namespace Microsoft.Cci
                 _customDebugInformationTable.Add(new CustomDebugInformationRow
                 {
                     Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, methodRowId),
-                    Kind = debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EncLocalSlotMap),
-                    Value = debugHeapsOpt.GetBlobIndex(stream),
+                    Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EncLocalSlotMap),
+                    Value = _debugHeapsOpt.GetBlobIndex(stream),
                 });
             }
 
@@ -743,8 +752,8 @@ namespace Microsoft.Cci
                 _customDebugInformationTable.Add(new CustomDebugInformationRow
                 {
                     Parent = HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, methodRowId),
-                    Kind = debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
-                    Value = debugHeapsOpt.GetBlobIndex(stream),
+                    Kind = _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
+                    Value = _debugHeapsOpt.GetBlobIndex(stream),
                 });
             }
         }
@@ -791,7 +800,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUshort(row.Attributes);
                 writer.WriteUshort(row.Index);
-                writer.WriteReference(debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference(_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -799,7 +808,7 @@ namespace Microsoft.Cci
         {
             foreach (var row in _localConstantTable)
             {
-                writer.WriteReference(debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference(_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(row.Signature, metadataSizes.BlobIndexSize);
             }
         }
@@ -813,13 +822,12 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeAsyncMethodTable(BinaryWriter writer, MetadataSizes metadataSizes)
+        private void SerializeStateMachineMethodTable(BinaryWriter writer, MetadataSizes metadataSizes)
         {
-            foreach (var row in _asyncMethodTable)
+            foreach (var row in _stateMachineMethodTable)
             {
+                writer.WriteReference(row.MoveNextMethod, metadataSizes.MethodDefIndexSize);
                 writer.WriteReference(row.KickoffMethod, metadataSizes.MethodDefIndexSize);
-                writer.WriteUint(row.CatchHandlerOffset);
-                writer.WriteReference(row.Awaits, metadataSizes.BlobIndexSize);
             }
         }
 

@@ -10,11 +10,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
 {
     internal static class MetadataUtilities
     {
-        public static readonly Guid CdiKindEntryPoint = new Guid("22DEB650-BB47-4D8A-B2A4-1BBA47FEB7F1");
         public const SignatureTypeCode SignatureTypeCode_ValueType = (SignatureTypeCode)0x11;
         public const SignatureTypeCode SignatureTypeCode_Class = (SignatureTypeCode)0x12;
-
         public static int MethodDefToken(int rowId) => 0x06000000 | rowId;
+
+        // Custom Attribute kinds:
+        public static readonly Guid MethodSteppingInformationBlobId = new Guid("54FD2AC5-E925-401A-9C2A-F94F171072F8");
+        public static readonly Guid VbDefaultNamespaceId = new Guid("58b2eab6-209f-4e4e-a22c-b2d0f910c782");
 
         internal static int GetTypeDefOrRefOrSpecCodedIndex(EntityHandle typeHandle)
         {
@@ -35,6 +37,21 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             return (MetadataTokens.GetRowNumber(typeHandle) << 2) | tag;
+        }
+
+        internal static BlobHandle GetCustomDebugInformation(this MetadataReader reader, EntityHandle parent, Guid kind)
+        {
+            foreach (var cdiHandle in reader.GetCustomDebugInformation(parent))
+            {
+                var cdi = reader.GetCustomDebugInformation(cdiHandle);
+                if (reader.GetGuid(cdi.Kind) == kind)
+                {
+                    // return the first record
+                    return cdi.Value;
+                }
+            }
+
+            return default(BlobHandle);
         }
     }
 }

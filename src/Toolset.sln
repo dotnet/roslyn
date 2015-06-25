@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22725.0
+VisualStudioVersion = 14.0.23017.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -113,6 +113,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vbc2", "Compilers\VisualBasic\vbc2\vbc2.csproj", "{21446697-E359-41D9-B39D-40ADA2B20823}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vbc", "Compilers\VisualBasic\vbc\vbc.csproj", "{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debugging", "Debugging", "{3E3F5457-4B04-469F-B25C-332DE591C65F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb", "PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj", "{F83343BA-B4EA-451C-B6DB-5D645E6171BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb.UnitTests", "PortablePdb\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj", "{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -825,6 +831,38 @@ Global
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}.Release|x64.ActiveCfg = Release|x64
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1}.Release|x64.Build.0 = Release|x64
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|ARM.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|x64.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|ARM.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|ARM.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x64.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x64.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|ARM.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|x64.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|ARM.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|ARM.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|x64.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -878,5 +916,7 @@ Global
 		{C545216D-8CBA-4460-810D-D3DC7EFF8373} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{21446697-E359-41D9-B39D-40ADA2B20823} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{E58EE9D7-1239-4961-A0C1-F9EC3952C4C1} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC} = {3E3F5457-4B04-469F-B25C-332DE591C65F}
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0} = {3E3F5457-4B04-469F-B25C-332DE591C65F}
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
@@ -18,6 +19,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
     public sealed class SymReader : ISymUnmanagedReader3, ISymUnmanagedDispose
     {
         private readonly PortablePdbReader _pdbReader;
+        private readonly Lazy<DocumentMap> _lazyDocumentMap;
+        private readonly Lazy<bool> _lazyVbSemantics;
+
         private int _version;
 
         /// <summary>
@@ -33,15 +37,34 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             _pdbReader = pdbReader;
             _version = 1;
+
+            _lazyDocumentMap = new Lazy<DocumentMap>(() => new DocumentMap(MetadataReader));
+            _lazyVbSemantics = new Lazy<bool>(() => IsVisualBasicAssembly());
         }
 
         internal MetadataReader MetadataReader => _pdbReader.MetadataReader;
         internal PortablePdbReader PdbReader => _pdbReader;
+        internal Lazy<bool> VbSemantics => _lazyVbSemantics;
 
         public int Destroy()
         {
             _pdbReader.Dispose();
             return HResult.S_OK;
+        }
+
+        private bool IsVisualBasicAssembly()
+        {
+            var reader = MetadataReader;
+
+            foreach (var cdiHandle in reader.GetCustomDebugInformation(Handle.ModuleDefinition))
+            {
+                if (reader.GetGuid(reader.GetCustomDebugInformation(cdiHandle).Kind) == MetadataUtilities.VbDefaultNamespaceId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public int GetDocument(
@@ -51,8 +74,18 @@ namespace Microsoft.DiaSymReader.PortablePdb
             Guid documentType,      
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedDocument document)
         {
-            // TODO:
-            throw new NotImplementedException();
+            DocumentHandle documentHandle;
+
+            // SymReader: language, vendor and type parameters are ignored.
+
+            if (_lazyDocumentMap.Value.TryGetDocument(url, out documentHandle))
+            {
+                document = new SymDocument(this, documentHandle);
+                return HResult.S_OK;
+            }
+
+            document = null;
+            return HResult.S_FALSE;
         }
 
         public int GetDocuments(

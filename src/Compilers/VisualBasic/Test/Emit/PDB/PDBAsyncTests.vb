@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
         Inherits BasicTestBase
 
         <WorkItem(1085911)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub SimpleAsyncMethod()
             Dim source =
 <compilation>
@@ -162,7 +162,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(651996, "DevDiv")>
+        <Fact, WorkItem(651996, "DevDiv")>
         Public Sub TestAsync()
             Dim source =
 <compilation>
@@ -370,7 +370,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -444,7 +444,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -506,7 +506,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -578,7 +578,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -641,7 +641,7 @@ End Class
         End Sub
 
         <WorkItem(1085911)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950")>
+        <Fact>
         Public Sub AsyncReturnVariable()
             Dim source =
 <compilation>

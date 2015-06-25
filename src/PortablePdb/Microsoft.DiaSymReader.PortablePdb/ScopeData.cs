@@ -28,6 +28,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return _lazyChildren;
         }
 
+        public int AdjustEndOffset(int value)
+        {
+            // Portable PDB uses edge-exclusive semantics like C#.
+            // VB end offset is inclusive.
+            return SymMethod.SymReader.VbSemantics.Value && !(Parent is RootScopeData) ? value - 1 : value;
+        }
+
         protected abstract ImmutableArray<ChildScopeData> CreateChildren();
         
         internal abstract int StartOffset { get; }

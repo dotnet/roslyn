@@ -36,9 +36,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             get
             {
-                int result = SymMethod.MetadataReader.GetLocalScope(_handle).EndOffset;
-                // TODO: adjust for VB
-                return result;
+                return AdjustEndOffset(SymMethod.MetadataReader.GetLocalScope(_handle).EndOffset);
             }
         }
 

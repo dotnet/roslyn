@@ -31,30 +31,39 @@
       <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
     <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
+    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
       <Private>False</Private>
     </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22405\lib\portable-wpa80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
+    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlobWriter.cs" />
-    <Compile Include="HResult.cs" />
+    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AsyncMethodData.cs" />
+    <Compile Include="Utilities\BlobWriter.cs" />
+    <Compile Include="Utilities\FileNameUtilities.cs" />
+    <Compile Include="Utilities\HResult.cs" />
+    <Compile Include="Utilities\InteropUtilities.cs" />
+    <Compile Include="Utilities\KeyValuePair.cs" />
+    <Compile Include="Utilities\MetadataUtilities.cs" />
+    <Compile Include="Utilities\EnumerableHelpers.cs" />
+    <Compile Include="DocumentMap.cs" />
     <Compile Include="IMetadataImport.cs" />
-    <Compile Include="InteropUtilities.cs" />
-    <Compile Include="MetadataUtilities.cs" />
     <Compile Include="PortablePdbReader.cs" />
-    <Compile Include="SymBinder.cs" />
-    <Compile Include="SymAsyncMethod.cs" />
     <Compile Include="ScopeData.cs" />
+    <Compile Include="RootScopeData.cs" />
+    <Compile Include="ChildScopeData.cs" />
+    <Compile Include="SymBinder.cs" />
     <Compile Include="SymScope.cs" />
     <Compile Include="SymConstant.cs" />
     <Compile Include="SymDocument.cs" />
     <Compile Include="SymMethod.cs" />
     <Compile Include="SymReader.cs" />
-    <Compile Include="RootScopeData.cs" />
-    <Compile Include="ChildScopeData.cs" />
     <Compile Include="SymVariable.cs" />
   </ItemGroup>
   <ItemGroup>

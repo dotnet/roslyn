@@ -826,7 +826,7 @@ class C
             }
         }
 
-        [Fact(Skip="https://github.com/dotnet/roslyn/issues/1950")]
+        [Fact]
         public void UpdateAsync_NoVariables()
         {
             var source0 = @"

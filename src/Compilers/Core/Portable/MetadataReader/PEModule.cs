@@ -1846,8 +1846,8 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return StringEquals(metadataReader, ctorTypeName, typeName, ignoreCase)
-                    && StringEquals(metadataReader, ctorTypeNamespace, namespaceName, ignoreCase);
+                return metadataReader.StringComparer.Equals(ctorTypeName, typeName, ignoreCase)
+                    && metadataReader.StringComparer.Equals(ctorTypeNamespace, namespaceName, ignoreCase);
             }
             catch (BadImageFormatException)
             {
@@ -2061,8 +2061,8 @@ namespace Microsoft.CodeAnalysis
 
                                         AttributeDescription.TypeHandleTargetInfo targetInfo = AttributeDescription.TypeHandleTargets[targetSignature[j + 1]];
 
-                                        if (StringEquals(metadataReader, ns, targetInfo.Namespace, ignoreCase: false) &&
-                                            StringEquals(metadataReader, name, targetInfo.Name, ignoreCase: false))
+                                        if (metadataReader.StringComparer.Equals(ns, targetInfo.Namespace, ignoreCase: false) &&
+                                            metadataReader.StringComparer.Equals(name, targetInfo.Name, ignoreCase: false))
                                         {
                                             j++;
                                             continue;
@@ -2940,17 +2940,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return _peReaderOpt.GetMethodBody(method.RelativeVirtualAddress);
-        }
-
-        // TODO: remove, API should be provided by MetadataReader
-        private static bool StringEquals(MetadataReader metadataReader, StringHandle nameHandle, string name, bool ignoreCase)
-        {
-            if (ignoreCase)
-            {
-                return string.Equals(metadataReader.GetString(nameHandle), name, StringComparison.OrdinalIgnoreCase);
-            }
-
-            return metadataReader.StringComparer.Equals(nameHandle, name);
         }
 
         // Provides a UTF8 decoder to the MetadataReader that reuses strings from the string table

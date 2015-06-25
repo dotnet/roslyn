@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Decoding;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
@@ -83,13 +85,84 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return InteropUtilities.StringToBuffer(str, bufferLength, out count, name);
         }
 
-        public int GetSignature(
+        public unsafe int GetSignature(
             int bufferLength,
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] signature)
         {
-            // TODO:
-            throw new NotImplementedException();
+            var localSignatureHandle = _symMethod.MetadataReader.GetMethodBody(_symMethod.Handle).LocalSignature;
+            var metadataImport = _symMethod.SymReader.PdbReader.MetadataImport;
+            var local = _symMethod.MetadataReader.GetLocalVariable(_handle);
+
+            byte* signaturePtr;
+            int signatureLength;
+            int hr = metadataImport.GetSigFromToken(MetadataTokens.GetToken(localSignatureHandle), out signaturePtr, out signatureLength);
+            if (hr != HResult.S_OK)
+            {
+                count = 0;
+                return hr;
+            }
+
+            var signatureReader = new BlobReader(signaturePtr, signatureLength);
+
+           SignatureHeader header = signatureReader.ReadSignatureHeader();
+            if (header.Kind != SignatureKind.LocalVariables)
+            {
+                count = 0;
+                return HResult.E_FAIL;
+            }
+
+            int slotCount = signatureReader.ReadCompressedInteger();
+            int slotIndex = local.Index;
+            if (slotIndex >= slotCount)
+            {
+                count = 0;
+                return HResult.E_FAIL;
+            }
+
+            var typeProvider = new DummyTypeProvider(_symMethod.MetadataReader);
+
+            for (int i = 0; i < slotIndex - 1; i++)
+            {
+                SignatureDecoder.DecodeType(ref signatureReader, typeProvider);
+            }
+
+            int localSlotStart = signatureReader.Offset;
+            SignatureDecoder.DecodeType(ref signatureReader, typeProvider);
+            int localSlotLength = signatureReader.Offset - localSlotStart;
+
+            if (localSlotLength <= bufferLength)
+            {
+                Marshal.Copy((IntPtr)(signaturePtr + localSlotStart), signature, 0, localSlotLength);
+            }
+
+            count = localSlotLength;
+            return HResult.S_OK;
+        }
+
+        private sealed class DummyTypeProvider : ISignatureTypeProvider<object>
+        {
+            public DummyTypeProvider(MetadataReader reader)
+            {
+                Reader = reader;
+            }
+
+            // TODO: this property shouldn't be needed
+            public MetadataReader Reader { get; }
+
+            public object GetArrayType(object elementType, ArrayShape shape) => null;
+            public object GetByReferenceType(object elementType) => null;
+            public object GetFunctionPointerType(MethodSignature<object> signature) => null;
+            public object GetGenericInstance(object genericType, ImmutableArray<object> typeArguments) => null;
+            public object GetGenericMethodParameter(int index) => null;
+            public object GetGenericTypeParameter(int index) => null;
+            public object GetModifiedType(object unmodifiedType, ImmutableArray<CustomModifier<object>> customModifiers) => null;
+            public object GetPinnedType(object elementType) => null;
+            public object GetPointerType(object elementType) => null;
+            public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
+            public object GetSZArrayType(object elementType) => null;
+            public object GetTypeFromDefinition(TypeDefinitionHandle handle) => null;
+            public object GetTypeFromReference(TypeReferenceHandle handle) => null;
         }
     }
 }

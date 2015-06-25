@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBIteratorTests
         Inherits BasicTestBase
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
+        <Fact, WorkItem(2736, "https://github.com/dotnet/roslyn/issues/2736")>
         Public Sub SimpleIterator()
             Dim source =
 <compilation>
@@ -126,7 +126,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(651996, "DevDiv"), WorkItem(789705, "DevDiv")>
+        <Fact, WorkItem(651996, "DevDiv"), WorkItem(789705, "DevDiv")>
         Public Sub IteratorWithLiftedMultipleSameNameLocals()
             Dim source =
 <compilation>
@@ -219,7 +219,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -273,7 +273,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedAndNotHoisted()
             Dim source =
 <compilation>
@@ -322,7 +322,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalHoistedAndNotCapture()
             Dim source =
 <compilation>
@@ -372,7 +372,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalNotHoistedAndNotCaptured()
             Dim source =
 <compilation>
@@ -422,7 +422,7 @@ End Class
         ''' Sequence points of MoveNext method shall not be affected by DebuggerHidden attribute. 
         ''' The method contains user code that can be edited during debugging and might need remapping.
         ''' </summary>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1950"), WorkItem(667579, "DevDiv")>
+        <Fact, WorkItem(667579, "DevDiv")>
         Public Sub DebuggerHiddenIterator()
             Dim source =
 <compilation>
