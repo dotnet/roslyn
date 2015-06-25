@@ -561,5 +561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(this.AllowUnsafe,
                    Hash.Combine(Hash.CombineValues(this.Usings, StringComparer.Ordinal), 0)));
         }
+
+        internal override Diagnostic FilterDiagnostic(Diagnostic diagnostic)
+        {
+            return CSharpDiagnosticFilter.Filter(diagnostic, WarningLevel, GeneralDiagnosticOption, SpecificDiagnosticOptions);
+        }
     }
 }

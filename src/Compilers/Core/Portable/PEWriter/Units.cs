@@ -83,7 +83,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of the files that constitute the assembly. These are not the source language files that may have been
         /// used to compile the assembly, but the files that contain constituent modules of a multi-module assembly as well
-        /// as any external resources. It corresonds to the File table of the .NET assembly file format.
+        /// as any external resources. It corresponds to the File table of the .NET assembly file format.
         /// </summary>
         IEnumerable<IFileReference> GetFiles(EmitContext context);
 

@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function IsSecurityAttribute(comp As VisualBasicCompilation) As Boolean
             ' CLI spec (Partition II Metadata), section 21.11 "DeclSecurity : 0x0E" states:
-            ' SPEC:    If the attribute’s type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
+            ' SPEC:    If the attribute's type is derived (directly or indirectly) from System.Security.Permissions.SecurityAttribute then
             ' SPEC:    it is a security custom attribute and requires special treatment.
 
             If _lazyIsSecurityAttribute = ThreeState.Unknown Then

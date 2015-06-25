@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Configure the debug switches which will be placed on the compiler commandline.
+        /// Configure the debug switches which will be placed on the compiler command-line.
         /// The matrix of debug type and symbol inputs and the desired results is as follows:
         /// 
         /// Debug Symbols              DebugType   Desired Results

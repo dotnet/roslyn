@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.Project.LanguageServices.SyntaxTreeFactory != null;
+                return this.State.SupportsSyntaxTree;
             }
         }
 

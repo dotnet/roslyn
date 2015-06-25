@@ -856,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            [call].ConstantValueOpt, [call].SuppressObjectClone, [call].Type, [call].HasErrors)
 
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(result.Kind)
             End Select
 
             Return result
@@ -968,7 +968,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Set
-                        Debug.Assert(False)
                         ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                         Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
 
@@ -1004,7 +1003,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf expr.IsLateBound() Then
                 If (expr.GetLateBoundAccessKind() And (LateBoundAccessKind.Set Or LateBoundAccessKind.Call)) <> 0 Then
-                    Debug.Assert(False)
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                     Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
                 End If
@@ -1605,7 +1603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case Else
                         ' What else can it be?
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(containingMember.Kind)
                 End Select
             End If
 

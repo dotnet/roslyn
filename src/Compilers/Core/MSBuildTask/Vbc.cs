@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Many VisualStudio VB projects have values for the DefineConstants property that
         /// contain quotes and spaces.  Normally we don't allow parameters passed into the
-        /// task to contain quotes, because if we weren't careful, we might accidently
+        /// task to contain quotes, because if we weren't careful, we might accidentally
         /// allow a parameter injection attach.  But for "DefineConstants", we have to allow
         /// it.
         /// So this method prepares the string to be passed in on the /define: command-line
