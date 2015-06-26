@@ -86,7 +86,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.Environment";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_Runtime_Extensions}",
                 desktopName: TypeName);
 
@@ -105,7 +105,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.Path";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_Runtime_Extensions}",
                 desktopName: TypeName);
 
@@ -134,7 +134,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.File";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
@@ -173,7 +173,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.Directory";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
@@ -205,7 +205,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileMode";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
                 desktopName: TypeName);
 
@@ -226,7 +226,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileAccess";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
                 desktopName: TypeName);
 
@@ -241,7 +241,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileShare";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem_Primitives}",
                 desktopName: TypeName);
 
@@ -264,7 +264,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileOptions";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
@@ -277,7 +277,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.SearchOption";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
@@ -290,7 +290,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.IO.FileStream";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_IO_FileSystem}",
                 desktopName: TypeName);
 
@@ -360,7 +360,7 @@ namespace Roslyn.Utilities
 
             internal static readonly string DesktopName = $"{TypeName}, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_Diagnostics_FileVersionInfo}",
                 desktopName: DesktopName);
 
@@ -378,7 +378,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.Threading.Thread";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_Threading_Thread}",
                 desktopName: TypeName);
 
@@ -395,7 +395,7 @@ namespace Roslyn.Utilities
         {
             internal const string TypeName = "System.Runtime.CompilerServices.RuntimeHelpers";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_Runtime}",
                 desktopName: TypeName);
 
@@ -430,7 +430,7 @@ namespace Roslyn.Utilities
             {
                 internal const string TypeName = "System.Xml.XPath.Extensions";
 
-                internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+                internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                     contractName: $"{TypeName}, {CoreNames.System_Runtime}",
                     desktopName: $"{TypeName}, {DesktopNames.System_Xml_Linq}");
 
@@ -471,7 +471,7 @@ namespace Roslyn.Utilities
         {
             private const string TypeName = "System.Reflection.Assembly";
 
-            internal static readonly Type Type = ReflectionUtil.GetTypeFromEither(
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
                 contractName: $"{TypeName}, {CoreNames.System_Reflection}",
                 desktopName: TypeName);
 

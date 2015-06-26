@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Roslyn.Utilities
 {
-    internal static class ReflectionUtil
+    internal static class ReflectionUtilities
     {
         /// <summary>
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
