@@ -27,17 +27,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var registryType = typeof(object).GetTypeInfo().Assembly.GetType("Microsoft.Win32.Registry");
                 if (registryType != null)
                 {
-                    var hKeyCurrentUserField = registryType.GetTypeInfo().GetField("CurrentUser");
+                    var hKeyCurrentUserField = registryType.GetTypeInfo().GetDeclaredField("CurrentUser");
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
                         using (var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null))
                         {
-                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+                            var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
                             using (var eeKey = (IDisposable)openSubKeyMethod.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false }))
                             {
                                 if (eeKey != null)
                                 {
-                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetMethod("GetValue", new Type[] { typeof(string) });
+                                    var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
                                     var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
                                     if ((value != null) && (value is int))
                                     {

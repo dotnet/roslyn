@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
+Imports System.Reflection
 Imports System.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -33,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Public Overloads Function FormatLiteral(value As DateTime) As String
+        Public Overrides Function FormatLiteral(value As Date) As String
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
@@ -107,44 +105,44 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Function
 
         Public Overrides Function FormatTypeName(type As Type, options As ObjectFormattingOptions) As String
-            Return If(GetPrimitiveTypeName(type), AppendComplexTypeName(New StringBuilder(), type, options).ToString())
+            Return If(GetPrimitiveTypeName(GetPrimitiveSpecialType(type)), AppendComplexTypeName(New StringBuilder(), type, options).ToString())
         End Function
 
-        Private Shared Function GetPrimitiveTypeName(type As Type) As String
-            Select Case Type.GetTypeCode(type)
-                Case TypeCode.Boolean
+        Private Shared Function GetPrimitiveTypeName(type As SpecialType) As String
+            Select Case type
+                Case SpecialType.System_Boolean
                     Return "Boolean"
-                Case TypeCode.Byte
+                Case SpecialType.System_Byte
                     Return "Byte"
-                Case TypeCode.Char
+                Case SpecialType.System_Char
                     Return "Char"
-                Case TypeCode.Decimal
+                Case SpecialType.System_Decimal
                     Return "Decimal"
-                Case TypeCode.Double
+                Case SpecialType.System_Double
                     Return "Double"
-                Case TypeCode.Int16
+                Case SpecialType.System_Int16
                     Return "Short"
-                Case TypeCode.Int32
+                Case SpecialType.System_Int32
                     Return "Integer"
-                Case TypeCode.Int64
+                Case SpecialType.System_Int64
                     Return "Long"
-                Case TypeCode.SByte
+                Case SpecialType.System_SByte
                     Return "SByte"
-                Case TypeCode.Single
+                Case SpecialType.System_Single
                     Return "Single"
-                Case TypeCode.String
+                Case SpecialType.System_String
                     Return "String"
-                Case TypeCode.UInt16
+                Case SpecialType.System_UInt16
                     Return "UShort"
-                Case TypeCode.UInt32
+                Case SpecialType.System_UInt32
                     Return "UInteger"
-                Case TypeCode.UInt64
+                Case SpecialType.System_UInt64
                     Return "ULong"
+                Case SpecialType.System_DateTime
+                    Return "Date"
+                Case SpecialType.System_Object
+                    Return "Object"
                 Case Else
-                    If type = GetType(Object) Then
-                        Return "Object"
-                    End If
-
                     Return Nothing
             End Select
         End Function
@@ -308,11 +306,11 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             sb.Append("]"c)
         End Sub
 
-        Public Overrides Function FormatMemberName(member As System.Reflection.MemberInfo) As String
+        Public Overrides Function FormatMemberName(member As MemberInfo) As String
             Return member.Name
         End Function
 
-        Public Overrides Function IsHiddenMember(member As System.Reflection.MemberInfo) As Boolean
+        Public Overrides Function IsHiddenMember(member As MemberInfo) As Boolean
             ' TODO (tomat)
             Return False
         End Function

@@ -426,22 +426,15 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             #region Operations
 
-            public ObjectFormattingOptions ObjectFormattingOptions
+            // TODO (tomat): testing only
+            public void SetTestObjectFormattingOptions()
             {
-                get
-                {
-                    return _formattingOptions;
-                }
-
-                set
-                {
-                    if (value == null)
-                    {
-                        throw new ArgumentNullException(nameof(value));
-                    }
-
-                    _formattingOptions = value;
-                }
+                _formattingOptions = new ObjectFormattingOptions(
+                    memberFormat: MemberDisplayFormat.Inline,
+                    quoteStrings: true,
+                    useHexadecimalNumbers: false,
+                    maxOutputLength: int.MaxValue,
+                    memberIndentation: "  ");
             }
 
             /// <summary>
