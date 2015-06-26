@@ -418,12 +418,15 @@ class Program
                 int c = b;
                 void M3()
                 {
+                    Print(c);
                     c = 2;
                 }
+                Print(b);
                 M3();
                 Print(c);
                 b = 2;
             }
+            Print(a);
             M2();
             Print(b);
             a = 2;
@@ -442,11 +445,13 @@ class Program
             {
                 void M3()
                 {
+                    Print(b);
                     b = 2;
                 }
                 M3();
                 Print(b);
             }
+            Print(a);
             M2();
             Print(b);
             a = 2;
@@ -465,8 +470,10 @@ class Program
                 int c = a;
                 void M3()
                 {
+                    Print(c);
                     c = 2;
                 }
+                Print(a);
                 M3();
                 Print(c);
                 a = 2;
@@ -488,8 +495,10 @@ class Program
                 int c = b;
                 void M3()
                 {
+                    Print(c);
                     c = 2;
                 }
+                Print(b);
                 M3();
                 Print(c);
                 b = 2;
@@ -509,6 +518,7 @@ class Program
             {
                 void M3()
                 {
+                    Print(a);
                     a = 2;
                 }
                 M3();
@@ -530,6 +540,7 @@ class Program
             {
                 void M3()
                 {
+                    Print(b);
                     b = 2;
                 }
                 M3();
@@ -550,6 +561,7 @@ class Program
                 int c = 0;
                 void M3()
                 {
+                    Print(c);
                     c = 2;
                 }
                 M3();
@@ -581,13 +593,13 @@ class Program
 ";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
             var verify = CompileAndVerify(comp, expectedOutput: @"
- 2 2 2
- 2 2 2
- 2 2 2
- 2 2
- 2 2 2
- 2 2
- 2
+ 0 0 0 2 2 2
+ 0 0 2 2 2
+ 0 0 2 2 2
+ 0 0 2 2
+ 0 2 2 2
+ 0 2 2
+ 0 2
 ");
         }
 
@@ -1740,6 +1752,45 @@ class Program
     // (17,9): error CS0841: Cannot use local variable 'Local2' before it is declared
     //         Local2();
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(17, 9)
+                );
+        }
+
+        [Fact]
+        public void NameConflict()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Duplicate() { }
+        void Duplicate() { }
+        int T;
+        void Param(int T) { }
+        void Generic<T>() { }
+        int Conflict;
+        void Conflict() { }
+        void Conflict2() { }
+        int Conflict2;
+    }
+}
+";
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe.WithWarningLevel(0), parseOptions: _parseOptions).VerifyDiagnostics(
+    // (7,14): error CS0128: A local variable named 'Duplicate' is already defined in this scope
+    //         void Duplicate() { }
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14),
+    // (9,24): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         void Param(int T) { }
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(9, 24),
+    // (10,22): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         void Generic<T>() { }
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "T").WithArguments("T").WithLocation(10, 22),
+    // (12,14): error CS0128: A local variable named 'Conflict' is already defined in this scope
+    //         void Conflict() { }
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "Conflict").WithArguments("Conflict").WithLocation(12, 14),
+    // (13,14): error CS0136: A local or parameter named 'Conflict2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+    //         void Conflict2() { }
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "Conflict2").WithArguments("Conflict2").WithLocation(13, 14)
                 );
         }
 

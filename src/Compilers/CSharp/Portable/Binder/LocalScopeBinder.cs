@@ -381,28 +381,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (newSymbolKind == SymbolKind.ErrorType) return true;
 
-            if (newSymbolKind == SymbolKind.Local)
+            var declaredInThisScope = false;
+
+            declaredInThisScope |= newSymbolKind == SymbolKind.Local && this.Locals.Contains((LocalSymbol)newSymbol);
+            declaredInThisScope |= newSymbolKind == SymbolKind.Method && this.LocalFunctions.Contains((LocalFunctionSymbol)newSymbol);
+
+            if (declaredInThisScope && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
             {
-                if (this.Locals.Contains((LocalSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
-                {
-                    // A local variable named '{0}' is already defined in this scope
-                    diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
-                    return true;
-                }
+                // TODO: Message should change to something like "A {0} named '{1}' is already defined in this scope"
+
+                // A local variable named '{0}' is already defined in this scope
+                diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
+                return true;
             }
 
-            if (newSymbolKind == SymbolKind.Method)
+            if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Method || newSymbolKind == SymbolKind.TypeParameter)
             {
-                if (this.LocalFunctions.Contains((LocalFunctionSymbol)newSymbol) && newLocation.SourceSpan.Start >= local.Locations[0].SourceSpan.Start)
-                {
-                    // A local variable named '{0}' is already defined in this scope
-                    diagnostics.Add(ErrorCode.ERR_LocalDuplicate, newLocation, name);
-                    return true;
-                }
-            }
-
-            if (newSymbolKind == SymbolKind.Local || newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Method)
-            {
+                // TODO: Fix up the message for local functions and type parameters. Maybe like the above todo - $"A {newSymbolKind.Localize()} named '{name}' cannot ..."
                 // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
                 return true;
@@ -422,30 +417,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
-            LocalSymbol existingLocal;
+            LocalSymbol existingLocal = null;
+            LocalFunctionSymbol existingLocalFunction = null;
+
             var localsMap = this.LocalsMap;
-            if (localsMap != null && localsMap.TryGetValue(name, out existingLocal))
-            {
-                if (symbol == existingLocal)
-                {
-                    // reference to same symbol, by far the most common case.
-                    return false;
-                }
-
-                return ReportConflictWithLocal(existingLocal, symbol, name, location, diagnostics);
-            }
-
-            LocalFunctionSymbol existingLocalFunction;
             var localFunctionsMap = this.LocalFunctionsMap;
-            if (localFunctionsMap != null && localFunctionsMap.TryGetValue(name, out existingLocalFunction))
+
+            // TODO: Handle case where 'name' exists in both localsMap and localFunctionsMap. Right now locals are preferred over local functions.
+            if ((localsMap != null && localsMap.TryGetValue(name, out existingLocal)) ||
+                (localFunctionsMap != null && localFunctionsMap.TryGetValue(name, out existingLocalFunction)))
             {
-                if (symbol == existingLocalFunction)
+                var existingSymbol = (Symbol)existingLocal ?? existingLocalFunction;
+                if (symbol == existingSymbol)
                 {
                     // reference to same symbol, by far the most common case.
                     return false;
                 }
 
-                return ReportConflictWithLocal(existingLocalFunction, symbol, name, location, diagnostics);
+                return ReportConflictWithLocal(existingSymbol, symbol, name, location, diagnostics);
             }
 
             return false;
