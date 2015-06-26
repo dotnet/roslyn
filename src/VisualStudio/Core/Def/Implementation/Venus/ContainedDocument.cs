@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private const string NewLineReplacementString = @"{|n|}";
 
         private const string HTML = "HTML";
+        private const string HTMLX = "HTMLX";
         private const string Razor = "Razor";
         private const string XOML = "XOML";
 
@@ -136,7 +137,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var projectionBuffer = _containedLanguage.DataBuffer as IProjectionBuffer;
             if (projectionBuffer != null)
             {
-                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML)))
+                // For TypeScript hosted in HTML the source buffers will have type names
+                // HTMLX and TypeScript. RazorCSharp has an HTMLX base type but should 
+                // not be associated with the HTML host type. Use ContentType.TypeName 
+                // instead of ContentType.IsOfType for HTMLX to ensure the Razor host 
+                // type is identified correctly.
+                if (projectionBuffer.SourceBuffers.Any(b => b.ContentType.IsOfType(HTML) ||
+                    string.Compare(HTMLX, b.ContentType.TypeName, StringComparison.OrdinalIgnoreCase) == 0))
                 {
                     return HostType.HTML;
                 }
@@ -801,6 +808,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var snapshot = subjectBuffer.CurrentSnapshot;
             var document = _workspace.CurrentSolution.GetDocument(this.Id);
+            if (!document.SupportsSyntaxTree)
+            {
+                return;
+            }
+
             var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
