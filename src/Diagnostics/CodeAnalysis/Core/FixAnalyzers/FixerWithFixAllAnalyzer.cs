@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     /// This analyzer catches violations of this requirement in the code actions registered by a <see cref="CodeFixProvider"/> that supports <see cref="FixAllProvider"/>.
     /// </summary>
     public abstract class FixerWithFixAllAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
-        where TLanguageKindEnum : struct
-    {
-        private static string s_codeFixProviderMetadataName = typeof(CodeFixProvider).FullName;
-        private static string s_codeActionMetadataName = typeof(CodeAction).FullName;
+        where TLanguageKindEnum: struct
+    { 
+        private static string s_codeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
+        private static string s_codeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         private const string GetFixAllProviderMethodName = "GetFixAllProvider";
         private const string CreateMethodName = "Create";
         private const string EquivalenceKeyPropertyName = "EquivalenceKey";
