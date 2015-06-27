@@ -2060,20 +2060,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Overloads Shared Function FilterDiagnostic(diagnostic As Diagnostic, options As CompilationOptions) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, options.GeneralDiagnosticOption, options.SpecificDiagnosticOptions)
-        End Function
-
-        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return FilterDiagnostic(diagnostic, Options)
-        End Function
-
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
 
             For Each diagnostic As Diagnostic In incoming
-                Dim filtered = FilterDiagnostic(diagnostic, Me._options)
+                Dim filtered = Me._options.FilterDiagnostic(diagnostic)
                 If filtered Is Nothing Then
                     Continue For
                 End If

@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             Else
-                Debug.Assert(False)
+                Throw ExceptionUtilities.Unreachable
             End If
 
             Return result

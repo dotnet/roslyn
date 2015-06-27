@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (useFullSpan || node.Span.Contains(position))
                 {
-                    if (node is MemberDeclarationSyntax)
+                    if ((node.Kind() != SyntaxKind.GlobalStatement) && (node is MemberDeclarationSyntax))
                     {
                         return node;
                     }

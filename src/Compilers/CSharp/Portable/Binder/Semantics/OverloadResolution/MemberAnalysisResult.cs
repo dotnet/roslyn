@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
                     return NameUsedForPositional(argAnalysis.ArgumentPosition);
                 default:
-                    Debug.Assert(false, "Missing case in argument parameter mismatch analysis.");
-                    goto case ArgumentAnalysisResultKind.NoCorrespondingParameter;
+                    throw ExceptionUtilities.UnexpectedValue(argAnalysis.Kind);
             }
         }
 

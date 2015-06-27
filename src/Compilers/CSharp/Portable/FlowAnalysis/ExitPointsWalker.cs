@@ -143,8 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We don't do anything with yield return statements or await expressions; they are treated as if they are not jumps.
                         continue;
                     default:
-                        Debug.Assert(false); // there are no other branch statements
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(pending.Branch.Kind);
                 }
                 _branchesOutOf.Add((StatementSyntax)pending.Branch.Syntax);
             }

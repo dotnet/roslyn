@@ -2621,8 +2621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         types.AddSeparator((SyntaxToken)p);
                         break;
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(p.Kind);
                 }
             }
 
@@ -8196,7 +8195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            return (this.IsInteractive || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
         }
 
         private bool IsAwaitExpression()

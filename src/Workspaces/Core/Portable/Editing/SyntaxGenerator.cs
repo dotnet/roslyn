@@ -1181,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode ReturnStatement(SyntaxNode expression = null);
 
         /// <summary>
-        /// Creates a statement that can be used to throw and exception.
+        /// Creates a statement that can be used to throw an exception.
         /// </summary>
         /// <param name="expression">An optional expression that can be thrown.</param>
         public abstract SyntaxNode ThrowStatement(SyntaxNode expression = null);
