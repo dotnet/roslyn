@@ -740,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '        End If
 
                 '        ' My type parameters are substituted
-                '        Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AddjustParent(Nothing)
+                '        Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AdjustParent(Nothing)
 
                 '        Return New ConstructedInstanceType(_fullInstanceType, substitution)
                 '    End If
@@ -755,7 +755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '    Return constructFrom
                 'Else
                 '    ' My type parameters are substituted
-                '    Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AddjustParent(newContainer.TypeSubstitution)
+                '    Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AdjustParent(newContainer.TypeSubstitution)
                 '    Return New ConstructedSpecializedGenericType(constructFrom, substitution)
                 'End If
             End Function

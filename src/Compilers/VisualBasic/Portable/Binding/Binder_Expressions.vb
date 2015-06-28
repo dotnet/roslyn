@@ -2071,7 +2071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If parent IsNot Nothing Then
                 Select Case parent.Kind
-                    Case SyntaxKind.SimpleMemberAccessExpression ' intentionally NOT SyntaxKind.DictionaryAcess
+                    Case SyntaxKind.SimpleMemberAccessExpression ' intentionally NOT SyntaxKind.DictionaryAccess
                         If DirectCast(parent, MemberAccessExpressionSyntax).Expression Is nameSyntax Then
                             Return False
                         End If

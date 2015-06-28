@@ -2530,7 +2530,7 @@ class Program
             // by the specification but they are by the native compiler; we maintain compatibility
             // with this bug.
             // 
-            // Additionaly, it also treats "new X()", where X is an enum type, as a
+            // Additionally, it also treats "new X()", where X is an enum type, as a
             // constant expression with default value 0, we maintaing compatibility with it.
 
             var source =

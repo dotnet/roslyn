@@ -3596,7 +3596,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub LateBoundAdressOf()
+        Public Sub LateBoundAddressOf()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[

@@ -664,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' confusing error to the user like "J is invalid because T1 is an Out parameter". So we want
             ' to do a better job of reporting errors. In particular,
             '   * If we are checking a GenericTypeBinding (e.g. x as J(Of T1)) for contravariant validity, look up
-            '     to find the outermost ancester binding (e.g. parentargs=I[T1]) which is of a variant interface.
+            '     to find the outermost ancestor binding (e.g. parentargs=I[T1]) which is of a variant interface.
             '     If this is also the outermost variant container of the current context, then it's an error.
 
             Select Case type.Kind

@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return LineColumnDelta.Default;
                 }
 
-                // if there was alrady new lines, ignore elastic
+                // if there was already new lines, ignore elastic
                 var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
                 var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||

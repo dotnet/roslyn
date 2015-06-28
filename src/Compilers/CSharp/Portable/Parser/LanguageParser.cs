@@ -4631,7 +4631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // assume it's not the actual name.  
                 // 
                 // So, if we're after a newline and we see a name followed by the list below, then we
-                // assume that we're accidently consuming too far into the next statement.
+                // assume that we're accidentally consuming too far into the next statement.
                 //
                 // <dot>, <arrow>, any binary operator (except =), <question>.  None of these characters
                 // are allowed in a normal variable declaration.  This also provides a more useful error
@@ -7303,7 +7303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword || this.CurrentToken.Kind == SyntaxKind.ForEachKeyword);
 
-            // Check if the user wrote the following accidently:
+            // Check if the user wrote the following accidentally:
             //
             // for (SomeType t in
             //

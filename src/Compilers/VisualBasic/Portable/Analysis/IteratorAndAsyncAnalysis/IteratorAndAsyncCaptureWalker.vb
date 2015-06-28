@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' the parameters must be captured.
             MakeSlot(parameter)
 
-            ' Instead of analysing of which parameters are actually being referenced
+            ' Instead of analyzing which parameters are actually being referenced
             ' we add all of them; this might need to be revised later
             CaptureVariable(parameter, Nothing)
         End Sub

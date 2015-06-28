@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasErrors = True
                     End If
 
-                    ' check if the field referenced is already processed, and is 'good', e.g. has type asigned
+                    ' check if the field referenced is already processed, and is 'good', e.g. has type assigned
                     If fieldIndex >= _initializerOrdinal Then
 
                         ' referencing a field which is not processed yet or has an error

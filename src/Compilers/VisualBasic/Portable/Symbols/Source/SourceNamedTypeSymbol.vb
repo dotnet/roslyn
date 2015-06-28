@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ' Check name agains type parameters of immediate container
+            ' Check name against type parameters of immediate container
             Dim containingSourceType = TryCast(container, SourceNamedTypeSymbol)
             If containingSourceType IsNot Nothing AndAlso containingSourceType.TypeParameters.MatchesAnyName(Me.Name) Then
                 ' "'|1' has the same name as a type parameter."

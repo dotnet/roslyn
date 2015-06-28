@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (index < argumentsCount)
             {
-                // found a matching named argumed
+                // found a matching named argument
                 Debug.Assert(index >= startIndex);
 
                 // increment argsConsumedCount

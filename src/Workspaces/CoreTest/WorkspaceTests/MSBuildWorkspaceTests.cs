@@ -1343,7 +1343,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_OutputKind_ConsoleAppliaction()
+        public void TestCompilationOptions_CSharp_OutputKind_ConsoleApplication()
         {
             CreateCSharpFilesWith("OutputType", "Exe");
             AssertOptions(OutputKind.ConsoleApplication, options => options.OutputKind);

@@ -816,7 +816,7 @@ class Program
                     Results.Append(")");
                     if (isDocComment)
                     {
-                        // Trivia for xml documentation comments have addditional 'structure'
+                        // Trivia for xml documentation comments have additional 'structure'
                         // available under a child DocumentationCommentSyntax.
                         Assert.IsTrue(trivia.HasStructure);
                         var documentationComment =

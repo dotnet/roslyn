@@ -2636,7 +2636,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' TODO - davidsch - handle annonymous type initialization
         ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
 
         ' /*********************************************************************
@@ -2801,7 +2800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Case SyntaxKind.GlobalKeyword,
                         SyntaxKind.IdentifierToken
                         ' AllowGlobalNameSpace
-                        ' Alow generic arguments
+                        ' Allow generic arguments
                         ' Don't disallow generic arguments on last qualified name
                         name = ParseName(
                             requireQualification:=False,

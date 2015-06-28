@@ -164,7 +164,7 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("P.M4(System.Func<object
 Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("P.M6(System.Action<object>, string, object)", "P.M6(System.Action<string>, object, string)")
                 );
 
-            // By comparing these two programs, it becomes clear how unfortunate this is. M(q=>null) is ambiguious,
+            // By comparing these two programs, it becomes clear how unfortunate this is. M(q=>null) is ambiguous,
             // M(null) is unambiguous. But M((string)null, q=>{}) is unambiguous, M((string)null, null) is ambiguous!
 
             string source3 = @"

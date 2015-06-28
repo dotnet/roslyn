@@ -800,7 +800,7 @@ End Structure")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
-        Public Sub TestAlisedType()
+        Public Sub TestAliasedType()
             Dim source =
         NewLines("Class Program \n Sub Foo() \n Dim x As New [|Global.Program|] \n End Sub \n End Class")
             Test(source,

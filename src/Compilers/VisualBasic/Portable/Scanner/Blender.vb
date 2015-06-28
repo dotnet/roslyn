@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Parser requires look ahead of some number of tokens
             ' beyond EOL and some number of characters back.
-            ' Expand the change range to accomodate look ahead/behind.
+            ' Expand the change range to accommodate look ahead/behind.
             Dim span = ExpandToNearestStatements(
                 _baseTreeRoot,
                 ExpandByLookAheadAndBehind(_baseTreeRoot, _change.Span))

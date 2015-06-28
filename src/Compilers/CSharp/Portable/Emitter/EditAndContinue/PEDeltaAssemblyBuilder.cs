@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var initialBaseline = previousGeneration.InitialBaseline;
             var context = new EmitContext(this, null, new DiagnosticBag());
 
-            // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols accross all generations,
+            // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
