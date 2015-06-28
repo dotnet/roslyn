@@ -331,6 +331,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalyzerPowerPack.Setup", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalyzerPowerPack.Test", "src\Diagnostics\FxCop\Test\AnalyzerPowerPack.Test.csproj", "{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb", "src\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj", "{F83343BA-B4EA-451C-B6DB-5D645E6171BC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debugging", "Debugging", "{41B0C6D3-25FF-4458-83B5-5DE89B4792A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb.UnitTests", "src\Debugging\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj", "{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{edc68a0e-c68d-4a74-91b7-bf38ec909888}*SharedItemsImports = 4
@@ -2412,6 +2418,38 @@ Global
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}.Release|x64.ActiveCfg = Release|Any CPU
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}.Release|x64.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|ARM.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Debug|x64.Build.0 = Debug|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|ARM.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|ARM.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x64.ActiveCfg = Release|Any CPU
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC}.Release|x64.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|ARM.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Debug|x64.Build.0 = Debug|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|ARM.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|ARM.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|x64.ActiveCfg = Release|Any CPU
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2566,5 +2604,7 @@ Global
 		{45854FF7-A6D5-4B28-87A1-0B75390125C0} = {24E8CBFA-38D2-486F-B772-C10AB2DC7F01}
 		{FFCA21B9-C7CB-4F0F-851B-947EE25C416C} = {24E8CBFA-38D2-486F-B772-C10AB2DC7F01}
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F} = {24E8CBFA-38D2-486F-B772-C10AB2DC7F01}
+		{F83343BA-B4EA-451C-B6DB-5D645E6171BC} = {41B0C6D3-25FF-4458-83B5-5DE89B4792A9}
+		{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0} = {41B0C6D3-25FF-4458-83B5-5DE89B4792A9}
 	EndGlobalSection
 EndGlobal
