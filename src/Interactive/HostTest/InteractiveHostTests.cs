@@ -42,12 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var remoteService = Host.TryGetService();
             Assert.NotNull(remoteService);
 
-            remoteService.ObjectFormattingOptions = new ObjectFormattingOptions(
-                memberFormat: MemberDisplayFormat.Inline,
-                quoteStrings: true,
-                useHexadecimalNumbers: false,
-                maxOutputLength: int.MaxValue,
-                memberIndentation: "  ");
+            remoteService.SetTestObjectFormattingOptions();
 
             // assert and remove logo:
             var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);

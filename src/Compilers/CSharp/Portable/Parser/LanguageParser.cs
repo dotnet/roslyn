@@ -8195,7 +8195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            return (this.IsInteractive || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
         }
 
         private bool IsAwaitExpression()
