@@ -30,7 +30,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\..\PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
+    <ProjectReference Include="..\..\..\..\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
     </ProjectReference>
