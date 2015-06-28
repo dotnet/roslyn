@@ -1520,7 +1520,7 @@ namespace N");
 
         [WorkItem(536898, "DevDiv")]
         [Fact]
-        public void IncompletConditionWithJaggedArrayAccess()
+        public void IncompleteConditionWithJaggedArrayAccess()
         {
             SourceText oldText = SourceText.From(
 @"class A
@@ -2165,7 +2165,7 @@ namespace N");
 
         [WorkItem(537092, "DevDiv")]
         [Fact]
-        public void RemoveMethodnameWithLambdaExprinMethodbody()
+        public void RemoveMethodNameWithLambdaExprInMethodBody()
         {
             SourceText oldText = SourceText.From(
 @"class C

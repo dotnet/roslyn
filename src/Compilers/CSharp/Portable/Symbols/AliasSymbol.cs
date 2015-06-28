@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
                     // Note: It's important that we don't call newDiagnosticsToReadOnlyAndFree here. That call
-                    // can force the prompt evaluation of lazy initilaized diagnostics.  That in turn can 
+                    // can force the prompt evaluation of lazy initialized diagnostics.  That in turn can 
                     // call back into GetAliasTarget on the same thread resulting in a dead lock scenario.
                     bool won = Interlocked.Exchange(ref _aliasTargetDiagnostics, newDiagnostics) == null;
                     Debug.Assert(won, "Only one thread can win the alias target CompareExchange");

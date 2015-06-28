@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Constructor initializer with lambda:  public C() : base(() => { [|...|] }) <<{ }>>
                 // Field initializers:                   [|public int a = <<expr>>|], [|b = <<expr>>|];
 
-                // No need to special case property initializers here, the actiave statement always spans the initializer expression.
+                // No need to special case property initializers here, the active statement always spans the initializer expression.
 
                 if (declarationBody.Parent.Kind() == SyntaxKind.ConstructorDeclaration)
                 {

@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis
                         var projectId = this.ProjectState.Id;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                        // get or build compilation up to decleration state. this compilation will be used to provide live xml doc comment
+                        // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         MetadataReference reference;

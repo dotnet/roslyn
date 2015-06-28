@@ -1933,9 +1933,9 @@ end class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection01()
+        Public Sub TestCompoundAssignmentTargetSelection01()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection01">
+      <compilation name="TestCompoundAssignmentTargetSelection01">
           <file name="a.b">
 class C
      Sub Main()
@@ -1958,9 +1958,9 @@ end class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection02()
+        Public Sub TestCompoundAssignmentTargetSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection02">
+      <compilation name="TestCompoundAssignmentTargetSelection02">
           <file name="a.b">
 class C
      Sub Main()
@@ -1983,9 +1983,9 @@ end class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection03()
+        Public Sub TestCompoundAssignmentTargetSelection03()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection03">
+      <compilation name="TestCompoundAssignmentTargetSelection03">
           <file name="a.b">
 Imports System
 Module M1

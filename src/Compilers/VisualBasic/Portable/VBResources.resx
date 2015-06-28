@@ -4751,10 +4751,10 @@
   <data name="ERR_RemoveParamWrongForWinRT" xml:space="preserve">
     <value>In a Windows Runtime event, the type of the 'RemoveHandler' method parameter must be 'EventRegistrationToken'</value>
   </data>
-  <data name="ERR_ReImplementatingWinRTInterface5" xml:space="preserve">
+  <data name="ERR_ReImplementingWinRTInterface5" xml:space="preserve">
     <value>'{0}.{1}' from 'implements {2}' is already implemented by the base class '{3}'. Re-implementation of Windows Runtime Interface '{4}' is not allowed</value>
   </data>
-  <data name="ERR_ReImplementatingWinRTInterface4" xml:space="preserve">
+  <data name="ERR_ReImplementingWinRTInterface4" xml:space="preserve">
     <value>'{0}.{1}' is already implemented by the base class '{2}'. Re-implementation of Windows Runtime Interface '{3}' is not allowed</value>
   </data>
   <data name="ERR_BadIteratorByRefParam" xml:space="preserve">

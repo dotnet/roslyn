@@ -91,7 +91,7 @@ NewLines("Imports System \n Class C \n Sub M(i As Integer) \n Foo(NextMethod) \n
         End Sub
 
         <Fact(Skip:="528229"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Sub TestAddresOf1()
+        Public Sub TestAddressOf1()
             Test(
 NewLines("Class C \n Sub M(i As Integer) \n [|Foo|](AddressOf NextMethod) \n End Sub \n Function NextMethod(i As Integer) As String \n End Function \n End Class"),
 NewLines("Imports System \n Class C \n Sub M(i As Integer) \n Foo(AddressOf NextMethod) \n End Sub \n Private Sub Foo(nextMethod As Global.System.Func(Of Integer, String)) \n Throw New NotImplementedException() \n End Sub \n Function NextMethod(i As Integer) As String \n End Function \n End Class"))

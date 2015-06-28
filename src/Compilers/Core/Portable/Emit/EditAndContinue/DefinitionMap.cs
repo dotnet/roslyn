@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     awaiterSlotCount = addedOrChangedMethod.StateMachineAwaiterSlotsOpt.Length;
 
                     // Kickoff method has no interesting locals on its own. 
-                    // We use the EnC method debug infromation for hoisted locals.
+                    // We use the EnC method debug information for hoisted locals.
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
                     stateMachineTypeNameOpt = addedOrChangedMethod.StateMachineTypeNameOpt;
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     hoistedLocalSlotCount = localSlotDebugInfo.Length;
 
                     // Kickoff method has no interesting locals on its own. 
-                    // We use the EnC method debug infromation for hoisted locals.
+                    // We use the EnC method debug information for hoisted locals.
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
                     stateMachineTypeNameOpt = stateMachineType.Name;

@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If S does not define an overloaded != operator then this is lowered to s.HasValue.  
             //
             // If the type already has a user-defined or built-in operator then comparing to null is 
-            // treated as a lifted equaltiy operator.
+            // treated as a lifted equality operator.
 
             Debug.Assert(loweredLeft != null);
             Debug.Assert(loweredRight != null);

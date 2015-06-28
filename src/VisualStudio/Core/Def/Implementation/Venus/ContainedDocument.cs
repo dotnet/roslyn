@@ -410,7 +410,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private bool TryGetSubTextChanges(
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText, List<TextChange> changes)
         {
-            // these are expensive. but hopely, we don't hit this as much except the boundary cases.
+            // these are expensive. but hopefully we don't hit this as much except the boundary cases.
             using (var leftPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
             using (var rightPool = SharedPools.Default<List<TextSpan>>().GetPooledObject())
             {
@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private IEnumerable<TextChange> GetSubTextChanges(
             SourceText originalText, TextSpan visibleSpanInOriginalText, string leftText, string rightText, int offsetInOriginalText)
         {
-            // these are expensive. but hopely, we don't hit this as much except the boundary cases.
+            // these are expensive. but hopefully we don't hit this as much except the boundary cases.
             using (var leftPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject())
             using (var rightPool = SharedPools.Default<List<ValueTuple<int, int>>>().GetPooledObject())
             {
@@ -571,7 +571,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var firstLineOfRightTextSnippet = snippetInRightText.GetFirstLineText();
             var lastLineOfRightTextSnippet = snippetInRightText.GetLastLineText();
 
-            // there are 4 complex cases - these are all heuristic. not sure what better way I have. and the heristic is heavily based on
+            // there are 4 complex cases - these are all heuristic. not sure what better way I have. and the heuristic is heavily based on
             // text differ's behavior.
 
             // 1. it is a single line

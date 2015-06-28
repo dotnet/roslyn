@@ -1301,7 +1301,7 @@ End Class]]></a>
             Dim text = <a><![CDATA[
 Class Program
     Function fooo() as Integer
-        Dim x as IDiposable = nothing
+        Dim x as IDisposable = nothing
         Us[||]ing x
         End Using
     End Sub

@@ -289,7 +289,7 @@ Class C
         Foo()
         OnLoad(Nothing)
     End Sub
-    MustInerit Sub Foo()
+    MustInherit Sub Foo()
 End Class
 
 Class D
@@ -299,7 +299,7 @@ Class D
         Foo()
         OnPaint(Nothing)
     End Sub
-    MustInerit Sub Foo()
+    MustInherit Sub Foo()
 End Class
 
 Class ControlBase

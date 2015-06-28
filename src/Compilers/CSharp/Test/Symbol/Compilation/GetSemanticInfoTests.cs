@@ -644,7 +644,7 @@ class C {
             ValidateConversion(Conversion.IntPtr, ConversionKind.IntPtr);
         }
 
-        #region "Convertion helper"
+        #region "Conversion helper"
         private void ValidateConversion(Conversion conv, ConversionKind kind)
         {
             Assert.Equal(conv.Kind, kind);
@@ -2324,7 +2324,7 @@ class D
     static void Main(string[] args)
     {
         string[] str = new string[] { };
-    lable1:
+    label1:
         var s = str.Where(out /*<bind>*/x/*</bind>*/ =>
         {
             return x == ""1"";

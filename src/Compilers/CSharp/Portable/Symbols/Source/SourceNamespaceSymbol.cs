@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             if ((object)constituent != (object)this)
                             {
-                                // For whatever reason native compiler only detects conflicts agains types.
+                                // For whatever reason native compiler only detects conflicts against types.
                                 // It doesn't complain when source declares a type with the same name as 
                                 // a namespace in added module, but complains when source declares a namespace 
                                 // with the same name as a type in added module.

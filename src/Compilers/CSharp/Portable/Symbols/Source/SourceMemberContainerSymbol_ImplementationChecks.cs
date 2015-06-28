@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // Do not give warnings about missing 'new' modifier for impicitly declared members,
+            // Do not give warnings about missing 'new' modifier for implicitly declared members,
             // e.g. backing fields for auto-properties
             if (symbol.IsImplicitlyDeclared)
             {
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If C# picks a different implementation than the CLR (see IsPossibleImplementationUnderClrRules), then we might
-        /// still be okay, but dynamic dispath might result in C#'s choice getting called anyway.
+        /// still be okay, but dynamic dispatch might result in C#'s choice getting called anyway.
         /// </summary>
         /// <remarks>
         /// This is based on SymbolPreparer::IsCLRMethodImplSame in the native compiler.

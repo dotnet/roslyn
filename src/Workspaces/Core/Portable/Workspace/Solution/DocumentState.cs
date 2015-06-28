@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis
             // incremental parsing requests hanging around.
             //
             // However, don't bother with the chaining if this is a document that doesn't support
-            // syntax trees.  The chaininig will keep old data alive (like the old tree source,
+            // syntax trees.  The chaining will keep old data alive (like the old tree source,
             // which itself is keeping an old tree source which itself is keeping a ... alive),
             // causing a slow memory leak.
             var newTreeSource = !this.SupportsSyntaxTree

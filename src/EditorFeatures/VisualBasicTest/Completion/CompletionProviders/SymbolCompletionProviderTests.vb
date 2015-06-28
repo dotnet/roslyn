@@ -2633,7 +2633,7 @@ End Class</Text>.Value
         Public Sub LocalVariableInItsDeclaration()
             ' "Dim foo As Integer = foo" is legal code while "Dim foo = foo" is not, but
             ' offer the local name on the right in either case because in the second
-            ' case there's an error stating that foo needs to be explicity typed and
+            ' case there's an error stating that foo needs to be explicitly typed and
             ' the user can then add the As clause. This mimics the behavior of 
             ' "var x = x = 0" in C#.
             Dim text = <Text>

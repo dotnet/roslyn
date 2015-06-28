@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Inter
         int GetValidStartupClasses([Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.SysUInt, SizeParamIndex = 1)] IntPtr[] ppszClassNames, ref int picount);
 
         // Called when aliases for an import are changed
-        // file : The name of the reference file we are chainging the aliases for
+        // file : The name of the reference file we are changing the aliases for
         // project : If the reference is to a project, then project specifies that project uniquely
         // previousAliasesCount : number of elements in the previousAliases array
         // currentAliasesCount : number of elements in the currentAliases array

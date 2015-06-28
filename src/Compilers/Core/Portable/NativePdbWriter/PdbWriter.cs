@@ -1144,7 +1144,7 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    // parent parameter is not used, it must be zero or the current method token passed to OpenMetod.
+                    // parent parameter is not used, it must be zero or the current method token passed to OpenMethod.
                     _symWriter.SetSymAttribute(0, name, (uint)metadata.Length, (IntPtr)pb);
                     if (_callLogger.LogOperation(OP.SetSymAttribute))
                     {

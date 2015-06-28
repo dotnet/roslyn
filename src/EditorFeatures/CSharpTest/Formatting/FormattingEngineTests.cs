@@ -817,7 +817,7 @@ class Program
         [WorkItem(449)]
         [WorkItem(1077103)]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void NoFormattingInsideCommentsOfPreprocessorDirectves()
+        public void NoFormattingInsideCommentsOfPreprocessorDirectives()
         {
             var code = @"class Program
 {

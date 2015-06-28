@@ -637,7 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' NOTE: If our goal is to make source references and metadata references indistinguishable, then we should really
             ' distinguish between the "current" compilation and other compilations, rather than between source and metadata.
             ' However, doing so would require adding a new parameter to the public API (i.e. which compilation to consider
-            ' "current") and that extra complexicity does not seem to provide significant benefit.  Our fallback goal is:
+            ' "current") and that extra complexity does not seem to provide significant benefit.  Our fallback goal is:
             ' if a source assembly builds successfully, then compilations referencing that assembly should build against
             ' both source and metadata or fail to build against both source and metadata.  Our expectation is that an exact
             ' match (which is required for successful compilation) should roundtrip through metadata, so this requirement

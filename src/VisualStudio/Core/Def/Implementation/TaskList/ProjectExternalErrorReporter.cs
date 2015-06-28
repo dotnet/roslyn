@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public int GetErrors(out IVsEnumExternalErrors pErrors)
         {
             pErrors = null;
-            Debug.Fail("This is not implmented, because no one called it.");
+            Debug.Fail("This is not implemented, because no one called it.");
             return VSConstants.E_NOTIMPL;
         }
 

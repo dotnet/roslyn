@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         // Needs to be thread-safe since assembly loading may be triggered at any time by CLR type loader.
         private object ReferencesLock { get { return _loadedAssemblies; } }
 
-        // loaded assembly -> loaded assmbly info (the path might be different from Assembly.Location if the assembly was shadow copied).
+        // loaded assembly -> loaded assembly info (the path might be different from Assembly.Location if the assembly was shadow copied).
         private readonly Dictionary<Assembly, LoadedAssembly> _loadedAssemblies;
 
         // { original full path -> assembly }

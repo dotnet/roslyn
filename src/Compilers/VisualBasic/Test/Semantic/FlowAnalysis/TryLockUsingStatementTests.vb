@@ -2090,7 +2090,7 @@ Imports System
 Class Program
     Shared Sub Main()
         [|Using x = New MyManagedClass()
-            GoTo lable1
+            GoTo label1
         End Using|]
 lable1:
     End Sub

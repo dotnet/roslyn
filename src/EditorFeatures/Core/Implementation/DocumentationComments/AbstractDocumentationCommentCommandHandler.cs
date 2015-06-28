@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var nextLineStartsWithDocComment = text.Lines.Count > currentLine.LineNumber + 1 &&
                 text.Lines[currentLine.LineNumber + 1].ToString().Trim().StartsWith(ExteriorTriviaText, StringComparison.Ordinal);
 
-            // if previous line has only exterior trivia, current line is empty and next line doen't being
-            // with exterior triviathen stop inserting auto generated xml doc string
+            // if previous line has only exterior trivia, current line is empty and next line doesn't begin
+            // with exterior trivia then stop inserting auto generated xml doc string
             if (previousLineText.Equals(ExteriorTriviaText) &&
                 string.IsNullOrWhiteSpace(currentLine.ToString()) &&
                 !nextLineStartsWithDocComment)

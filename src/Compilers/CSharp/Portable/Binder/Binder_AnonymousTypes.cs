@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // WARNING: Note that SemanticModel.GetDeclaredSymbol for field initializer node relies on 
             //          the fact that the order of properties in anonymous type template corresponds 
             //          1-to-1 to the appropriate filed initializer syntax nodes; This means such 
-            //          correspondence must be preserved all the time including erroneos scenarios
+            //          correspondence must be preserved all the time including erroneous scenarios
 
             // set of names already used
             HashSet<string> uniqueFieldNames = new HashSet<string>();

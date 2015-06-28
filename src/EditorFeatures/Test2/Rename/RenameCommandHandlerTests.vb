@@ -478,7 +478,7 @@ Foo f;
 
                 VerifyTagsAreCorrect(workspace, "BFoo")
 
-                ' Rename session was indeed commited and is no longer active
+                ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 ' Verify that the key pressed went to the start of the file
@@ -602,7 +602,7 @@ Foo f;
 
                 VerifyTagsAreCorrect(workspace, "BFoo")
 
-                ' Rename session was indeed commited and is no longer active
+                ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
             End Using
         End Sub
@@ -654,7 +654,7 @@ Foo f;
 
                 VerifyTagsAreCorrect(workspace, "BFoo")
 
-                ' Rename session was indeed commited and is no longer active
+                ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 ' Verify that the key pressed went to the start of the file
@@ -717,7 +717,7 @@ Foo f;
 
                 VerifyTagsAreCorrect(workspace, "BB")
 
-                ' Rename session was indeed commited and is no longer active
+                ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 ' Verify that the key pressed went to the start of the file
@@ -1030,7 +1030,7 @@ partial class [|Program|]
 
                 VerifyTagsAreCorrect(workspace, "BFoo")
 
-                ' Rename session was indeed commited and is no longer active
+                ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
             End Using
         End Sub

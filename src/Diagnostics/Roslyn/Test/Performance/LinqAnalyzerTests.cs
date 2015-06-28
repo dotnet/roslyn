@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Performance
 {
-    public class LinqAnaylzerTests : DiagnosticAnalyzerTestBase
+    public class LinqAnalyzerTests : DiagnosticAnalyzerTestBase
     {
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {

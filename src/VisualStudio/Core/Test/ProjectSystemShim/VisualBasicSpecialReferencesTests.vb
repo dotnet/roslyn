@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <Fact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        Public Sub AddingReferenceToProjectMetataPromotesToProjectReference()
+        Public Sub AddingReferenceToProjectMetadataPromotesToProjectReference()
             Using environment = New TestEnvironment()
 
                 Dim project1 = CreateVisualBasicProject(environment, "project1")

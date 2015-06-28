@@ -1080,8 +1080,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             object nameObj;
             if (_hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Name, out nameObj) == VSConstants.S_OK)
             {
-                // For 'Shared' projects, IVSHierarchy returns a hierarcy item with < character in its name (i.e. <SharedProjectName>)
-                // as a child of the root item. There is no such item in the 'visual' hierarcy in solution explorer and no such folder
+                // For 'Shared' projects, IVSHierarchy returns a hierarchy item with < character in its name (i.e. <SharedProjectName>)
+                // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
                 // is present on disk either. Since this is not a real 'folder', we exclude it from the contents of Document.Folders.
                 // Note: The parent of the hierarchy item that contains < characher in its name is VSITEMID.Root. So we don't need to
                 // worry about accidental propogation out of the Shared project to any containing 'Solution' folders - the check for
