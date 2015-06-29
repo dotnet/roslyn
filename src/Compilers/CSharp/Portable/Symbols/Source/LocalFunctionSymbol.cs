@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
+        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _returnType;
         private bool _isVar;
         private bool _isVararg;
@@ -387,6 +388,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        {
+            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
+        }
+
+        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        {
+            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+        }
+
+        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
+        {
+            if (_lazyTypeParameterConstraints.IsDefault)
+            {
+                var diagnostics = DiagnosticBag.GetInstance();
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                {
+                    AddDiagnostics(diagnostics.ToReadOnly());
+                }
+                diagnostics.Free();
+            }
+
+            var clauses = _lazyTypeParameterConstraints;
+            return (clauses.Length > 0) ? clauses[ordinal] : null;
+        }
+
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
+        {
+            var typeParameters = this.TypeParameters;
+            if (typeParameters.Length == 0)
+            {
+                return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            var constraintClauses = _syntax.ConstraintClauses;
+            if (constraintClauses.Count == 0)
+            {
+                return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            var syntaxTree = _syntax.SyntaxTree;
+
+            // Wrap binder from factory in a generic constraints specific binder
+            // to avoid checking constraints when binding type names.
+            Debug.Assert(!_binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            var binder = _binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+            var result = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
+            this.CheckConstraintTypesVisibility(new SourceLocation(_syntax.Identifier), result, diagnostics);
+            return result;
         }
 
         public override int GetHashCode()

@@ -8168,7 +8168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TypeParameterListSyntax typeParameterListOpt = this.ParseTypeParameterList(allowVariance: false);
             // "await f<T>()" still makes sense, so don't force accept a local function if there's a type parameter list.
             ParameterListSyntax paramList = this.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
-            // "await x()" is ambiguous (see note at start of this method), but "await x(int y)" is not.
+            // "await x()" is ambiguous (see note at start of this method), but we assume "await x(await y)" is meant to be a function if it's in a non-async context.
             if (!forceAccept)
             {
                 var paramListSyntax = paramList.Parameters;
@@ -8179,6 +8179,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (forceAccept)
                         break;
                 }
+            }
+
+            var constraints = default(SyntaxListBuilder<TypeParameterConstraintClauseSyntax>);
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
+            {
+                constraints = _pool.Allocate<TypeParameterConstraintClauseSyntax>();
+                this.ParseTypeParameterConstraintClauses(typeParameterListOpt != null, constraints);
+                forceAccept = true;
             }
 
             BlockSyntax blockBody;
@@ -8202,6 +8210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 identifier,
                 typeParameterListOpt,
                 paramList,
+                constraints,
                 blockBody,
                 expressionBody,
                 semicolon);

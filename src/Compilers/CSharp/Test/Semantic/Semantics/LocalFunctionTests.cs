@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1075,6 +1077,66 @@ class Program
         }
 
         [Fact]
+        public void GenericConstraint()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static T A<T>(T val) where T : struct
+    {
+        T Local(T valu)
+        {
+            return valu;
+        }
+        return Local(val);
+    }
+    static int B(int val)
+    {
+        T Local<T>(T valu) where T : struct
+        {
+            return valu;
+        }
+        return Local(val);
+    }
+    static T1 C<T1>(T1 val) where T1 : struct
+    {
+        T2 Local<T2>(T2 valu) where T2 : struct
+        {
+            return valu;
+        }
+        return Local(val);
+    }
+    static object D(object val)
+    {
+        T Local<T>(T valu) where T : object
+        {
+            return valu;
+        }
+        return Local(val);
+    }
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A(2));
+        Console.WriteLine(B(2));
+        Console.WriteLine(C(2));
+        Console.WriteLine(D(2));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+                parseOptions: _parseOptions);
+            var comp = CompileAndVerify(compilation, expectedOutput: @"
+2
+2
+2
+2
+");
+        }
+
+        [Fact]
         public void GenericTripleNestedNoClosure()
         {
             var source = @"
@@ -1657,6 +1719,29 @@ class Program
             var verify = CompileAndVerify(comp, expectedOutput: @"
 2
 2
+");
+        }
+
+        [Fact]
+        public void Nameof()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+        }
+        Console.WriteLine(nameof(Local));
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
+            var verify = CompileAndVerify(comp, expectedOutput: @"
+Local
 ");
         }
 
