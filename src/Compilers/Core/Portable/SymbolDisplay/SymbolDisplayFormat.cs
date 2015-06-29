@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats a symbol description as in a C# compiler error message.
         /// </summary>
-        public static readonly SymbolDisplayFormat CSharpErrorMessageFormat =
+        public static SymbolDisplayFormat CSharpErrorMessageFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
         /// </summary>
-        public static readonly SymbolDisplayFormat CSharpShortErrorMessageFormat =
+        public static SymbolDisplayFormat CSharpShortErrorMessageFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
         /// </summary>
-        public static readonly SymbolDisplayFormat VisualBasicErrorMessageFormat =
+        public static SymbolDisplayFormat VisualBasicErrorMessageFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler short error message.
         /// </summary>
-        public static readonly SymbolDisplayFormat VisualBasicShortErrorMessageFormat =
+        public static SymbolDisplayFormat VisualBasicShortErrorMessageFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats the names of all types and namespaces in a fully qualified style (including the global alias).
         /// </summary>
-        public static readonly SymbolDisplayFormat FullyQualifiedFormat =
+        public static SymbolDisplayFormat FullyQualifiedFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats a symbol description in a form that suits <see cref="ISymbol.ToMinimalDisplayString"/>.
         /// </summary>
-        public static readonly SymbolDisplayFormat MinimallyQualifiedFormat =
+        public static SymbolDisplayFormat MinimallyQualifiedFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
         /// </param>
         /// <param name="propertyStyle">
         /// The settings that determine how properties are displayed. 
-        /// For eaxmple, "Prop" vs "Prop { get; set; }" in C# or "Prop" vs. "ReadOnly Prop" in Visual Basic.
+        /// For example, "Prop" vs "Prop { get; set; }" in C# or "Prop" vs. "ReadOnly Prop" in Visual Basic.
         /// </param>
         /// <param name="localOptions">
         /// The settings that determine how local variables are displayed.
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a copy of the SymbolDisplayFormat but with replaced <seealso cref="SymbolDisplayGlobalNamespaceStyle"/>.
         /// </summary>
         /// <param name="style">
-        /// An object specifying paramers on how namespace symbols should be formatted.
+        /// An object specifying parameters on how namespace symbols should be formatted.
         /// </param>
         /// <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="SymbolDisplayGlobalNamespaceStyle"/>.</returns>
         public SymbolDisplayFormat WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle style)

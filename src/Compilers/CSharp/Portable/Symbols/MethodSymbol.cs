@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Returns whether this method is using CLI VARARG calling convention. This is used for C-style variable
-        /// argument lists. This is used extremely rarely in C# code and is represented using the undocumented “__arglist” keyword.
+        /// argument lists. This is used extremely rarely in C# code and is represented using the undocumented "__arglist" keyword.
         ///
-        /// Note that methods with “params” on the last parameter are indicated with the “IsParams” property on ParameterSymbol, and
+        /// Note that methods with "params" on the last parameter are indicated with the "IsParams" property on ParameterSymbol, and
         /// are not represented with this property.
         /// </summary>
         public abstract bool IsVararg { get; }
@@ -476,8 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.PropertySet:
                     return true;
                 default:
-                    Debug.Assert(false, $"Unexpected method kind '{kind}'");
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -514,6 +513,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal virtual bool IsScriptInitializer
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// Returns if the method is implicit constructor (normal and static)
         /// </summary>
@@ -544,6 +548,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return IsScriptConstructor && ContainingAssembly.IsInteractive;
+            }
+        }
+
+        internal bool IsSubmissionInitializer
+        {
+            get
+            {
+                return IsScriptInitializer && ContainingAssembly.IsInteractive;
             }
         }
 
@@ -893,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true for synthesized sybols which generate synthesized body in lowered form
+        /// Returns true for synthesized symbols which generate synthesized body in lowered form
         /// </summary>
         internal virtual bool SynthesizesLoweredBoundBody
         {

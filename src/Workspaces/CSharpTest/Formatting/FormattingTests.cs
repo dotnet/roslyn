@@ -4799,6 +4799,9 @@ class Program
 
         lock(somevar)
         { }
+
+        fixed(char* p = str)
+        { }
     }
 }";
             const string expected = @"
@@ -4837,6 +4840,9 @@ class Program
         { }
 
         lock ( somevar )
+        { }
+
+        fixed ( char* p = str )
         { }
     }
 }";
@@ -6127,6 +6133,8 @@ class Program
     {
         var a = typeof(A);
         var b = M(a);
+        var c = default(A);
+        var d = sizeof(A);
         M();
     }
 }";
@@ -6138,6 +6146,8 @@ class Program
     {
         var a = typeof ( A );
         var b = M ( a );
+        var c = default ( A );
+        var d = sizeof ( A );
         M ( );
     }
 }";
@@ -6220,5 +6230,33 @@ class Program
 }";
             AssertFormat(expected, code);
         }
+
+        [WorkItem(939, "https://github.com/dotnet/roslyn/issues/939")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void DontFormatInsideArrayInitializers()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        int[] sss = new[] {
+                       //Comment1
+                2,
+            5,            324534,    345345,
+                        //Comment2
+                            //This comment should not line up with the previous comment
+                    234234
+                     //Comment3
+                ,         234,
+            234234
+                                /*
+                                This is a multiline comment
+                                */
+                    //Comment4
+              };
+    }
+}";
+            AssertFormat(code, code);
         }
     }
+}

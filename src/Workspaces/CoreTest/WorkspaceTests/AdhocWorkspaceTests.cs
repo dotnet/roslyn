@@ -5,12 +5,14 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;
+using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -458,6 +460,48 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newDocTree = newDoc.GetSyntaxTreeAsync().Result;
             var treeText = newDocTree.GetText();
             Assert.Same(newDocText, treeText);
+        }
+
+        [WorkItem(1174396, "DevDiv")]
+        [Fact]
+        public void TestUpdateCSharpLanguageVersion()
+        {
+            using (var ws = new AdhocWorkspace())
+            {
+                var projid = ws.AddProject("TestProject", LanguageNames.CSharp).Id;
+                var docid1 = ws.AddDocument(projid, "A.cs", SourceText.From("public class A { }")).Id;
+                var docid2 = ws.AddDocument(projid, "B.cs", SourceText.From("public class B { }")).Id;
+
+                var pws = new WorkspaceWithPartialSemantics(ws.CurrentSolution);
+                var proj = pws.CurrentSolution.GetProject(projid);
+                var comp = proj.GetCompilationAsync().Result;
+
+                // change language version
+                var parseOptions = proj.ParseOptions as CS.CSharpParseOptions;
+                pws.SetParseOptions(projid, parseOptions.WithLanguageVersion(CS.LanguageVersion.CSharp3));
+
+                // get partial semantics doc
+                var frozen = pws.CurrentSolution.GetDocument(docid1).WithFrozenPartialSemanticsAsync(CancellationToken.None).Result;
+            }
+        }
+
+        public class WorkspaceWithPartialSemantics : Workspace
+        {
+            public WorkspaceWithPartialSemantics(Solution solution)
+                : base(solution.Workspace.Services.HostServices, solution.Workspace.Kind)
+            {
+                this.SetCurrentSolution(solution);
+            }
+
+            protected internal override bool PartialSemanticsEnabled
+            {
+                get { return true; }
+            }
+
+            public void SetParseOptions(ProjectId id, ParseOptions options)
+            {
+                base.OnParseOptionsChanged(id, options);
+            }
         }
     }
 }

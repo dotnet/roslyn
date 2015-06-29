@@ -621,7 +621,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitExpression(sequence.Value, used);
             }
 
-            FreeLocals(sequence);
+            // sequence is used as a value, can release all locals
+            FreeLocals(sequence, doNotRelease: null);
         }
 
         private void DefineLocals(BoundSequence sequence)
@@ -639,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void FreeLocals(BoundSequence sequence)
+        private void FreeLocals(BoundSequence sequence, LocalSymbol doNotRelease)
         {
             if (sequence.Locals.IsEmpty)
             {
@@ -650,7 +651,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             foreach (var local in sequence.Locals)
             {
-                FreeLocal(local);
+                if ((object)local != doNotRelease)
+                {
+                    FreeLocal(local);
+                }
             }
         }
 
@@ -1350,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (callKind == CallKind.ConstrainedCallVirt && actualMethodTargetedByTheCall.ContainingType.IsValueType)
             {
-                // special case for overriden methods like ToString(...) called on
+                // special case for overridden methods like ToString(...) called on
                 // value types: if the original method used in emit cannot use callvirt in this
                 // case, change it to Call.
                 callKind = CallKind.Call;
@@ -2032,17 +2036,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         DefineLocals(sequence);
                         EmitSideEffects(sequence);
 
-                        BoundLocal referencedLocal = DigForLocal(sequence.Value);
-                        LocalSymbol doNotRelease = null;
-                        if (referencedLocal != null)
-                        {
-                            doNotRelease = referencedLocal.LocalSymbol;
-                        }
-
                         lhsUsesStack = EmitAssignmentPreamble(assignmentOperator.Update(sequence.Value, assignmentOperator.Right, assignmentOperator.RefKind, assignmentOperator.Type));
 
-                        FreeLocals(sequence);
-                        Debug.Assert(!sequence.Locals.Any(l => l == doNotRelease));
+                        // doNotRelease will be released in EmitStore after we are done with the whole assignment.
+                        var doNotRelease = DigForValueLocal(sequence);
+                        FreeLocals(sequence, doNotRelease);
                     }
                     break;
 
@@ -2188,6 +2186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var sequence = (BoundSequence)expression;
                         EmitStore(assignment.Update(sequence.Value, assignment.Right, assignment.RefKind, assignment.Type));
+
+                        var notReleased = DigForValueLocal(sequence);
+                        if (notReleased != null)
+                        {
+                            FreeLocal(notReleased);
+                        }
                     }
                     break;
 

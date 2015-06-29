@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.InternalUtilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -167,6 +167,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(peStream));
             }
 
+            // Workaround of issue https://github.com/dotnet/corefx/issues/1815: 
+            if (peStream.Length == 0 && (options & PEStreamOptions.PrefetchEntireImage) != 0 && (options & PEStreamOptions.PrefetchMetadata) != 0)
+            {
+                // throws BadImageFormatException:
+                new PEHeaders(peStream);
+            }
+
             // ownership of the stream is passed on PEReader:
             return new ModuleMetadata(new PEReader(peStream, options));
         }
@@ -186,7 +193,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
         public static ModuleMetadata CreateFromFile(string path)
         {
-            return CreateFromStream(FileStreamLightUp.OpenFileStream(path));
+            return CreateFromStream(FileUtilities.OpenFileStream(path));
         }
 
         /// <summary>

@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///  (a) Key: Unassigned field symbol.
         ///  (b) Value: True if the unassigned field is effectively internal, false otherwise.
         /// </summary>
-        private ConcurrentDictionary<FieldSymbol, bool> _unassignedFieldsMap = new ConcurrentDictionary<FieldSymbol, bool>();
+        private readonly ConcurrentDictionary<FieldSymbol, bool> _unassignedFieldsMap = new ConcurrentDictionary<FieldSymbol, bool>();
 
         /// <summary>
         /// private fields declared in this assembly but never read
         /// </summary>
-        private ConcurrentSet<FieldSymbol> _unreadFields = new ConcurrentSet<FieldSymbol>();
+        private readonly ConcurrentSet<FieldSymbol> _unreadFields = new ConcurrentSet<FieldSymbol>();
 
         /// <summary>
         /// We imitate the native compiler's policy of not warning about unused fields
@@ -1773,8 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     default:
-                        Debug.Assert(false, "Unexpected member kind: " + member.Kind);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
                 }
             }
             return false;
@@ -1969,7 +1968,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey;
+            // Allow public key token due to compatibility reasons, but we are not going to use its value.
+            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey | AssemblyIdentityParts.PublicKeyToken; 
 
             if ((parts & ~allowedParts) != 0)
             {

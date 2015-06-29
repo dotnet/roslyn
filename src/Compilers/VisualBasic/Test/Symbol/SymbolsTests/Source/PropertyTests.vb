@@ -391,7 +391,7 @@ End Class
                     </file>
                 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <Fact>
@@ -642,7 +642,7 @@ End Class
 
         ' Set method must specify type if property type is not Object.
         <Fact>
-        Public Sub SetParameterExplictTypeForNonObjectProperty()
+        Public Sub SetParameterExplicitTypeForNonObjectProperty()
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="c.vb">
@@ -4294,7 +4294,7 @@ End Class
         End Sub
 #End Region
 #Region "Properties calls"
-        Private _propertiesCallBaseSource As XElement =
+        Private ReadOnly _propertiesCallBaseSource As XElement =
             <compilation>
                 <file name="a.vb">
 Module Program
@@ -4787,7 +4787,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <WorkItem(528038, "DevDiv")>
@@ -4927,7 +4927,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <WorkItem(527660, "DevDiv")>
@@ -4966,7 +4966,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <Fact>
@@ -4984,7 +4984,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <WorkItem(527656, "DevDiv")>
@@ -5021,7 +5021,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         <Fact>
@@ -5039,7 +5039,7 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CompileWithCustomILSource(vbSource, ilSource, emitters:=TestEmitters.RefEmitBug)
+            CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
         ''' <summary>
@@ -8003,7 +8003,7 @@ End Class
         ''' (i.e., set_ for dll, put_ for winmdobj)
         ''' </summary>
         <Fact()>
-        Public Sub WinRtPropertyAccesorNameConflict()
+        Public Sub WinRtPropertyAccessorNameConflict()
             Dim libSrc =
                 <compilation>
                     <file name="c.vb">

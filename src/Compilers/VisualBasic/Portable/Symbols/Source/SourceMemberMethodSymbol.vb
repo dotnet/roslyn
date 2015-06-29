@@ -183,6 +183,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Me.IsAsync OrElse Me.IsIterator Then
                 AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeStateMachineAttribute(Me, compilationState))
+
+                If Me.IsAsync Then
+                    ' Async kick-off method calls MoveNext, which contains user code. 
+                    ' This means we need to emit DebuggerStepThroughAttribute in order
+                    ' to have correct stepping behavior during debugging.
+                    AddSynthesizedAttribute(attributes, Me.DeclaringCompilation.SynthesizeOptionalDebuggerStepThroughAttribute())
+                End If
             End If
         End Sub
 
@@ -735,6 +742,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     singleHandleClause.EventMember,
                     diagBag)
             End If
+
+            Select Case ContainingType.TypeKind
+                Case TypeKind.Interface, TypeKind.Structure, TypeKind.Enum, TypeKind.Delegate
+                    ' Handles clause is invalid in this context. 
+                    Return Nothing
+
+                Case TypeKind.Class, TypeKind.Module
+                    ' Valid context
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(ContainingType.TypeKind)
+            End Select
 
             Dim receiverOpt As BoundExpression = Nothing
 

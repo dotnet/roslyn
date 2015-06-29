@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             private readonly HashSet<SyntaxNode> _nodesToRemove;
             private readonly SyntaxRemoveOptions _options;
             private readonly TextSpan _searchSpan;
-            private SyntaxTriviaListBuilder _residualTrivia;
+            private readonly SyntaxTriviaListBuilder _residualTrivia;
             private HashSet<SyntaxNode> _directivesToKeep;
 
             public SyntaxRemover(

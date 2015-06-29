@@ -3,6 +3,7 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
@@ -326,6 +327,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend ReadOnly Property ContainingModule As ModuleSymbol
+            Get
+                ' If there's a containing member, it either is or has a containing module.
+                ' Otherwise, we'll just use the compilation's source module.
+                Dim containingMember = Me.ContainingMember
+                Return If(TryCast(containingMember, ModuleSymbol), If(containingMember?.ContainingModule, Me.Compilation.SourceModule))
+            End Get
+        End Property
+
         ''' <summary>
         ''' Tells whether binding is happening in a query context.
         ''' </summary>
@@ -450,6 +460,65 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function GetUseSiteErrorForWellKnownType(type As TypeSymbol) As DiagnosticInfo
             Return type.GetUseSiteErrorInfo()
+        End Function
+
+        Private Function GetInternalXmlHelperType(syntax As VisualBasicSyntaxNode, diagBag As DiagnosticBag) As NamedTypeSymbol
+            Dim typeSymbol = GetInternalXmlHelperType()
+
+            Dim useSiteError = GetUseSiteErrorForWellKnownType(typeSymbol)
+            If useSiteError IsNot Nothing Then
+                ReportDiagnostic(diagBag, syntax, useSiteError)
+            End If
+
+            Return typeSymbol
+        End Function
+
+        Private Function GetInternalXmlHelperType() As NamedTypeSymbol
+            Const globalMetadataName = "My.InternalXmlHelper"
+            Dim metadataName = globalMetadataName
+
+            Dim rootNamespace = Me.Compilation.Options.RootNamespace
+            If Not String.IsNullOrEmpty(rootNamespace) Then
+                metadataName = $"{rootNamespace}.{metadataName}"
+            End If
+
+            Dim emittedName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding:=True)
+            Return Me.ContainingModule.LookupTopLevelMetadataType(emittedName)
+        End Function
+
+        ''' <summary>
+        ''' WARN: Retrieves the symbol but does not check its viability (accessibility, etc).
+        ''' </summary>
+        Private Function GetInternalXmlHelperValueExtensionProperty() As PropertySymbol
+            For Each candidate As Symbol In GetInternalXmlHelperType().GetMembers("Value")
+                If Not candidate.IsShared OrElse candidate.Kind <> SymbolKind.Property Then
+                    Continue For
+                End If
+
+                Dim candidateProperty = DirectCast(candidate, PropertySymbol)
+                If candidateProperty.Type.SpecialType <> SpecialType.System_String OrElse
+                    candidateProperty.TypeCustomModifiers.Length > 0 OrElse
+                    candidateProperty.ParameterCount <> 1 Then
+
+                    Continue For
+                End If
+
+                Dim parameter = candidateProperty.Parameters(0)
+                If parameter.CustomModifiers.Length > 0 Then
+                    Continue For
+                End If
+
+                Dim parameterType = parameter.Type
+                If parameterType.OriginalDefinition.SpecialType <> SpecialType.System_Collections_Generic_IEnumerable_T OrElse
+                        DirectCast(parameterType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0) <> Me.Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XElement) Then
+                    Continue For
+                End If
+
+                ' Only one symbol can match the criteria above, so we don't have to worry about ambiguity.
+                Return candidateProperty
+            Next
+
+            Return Nothing
         End Function
 
         ''' <summary>
@@ -689,7 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Disallow additonal local variable declaration and report delayed shadowing diagnostics.
+        ''' Disallow additional local variable declaration and report delayed shadowing diagnostics.
         ''' </summary>
         ''' <remarks></remarks>
         Public Overridable Sub DisallowFurtherImplicitVariableDeclaration(diagnostics As DiagnosticBag)
@@ -966,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a placeholder substitute for a With statement placeholder specified or Nothing if not found
         '''
         ''' Note: 'placeholder' is needed to make sure the binder can check that the placeholder is
-        ''' associated with the stement.
+        ''' associated with the statement.
         ''' </summary>
         Friend Overridable Function GetWithStatementPlaceholderSubstitute(placeholder As BoundValuePlaceholderBase) As BoundExpression
             Return m_containingBinder.GetWithStatementPlaceholderSubstitute(placeholder)

@@ -24,7 +24,7 @@
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
-    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
+    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="xunit">
       <HintPath>..\..\..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -64,9 +64,7 @@
       <Link>SymUnmanagedReaderTestExtensions.cs</Link>
     </Compile>
     <Compile Include="CustomDiagnosticFormatter.cs" />
-    <Compile Include="DefaultInspectionContext.cs" />
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
-    <Compile Include="InspectionContextFactory.cs" />
     <Compile Include="MethodDebugInfo.cs" />
     <Compile Include="NotImplementedSymUnmanaged.cs" />
     <Compile Include="ModuleInstance.cs" />
@@ -76,10 +74,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="TestExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Resources\Empty.dll" />
     <None Include="Resources\LibraryA.winmd" />
     <None Include="Resources\LibraryB.winmd" />
     <None Include="Resources\NoValidTables.metadata" />

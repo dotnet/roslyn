@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -354,8 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 default:
-                    Debug.Assert(false, "Unexpected named type kind " + this.TypeKind);
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(this.TypeKind);
             }
 
             foreach (var member in this.GetMembersUnordered())
@@ -375,9 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                // synthesized constructors are the exception, but they should have been weeded out by the caller
-                                var isNew = ((SourceMethodSymbol)method).IsNew;
-                                CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                var sourceMethod = method as SourceMethodSymbol;
+                                if ((object)sourceMethod != null) // skip submission initializer
+                                {
+                                    var isNew = sourceMethod.IsNew;
+                                    CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                }
                             }
                         }
                         else if (method.MethodKind == MethodKind.Destructor)
@@ -782,8 +785,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are 
             // decorated with OutAttribute. In CLR when a signature is looked up in virtual dispatch, CLR does not distinguish
             // between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if 
-            // there would potentially be a mismatch in CLRs and C#s choice of the overriden method. Unfortunately we have no 
-            // way of communicating to CLR which method is the overriden one. We only run into this problem when the 
+            // there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no 
+            // way of communicating to CLR which method is the overridden one. We only run into this problem when the 
             // parameters are generic.
             var runtimeOverriddenMembers = overriddenOrHiddenMembers.RuntimeOverriddenMembers;
             Debug.Assert(!runtimeOverriddenMembers.IsDefault);
@@ -919,8 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 default:
-                    Debug.Assert(false, $"Unexpected accessibility {hidingMember.DeclaredAccessibility}");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(hidingMember.DeclaredAccessibility);
             }
             return false;
         }

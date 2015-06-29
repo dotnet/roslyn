@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits Binder
 
         ''' <summary> Root syntax node </summary>
-        Private _root As VisualBasicSyntaxNode
+        Private ReadOnly _root As VisualBasicSyntaxNode
 
         Public Sub New(containingBinder As Binder, tree As SyntaxTree, Optional node As VisualBasicSyntaxNode = Nothing)
             MyBase.New(containingBinder, tree)

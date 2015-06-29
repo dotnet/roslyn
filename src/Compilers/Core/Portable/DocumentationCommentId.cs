@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
 
         /// <summary>
-        /// Creates an id string used by external documenation comment files to identify declarations
+        /// Creates an id string used by external documentation comment files to identify declarations
         /// of types, namespaces, methods, properties, etc.
         /// </summary>
         public static string CreateDeclarationId(ISymbol symbol)
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Try to get all the declaration symbols that match the declaration id string.
-        /// Returns true if atleast one symbol matches.
+        /// Returns true if at least one symbol matches.
         /// </summary>
         private static bool TryGetSymbolsForDeclarationId(string id, Compilation compilation, List<ISymbol> results)
         {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Try to get all symbols that match the reference id string.
-        /// Returns true if atleast one symbol matches.
+        /// Returns true if at least one symbol matches.
         /// </summary>
         private static bool TryGetSymbolsForReferenceId(string id, Compilation compilation, List<ISymbol> results)
         {
@@ -260,6 +260,39 @@ namespace Microsoft.CodeAnalysis
             if (name.IndexOf('.') >= 0)
             {
                 return name.Replace('.', '#');
+            }
+
+            return name;
+        }
+
+        private static string EncodePropertyName(string name)
+        {
+            // convert C# indexer names to 'Item'
+            if (name == "this[]")
+            {
+                name = "Item";
+            }
+            else if (name.EndsWith(".this[]"))
+            {
+                name = name.Substring(0, name.Length - 6) + "Item";
+            }
+
+            return name;
+        }
+
+        private static string DecodePropertyName(string name, string language)
+        {
+            // special case, csharp names indexers 'this[]', not 'Item'
+            if (language == LanguageNames.CSharp)
+            {
+                if (name == "Item")
+                {
+                    name = "this[]";
+                }
+                else if (name.EndsWith(".Item"))
+                {
+                    name = name.Substring(0, name.Length - 4) + "this[]";
+                }
             }
 
             return name;
@@ -371,14 +404,10 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append(".");
                     }
 
-                    if (symbol.Name == "this[]")
-                    {
-                        _builder.Append("Item");
-                    }
-                    else
-                    {
-                        _builder.Append(EncodeName(symbol.Name));
-                    }
+                    var name = EncodePropertyName(symbol.Name);
+                    _builder.Append(EncodeName(name));
+
+                    AppendParameters(symbol.Parameters);
 
                     return true;
                 }
@@ -397,27 +426,7 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append(symbol.TypeParameters.Length);
                     }
 
-                    if (symbol.Parameters.Length > 0)
-                    {
-                        _builder.Append("(");
-
-                        for (int i = 0, n = symbol.Parameters.Length; i < n; i++)
-                        {
-                            if (i > 0)
-                            {
-                                _builder.Append(",");
-                            }
-
-                            var p = symbol.Parameters[i];
-                            this.GetReferenceGenerator(symbol).Visit(p.Type);
-                            if (p.RefKind != RefKind.None)
-                            {
-                                _builder.Append("@");
-                            }
-                        }
-
-                        _builder.Append(")");
-                    }
+                    AppendParameters(symbol.Parameters);
 
                     if (!symbol.ReturnsVoid)
                     {
@@ -426,6 +435,31 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     return true;
+                }
+
+                private void AppendParameters(ImmutableArray<IParameterSymbol> parameters)
+                {
+                    if (parameters.Length > 0)
+                    {
+                        _builder.Append("(");
+
+                        for (int i = 0, n = parameters.Length; i < n; i++)
+                        {
+                            if (i > 0)
+                            {
+                                _builder.Append(",");
+                            }
+
+                            var p = parameters[i];
+                            this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
+                            if (p.RefKind != RefKind.None)
+                            {
+                                _builder.Append("@");
+                            }
+                        }
+
+                        _builder.Append(")");
+                    }
                 }
 
                 public override bool VisitNamespace(INamespaceSymbol symbol)
@@ -1218,13 +1252,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     for (int i = 0, n = containers.Count; i < n; i++)
                     {
-                        // special case, csharp names indexers 'this[]', not 'Item'
-                        if (memberName == "Item"
-                            && compilation.Language == LanguageNames.CSharp)
-                        {
-                            memberName = "this[]";
-                        }
-
+                        memberName = DecodePropertyName(memberName, compilation.Language);
                         var members = containers[i].GetMembers(memberName);
 
                         foreach (var symbol in members)

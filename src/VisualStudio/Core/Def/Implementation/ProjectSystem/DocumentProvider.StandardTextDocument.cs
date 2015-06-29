@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -44,11 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public SourceCodeKind SourceCodeKind { get; }
             public DocumentKey Key { get; }
 
-            /// <summary>
-            /// <see cref="IVsHierarchy"/> of shared or project k project.
-            /// </summary>
-            public IVsHierarchy SharedHierarchy { get; }
-
             public event EventHandler UpdatedOnDisk;
             public event EventHandler<bool> Opened;
             public event EventHandler<bool> Closing;
@@ -72,11 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
                 this.Folders = project.GetFolderNames(itemId);
 
-                // TODO: 
-                // this one doesn't work for asynchronous project load situation where shared projects is loaded after one uses shared file. 
-                // we need to figure out what to do on those case. but this works for project k case.
-                // opened an issue to track this issue - https://github.com/dotnet/roslyn/issues/1859
-                this.SharedHierarchy = project.Hierarchy == null ? null : LinkedFileUtilities.GetSharedHierarchyForItem(project.Hierarchy, itemId);
                 _documentProvider = documentProvider;
 
                 this.Key = documentKey;
@@ -227,8 +217,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 using (var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null))
                 {
-                    var oldText = buffer.CurrentSnapshot.AsText();
+                    var oldSnapshot = buffer.CurrentSnapshot;
+                    var oldText = oldSnapshot.AsText();
                     var changes = newText.GetTextChanges(oldText);
+
+                    Workspace workspace = null;
+                    if (Workspace.TryGetWorkspace(oldText.Container, out workspace))
+                    {
+                        var undoService = workspace.Services.GetService<ISourceTextUndoService>();
+                        undoService.BeginUndoTransaction(oldSnapshot);
+                    }
 
                     foreach (var change in changes)
                     {
@@ -259,8 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 uint itemId;
-                Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId);
-                return itemId;
+                return Project.Hierarchy.ParseCanonicalName(_itemMoniker, out itemId) == VSConstants.S_OK
+                    ? itemId
+                    : (uint)VSConstants.VSITEMID.Nil;
             }
         }
     }

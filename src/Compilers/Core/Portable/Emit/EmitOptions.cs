@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public DebugInformationFormat DebugInformationFormat { get; private set; }
 
         /// <summary>
-        /// Assembly name override - file name and extension. If not specified the the compilation name is used.
+        /// Assembly name override - file name and extension. If not specified the compilation name is used.
         /// </summary>
         /// <remarks>
         /// By default the name of the output assembly is <see cref="Compilation.AssemblyName"/>. Only in rare cases it is necessary

@@ -3,10 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -237,14 +234,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _kind As LookupResultKind
 
         ' The symbol, unless the kind is empty.
-        Private _symList As ArrayBuilder(Of Symbol)
+        Private ReadOnly _symList As ArrayBuilder(Of Symbol)
 
         ' The diagnostic. This is always set for NonAccessible and NonViable results. It may be
         ' set for viable results.
         Private _diagInfo As DiagnosticInfo
 
         ' The pool used to get instances from.
-        Private _pool As ObjectPool(Of LookupResult)
+        Private ReadOnly _pool As ObjectPool(Of LookupResult)
 
         ''''''''''''''''''''''''''''''
         ' Access routines
@@ -327,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''''''''''''''''''''''''''''''
         ' Creation routines
 
-        Private Shared s_poolInstance As ObjectPool(Of LookupResult) = CreatePool()
+        Private Shared ReadOnly s_poolInstance As ObjectPool(Of LookupResult) = CreatePool()
 
         Private Shared Function CreatePool() As ObjectPool(Of LookupResult)
             Dim pool As ObjectPool(Of LookupResult) = Nothing
@@ -566,8 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
-                    ' Good result from derived class shouldn't be overriden by an ambiguous result from the base class.
-                    ' Ambiguous result from derived class shouldn't be overriden by a good result from the base class.
+                    ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
+                    ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
             ElseIf other.Kind > Me.Kind Then
@@ -606,8 +603,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     Debug.Assert(Me.IsAmbiguous OrElse other.IsAmbiguous)
                     ' Stick with the current result.
-                    ' Good result from derived class shouldn't be overriden by an ambiguous result from the base class.
-                    ' Ambiguous result from derived class shouldn't be overriden by a good result from the base class.
+                    ' Good result from derived class shouldn't be overridden by an ambiguous result from the base class.
+                    ' Ambiguous result from derived class shouldn't be overridden by a good result from the base class.
                     Return
                 End If
             ElseIf other.Kind > Me.Kind Then
@@ -697,13 +694,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If otherLost Then
                         Return
                     End If
+
+                    ' As a special case, we allow conflicting enum members imported from
+                    ' metadata If they have the same value, and take the first
+                    If _symList.Count = 1 AndAlso ambiguous = 1 AndAlso AreEquivalentEnumConstants(_symList(0), other.Symbol) Then
+                        Return
+                    End If
                 End If
 
             ElseIf imported Then
                 Debug.Assert(Me.IsAmbiguous)
                 ' This function guarantees that accessibility of all ambiguous symbols,
                 ' even those dropped from the list by MergeAmbiguous is the same.
-                ' So, it is sufficient to test accesibility of the only symbol we have. 
+                ' So, it is sufficient to test Accessibility of the only symbol we have. 
                 Dim accessibilityCmp As Integer = CompareAccessibilityOfSymbolsConflictingInSameContainer(_symList(0), other.Symbol)
 
                 If accessibilityCmp < 0 Then
@@ -724,6 +727,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We were unable to resolve the ambiguity
             MergeAmbiguous(other, s_ambiguousInTypeError)
         End Sub
+
+        Private Function AreEquivalentEnumConstants(symbol1 As Symbol, symbol2 As Symbol) As Boolean
+            Debug.Assert(symbol1.ContainingType = symbol2.ContainingType)
+            If symbol1.Kind <> SymbolKind.Field OrElse symbol2.Kind <> SymbolKind.Field OrElse symbol1.ContainingType.TypeKind <> TypeKind.Enum Then
+                Return False
+            End If
+            Dim f1 = DirectCast(symbol1, FieldSymbol)
+            Dim f2 = DirectCast(symbol2, FieldSymbol)
+            Return f1.ConstantValue IsNot Nothing AndAlso f1.ConstantValue.Equals(f2.ConstantValue)
+        End Function
 
         ' Create a diagnostic for ambiguous names in the same type. This is typically not possible from source, only 
         ' from metadata.
@@ -830,9 +843,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Public Sub MergeMembersOfTheSameNamespace(other As SingleLookupResult, sourceModule As ModuleSymbol)
+        Public Sub MergeMembersOfTheSameNamespace(other As SingleLookupResult, sourceModule As ModuleSymbol, options As LookupOptions)
 
-            Dim resolution As Integer = ResolveAmbiguityInTheSameNamespace(other, sourceModule)
+            Dim resolution As Integer = ResolveAmbiguityInTheSameNamespace(other, sourceModule, options)
 
             If resolution > 0 Then
                 Return
@@ -844,39 +857,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MergeAmbiguous(other, s_ambiguousInNSError)
         End Sub
 
-        Private Shared Function IsSymbolDeclaredInSourceModule(sym As Symbol, [module] As ModuleSymbol) As Boolean
+        Private Enum SymbolLocation
+            FromSourceModule
+            FromReferencedAssembly
+            FromCorLibrary
+        End Enum
+
+        Private Shared Function GetSymbolLocation(sym As Symbol, sourceModule As ModuleSymbol, options As LookupOptions) As SymbolLocation
             ' Dev10 pays attention to the fact that the [sym] refers to a namespace
             ' and the namespace has a declaration in source. This needs some special handling for merged namespaces.
-
             If sym.Kind = SymbolKind.Namespace Then
-                Return DirectCast(sym, NamespaceSymbol).IsDeclaredInSourceModule([module])
+                Return If(DirectCast(sym, NamespaceSymbol).IsDeclaredInSourceModule(sourceModule),
+                    SymbolLocation.FromSourceModule,
+                    SymbolLocation.FromReferencedAssembly)
             End If
 
-            Return sym.ContainingModule Is [module]
+            If sym.ContainingModule Is sourceModule Then
+                Return SymbolLocation.FromSourceModule
+            End If
+
+            If (options And LookupOptions.IgnoreCorLibraryDuplicatedTypes) <> 0 Then
+                ' Ignore duplicate types from the cor library if necessary.
+                ' (Specifically the framework assemblies loaded at runtime in
+                ' the EE may contain types also available from mscorlib.dll.)
+                Dim containingAssembly = sym.ContainingAssembly
+                If containingAssembly Is containingAssembly.CorLibrary Then
+                    Return SymbolLocation.FromCorLibrary
+                End If
+            End If
+
+            Return SymbolLocation.FromReferencedAssembly
         End Function
 
         ''' <summary>
         ''' Returns: negative value - when current lost, 0 - when neither lost, > 0 - when other lost.
         ''' </summary>
-        Private Function ResolveAmbiguityInTheSameNamespace(other As SingleLookupResult, sourceModule As ModuleSymbol) As Integer
+        Private Function ResolveAmbiguityInTheSameNamespace(other As SingleLookupResult, sourceModule As ModuleSymbol, options As LookupOptions) As Integer
             Debug.Assert(Not other.IsAmbiguous)
 
             ' Symbols in source take priority over symbols in a referenced assembly.
             If other.StopFurtherLookup AndAlso
                Me.StopFurtherLookup AndAlso Me.Symbols.Count > 0 Then
 
-                Dim currentFromSource = IsSymbolDeclaredInSourceModule(other.Symbol, sourceModule)
-                Dim contenderFromSource = IsSymbolDeclaredInSourceModule(Me.Symbols(0), sourceModule)
-
-                If currentFromSource Then
-                    If Not contenderFromSource Then
-                        ' other is better
-                        Return -1
-                    End If
-
-                ElseIf contenderFromSource Then
-                    ' contender is better
-                    Return 1
+                Dim currentLocation = GetSymbolLocation(other.Symbol, sourceModule, options)
+                Dim contenderLocation = GetSymbolLocation(Me.Symbols(0), sourceModule, options)
+                Dim diff = currentLocation - contenderLocation
+                If diff <> 0 Then
+                    Return diff
                 End If
             End If
 
@@ -974,7 +1001,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Create a diagnostic for ambiguous names in a namespace
-        Private Shared s_ambiguousInNSError As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic) =
+        Private Shared ReadOnly s_ambiguousInNSError As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic) =
             Function(syms As ImmutableArray(Of Symbol)) As AmbiguousSymbolDiagnostic
                 Dim container As Symbol = syms(0).ContainingSymbol
                 If container.Name.Length > 0 Then

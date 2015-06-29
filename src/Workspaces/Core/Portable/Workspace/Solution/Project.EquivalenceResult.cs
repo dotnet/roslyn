@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis
     {
         private class EquivalenceResult
         {
-            public readonly bool PublicallyEquivalent;
+            public readonly bool PubliclyEquivalent;
             public readonly bool PrivatelyEquivalent;
 
-            public EquivalenceResult(bool publicallyEquivalent, bool privatelyEquivalent)
+            public EquivalenceResult(bool publiclyEquivalent, bool privatelyEquivalent)
             {
-                this.PublicallyEquivalent = publicallyEquivalent;
+                this.PubliclyEquivalent = publiclyEquivalent;
                 this.PrivatelyEquivalent = privatelyEquivalent;
             }
         }

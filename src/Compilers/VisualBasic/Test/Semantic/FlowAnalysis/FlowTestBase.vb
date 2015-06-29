@@ -54,15 +54,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 #Region "Utilities"
 
         Protected Function CompileAndAnalyzeControlFlow(program As XElement, Optional ilSource As XCData = Nothing, Optional errors As XElement = Nothing) As ControlFlowAnalysis
-            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) AnalyseControlFlow(binding, startNodes, endNodes), ilSource, errors)
+            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) AnalyzeControlFlow(binding, startNodes, endNodes), ilSource, errors)
         End Function
 
         Protected Function CompileAndAnalyzeDataFlow(program As XElement, Optional ilSource As XCData = Nothing, Optional errors As XElement = Nothing) As DataFlowAnalysis
-            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) AnalyseDataFlow(binding, startNodes, endNodes), ilSource, errors)
+            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) AnalyzeDataFlow(binding, startNodes, endNodes), ilSource, errors)
         End Function
 
         Protected Function CompileAndAnalyzeControlAndDataFlow(program As XElement, Optional ilSource As XCData = Nothing, Optional errors As XElement = Nothing) As Tuple(Of ControlFlowAnalysis, DataFlowAnalysis)
-            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) Tuple.Create(AnalyseControlFlow(binding, startNodes, endNodes), AnalyseDataFlow(binding, startNodes, endNodes)), ilSource, errors)
+            Return CompileAndGetModelAndSpan(program, Function(binding, startNodes, endNodes) Tuple.Create(AnalyzeControlFlow(binding, startNodes, endNodes), AnalyzeDataFlow(binding, startNodes, endNodes)), ilSource, errors)
         End Function
 
         Private Function CompileAndGetModelAndSpan(Of T)(program As XElement, analysisDelegate As Func(Of SemanticModel, List(Of VisualBasicSyntaxNode), List(Of VisualBasicSyntaxNode), T), ilSource As XCData, errors As XElement) As T
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return If(Not symbols.IsEmpty(), String.Join(", ", symbols.Select(Function(symbol) symbol.Name)), Nothing)
         End Function
 
-        Protected Function AnalyseControlFlow(model As SemanticModel,
+        Protected Function AnalyzeControlFlow(model As SemanticModel,
                                               startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode)) As ControlFlowAnalysis
 
             Dim pair = (From s In startNodes From e In endNodes
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Throw New ArgumentException("Failed to identify statement sequence, maybe the region is invalid")
         End Function
 
-        Protected Function AnalyseDataFlow(model As SemanticModel,
+        Protected Function AnalyzeDataFlow(model As SemanticModel,
                                            startNodes As List(Of VisualBasicSyntaxNode), endNodes As List(Of VisualBasicSyntaxNode)) As DataFlowAnalysis
 
             Dim pair = (From s In startNodes From e In endNodes

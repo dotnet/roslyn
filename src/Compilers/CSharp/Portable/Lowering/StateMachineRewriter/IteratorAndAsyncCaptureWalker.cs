@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         default:
-                            Debug.Assert(false);
-                            break;
+                            throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                     }
                 }
             }

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Holds a collection of all the locations of anonymous types and delegates from source
         /// </summary>
-        private ConcurrentDictionary<Location, bool> _sourceLocationsSeen = new ConcurrentDictionary<Location, bool>();
+        private readonly ConcurrentDictionary<Location, bool> _sourceLocationsSeen = new ConcurrentDictionary<Location, bool>();
 #endif
 
         [Conditional("DEBUG")]
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Retrieves methods of anonymous type template which are not placed to symbol table.
-        /// In current implementation those are overriden 'ToString', 'Equals' and 'GetHashCode'
+        /// In current implementation those are overridden 'ToString', 'Equals' and 'GetHashCode'
         /// </summary>
         internal static ImmutableArray<MethodSymbol> GetAnonymousTypeHiddenMethods(NamedTypeSymbol type)
         {

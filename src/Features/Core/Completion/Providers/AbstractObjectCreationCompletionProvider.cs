@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var typeInferenceService = context.GetLanguageService<ITypeInferenceService>();
             var type = typeInferenceService.InferType(
-                context.SemanticModel, newExpression, objectAsDefault: false, cancellationToken: cancellationToken);
+                context.SemanticModel, position, objectAsDefault: false, cancellationToken: cancellationToken);
 
             // Unwrap an array type fully.  We only want to offer the underlying element type in the
             // list of completion items.

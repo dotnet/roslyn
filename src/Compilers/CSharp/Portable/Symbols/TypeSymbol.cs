@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
-        private ImmutableHashSet<Symbol> _lazyAbstractMembers = null;
-        private InterfaceInfo _lazyInterfaceInfo = null;
+        private ImmutableHashSet<Symbol> _lazyAbstractMembers;
+        private InterfaceInfo _lazyInterfaceInfo;
 
         private class InterfaceInfo
         {
@@ -921,8 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         correspondingImplementingAccessor = ((EventSymbol)implementingPropertyOrEvent).GetOwnOrInheritedRemoveMethod();
                         break;
                     default:
-                        Debug.Assert(false, "Expected property or event accessor");
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(interfaceMethod.MethodKind);
                 }
             }
 
@@ -1062,9 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
                         break;
                     default:
-                        Debug.Assert(false, "Unexpected interface member kind " + interfaceMember.Kind);
-                        interfaceMemberReturnType = null;
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
                 }
 
                 DiagnosticInfo useSiteDiagnostic;

@@ -350,7 +350,7 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// A metadata (IL) level represetation of the body of a method or of a property/event accessor.
+    /// A metadata (IL) level representation of the body of a method or of a property/event accessor.
     /// </summary>
     internal interface IMethodBody
     {
@@ -413,7 +413,7 @@ namespace Microsoft.Cci
         ImmutableArray<SequencePoint> GetLocations();
 
         /// <summary>
-        /// Returns true if there is atleast one dynamic local within the MethodBody
+        /// Returns true if there is at least one dynamic local within the MethodBody
         /// </summary>
         bool HasDynamicLocalVariables { get; }
 
@@ -430,7 +430,7 @@ namespace Microsoft.Cci
         /// The chain is a spine of a tree in a forest of import scopes. A tree of import scopes is created by the language for each source file
         /// based on namespace declarations. In VB each tree is trivial single-node tree that declares the imports of a file.
         /// In C# the tree copies the nesting of namespace declarations in the file. There is a separate scope for each dotted component in 
-        /// the namespace type name. For istance namespace type x.y.z will have two namespace scopes, the first is for the x and the second
+        /// the namespace type name. For instance namespace type x.y.z will have two namespace scopes, the first is for the x and the second
         /// is for the y.
         /// </remarks>
         IImportScope ImportScope { get; }

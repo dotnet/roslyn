@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static void RemoveIntersectingLocals(Dictionary<LocalSymbol, LocalDefUseInfo> info, ArrayBuilder<LocalDefUseInfo> dummies)
         {
-            // Add dummy definitons. 
+            // Add dummy definitions. 
             // Although we do not schedule dummies we intend to guarantee that no 
             // local definition span intersects with definition spans of a dummy
             // that will ensure that at any access to dummy is done on same stack state.
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
     // represents a span of a value between definition and use.
     // start/end positions are specified in terms of global node count as visited by 
-    // StackOptimizer visitors. (i.e. recursive walk not looking into constats)
+    // StackOptimizer visitors. (i.e. recursive walk not looking into constants)
     internal class LocalDefUseSpan
     {
         public readonly int start;
@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass1 : BoundTreeRewriter
     {
-        private int _counter = 0;
-        private int _evalStack = 0;
+        private int _counter;
+        private int _evalStack;
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
 
@@ -326,8 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public static BoundNode Analyze(BoundNode node, Dictionary<LocalSymbol, LocalDefUseInfo> locals)
         {
-            var analyser = new StackOptimizerPass1(locals);
-            var rewritten = analyser.Visit(node);
+            var analyzer = new StackOptimizerPass1(locals);
+            var rewritten = analyzer.Visit(node);
 
             return rewritten;
         }
@@ -830,9 +830,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
 
-            var isIndirectAssignement = IsIndirectAssignment(node);
+            var isIndirectAssignment = IsIndirectAssignment(node);
 
-            var left = VisitExpression(node.Left, isIndirectAssignement ?
+            var left = VisitExpression(node.Left, isIndirectAssignment ?
                                                     ExprContext.Address :
                                                     ExprContext.AssignmentTarget);
 
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     @"type of the assignment value is not the same as the type of assignment target. 
                 This is not expected by the optimizer and is typically a result of a bug somwhere else.");
 
-                Debug.Assert(!isIndirectAssignement, "indirect assignment is a read, not a write");
+                Debug.Assert(!isIndirectAssignment, "indirect assignment is a read, not a write");
 
                 LocalSymbol localSymbol = assignmentLocal.LocalSymbol;
 
@@ -1684,8 +1684,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //
     internal class StackOptimizerPass2 : BoundTreeRewriter
     {
-        private int _nodeCounter = 0;
-        private Dictionary<LocalSymbol, LocalDefUseInfo> _info;
+        private int _nodeCounter;
+        private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
 
         private StackOptimizerPass2(Dictionary<LocalSymbol, LocalDefUseInfo> info)
         {

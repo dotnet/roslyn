@@ -1,8 +1,19 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+usage()
+{
+    echo "Runs our integration suite on Linux"
+    echo "usage: cibuild.sh [options]"
+    echo ""
+    echo "Options"
+    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+    echo "  --os <os>           OS to run (Linux / Darwin)"
+}
 
 XUNIT_VERSION=2.0.0-alpha-build2576
-FULL_RUN=true
+BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+
 while [[ $# > 0 ]]
 do
     opt="$1"
@@ -15,12 +26,16 @@ do
         CUSTOM_MONO_PATH=$2
         shift 2
         ;;
-		--os)
-		OS_NAME=$2
-		shift 2
-		;;
-        --minimal)
-        FULL_RUN=false
+        --os)
+        OS_NAME=$2
+        shift 2
+        ;;
+        --debug)
+        BUILD_CONFIGURATION=Debug
+        shift 1
+        ;;
+        --release)
+        BUILD_CONFIGURATION=Release
         shift 1
         ;;
         *)
@@ -45,9 +60,11 @@ run_nuget()
 {
     i=5
     while [ $i -gt 0 ]; do
-        mono src/.nuget/NuGet.exe "$@"
+        mono .nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
             i=0
+        else
+            i=$((i - 1))
         fi
     done
 
@@ -62,37 +79,25 @@ compile_toolset()
 {
     echo Compiling the toolset compilers
     echo -e "\tCompiling the C# compiler"
-    run_xbuild src/Compilers/CSharp/csc/csc.csproj
-
-    if [ "$FULL_RUN" = "true" ]; then
-        echo -e "\tCompiling VB compiler"
-        run_xbuild src/Compilers/VisualBasic/vbc/vbc.csproj
-    fi
+    run_xbuild src/Compilers/CSharp/csc/csc.csproj /p:Configuration=$BUILD_CONFIGURATION
+    run_xbuild src/Compilers/VisualBasic/vbc/vbc.csproj /p:Configuration=$BUILD_CONFIGURATION
 }
 
-# Save the toolset binaries from Binaries/Debug to Binaries/Bootstrap
+# Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    compiler_binaries=(
+    local compiler_binaries=(
         csc.exe
         Microsoft.CodeAnalysis.dll
-        Microsoft.CodeAnalysis.Desktop.dll
         Microsoft.CodeAnalysis.CSharp.dll
-        Microsoft.CodeAnalysis.CSharp.Desktop.dll
         System.Collections.Immutable.dll
-        System.Reflection.Metadata.dll)
-
-    if [ "$FULL_RUN" = "true" ]; then
-        compiler_binaries=(
-            ${compiler_binaries[@]} 
-            vbc.exe
-            Microsoft.CodeAnalysis.VisualBasic.dll
-            Microsoft.CodeAnalysis.VisualBasic.Desktop.dll)
-    fi
+        System.Reflection.Metadata.dll
+        vbc.exe
+        Microsoft.CodeAnalysis.VisualBasic.dll)
 
     mkdir Binaries/Bootstrap
     for i in ${compiler_binaries[@]}; do
-        cp Binaries/Debug/${i} Binaries/Bootstrap/${i}
+        cp Binaries/$BUILD_CONFIGURATION/${i} Binaries/Bootstrap/${i}
         if [ $? -ne 0 ]; then
             echo Saving bootstrap binaries failed
             exit 1
@@ -105,40 +110,83 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    xbuild /v:m /t:Clean src/Toolset.sln
-    rm -rf Binaries/Debug
+    xbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
 build_roslyn()
 {
     BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
-    echo Running the bootstrap build 
+    echo Building CrossPlatform.sln
+    run_xbuild $BOOTSTRAP_ARG CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+}
 
-    if [ "$FULL_RUN" = "true" ]; then
-        echo -e "\tCompiling CrossPlatform.sln"
-        run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln
-    else
-        echo -e "\tCompiling the C# compiler"
-        run_xbuild $BOOTSTRAP_ARG src/Compilers/CSharp/csc/csc.csproj
+# Install the specified Mono toolset from our Azure blob storage.
+install_mono_toolset()
+{
+    TARGET=/tmp/$1
+    echo "Installing Mono toolset $1"
+    if [ -d $TARGET ]; then
+        echo "Already installed"
+        return
     fi
+
+    pushd /tmp
+
+    rm $TARGET 2>/dev/null
+    curl -O https://dotnetci.blob.core.windows.net/roslyn/$1.tar.bz2
+    tar -jxf $1.tar.bz2
+    if [ $? -ne 0 ]; then
+        echo "Unable to download toolset"
+        exit 1
+    fi
+
+    popd
+}
+
+# This function will update the PATH variable to put the desired
+# version of Mono ahead of the system one. 
+set_mono_path()
+{
+    if [ "$CUSTOM_MONO_PATH" != "" ]; then
+        if [ ! -d "$CUSTOM_MONO_PATH" ]; then
+            echo "Not a valid directory $CUSTOM_MONO_PATH"
+            exit 1
+        fi
+  
+        echo "Using mono path $CUSTOM_MONO_PATH"
+        PATH=$CUSTOM_MONO_PATH:$PATH
+        return
+    fi
+
+    if [ "$OS_NAME" = "Darwin" ]; then
+        MONO_TOOLSET_NAME=mono.mac.1
+    elif [ "$OS_NAME" = "Linux" ]; then
+        MONO_TOOLSET_NAME=mono.linux.1
+    else
+        echo "Error: Unsupported OS $OS_NAME"
+        exit 1
+    fi
+
+    install_mono_toolset $MONO_TOOLSET_NAME
+    PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
 }
 
 test_roslyn()
 {
-    if [ "$FULL_RUN" != "true" ]; then
-        return
-    fi
-    
     local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
-        Roslyn.Compilers.CSharp.Syntax.UnitTests
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
+        Roslyn.Compilers.CSharp.Syntax.UnitTests
+        Roslyn.Compilers.CSharp.Semantic.UnitTests
+        Roslyn.Compilers.CSharp.Symbol.UnitTests
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
+
     for i in "${test_binaries[@]}"
     do
-        mono $xunit_runner Binaries/Debug/$i.dll -xml Binaries/Debug/$i.TestResults.xml -noshadow
+        mono $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi
@@ -150,50 +198,15 @@ test_roslyn()
     fi
 }
 
-usage()
-{
-    echo "Runs our integration suite on Linux"
-    echo "usage: cibuild.sh [options]"
-    echo ""
-    echo "Options"
-    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
-	echo "  --os <os>			OS to run (Linux / Darwin)"
-	echo "  --minimal			Run a minimal set of suites (used when upgrading mono)"
-}
-
-# As a bootstrap mechanism in Jenkins we assume that Linux is a
-# minimal run.  It is not yet updated to the latest mono build
-# nor is the --minimal switch present for us to take advantage
-# of.  This block will be deleted once everything gets pushed
-# through. 
-if [ "$OS_NAME" = "Linux" ]; then
-    FULL_RUN=false
-fi
-
-if [ "$CUSTOM_MONO_PATH" != "" ]; then
-    if [ ! -d "$CUSTOM_MONO_PATH" ]; then
-        echo "Not a valid directory $CUSTOM_MONO_PATH"
-        exit 1
-    fi
-
-    echo "Using mono path $CUSTOM_MONO_PATH"
-    PATH=$CUSTOM_MONO_PATH:$PATH
-else
-    echo Changing mono snapshot
-    . mono-snapshot mono/20150316155603
-    if [ $? -ne 0 ]; then
-        echo Could not set mono snapshot 
-        exit 1
-    fi
-fi
-
 # NuGet on mono crashes about every 5th time we run it.  This is causing
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
-run_nuget restore src/Roslyn.sln
+run_nuget restore Roslyn.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
+set_mono_path
+which mono
 compile_toolset
 save_toolset
 clean_roslyn

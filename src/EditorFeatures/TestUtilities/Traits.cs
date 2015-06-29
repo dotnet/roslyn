@@ -122,6 +122,7 @@ namespace Roslyn.Test.Utilities
             public const string TodoComments = "TodoComments";
             public const string TypeInferenceService = "TypeInferenceService";
             public const string Venus = "Venus";
+            public const string VsLanguageBlock = "VsLanguageBlock";
             public const string XmlTagCompletion = "XmlTagCompletion";
         }
     }

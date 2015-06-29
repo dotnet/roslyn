@@ -164,6 +164,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true);
             }
 
+            public void VerifyLocalSignature(
+                string qualifiedMethodName,
+                string expectedSignature,
+                [CallerLineNumber]int callerLine = 0,
+                [CallerFilePath]string callerPath = null)
+            {
+                var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
+                string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+            }
+
             private CompilationVerifier VerifyILImpl(
                 string qualifiedMethodName,
                 string expectedIL,
@@ -257,8 +268,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
                 }
 
-                var module = this.GetModuleSymbolForEmittedImage();
-                return module != null ? _test.VisualizeRealIL(module, methodData, markers) : null;
+                if (_lazyModuleSymbol == null)
+                {
+                    _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
+                }
+
+                return _lazyModuleSymbol != null ? _test.VisualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
             }
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
@@ -275,28 +290,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public IModuleSymbol GetModuleSymbolForEmittedImage()
             {
-                return GetModuleSymbolForEmittedImage(ref _lazyModuleSymbol, EmittedAssemblyData);
+                return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
             }
 
-            private IModuleSymbol GetModuleSymbolForEmittedImage(ref IModuleSymbol moduleSymbol, ImmutableArray<byte> peImage)
+            private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
             {
                 if (peImage.IsDefault)
                 {
                     return null;
                 }
 
-                if (moduleSymbol == null)
-                {
-                    Debug.Assert(!peImage.IsDefault);
-
-                    var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-                    var references = _compilation.References.Concat(new[] { targetReference });
-                    var assemblies = _test.ReferencesToModuleSymbols(references, _compilation.Options.MetadataImportOptions);
-                    var module = assemblies.Last();
-                    moduleSymbol = module;
-                }
-
-                return moduleSymbol;
+                var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                var references = _compilation.References.Concat(new[] { targetReference });
+                var assemblies = _test.ReferencesToModuleSymbols(references, importOptions);
+                return assemblies.Last();
             }
 
             private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(

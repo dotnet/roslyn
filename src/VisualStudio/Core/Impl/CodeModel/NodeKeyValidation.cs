@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public void AddProject(AbstractProject project)
         {
             var provider = (IProjectCodeModelProvider)project;
-            IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> fcms = provider.ProjectCodeModel.GetFileCodeModelInstances();
+            var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
 
             foreach (var fcm in fcms)
             {
@@ -26,6 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 _nodeKeysMap.Add(fcm, globalNodeKeys);
             }
+        }
+
+        public void AddFileCodeModel(FileCodeModel fileCodeModel)
+        {
+            var handle = new ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>(fileCodeModel);
+            var globalNodeKeys = fileCodeModel.GetCurrentNodeKeys();
+
+            _nodeKeysMap.Add(handle, globalNodeKeys);
         }
 
         public void RestoreKeys()

@@ -120,9 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Guid moduleVersionId,
             int methodToken,
             int methodVersion,
-            int ilOffset,
+            uint ilOffset,
             int localSignatureToken)
         {
+            var offset = NormalizeILOffset(ilOffset);
+
             // Re-use the previous compilation if possible.
             CSharpCompilation compilation;
             if (previous.Matches(metadataBlocks))
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var previousContext = previous.EvaluationContext;
                 if (previousContext != null &&
                     previousContext.MethodContextReuseConstraints.HasValue &&
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, ilOffset))
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset))
                 {
                     return previousContext;
                 }
@@ -148,11 +150,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 moduleVersionId,
                 methodToken,
                 methodVersion,
-                ilOffset,
+                offset,
                 localSignatureToken);
         }
 
         internal static EvaluationContext CreateMethodContext(
+            CSharpCompilation compilation,
+            object symReader,
+            Guid moduleVersionId,
+            int methodToken,
+            int methodVersion,
+            uint ilOffset,
+            int localSignatureToken)
+        {
+            return CreateMethodContext(
+                compilation,
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion,
+                NormalizeILOffset(ilOffset),
+                localSignatureToken);
+        }
+
+        private static EvaluationContext CreateMethodContext(
             CSharpCompilation compilation,
             object symReader,
             Guid moduleVersionId,
@@ -195,13 +216,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert((object)currentFrame != null);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)currentFrame.ContainingModule, currentFrame);
             var localInfo = metadataDecoder.GetLocalInfo(localSignatureToken);
-            var localBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             var sourceAssembly = compilation.SourceAssembly;
-            GetLocals(localBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
-            GetConstants(localBuilder, currentFrame, containingScopes, metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
+            GetLocals(localsBuilder, currentFrame, localNames, localInfo, methodDebugInfo.DynamicLocalMap, sourceAssembly);
+            GetConstants(localsBuilder, currentFrame, containingScopes, metadataDecoder, methodDebugInfo.DynamicLocalConstantMap, sourceAssembly);
             containingScopes.Free();
 
-            var locals = localBuilder.ToImmutableAndFree();
+            var locals = localsBuilder.ToImmutableAndFree();
 
             return new EvaluationContext(
                 methodContextReuseConstraints,
@@ -226,9 +247,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override CompileResult CompileExpression(
-            InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
@@ -243,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var context = this.CreateCompilationContext(syntax);
             ResultProperties properties;
-            var moduleBuilder = context.CompileExpression(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
+            var moduleBuilder = context.CompileExpression(TypeName, MethodName, aliases, testData, diagnostics, out properties);
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
@@ -319,9 +340,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override CompileResult CompileAssignment(
-            InspectionContext inspectionContext,
             string target,
             string expr,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
@@ -335,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             var context = this.CreateCompilationContext(assignment);
             ResultProperties properties;
-            var moduleBuilder = context.CompileAssignment(inspectionContext, TypeName, MethodName, testData, diagnostics, out properties);
+            var moduleBuilder = context.CompileAssignment(TypeName, MethodName, aliases, testData, diagnostics, out properties);
             if (moduleBuilder == null)
             {
                 resultProperties = default(ResultProperties);
@@ -371,15 +392,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static readonly ReadOnlyCollection<byte> s_emptyBytes = new ReadOnlyCollection<byte>(new byte[0]);
 
         internal override ReadOnlyCollection<byte> CompileGetLocals(
-            ReadOnlyCollection<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out string typeName,
             Microsoft.CodeAnalysis.CodeGen.CompilationTestData testData)
         {
             var context = this.CreateCompilationContext(null);
-            var moduleBuilder = context.CompileGetLocals(aliases, TypeName, locals, argumentsOnly, testData, diagnostics);
+            var moduleBuilder = context.CompileGetLocals(TypeName, locals, argumentsOnly, aliases, testData, diagnostics);
             ReadOnlyCollection<byte> assembly = null;
 
             if ((moduleBuilder != null) && (locals.Count > 0))
@@ -530,16 +551,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic)
+        internal override ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic, AssemblyIdentity linqLibrary)
         {
-            return GetMissingAssemblyIdentitiesHelper((ErrorCode)diagnostic.Code, diagnostic.Arguments);
+            return GetMissingAssemblyIdentitiesHelper((ErrorCode)diagnostic.Code, diagnostic.Arguments, linqLibrary);
         }
 
         /// <remarks>
         /// Internal for testing.
         /// </remarks>
-        internal static ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentitiesHelper(ErrorCode code, IReadOnlyList<object> arguments)
+        internal static ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentitiesHelper(ErrorCode code, IReadOnlyList<object> arguments, AssemblyIdentity linqLibrary)
         {
+            Debug.Assert(linqLibrary != null);
+
             switch (code)
             {
                 case ErrorCode.ERR_NoTypeDef:
@@ -577,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // MSDN says these might come from System.Dynamic.Runtime
                 case ErrorCode.ERR_QueryNoProviderStandard:
                 case ErrorCode.ERR_ExtensionAttrNotFound: // Probably can't happen.
-                    return ImmutableArray.Create(SystemCoreIdentity);
+                    return ImmutableArray.Create(linqLibrary);
                 case ErrorCode.ERR_BadAwaitArg_NeedSystem:
                     Debug.Assert(false, "Roslyn no longer produces ERR_BadAwaitArg_NeedSystem");
                     break;

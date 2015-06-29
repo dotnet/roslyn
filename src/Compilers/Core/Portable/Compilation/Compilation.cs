@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private SmallDictionary<int, bool> _lazyMakeMemberMissingMap;
 
-        private Dictionary<string, string> _lazyFeatures;
+        private readonly IReadOnlyDictionary<string, string> _features;
 
         internal Compilation(
             string name,
@@ -79,6 +79,37 @@ namespace Microsoft.CodeAnalysis
             {
                 _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
             }
+
+            _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
+        }
+
+        IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        {
+            IReadOnlyDictionary<string, string> set = null;
+
+            foreach (var tree in trees)
+            {
+                var treeFeatures = tree.Options.Features;
+                if (set == null)
+                {
+                    set = treeFeatures;
+                }
+                else
+                {
+                    if ((object)set != treeFeatures && !set.SetEquals(treeFeatures))
+                    {
+                        throw new ArgumentException("inconsistent syntax tree features", nameof(trees));
+                    }
+                }
+            }
+
+            if (set == null)
+            {
+                // Edge case where there are no syntax trees
+                set = ImmutableDictionary<string, string>.Empty;
+            }
+
+            return set;
         }
 
         internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, CancellationToken cancellationToken);
@@ -159,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
-        /// <param name="syntaxTree">The specificed syntax tree.</param>
+        /// <param name="syntaxTree">The specified syntax tree.</param>
         /// <param name="ignoreAccessibility">
         /// True if the SemanticModel should ignore accessibility rules when answering semantic questions.
         /// </param>
@@ -346,32 +377,32 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="hasValue"/> is false in the former case and true
         /// in the latter.
         /// </remarks>
-        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
+        internal ITypeSymbol GetSubmissionResultType(out bool hasValue)
         {
             return CommonGetSubmissionResultType(out hasValue);
         }
 
-        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
+        internal abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
 
         /// <summary>
         /// The previous submission compilation, or null if either this
         /// compilation doesn't represent a submission or the submission is the
         /// first submission in a submission chain.
         /// </summary>
-        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
+        internal Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
 
-        protected abstract Compilation CommonPreviousSubmission { get; }
+        internal abstract Compilation CommonPreviousSubmission { get; }
 
         /// <summary>
         /// Returns a new compilation with the given compilation set as the
         /// previous submission.
         /// </summary>
-        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
+        internal Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return CommonWithPreviousSubmission(newPreviousSubmission);
         }
 
-        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        internal abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
 
         #endregion
 
@@ -808,8 +839,8 @@ namespace Microsoft.CodeAnalysis
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
-        protected abstract INamedTypeSymbol CommonScriptClass { get; }
+        internal INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
+        internal abstract INamedTypeSymbol CommonScriptClass { get; }
 
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
@@ -882,13 +913,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
-
-        /// <summary>
-        /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null).
-        /// </summary>
-        /// <param name="diagnostic"></param>
-        /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
 
         #endregion
 
@@ -1221,7 +1245,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // A module cannot be signed. The native compiler allowed one to create a netmodule with an AssemblyKeyFile 
                 // or Container attribute (or specify a key via the cmd line). When the module was linked into an assembly,
-                // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
+                // a link would sign the assembly. So rather than give an error we just don't sign when outputting a module.
 
                 return !IsDelaySigned
                     && Options.OutputKind != OutputKind.NetModule
@@ -1240,7 +1264,6 @@ namespace Microsoft.CodeAnalysis
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -1250,7 +1273,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken);
@@ -1259,7 +1282,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -1270,7 +1293,7 @@ namespace Microsoft.CodeAnalysis
                     moduleBuilder,
                     win32Resources,
                     xmlDocStream,
-                    generateDebugInfo,
+                    emittingPdb,
                     diagnostics,
                     filterOpt,
                     cancellationToken);
@@ -1292,7 +1315,6 @@ namespace Microsoft.CodeAnalysis
                     var moduleBeingBuilt = this.CreateModuleBuilder(
                         emitOptions: EmitOptions.Default,
                         manifestResources: null,
-                        assemblySymbolMapper: null,
                         testData: null,
                         diagnostics: discardedDiagnostics,
                         cancellationToken: cancellationToken);
@@ -1303,7 +1325,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             win32Resources: null,
                             xmlDocStream: null,
-                            generateDebugInfo: false,
+                            emittingPdb: false,
                             diagnostics: discardedDiagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
@@ -1511,7 +1533,7 @@ namespace Microsoft.CodeAnalysis
             ICollection<MethodDefinitionHandle> updatedMethodHandles,
             CompilationTestData testData,
             CancellationToken cancellationToken);
-        
+
         /// <summary>
         /// This overload is only intended to be directly called by tests that want to pass <paramref name="testData"/>.
         /// The map is used for storing a list of methods and their associated IL.
@@ -1560,7 +1582,6 @@ namespace Microsoft.CodeAnalysis
             var moduleBeingBuilt = this.CreateModuleBuilder(
                 options,
                 manifestResources,
-                null,
                 testData,
                 diagnostics,
                 cancellationToken);
@@ -1576,7 +1597,7 @@ namespace Microsoft.CodeAnalysis
                 moduleBeingBuilt,
                 win32Resources,
                 xmlDocumentationStream,
-                generateDebugInfo: pdbStreamProvider != null,
+                emittingPdb: pdbStreamProvider != null,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken))
@@ -1608,7 +1629,7 @@ namespace Microsoft.CodeAnalysis
         {
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
-                
+
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
             EmitStreamProvider peStreamProvider,
@@ -1665,8 +1686,17 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                        retStream = signingInputStream;
+                        // Targeted try-catch for errors during CreateInputStream as found in TFS 1140649
+                        // TODO: Put this wrapping in PeWriter to catch all potential PE writing exceptions
+                        try
+                        {
+                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                            retStream = signingInputStream;
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Cci.PeWritingException(e);
+                        }
                     }
                     else
                     {
@@ -1719,6 +1749,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PdbWritingFailed, Location.None, ex.Message));
                     return false;
+                }
+                catch (Cci.PeWritingException e)
+                {
+                    // Targeted fix for TFS 1140649
+                    // TODO: Add resource and better error message for a variety of PE exceptions
+                    diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, e.Message, MessageProvider));
                 }
                 catch (ResourceException e)
                 {
@@ -1819,32 +1855,8 @@ namespace Microsoft.CodeAnalysis
 
         internal string Feature(string p)
         {
-            if (_lazyFeatures == null)
-            {
-                var set = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                if (Options.Features != null)
-                {
-                    foreach (var feature in Options.Features)
-                    {
-                        int colon = feature.IndexOf(':');
-                        if (colon > 0)
-                        {
-                            string name = feature.Substring(0, colon);
-                            string value = feature.Substring(colon + 1);
-                            set[name] = value;
-                        }
-                        else
-                        {
-                            set[feature] = "true";
-                        }
-                    }
-                }
-
-                Interlocked.CompareExchange(ref _lazyFeatures, set, null);
-            }
-
             string v;
-            return _lazyFeatures.TryGetValue(p, out v) ? v : null;
+            return _features.TryGetValue(p, out v) ? v : null;
         }
 
         #endregion

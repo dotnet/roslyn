@@ -676,9 +676,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
-            Dim result = results.ToArray()
-            results.Free()
+            ' PERF: The member names collection tends to be long-lived. Use a string array since
+            ' that uses less memory than a HashSet.
+            Dim result As String()
+            If results.Count = 0 Then
+                result = SpecializedCollections.EmptyArray(Of String)
+            Else
+                ReDim result(results.Count - 1)
+                results.CopyTo(result)
+            End If
 
+            results.Free()
             Return result
         End Function
 

@@ -14,6 +14,13 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    internal sealed class PeWritingException : Exception
+    {
+        public PeWritingException(Exception inner)
+            : base(inner.Message, inner)
+        { }
+    }
+
     internal sealed class PeWriter
     {
         /// <summary>
@@ -131,6 +138,14 @@ namespace Microsoft.Cci
                     //        all types and members for better error reporting by WinMDExp.
                     nativePdbWriterOpt.WriteDefinitionLocations(_module.GetSymbolToLocationMap());
                 }
+                else
+                {
+#if DEBUG
+                    // validate that all definitions are writable
+                    // if same scenario would happen in an winmdobj project
+                    nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(_module.GetSymbolToLocationMap());
+#endif
+                }
 
                 pdbContentId = nativePdbWriterOpt.GetContentId();
 
@@ -140,7 +155,7 @@ namespace Microsoft.Cci
             else
             {
                 pdbContentId = default(ContentId);
-            } 
+            }
 
             FillInSectionHeaders();
 
@@ -148,7 +163,7 @@ namespace Microsoft.Cci
             FillInNtHeader(metadataSizes, CalculateMappedFieldDataStreamRva(metadataSizes));
             var corHeader = CreateCorHeader(metadataSizes, entryPointToken);
 
-            // write to pe stream.
+            // write to PE stream.
             Stream peStream = getPeStream();
             if (peStream == null)
             {
@@ -159,7 +174,7 @@ namespace Microsoft.Cci
             long metadataPosition;
 
             WriteHeaders(peStream, out ntHeaderTimestampPosition);
-            
+
             WriteTextSection(
                 peStream,
                 corHeader,
@@ -211,10 +226,10 @@ namespace Microsoft.Cci
             Debug.Assert(ntHeaderTimestampPosition != 0);
 
             var previousPosition = peStream.Position;
-           
+
             // Compute and write deterministic guid data over the relevant portion of the stream
             peStream.Position = 0;
-            var contentId = ContentId.FromSha1(CryptographicHashProvider.ComputeSha1(peStream));
+            var contentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(peStream));
 
             // The existing Guid should be zero.
             CheckZeroDataInStream(peStream, mvidPosition, contentId.Guid.Length);
@@ -267,7 +282,7 @@ namespace Microsoft.Cci
         private int ComputeOffsetToDebugTable(MetadataSizes metadataSizes)
         {
             return
-                ComputeOffsetToMetadata(metadataSizes.ILStreamSize) + 
+                ComputeOffsetToMetadata(metadataSizes.ILStreamSize) +
                 metadataSizes.MetadataSize +
                 metadataSizes.ResourceDataSize +
                 ComputeStrongNameSignatureSize(); // size of strong name hash
@@ -283,10 +298,10 @@ namespace Microsoft.Cci
 
         private int ComputeOffsetToMetadata(int ilStreamLength)
         {
-            return 
-                _sizeOfImportAddressTable + 
+            return
+                _sizeOfImportAddressTable +
                 72 + // size of CLR header
-                + BitArithmeticUtilities.Align(ilStreamLength, 4);
+                BitArithmeticUtilities.Align(ilStreamLength, 4);
         }
 
         private const int ImageDebugDirectoryBaseSize =
@@ -612,7 +627,7 @@ namespace Microsoft.Cci
         ////
         //// This structure allows fast lookup by either name or number, but for any
         //// given resource entry only one form of lookup is supported, not both.
-        //// This is consistant with the syntax of the .RC file and the .RES file.
+        //// This is consistent with the syntax of the .RC file and the .RES file.
         ////
 
         //typedef struct _IMAGE_RESOURCE_DIRECTORY {
@@ -985,10 +1000,10 @@ namespace Microsoft.Cci
         }
 
         //#define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
-        //#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved externel references).
-        //#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line nunbers stripped from file.
+        //#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
+        //#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line numbers stripped from file.
         //#define IMAGE_FILE_LOCAL_SYMS_STRIPPED       0x0008  // Local symbols stripped from file.
-        //#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Agressively trim working set
+        //#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Aggressively trim working set
         //#define IMAGE_FILE_LARGE_ADDRESS_AWARE       0x0020  // App can handle >2gb addresses
         //#define IMAGE_FILE_BYTES_REVERSED_LO         0x0080  // Bytes of machine word are reversed.
         //#define IMAGE_FILE_32BIT_MACHINE             0x0100  // 32 bit word machine.

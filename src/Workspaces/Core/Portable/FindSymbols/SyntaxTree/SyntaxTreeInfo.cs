@@ -159,8 +159,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
 
+                            // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
+                            // crash because the document's syntax root doesn't contain the span of the node returned
+                            // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
+                            //   1) syntaxFacts.TryGetDeclaredSymbolInfo() is returning a bad span, or
+                            //   2) Document.GetSyntaxRootAsync() (called from DeclaredSymbolInfo.GetSymbolAsync) is
+                            //      returning a bad syntax root that doesn't represent the original parsed document.
+                            // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
+                            // the future then we know the problem lies in (2).  If, however, the problem is really in
+                            // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
+                            // and will prevent the crash from occurring.
                             DeclaredSymbolInfo declaredSymbolInfo;
-                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo))
+                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out declaredSymbolInfo) &&
+                                root.FullSpan.Contains(declaredSymbolInfo.Span))
                             {
                                 declaredSymbolInfos.Add(declaredSymbolInfo);
                             }

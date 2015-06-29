@@ -9,13 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class ObjectIdLocalSymbol : PlaceholderLocalSymbol
     {
-        private readonly string _id;
         private readonly bool _isWritable;
 
-        internal ObjectIdLocalSymbol(MethodSymbol method, TypeSymbol type, string id, bool isWritable) :
-            base(method, id, type)
+        internal ObjectIdLocalSymbol(MethodSymbol method, TypeSymbol type, string name, string displayName, bool isWritable) :
+            base(method, name, displayName, type)
         {
-            _id = id;
             _isWritable = isWritable;
         }
 

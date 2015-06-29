@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' In Release builds we hoist only variables (locals And parameters) that are captured. 
         ' This set will contain such variables after the bound tree is visited.
-        Private _variablesToHoist As OrderedSet(Of Symbol)
-        Private _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
+        Private ReadOnly _variablesToHoist As OrderedSet(Of Symbol)
+        Private ReadOnly _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
 
         ' Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         ' The value is a list of all usage of each such variable.
@@ -45,6 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Returns deterministically ordered list of variables that ought to be hoisted.
         Public Overloads Shared Function Analyze(info As FlowAnalysisInfo, diagnostics As DiagnosticBag) As Result
+            Debug.Assert(info.Symbol IsNot Nothing)
+            Debug.Assert(info.Symbol.Kind = SymbolKind.Method)
+
             Dim walker As New IteratorAndAsyncCaptureWalker(info)
             walker.Analyze()
             Debug.Assert(Not walker.InvalidRegionDetected)
@@ -69,16 +72,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If info.Compilation.Options.OptimizationLevel <> OptimizationLevel.Release Then
                 Debug.Assert(variablesToHoist.Count = 0)
 
-                ' In debug build we hoist all locals and parameters:
-                variablesToHoist.AddRange(From v In allVariables
-                                          Where v.Symbol IsNot Nothing AndAlso HoistInDebugBuild(v.Symbol)
-                                          Select v.Symbol)
+                ' In debug build we hoist all locals and parameters, except ByRef locals in iterator methods.
+                ' Lifetime of ByRef locals in iterator methods never crosses stament boundaries, thus 
+                ' there is no reason to hoist them and the pipeline doesn't handle this.
+                Dim skipByRefLocals As Boolean = DirectCast(info.Symbol, MethodSymbol).IsIterator
+                For Each v In allVariables
+                    If v.Symbol IsNot Nothing AndAlso HoistInDebugBuild(v.Symbol, skipByRefLocals) Then
+                        variablesToHoist.Add(v.Symbol)
+                    End If
+                Next
             End If
 
             Return New Result(variablesToHoist, byRefLocalsInitializers)
         End Function
 
-        Private Shared Function HoistInDebugBuild(symbol As Symbol) As Boolean
+        Private Shared Function HoistInDebugBuild(symbol As Symbol, skipByRefLocals As Boolean) As Boolean
             ' In debug build hoist all parameters that can be hoisted:
             If symbol.Kind = SymbolKind.Parameter Then
                 Dim parameter = TryCast(symbol, ParameterSymbol)
@@ -91,10 +99,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return False
                 End If
 
-                ' Hoist all user-defined locals that can be hoisted:
-                ' TODO: filter out synthesized variables which do not need hoist
-                ' (see MustSurviveStateMachineSuspension in C#)
-                Return Not local.Type.IsRestrictedType()
+                If skipByRefLocals AndAlso local.IsByRef Then
+                    Return False
+                End If
+
+                ' hoist all user-defined locals that can be hoisted
+                If local.SynthesizedKind = SynthesizedLocalKind.UserDefined Then
+                    Return Not local.Type.IsRestrictedType()
+                End If
+
+                ' hoist all synthesized variables that have to survive state machine suspension
+                Return local.SynthesizedKind <> SynthesizedLocalKind.ConditionalBranchDiscriminator
             End If
 
             Return False

@@ -435,7 +435,7 @@
   <data name="CommentingCurrentlySelected" xml:space="preserve">
     <value>Commenting currently selected text...</value>
   </data>
-  <data name="UncommentingCurrentlySelecte" xml:space="preserve">
+  <data name="UncommentingCurrentlySelected" xml:space="preserve">
     <value>Uncommenting currently selected text...</value>
   </data>
   <data name="InsertNewLine" xml:space="preserve">
@@ -444,7 +444,7 @@
   <data name="DocumentationComment" xml:space="preserve">
     <value>Documentation Comment</value>
   </data>
-  <data name="InsertingDocumentationCommen" xml:space="preserve">
+  <data name="InsertingDocumentationComment" xml:space="preserve">
     <value>Inserting documentation comment...</value>
   </data>
   <data name="ExtractMethod" xml:space="preserve">
@@ -697,11 +697,11 @@ Do you want to proceed?</value>
   <data name="PreviewChangesSummaryText" xml:space="preserve">
     <value>Preview changes</value>
   </data>
-  <data name="Intellisense" xml:space="preserve">
-    <value>Intellisense</value>
+  <data name="IntelliSense" xml:space="preserve">
+    <value>IntelliSense</value>
   </data>
-  <data name="IntellisenseCommitFormatting" xml:space="preserve">
-    <value>Intellisense Commit Formatting</value>
+  <data name="IntelliSenseCommitFormatting" xml:space="preserve">
+    <value>IntelliSense Commit Formatting</value>
   </data>
   <data name="FontAndColors_RenameTracking" xml:space="preserve">
     <value>Rename Tracking</value>
@@ -729,5 +729,11 @@ Do you want to proceed?</value>
   </data>
   <data name="HighlightedWrittenReference" xml:space="preserve">
     <value>Highlighted Written Reference</value>
+  </data>
+  <data name="CursorMustBeOnAMemberName" xml:space="preserve">
+    <value>Cursor must be on a member name.</value>
+  </data>
+  <data name="FontAndColors_BraceMatching" xml:space="preserve">
+    <value>Brace Matching</value>
   </data>
 </root>

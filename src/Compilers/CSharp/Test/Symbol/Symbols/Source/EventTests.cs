@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -230,7 +230,7 @@ class C
         }
 
 
-        [Fact]
+        [ClrOnlyFact]
         public void EventInvocation()
         {
             var text =
@@ -942,7 +942,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "myevent").WithArguments("i1.myevent"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CS1545ERR_BindToBogusProp2_AccessorSignatureMismatch()
         {
             var ilSource = @"
@@ -1065,7 +1065,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Event6").WithArguments("Base.Event6", "Base.Event7.add", "Base.Event0.add"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void CallAccessorsDirectly()
         {
             var ilSource = @"
@@ -1542,7 +1542,7 @@ class A
         }
 
         [WorkItem(545682, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void EventHidingMethod()
         {
             var source1 =
@@ -1661,7 +1661,7 @@ class A
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("<invalid-global-code>."));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverriddenEventCustomModifiers()
         {
             var il = @"
@@ -1897,7 +1897,7 @@ namespace ConsoleApplication3
         public abstract event Action MyEvent;
     }
 
-    public class SuperWithOverridenEvent : BaseWithAbstractEvent
+    public class SuperWithOverriddenEvent : BaseWithAbstractEvent
     {
         public override event Action MyEvent
         {
@@ -1915,7 +1915,7 @@ namespace ConsoleApplication3
     {
         static void Main()
         {
-            SuperWithOverridenEvent swoe = new SuperWithOverridenEvent();
+            SuperWithOverriddenEvent swoe = new SuperWithOverriddenEvent();
             swoe.MyEvent += Main;
         }
     }

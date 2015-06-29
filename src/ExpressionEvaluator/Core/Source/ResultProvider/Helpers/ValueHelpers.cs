@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 string alias = value.Alias;
                 if (!string.IsNullOrEmpty(alias))
                 {
-                    return string.Format("{0} {{${1}}}", valueStr, alias);
+                    return $"{valueStr} {{{alias}}}";
                 }
             }
             return valueStr;
@@ -29,10 +29,17 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static string GetExceptionMessage(this DkmClrValue value, string fullNameWithoutFormatSpecifiers, Formatter formatter)
         {
+            bool unused;
             return string.Format(
                 Resources.ExceptionThrown,
                 fullNameWithoutFormatSpecifiers,
-                formatter.GetTypeName(new TypeAndCustomInfo(value.Type)));
+                formatter.GetTypeName(new TypeAndCustomInfo(value.Type), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused));
+        }
+
+        internal static DkmClrValue GetMemberValue(this DkmClrValue value, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)
+        {
+            // Note: GetMemberValue() may return special value when func-eval of properties is disabled.
+            return value.GetMemberValue(member.Name, (int)member.MemberType, member.DeclaringType.FullName, inspectionContext);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_Dynamic : WellKnownAttributesTestBase
     {
-        private static string s_dynamicTestSource = @"
+        private static readonly string s_dynamicTestSource = @"
 public class Base0 { }
 public class Base1<T> { }
 public class Base2<T, U> { }
@@ -815,7 +815,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute"));
         }
 
-        private static string s_noCS1980String = @"
+        private static readonly string s_noCS1980String = @"
 [Attr(typeof(%TYPENAME%))]            // No CS1980
 public class Gen<T>
 {

@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Return If(options.IncludesOption(ObjectDisplayOptions.IncludeTypeSuffix), result & "D", result)
         End Function
 
-        Friend Function FormatLiteral(value As DateTime) As String
+        Friend Function FormatLiteral(value As Date) As String
             Return value.ToString("#M/d/yyyy hh:mm:ss tt#", CultureInfo.InvariantCulture)
         End Function
 

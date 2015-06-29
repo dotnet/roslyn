@@ -325,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitUserDefined:
                                     return false;
                                 default:
-                                    Debug.Assert(false, "Unhandled conversion kind in reordering logic");
-                                    return false;
+                                    // Unhandled conversion kind in reordering logic
+                                    throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
                             }
                             break;
                         }
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the temp, the argument RefKind needs to be restored.
                         refKinds[a] = ((BoundLocal)argument).LocalSymbol.RefKind;
 
-                        // the matched store will not need to go into sideffects, only ones before it will
+                        // the matched store will not need to go into sideeffects, only ones before it will
                         // remove the store to signal that we are not using its temp.
                         tempStores[correspondingStore] = null;
                         tempsRemainedInUse--;
@@ -758,10 +758,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var sideffects = new BoundExpression[correspondingStore - firstUnclaimedStore];
-                            for (int s = 0; s < sideffects.Length; s++)
+                            var sideeffects = new BoundExpression[correspondingStore - firstUnclaimedStore];
+                            for (int s = 0; s < sideeffects.Length; s++)
                             {
-                                sideffects[s] = tempStores[firstUnclaimedStore + s];
+                                sideeffects[s] = tempStores[firstUnclaimedStore + s];
                             }
 
                             arguments[a] = new BoundSequence(
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         // we use for the rewrite are stored in one arg and loaded
                                         // in another so they must live in a scope above.
                                         ImmutableArray<LocalSymbol>.Empty,
-                                        sideffects.AsImmutableOrNull(),
+                                        sideeffects.AsImmutableOrNull(),
                                         value,
                                         value.Type);
                         }
@@ -868,6 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to pass this information, and this might be a big task. We should consider doing this when the time permits.
 
             TypeSymbol parameterType = parameter.Type;
+            Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
 

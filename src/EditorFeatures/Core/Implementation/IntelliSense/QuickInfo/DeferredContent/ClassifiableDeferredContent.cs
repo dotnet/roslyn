@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         public virtual FrameworkElement Create()
         {
             var classifiedTextBlock = ClassifiableContent.ToTextBlock(_typeMap);
-            classifiedTextBlock.TextWrapping = TextWrapping.Wrap;
 
             if (classifiedTextBlock.Inlines.Count == 0)
             {

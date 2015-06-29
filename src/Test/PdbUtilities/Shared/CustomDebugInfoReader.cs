@@ -96,8 +96,15 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException("Invalid header.");
                 }
 
+                if (kind != CustomDebugInfoKind.EditAndContinueLambdaMap &&
+                    kind != CustomDebugInfoKind.EditAndContinueLocalSlotMap)
+                {
+                    // ignore alignment for CDIs that don't support it
+                    alignmentSize = 0;
+                }
+
                 int bodySize = size - CDI.CdiRecordHeaderSize;
-                if (offset > customDebugInfo.Length - bodySize)
+                if (offset > customDebugInfo.Length - bodySize || alignmentSize > 3 || alignmentSize > bodySize)
                 {
                     throw new InvalidOperationException("Invalid header.");
                 }
@@ -614,7 +621,7 @@ namespace Microsoft.CodeAnalysis
 
                 case 'E': // C# (namespace) using
                     // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
-                    // but they were probably implementation details that do not affect roslyn.
+                    // but they were probably implementation details that do not affect Roslyn.
                     if (!TrySplit(import, 1, ' ', out target, out externAlias))
                     {
                         return false;

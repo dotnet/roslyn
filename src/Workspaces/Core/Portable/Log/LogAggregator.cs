@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal class LogAggregator : IEnumerable<KeyValuePair<object, LogAggregator.Counter>>
     {
-        private static int s_globalId = 0;
+        private static int s_globalId;
 
         private readonly ConcurrentDictionary<object, Counter> _map = new ConcurrentDictionary<object, Counter>(concurrencyLevel: 2, capacity: 2);
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         internal class Counter
         {
-            private int _count = 0;
+            private int _count;
 
             public void SetCount(int count)
             {

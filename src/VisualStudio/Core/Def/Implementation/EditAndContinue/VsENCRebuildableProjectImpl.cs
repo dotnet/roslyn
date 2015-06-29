@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private readonly IEditAndContinueWorkspaceService _encService;
         private readonly IActiveStatementTrackingService _trackingService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticProvider;
-        private readonly Interop.IDebugEncNotify _debugEncNotify;
+        private readonly IDebugEncNotify _debugEncNotify;
         private readonly INotificationService _notifications;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             _trackingService = _vsProject.VisualStudioWorkspace.Services.GetService<IActiveStatementTrackingService>();
             _notifications = _vsProject.VisualStudioWorkspace.Services.GetService<INotificationService>();
 
-            _debugEncNotify = (Interop.IDebugEncNotify)project.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
+            _debugEncNotify = (IDebugEncNotify)project.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
 
             var componentModel = (IComponentModel)project.ServiceProvider.GetService(typeof(SComponentModel));
             _diagnosticProvider = componentModel.GetService<EditAndContinueDiagnosticUpdateSource>();
@@ -291,6 +291,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 log.Write("Exit Debug Mode: project '{0}'", _vsProject.DisplayName);
                 Debug.Assert(s_breakStateEnteredProjects.Count == 0);
 
+                // Clear the solution stored while projects were entering break mode. 
+                // It should be cleared as soon as all tracked projects enter the break mode 
+                // but if the entering break mode fails for some projects we should avoid leaking the solution.
+                Debug.Assert(s_breakStateEntrySolution == null);
+                s_breakStateEntrySolution = null;
+                
                 // EnC service is global (per solution), but the debugger calls this for each project.
                 // Avoid ending the debug session if it has already been ended.
                 if (_encService.DebuggingSession != null)
@@ -417,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             {
                 using (NonReentrantContext)
                 {
-                    log.Write("Enter {2}Break Mode: project '{0}', AS#: {1}", _vsProject.DisplayName, pActiveStatements != null ? pActiveStatements.Length : -1, encBreakReason == Interop.ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION ? "Exception " : "");
+                    log.Write("Enter {2}Break Mode: project '{0}', AS#: {1}", _vsProject.DisplayName, pActiveStatements != null ? pActiveStatements.Length : -1, encBreakReason == ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION ? "Exception " : "");
 
                     Debug.Assert(cActiveStatements == (pActiveStatements != null ? pActiveStatements.Length : 0));
                     Debug.Assert(s_breakStateProjectCount < s_debugStateProjectCount);
@@ -463,7 +469,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         // When stopped at exception: All documents are read-only, but the files might be changed outside of VS.
                         // So we start an edit session as usual and report a rude edit for all changes we see.
-                        bool stoppedAtException = encBreakReason == Interop.ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION;
+                        bool stoppedAtException = encBreakReason == ENC_BREAKSTATE_REASON.ENC_BREAK_EXCEPTION;
 
                         var projectStates = ImmutableDictionary.CreateRange(s_breakStateEnteredProjects);
 
@@ -503,7 +509,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             //    Application.Current.Dispatcher.InvokeAsync(() =>
             //    {
             //        log.Write("Notifying debugger of active statement change.");
-            //        var debugNotify = (Interop.IDebugEncNotify)_vsProject.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
+            //        var debugNotify = (IDebugEncNotify)_vsProject.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
             //        debugNotify.NotifyEncUpdateCurrentStatement();
             //    });
             //}
@@ -686,7 +692,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// </summary>
         /// <remarks>
         /// Called when applying change, when setting current IP, a notification is received from 
-        /// <see cref="Interop.IDebugEncNotify.NotifyEncUpdateCurrentStatement"/>, etc.
+        /// <see cref="IDebugEncNotify.NotifyEncUpdateCurrentStatement"/>, etc.
         /// In addition this API is exposed on IDebugENC2 COM interface so it can be used anytime by other components.
         /// </remarks>
         public int GetCurrentActiveStatementPosition(uint vsId, VsTextSpan[] ptsNewPosition)
@@ -769,12 +775,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     //    pENC2->ExitBreakState();
                     //    >>> hr = GetCodeContextOfPosition(pTextPos, &pCodeContext, &pProgram, true, true);
                     //    pENC2->EnterBreakState(m_pSession, GetEncBreakReason());
+                    //
+                    // The debugger seem to expect ENC_NOT_MODIFIED in these cases, otherwise errors occur.
 
-                    if (_changesApplied)
+                    if (_changesApplied || _encService.EditSession == null)
                     {
                         _lastEditSessionSummary = ProjectAnalysisSummary.NoChanges;
                     }
-                    else if (_encService.EditSession != null)
+                    else
                     {
                         // Fetch the latest snapshot of the project and get an analysis summary for any changes 
                         // made since the break mode was entered.
@@ -793,6 +801,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                             _projectBeingEmitted = currentProject;
                             _lastEditSessionSummary = GetProjectAnalysisSummary(_projectBeingEmitted);
                         }
+
                         _encService.EditSession.LogBuildState(_lastEditSessionSummary);
                     }
 
@@ -998,7 +1007,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         }
 
         private unsafe void SetFileUpdates(
-            Interop.IDebugUpdateInMemoryPE2 updater,
+            IDebugUpdateInMemoryPE2 updater,
             List<KeyValuePair<DocumentId, ImmutableArray<LineChange>>> edits)
         {
             int totalEditCount = edits.Sum(e => e.Value.Length);
@@ -1007,11 +1016,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 return;
             }
 
-            var lineUpdates = new Interop.LINEUPDATE[totalEditCount];
-            fixed (Interop.LINEUPDATE* lineUpdatesPtr = lineUpdates)
+            var lineUpdates = new LINEUPDATE[totalEditCount];
+            fixed (LINEUPDATE* lineUpdatesPtr = lineUpdates)
             {
                 int index = 0;
-                var fileUpdates = new Interop.FILEUPDATE[edits.Count];
+                var fileUpdates = new FILEUPDATE[edits.Count];
                 for (int f = 0; f < fileUpdates.Length; f++)
                 {
                     var documentId = edits[f].Key;

@@ -93,7 +93,7 @@ End Class
             Dim code =
 <Code>
 Interface I
-End Inteface
+End Interface
 
 Class C
     Implements I$$
@@ -112,7 +112,7 @@ End Class
             Dim code =
 <Code>
 Interface I
-End Inteface
+End Interface
 
 Class C
     Implements I$$

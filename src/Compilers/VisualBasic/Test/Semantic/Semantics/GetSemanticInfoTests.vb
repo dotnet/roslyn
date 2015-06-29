@@ -3581,9 +3581,9 @@ End Class
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.LateBound, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
-            Dim sortedSybols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("ReadOnly Property Program.P1(x As System.Int32) As System.Int32", sortedSybols(0).ToTestDisplayString())
-            Assert.Equal("ReadOnly Property Program.P1(x As System.String) As System.Int32", sortedSybols(1).ToTestDisplayString())
+            Dim sortedSymbols = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Assert.Equal("ReadOnly Property Program.P1(x As System.Int32) As System.Int32", sortedSymbols(0).ToTestDisplayString())
+            Assert.Equal("ReadOnly Property Program.P1(x As System.String) As System.Int32", sortedSymbols(1).ToTestDisplayString())
 
             Assert.Null(semanticSummary.Alias)
 
@@ -3654,8 +3654,8 @@ End Module
             Assert.Null(speculativeTypeInfo.Type)
             Assert.Equal("Integer()", speculativeTypeInfo.ConvertedType.ToDisplayString())
 
-            Dim specualtiveConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
-            Assert.Equal(ConversionKind.Widening, specualtiveConversion.Kind)
+            Dim speculativeConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
+            Assert.Equal(ConversionKind.Widening, speculativeConversion.Kind)
         End Sub
 
         <WorkItem(545346, "DevDiv")>
@@ -3962,7 +3962,7 @@ BC31143: Method 'Friend Sub TestSub(x As Integer)' does not have a signature com
 
         <WorkItem(541271, "DevDiv")>
         <Fact()>
-        Public Sub GetDiagnsoticsSubInsideAnInterfaceWithoutMscorlibRef()
+        Public Sub GetDiagnosticsSubInsideAnInterfaceWithoutMscorlibRef()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
@@ -3989,7 +3989,7 @@ BC30002: Type 'System.Void' is not defined.
 
         <WorkItem(541304, "DevDiv")>
         <Fact()>
-        Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart()
+        Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
@@ -4023,7 +4023,7 @@ BC30201: Expression expected.
         End Sub
 
         <Fact()>
-        Public Sub GetDiagnsoticsDoLoopWithConditionAtBottomAndTopPart2()
+        Public Sub GetDiagnosticsDoLoopWithConditionAtBottomAndTopPart2()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

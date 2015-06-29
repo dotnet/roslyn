@@ -9,12 +9,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class ObjectIdLocalSymbol
         Inherits PlaceholderLocalSymbol
 
-        Private ReadOnly _id As String
         Private ReadOnly _isReadOnly As Boolean
 
-        Friend Sub New(method As MethodSymbol, type As TypeSymbol, id As String, isReadOnly As Boolean)
-            MyBase.New(method, id, type)
-            _id = id
+        Friend Sub New(method As MethodSymbol, type As TypeSymbol, name As String, displayName As String, isReadOnly As Boolean)
+            MyBase.New(method, name, displayName, type)
             _isReadOnly = isReadOnly
         End Sub
 

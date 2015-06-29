@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromFile(null, default(MetadataReferenceProperties)));
             Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromStream(null));
 
-            Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromAssembly(null));
-            Assert.Throws<ArgumentException>(() => MetadataReference.CreateFromAssembly(typeof(object).Assembly, new MetadataReferenceProperties(MetadataImageKind.Module)));
+            Assert.Throws<ArgumentNullException>(() => MetadataReference.CreateFromAssemblyInternal(null));
+            Assert.Throws<ArgumentException>(() => MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly, new MetadataReferenceProperties(MetadataImageKind.Module)));
 
             var dynamicAssembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName { Name = "Foo" }, System.Reflection.Emit.AssemblyBuilderAccess.Run);
-            Assert.Throws<NotSupportedException>(() => MetadataReference.CreateFromAssembly(dynamicAssembly));
+            Assert.Throws<NotSupportedException>(() => MetadataReference.CreateFromAssemblyInternal(dynamicAssembly));
         }
 
         [Fact]
@@ -102,12 +102,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CreateFromAssembly()
         {
             var assembly = typeof(object).Assembly;
-            var r = (PortableExecutableReference)MetadataReference.CreateFromAssembly(assembly);
+            var r = (PortableExecutableReference)MetadataReference.CreateFromAssemblyInternal(assembly);
             Assert.Equal(assembly.Location, r.FilePath);
             Assert.Equal(assembly.Location, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
+            Assert.Same(DocumentationProvider.Default, r.DocumentationProvider);
+        }
+
+        [Fact]
+        public void CreateFromAssembly_WithPropertiesAndDocumentation()
+        {
+            var doc = new TestDocumentationProvider();
+            var assembly = typeof(object).Assembly;
+            var r = (PortableExecutableReference)MetadataReference.CreateFromAssemblyInternal(assembly, new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a", "b"), embedInteropTypes: true), documentation: doc);
+            Assert.Equal(assembly.Location, r.FilePath);
+            Assert.Equal(assembly.Location, r.Display);
+            Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
+            Assert.True(r.Properties.EmbedInteropTypes);
+            AssertEx.Equal(ImmutableArray.Create("a", "b"), r.Properties.Aliases);
+            Assert.Same(doc, r.DocumentationProvider);
         }
 
         private class TestDocumentationProvider : DocumentationProvider

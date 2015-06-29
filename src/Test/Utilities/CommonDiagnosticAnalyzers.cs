@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -83,11 +86,12 @@ namespace Microsoft.CodeAnalysis
                 return expectedText;
             }
 
-            public static string GetExpectedErrorLogIssuesText(Compilation compilation, string outputFilePath)
+            public static string GetExpectedErrorLogIssuesText(Compilation compilation)
             {
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
+                var filePath = EscapeDirectorySeparatorChar(tree.FilePath);
 
                 return @"
   ""issues"": [
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         {
           ""analysisTarget"": [
             {
-              ""uri"": """ + tree.FilePath + @""",
+              ""uri"": """ + filePath + @""",
               ""region"": {
                 ""startLine"": " + expectedLineSpan.StartLinePosition.Line + @",
                 ""startColumn"": " + expectedLineSpan.StartLinePosition.Character + @",
@@ -143,6 +147,10 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
+            public static string EscapeDirectorySeparatorChar(string input)
+            {
+                return input.Replace(Path.DirectorySeparatorChar.ToString(), @"\" + Path.DirectorySeparatorChar);
+            }
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
@@ -237,6 +245,87 @@ namespace Microsoft.CodeAnalysis
                             codeBlockContext.ReportDiagnostic(Diagnostic.Create(CodeBlockPerCompilationRule, codeBlockContext.OwningSymbol.Locations[0], codeBlockContext.OwningSymbol.Name));
                         });
                     });
+                }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class CSharpGenericNameAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "DiagnosticId";
+            public const string Title = "Title";
+            public const string Message = "Message";
+            public const string Category = "Category";
+            public const DiagnosticSeverity Severity = DiagnosticSeverity.Warning;
+
+            internal static DiagnosticDescriptor Rule =
+                new DiagnosticDescriptor(DiagnosticId, Title, Message,
+                                         Category, Severity, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+                 ImmutableArray.Create(Rule);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.GenericName);
+            }
+
+            private void AnalyzeNode(SyntaxNodeAnalysisContext context)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Rule, context.Node.GetLocation()));
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerWithNoActions : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor DummyRule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DummyRule);
+            public override void Initialize(AnalysisContext context) { }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                new MyLocalizableStringThatThrows(),
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+
+            private sealed class MyLocalizableStringThatThrows : LocalizableString
+            {
+                protected override bool AreEqual(object other)
+                {
+                    return ReferenceEquals(this, other);
+                }
+
+                protected override int GetHash()
+                {
+                    return 0;
+                }
+
+                protected override string GetText(IFormatProvider formatProvider)
+                {
+                    throw new NotImplementedException();
                 }
             }
         }

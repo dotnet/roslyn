@@ -926,8 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     referencedAssemblies = assembly.AssemblyReferences;
                 }
 
-                private bool _internalsVisibleComputed = false;
-                private bool _internalsPotentiallyVisibleToCompilation = false;
+                private bool _internalsVisibleComputed;
+                private bool _internalsPotentiallyVisibleToCompilation;
 
                 internal override AssemblySymbol CreateAssemblySymbol()
                 {
@@ -1028,11 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
-                {
-                    var reader = _assembly.ManifestModule.MetadataReader;
-                    return reader.GetWinMdVersion(out majorVersion, out minorVersion);
-                }
+                public override Compilation SourceCompilation => null;
             }
 
             private sealed class AssemblyDataForCompilation : AssemblyDataForMetadataOrCompilation
@@ -1137,12 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
-                {
-                    majorVersion = 0;
-                    minorVersion = 0;
-                    return false;
-                }
+                public override Compilation SourceCompilation => _compilation;
             }
 
             /// <summary>

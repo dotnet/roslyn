@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // prepare for building
             var buildTargets = new BuildTargets(_loadedProject, "Compile");
 
-            // Don't execute this one. It will build referenced projects.
-            // Even when DesignTimeBuild is defined, it will still add the referenced project's output to the references list
-            // which we don't want.
-            buildTargets.Remove("ResolveProjectReferences");
-
             // don't execute anything after CoreCompile target, since we've
             // already done everything we need to compute compiler inputs by then.
             buildTargets.RemoveAfter("CoreCompile", includeTargetInRemoval: false);
@@ -180,6 +175,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return PathUtilities.GetFileName(assemblyName);
+        }
+
+        protected bool IsProjectReferenceOutputAssembly(MSB.Framework.ITaskItem item)
+        {
+            return item.GetMetadata("ReferenceOutputAssembly") == "true";
         }
 
         protected IEnumerable<ProjectFileReference> GetProjectReferences(ProjectInstance executedProject)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return !string.IsNullOrEmpty(documentItem.GetMetadata("Link"));
         }
 
-        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents = null;
+        private IDictionary<string, MSB.Evaluation.ProjectItem> _documents;
 
         protected bool IsDocumentGenerated(MSB.Framework.ITaskItem documentItem)
         {

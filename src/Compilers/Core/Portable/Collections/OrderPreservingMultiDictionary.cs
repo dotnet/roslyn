@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         /// <summary>
-        /// Get the number of values assocaited with a key.
+        /// Get the number of values associated with a key.
         /// </summary>
         public int GetCountForKey(K k)
         {

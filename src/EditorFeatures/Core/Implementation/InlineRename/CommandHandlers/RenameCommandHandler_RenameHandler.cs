@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -58,14 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
         {
-            // If there is already an active session, focus its dashboard;
-            if (_renameService.ActiveSession != null)
-            {
-                var dashboard = GetDashboard(args.TextView);
-                dashboard.Focus();
-                return;
-            }
-
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out workspace))
@@ -80,6 +73,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return;
             }
 
+            // If there is already an active session, commit it first
+            if (_renameService.ActiveSession != null)
+            {
+                // Is the caret within any of the rename fields in this buffer?
+                // If so, focus the dashboard
+                SnapshotSpan editableSpan;
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out editableSpan))
+                {
+                    var dashboard = GetDashboard(args.TextView);
+                    dashboard.Focus();
+                    return;
+                }
+                else
+                {
+                    // Otherwise, commit the existing session and start a new one.
+                    _renameService.ActiveSession.Commit();
+                }
+            }
+
             var position = caretPoint.Value;
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -91,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
             // Now make sure the entire selection is contained within that token.
-            if (selectedSpans.Count > 1)
+            // There can be zero selectedSpans in projection scenarios.
+            if (selectedSpans.Count != 1)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.YouMustRenameAnIdentifier);
                 return;

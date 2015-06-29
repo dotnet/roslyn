@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, emitters: TestEmitters.RefEmitBug, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -202,9 +202,45 @@ public class C
     }
 }";
             var verifier = CompileAndVerifyOnWin8Only(source,
-                emitOptions: TestEmitters.RefEmitBug,
                 expectedOutput: "10\r\n0");
             verifier.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(1169511, "DevDiv")]
+        public void WinMdAssemblyQualifiedType()
+        {
+            var source =
+@"using System;
+
+[MyAttribute(typeof(C1))]
+public class C
+{
+    public static void Main(string[] args)
+    {
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(System.Type type)
+    {
+    }
+}
+";
+            CompileAndVerify(
+                source, 
+                WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }), 
+                symbolValidator: m =>
+            {
+                var module = (PEModuleSymbol)m;
+                var c = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMember("C");
+                var attributeHandle = module.Module.MetadataReader.GetCustomAttributes(c.Handle).Single();
+                string value;
+                module.Module.TryExtractStringValueFromAttribute(attributeHandle, out value);
+
+                Assert.Equal("C1, W, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", value);
+            });
+        }
+
     }
 }

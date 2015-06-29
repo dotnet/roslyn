@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Manages anonymous types declared in this compilation. Unifies types that are structurally equivalent.
         /// </summary>
-        private AnonymousTypeManager _anonymousTypeManager;
+        private readonly AnonymousTypeManager _anonymousTypeManager;
 
         private NamespaceSymbol _lazyGlobalNamespace;
 
@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Constructors and Factories
 
-        private static CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
-        private static CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CSharpCompilationOptions s_defaultOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+        private static readonly CSharpCompilationOptions s_defaultSubmissionOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         /// <summary>
         /// Creates a new compilation from scratch. Methods such as AddSyntaxTrees or AddReferences
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation that can be used in scripting.
         /// </summary>
-        public static CSharpCompilation CreateSubmission(
+        internal static CSharpCompilation CreateSubmission(
             string assemblyName,
             SyntaxTree syntaxTree = null,
             IEnumerable<MetadataReference> references = null,
@@ -1305,17 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyHostObjectTypeSymbol;
         }
 
-        internal TypeSymbol GetSubmissionReturnType()
+        internal SynthesizedInteractiveInitializerMethod GetSubmissionInitializer()
         {
-            if (IsSubmission && (object)ScriptClass != null)
-            {
-                // the second parameter of Script class instance constructor is the submission return value:
-                return ((MethodSymbol)ScriptClass.GetMembers(WellKnownMemberNames.InstanceConstructorName)[0]).Parameters[1].Type;
-            }
-            else
-            {
-                return null;
-            }
+            return (IsSubmission && (object)ScriptClass != null) ?
+                ScriptClass.GetScriptInitializer() :
+                null;
         }
 
         /// <summary>
@@ -1877,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private DiagnosticBag _lazyDeclarationDiagnostics;
-        private bool _declarationDiagnosticsFrozen = false;
+        private bool _declarationDiagnosticsFrozen;
 
         /// <summary>
         /// A bag in which diagnostics that should be reported after code gen can be deposited.
@@ -1890,7 +1884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
+        private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
 
         internal DeclarationTable Declarations
         {
@@ -2070,16 +2064,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override Diagnostic FilterDiagnostic(Diagnostic d)
-        {
-            return FilterDiagnostic(d, _options);
-        }
-
-        private static Diagnostic FilterDiagnostic(Diagnostic d, CSharpCompilationOptions options)
-        {
-            return CSharpDiagnosticFilter.Filter(d, options.WarningLevel, options.GeneralDiagnosticOption, options.SpecificDiagnosticOptions);
-        }
-
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
@@ -2090,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (Diagnostic d in incoming)
             {
-                var filtered = FilterDiagnostic(d, _options);
+                var filtered = _options.FilterDiagnostic(d);
                 if (filtered == null)
                 {
                     continue;
@@ -2262,7 +2246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
             IEnumerable<ResourceDescription> manifestResources,
-            Func<IAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
@@ -2304,8 +2287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emitOptions,
                     kind,
                     moduleProps,
-                    manifestResources,
-                    assemblySymbolMapper);
+                    manifestResources);
             }
 
             // testData is only passed when running tests.
@@ -2322,7 +2304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream win32Resources,
             Stream xmlDocStream,
-            bool generateDebugInfo,
+            bool emittingPdb,
             DiagnosticBag diagnostics,
             Predicate<ISymbol> filterOpt,
             CancellationToken cancellationToken)
@@ -2354,12 +2336,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (generateDebugInfo && moduleBeingBuilt != null)
+                if (emittingPdb && !StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
                 {
-                    if (!StartSourceChecksumCalculation(moduleBeingBuilt, diagnostics))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 // Perform initial bind of method bodies in spite of earlier errors. This is the same
@@ -2371,7 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodCompiler.CompileMethodBodies(
                     this,
                     moduleBeingBuilt,
-                    generateDebugInfo,
+                    emittingPdb,
                     hasDeclarationErrors,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,
@@ -2694,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithAssemblyName(assemblyName);
         }
 
-        protected override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
+        internal override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
         {
             return GetSubmissionResultType(out hasValue);
         }
@@ -2714,7 +2693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        protected override Compilation CommonPreviousSubmission
+        internal override Compilation CommonPreviousSubmission
         {
             get { return _previousSubmission; }
         }
@@ -2779,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        protected override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
+        internal override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return this.WithPreviousSubmission((CSharpCompilation)newPreviousSubmission);
         }
@@ -2819,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetTypeByMetadataName(metadataName);
         }
 
-        protected override INamedTypeSymbol CommonScriptClass
+        internal override INamedTypeSymbol CommonScriptClass
         {
             get { return this.ScriptClass; }
         }

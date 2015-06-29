@@ -9,7 +9,7 @@ namespace Roslyn.Test.Utilities.Parallel
 {
     internal class AsyncFactCommand : FactCommand
     {
-        private readonly IDictionary<IMethodInfo, Task<MethodResult>> _testMethodInvokeInfo = null;
+        private readonly IDictionary<IMethodInfo, Task<MethodResult>> _testMethodInvokeInfo;
 
         public AsyncFactCommand(IMethodInfo method, IDictionary<IMethodInfo, Task<MethodResult>> testMethodInvokeInfo)
             : base(method)

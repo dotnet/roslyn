@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -705,8 +706,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// DevDiv Bugs 115384: Both out and ref parameters are implemented as references. In addition, out parameters are 
         /// decorated with OutAttribute. In CLR when a signature is looked up in virtual dispatch, CLR does not distinguish
         /// between these to parameter types. The choice is the last method in the vtable. Therefore we check and warn if 
-        /// there would potentially be a mismatch in CLRs and C#s choice of the overriden method. Unfortunately we have no 
-        /// way of communicating to CLR which method is the overriden one. We only run into this problem when the 
+        /// there would potentially be a mismatch in CLRs and C#s choice of the overridden method. Unfortunately we have no 
+        /// way of communicating to CLR which method is the overridden one. We only run into this problem when the 
         /// parameters are generic.
         /// </param>
         private static void FindOtherOverriddenMethodsInContainingType(Symbol representativeMember, bool overridingMemberIsFromSomeCompilation, ArrayBuilder<Symbol> overriddenBuilder, ArrayBuilder<Symbol> runtimeOverriddenBuilder)
@@ -812,8 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MethodSymbol methodSymbol = (MethodSymbol)member;
                     return MethodSymbol.CanOverrideOrHide(methodSymbol.MethodKind) && ReferenceEquals(methodSymbol, methodSymbol.ConstructedFrom);
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -831,8 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     EventSymbol @event = (EventSymbol)member;
                     return @event.Type.HasCustomModifiers(); //can't have custom modifiers on (vs in) type
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -850,8 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     EventSymbol @event = (EventSymbol)member;
                     return @event.Type.CustomModifierCount();
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

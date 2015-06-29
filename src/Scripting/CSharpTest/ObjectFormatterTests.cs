@@ -5,21 +5,17 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting.CSharp;
+using ObjectFormatterFixtures;
 using Roslyn.Test.Utilities;
 using Xunit;
-using SymbolDisplay = Microsoft.CodeAnalysis.CSharp.SymbolDisplay;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
-using ObjectFormatterFixtures;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
 
 #region Fixtures
 
@@ -282,14 +278,15 @@ namespace ObjectFormatterFixtures
         public int _38_private_get_public_set { private get { return 1; } set { } }
         public int _39_public_get_private_set { get { return 1; } private set { } }
         private int _40_private_get_private_set { get { return 1; } set { } }
+        private int _41_set_only_property { set { } }
 
         public override string ToString()
         {
             return "AStr";
         }
     }
-    [DebuggerTypeProxy(typeof(ComplexProxy))]
 
+    [DebuggerTypeProxy(typeof(ComplexProxy))]
     internal class TypeWithComplexProxy
     {
         public override string ToString()
@@ -297,17 +294,17 @@ namespace ObjectFormatterFixtures
             return "BStr";
         }
     }
+
     [DebuggerTypeProxy(typeof(Proxy))]
     [DebuggerDisplay("DD")]
-
     internal class TypeWithDebuggerDisplayAndProxy
     {
         public override string ToString()
         {
             return "<ToString>";
         }
-        [DebuggerDisplay("pxy")]
 
+        [DebuggerDisplay("pxy")]
         private class Proxy
         {
             public Proxy(object x)
@@ -319,7 +316,6 @@ namespace ObjectFormatterFixtures
         }
     }
 
-
     internal class C
     {
         public readonly int A = 1;
@@ -329,6 +325,15 @@ namespace ObjectFormatterFixtures
         {
             return "CStr";
         }
+    }
+
+    [DebuggerDisplay("DebuggerDisplayValue")]
+    internal class BaseClassWithDebuggerDisplay
+    {
+    }
+
+    internal class InheritedDebuggerDisplay : BaseClassWithDebuggerDisplay
+    {
     }
 
     internal class ToStringException
@@ -749,6 +754,15 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
                 @"_38_private_get_public_set: 1",
                 @"_39_public_get_private_set: 1"
             );
+        }
+
+        [Fact]
+        public void DebuggerDisplay_Inherited()
+        {
+            var obj = new InheritedDebuggerDisplay();
+
+            var str = CSharpObjectFormatter.Instance.FormatObject(obj, s_inline);
+            Assert.Equal("InheritedDebuggerDisplay(DebuggerDisplayValue)", str);
         }
 
         [Fact]
@@ -1334,7 +1348,7 @@ End Class
             var compilation = VB.VisualBasicCompilation.Create(
                 "foo",
                 new[] { VB.VisualBasicSyntaxTree.ParseText(source) },
-                new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) },
+                new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
                 new VB.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug));
 
             Assembly a;

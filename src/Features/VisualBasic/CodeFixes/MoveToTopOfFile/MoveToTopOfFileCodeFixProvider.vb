@@ -30,40 +30,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.MoveToTopOfFile
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
-            Dim root = Await document.GetVisualBasicSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim token = root.FindToken(span.Start)
             If Not token.Span.IntersectsWith(span) Then
                 Return
             End If
 
-            Dim node = token.GetAncestors(Of DeclarationStatementSyntax) _
-                                 .FirstOrDefault(Function(c) c.Span.IntersectsWith(span))
+            Dim node = token _
+                .GetAncestors(Of DeclarationStatementSyntax) _
+                .FirstOrDefault(Function(c) c.Span.IntersectsWith(span))
+
             If node Is Nothing Then
                 Return
             End If
 
+            Dim compilationUnit = CType(root, CompilationUnitSyntax)
+
             Dim result = SpecializedCollections.EmptyEnumerable(Of CodeAction)()
             If node.Kind = SyntaxKind.ImportsStatement Then
                 Dim importsStatement = DirectCast(node, ImportsStatementSyntax)
-                If Not root.Imports.Contains(importsStatement) Then
-                    If DeclarationsExistAfterImports(node, root) OrElse root.Attributes.Any(Function(a) a.SpanStart < node.SpanStart) Then
-                        result = CreateActionForImports(document, importsStatement, root, cancellationToken)
+                If Not compilationUnit.Imports.Contains(importsStatement) Then
+                    If DeclarationsExistAfterImports(node, compilationUnit) OrElse compilationUnit.Attributes.Any(Function(a) a.SpanStart < node.SpanStart) Then
+                        result = CreateActionForImports(document, importsStatement, compilationUnit, cancellationToken)
                     End If
                 End If
             End If
 
             If node.Kind = SyntaxKind.OptionStatement Then
                 Dim optionStatement = DirectCast(node, OptionStatementSyntax)
-                If Not root.Options.Contains(optionStatement) Then
-                    result = CreateActionForOptions(document, optionStatement, root, cancellationToken)
+                If Not compilationUnit.Options.Contains(optionStatement) Then
+                    result = CreateActionForOptions(document, optionStatement, compilationUnit, cancellationToken)
                 End If
             End If
 
             If node.Kind = SyntaxKind.AttributesStatement Then
                 Dim attributesStatement = DirectCast(node, AttributesStatementSyntax)
-                If Not root.Attributes.Contains(attributesStatement) Then
-                    result = CreateActionForAttribute(document, attributesStatement, root, cancellationToken)
+                If Not compilationUnit.Attributes.Contains(attributesStatement) Then
+                    result = CreateActionForAttribute(document, attributesStatement, compilationUnit, cancellationToken)
                 End If
             End If
 

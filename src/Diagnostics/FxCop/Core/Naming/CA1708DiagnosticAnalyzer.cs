@@ -6,28 +6,29 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
+namespace Microsoft.AnalyzerPowerPack.Naming
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1708DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
-        internal const string RuleId = "CA1708";
-        internal const string Namespace = "Namespaces";
-        internal const string Type = "Types";
-        internal const string Member = "Members";
-        internal const string Parameter = "Parameters of";
+        public const string RuleId = "CA1708";
+        public const string Namespace = "Namespaces";
+        public const string Type = "Types";
+        public const string Member = "Members";
+        public const string Parameter = "Parameters of";
 
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                                      new LocalizableResourceString(nameof(FxCopRulesResources.IdentifiersShouldDifferByMoreThanCase), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
-                                                                                      new LocalizableResourceString(nameof(FxCopRulesResources.IdentifierNamesShouldDifferMoreThanCase), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
-                                                                                      FxCopDiagnosticCategory.Naming,
+                                                                                      new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.IdentifiersShouldDifferByMoreThanCase), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources)),
+                                                                                      new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.IdentifierNamesShouldDifferMoreThanCase), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources)),
+                                                                                      AnalyzerPowerPackDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: false,
-                                                                                      description: new LocalizableResourceString(nameof(FxCopRulesResources.IdentifiersShouldDifferByMoreThanCaseDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
+                                                                                      description: new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.IdentifiersShouldDifferByMoreThanCaseDescription), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources)),
                                                                                       helpLinkUri: "http://msdn.microsoft.com/library/ms182242.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                 }
                 else
                 {
-                    // If the namespace does not contain any externally visible types then exclude it from namecheck
+                    // If the namespace does not contain any externally visible types then exclude it from name check
                     excludedNamespaces.Add(@namespace);
                 }
 
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 
         private static void CheckTypeMembers(IEnumerable<ISymbol> members, Action<Diagnostic> addDiagnostic)
         {
-            // Remove constructors, indexers, operators and destructors for namecheck
+            // Remove constructors, indexers, operators and destructors for name check
             var membersForNameCheck = members.Where(item => !item.IsConstructor() && !item.IsDestructor() && !item.IsIndexer() && !item.IsUserDefinedOperator());
             if (membersForNameCheck.Any())
             {
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                 return;
             }
 
-            var parameterList = parameters.GroupBy((item) => item.Name, StringComparer.InvariantCultureIgnoreCase).Where((group) => group.Count() > 1);
+            var parameterList = parameters.GroupBy((item) => item.Name, StringComparer.OrdinalIgnoreCase).Where((group) => group.Count() > 1);
 
             foreach (var group in parameterList)
             {
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                 return false;
             }
 
-            return parameters.GroupBy(item => item.Name, StringComparer.InvariantCultureIgnoreCase).Where((group) => group.Count() > 1).Any();
+            return parameters.GroupBy(item => item.Name, StringComparer.OrdinalIgnoreCase).Where((group) => group.Count() > 1).Any();
         }
 
         private static void CheckMemberNames(IEnumerable<ISymbol> members, Action<Diagnostic> addDiagnostic)
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
             }
 
             var overloadedMembers = members.Where((item) => !item.IsType()).GroupBy((item) => item.Name).Where((group) => group.Count() > 1).SelectMany((group) => group.Skip(1));
-            var memberList = members.Where((item) => !overloadedMembers.Contains(item)).GroupBy((item) => DiagnosticHelpers.GetMemberName(item), StringComparer.InvariantCultureIgnoreCase).Where((group) => group.Count() > 1);
+            var memberList = members.Where((item) => !overloadedMembers.Contains(item)).GroupBy((item) => DiagnosticHelpers.GetMemberName(item), StringComparer.OrdinalIgnoreCase).Where((group) => group.Count() > 1);
 
             foreach (var group in memberList)
             {
@@ -216,7 +217,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                 return;
             }
 
-            var typeList = types.GroupBy((item) => DiagnosticHelpers.GetMemberName(item), StringComparer.InvariantCultureIgnoreCase)
+            var typeList = types.GroupBy((item) => DiagnosticHelpers.GetMemberName(item), StringComparer.OrdinalIgnoreCase)
                 .Where((group) => group.Count() > 1);
 
             foreach (var group in typeList)
@@ -233,7 +234,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                 return;
             }
 
-            var namespaceList = namespaces.GroupBy((item) => item.ToDisplayString(), StringComparer.InvariantCultureIgnoreCase).Where((group) => group.Count() > 1);
+            var namespaceList = namespaces.GroupBy((item) => item.ToDisplayString(), StringComparer.OrdinalIgnoreCase).Where((group) => group.Count() > 1);
 
             foreach (var group in namespaceList)
             {
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 
         private static string GetSymbolDisplayString(IGrouping<string, ISymbol> group)
         {
-            return string.Join(", ", group.Select(s => s.ToDisplayString()).OrderBy(k => k, StringComparer.InvariantCulture));
+            return string.Join(", ", group.Select(s => s.ToDisplayString()).OrderBy(k => k, StringComparer.Ordinal));
         }
 
         public static bool IsExternallyVisible(ISymbol symbol)

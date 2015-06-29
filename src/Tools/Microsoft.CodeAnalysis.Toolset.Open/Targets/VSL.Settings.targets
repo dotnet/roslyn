@@ -22,11 +22,15 @@
     <NuGetPackagesPath Condition="'$(NuGetPackagesPath)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\packages</NuGetPackagesPath>
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
-    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.0.0</RoslynSemanticVersion>
-    <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.0.19</SystemReflectionMetadataAssemblyVersion>
-    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.34</SystemCollectionsImmutableAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-rc</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)-rc</SystemCollectionsImmutableVersion>
+    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.1.0</RoslynSemanticVersion>
+    <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.0.21</SystemReflectionMetadataAssemblyVersion>
+    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.36</SystemCollectionsImmutableAssemblyVersion>
+    <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
+    <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
+    <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
+    <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
   </PropertyGroup>
 
   <Choose>
@@ -57,10 +61,15 @@
 
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
-    <ToolsetCompilerPackageName>Microsoft.Net.ToolsetCompilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-rc2-20150415-05\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
-    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc2-20150415-05\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+    <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.Compilers.1.0.0-rc3-20150616-02\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-rc3-20150616-02\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <!-- Use the compiler server -->
+    <UseSharedCompilation>true</UseSharedCompilation>
   </PropertyGroup>
 
   <!-- Import the props files from the toolset NuGet packages if we're not in a bootstrap build -->
@@ -72,7 +81,7 @@
   </ImportGroup>
 
   <Target Name="EnsureGlobalNuGets" Condition="'$(BootstrapBuildPath)' == ''">
-    <Error Condition="!$(CscToolPath.Contains('$(ToolsetCompilerPackageName)'))"
+    <Error Condition="!Exists('$(ToolsetCompilerPropsFilePath)')"
            Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
   </Target>
 
@@ -105,7 +114,7 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>
     <NoStdLib>true</NoStdLib>
-    <FrameworkPathOverride>$(NuGetPackagesPath)\Microsoft.NetFX20.1.0.2-rc2\lib\net20</FrameworkPathOverride>
+    <FrameworkPathOverride>$(NuGetPackagesPath)\Microsoft.NetFX20.1.0.3\lib\net20</FrameworkPathOverride>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
@@ -114,9 +123,9 @@
     </Reference>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(OutDir)' == ''">
-    <!-- If we don't already have an OutDir, set one-->
-    <OutDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\$(Configuration)'))\</OutDir>
+  <PropertyGroup>
+    <OutDir Condition="'$(OutDir)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\$(Configuration)'))\</OutDir>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\..\..\..\Binaries\Obj\$(MSBuildProjectName)'))\</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <PropertyGroup>

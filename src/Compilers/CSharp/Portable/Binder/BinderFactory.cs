@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In a typing scenario, GetBinder is regularly called with a non-zero position.
         // This results in a lot of allocations of BinderFactoryVisitors. Pooling them
         // reduces this churn to almost nothing.
-        private ObjectPool<BinderFactoryVisitor> _binderFactoryVisitorPool;
+        private readonly ObjectPool<BinderFactoryVisitor> _binderFactoryVisitorPool;
 
         internal BinderFactory(CSharpCompilation compilation, SyntaxTree syntaxTree)
         {

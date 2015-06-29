@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         //   Non-FX identities:
         //     if (isUnified1 && version1 > version2 || isUnified2 && version1 < version2) return EquivalentUnified.
 
-        public static new readonly DesktopAssemblyIdentityComparer Default = new DesktopAssemblyIdentityComparer(default(AssemblyPortabilityPolicy));
+        public static new DesktopAssemblyIdentityComparer Default { get; } = new DesktopAssemblyIdentityComparer(default(AssemblyPortabilityPolicy));
 
         internal readonly AssemblyPortabilityPolicy policy;
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
 
             // Notes:
             // an assembly might be both retargetable and portable
-            // in that case retargeatable table acts as an override.
+            // in that case retargetable table acts as an override.
 
             // Apply portability policy transforms first (e.g. rewrites references to SL assemblies to their desktop equivalents)
             // If the reference is partial and is missing version or PKT it is not ported.

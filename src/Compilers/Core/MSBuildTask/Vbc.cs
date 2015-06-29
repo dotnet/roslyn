@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public class Vbc : ManagedCompiler
     {
-        private bool _useHostCompilerIfAvailable = false;
+        private bool _useHostCompilerIfAvailable;
 
         // The following 1 fields are used, set and re-set in LogEventsFromTextOutput()
         /// <summary>
-        /// This stores the origional lines and error priority together in the order in which they were recieved.
+        /// This stores the original lines and error priority together in the order in which they were received.
         /// </summary>
-        private Queue<VBError> _vbErrorLines = new Queue<VBError>();
+        private readonly Queue<VBError> _vbErrorLines = new Queue<VBError>();
 
         // Used when parsing vbc output to determine the column number of an error
-        private bool _isDoneOutputtingErrorMessage = false;
-        private int _numberOfLinesInErrorMessage = 0;
+        private bool _isDoneOutputtingErrorMessage;
+        private int _numberOfLinesInErrorMessage;
 
         #region Properties
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal override BuildProtocolConstants.RequestLanguage Language
             => BuildProtocolConstants.RequestLanguage.VisualBasicCompile;
 
-        private static string[] s_separator = { "\r\n" };
+        private static readonly string[] s_separator = { "\r\n" };
 
         internal override void LogMessages(string output, MessageImportance messageImportance)
         {
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             get
             {
-                return "vbc2.exe";
+                return "vbc.exe";
             }
         }
 
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     int endParenthesisLocation = originalVBErrorString.IndexOf(')');
 
                     // If for some reason the line does not contain any ~ then something went wrong
-                    // so abort and return the origional string.
+                    // so abort and return the original string.
                     if (column < 0 || endParenthesisLocation < 0)
                     {
                         // we need to output all of the original lines we ate.
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Many VisualStudio VB projects have values for the DefineConstants property that
         /// contain quotes and spaces.  Normally we don't allow parameters passed into the
-        /// task to contain quotes, because if we weren't careful, we might accidently
+        /// task to contain quotes, because if we weren't careful, we might accidentally
         /// allow a parameter injection attach.  But for "DefineConstants", we have to allow
         /// it.
         /// So this method prepares the string to be passed in on the /define: command-line
@@ -1104,8 +1104,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private class VBError
         {
-            public string Message { get; set; }
-            public MessageImportance MessageImportance { get; set; }
+            public string Message { get; }
+            public MessageImportance MessageImportance { get; }
 
             public VBError(string message, MessageImportance importance)
             {

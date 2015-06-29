@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <summary>
-        /// Suppresses shadow-coping of specified path.
+        /// Suppresses shadow-copying of specified path.
         /// </summary>
         /// <param name="originalPath">Full path.</param>
         /// <exception cref="ArgumentNullException"><paramref name="originalPath"/> is null.</exception>

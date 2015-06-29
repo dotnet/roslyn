@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
@@ -20,6 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Protected Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
 
         Friend Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
+
+        Friend Shared Function Visualize(baseline As ModuleMetadata, ParamArray deltas As PinnedMetadata()) As String
+            Dim result = New StringWriter()
+            Dim visualizer = New MetadataVisualizer({baseline.MetadataReader}.Concat(deltas.Select(Function(d) d.Reader)).ToArray(), result)
+            visualizer.VisualizeAllGenerations()
+            Return result.ToString()
+        End Function
 
         Friend Shared Function MarkedSource(source As XElement, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
             Return New SourceWithMarkedNodes(source.Value, Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
@@ -160,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return New EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation)
         End Function
 
-        Friend Shared Function Handle(rowNumber As Integer, table As TableIndex) As Handle
+        Friend Shared Function Handle(rowNumber As Integer, table As TableIndex) As EntityHandle
             Return MetadataTokens.Handle(table, rowNumber)
         End Function
 
@@ -211,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
 
-        Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As Handle())
+        Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As EntityHandle())
             AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
         End Sub
 
@@ -241,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 row.Operation)
         End Function
 
-        Friend Shared Function EncMapRowToString(handle As Handle) As String
+        Friend Shared Function EncMapRowToString(handle As EntityHandle) As String
             Dim index As TableIndex = 0
             MetadataTokens.TryGetTableIndex(handle.Kind, index)
             Return String.Format(

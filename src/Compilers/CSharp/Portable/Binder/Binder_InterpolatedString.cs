@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.InterpolatedStringText:
                         {
                             var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
-                            builder.Add(new BoundLiteral(node, ConstantValue.Create(text, SpecialType.System_String), stringType));
+                            builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
                             continue;
                         }
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(content.Kind());
                 }
             }
 

@@ -288,16 +288,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' converting null
                         Return NullableNull(result.Syntax, resultType)
                     Else
-                        If rewrittenOperand.Kind = BoundKind.LoweredConditionalAccess Then
-                            Dim conditional = DirectCast(rewrittenOperand, BoundLoweredConditionalAccess)
-
-                            If HasValue(conditional.WhenNotNull) AndAlso HasNoValue(conditional.WhenNullOpt) Then
-                                Return conditional.Update(conditional.ReceiverOrCondition,
-                                                          conditional.CaptureReceiver,
-                                                          conditional.PlaceholderId,
-                                                          FinishRewriteNullableConversion(node, resultType, NullableValueOrDefault(conditional.WhenNotNull), Nothing, Nothing, Nothing),
-                                                          NullableNull(result.Syntax, resultType),
-                                                          resultType)
+                        Dim whenNotNull As BoundExpression = Nothing
+                        Dim whenNull As BoundExpression = Nothing
+                        If IsConditionalAccess(rewrittenOperand, whenNotNull, whenNull) Then
+                            If HasValue(whenNotNull) AndAlso HasNoValue(whenNull) Then
+                                Return UpdateConditionalAccess(rewrittenOperand,
+                                                               FinishRewriteNullableConversion(node, resultType, NullableValueOrDefault(whenNotNull), Nothing, Nothing, Nothing),
+                                                               NullableNull(result.Syntax, resultType))
                             End If
                         End If
 
@@ -712,8 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' This point should not be reachable, because if there is no constructor in the 
             ' loaded value type, we should have generated a synthesized constructor.
-            Debug.Assert(False)
-            Return node
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Private Function RewriteReferenceTypeToCharArrayRankOneConversion(node As BoundConversion, typeFrom As TypeSymbol, typeTo As TypeSymbol) As BoundExpression

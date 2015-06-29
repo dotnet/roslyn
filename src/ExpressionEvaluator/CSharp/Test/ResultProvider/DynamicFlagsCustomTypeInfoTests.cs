@@ -14,24 +14,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class DynamicFlagsCustomTypeInfoTests : CSharpResultProviderTestBase
     {
         [Fact]
-        public void BitArrayConstructor()
+        public void BoolArrayConstructor()
         {
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(new bool[0]));
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(new bool[0]));
 
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false), 0x00);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(true), 0x01);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false), 0x00);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(true, false), 0x01);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, true), 0x02);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(true, true), 0x03);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false), 0x00);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(true), 0x01);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false), 0x00);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(true, false), 0x01);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, true), 0x02);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(true, true), 0x03);
 
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, true), 0x04);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, false, true), 0x08);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, false, false, true), 0x10);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, false, false, false, true), 0x20);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, false, false, false, false, true), 0x40);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, false, false, false, false, false, true), 0x80);
-            ValidateBytes(MakeDynamicFlagsCustomTypeInfo(false, false, false, false, false, false, false, false, true), 0x00, 0x01);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, true), 0x04);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, false, true), 0x08);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, false, false, true), 0x10);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, false, false, false, true), 0x20);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, false, false, false, false, true), 0x40);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, false, false, false, false, false, true), 0x80);
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(false, false, false, false, false, false, false, false, true), 0x00, 0x01);
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void CustomTypeInfoConstructor_OtherGuid()
         {
-            ValidateBytes(new DynamicFlagsCustomTypeInfo(DkmClrCustomTypeInfo.Create(Guid.NewGuid(), new ReadOnlyCollection<byte>(new byte[] { 0x01 }))));
+            ValidateBytes(DynamicFlagsCustomTypeInfo.Create(DkmClrCustomTypeInfo.Create(Guid.NewGuid(), new ReadOnlyCollection<byte>(new byte[] { 0x01 }))));
         }
 
         [Fact]
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void SkipOne()
         {
-            var dynamicFlagsCustomTypeInfo = new DynamicFlagsCustomTypeInfo((BitArray)null);
+            var dynamicFlagsCustomTypeInfo = DynamicFlagsCustomTypeInfo.Create((bool[])null);
 
             ValidateBytes(dynamicFlagsCustomTypeInfo.SkipOne());
 
             var dkmClrCustomTypeInfo = DkmClrCustomTypeInfo.Create(DynamicFlagsCustomTypeInfo.PayloadTypeId, new ReadOnlyCollection<byte>(new byte[] { 0x80 }));
-            dynamicFlagsCustomTypeInfo = new DynamicFlagsCustomTypeInfo(dkmClrCustomTypeInfo);
+            dynamicFlagsCustomTypeInfo = DynamicFlagsCustomTypeInfo.Create(dkmClrCustomTypeInfo);
 
             dynamicFlagsCustomTypeInfo = dynamicFlagsCustomTypeInfo.SkipOne();
             ValidateBytes(dynamicFlagsCustomTypeInfo, 0x40);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ValidateBytes(dynamicFlagsCustomTypeInfo, 0x00);
 
             dkmClrCustomTypeInfo = DkmClrCustomTypeInfo.Create(DynamicFlagsCustomTypeInfo.PayloadTypeId, new ReadOnlyCollection<byte>(new byte[] { 0x00, 0x02 }));
-            dynamicFlagsCustomTypeInfo = new DynamicFlagsCustomTypeInfo(dkmClrCustomTypeInfo);
+            dynamicFlagsCustomTypeInfo = DynamicFlagsCustomTypeInfo.Create(dkmClrCustomTypeInfo);
 
             dynamicFlagsCustomTypeInfo = dynamicFlagsCustomTypeInfo.SkipOne();
             ValidateBytes(dynamicFlagsCustomTypeInfo, 0x00, 0x01);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(payload);
 
             var dkmClrCustomTypeInfo = DkmClrCustomTypeInfo.Create(DynamicFlagsCustomTypeInfo.PayloadTypeId, new ReadOnlyCollection<byte>(payload));
-            var dynamicFlagsCustomTypeInfo = new DynamicFlagsCustomTypeInfo(dkmClrCustomTypeInfo);
+            var dynamicFlagsCustomTypeInfo = DynamicFlagsCustomTypeInfo.Create(dkmClrCustomTypeInfo);
             ValidateBytes(dynamicFlagsCustomTypeInfo, payload);
 
             var dkmClrCustomTypeInfo2 = dynamicFlagsCustomTypeInfo.GetCustomTypeInfo();
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void ValidateIndexer(params bool[] flags)
         {
-            var customTypeInfo = MakeDynamicFlagsCustomTypeInfo(flags);
+            var customTypeInfo = DynamicFlagsCustomTypeInfo.Create(flags);
             if (flags == null)
             {
                 Assert.False(customTypeInfo[0]);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void ValidateAny(params bool[] flags)
         {
-            var customTypeInfo = MakeDynamicFlagsCustomTypeInfo(flags);
+            var customTypeInfo = DynamicFlagsCustomTypeInfo.Create(flags);
             if (flags == null)
             {
                 Assert.False(customTypeInfo.Any());

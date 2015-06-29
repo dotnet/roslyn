@@ -306,6 +306,7 @@ class C
 #End Region
 
 #Region "AddAttribute tests"
+
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
@@ -314,7 +315,7 @@ using System;
 
 class C
 {
-    int $$Foo;
+    int $$F;
 }
 </Code>
 
@@ -325,7 +326,7 @@ using System;
 class C
 {
     [Serializable()]
-    int Foo;
+    int F;
 }
 </Code>
 
@@ -341,7 +342,7 @@ using System;
 class C
 {
     [Serializable]
-    int $$Foo;
+    int $$F;
 }
 </Code>
 
@@ -353,10 +354,38 @@ class C
 {
     [Serializable]
     [CLSCompliant(true)]
-    int Foo;
+    int F;
 }
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    int $$F;
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+class C
+{
+    /// &lt;summary&gt;&lt;/summary&gt;
+    [CLSCompliant(true)]
+    int F;
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region

@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function CreateNestedType(declaration As MergedTypeDeclaration) As NamedTypeSymbol
 #If DEBUG Then
             ' Ensure that the type declaration is either from user code or embedded
-            ' code, but not merged accross embedded code/user code boundary.
+            ' code, but not merged across embedded code/user code boundary.
             Dim embedded = EmbeddedSymbolKind.Unset
             For Each ref In declaration.SyntaxReferences
                 Dim refKind = ref.SyntaxTree.GetEmbeddedKind()
@@ -1699,44 +1699,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
 #If DEBUG Then
-        ' Thread id to catch cases where ComputeMembersAndInitializers
-        ' is called recursively. This does not catch all recursive cases,
-        ' only cases where the method is called recursively on the first
-        ' thread that called ComputeMembersAndInitializers.
-        Private _computingMembersThreadId As Integer
+        ' A thread local hash table to catch cases when BuildMembersAndInitializers
+        ' is called recursively for the same symbol. 
+        <ThreadStatic>
+        Private Shared s_SymbolsBuildingMembersAndInitializers As HashSet(Of SourceMemberContainerTypeSymbol)
 #End If
 
         Private Function BuildMembersAndInitializers(diagBag As DiagnosticBag) As MembersAndInitializers
-#If DEBUG Then
-            Dim threadId = Environment.CurrentManagedThreadId
 
-            ' Bug 1098580 tracks re-enabling this assert.
-            'Debug.Assert(m_computingMembersThreadId <> threadId)
-            Interlocked.CompareExchange(_computingMembersThreadId, threadId, 0)
+            Dim membersAndInitializers As MembersAndInitializers
+
+#If DEBUG Then
+            If s_SymbolsBuildingMembersAndInitializers Is Nothing Then
+                s_SymbolsBuildingMembersAndInitializers = New HashSet(Of SourceMemberContainerTypeSymbol)(ReferenceEqualityComparer.Instance)
+            End If
+
+            Dim added As Boolean = s_SymbolsBuildingMembersAndInitializers.Add(Me)
+
+            Debug.Assert(added)
+            Try
 #End If
-            ' Get type members
-            Dim typeMembers = GetTypeMembersDictionary()
+                ' Get type members
+                Dim typeMembers = GetTypeMembersDictionary()
 
-            ' Get non-type members
-            Dim membersAndInitializers As MembersAndInitializers = BuildNonTypeMembers(diagBag)
-            _defaultPropertyName = DetermineDefaultPropertyName(membersAndInitializers.Members, diagBag)
+                ' Get non-type members
+                membersAndInitializers = BuildNonTypeMembers(diagBag)
+                _defaultPropertyName = DetermineDefaultPropertyName(membersAndInitializers.Members, diagBag)
 
-            ' Find/process partial methods
-            ProcessPartialMethodsIfAny(membersAndInitializers.Members, diagBag)
+                ' Find/process partial methods
+                ProcessPartialMethodsIfAny(membersAndInitializers.Members, diagBag)
 
-            ' Merge types with non-types
-            For Each typeSymbols In typeMembers.Values
-                Dim nontypeSymbols As ImmutableArray(Of Symbol) = Nothing
-                Dim name = typeSymbols(0).Name
-                If Not membersAndInitializers.Members.TryGetValue(name, nontypeSymbols) Then
-                    membersAndInitializers.Members.Add(name, StaticCast(Of Symbol).From(typeSymbols))
-                Else
-                    membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
-                End If
-            Next
+                ' Merge types with non-types
+                For Each typeSymbols In typeMembers.Values
+                    Dim nontypeSymbols As ImmutableArray(Of Symbol) = Nothing
+                    Dim name = typeSymbols(0).Name
+                    If Not membersAndInitializers.Members.TryGetValue(name, nontypeSymbols) Then
+                        membersAndInitializers.Members.Add(name, StaticCast(Of Symbol).From(typeSymbols))
+                    Else
+                        membersAndInitializers.Members(name) = nontypeSymbols.Concat(StaticCast(Of Symbol).From(typeSymbols))
+                    End If
+                Next
 
 #If DEBUG Then
-            Interlocked.CompareExchange(_computingMembersThreadId, 0, threadId)
+            Finally
+                If added Then
+                    s_SymbolsBuildingMembersAndInitializers.Remove(Me)
+                End If
+            End Try
 #End If
             Return membersAndInitializers
         End Function
@@ -2028,8 +2037,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ''' <summary> Queue element structure </summary>
             Public Structure QueueElement
-                Public Type As NamedTypeSymbol
-                Public Path As ConsList(Of FieldSymbol)
+                Public ReadOnly Type As NamedTypeSymbol
+                Public ReadOnly Path As ConsList(Of FieldSymbol)
 
                 Public Sub New(type As NamedTypeSymbol, path As ConsList(Of FieldSymbol))
                     Debug.Assert(type IsNot Nothing)
@@ -2068,7 +2077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' is non-deterministic (depends on the order of symbols in a hash table).
         ''' 
         ''' Moreover, Dev10 analyzes the type graph and reports only one error in case S1 --> S2 --> S1 even if 
-        ''' there are two fields referensing S2 from S1.
+        ''' there are two fields referencing S2 from S1.
         ''' 
         ''' Example:
         '''    Structure S2
@@ -3247,8 +3256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
 
                 ' This point should not be reachable.
-                Debug.Assert(False)
-                Return -1
+                Throw ExceptionUtilities.Unreachable
             End If
 
             Dim syntaxOffset As Integer
@@ -3258,8 +3266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' This point should not be reachable. An implicit constructor has no body and no initializer,
             ' so the variable has to be declared in a member initializer.
-            Debug.Assert(False)
-            Return -1
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         ' Calculates a syntax offset of a syntax position that is contained in a property or field initializer (if it is in fact contained in one).

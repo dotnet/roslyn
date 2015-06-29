@@ -2670,7 +2670,7 @@ End Module
             </errors>)
     End Sub
 
-    <ConditionalFact(GetType(ClrOnly))>
+    <ClrOnlyFact>
     <WorkItem(1085618, "DevDiv")>
     Public Sub TooDeepLambdaDeclarations()
         Dim depth = 5000
@@ -2700,7 +2700,7 @@ End Module]]>.Value)
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
-    <ConditionalFact(GetType(ClrOnly))>
+    <ClrOnlyFact>
     Public Sub TooDeepObjectInitializers()
         Dim depth = 5000
         Dim builder As New StringBuilder()
@@ -2734,7 +2734,7 @@ End Module]]>.Value)
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
-    <ConditionalFact(GetType(ClrOnly))>
+    <ClrOnlyFact>
     Public Sub TooDeepLambdaDeclarationsAsExpression()
         Dim depth = 5000
         Dim builder As New StringBuilder()
@@ -2755,7 +2755,7 @@ End Module]]>.Value)
         Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
-    <ConditionalFact(GetType(ClrOnly))>
+    <ClrOnlyFact>
     Public Sub TooDeepLambdaDeclarationsAsStatement()
         Dim depth = 5000
         Dim builder As New StringBuilder()

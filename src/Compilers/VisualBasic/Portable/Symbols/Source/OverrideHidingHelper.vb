@@ -594,7 +594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' method is declared "override").
         ''' 
         ''' Methods in the overridden list may not be virtual or may have different
-        ''' accessibities, types, accessors, etc.  They are really candidates to be
+        ''' accessibilities, types, accessors, etc.  They are really candidates to be
         ''' overridden.
         ''' 
         ''' All found accessible candidates of overridden members are collected in two 
@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                builder As ArrayBuilder(Of TSymbol))
 
             ' We should only add a member to a builder if it does not match any 
-            ' symbols from previously processed (derived) clases 
+            ' symbols from previously processed (derived) classes 
 
             ' This is supposed to help avoid adding multiple symbols one of 
             ' which overrides another one, in the following case

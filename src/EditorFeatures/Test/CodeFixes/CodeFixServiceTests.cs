@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 var fixService = new CodeFixService(
                     diagnosticService, logger, fixers, SpecializedCollections.EmptyEnumerable<Lazy<ISuppressionFixProvider, CodeChangeProviderMetadata>>());
 
-                var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
+                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
                 // register diagnostic engine to solution crawler
-                var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+                var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
 
                 var reference = new MockAnalyzerReference();
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 Document document;
                 EditorLayerExtensionManager.ExtensionManager extensionManager;
                 GetDocumentAndExtensionManager(diagnosticService, workspace, out document, out extensionManager);
-                var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
-                var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+                var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
+                var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
                 var reference = new MockAnalyzerReference(codefix);
                 var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
                 document = project.Documents.Single();
@@ -156,10 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 
         private static void GetDocumentAndExtensionManager(TestDiagnosticAnalyzerService diagnosticService, TestWorkspace workspace, out Document document, out EditorLayerExtensionManager.ExtensionManager extensionManager)
         {
-            var incrementalAnalzyer = (IIncrementalAnalyzerProvider)diagnosticService;
+            var incrementalAnalyzer = (IIncrementalAnalyzerProvider)diagnosticService;
 
             // register diagnostic engine to solution crawler
-            var analyzer = incrementalAnalzyer.CreateIncrementalAnalyzer(workspace);
+            var analyzer = incrementalAnalyzer.CreateIncrementalAnalyzer(workspace);
 
             var reference = new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
@@ -221,6 +221,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
                 }
             }
 
+            public override object Id
+            {
+                get
+                {
+                    return "MockAnalyzerReference";
+                }
+            }
+
             public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             {
                 return ImmutableArray.Create<DiagnosticAnalyzer>(Analyzer);
@@ -262,22 +270,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         {
             public Dictionary<string, string> Messages = new Dictionary<string, string>();
 
-            public void LogError(string source, string message)
+            public void LogException(object source, Exception exception)
             {
-                Messages.Add(source, message);
+                Messages.Add(source.GetType().Name, ToLogFormat(exception));
             }
 
-            public bool TryLogError(string source, string message)
+            public bool TryLogException(object source, Exception exception)
             {
                 try
                 {
-                    Messages.Add(source, message);
+                    Messages.Add(source.GetType().Name, ToLogFormat(exception));
                     return true;
                 }
                 catch (Exception)
                 {
                     return false;
                 }
+            }
+
+            private static string ToLogFormat(Exception exception)
+            {
+                return exception.Message + Environment.NewLine + exception.StackTrace;
             }
         }
     }

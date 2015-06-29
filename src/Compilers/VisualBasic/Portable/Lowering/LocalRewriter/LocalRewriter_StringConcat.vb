@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Partial Class LocalRewriter
 
         ' The strategy of this rewrite is to do rewrite "locally".
-        ' We analyze arguments of the concat in a shallow fasion assuming that 
+        ' We analyze arguments of the concat in a shallow fashion assuming that 
         ' lowering and optimizations (including this one) is already done for the arguments.
         ' Based on the arguments we select the most appropriate pattern for the current node.
         ' 
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' otherwise returns the expression as-is
         ''' 
         ''' Generally we only need to recognize same node patterns that we create as a result of concatenation rewrite.
-        ''' We could recognise some other nodes and unwrap to arguments 
+        ''' We could recognize some other nodes and unwrap to arguments 
         ''' </summary>
         Private Sub FlattenConcatArg(lowered As BoundExpression, flattened As ArrayBuilder(Of BoundExpression))
             Select Case lowered.Kind

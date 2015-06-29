@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 var generator = synthesizedDef.Method;
                 var synthesizedSymbol = (ISymbol)synthesizedDef;
 
-                switch (GetChange(generator))
+                var change = GetChange((IDefinition)generator);
+                switch (change)
                 {
                     case SymbolChange.Updated:
                         // The generator has been updated. Some synthesized members should be reused, others updated or added.
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         if (!_definitionMap.DefinitionExists(def))
                         {
-                            // A method was changed to a method containing a lambda, to an interator, or to an async method.
+                            // A method was changed to a method containing a lambda, to an iterator, or to an async method.
                             // The state machine or closure class has been added.
                             return SymbolChange.Added;
                         }
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                     default:
                         // The method had to change, otherwise the synthesized symbol wouldn't be generated
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(change);
                 }
             }
 
@@ -158,7 +159,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 return SymbolChange.None;
             }
 
-            switch (this.GetChange(container))
+            change = this.GetChange(container);
+            switch (change)
             {
                 case SymbolChange.Added:
                     return SymbolChange.Added;
@@ -179,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     return SymbolChange.None;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(change);
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -707,7 +707,7 @@ label
         // the overload that emits with both CCI and ReflectionEmit. (Bug #7012)
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null)
         {
-            return base.CompileAndVerify(source: source, emitters: TestEmitters.CCI, expectedOutput: expectedOutput);
+            return base.CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(540719, "DevDiv")]
@@ -802,6 +802,36 @@ public class A
 }
 ";
             CompileAndVerify(text, expectedOutput: "Catch");
+        }
+
+        [Fact(Skip = "3712"), WorkItem(3712)]
+        public void Goto_Script()
+        {
+            string source = @"
+using System;
+
+Console.WriteLine(""a"");
+goto C;
+Console.Write(""you won't see me"");
+C: Console.WriteLine(""b"");
+";
+            string expectedOutput = @"a
+b
+";
+            CompileAndVerify(source, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script), expectedOutput: expectedOutput);
+        }
+
+        [Fact(Skip = "3712"), WorkItem(3712)]
+        public void Label_GetDeclaredSymbol_Error_Script()
+        {
+            string source = @"
+C: \a\b\
+";
+            var tree = Parse(source, options: new CSharpParseOptions(kind: SourceCodeKind.Script));
+            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var label = (LabeledStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LabeledStatement);
+            var symbol = model.GetDeclaredSymbol(label);
+            // TODO: Add some verification for symbol...
         }
     }
 }

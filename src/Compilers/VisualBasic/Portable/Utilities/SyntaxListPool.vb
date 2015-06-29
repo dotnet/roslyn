@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class SyntaxListPool
-        Private _freeList As New Stack(Of SyntaxListBuilder)
+        Private ReadOnly _freeList As New Stack(Of SyntaxListBuilder)
 
         Friend Function Allocate() As SyntaxListBuilder
             If _freeList.Count > 0 Then

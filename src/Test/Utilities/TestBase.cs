@@ -234,7 +234,22 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_aacorlibRef == null)
                 {
-                    s_aacorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928).GetReference(display: "mscorlib.v4_0_30319.dll");
+                    var source = TestResources.NetFX.aacorlib_v15_0_3928.aacorlib_v15_0_3928_cs;
+                    var syntaxTree = Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ParseSyntaxTree(source);
+
+                    var compilationOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+
+                    var compilation = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Create("aacorlib.v15.0.3928.dll", new[] { syntaxTree }, null, compilationOptions);
+
+                    Stream dllStream = new MemoryStream();
+                    var emitResult = compilation.Emit(dllStream);
+                    if (!emitResult.Success)
+                    {
+                        emitResult.Diagnostics.Verify();
+                    }
+                    dllStream.Seek(0, SeekOrigin.Begin);
+
+                    s_aacorlibRef = AssemblyMetadata.CreateFromStream(dllStream).GetReference(display: "mscorlib.v4_0_30319.dll");
                 }
 
                 return s_aacorlibRef;
@@ -441,6 +456,34 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        private static MetadataReference s_systemThreadingFacadeRef;
+        public static MetadataReference SystemThreadingFacadeRef
+        {
+            get
+            {
+                if (s_systemThreadingFacadeRef == null)
+                {
+                    s_systemThreadingFacadeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Threading).GetReference(display: "System.Threading.dll");
+                }
+
+                return s_systemThreadingFacadeRef;
+            }
+        }
+
+        private static MetadataReference s_systemThreadingTasksFacadeRef;
+        public static MetadataReference SystemThreadingTaskFacadeRef
+        {
+            get
+            {
+                if (s_systemThreadingTasksFacadeRef == null)
+                {
+                    s_systemThreadingTasksFacadeRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.ReferenceAssemblies_V45_Facades.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll");
+                }
+
+                return s_systemThreadingTasksFacadeRef;
+            }
+        }
+
         private static MetadataReference s_mscorlibPP7Ref;
         public static MetadataReference MscorlibPP7Ref
         {
@@ -586,7 +629,7 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Used to validate metadata blobs emitted for MarshalAs.
         /// </summary>
-        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, TestEmitters emitters, bool isField = true)
+        internal static void MarshalAsMetadataValidator(PEAssembly assembly, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
             var metadataReader = assembly.GetMetadataReader();
 
@@ -606,7 +649,7 @@ namespace Roslyn.Test.Utilities
                     var field = metadataReader.GetFieldDefinition(fieldDef);
                     string fieldName = metadataReader.GetString(field.Name);
 
-                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly, emitters);
+                    byte[] expectedBlob = getExpectedBlob(fieldName, assembly);
                     if (expectedBlob != null)
                     {
                         BlobHandle descriptor = metadataReader.GetFieldDefinition(fieldDef).GetMarshallingDescriptor();
@@ -636,7 +679,7 @@ namespace Roslyn.Test.Utilities
                         var paramRow = metadataReader.GetParameter(paramHandle);
                         string paramName = metadataReader.GetString(paramRow.Name);
 
-                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly, emitters);
+                        byte[] expectedBlob = getExpectedBlob(memberName + ":" + paramName, assembly);
                         if (expectedBlob != null)
                         {
                             Assert.NotEqual(0, (int)(paramRow.Attributes & ParameterAttributes.HasFieldMarshal));

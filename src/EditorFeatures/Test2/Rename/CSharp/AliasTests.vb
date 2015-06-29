@@ -638,7 +638,7 @@ namespace N
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAtributeAttribute()
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -673,7 +673,7 @@ class Program
         <WorkItem(633860)>
         <WorkItem(632303)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAtributeAttributeWithResolvedConflict()
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithResolvedConflict()
             Using result = RenameEngineResult.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">

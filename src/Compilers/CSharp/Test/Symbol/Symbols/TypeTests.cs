@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -1375,7 +1375,7 @@ class NonGen
         }
 
         [WorkItem(545154, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void MultiDimArray()
         {
             var r = MetadataReference.CreateFromImage(TestResources.SymbolsTests.Methods.CSMethods.AsImmutableOrNull());
@@ -1388,7 +1388,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, new[] { r }, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(source, new[] { r });
         }
 
         [Fact, WorkItem(530171, "DevDiv")]

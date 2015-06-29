@@ -865,6 +865,59 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
+        <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestInaccessibleMemberOverrideVB()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+            Class C
+                Private Sub M(d As D)
+                    d.[|$$M|](1)
+                End Sub
+            End Class
+            Class D
+                Private Sub {|Definition:M|}(i As Integer)
+                End Sub
+                Private Sub M(d As Double)
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
+        <Fact(Skip:="2544"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestInaccessibleMemberOverrideCS()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C
+            {
+                private void M(D d)
+                {
+                    d.[|$$M|](1);
+                }
+            }
+
+            class D
+            {
+                private void {|Definition:M|}(int i) { }
+                private void M(double d) { }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+
+            Test(workspace)
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Field_CSharpAccessibleInstanceProtectedMethod()
             Dim input =
@@ -1034,7 +1087,7 @@ End Interface
         void I<U>.{|Definition:F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:F|}()
         {
@@ -1066,7 +1119,7 @@ End Interface
         void I<U>.{|Definition:$$F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:F|}()
         {
@@ -1098,7 +1151,7 @@ End Interface
         void I<U>.{|Definition:F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:$$F|}()
         {
@@ -1130,7 +1183,7 @@ End Interface
         void I<U>.{|Definition:F|}() { }
     }
 
-    class Dervied<U, V> : Base<U>, I<V>
+    class Derived<U, V> : Base<U>, I<V>
     {
         public void {|Definition:F|}()
         {
@@ -1400,7 +1453,7 @@ class C : I
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Sub TestCascadeOrdinaryMethod_RefOut2()
+        Public Sub TestCascadeOrdinaryMethod_RefOut2_Success()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1415,6 +1468,38 @@ interface I
 class C : I
 {
   public void Foo(out System.Int32 j)
+  {
+  }
+
+  void I.{|Definition:Foo|}(ref System.Int32 j) 
+  {
+  }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestCascadeOrdinaryMethod_RefOut2_Error()
+            ' In non-compiling code, finding an almost-matching definition
+            ' seems reasonable.
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+using System.Collections.Generic;
+interface I
+{
+  void {|Definition:$$Foo|}(ref int i);
+}
+
+class C : I
+{
+  public void {|Definition:Foo|}(out System.Int32 j)
   {
   }
 }
@@ -2642,6 +2727,146 @@ class Class2
         c.[|Foo|](x);
     }
 }]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(input)
+        End Sub
+
+        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestRefKindRef_FromDefinition()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Lib" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+public class C
+{
+    public static void {|Definition:$$M|}(ref int x) { }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="Test" CommonReferences="true">
+        <ProjectReference>Lib</ProjectReference>
+        <Document><![CDATA[
+Imports System
+
+Class Test
+    Sub M()
+        Dim x As Integer = 0
+        C.[|M|](x)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(input)
+        End Sub
+
+        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestRefKindRef_FromReference()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Lib" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+public class C
+{
+    public static void {|Definition:M|}(ref int x) { }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="Test" CommonReferences="true">
+        <ProjectReference>Lib</ProjectReference>
+        <Document><![CDATA[
+Imports System
+
+Class Test
+    Sub M()
+        Dim x As Integer = 0
+        C.[|$$M|](x)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(input)
+        End Sub
+
+        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestRefKindOut_FromDefinition()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Lib" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+public class C
+{
+    public static void {|Definition:$$M|}(out int x) { }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="Test" CommonReferences="true">
+        <ProjectReference>Lib</ProjectReference>
+        <Document><![CDATA[
+Imports System
+
+Class Test
+    Sub M()
+        Dim x As Integer = 0
+        C.[|M|](x)
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(input)
+        End Sub
+
+        <WorkItem(599, "https://github.com/dotnet/roslyn/issues/599")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestRefKindOut_FromReference()
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Lib" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+public class C
+{
+    public static void {|Definition:M|}(out int x) { }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="Test" CommonReferences="true">
+        <ProjectReference>Lib</ProjectReference>
+        <Document><![CDATA[
+Imports System
+
+Class Test
+    Sub M()
+        Dim x As Integer = 0
+        C.[|$$M|](x)
+    End Sub
+End Class
+]]>
         </Document>
     </Project>
 </Workspace>

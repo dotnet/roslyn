@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
     // CONSIDER: it might be worthwhile to promote some of these sample types to a test resource DLL
     public class LoadingIndexers : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadReadWriteIndexer()
         {
             string ilSource = @"
@@ -60,11 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var indexer = @class.GetIndexer<PEPropertySymbol>("Item");
                 CheckIndexer(indexer, true, true, "System.Int32 C.this[System.Int32 x] { get; set; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadWriteOnlyIndexer()
         {
             string ilSource = @"
@@ -103,11 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var indexer = @class.GetIndexer<PEPropertySymbol>("Item");
                 CheckIndexer(indexer, false, true, "System.Int32 C.this[System.Int32 x] { set; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadReadOnlyIndexer()
         {
             string ilSource = @"
@@ -146,11 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var indexer = @class.GetIndexer<PEPropertySymbol>("Item");
                 CheckIndexer(indexer, true, false, "System.Int32 C.this[System.Int32 x] { get; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadIndexerWithAlternateName()
         {
             string ilSource = @"
@@ -197,11 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var indexer = @class.GetIndexer<PEPropertySymbol>("NotItem");
                 CheckIndexer(indexer, true, true, "System.Int32 C.this[System.Int32 x] { get; set; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadIndexerWithAccessorAsDefaultMember()
         {
             string ilSource = @"
@@ -248,11 +245,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var indexer = @class.GetIndexer<PEPropertySymbol>("NotItem");
                 CheckIndexer(indexer, true, true, "System.Int32 C.this[System.Int32 x] { get; set; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadComplexIndexers()
         {
             string ilSource = @"
@@ -315,11 +311,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var indexer2 = @class.GetIndexer<PEPropertySymbol>("Indexer2");
                 CheckIndexer(indexer2, true, true, "System.Int32 C.this[System.Int32 x, System.Int64 y] { get; set; }", suppressAssociatedPropertyCheck: true);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LoadNonIndexer_NoDefaultMember()
         {
             string ilSource = @"
@@ -355,11 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var property = @class.GetMember<PEPropertySymbol>("Item");
                 CheckNonIndexer(property, true, false, "System.Int32 C.Item[System.Int32 x] { get; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadNonIndexer_NotDefaultMember()
         {
             string ilSource = @"
@@ -398,11 +392,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 var property = @class.GetMember<PEPropertySymbol>("Item");
                 CheckNonIndexer(property, true, false, "System.Int32 C.Item[System.Int32 x] { get; }");
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadNonGenericIndexers()
         {
             string ilSource = @"
@@ -462,11 +455,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
 
             CompileWithCustomILSource("", ilSource, compilation =>
-                CheckInstanceAndStaticIndexers(compilation, "NonGeneric", "System.Int32 NonGeneric.this[System.Int64 x] { get; set; }"),
-                emitOptions: TestEmitters.RefEmitBug);
+                CheckInstanceAndStaticIndexers(compilation, "NonGeneric", "System.Int32 NonGeneric.this[System.Int64 x] { get; set; }"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadGenericIndexers()
         {
             string ilSource = @"
@@ -526,11 +518,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
 
             CompileWithCustomILSource("", ilSource, compilation =>
-                CheckInstanceAndStaticIndexers(compilation, "Generic", "T Generic<T, U>.this[U u] { get; set; }"),
-                emitOptions: TestEmitters.RefEmitBug);
+                CheckInstanceAndStaticIndexers(compilation, "Generic", "T Generic<T, U>.this[U u] { get; set; }"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadClosedGenericIndexers()
         {
             string ilSource = @"
@@ -598,8 +589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 ";
 
             CompileWithCustomILSource("", ilSource, compilation =>
-                CheckInstanceAndStaticIndexers(compilation, "ClosedGeneric", "System.Collections.Generic.List<System.Int32> ClosedGeneric.this[System.Action<System.Int16> u] { get; set; }"),
-                emitOptions: TestEmitters.RefEmitBug);
+                CheckInstanceAndStaticIndexers(compilation, "ClosedGeneric", "System.Collections.Generic.List<System.Int32> ClosedGeneric.this[System.Action<System.Int16> u] { get; set; }"));
         }
 
         [Fact]
@@ -628,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         /// <summary>
         /// The accessor and the property have signatures.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadAccessorPropertySignatureMismatch()
         {
             string ilSource = @"
@@ -736,11 +726,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.True(returnTypeModoptIndexer.IsIndexer);
                 Assert.False(returnTypeModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in return type)
                 Assert.NotEqual(returnTypeModoptIndexer.TypeCustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeCustomModifiers.Length);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LoadParameterNames()
         {
             string ilSource = @"
@@ -808,8 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 var property3ParamName = property3.Parameters.Single().Name;
 
                 Assert.Equal(property3ParamName, property3.SetMethod.Parameters.First().Name);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         /// <remarks>
@@ -817,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         /// types of bogus properties - just setter param name if setter available and getter
         /// param name if getter available (i.e. same as success case).
         /// </remarks>
-        [Fact]
+        [ClrOnlyFact]
         public void LoadBogusParameterNames()
         {
             string ilSource = @"
@@ -861,11 +849,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.Equal(accessParam0Name, property2Params[0].Name);
                 Assert.Equal(accessParam1Name, property2Params[1].Name);
                 Assert.Equal("value", property2Params[2].Name); //filler name
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadParamArrayAttribute()
         {
             string ilSource = @"
@@ -937,11 +924,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.True(writeOnly.IsIndexer);
                 Assert.False(writeOnly.MustCallMethodsDirectly);
                 Assert.True(writeOnly.Parameters.Last().IsParams);
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadBogusParamArrayAttribute()
         {
             string ilSource = @"
@@ -1017,8 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.True(readWrite.IsIndexer);
                 Assert.True(readOnly.MustCallMethodsDirectly);
                 Assert.True(readOnly.Parameters.Last().IsParams); //favour setter
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         private static void CheckIndexer(PropertySymbol indexer, bool expectGetter, bool expectSetter, string indexerDisplayString, bool suppressAssociatedPropertyCheck = false)
@@ -1102,7 +1087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(property.IsExtern, @accessor.IsExtern);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void LoadExplicitImplementation()
         {
             string ilSource = @"
@@ -1179,8 +1164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexer));
                 Assert.Equal(interfaceIndexer, classIndexer.ExplicitInterfaceImplementations.Single());
-            },
-            emitOptions: TestEmitters.RefEmitBug);
+            });
         }
 
         [Fact]

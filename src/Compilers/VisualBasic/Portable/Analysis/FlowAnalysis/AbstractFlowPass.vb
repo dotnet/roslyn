@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' performance in unlikely but possible code such as this: "int x; if (cond) goto l1; x =
         ''' 3; l5: print x; l4: goto l5; l3: goto l4; l2: goto l3; l1: goto l2;"
         ''' </summary>
-        Private _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
+        Private ReadOnly _labels As New Dictionary(Of LabelSymbol, LabelStateAndNesting)
 
         ''' <summary> All of the labels seen so far in this forward scan of the body </summary>
         Private _labelsSeen As New HashSet(Of LabelSymbol)
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.YieldStatement
                     Return Nothing
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(branch.Kind)
             End Select
             Return Nothing
         End Function
@@ -919,7 +919,7 @@ lUnsplitAndFinish:
 
                 Else
                     ' If any of the initializers contained region, we must have exited the region by now or the node is a literal 
-                    ' which was not captured in initializers, but just reused accross when/if needed in With statement body
+                    ' which was not captured in initializers, but just reused across when/if needed in With statement body
 #If DEBUG Then
                     Debug.Assert(Me._regionPlace = RegionPlace.After OrElse IsNotCapturedExpression(Me._firstInRegion))
 #End If
@@ -1197,8 +1197,8 @@ lUnsplitAndFinish:
                 ' method is not an extension method, note that extension method may 
                 ' write to ByRef parameter
 
-                Dim redusedFrom As MethodSymbol = method.CallsiteReducedFromMethod
-                If redusedFrom Is Nothing OrElse redusedFrom.ParameterCount = 0 OrElse Not redusedFrom.Parameters(0).IsByRef Then
+                Dim reducedFrom As MethodSymbol = method.CallsiteReducedFromMethod
+                If reducedFrom Is Nothing OrElse reducedFrom.ParameterCount = 0 OrElse Not reducedFrom.Parameters(0).IsByRef Then
                     Return
                 End If
             End If
@@ -1880,7 +1880,7 @@ lUnsplitAndFinish:
             VisitRvalue(node.StepValue)
         End Sub
 
-        Protected Overridable Sub VisitForStatementVariableDeclation(node As BoundForStatement)
+        Protected Overridable Sub VisitForStatementVariableDeclaration(node As BoundForStatement)
         End Sub
 
         Public Overrides Function VisitForEachStatement(node As BoundForEachStatement) As BoundNode
@@ -1890,7 +1890,7 @@ lUnsplitAndFinish:
             ' For example the following statement should give a warning:
             '          For each i As Object in Me.GetSomeCollection(i)        ' <- use of uninitialized i
 
-            VisitForStatementVariableDeclation(node)
+            VisitForStatementVariableDeclaration(node)
 
             VisitRvalue(node.Collection)
 
@@ -1940,7 +1940,7 @@ lUnsplitAndFinish:
             ' For example the following statement should give a warning:
             '          For i As Object = 0 To i        ' <- use of uninitialized i
 
-            VisitForStatementVariableDeclation(node)
+            VisitForStatementVariableDeclaration(node)
 
             VisitForInitValues(node)
 
@@ -2449,7 +2449,7 @@ lUnsplitAndFinish:
         End Function
 
         Public Overrides Function VisitFieldOrPropertyInitializer(node As BoundFieldOrPropertyInitializer) As BoundNode
-            Visit(node.InitialValue)
+            VisitRvalue(node.InitialValue)
             Return Nothing
         End Function
 
@@ -2526,6 +2526,21 @@ lUnsplitAndFinish:
 
         Public Overrides Function VisitTypeAsValueExpression(node As BoundTypeAsValueExpression) As BoundNode
             Visit(node.Expression)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInterpolatedStringExpression(node As BoundInterpolatedStringExpression) As BoundNode
+            For Each item In node.Contents
+                Visit(item)
+            Next
+
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitInterpolation(node As BoundInterpolation) As BoundNode
+            Visit(node.Expression)
+            Visit(node.AlignmentOpt)
+            Visit(node.FormatStringOpt)
             Return Nothing
         End Function
 #End Region

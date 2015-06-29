@@ -448,7 +448,7 @@ class C
 }";
             var tree = Parse(source);
             var compilation = CreateCompilation(new List<SyntaxTree> { tree }, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, "Test");
-            CompileAndVerify(compilation, emitters: TestEmitters.CCI, expectedOutput: "k");
+            CompileAndVerify(compilation, expectedOutput: "k");
         }
 
         [WorkItem(546853, "DevDiv")]
@@ -505,7 +505,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseDll);
-            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
 {
@@ -579,7 +579,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.DebugDll);
-            var result = CompileAndVerify(compilation, emitters: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
 @"{
@@ -824,7 +824,7 @@ class Clazz
 }
 ";
             var compilation = CreateCompilationWithCustomILSource(source, il, options: TestOptions.ReleaseExe);
-            var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ", emitters: TestEmitters.RefEmitBug);
+            var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
 {
@@ -6080,7 +6080,7 @@ public class D
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"BCDE2442");
+            var compilation = CompileAndVerify(source, expectedOutput: @"BCDE2442");
 
             compilation.VerifyIL("D.DD.Test",
 @"{
@@ -6992,7 +6992,7 @@ class Program
         }
 
         [Fact]
-        public void EmitCallToOverridenToStringOnStruct()
+        public void EmitCallToOverriddenToStringOnStruct()
         {
             string source = @"
 using System;
@@ -11268,7 +11268,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }, emitters: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
+            CompileAndVerify(source2, new[] { new CSharpCompilationReference(compilation1) }).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11298,7 +11298,7 @@ public class Test
     }
 }
 ";
-            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }, emitters: TestEmitters.RefEmitBug).VerifyIL("Test.Main", @"
+            CompileAndVerify(source, new[] { TestReferences.SymbolsTests.Methods.CSMethods }).VerifyIL("Test.Main", @"
 {
   // Code size       26 (0x1a)
   .maxstack  4
@@ -11436,6 +11436,31 @@ public class Test
 }");
         }
 
+        [WorkItem(2272)]
+        [Fact]
+        public void DefaultParamValueIsEnum()
+        {
+            string source = @"
+using System;
+
+public class Parent
+{
+    public int Foo(ConsoleKey e = ConsoleKey.A) { return e == ConsoleKey.A ? 0 : 1; }
+}
+
+public class Test
+{
+    public static int Main()
+    {
+        var ret = new Parent().Foo();
+        Console.WriteLine(ret);
+        return ret;
+    }
+}
+";
+            CompileAndVerify(source, expectedOutput: @"0");
+        }
+
         [WorkItem(543089, "DevDiv")]
         [Fact()]
         public void NoOutAttributeOnMethodReturn()
@@ -11459,7 +11484,7 @@ class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543090, "DevDiv")]
@@ -11491,7 +11516,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543530, "DevDiv")]
@@ -11532,7 +11557,7 @@ class C1
         B(""Main"");
     }
 }";
-            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "null;null;C1;");
+            var compilation = CompileAndVerify(source, expectedOutput: "null;null;C1;");
         }
         [WorkItem(543091, "DevDiv")]
         [Fact()]
@@ -11563,7 +11588,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"1A");
+            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543156, "DevDiv")]
@@ -11743,8 +11768,7 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            // TODO (tomat): Ref.Emit has problems with nested structs
-            var compilation = CompileAndVerify(source, expectedOutput: @"42", emitters: TestEmitters.RefEmitUnsupported_646042);
+            var compilation = CompileAndVerify(source, expectedOutput: @"42");
 
             // Dev10
             compilation.VerifyIL("Program.Main",
@@ -12539,13 +12563,12 @@ expectedOutput: "-100");
                 EmitOptions.Default,
                 options.OutputKind,
                 GetDefaultModulePropertiesForSerialization(),
-                new ResourceDescription[0],
-                null);
+                new ResourceDescription[0]);
 
             var methodBodyCompiler = new MethodCompiler(
                 compilation: compilation,
                 moduleBeingBuiltOpt: module,
-                generateDebugInfo: false,
+                emittingPdb: false,
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -13730,7 +13753,7 @@ using System;
 
 ";
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @""
+            CompileAndVerify(source, expectedOutput: @""
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -13773,7 +13796,7 @@ using System;
 
 ";
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"hello"
+            CompileAndVerify(source, expectedOutput: @"hello"
 ).VerifyIL("Test.Main()",
 @"
 {
@@ -13825,7 +13848,7 @@ class c1
 
 ";
 
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: @"").
+            CompileAndVerify(source, expectedOutput: @"").
                 VerifyIL("Test..cctor()",
 @"
 {

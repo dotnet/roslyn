@@ -5,28 +5,25 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.AnalyzerPowerPack.Design;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.FxCopAnalyzers;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Design;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Linq;
+using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.CSharp.Design
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA1052DiagnosticAnalyzer.DiagnosticId), Shared]
     public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds =>
+            ImmutableArray.Create(CA1052DiagnosticAnalyzer.DiagnosticId);
 
-        public sealed override FixAllProvider GetFixAllProvider()
-        {
-            return WellKnownFixAllProviders.BatchFixer;
-        }
+        public sealed override FixAllProvider GetFixAllProvider() =>
+            WellKnownFixAllProviders.BatchFixer;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -35,22 +32,30 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             var cancellationToken = context.CancellationToken;
 
             cancellationToken.ThrowIfCancellationRequested();
-            var root = await document.GetSyntaxRootAsync(cancellationToken);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var classDeclaration = root.FindToken(span.Start).Parent?.FirstAncestorOrSelf<ClassDeclarationSyntax>();
             if (classDeclaration != null)
             {
-                var title = string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text);
-                var codeAction = new MyCodeAction(title, ct => AddStaticKeyword(document, root, classDeclaration));
+                var title = string.Format(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text);
+                var codeAction = new MyCodeAction(title, ct => MakeClassStatic(document, root, classDeclaration, ct));
                 context.RegisterCodeFix(codeAction, context.Diagnostics);
             }
         }
 
-        private Task<Document> AddStaticKeyword(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration)
+        private async Task<Document> MakeClassStatic(Document document, SyntaxNode root, ClassDeclarationSyntax classDeclaration, CancellationToken ct)
         {
-            var staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
-            var newDeclaration = classDeclaration.AddModifiers(staticKeyword);
-            var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            var editor = await DocumentEditor.CreateAsync(document, ct).ConfigureAwait(false);
+            var modifiers = editor.Generator.GetModifiers(classDeclaration);
+            editor.SetModifiers(classDeclaration, modifiers - DeclarationModifiers.Sealed + DeclarationModifiers.Static);
+
+            SyntaxList<MemberDeclarationSyntax> members = classDeclaration.Members;
+            MemberDeclarationSyntax defaultConstructor = members.FirstOrDefault(m => m.IsDefaultConstructor());
+            if (defaultConstructor != null)
+            {
+                editor.RemoveNode(defaultConstructor);
+            }
+
+            return editor.GetChangedDocument();
         }
 
         private class MyCodeAction : DocumentChangeAction
@@ -61,4 +66,24 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             }
         }
     }
+
+    internal static class CA1052CSharpCodeFixProviderExtensions
+    {
+        internal static bool IsDefaultConstructor(this MemberDeclarationSyntax member)
+        {
+            if (member.Kind() != SyntaxKind.ConstructorDeclaration)
+            {
+                return false;
+            }
+
+            var constructor = (ConstructorDeclarationSyntax)member;
+            if (constructor.Modifiers.Any(m => m.Kind() == SyntaxKind.StaticKeyword))
+            {
+                return false;
+            }
+
+            return constructor.ParameterList.Parameters.Count == 0;
+        }
+    }
+
 }

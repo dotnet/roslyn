@@ -60,11 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
+            // If we're in a normal editor or the Immediate window, we'll send the enter through
+            // to the editor.  In single-line debugger windows (Watch, etc), however, we don't
+            // want to send the enter though, because those windows don't support displaying
+            // more than one line of text.
+            sendThrough = !model.TriggerInfo.IsDebugger || model.TriggerInfo.IsImmediateWindow;
+
             if (model.IsSoftSelection)
             {
-                // If the completion list is soft selected, then don't commit on enter.  Instead,
-                // send the enter through to the editor and dismiss the completion list.
-                sendThrough = true;
+                // If the completion list is soft selected, then don't commit on enter.
+                // Instead, just dismiss the completion list.
                 committed = false;
                 return;
             }
@@ -79,15 +84,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            // Get the text that the user has currently entered into the buffer
-            var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
-            var textTypedSoFar = model.GetCurrentTextInSnapshot(
-                viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
+            if (sendThrough)
+            {
+                // Get the text that the user has currently entered into the buffer
+                var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+                var textTypedSoFar = model.GetCurrentTextInSnapshot(
+                    viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
+                sendThrough = selectedItem.CompletionProvider.SendEnterThroughToEditor(selectedItem, textTypedSoFar);
+            }
 
             var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
-
             this.Commit(selectedItem, textChange, model, null);
-            sendThrough = selectedItem.CompletionProvider.SendEnterThroughToEditor(selectedItem, textTypedSoFar);
             committed = true;
         }
     }

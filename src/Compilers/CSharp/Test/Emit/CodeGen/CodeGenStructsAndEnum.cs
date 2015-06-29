@@ -352,7 +352,7 @@ class Program
         }
 
         [Fact]
-        public void EmitIntefaceMethodOnStruct()
+        public void EmitInterfaceMethodOnStruct()
         {
             string source = @"
 using System;
@@ -1504,6 +1504,135 @@ struct S
   IL_002e:  callvirt   ""bool object.Equals(object)""
   IL_0033:  call       ""void System.Console.WriteLine(bool)""
   IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InitTemp001a()
+        {
+            string source = @"
+
+using System;
+ 
+struct S1
+{
+    public int x;
+}
+
+struct S
+{
+    public S1 x;
+
+    
+ 
+    static void Main()
+    {
+        Console.WriteLine(new S { x = new S1{x=0} }.x.Equals(new S { x = new S1{x=1} }));
+    }
+}
+
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "False");
+
+            compilation.VerifyIL("S.Main",
+@"
+{
+  // Code size       94 (0x5e)
+  .maxstack  4
+  .locals init (S V_0,
+                S1 V_1,
+                S V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  initobj    ""S1""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  ldc.i4.0
+  IL_0015:  stfld      ""int S1.x""
+  IL_001a:  ldloc.1
+  IL_001b:  stfld      ""S1 S.x""
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  ldflda     ""S1 S.x""
+  IL_0027:  ldloca.s   V_2
+  IL_0029:  initobj    ""S""
+  IL_002f:  ldloca.s   V_2
+  IL_0031:  ldloca.s   V_1
+  IL_0033:  initobj    ""S1""
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldc.i4.1
+  IL_003c:  stfld      ""int S1.x""
+  IL_0041:  ldloc.1
+  IL_0042:  stfld      ""S1 S.x""
+  IL_0047:  ldloc.2
+  IL_0048:  box        ""S""
+  IL_004d:  constrained. ""S1""
+  IL_0053:  callvirt   ""bool object.Equals(object)""
+  IL_0058:  call       ""void System.Console.WriteLine(bool)""
+  IL_005d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InitTemp001b()
+        {
+            string source = @"
+
+using System;
+ 
+class S1
+{
+    public int x;
+}
+
+struct S
+{
+    public S1 x;
+
+    
+ 
+    static void Main()
+    {
+        Console.WriteLine(new S { x = new S1{x=0} }.x.Equals(new S { x = new S1{x=1} }));
+    }
+}
+
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "False");
+
+            compilation.VerifyIL("S.Main",
+@"
+{
+  // Code size       77 (0x4d)
+  .maxstack  5
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  newobj     ""S1..ctor()""
+  IL_000f:  dup
+  IL_0010:  ldc.i4.0
+  IL_0011:  stfld      ""int S1.x""
+  IL_0016:  stfld      ""S1 S.x""
+  IL_001b:  ldloc.0
+  IL_001c:  ldfld      ""S1 S.x""
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  initobj    ""S""
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  newobj     ""S1..ctor()""
+  IL_0030:  dup
+  IL_0031:  ldc.i4.1
+  IL_0032:  stfld      ""int S1.x""
+  IL_0037:  stfld      ""S1 S.x""
+  IL_003c:  ldloc.0
+  IL_003d:  box        ""S""
+  IL_0042:  callvirt   ""bool object.Equals(object)""
+  IL_0047:  call       ""void System.Console.WriteLine(bool)""
+  IL_004c:  ret
 }
 ");
         }

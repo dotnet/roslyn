@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         protected override bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken)
         {
-            var syntaxTree = document.GetCSharpSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var syntaxTree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             return !syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) &&
                 !syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken);

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxNodeLocationComparer _lazyComparer;
         private DocumentationCommentIncludeCache _includedFileCache;
 
-        private int _indentDepth = 0;
+        private int _indentDepth;
 
         private Stack<TemporaryStringBuilder> _temporaryStringBuilders;
 
@@ -633,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static string[] s_newLineSequences = new[] { "\r\n", "\r", "\n" };
+        private static readonly string[] s_newLineSequences = new[] { "\r\n", "\r", "\n" };
 
         /// <summary>
         /// Given the full text of a documentation comment, strip off the comment punctuation (///, /**, etc)
@@ -1038,8 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.WRN_UnmatchedTypeParamRefTag, identifier.Location, identifier, memberSymbol);
                         break;
                     default:
-                        Debug.Assert(false, "Unknown element kind " + syntax.GetElementKind());
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(elementKind);
                 }
             }
             else

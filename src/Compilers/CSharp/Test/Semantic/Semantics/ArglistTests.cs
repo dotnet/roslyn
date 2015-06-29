@@ -145,7 +145,7 @@ Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()")
                 );
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void MakeRefTest01()
         {
             var text = @"
@@ -245,7 +245,7 @@ public struct C
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void RefTypeTest01()
         {
             var text = @"
@@ -303,7 +303,7 @@ Diagnostic(ErrorCode.ERR_ValueCantBeNull, "__reftype(null)").WithArguments("Syst
                 );
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArglistTest01()
         {
             var text = @"
@@ -333,7 +333,7 @@ public class C
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArglistTest02()
         {
             var text = @"
@@ -526,7 +526,7 @@ class error
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist"));
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void RefValueTest01()
         {
             var text = @"
@@ -599,7 +599,7 @@ public struct C
             verifier.VerifyIL("C.Ref", expectedRefIL);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void RefValueTest01a()
         {
             var text = @"

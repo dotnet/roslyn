@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(nameFromCref.Kind)
             End Select
 
-            RemoveOverridenMethodsAndProperties(symbols)
+            RemoveOverriddenMethodsAndProperties(symbols)
 
             Return symbols.ToImmutableAndFree()
         End Function

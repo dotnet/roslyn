@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' PERF: Use Integer instead of ConversionKind so the compiler can use array literal initialization.
             '       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-            Private Shared s_convkind As Integer(,)
+            Private Shared ReadOnly s_convkind As Integer(,)
 
             Shared Sub New()
                 Const NOC As Integer = Nothing 'ConversionKind.NoConversion
@@ -2253,7 +2253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If (srcIsInterfaceType OrElse srcIsClassType) Then
 
-                    Dim conv As ConversionKind = ToInterfaceConversionClassificator.ClassifyConversionToVariantCompatibleInterface(DirectCast(source, NamedTypeSymbol),
+                    Dim conv As ConversionKind = ToInterfaceConversionClassifier.ClassifyConversionToVariantCompatibleInterface(DirectCast(source, NamedTypeSymbol),
                                                                                                                                    DirectCast(destination, NamedTypeSymbol),
                                                                                                                                    varianceCompatibilityClassificationDepth,
                                                                                                                                    useSiteDiagnostics)
@@ -2442,7 +2442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Helper structure to classify conversions from named types to interfaces
         ''' in accumulating fashion.
         ''' </summary>
-        Private Structure ToInterfaceConversionClassificator
+        Private Structure ToInterfaceConversionClassifier
             Private _conv As ConversionKind
             Private _match As NamedTypeSymbol
 
@@ -2475,7 +2475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 varianceCompatibilityClassificationDepth As Integer,
                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
             ) As ConversionKind
-                Dim helper As ToInterfaceConversionClassificator = Nothing
+                Dim helper As ToInterfaceConversionClassifier = Nothing
                 helper.AccumulateConversionClassificationToVariantCompatibleInterface(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
                 Return helper.Result
             End Function
@@ -3286,7 +3286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ElseIf IsInterfaceType(destination) Then
 
-                        Dim conv As ConversionKind = ToInterfaceConversionClassificator.ClassifyConversionToVariantCompatibleInterface(
+                        Dim conv As ConversionKind = ToInterfaceConversionClassifier.ClassifyConversionToVariantCompatibleInterface(
                                                             DirectCast(source, NamedTypeSymbol),
                                                             DirectCast(destination, NamedTypeSymbol),
                                                             varianceCompatibilityClassificationDepth:=0,
@@ -3510,7 +3510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 conv = ClassifyConversionToTypeParameter(source, DirectCast(destination, TypeParameterSymbol), varianceCompatibilityClassificationDepth, useSiteDiagnostics)
 
                 If ConversionExists(conv) Then
-                    Debug.Assert(IsNarrowingConversion(conv)) ' We are relying on this while classifying conversions from type paremeter to avoid need for recursion.
+                    Debug.Assert(IsNarrowingConversion(conv)) ' We are relying on this while classifying conversions from type parameter to avoid need for recursion.
                     Return conv
                 End If
             End If
@@ -3561,7 +3561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim dstIsInterfaceType As Boolean
             Dim dstIsArrayType As Boolean
 
-            Dim convToInterface As ToInterfaceConversionClassificator = Nothing
+            Dim convToInterface As ToInterfaceConversionClassifier = Nothing
             Dim destinationInterface As NamedTypeSymbol = Nothing
 
             ClassifyAsReferenceType(destination, dstIsClassType, dstIsDelegateType, dstIsInterfaceType, dstIsArrayType)

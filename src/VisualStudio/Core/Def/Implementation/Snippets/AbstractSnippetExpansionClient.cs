@@ -132,7 +132,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (endTrackingSpan != null)
             {
                 SnapshotSpan endSpanInSurfaceBuffer;
-                if (!TryGetSurfaceBufferSpan(endTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot), out endSpanInSurfaceBuffer))
+                if (!TryGetSpanOnHigherBuffer(
+                    endTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot),
+                    TextView.TextBuffer,
+                    out endSpanInSurfaceBuffer))
                 {
                     return;
                 }
@@ -344,19 +347,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             int endLine = 0;
             int endIndex = 0;
 
-            // The expansion itself needs to be created in the surface buffer, so map everything up
+            // The expansion itself needs to be created in the data buffer, so map everything up
             var startPointInSubjectBuffer = SubjectBuffer.CurrentSnapshot.GetPoint(startPositionInSubjectBuffer);
             var endPointInSubjectBuffer = SubjectBuffer.CurrentSnapshot.GetPoint(endPositionInSubjectBuffer);
 
-            SnapshotSpan surfaceBufferSpan;
-            if (!TryGetSurfaceBufferSpan(SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer), out surfaceBufferSpan))
+            SnapshotSpan dataBufferSpan;
+            if (!TryGetSpanOnHigherBuffer(
+                SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer),
+                TextView.TextViewModel.DataBuffer,
+                out dataBufferSpan))
             {
                 return false;
             }
 
-            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextBuffer);
-            buffer.GetLineIndexOfPosition(surfaceBufferSpan.Start.Position, out startLine, out startIndex);
-            buffer.GetLineIndexOfPosition(surfaceBufferSpan.End.Position, out endLine, out endIndex);
+            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextViewModel.DataBuffer);
+            var expansion = buffer as IVsExpansion;
+            if (buffer == null || expansion == null)
+            {
+                return false;
+            }
+
+            buffer.GetLineIndexOfPosition(dataBufferSpan.Start.Position, out startLine, out startIndex);
+            buffer.GetLineIndexOfPosition(dataBufferSpan.End.Position, out endLine, out endIndex);
 
             var textSpan = new VsTextSpan
             {
@@ -366,7 +378,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iEndIndex = endIndex
             };
 
-            var expansion = buffer as IVsExpansion;
             return expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out ExpansionSession) == VSConstants.S_OK;
         }
 
@@ -422,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 textSpan.iEndLine = textSpan.iStartLine;
                 textSpan.iEndIndex = textSpan.iStartIndex;
 
-                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextBuffer) as IVsExpansion;
+                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out ExpansionSession);
 
@@ -590,18 +601,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return false;
         }
 
-        internal bool TryGetSurfaceBufferSpan(SnapshotSpan snapshotSpan, out SnapshotSpan surfaceBufferSpan)
+        internal bool TryGetSpanOnHigherBuffer(SnapshotSpan snapshotSpan, ITextBuffer targetBuffer, out SnapshotSpan span)
         {
-            var surfaceBufferSpanCollection = TextView.BufferGraph.MapUpToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, TextView.TextBuffer);
+            var spanCollection = TextView.BufferGraph.MapUpToBuffer(snapshotSpan, SpanTrackingMode.EdgeExclusive, targetBuffer);
 
-            // Bail if a snippet span does not map up to exactly one surface buffer span.
-            if (surfaceBufferSpanCollection.Count == 1)
+            // Bail if a snippet span does not map up to exactly one span.
+            if (spanCollection.Count == 1)
             {
-                surfaceBufferSpan = surfaceBufferSpanCollection.Single();
+                span = spanCollection.Single();
                 return true;
             }
 
-            surfaceBufferSpan = default(SnapshotSpan);
+            span = default(SnapshotSpan);
             return false;
         }
     }

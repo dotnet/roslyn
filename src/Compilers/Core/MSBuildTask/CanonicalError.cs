@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     internal static class CanonicalError
     {
         // Defines the main pattern for matching messages.
-        private static Regex s_originCategoryCodeTextExpression = new Regex
+        private static readonly Regex s_originCategoryCodeTextExpression = new Regex
              (
                 // Beginning of line and any amount of whitespace.
                 @"^\s*"
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
              );
 
         // Matches and extracts filename and location from an 'origin' element.
-        private static Regex s_filenameLocationFromOrigin = new Regex
+        private static readonly Regex s_filenameLocationFromOrigin = new Regex
              (
                  "^"                                             // Beginning of line
                  + @"(\d+>)?"                                     // Optional ddd> project number prefix
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
              );
 
         // Matches location that is a simple number.
-        private static Regex s_lineFromLocation = new Regex        // Example: line
+        private static readonly Regex s_lineFromLocation = new Regex        // Example: line
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             );
 
         // Matches location that is a range of lines.
-        private static Regex s_lineLineFromLocation = new Regex    // Example: line-line
+        private static readonly Regex s_lineLineFromLocation = new Regex    // Example: line-line
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             );
 
         // Matches location that is a line and column
-        private static Regex s_lineColFromLocation = new Regex     // Example: line,col
+        private static readonly Regex s_lineColFromLocation = new Regex     // Example: line,col
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             );
 
         // Matches location that is a line and column-range
-        private static Regex s_lineColColFromLocation = new Regex  // Example: line,col-col
+        private static readonly Regex s_lineColColFromLocation = new Regex  // Example: line,col-col
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             );
 
         // Matches location that is line,col,line,col
-        private static Regex s_lineColLineColFromLocation = new Regex      // Example: line,col,line,col
+        private static readonly Regex s_lineColLineColFromLocation = new Regex      // Example: line,col,line,col
             (
                 "^"                                              // Beginning of line
                 + "(?<LINE>[0-9]*)"                               // Match any number.
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             //      -------------- ------------ ------- ------  ----------------------------------------------
             //      Origin         SubCategory  Cat.    Code    Text
             // 
-            // To accomodate absolute filenames in Origin, tolerate a colon in the second position
+            // To accommodate absolute filenames in Origin, tolerate a colon in the second position
             // as long as its preceded by a letter.
             //
             // Localization Note:

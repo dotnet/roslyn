@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(declarationSyntax.Parent.Kind());
                 }
             }
             else
@@ -195,35 +195,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundStatement containingStatement)
         {
-            if (condition == null || !_compilation.Options.EnableEditAndContinue || containingStatement.WasCompilerGenerated)
+            return AddConditionSequencePoint(condition, containingStatement.Syntax, containingStatement.WasCompilerGenerated);
+        }
+
+        internal BoundExpression AddConditionSequencePoint(BoundExpression condition, BoundCatchBlock containingCatchWithFilter)
+        {
+            Debug.Assert(containingCatchWithFilter.ExceptionFilterOpt.Syntax.IsKind(SyntaxKind.CatchFilterClause));
+            return AddConditionSequencePoint(condition, containingCatchWithFilter.ExceptionFilterOpt.Syntax, containingCatchWithFilter.WasCompilerGenerated);
+        }
+
+        private BoundExpression AddConditionSequencePoint(BoundExpression condition, SyntaxNode synthesizedVariableSyntax, bool wasGenerated)
+        {
+            if (condition == null || !_compilation.Options.EnableEditAndContinue || wasGenerated)
             {
                 return condition;
             }
 
-            // The local has to be associated with the syntax of the statement containing the condition since 
-            // EnC source mapping only operates on statements.
-            var local = _factory.SynthesizedLocal(condition.Type, containingStatement.Syntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+            // The local has to be associated with a syntax that is tracked by EnC source mapping.
+            // At most one ConditionalBranchDiscriminator variable shall be associated with any given EnC tracked syntax node.
+            var local = _factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
 
-            var condConst = condition.ConstantValue;
-            if (condConst == null)
-            {
-                return new BoundSequence(
-                    condition.Syntax,
-                    ImmutableArray.Create(local),
-                    ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
-                    new BoundSequencePointExpression(syntax: null, expression: _factory.Local(local), type: condition.Type),
-                    condition.Type);
-            }
-            else
-            {
-                // const expression must stay a const to not invalidate results of control flow analysis
-                return new BoundSequence(
-                    condition.Syntax,
-                    ImmutableArray.Create(local),
-                    ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
-                    condition,
-                    condition.Type);
-            }
+            // Add hidden sequence point unless the condition is a constant expression.
+            // Constant expression must stay a const to not invalidate results of control flow analysis.
+            var valueExpression = (condition.ConstantValue == null) ?
+                new BoundSequencePointExpression(syntax: null, expression: _factory.Local(local), type: condition.Type) :
+                condition;
+
+            return new BoundSequence(
+                condition.Syntax,
+                ImmutableArray.Create(local),
+                ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(_factory.Local(local), condition)),
+                valueExpression,
+                condition.Type);
         }
     }
 }

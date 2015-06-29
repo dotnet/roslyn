@@ -505,7 +505,7 @@ class Test
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -602,7 +602,7 @@ class Test
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -667,7 +667,7 @@ class Test
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -849,7 +849,7 @@ struct Test
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -888,7 +888,7 @@ struct Test
         </dynamicLocals>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
-          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -988,7 +988,7 @@ class Test
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""10"" />
+          <slot kind=""0"" offset=""73"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -1003,6 +1003,9 @@ class Test
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_2"" parameterNames=""d6"">
       <customDebugInfo>
         <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""125"" />
+        </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""11"" startColumn=""35"" endLine=""11"" endColumn=""36"" document=""0"" />

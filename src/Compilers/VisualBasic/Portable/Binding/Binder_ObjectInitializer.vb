@@ -922,7 +922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class ObjectInitializerBinder
         Inherits Binder
 
-        Private _receiver As BoundExpression
+        Private ReadOnly _receiver As BoundExpression
 
         Public Sub New(containingBinder As Binder, receiver As BoundExpression)
             MyBase.New(containingBinder)

@@ -1,8 +1,9 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
-|Windows|Linux|Mac OSX|
-|:--:|:--:|:--:|
-|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
+||Windows - Debug|Windows - Release|Linux|Mac OSX|
+|:--:|:--:|:--:|:--:|:--:|
+|**master**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_release/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_windows_release/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_mac/)|
+|**stabilization**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_release/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_windows_release/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_linux/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_linux/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_mac/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn_stabilization_mac/)|
 
 
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -17,12 +18,12 @@ that are used by Visual Studio.
 Just want to provide feedback on new [language features](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14) 
 and [IDE features](http://blogs.msdn.com/b/visualstudio/archive/2014/11/12/the-c-and-visual-basic-code-focused-ide-experience.aspx)? 
 
-* Try out [Visual Studio 2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs), 
+* Try out [Visual Studio 2015 RC](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
 which has the latest features built-in.
 
     Want to keep your box clean? You can use 
 [prebuilt Azure VM images](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx) 
-with VS 2015 Preview already installed.
+with VS 2015 RC already installed.
 
 * Roslyn is no longer available for Visual Studio 2013.
 
@@ -32,11 +33,13 @@ Get started building diagnostics, code fixes, refactorings, and other code-aware
 
 Click on the version of Visual Studio you are using for installation instructions.
 
-- [**Visual Studio 2015 Preview**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-Preview)
+- [**Visual Studio 2015 RC**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-RC)
+
+- [**Visual Studio 2015 CTP 6**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-6)
 
 - [**Visual Studio 2015 CTP 5**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-5)
 
-- [**Visual Studio 2015 CTP 6**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-6)
+- [**Visual Studio 2015 Preview**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-Preview)
 
 Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
 From the NuGet package manager console:
@@ -52,6 +55,7 @@ From the NuGet package manager console:
 ### Get started
 
 * [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview) 
+* [API Changes between CTP 6 and RC](https://github.com/dotnet/roslyn/wiki/VS-2015-RC-API-Changes)
 * [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
 * [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 

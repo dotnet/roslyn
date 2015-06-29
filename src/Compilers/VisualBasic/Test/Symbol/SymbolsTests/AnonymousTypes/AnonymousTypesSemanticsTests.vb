@@ -2033,6 +2033,37 @@ End Module
 
 #End Region
 
+        <Fact>
+        <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
+        Public Sub ContainingSymbol()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Module Test
+    Sub Main()
+        Dim x = New With {.y = 1}
+        System.Console.WriteLine(x.GetType())
+    End Sub
+End Module
+    </file>
+</compilation>, options:=TestOptions.DebugExe.WithRootNamespace("Ns1.Ns2"))
+
+            Dim tree As SyntaxTree = comp.SyntaxTrees.Single()
+            Dim semanticModel = comp.GetSemanticModel(tree)
+            Dim x = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "x").Single()
+
+            Dim type = semanticModel.GetTypeInfo(x).Type
+            Assert.Equal("<anonymous type: y As System.Int32>", type.ToTestDisplayString())
+            Assert.True(type.ContainingNamespace.IsGlobalNamespace)
+
+            Dim validator As Action(Of ModuleSymbol) =
+                Sub(m As ModuleSymbol)
+                    Dim anonType = (From sym In m.GlobalNamespace.GetMembers()
+                                    Where sym.Name.Contains("AnonymousType")).Single()
+                End Sub
+
+            CompileAndVerify(comp, symbolValidator:=validator, expectedOutput:="VB$AnonymousType_0`1[System.Int32]")
+        End Sub
     End Class
 
 #Region "Extensions"

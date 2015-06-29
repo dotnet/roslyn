@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class AssemblyIdentityComparer
     {
-        public static readonly AssemblyIdentityComparer Default = new AssemblyIdentityComparer();
+        public static AssemblyIdentityComparer Default { get; } = new AssemblyIdentityComparer();
 
         public static StringComparer SimpleNameComparer
         {
@@ -218,3 +218,4 @@ namespace Microsoft.CodeAnalysis
         }
     }
 }
+

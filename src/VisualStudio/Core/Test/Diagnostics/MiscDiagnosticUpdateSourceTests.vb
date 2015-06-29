@@ -64,17 +64,17 @@ class 123 { }
                        </code>
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
-                Dim errorSource = String.Empty
+                Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
-                                                               Dim id = DirectCast(a.Id, ErrorSourceId)
-                                                               errorSource = id.ErrorSource
+                                                               Dim id = DirectCast(a.Id, BuildToolId)
+                                                               buildTool = id.BuildTool
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                Assert.Equal(PredefinedErrorSources.Compiler, errorSource)
+                Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Sub
 
@@ -86,17 +86,17 @@ End Class
                        </code>
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
-                Dim errorSource = String.Empty
+                Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
-                                                               Dim id = DirectCast(a.Id, ErrorSourceId)
-                                                               errorSource = id.ErrorSource
+                                                               Dim id = DirectCast(a.Id, BuildToolId)
+                                                               buildTool = id.BuildTool
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                Assert.Equal(PredefinedErrorSources.Compiler, errorSource)
+                Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Sub
 

@@ -1220,7 +1220,7 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
 ";
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
-            CompileAndVerify(main, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(main);
         }
 
         [Fact, WorkItem(530974, "DevDiv")]
@@ -1234,7 +1234,7 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
 ";
             var main = CreateCompilationWithMscorlib(mainSource, new[] { ilRef, unavailableRef });
 
-            CompileAndVerify(main, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(main);
         }
 
         [Fact, WorkItem(530974, "DevDiv")]
@@ -1934,7 +1934,7 @@ class Test
         }
 
         [WorkItem(708169, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedExists()
         {
             var il = @"
@@ -2057,7 +2057,7 @@ class C
         }
 
         [WorkItem(708169, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverloadResolutionWithUnsupportedMetadata_UnsupportedMetadata_SupportedDoesNotExist()
         {
             var il = @"

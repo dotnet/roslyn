@@ -24,5 +24,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.PreferFaultHandler);
         }
+
+        public override BoundNode VisitCatchBlock(BoundCatchBlock node)
+        {
+            if (node.ExceptionFilterOpt == null)
+            {
+                return base.VisitCatchBlock(node);
+            }
+
+            BoundExpression rewrittenExceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
+            BoundExpression rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
+            BoundBlock rewrittenBody = (BoundBlock)this.Visit(node.Body);
+            TypeSymbol rewrittenExceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
+
+            // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            // the containing method is edited while methods invoked in the condition are being executed.
+            return node.Update(
+                node.LocalOpt, 
+                rewrittenExceptionSourceOpt, 
+                rewrittenExceptionTypeOpt, 
+                AddConditionSequencePoint(rewrittenFilter, node), 
+                rewrittenBody,
+                node.IsSynthesizedAsyncCatchAll);
+        }
     }
 }

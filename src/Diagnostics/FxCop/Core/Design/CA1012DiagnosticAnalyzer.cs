@@ -5,9 +5,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
+using Microsoft.AnalyzerPowerPack.Utilities;
+using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+namespace Microsoft.AnalyzerPowerPack.Design
 {
     /// <summary>
     /// CA1012: Abstract classes should not have public constructors
@@ -16,13 +17,13 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public sealed class CA1012DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1012";
-        private static LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.AbstractTypesShouldNotHavePublicConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
-        private static LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.TypeIsAbstractButHasPublicConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.AbstractTypesShouldNotHavePublicConstructors), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
+        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(AnalyzerPowerPackRulesResources.TypeIsAbstractButHasPublicConstructors), AnalyzerPowerPackRulesResources.ResourceManager, typeof(AnalyzerPowerPackRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
                                                                          s_localizableTitle,
                                                                          s_localizableMessage,
-                                                                         FxCopDiagnosticCategory.Design,
+                                                                         AnalyzerPowerPackDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182126.aspx",

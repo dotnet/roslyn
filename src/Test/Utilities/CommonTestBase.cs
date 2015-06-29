@@ -23,61 +23,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public abstract partial class CommonTestBase : TestBase
     {
-        private static ImmutableArray<Emitter> LoadEmitters()
-        {
-            var configFileName = Path.GetFileName(Assembly.GetExecutingAssembly().Location) + ".config";
-            var configFilePath = Path.Combine(Directory.GetCurrentDirectory(), configFileName);
-
-            if (File.Exists(configFilePath))
-            {
-                var assemblyConfig = XDocument.Load(configFilePath);
-
-                var roslynUnitTestsSection = assemblyConfig.Root.Element("roslyn.unittests");
-
-                if (roslynUnitTestsSection != null)
-                {
-                    var emitSection = roslynUnitTestsSection.Element("emit");
-
-                    if (emitSection != null)
-                    {
-                        var methodElements = emitSection.Elements("method");
-                        var builder = ImmutableArray.CreateBuilder<Emitter>(methodElements.Count());
-
-                        foreach (var method in methodElements)
-                        {
-                            Emitter emitter;
-                            try
-                            {
-                                var asm = Assembly.Load(method.Attribute("assembly").Value);
-                                emitter = (Emitter)Delegate.CreateDelegate(typeof(Emitter),
-                                    asm.GetType(method.Attribute("type").Value),
-                                    method.Attribute("name").Value);
-                            }
-                            catch
-                            {
-                                // It is possible and OK for an emitter to fail to load.  This is in fact expected
-                                // when only the Open directory is built (as is the case in Github).  When this happens
-                                // the ReflectionEmitter won't be present.  In that case we use the single available
-                                // Emitter
-                                continue;
-                            }
-
-                            builder.Add(emitter);
-                        }
-
-                        if (builder.Count == 0)
-                        {
-                            throw new Exception("Unable to load any emitter");
-                        }
-
-                        return builder.ToImmutableArray();
-                    }
-                }
-            }
-
-            return ImmutableArray<Emitter>.Empty;
-        }
-
         internal abstract IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public);
 
         #region Emit
@@ -85,64 +30,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         protected abstract Compilation GetCompilationForEmit(
             IEnumerable<string> source,
             IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options);
+            CompilationOptions options,
+            ParseOptions parseOptions);
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
-
-        internal delegate CompilationVerifier Emitter(
-            CommonTestBase test,
-            Compilation compilation,
-            IEnumerable<ModuleData> dependencies,
-            TestEmitters emitters,
-            IEnumerable<ResourceDescription> manifestResources,
-            SignatureDescription[] expectedSignatures,
-            string expectedOutput,
-            Action<PEAssembly, TestEmitters> assemblyValidator,
-            Action<IModuleSymbol, TestEmitters> symbolValidator,
-            bool collectEmittedAssembly,
-            bool verify);
-
-        private static ImmutableArray<Emitter> s_emitters;
-
-        private static ImmutableArray<Emitter> Emitters
-        {
-            get
-            {
-                if (s_emitters.IsDefault)
-                {
-                    s_emitters = LoadEmitters();
-                }
-
-                return s_emitters;
-            }
-        }
-
+                
         internal CompilationVerifier CompileAndVerify(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitters = TestEmitters.All,
-            Action<IModuleSymbol, TestEmitters> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> assemblyValidator = null,
-            Action<IModuleSymbol, TestEmitters> symbolValidator = null,
+            Action<IModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
-            bool collectEmittedAssembly = true,
+            ParseOptions parseOptions = null,
             bool verify = true)
         {
             return CompileAndVerify(
                 sources: new string[] { source },
                 additionalRefs: additionalRefs,
                 dependencies: dependencies,
-                emitters: emitters,
                 sourceSymbolValidator: sourceSymbolValidator,
                 assemblyValidator: assemblyValidator,
                 symbolValidator: symbolValidator,
                 expectedSignatures: expectedSignatures,
                 expectedOutput: expectedOutput,
                 options: options,
-                collectEmittedAssembly: collectEmittedAssembly,
+                parseOptions: parseOptions,
                 verify: verify);
         }
 
@@ -150,14 +66,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string[] sources,
             IEnumerable<MetadataReference> additionalRefs = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitters = TestEmitters.All,
-            Action<IModuleSymbol, TestEmitters> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> assemblyValidator = null,
-            Action<IModuleSymbol, TestEmitters> symbolValidator = null,
+            Action<IModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
             CompilationOptions options = null,
-            bool collectEmittedAssembly = true,
+            ParseOptions parseOptions = null,
             bool verify = true)
         {
             if (options == null)
@@ -165,19 +80,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 options = CompilationOptionsReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
             }
 
-            var compilation = GetCompilationForEmit(sources, additionalRefs, options);
+            var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
 
             return this.CompileAndVerify(
                 compilation,
                 null,
                 dependencies,
-                emitters,
                 sourceSymbolValidator,
                 assemblyValidator,
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
-                collectEmittedAssembly,
                 verify);
         }
 
@@ -185,13 +98,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
-            TestEmitters emitters = TestEmitters.All,
-            Action<IModuleSymbol, TestEmitters> sourceSymbolValidator = null,
-            Action<PEAssembly, TestEmitters> assemblyValidator = null,
-            Action<IModuleSymbol, TestEmitters> symbolValidator = null,
+            Action<IModuleSymbol> sourceSymbolValidator = null,
+            Action<PEAssembly> assemblyValidator = null,
+            Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
-            bool collectEmittedAssembly = true,
             bool verify = true)
         {
             Assert.NotNull(compilation);
@@ -210,51 +121,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (sourceSymbolValidator != null)
             {
                 var module = compilation.Assembly.Modules.First();
-                sourceSymbolValidator(module, emitters);
-            }
-
-            if (Emitters.IsDefaultOrEmpty)
-            {
-                throw new InvalidOperationException(
-                    @"You must specify at least one Emitter.
-
-Example app.config:
-
-<?xml version=""1.0"" encoding=""utf-8""?>
-<configuration>
-  <roslyn.unittests>
-    <emit>
-      <method assembly=""SomeAssembly"" type=""SomeClass"" name= ""SomeEmitMethod"" />
-    </emit>
-  </roslyn.unittests>
-</configuration>");
+                sourceSymbolValidator(module);
             }
 
             CompilationVerifier result = null;
 
-            foreach (var emit in Emitters)
-            {
-                var verifier = emit(this,
-                                    compilation,
-                                    dependencies,
-                                    emitters,
-                                    manifestResources,
-                                    expectedSignatures,
-                                    expectedOutput,
-                                    assemblyValidator,
-                                    symbolValidator,
-                                    collectEmittedAssembly,
-                                    verify);
+            var verifier = Emit(compilation,
+                                dependencies,
+                                manifestResources,
+                                expectedSignatures,
+                                expectedOutput,
+                                assemblyValidator,
+                                symbolValidator,
+                                verify);
 
-                if (result == null)
-                {
-                    result = verifier;
-                }
-                else
-                {
-                    // only one emitter should return a verifier
-                    Assert.Null(verifier);
-                }
+            if (result == null)
+            {
+                result = verifier;
+            }
+            else
+            {
+                // only one emitter should return a verifier
+                Assert.Null(verifier);
             }
 
             // If this fails, it means that more that all emitters failed to return a validator
@@ -264,43 +152,30 @@ Example app.config:
             return result;
         }
 
-        private static Action<T, TestEmitters> Translate<T>(Action<T> action)
-        {
-            if (action != null)
-            {
-                return (module, _) => action(module);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true, TestEmitters emitters = TestEmitters.All)
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
         {
             return CompileAndVerifyFieldMarshal(
                 source,
-                (s, _omitted1, _omitted2) =>
+                (s, _omitted1) =>
                 {
                     Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
                     return expectedBlobs[s];
                 },
-                isField,
-                emitters);
+                isField);
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, TestEmitters, byte[]> getExpectedBlob, bool isField = true, TestEmitters emitters = TestEmitters.All)
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, emitters: emitters, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly, options) => MarshalAsMetadataValidator(assembly, getExpectedBlob, options, isField));
+            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
-        static internal void RunValidators(CompilationVerifier verifier, TestEmitters emitters, Action<PEAssembly, TestEmitters> assemblyValidator, Action<IModuleSymbol, TestEmitters> symbolValidator)
+        static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
         {
             if (assemblyValidator != null)
             {
                 using (var emittedMetadata = AssemblyMetadata.Create(verifier.GetAllModuleMetadata()))
                 {
-                    assemblyValidator(emittedMetadata.GetAssembly(), emitters);
+                    assemblyValidator(emittedMetadata.GetAssembly());
                 }
             }
 
@@ -308,45 +183,29 @@ Example app.config:
             {
                 var peModuleSymbol = verifier.GetModuleSymbolForEmittedImage();
                 Debug.Assert(peModuleSymbol != null);
-                symbolValidator(peModuleSymbol, emitters);
+                symbolValidator(peModuleSymbol);
             }
         }
 
-        // The purpose of this method is simply to check that the signature of the 'Emit' method 
-        // matches the 'Emitter' delegate type that it will be dynamically assigned to...
-        // That is, we will catch mismatches due to changes in the signatures at compile time instead
-        // of getting an opaque ArgumentException from the call to CreateDelegate.
-        private static void TestEmitSignature()
-        {
-            Emitter emitter = Emit;
-        }
-
-        static internal CompilationVerifier Emit(
-            CommonTestBase test,
+        internal CompilationVerifier Emit(
             Compilation compilation,
             IEnumerable<ModuleData> dependencies,
-            TestEmitters emitters,
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
-            Action<PEAssembly, TestEmitters> assemblyValidator,
-            Action<IModuleSymbol, TestEmitters> symbolValidator,
-            bool collectEmittedAssembly,
+            Action<PEAssembly> assemblyValidator,
+            Action<IModuleSymbol> symbolValidator,
             bool verify)
         {
             CompilationVerifier verifier = null;
 
-            // We only handle CCI emit here for now...
-            if (emitters != TestEmitters.RefEmit)
-            {
-                verifier = new CompilationVerifier(test, compilation, dependencies);
+            verifier = new CompilationVerifier(this, compilation, dependencies);
 
-                verifier.Emit(expectedOutput, manifestResources, verify, expectedSignatures);
+            verifier.Emit(expectedOutput, manifestResources, verify, expectedSignatures);
 
-                // We're dual-purposing emitters here.  In this context, it
-                // tells the validator the version of Emit that is calling it. 
-                RunValidators(verifier, TestEmitters.CCI, assemblyValidator, symbolValidator);
-            }
+            // We're dual-purposing emitters here.  In this context, it
+            // tells the validator the version of Emit that is calling it. 
+            RunValidators(verifier, assemblyValidator, symbolValidator);
 
             return verifier;
         }

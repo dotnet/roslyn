@@ -1,12 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -44,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             get
             {
-                if (_analyzerReference.IsUnresolved)
+                if (_analyzerReference is UnresolvedAnalyzerReference)
                 {
                     return KnownMonikers.OverlayWarning;
                 }
@@ -85,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private static string GetNameText(AnalyzerReference analyzerReference)
         {
-            if (analyzerReference.IsUnresolved)
+            if (analyzerReference is UnresolvedAnalyzerReference)
             {
                 return analyzerReference.FullPath;
             }

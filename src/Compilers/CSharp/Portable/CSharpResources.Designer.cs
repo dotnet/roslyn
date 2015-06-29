@@ -341,15 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is ambiguous between &apos;{1}&apos; and &apos;{2}&apos;; use either &apos;@{0}&apos; or &apos;{0}Attribute&apos;.
-        /// </summary>
-        internal static string ERR_AmbigousAttribute {
-            get {
-                return ResourceManager.GetString("ERR_AmbigousAttribute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The inherited members &apos;{0}&apos; and &apos;{1}&apos; have the same signature in type &apos;{2}&apos;, so they cannot be overridden.
         /// </summary>
         internal static string ERR_AmbigOverride {
@@ -382,6 +373,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AmbigUnaryOp {
             get {
                 return ResourceManager.GetString("ERR_AmbigUnaryOp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is ambiguous between &apos;{1}&apos; and &apos;{2}&apos;; use either &apos;@{0}&apos; or &apos;{0}Attribute&apos;.
+        /// </summary>
+        internal static string ERR_AmbiguousAttribute {
+            get {
+                return ResourceManager.GetString("ERR_AmbiguousAttribute", resourceCulture);
             }
         }
         
@@ -2789,6 +2789,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        /// </summary>
+        internal static string ERR_ConstantStringTooLong {
+            get {
+                return ResourceManager.GetString("ERR_ConstantStringTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Constant value &apos;{0}&apos; cannot be converted to a &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_ConstOutOfRange {
@@ -2848,15 +2857,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ConstValueRequired {
             get {
                 return ResourceManager.GetString("ERR_ConstValueRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
-        /// </summary>
-        internal static string ERR_ContantStringTooLong {
-            get {
-                return ResourceManager.GetString("ERR_ContantStringTooLong", resourceCulture);
             }
         }
         
@@ -8693,6 +8693,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to await in catch blocks and finally blocks.
+        /// </summary>
+        internal static string IDS_AwaitInCatchAndFinally {
+            get {
+                return ResourceManager.GetString("IDS_AwaitInCatchAndFinally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to collection.
         /// </summary>
         internal static string IDS_Collection {
@@ -10233,7 +10242,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CalleFilePathAttribute applied to parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
+        ///   Looks up a localized string similar to The CallerFilePathAttribute applied to parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_CallerFilePathParamForUnconsumedLocation {
             get {
@@ -10242,7 +10251,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CalleFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
+        ///   Looks up a localized string similar to The CallerFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_CallerFilePathParamForUnconsumedLocation_Title {
             get {
@@ -12707,7 +12716,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn’t apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn&apos;t what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from t [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn&apos;t apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn&apos;t what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from t [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string WRN_UnobservedAwaitableExpression_Description {
             get {

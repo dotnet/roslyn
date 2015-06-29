@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         // debug sequence points from all blocks, note that each 
         // sequence point references absolute IL offset via IL marker
-        public ArrayBuilder<RawSequencePoint> SeqPointsOpt = null;
+        public ArrayBuilder<RawSequencePoint> SeqPointsOpt;
 
         /// <summary> 
         /// In some cases we have to get a final IL offset during emit phase, for example for
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// will be put into allocatedILMarkers array. Note that only markers from reachable blocks 
         /// are materialized, the rest will have offset -1.
         /// </summary>
-        private ArrayBuilder<ILMarker> _allocatedILMarkers = null;
+        private ArrayBuilder<ILMarker> _allocatedILMarkers;
 
         // Since blocks are created lazily in GetCurrentBlock,
         // pendingBlockCreate is set to true when a block must be
         // created, in particular for leader blocks in exception handlers.
-        private bool _pendingBlockCreate = false;
+        private bool _pendingBlockCreate;
 
         internal ILBuilder(ITokenDeferral module, LocalSlotManager localSlotManager, OptimizationLevel optimizations)
         {
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 // if branch is blocked by a finally, then should branch to corresponding 
                 // BlockedBranchDestination instead. Original label may not be reachable.
-                // if there are no blocking finallys, then BlockedBranchDestination returns null
+                // if there are no blocking finallies, then BlockedBranchDestination returns null
                 // and we just visit the target.
                 var blockedDest = BlockedBranchDestination(block, branchBlock);
                 if (blockedDest == null)
@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 destHandlerScope = destHandler.ContainingExceptionScope;
             }
 
-            // go from the source out untill we no longer crossing any finallies 
+            // go from the source out until we no longer crossing any finallies 
             // between source and destination
-            // if any finallys found in the process, check if they are blocking
+            // if any finallies found in the process, check if they are blocking
             while (srcHandler != destHandler)
             {
                 // branches within same ContainingExceptionScope do not go through finally.
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private static bool CanMoveLabelToAnotherHandler(ExceptionHandlerScope currentHandler,
                                                  ExceptionHandlerScope newHandler)
         {
-            // Generally, asuming already valid code that contains "LABEL1: goto LABEL2" 
+            // Generally, assuming already valid code that contains "LABEL1: goto LABEL2" 
             // we can substitute LABEL1 for LABEL2 so that the branches go directly to 
             // the final destination.
             // Technically we can allow "moving" a label to any scope that contains the current one
@@ -628,15 +628,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return true;
                 }
 
-                var contanerScope = currentHandler.ContainingExceptionScope;
-                if (!contanerScope.FinallyOnly())
+                var containerScope = currentHandler.ContainingExceptionScope;
+                if (!containerScope.FinallyOnly())
                 {
                     // this may move the label outside of catch-protected region
                     // we will disallow that.
                     return false;
                 }
 
-                currentHandler = contanerScope.ContainingHandler;
+                currentHandler = containerScope.ContainingHandler;
             } while (currentHandler != null);
 
             return false;
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     }
                     else
                     {
-                        // special blco becomes a true nop
+                        // special block becomes a true nop
                         current.SetBranch(null, ILOpCode.Nop);
                     }
                 }
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             if (_optimizations == OptimizationLevel.Release && OptimizeLabels())
             {
                 // redo unreachable code elimination if some labels were optimized
-                // as that could result in more more dead code. 
+                // as that could result in more dead code. 
                 MarkAllBlocksUnreachable();
                 MarkReachableBlocks();
                 DropUnreachableBlocks();

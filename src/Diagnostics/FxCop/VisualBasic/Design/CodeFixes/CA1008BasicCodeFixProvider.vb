@@ -2,10 +2,12 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Design
+Imports Microsoft.AnalyzerPowerPack.Design
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
+Namespace Design
     ' <summary>
     ' CA1008: Enums should have zero value
     ' </summary>

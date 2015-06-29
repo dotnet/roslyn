@@ -2059,7 +2059,7 @@ static class M1
         (new D<C>()).Test();
     }
 }";
-            CompileAndVerify(source, expectedOutput: "B1::F;D::F;", emitters: TestEmitters.RefEmitUnsupported_646042);
+            CompileAndVerify(source, expectedOutput: "B1::F;D::F;");
         }
 
         [Fact]
@@ -4173,7 +4173,6 @@ class Program
             // we are not interested in testing that
             CompileAndVerify(source,
                 additionalRefs: new[] { LinqAssemblyRef },
-                emitters: TestEmitters.RefEmitBug,
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -5204,6 +5203,25 @@ class C
     }
 }";
 
+            CompileAndVerify(source, new[] { SystemCoreRef });
+        }
+
+        [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
+        public void NestedLambdaWithExtensionMethodsInGeneric()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class BadBaby
+{
+    IEnumerable<object> Children;
+    public object Foo<T>()
+    {
+        return from child in Children select from T ch in Children select false;
+    }
+}";
             CompileAndVerify(source, new[] { SystemCoreRef });
         }
     }

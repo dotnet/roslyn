@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the syntax list of custom attributes that declares atributes for this method symbol.
+        /// Gets the syntax list of custom attributes that declares attributes for this method symbol.
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the syntax list of custom attributes that declares atributes for return type of this method.
+        /// Gets the syntax list of custom attributes that declares attributes for return type of this method.
         /// </summary>
         internal virtual OneOrMany<SyntaxList<AttributeListSyntax>> GetReturnTypeAttributeDeclarations()
         {
@@ -1512,6 +1512,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
+                }
+
+                if (this.IsAsync)
+                {
+                    // Async kick-off method calls MoveNext, which contains user code. 
+                    // This means we need to emit DebuggerStepThroughAttribute in order
+                    // to have correct stepping behavior during debugging.
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
                 }
             }
         }

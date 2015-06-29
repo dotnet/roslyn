@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Contract.ThrowIfNull(semanticModel)
 
-            Dim types = GetTypesInFile(semanticModel, cancellationToken)
+            Dim typesAndDeclarations = GetTypesAndDeclarationsInFile(semanticModel, cancellationToken)
 
             Dim typeItems As New List(Of NavigationBarItem)
             Dim typeSymbolIndexProvider As New NavigationBarSymbolIdIndexProvider(caseSensitive:=False)
@@ -53,8 +53,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Dim symbolDeclarationService = document.GetLanguageService(Of ISymbolDeclarationService)
             Dim workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument)
 
-            For Each typeSymbol In types
-                typeItems.AddRange(CreateItemsForType(typeSymbol, typeSymbolIndexProvider.GetIndexForSymbolId(typeSymbol.GetSymbolKey()), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
+            For Each typeAndDeclaration In typesAndDeclarations
+                Dim type = typeAndDeclaration.Item1
+                Dim position = typeAndDeclaration.Item2.SpanStart
+                typeItems.AddRange(CreateItemsForType(type, position, typeSymbolIndexProvider.GetIndexForSymbolId(type.GetSymbolKey()), semanticModel, workspaceSupportsDocumentChanges, symbolDeclarationService, cancellationToken))
             Next
 
             Return typeItems
@@ -65,23 +67,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return TypeOf item IsNot AbstractGenerateCodeItem
         End Function
 
-        Private Function GetTypesInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of INamedTypeSymbol)
+        Private Function GetTypesAndDeclarationsInFile(semanticModel As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))
             Try
-                Dim types As New HashSet(Of INamedTypeSymbol)
+                Dim typesAndDeclarations As New Dictionary(Of INamedTypeSymbol, SyntaxNode)
                 Dim nodesToVisit As New Stack(Of SyntaxNode)
 
                 nodesToVisit.Push(DirectCast(semanticModel.SyntaxTree.GetRoot(cancellationToken), SyntaxNode))
 
                 Do Until nodesToVisit.IsEmpty
                     If cancellationToken.IsCancellationRequested Then
-                        Return SpecializedCollections.EmptyEnumerable(Of INamedTypeSymbol)()
+                        Return SpecializedCollections.EmptyEnumerable(Of Tuple(Of INamedTypeSymbol, SyntaxNode))()
                     End If
 
                     Dim node = nodesToVisit.Pop()
                     Dim type = TryCast(semanticModel.GetDeclaredSymbol(node, cancellationToken), INamedTypeSymbol)
 
                     If type IsNot Nothing Then
-                        types.Add(type)
+                        typesAndDeclarations(type) = node
                     End If
 
                     If TypeOf node Is MethodBlockBaseSyntax OrElse
@@ -99,13 +101,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                     Next
                 Loop
 
-                Return types.OrderBy(Function(t) t.Name)
+                Return typesAndDeclarations.Select(Function(kvp) Tuple.Create(kvp.Key, kvp.Value)).OrderBy(Function(t) t.Item1.Name)
             Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function
 
         Private Function CreateItemsForType(type As INamedTypeSymbol,
+                                            position As Integer,
                                             typeSymbolIdIndex As Integer,
                                             semanticModel As SemanticModel,
                                             workspaceSupportsDocumentChanges As Boolean,
@@ -120,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 If type.TypeKind <> TypeKind.Interface Then
                     Dim typeEvents = CreateItemForEvents(
                         type,
+                        position,
                         type,
                         eventContainer:=Nothing,
                         semanticModel:=semanticModel,
@@ -139,6 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                             items.Add(
                                 CreateItemForEvents(
                                     type,
+                                    position,
                                     propertySymbol.Type,
                                     propertySymbol,
                                     semanticModel,
@@ -279,6 +284,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         ''' <param name="eventContainer">If this is an entry for a WithEvents member, the WithEvents
         ''' property itself.</param>
         Private Function CreateItemForEvents(containingType As INamedTypeSymbol,
+                                             position As Integer,
                                              eventType As ITypeSymbol,
                                              eventContainer As IPropertySymbol,
                                              semanticModel As SemanticModel,
@@ -288,10 +294,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim rightHandMemberItems As New List(Of NavigationBarItem)
 
-            ' Get all of the events and methods implementing them. We must include events from base
-            ' types, as well as static events.
-            Dim allEvents = eventType.GetBaseTypesAndThis().SelectMany(Function(t) t.GetMembers()).OfType(Of IEventSymbol)().OrderBy(Function(e) e.Name)
-            Dim accessibleEvents = allEvents.Where(Function(e) e.IsAccessibleWithin(containingType))
+            Dim accessibleEvents = semanticModel.LookupSymbols(position, eventType).OfType(Of IEventSymbol).OrderBy(Function(e) e.Name)
+
             Dim methodsImplementingEvents = containingType.GetMembers().OfType(Of IMethodSymbol) _
                                                           .Where(Function(m) m.HandledEvents.Any(Function(he) Object.Equals(he.EventContainer, eventContainer)))
 
@@ -299,10 +303,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             For Each method In methodsImplementingEvents
                 For Each handledEvent In method.HandledEvents
-                    Dim list As list(Of IMethodSymbol) = Nothing
+                    Dim list As List(Of IMethodSymbol) = Nothing
 
                     If Not eventToImplementingMethods.TryGetValue(handledEvent.EventSymbol, list) Then
-                        list = New list(Of IMethodSymbol)
+                        list = New List(Of IMethodSymbol)
                         eventToImplementingMethods.Add(handledEvent.EventSymbol, list)
                     End If
 
@@ -354,14 +358,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Next
 
             If eventContainer IsNot Nothing Then
-                Return New NavigationBarItem(
+                Return New NavigationBarActionlessItem(
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
                     spans:=allMethodSpans,
                     childItems:=rightHandMemberItems)
             Else
-                Return New NavigationBarItem(
+                Return New NavigationBarActionlessItem(
                     String.Format(VBEditorResources.Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,

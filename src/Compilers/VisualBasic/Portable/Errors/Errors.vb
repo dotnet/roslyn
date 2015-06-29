@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//       Failure to do so may break customer code.
 
         '// AVAILABLE                             31451 - 31497
-        ERR_ContantStringTooLong = 31498
+        ERR_ConstantStringTooLong = 31498
         ERR_MustInheritEventNotOverridden = 31499
         ERR_BadAttributeSharedProperty1 = 31500
         ERR_BadAttributeReadOnlyProperty1 = 31501
@@ -1729,7 +1729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_ExpectedInitComponentCall2 = 40054
         WRN_NamespaceCaseMismatch3 = 40055
         WRN_UndefinedOrEmptyNamespaceOrClass1 = 40056
-        WRN_UndefinedOrEmpyProjectNamespaceOrClass1 = 40057
+        WRN_UndefinedOrEmptyProjectNamespaceOrClass1 = 40057
         'WRN_InterfacesWithNoPIAMustHaveGuid1 = 40058 ' Not reported by Dev11.
         WRN_IndirectRefToLinkedAssembly2 = 40059
         WRN_DelaySignButNoKey = 40060
@@ -1772,7 +1772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_SharedMemberThroughInstance = 42025
         WRN_RecursivePropertyCall = 42026
 
-        WRN_OverlapingCatch = 42029
+        WRN_OverlappingCatch = 42029
         WRN_DefAsgUseNullRefByRef = 42030
         WRN_DuplicateCatch = 42031
         WRN_ObjectMath1Not = 42032

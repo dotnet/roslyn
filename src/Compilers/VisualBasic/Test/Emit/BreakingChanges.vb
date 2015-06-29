@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ]]>)
         End Sub
 
-        ''' Rosly doesn't give warning BC30934 while Dev10 does (Eval ctor as no const)
+        ''' Roslyn doesn't give warning BC30934 while Dev10 does (Eval ctor as no const)
         '''  but gives new warning BC42025 for accessing const field through object instance
         ''' This is an improvement in Roslyn that we are able to eval the const access through 'new object()' instance
         <WorkItem(528223, "DevDiv")>
@@ -382,8 +382,8 @@ BC36969: 'Sub New' cannot be declared 'Partial'.
 
         <WorkItem(528311, "DevDiv")>
         <Fact()>
-        Public Sub TestHideBySigChangeForOverridenMethods()
-            Dim vbCompilation = CreateVisualBasicCompilation("TestHideBySigChangeForOverridenMethods",
+        Public Sub TestHideBySigChangeForOverriddenMethods()
+            Dim vbCompilation = CreateVisualBasicCompilation("TestHideBySigChangeForOverriddenMethods",
             <![CDATA[Imports System
 
 Public Class Class1
@@ -413,7 +413,7 @@ Public Module Program
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
 
-            'In Dev10 the emitted signature for overriden methods did not 
+            'In Dev10 the emitted signature for overridden methods did not 
             'include the 'hidebysig' flag. In Roslyn we decided to break
             'from Dev10 and include this flag. This was discussed at the
             'VB language design meeting. See roslyn bug 7299 for more details.

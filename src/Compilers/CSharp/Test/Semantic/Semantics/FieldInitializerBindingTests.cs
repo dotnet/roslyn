@@ -285,38 +285,24 @@ class C
         private static ImmutableArray<BoundInitializer> BindInitializersWithoutDiagnostics(SourceNamedTypeSymbol typeSymbol, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            try
-            {
-                ImportChain unused;
-                var boundInitializers = Binder.BindFieldInitializers(
-                    containingType: typeSymbol,
-                    scriptCtor: null,
-                    initializers: initializers,
-                    diagnostics: diagnostics,
-                    generateDebugInfo: false,
-                    firstImportChain: out unused);
-
-                var filteredDiag = diagnostics.AsEnumerable();
-                foreach (var diagnostic in filteredDiag)
-                {
-                    Console.WriteLine(diagnostic);
-                }
-
-                Assert.True(filteredDiag.IsEmpty());
-
-                return boundInitializers;
-            }
-            finally
-            {
-                diagnostics.Free();
-            }
+            ImportChain unused;
+            var boundInitializers = ArrayBuilder<BoundInitializer>.GetInstance();
+            Binder.BindRegularCSharpFieldInitializers(
+                typeSymbol.DeclaringCompilation,
+                initializers,
+                boundInitializers,
+                diagnostics,
+                firstDebugImports: out unused);
+            diagnostics.Verify();
+            diagnostics.Free();
+            return boundInitializers.ToImmutableAndFree();
         }
 
         private class ExpectedInitializer
         {
-            public string FieldName { get; set; }
-            public string InitialValue { get; set; }
-            public int LineNumber { get; set; } //0-indexed
+            public string FieldName { get; }
+            public string InitialValue { get; }
+            public int LineNumber { get; } //0-indexed
 
             public ExpectedInitializer(string fieldName, string initialValue, int lineNumber)
             {

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             allModules = allModules.ToArray();
 
             string conflict = DetectNameCollision(allModules);
-            if (conflict != null)
+            if (conflict != null && !CLRHelpers.IsRunningOnMono())
             {
                 Type appDomainProxyType = typeof(RuntimeAssemblyManager);
                 Assembly thisAssembly = appDomainProxyType.Assembly;
@@ -209,7 +209,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             using (var executableStream = new MemoryStream())
             {
-                MemoryStream pdbStream = new MemoryStream();
+                MemoryStream pdbStream = CLRHelpers.IsRunningOnMono()
+                    ? null
+                    : new MemoryStream();
 
                 EmitResult result;
                 try
@@ -483,7 +485,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var assembly in _loadedAssemblies)
             {
-                assembly.ModuleResolve -= ModuleResolve;
+                if (!CLRHelpers.IsRunningOnMono())
+                {
+                    assembly.ModuleResolve -= ModuleResolve;
+                }
             }
 
             //EDMAURER Some RuntimeAssemblyManagers are created via reflection in an AppDomain of our creation.
@@ -569,7 +574,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // We won't get an AssemblyResolve event for the main assembly so we need to do it here.
             if (_mainMvids.Contains(assembly.ManifestModule.ModuleVersionId) && _loadedAssemblies.Add(assembly))
             {
-                assembly.ModuleResolve += ModuleResolve;
+                if (!CLRHelpers.IsRunningOnMono())
+                {
+                    assembly.ModuleResolve += ModuleResolve;
+                }
             }
         }
 
@@ -625,7 +633,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var assembly = cache.GetOrAdd(data.Mvid, _ => LoadAsAssembly(data.Image, reflectionOnly));
 
-            assembly.ModuleResolve += ModuleResolve;
+            if (!CLRHelpers.IsRunningOnMono())
+            {
+                assembly.ModuleResolve += ModuleResolve;
+            }
+
             _loadedAssemblies.Add(assembly);
             return assembly;
         }
@@ -675,7 +687,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string stdOut, stdErr;
             ConsoleOutput.Capture(() =>
             {
-                result = entryPoint.Invoke(null, new object[entryPoint.GetParameters().Length]);
+                var count = entryPoint.GetParameters().Length;
+                object[] args;
+                if (count == 0)
+                {
+                    args = new object[] { };
+                }
+                else if (count == 1)
+                {
+                    args = new object[] { new string[] { } };
+                }
+                else
+                {
+                    throw new Exception("Unrecognized entry point");
+                }
+
+                result = entryPoint.Invoke(null, args);
             }, expectedOutputLength, out stdOut, out stdErr);
 
             output = stdOut + stdErr;
@@ -979,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static void AddArray<T>(this SerializationInfo info, string name, ImmutableArray<T> value) where T : class
         {
             // we will copy the content into an array and serialize the copy
-            // we could serialize elementwise, but that would require serializing
+            // we could serialize element-wise, but that would require serializing
             // name and type for every serialized element which seems worse than creating a copy.
             info.AddValue(name, value.IsDefault ? null : value.ToArray(), typeof(T[]));
         }
@@ -993,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static void AddByteArray(this SerializationInfo info, string name, ImmutableArray<byte> value)
         {
             // we will copy the content into an array and serialize the copy
-            // we could serialize elementwise, but that would require serializing
+            // we could serialize element-wise, but that would require serializing
             // name and type for every serialized element which seems worse than creating a copy.
             info.AddValue(name, value.IsDefault ? null : value.ToArray(), typeof(byte[]));
         }

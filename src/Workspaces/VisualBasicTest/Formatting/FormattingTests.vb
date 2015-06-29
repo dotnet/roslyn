@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -1334,7 +1335,7 @@ End Namespace]]></Code>
 
             Dim expected = <Code><![CDATA[Namespace SomeNamespace
     <SomeAttribute()>
-                <SomeAttribute2()>
+    <SomeAttribute2()>
     Class Foo
     End Class
 End Namespace]]></Code>
@@ -4240,6 +4241,47 @@ End Class
 </Code>
 
             AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub NewLineOption_LineFeedOnly()
+            Dim tree = SyntaxFactory.ParseCompilationUnit("Class C" & vbCrLf & "End Class")
+
+            ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
+            tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
+
+            Dim formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf))
+            Dim actual = formatted.ToFullString()
+
+            Dim expected = "Class C" & vbLf & "End Class"
+
+            Assert.Equal(expected, actual)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>
+        Public Sub FormatLabelFollowedByDotExpression()
+            Dim code = <Code>
+Module Module1
+    Sub Main()
+        With New List(Of Integer)
+lab: .Capacity = 15
+        End With
+    End Sub
+End Module
+</Code>
+
+            Dim expected = <Code>
+Module Module1
+    Sub Main()
+        With New List(Of Integer)
+lab:        .Capacity = 15
+        End With
+    End Sub
+End Module
+</Code>
+
+            AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
     End Class

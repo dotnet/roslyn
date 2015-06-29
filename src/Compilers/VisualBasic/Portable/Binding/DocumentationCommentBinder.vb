@@ -168,9 +168,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Removes from symbol collection overriden methods or properties
+        ''' Removes from symbol collection overridden methods or properties
         ''' </summary>
-        Protected Sub RemoveOverridenMethodsAndProperties(symbols As ArrayBuilder(Of Symbol))
+        Protected Sub RemoveOverriddenMethodsAndProperties(symbols As ArrayBuilder(Of Symbol))
             If symbols Is Nothing OrElse symbols.Count < 2 Then
                 Return
             End If
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case sym.Kind
 
                     Case SymbolKind.Method
-                        ' Remove overriden methods
+                        ' Remove overridden methods
                         Dim method = DirectCast(sym.OriginalDefinition, MethodSymbol)
                         While True
                             method = method.OverriddenMethod
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End While
 
                     Case SymbolKind.Property
-                        ' Remove overriden properties
+                        ' Remove overridden properties
                         Dim prop = DirectCast(sym.OriginalDefinition, PropertySymbol)
                         While True
                             prop = prop.OverriddenProperty

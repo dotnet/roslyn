@@ -253,7 +253,7 @@ Next
 </text>.Value
 
             Dim engine = New VisualBasicScriptEngine()
-            Dim result = engine.CreateCollectibleSession().Execute(source)
+            Dim result = engine.CreateSession().Execute(source)
             Assert.Equal(result, 1)
         End Sub
 
@@ -264,7 +264,7 @@ Next
 </text>.Value
 
             Dim engine = New VisualBasicScriptEngine()
-            Dim result = engine.CreateCollectibleSession().Execute(source)
+            Dim result = engine.CreateSession().Execute(source)
             Assert.Equal(result, 1)
         End Sub
 
@@ -308,7 +308,7 @@ End If
         Private Function CreateSubmission(code As String, options As VisualBasicParseOptions, Optional expectedErrorCount As Integer = 0) As VisualBasicCompilation
             Dim submission = VisualBasicCompilation.CreateSubmission(
                 "sub",
-                references:={MetadataReference.CreateFromAssembly(GetType(Object).Assembly)},
+                references:={MetadataReference.CreateFromAssemblyInternal(GetType(Object).Assembly)},
                 syntaxTree:=Parse(code, options:=options))
 
             Assert.Equal(expectedErrorCount, submission.GetDiagnostics(CompilationStage.Declare, True).Length())

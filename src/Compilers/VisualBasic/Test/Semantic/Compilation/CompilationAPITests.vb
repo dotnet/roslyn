@@ -285,7 +285,7 @@ End Namespace
             Dim c3 As Compilation = compCollection1.WithReferences(ref1, ref2, ref3)
             Assert.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c3.References))
 
-            'ReferencedAssembyNames
+            'ReferencedAssemblyNames
             Dim RefAsm_Names As IEnumerable(Of AssemblyIdentity) = c2.ReferencedAssemblyNames
             Assert.Equal(Of Integer)(2, Enumerable.Count(Of AssemblyIdentity)(RefAsm_Names))
             Dim ListNames As New List(Of String)
@@ -612,7 +612,7 @@ End Class
 </compilation>, additionalRefs:={netModule1.EmitToImageReference(), netModule2.EmitToImageReference()})
             assembly.VerifyDiagnostics()
 
-            CompileAndVerify(assembly, emitters:=TestEmitters.RefEmitBug)
+            CompileAndVerify(assembly)
         End Sub
 
         <WorkItem(713356, "DevDiv")>
@@ -1283,7 +1283,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Assert.Null(compilation.GetEntryPoint(Nothing))

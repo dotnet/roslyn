@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
-            private IAsynchronousOperationListener _listener;
+            private readonly IAsynchronousOperationListener _listener;
 
             // use event map and event queue so that we can guarantee snapshot and sequencial ordering of events from
             // multiple consumer from possibly multiple threads

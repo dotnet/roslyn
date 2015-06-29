@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Class SourceModuleBinder
         Inherits Binder
 
-        Private _sourceModule As SourceModuleSymbol
+        Private ReadOnly _sourceModule As SourceModuleSymbol
 
         Public Sub New(containingBinder As Binder, sourceModule As SourceModuleSymbol)
             MyBase.New(containingBinder, sourceModule, sourceModule.ContainingSourceAssembly.DeclaringCompilation)

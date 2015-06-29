@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ' We need to emit this function to compute the hash value into the compiler generated
     ' <PrivateImplementationDetails> class. 
     ' If we have at least one string type select case statement in a module that needs a
-    ' hash table based jump table, we generate a single public string hash sythesized method (SynthesizedStringSwitchHashMethod)
+    ' hash table based jump table, we generate a single public string hash synthesized method (SynthesizedStringSwitchHashMethod)
     ' that is shared across the module.
 
 
@@ -107,7 +107,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
                 ' Rewrite select statement case blocks as IF List
-                statementBuilder.Add(RewriteCaseBlocks(generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom:=0))
+                Dim lazyConditionalBranchLocal As LocalSymbol = Nothing
+
+                statementBuilder.Add(RewriteCaseBlocksRecursive(node,
+                                                                generateUnstructuredExceptionHandlingResumeCode,
+                                                                caseBlocks,
+                                                                startFrom:=0,
+                                                                lazyConditionalBranchLocal:=lazyConditionalBranchLocal))
+
+                If lazyConditionalBranchLocal IsNot Nothing Then
+                    tempLocals = tempLocals.Add(lazyConditionalBranchLocal)
+                End If
 
                 ' Add label statement for exit label
                 statementBuilder.Add(New BoundLabelStatement(syntaxNode, exitLabel))
@@ -223,11 +233,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 tempLocals = ImmutableArray.Create(Of LocalSymbol)(tempLocal)
 
                 Dim boundTemp = New BoundLocal(rewrittenSelectExpression.Syntax, tempLocal, selectExprType)
-                statementBuilder.Add(New BoundAssignmentOperator(Syntax:=selectExprStmtSyntax,
-                                                                 Left:=boundTemp,
-                                                                 Right:=rewrittenSelectExpression,
+                statementBuilder.Add(New BoundAssignmentOperator(syntax:=selectExprStmtSyntax,
+                                                                 left:=boundTemp,
+                                                                 right:=rewrittenSelectExpression,
                                                                  suppressObjectClone:=True,
-                                                                 Type:=selectExprType).ToStatement().MakeCompilerGenerated())
+                                                                 type:=selectExprType).ToStatement().MakeCompilerGenerated())
                 rewrittenSelectExpression = boundTemp.MakeRValue()
             Else
 
@@ -238,10 +248,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Rewrite select statement case blocks as IF List
-        Private Function RewriteCaseBlocks(
+        Private Function RewriteCaseBlocksRecursive(
+            selectStatement As BoundSelectStatement,
             generateUnstructuredExceptionHandlingResumeCode As Boolean,
             caseBlocks As ImmutableArray(Of BoundCaseBlock),
-            startFrom As Integer
+            startFrom As Integer,
+            ByRef lazyConditionalBranchLocal As LocalSymbol
         ) As BoundStatement
             Debug.Assert(startFrom <= caseBlocks.Length)
 
@@ -281,12 +293,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseBlock)
 
+                ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                ' the containing method is edited while methods invoked in the condition are being executed.
                 rewrittenStatement = RewriteIfStatement(
                     syntaxNode:=curCaseBlock.Syntax,
                     conditionSyntax:=curCaseBlock.CaseStatement.Syntax,
-                    rewrittenCondition:=rewrittenCaseCondition,
+                    rewrittenCondition:=AddConditionSequencePoint(rewrittenCaseCondition, selectStatement, lazyConditionalBranchLocal),
                     rewrittenConsequence:=rewrittenBody,
-                    rewrittenAlternative:=RewriteCaseBlocks(generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom + 1),
+                    rewrittenAlternative:=RewriteCaseBlocksRecursive(selectStatement, generateUnstructuredExceptionHandlingResumeCode, caseBlocks, startFrom + 1, lazyConditionalBranchLocal),
                     unstructuredExceptionHandlingResumeTarget:=unstructuredExceptionHandlingResumeTarget,
                     generateDebugInfo:=True)
             End If

@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis
             _containingAssemblyIdentity = containingAssemblyIdentity;
         }
 
-        internal TypeSymbol GetTypeOfToken(Handle token)
+        internal TypeSymbol GetTypeOfToken(EntityHandle token)
         {
             bool isNoPiaLocalType;
             return GetTypeOfToken(token, out isNoPiaLocalType);
         }
 
-        internal TypeSymbol GetTypeOfToken(Handle token, out bool isNoPiaLocalType)
+        internal TypeSymbol GetTypeOfToken(EntityHandle token, out bool isNoPiaLocalType)
         {
             Debug.Assert(!token.IsNil);
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
                         throw new UnsupportedSignatureContent();
                     }
 
-                    Handle tokenGeneric = ppSig.ReadTypeHandle();
+                    EntityHandle tokenGeneric = ppSig.ReadTypeHandle();
                     int argumentCount;
                     if (!ppSig.TryReadCompressedInteger(out argumentCount))
                     {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
         {
             TypeSymbol typeSymbol;
 
-            Handle token = ppSig.ReadTypeHandle();
+            EntityHandle token = ppSig.ReadTypeHandle();
             HandleKind tokenType = token.Kind;
 
             if (tokenType == HandleKind.TypeDefinition)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 string name, @namespace;
-                Handle resolutionScope;
+                EntityHandle resolutionScope;
                 Module.GetTypeRefPropsOrThrow(typeRef, out name, out @namespace, out resolutionScope);
                 Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(name));
 
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private TypeSymbol GetTypeByNameOrThrow(
             ref MetadataTypeName fullName,
-            Handle tokenResolutionScope,
+            EntityHandle tokenResolutionScope,
             out bool isNoPiaLocalType)
         {
             HandleKind tokenType = tokenResolutionScope.Kind;
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
                     out isNoPiaLocalType);
             }
 
-            if (tokenResolutionScope == Handle.ModuleDefinition)
+            if (tokenResolutionScope == EntityHandle.ModuleDefinition)
             {
                 // The last case is a little bit strange.  Here, the TypeRef's TypeDef
                 // lives in the same module as the TypeRef itself.  This is represented
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis
                 // TypeDef tokens are unique within Module.
                 // This cache makes lookup of top level types about twice as fast, about three times as fast if 
                 // EmittedNameToTypeMap in LookupTopLevelType doesn't contain the name. 
-                // It is likely that gain for nested types will be bigger because we don’t cache names of nested types.
+                // It is likely that gain for nested types will be bigger because we don't cache names of nested types.
 
                 ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
 
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeCode == SignatureTypeCode.OptionalModifier)
                 {
-                    Handle token = signatureReader.ReadTypeHandle();
+                    EntityHandle token = signatureReader.ReadTypeHandle();
                     ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(true, GetTypeOfToken(token));
 
                     if (!IsAcceptableModOptModifier(token, modifier.Modifier))
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis
         ///  indexes a row in the TypeDef table or the TypeRef table.
         /// i.e. No modopt in DecodeType (though it still works in DecodeModifier).
         /// </summary>
-        private static bool IsAcceptableModOptModifier(Handle token, TypeSymbol modifier)
+        private static bool IsAcceptableModOptModifier(EntityHandle token, TypeSymbol modifier)
         {
             switch (token.Kind)
             {
@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                Handle ctor;
+                EntityHandle ctor;
 
                 return Module.IsTargetAttribute(
                     customAttribute,
@@ -1320,8 +1320,8 @@ namespace Microsoft.CodeAnalysis
 
                 // We could call decoder.GetSignature and use that to decode the arguments. However, materializing the
                 // constructor signature is more work. We try to decode the arguments directly from the metadata bytes.
-                Handle attributeType;
-                Handle ctor;
+                EntityHandle attributeType;
+                EntityHandle ctor;
 
                 if (Module.GetTypeAndConstructor(handle, out attributeType, out ctor))
                 {
@@ -1389,8 +1389,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool GetCustomAttribute(CustomAttributeHandle handle, out TypeSymbol attributeClass, out MethodSymbol attributeCtor)
         {
-            Handle attributeType;
-            Handle ctor;
+            EntityHandle attributeType;
+            EntityHandle ctor;
 
             try
             {
@@ -1419,15 +1419,15 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                Handle attributeType;
-                Handle ctor;
+                EntityHandle attributeType;
+                EntityHandle ctor;
 
                 if (!Module.GetTypeAndConstructor(handle, out attributeType, out ctor))
                 {
                     return false;
                 }
 
-                Handle namespaceHandle;
+                StringHandle namespaceHandle;
                 StringHandle nameHandle;
                 if (!Module.GetAttributeNamespaceAndName(attributeType, out namespaceHandle, out nameHandle))
                 {
@@ -1591,7 +1591,7 @@ namespace Microsoft.CodeAnalysis
                     if (typeCode == SignatureTypeCode.OptionalModifier ||
                         typeCode == SignatureTypeCode.RequiredModifier)
                     {
-                        Handle token = signatureReader.ReadTypeHandle();
+                        EntityHandle token = signatureReader.ReadTypeHandle();
                         ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>((typeCode == SignatureTypeCode.OptionalModifier), GetTypeOfToken(token));
 
                         if (!IsAcceptableModOptModifier(token, modifier.Modifier))
@@ -1659,8 +1659,8 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var methodImpl in Module.GetMethodImplementationsOrThrow(implementingTypeDef))
                 {
-                    Handle methodBodyHandle;
-                    Handle implementedMethodHandle;
+                    EntityHandle methodBodyHandle;
+                    EntityHandle implementedMethodHandle;
                     Module.GetMethodImplPropsOrThrow(methodImpl, out methodBodyHandle, out implementedMethodHandle);
 
                     // Though it is rare in practice, the spec allows the MethodImpl table to represent
@@ -1809,7 +1809,7 @@ namespace Microsoft.CodeAnalysis
         /// Ref -> typeSymbolsToSearch
         /// null -> neither
         /// </summary>
-        private void EnqueueTypeToken(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, Handle typeToken)
+        private void EnqueueTypeToken(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, EntityHandle typeToken)
         {
             if (!typeToken.IsNil)
             {
@@ -1929,7 +1929,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a symbol that given token resolves to or null of the token represents an entity that isn't represented by a symbol,
         /// such as vararg MemberRef.
         /// </summary>
-        internal Symbol GetSymbolForILToken(Handle token)
+        internal Symbol GetSymbolForILToken(EntityHandle token)
         {
             try
             {
@@ -1980,7 +1980,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                     case HandleKind.MethodSpecification:
-                        Handle method;
+                        EntityHandle method;
                         BlobHandle instantiation;
                         this.Module.GetMethodSpecificationOrThrow((MethodSpecificationHandle)token, out method, out instantiation);
 
@@ -2012,7 +2012,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                Handle container = Module.GetContainingTypeOrThrow(memberRef);
+                EntityHandle container = Module.GetContainingTypeOrThrow(memberRef);
 
                 HandleKind containerType = container.Kind;
                 Debug.Assert(
@@ -2038,7 +2038,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal MethodSymbol GetMethodSymbolForMethodDefOrMemberRef(Handle memberToken, TypeSymbol container)
+        internal MethodSymbol GetMethodSymbolForMethodDefOrMemberRef(EntityHandle memberToken, TypeSymbol container)
         {
             HandleKind type = memberToken.Kind;
             Debug.Assert(type == HandleKind.MethodDefinition || type == HandleKind.MemberReference);
@@ -2048,7 +2048,7 @@ namespace Microsoft.CodeAnalysis
                 : GetMethodSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
         }
 
-        internal FieldSymbol GetFieldSymbolForFieldDefOrMemberRef(Handle memberToken, TypeSymbol container)
+        internal FieldSymbol GetFieldSymbolForFieldDefOrMemberRef(EntityHandle memberToken, TypeSymbol container)
         {
             HandleKind type = memberToken.Kind;
             Debug.Assert(type == HandleKind.FieldDefinition ||

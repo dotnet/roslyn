@@ -3,6 +3,8 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -171,7 +173,8 @@ class C { }
 [assembly: System.Reflection.AssemblyCompany("Microsoft")]
 [assembly: System.CLSCompliant(true)]
 
-class C { }</Code>
+class C { }
+</Code>
 
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Sub
@@ -192,9 +195,28 @@ class C { }
 [assembly: System.Reflection.AssemblyCopyright("2012")]
 [assembly: System.CLSCompliant(true)]
 
-class C { }</Code>
+class C { }
+</Code>
 
             TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute6()
+            Dim code =
+<Code>
+/// &lt;summary&gt;&lt;/summary&gt;
+class $$C { }
+</Code>
+
+            Dim expected =
+<Code>
+[assembly: System.CLSCompliant(true)]
+/// &lt;summary&gt;&lt;/summary&gt;
+class C { }
+</Code>
+
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true"})
         End Sub
 
 #End Region
@@ -915,7 +937,7 @@ class $$C
                 workspaceAndFileCodeModel.VisualStudioWorkspace.CloseDocument(documentId)
                 Dim newSolution = workspaceAndFileCodeModel.VisualStudioWorkspace.CurrentSolution.RemoveDocument(documentId)
                 workspaceAndFileCodeModel.VisualStudioWorkspace.TryApplyChanges(newSolution)
-                ' throws COMExpection with HResult = E_FAIL
+                ' throws COMException with HResult = E_FAIL
                 Assert.Throws(Of System.Runtime.InteropServices.COMException)(
                     Sub()
                         Dim count = codeClass.Members.OfType(Of EnvDTE80.CodeFunction2)().Count()
@@ -972,6 +994,140 @@ class D
                     Assert.Equal(unknownCodeFunction.Name, "operator implicit D")
                 End Using
             End Using
+        End Sub
+
+        <WorkItem(925569)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub ChangeClassNameAndGetNameOfChildFunction()
+            Dim code =
+<Code>
+class C
+{
+    void M() { }
+}
+</Code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeClass = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(codeClass)
+                    Assert.Equal("C", codeClass.Name)
+
+                    Dim codeFunction = TryCast(codeClass.Members.Item(1), EnvDTE.CodeFunction)
+                    Assert.NotNull(codeFunction)
+                    Assert.Equal("M", codeFunction.Name)
+
+                    codeClass.Name = "NewClassName"
+                    Assert.Equal("NewClassName", codeClass.Name)
+                    Assert.Equal("M", codeFunction.Name)
+                End Sub)
+        End Sub
+
+        <WorkItem(858153)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeElements_PropertyAccessor()
+            Dim code =
+<code>
+class C
+{
+    int P
+    {
+        get { return 0; }
+    }
+}
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    Dim propertyP = TryCast(classC.Members.Item(1), EnvDTE.CodeProperty)
+                    Assert.NotNull(propertyP)
+                    Assert.Equal("P", propertyP.Name)
+
+                    Dim getter = propertyP.Getter
+                    Assert.NotNull(getter)
+
+                    Dim searchedGetter = fileCodeModel.CodeElementFromPoint(getter.StartPoint, EnvDTE.vsCMElement.vsCMElementFunction)
+
+                    Dim parent = TryCast(getter.Collection.Parent, EnvDTE.CodeProperty)
+                    Assert.NotNull(parent)
+                    Assert.Equal("P", parent.Name)
+
+                    ' This assert is very important!
+                    '
+                    ' We are testing that we don't regress a bug where a property accessor creates its
+                    ' parent incorrectly such that *existing* Code Model objects for its parent ("P") get a different
+                    ' NodeKey that makes the existing objects invalid. If the bug regresses, the line below will
+                    ' fail with an ArguementException when trying to use propertyP's NodeKey to lookup its node.
+                    ' (Essentially, its NodeKey will be {C.P,2} rather than {C.P,1}).
+                    Assert.Equal("P", propertyP.Name)
+
+                    ' Sanity: ensure that the NodeKeys are correct
+                    Dim member1 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(parent)
+                    Dim member2 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(propertyP)
+
+                    Assert.Equal("C.P", member1.NodeKey.Name)
+                    Assert.Equal(1, member1.NodeKey.Ordinal)
+                    Assert.Equal("C.P", member2.NodeKey.Name)
+                    Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
+        End Sub
+
+        <WorkItem(858153)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestCodeElements_EventAccessor()
+            Dim code =
+<code>
+class C
+{
+    event System.EventHandler E
+    {
+        add { }
+        remove { }
+    }
+}
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    Dim eventE = TryCast(classC.Members.Item(1), EnvDTE80.CodeEvent)
+                    Assert.NotNull(eventE)
+                    Assert.Equal("E", eventE.Name)
+
+                    Dim adder = eventE.Adder
+                    Assert.NotNull(adder)
+
+                    Dim searchedAdder = fileCodeModel.CodeElementFromPoint(adder.StartPoint, EnvDTE.vsCMElement.vsCMElementFunction)
+
+                    Dim parent = TryCast(adder.Collection.Parent, EnvDTE80.CodeEvent)
+                    Assert.NotNull(parent)
+                    Assert.Equal("E", parent.Name)
+
+                    ' This assert is very important!
+                    '
+                    ' We are testing that we don't regress a bug where an event accessor creates its
+                    ' parent incorrectly such that *existing* Code Model objects for its parent ("P") get a different
+                    ' NodeKey that makes the existing objects invalid. If the bug regresses, the line below will
+                    ' fail with an ArguementException when trying to use propertyP's NodeKey to lookup its node.
+                    ' (Essentially, its NodeKey will be {C.E,2} rather than {C.E,1}).
+                    Assert.Equal("E", eventE.Name)
+
+                    ' Sanity: ensure that the NodeKeys are correct
+                    Dim member1 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(parent)
+                    Dim member2 = ComAggregate.GetManagedObject(Of AbstractCodeMember)(eventE)
+
+                    Assert.Equal("C.E", member1.NodeKey.Name)
+                    Assert.Equal(1, member1.NodeKey.Ordinal)
+                    Assert.Equal("C.E", member2.NodeKey.Name)
+                    Assert.Equal(1, member2.NodeKey.Ordinal)
+                End Sub)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

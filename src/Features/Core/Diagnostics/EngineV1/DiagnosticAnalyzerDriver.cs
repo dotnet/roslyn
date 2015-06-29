@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
@@ -15,6 +16,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal class DiagnosticAnalyzerDriver
     {
+        /// <summary>
+        /// Map containing unique gate objects per-analyzer instance.
+        /// We need to guard against concurrent callbacks into analyzers from different diagnostic clients.
+        /// Additionally, certain diagnostic clients, such as FixAll occurrences, may request diagnostics for multiple documents in parallel.
+        /// </summary>
+        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, object> s_analyzerGateMap =
+            new ConditionalWeakTable<DiagnosticAnalyzer, object>();
+
         private readonly Document _document;
 
         // The root of the document.  May be null for documents without a root.
@@ -37,15 +46,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private ImmutableArray<ISymbol> _lazySymbols;
         private ImmutableArray<SyntaxNode> _lazyAllSyntaxNodesToAnalyze;
 
-        private AnalyzerOptions _analyzerOptions = null;
+        private readonly AnalyzerOptions _analyzerOptions;
 
         public DiagnosticAnalyzerDriver(
-            Document document, 
-            TextSpan? span, 
+            Document document,
+            TextSpan? span,
             SyntaxNode root,
             BaseDiagnosticIncrementalAnalyzer owner,
             CancellationToken cancellationToken)
-            : this (document.Project, owner, cancellationToken)
+            : this(document.Project, owner, cancellationToken)
         {
             _document = document;
             _span = span;
@@ -237,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     }
                 }
 
-                var analyzerExecutor = GetAnalyzerExecutor(analyzer, compilation, diagnostics.Add);
+                var analyzerExecutor = GetAnalyzerExecutor(compilation, diagnostics.Add);
                 var analyzerActions = await this.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
                 if (analyzerActions != null)
                 {
@@ -280,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
         {
             var exceptionDiagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
-            
+
             if (compilation != null)
             {
                 exceptionDiagnostic = CompilationWithAnalyzers.GetEffectiveDiagnostics(ImmutableArray.Create(exceptionDiagnostic), compilation).SingleOrDefault();
@@ -289,15 +298,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _onAnalyzerException(ex, analyzer, exceptionDiagnostic);
         }
 
-        private AnalyzerExecutor GetAnalyzerExecutor(DiagnosticAnalyzer analyzer, Compilation compilation, Action<Diagnostic> addDiagnostic)
+        private AnalyzerExecutor GetAnalyzerExecutor(Compilation compilation, Action<Diagnostic> addDiagnostic)
         {
-            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, cancellationToken: _cancellationToken);
+            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, _onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, s_analyzerGateMap.GetOrCreateValue, cancellationToken: _cancellationToken);
+        }
+
+        private AnalyzerExecutor GetAnalyzerExecutorForClone(Compilation compilation, Action<Diagnostic> addDiagnostic, DiagnosticAnalyzer analyzerForExceptionDiagnostics)
+        {
+            // Report analyzer exception diagnostics on original analyzer, not the temporary cloned one.
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) =>
+                _onAnalyzerException(ex, analyzerForExceptionDiagnostics, diag);
+
+            return AnalyzerExecutor.Create(compilation, _analyzerOptions, addDiagnostic, onAnalyzerException, AnalyzerHelper.IsCompilerAnalyzer, AnalyzerManager.Instance, s_analyzerGateMap.GetOrCreateValue, cancellationToken: _cancellationToken);
         }
 
         public async Task<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
         {
             var compilation = _project.SupportsCompilation ? await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false) : null;
-            var analyzerExecutor = GetAnalyzerExecutor(analyzer, compilation, addDiagnostic: null);
+            var analyzerExecutor = GetAnalyzerExecutor(compilation, addDiagnostic: null);
             return await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
         }
 
@@ -353,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
                 else
                 {
-                    var analyzerExecutor = GetAnalyzerExecutor(analyzer, compilation, diagnostics.Add);
+                    var analyzerExecutor = GetAnalyzerExecutor(compilation, diagnostics.Add);
                     var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
                     if (analyzerActions != null)
                     {
@@ -436,27 +454,55 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var localDiagnostics = pooledObject.Object;
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                DiagnosticAnalyzer clonedAnalyzer = null;
 
-                // Get all the analyzer actions, including the per-compilation actions.
-                var analyzerExecutor = GetAnalyzerExecutor(analyzer, compilation, localDiagnostics.Add);
-                var analyzerActions = await this.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-                var hasDependentCompilationEndAction = await AnalyzerManager.Instance.GetAnalyzerHasDependentCompilationEndAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-
-                if (hasDependentCompilationEndAction && forceAnalyzeAllDocuments != null)
+                try
                 {
-                    // Analyzer registered a compilation end action and at least one other analyzer action during its compilation start action.
-                    // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
-                    forceAnalyzeAllDocuments(_project, analyzer, _cancellationToken);
+                    // Get all the analyzer actions, including the per-compilation actions.
+                    var analyzerExecutor = GetAnalyzerExecutor(compilation, localDiagnostics.Add);
+                    var analyzerActions = await this.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+                    var hasDependentCompilationEndAction = await AnalyzerManager.Instance.GetAnalyzerHasDependentCompilationEndAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+
+                    if (hasDependentCompilationEndAction && forceAnalyzeAllDocuments != null)
+                    {
+                        // Analyzer registered a compilation end action and at least one other analyzer action during its compilation start action.
+                        // We need to ensure that we have force analyzed all documents in this project for this analyzer before executing the end actions.
+                        // Doing so on the original analyzer instance might cause duplicate callbacks into the analyzer.
+                        // So we create a new instance of this analyzer and compute compilation diagnostics on that instance.
+
+                        try
+                        {
+                            clonedAnalyzer = Activator.CreateInstance(analyzer.GetType()) as DiagnosticAnalyzer;
+                        }
+                        catch
+                        {
+                            // Unable to created a new analyzer instance, bail out on reporting diagnostics.
+                            return;
+                        }
+
+                        // Report analyzer exception diagnostics on original analyzer, not the temporary cloned one.
+                        analyzerExecutor = GetAnalyzerExecutorForClone(compilation, localDiagnostics.Add, analyzerForExceptionDiagnostics: analyzer);
+
+                        analyzerActions = await this.GetAnalyzerActionsAsync(clonedAnalyzer, analyzerExecutor).ConfigureAwait(false);
+                        forceAnalyzeAllDocuments(_project, clonedAnalyzer, _cancellationToken);
+                    }
+
+                    // Compilation actions.
+                    analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationActions);
+
+                    // CompilationEnd actions.
+                    analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationEndActions);
+
+                    var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
+                    diagnostics.AddRange(filteredDiagnostics);
                 }
-
-                // Compilation actions.
-                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationActions);
-
-                // CompilationEnd actions.
-                analyzerExecutor.ExecuteCompilationActions(analyzerActions.CompilationEndActions);
-
-                var filteredDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(localDiagnostics, compilation);
-                diagnostics.AddRange(filteredDiagnostics);
+                finally
+                {
+                    if (clonedAnalyzer != null)
+                    {
+                        AnalyzerManager.Instance.ClearAnalyzerState(ImmutableArray.Create(clonedAnalyzer));
+                    }
+                }
             }
         }
     }

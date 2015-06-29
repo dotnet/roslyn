@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        internal CSharpCompilation Compilation { get; private set; }
+        internal CSharpCompilation Compilation { get; }
         private readonly Binder _next;
 
         internal readonly BinderFlags Flags;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// <see cref="OverflowChecks.Enabled"/> if we are in an explicitly checked context (within checked block or expression).
-        /// <see cref="OverflowChecks.Disabled"/> if we are in an explcitly unchecked context (within unchecked block or expression).
+        /// <see cref="OverflowChecks.Disabled"/> if we are in an explicitly unchecked context (within unchecked block or expression).
         /// <see cref="OverflowChecks.Implicit"/> otherwise.
         /// </summary>
         protected OverflowChecks CheckOverflow
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Method:
                         // global statements
-                        return ((MethodSymbol)containingMember).IsScriptConstructor;
+                        return ((MethodSymbol)containingMember).IsScriptInitializer;
 
                     case SymbolKind.NamedType:
                         // script variable initializers

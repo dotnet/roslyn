@@ -529,15 +529,15 @@ end module
             Dim generatedRightLiteralToken = SyntaxFactory.IntegerLiteralToken("23", LiteralBase.Decimal, TypeCharacter.None, 23)
             Dim generatedLeftLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedLeftLiteralToken)
             Dim generatedRightLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, generatedRightLiteralToken)
-            Dim generatedRedLiteratalExpression = SyntaxFactory.GreaterThanExpression(generatedLeftLiteralExpression, SyntaxFactory.Token(SyntaxKind.GreaterThanToken), generatedRightLiteralExpression)
-            Dim generatedRedIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteratalExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "THeN"))
+            Dim generatedRedLiteralExpression = SyntaxFactory.GreaterThanExpression(generatedLeftLiteralExpression, SyntaxFactory.Token(SyntaxKind.GreaterThanToken), generatedRightLiteralExpression)
+            Dim generatedRedIfStatement = SyntaxFactory.IfStatement(SyntaxFactory.Token(SyntaxKind.IfKeyword), generatedRedLiteralExpression, SyntaxFactory.Token(SyntaxKind.ThenKeyword, "THeN"))
             Dim expression As ExpressionSyntax = SyntaxFactory.StringLiteralExpression(SyntaxFactory.StringLiteralToken("foo", "foo"))
             Dim callexpression = SyntaxFactory.InvocationExpression(expression:=expression)
             Dim callstatement = SyntaxFactory.CallStatement(SyntaxFactory.Token(SyntaxKind.CallKeyword), callexpression)
             Dim stmtlist = SyntaxFactory.List(Of StatementSyntax)({CType(callstatement, StatementSyntax), CType(callstatement, StatementSyntax)})
-            Dim generatedEndIfStatment = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword), SyntaxFactory.Token(SyntaxKind.IfKeyword))
+            Dim generatedEndIfStatement = SyntaxFactory.EndIfStatement(SyntaxFactory.Token(SyntaxKind.EndKeyword), SyntaxFactory.Token(SyntaxKind.IfKeyword))
 
-            Dim mlib = SyntaxFactory.MultiLineIfBlock(generatedRedIfStatement, stmtlist, Nothing, Nothing, generatedEndIfStatment)
+            Dim mlib = SyntaxFactory.MultiLineIfBlock(generatedRedIfStatement, stmtlist, Nothing, Nothing, generatedEndIfStatement)
             Dim str = mlib.NormalizeWhitespace("  ").ToFullString()
             Assert.Equal("If 42 > 23 THeN" + vbCrLf + "  Call foo" + vbCrLf + "  Call foo" + vbCrLf + "End If", str)
         End Sub
@@ -790,7 +790,7 @@ End Property
 
             Dim expected = "#Const constant = 1 ""A""c"
 
-            Dim actual = SyntaxNormalizer.Normalize(trivia, "  ", useElasticTrivia:=False, useDefaultCasing:=False).ToFullString()
+            Dim actual = trivia.NormalizeWhitespace(indentation:="  ", elasticTrivia:=False, useDefaultCasing:=False).ToFullString()
             Assert.Equal(expected, actual)
         End Sub
 
@@ -867,7 +867,7 @@ End Property
 # enable   warning ,]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim root = Parse(text).GetRoot()
-            Dim normalizedRoot = SyntaxNormalizer.Normalize(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
+            Dim normalizedRoot = root.NormalizeWhitespace(indentation:="    ", elasticTrivia:=True, useDefaultCasing:=True)
 
             Dim expected = <![CDATA[#Enable Warning [BC000], Bc123, BC456, _789 '          comment
 #Enable Warning
@@ -888,7 +888,7 @@ End Property
 End Module]]>.Value.Replace(vbLf, vbCrLf)
 
             Dim root = Parse(text).GetRoot()
-            Dim normalizedRoot = SyntaxNormalizer.Normalize(root, "    ", useElasticTrivia:=True, useDefaultCasing:=True)
+            Dim normalizedRoot = root.NormalizeWhitespace(indentation:="    ", elasticTrivia:=True, useDefaultCasing:=True)
 
             Dim expected = <![CDATA[Module Program
 
@@ -902,5 +902,22 @@ End Module]]>.Value.Replace(vbLf, vbCrLf)
 
             Assert.Equal(expected, normalizedRoot.ToFullString())
         End Sub
+
+        <Fact>
+        Public Sub TestNormalizeEOL()
+            Dim code = "Class C" & vbCrLf & "End Class"
+            Dim expected = "Class C" & vbLf & "End Class" & vbLf
+            Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace("  ", eol:=vbLf).ToFullString()
+            Assert.Equal(expected, actual)
+        End Sub
+
+        <Fact>
+        Public Sub TestNormalizeTabs()
+            Dim code = "Class C" & vbCrLf & "Sub M()" & vbCrLf & "End Sub" & vbCrLf & "End Class"
+            Dim expected = "Class C" & vbCrLf & vbCrLf & vbTab & "Sub M()" & vbCrLf & vbTab & "End Sub" & vbCrLf & "End Class" & vbCrLf
+            Dim actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(vbTab).ToFullString()
+            Assert.Equal(expected, actual)
+        End Sub
+
     End Class
 End Namespace

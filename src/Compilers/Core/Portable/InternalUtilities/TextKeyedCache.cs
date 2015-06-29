@@ -69,7 +69,7 @@ namespace Roslyn.Utilities
 
         // local cache
         // simple fast and not threadsafe cache 
-        // with lmited size and "last add wins" expiration policy
+        // with limited size and "last add wins" expiration policy
         private readonly LocalEntry[] _localTable = new LocalEntry[LocalSize];
 
         // shared threadsafe cache
@@ -147,7 +147,7 @@ namespace Roslyn.Utilities
             SharedEntryValue e = FindSharedEntry(chars, start, len, hashCode);
             if (e != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new LocalEntry(...)
                 arr[idx].HashCode = hashCode;

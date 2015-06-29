@@ -46,11 +46,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         IEnumerable<SyntaxNode> GetImplementsNodes(SyntaxNode parent);
 
         /// <summary>
-        /// Retrieves the logical members of a given node, flattening the declarators
-        /// in field declarations. For example, if a class contains the field "int foo, bar", 
-        /// two nodes are returned -- one for "foo" and one for "bar".
+        /// Retrieves the members of a specified <paramref name="container"/> node. The members that are
+        /// returned can be controlled by passing various parameters.
         /// </summary>
-        IEnumerable<SyntaxNode> GetFlattenedMemberNodes(SyntaxNode parent);
+        /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
+        /// <param name="includeSelf">If true, the container is returned as well.</param>
+        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// as immediate children. For example, a namespace would return the namespaces and types within.
+        /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
+        /// also be returned.</param>
+        /// <param name="logicalFields">If true, field declarations are broken into their respective declarators.
+        /// For example, the field "int x, y" would return two declarators, one for x and one for y in place
+        /// of the field.</param>
+        /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
+        IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes);
+
+        IEnumerable<SyntaxNode> GetLogicalSupportedMemberNodes(SyntaxNode container);
 
         SyntaxNodeKey GetNodeKey(SyntaxNode node);
         SyntaxNodeKey TryGetNodeKey(SyntaxNode node);
@@ -62,6 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         string Language { get; }
         string AssemblyAttributeString { get; }
 
+        /// <summary>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// </summary>
         EnvDTE.CodeElement CreateInternalCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         EnvDTE.CodeElement CreateExternalCodeElement(CodeModelState state, ProjectId projectId, ISymbol symbol);
         EnvDTE.CodeElement CreateUnknownCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);

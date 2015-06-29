@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion;
         }
 
-        private class RecoverableText : RecoverableWeakValueSource<SourceText>
+        private sealed class RecoverableText : RecoverableWeakValueSource<SourceText>
         {
             private readonly RecoverableTextAndVersion _parent;
             private ITemporaryTextStorage _storage;
@@ -133,6 +133,8 @@ namespace Microsoft.CodeAnalysis
 
             protected override SourceText Recover(CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(_storage);
+
                 using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, _parent._filePath, cancellationToken))
                 {
                     return _storage.ReadText(cancellationToken);
@@ -141,6 +143,8 @@ namespace Microsoft.CodeAnalysis
 
             protected override Task SaveAsync(SourceText text, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfFalse(_storage == null); // Cannot save more than once
+
                 _storage = _parent._storageService.CreateTemporaryTextStorage(CancellationToken.None);
                 return _storage.WriteTextAsync(text);
             }

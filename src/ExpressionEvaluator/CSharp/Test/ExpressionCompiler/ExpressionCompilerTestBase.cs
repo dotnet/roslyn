@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.DiaSymReader;
+using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public abstract class ExpressionCompilerTestBase : CSharpTestBase, IDisposable
     {
         private readonly ArrayBuilder<IDisposable> _runtimeInstances = ArrayBuilder<IDisposable>.GetInstance();
+
+        internal static readonly ImmutableArray<Alias> NoAliases = ImmutableArray<Alias>.Empty;
 
         public override void Dispose()
         {
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             moduleVersionId = id;
             symReader = (ISymUnmanagedReader)moduleInstance.SymReader;
 
-            Handle methodOrTypeHandle;
+            EntityHandle methodOrTypeHandle;
             if (methodOrType.Kind == SymbolKind.Method)
             {
                 methodOrTypeHandle = ((PEMethodSymbol)methodOrType).Handle;
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int localSignatureToken;
             GetContextState(runtime, methodName, out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber);
 
             return EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
@@ -164,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             ResultProperties resultProperties;
             string error;
-            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, DefaultInspectionContext.Instance, includeSymbols);
+            var result = Evaluate(source, outputKind, methodName, expr, out resultProperties, out error, atLineNumber, includeSymbols);
             Assert.Null(error);
             return result;
         }
@@ -177,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             out ResultProperties resultProperties,
             out string error,
             int atLineNumber = -1,
-            InspectionContext inspectionContext = null,
             bool includeSymbols = true)
         {
             var compilation0 = CreateCompilationWithMscorlib(
@@ -189,9 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileExpression(
-                inspectionContext ?? DefaultInspectionContext.Instance,
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
+                NoAliases,
                 DiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
@@ -221,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             LocalAndMethod localAndMethod,
             string expectedMethodName,
             string expectedLocalName,
+            string expectedLocalDisplayName = null,
             DkmClrCompilationResultFlags expectedFlags = DkmClrCompilationResultFlags.None,
             string expectedILOpt = null,
             bool expectedGeneric = false,
@@ -233,6 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 localAndMethod,
                 expectedMethodName,
                 expectedLocalName,
+                expectedLocalDisplayName ?? expectedLocalName,
                 expectedFlags,
                 VerifyTypeParameters,
                 expectedILOpt,
@@ -258,32 +262,68 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static Symbol GetMethodOrTypeBySignature(Compilation compilation, string signature)
         {
-            string methodOrTypeName = signature;
-            string[] parameterTypeNames = null;
-            var parameterListStart = methodOrTypeName.IndexOf('(');
-            if (parameterListStart > -1)
-            {
-                parameterTypeNames = methodOrTypeName.Substring(parameterListStart).Trim('(', ')').Split(',');
-                methodOrTypeName = methodOrTypeName.Substring(0, parameterListStart);
-            }
+            string[] parameterTypeNames;
+            var methodOrTypeName = ExpressionCompilerTestHelpers.GetMethodOrTypeSignatureParts(signature, out parameterTypeNames);
 
             var candidates = compilation.GetMembers(methodOrTypeName);
-            Assert.Equal(parameterTypeNames == null, candidates.Length == 1);
+            var methodOrType = (parameterTypeNames == null) ?
+                candidates.FirstOrDefault() :
+                candidates.FirstOrDefault(c => parameterTypeNames.SequenceEqual(((MethodSymbol)c).Parameters.Select(p => p.Type.Name)));
 
-            Symbol methodOrType = null;
-            foreach (var candidate in candidates)
-            {
-                methodOrType = candidate;
-                if ((parameterTypeNames == null) ||
-                    parameterTypeNames.SequenceEqual(methodOrType.GetParameters().Select(p => p.Type.Name)))
-                {
-                    // Found a match.
-                    break;
-                }
-            }
             Assert.False(methodOrType == null, "Could not find method or type with signature '" + signature + "'.");
-
             return methodOrType;
+        }
+
+        internal static Alias VariableAlias(string name, Type type = null)
+        {
+            return VariableAlias(name, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias VariableAlias(string name, string typeAssemblyQualifiedName)
+        {
+            return new Alias(DkmClrAliasKind.Variable, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias ObjectIdAlias(uint id, Type type = null)
+        {
+            return ObjectIdAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias ObjectIdAlias(uint id, string typeAssemblyQualifiedName)
+        {
+            Assert.NotEqual(0u, id); // Not a valid id.
+            var name = $"${id}";
+            return new Alias(DkmClrAliasKind.ObjectId, name, name, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias ReturnValueAlias(int id = -1, Type type = null)
+        {
+            return ReturnValueAlias(id, (type ?? typeof(object)).AssemblyQualifiedName);
+        }
+
+        internal static Alias ReturnValueAlias(int id, string typeAssemblyQualifiedName)
+        {
+            var name = $"Method M{(id < 0 ? "" : id.ToString())} returned";
+            var fullName = id < 0 ? "$ReturnValue" : $"$ReturnValue{id}";
+            return new Alias(DkmClrAliasKind.ReturnValue, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias ExceptionAlias(Type type = null, bool stowed = false)
+        {
+            return ExceptionAlias((type ?? typeof(Exception)).AssemblyQualifiedName, stowed);
+        }
+
+        internal static Alias ExceptionAlias(string typeAssemblyQualifiedName, bool stowed = false)
+        {
+            var name = "Error";
+            var fullName = stowed ? "$stowedexception" : "$exception";
+            var kind = stowed ? DkmClrAliasKind.StowedException : DkmClrAliasKind.Exception;
+            return new Alias(kind, name, fullName, typeAssemblyQualifiedName, default(CustomTypeInfo));
+        }
+
+        internal static Alias Alias(DkmClrAliasKind kind, string name, string fullName, string type, CustomTypeInfo customTypeInfo)
+        {
+            return new Alias(kind, name, fullName, type, customTypeInfo);
         }
     }
 }

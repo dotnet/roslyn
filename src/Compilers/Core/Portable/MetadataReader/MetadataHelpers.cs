@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis
                     List<IGrouping<string, TypeDefinitionHandle>> typesInLastChildNamespace = null;
 
                     // if there are any types in this namespace,
-                    // they will be in the first several groups if if their key length 
+                    // they will be in the first several groups if their key length 
                     // is equal to namespaceNameLength.
                     while (pair.Key.Length == namespaceNameLength)
                     {
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Checks that the specified name is a valid metadata String and a file name.
-        /// The specification isn't entirely consistent and complete but it mentiones:
+        /// The specification isn't entirely consistent and complete but it mentions:
         /// 
         /// 22.19.2: "Name shall index a non-empty string in the String heap. It shall be in the format {filename}.{extension} (e.g., 'foo.dll', but not 'c:\utils\foo.dll')."
         /// 22.30.2: "The format of Name is {file name}.{file extension} with no path or drive letter; on POSIX-compliant systems Name contains no colon, no forward-slash, no backslash."
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis
             //     uint32_t SigAlgId;      // Signature algorithm ID
             //     uint32_t HashAlgId;     // Hash algorithm ID
             //     uint32_t PublicKeySize; // Size of public key data in bytes, not including the header
-            //     uint8_t  PublicKey[0];  // PublicKeySize bytes of publc key data
+            //     uint8_t  PublicKey[0];  // PublicKeySize bytes of public key data
             // }
             //
             // The offsets of each relevant field are recorded below.
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static string MangleForTypeNameIfNeeded(string moduleName)
         {
-            // TODO: it may make sense to strenthen this algorithm 
+            // TODO: it may make sense to strengthen this algorithm 
             //       to result in 1-1 mapping to reduce chances of
             //       producing matching results for distinct original strings
             var result = moduleName.Replace('.', '_');

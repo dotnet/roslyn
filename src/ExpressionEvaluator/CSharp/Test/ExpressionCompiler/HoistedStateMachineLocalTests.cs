@@ -98,8 +98,7 @@ class C
   // Code size        7 (0x7)
   .maxstack  1
   .locals init (int V_0,
-                bool V_1,
-                int V_2)
+                int V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int C.<M>d__0.{0}""
   IL_0006:  ret
@@ -1325,7 +1324,7 @@ class C
             int localSignatureToken;
             GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
-            int ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
+            uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
             var context = EvaluationContext.CreateMethodContext(
                 default(CSharpMetadataContext),
                 blocks,

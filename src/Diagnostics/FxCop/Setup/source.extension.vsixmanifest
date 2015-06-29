@@ -7,13 +7,14 @@
     <Description xml:space="preserve">Setup project for ported FxCop Diagnostics.</Description>
   </Metadata>
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[12.0,]" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.dll" />
-    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.AnalyzerPowerPack.CSharp.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.AnalyzerPowerPack.VisualBasic.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.AnalyzerPowerPack.Common.dll" />
   </Assets>
 </PackageManifest>

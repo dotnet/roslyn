@@ -85,7 +85,7 @@ class C
         Foo {|Conflict:x|} = new Foo(FooMeth);
         int [|$$z|] = 1; // Rename z to x
         int y = {|Conflict:z|};
-        {|Conflict:x|}({|Conflict:z|}); // Renamed to x(x)
+        x({|Conflict:z|}); // Renamed to x(x)
     }
 }
                             </Document>
@@ -219,13 +219,14 @@ using System.Linq;
 public class B
 {
     public readonly int z = 0;
-    public int X(int [|$$x|]) => [|x|] + {|resolve:z|};
+    public int X(int [|$$x|]) => {|direct:x|} + {|resolve:z|};
 }
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="z")
 
-                    result.AssertLabeledSpansAre("resolve", "this.z", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("direct", "z + this.z", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("resolve", "z + this.z", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -244,13 +245,14 @@ using System.Linq;
 public class B
 {
     public static readonly int z = 0;
-    public int X(int [|$$x|]) => [|x|] + {|resolve:z|};
+    public int X(int [|$$x|]) => {|direct:x|} + {|resolve:z|};
 }
                             </Document>
                         </Project>
                     </Workspace>, renameTo:="z")
 
-                    result.AssertLabeledSpansAre("resolve", "B.z", RelatedLocationType.ResolvedNonReferenceConflict)
+                    result.AssertLabeledSpansAre("direct", "z + B.z", RelatedLocationType.NoConflict)
+                    result.AssertLabeledSpansAre("resolve", "z + B.z", RelatedLocationType.ResolvedNonReferenceConflict)
                 End Using
             End Sub
 
@@ -3001,6 +3003,444 @@ class C
                 </Workspace>, renameTo:="zoo")
 
                 result.AssertLabeledSpansAre("ref", "string x = nameof(this.zoo);", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1053, "https://github.com/dotnet/roslyn/issues/1053")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameComplexifiesInLambdaBodyExpression()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    static int [|$$M|](int b) => 5;
+    static int N(long b) => 5;
+    System.Func<int, int> a = d => {|resolved:N|}(1);
+    System.Func<int> b = () => {|resolved:N|}(1);
+}]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="N")
+
+                result.AssertLabeledSpansAre("resolved", "N((long)1)", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1053, "https://github.com/dotnet/roslyn/issues/1053")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameComplexifiesInExpressionBodiedMembers()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class C
+{
+    int f = new C().{|resolved1:N|}(0);
+    int [|$$M|](int b) => {|resolved2:N|}(0);
+    int N(long b) => [|M|](0);
+    int P => {|resolved2:N|}(0);
+}]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="N")
+
+                result.AssertLabeledSpansAre("resolved1", "new C().N((long)0)", RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("resolved2", "N((long)0)", RelatedLocationType.ResolvedNonReferenceConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1027506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictBetweenClassAndInterface1()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class {|conflict:C|} { }
+interface [|$$I|] { }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="C")
+
+                result.AssertLabeledSpansAre("conflict", "C", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1027506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictBetweenClassAndInterface2()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class [|$$C|] { }
+interface {|conflict:I|} { }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="I")
+
+                result.AssertLabeledSpansAre("conflict", "I", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1027506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictBetweenClassAndNamespace1()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class {|conflict:$$C|} { }
+namespace N { }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="N")
+
+                result.AssertLabeledSpansAre("conflict", "N", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1027506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictBetweenClassAndNamespace2()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+class {|conflict:C|} { }
+namespace [|$$N|] { }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="C")
+
+                result.AssertLabeledSpansAre("conflict", "C", RelatedLocationType.UnresolvableConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1027506)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestNoConflictBetweenTwoNamespaces()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+namespace [|$$N1|][ { }
+namespace N2 { }
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="N2")
+            End Using
+        End Sub
+
+        <WorkItem(1729, "https://github.com/dotnet/roslyn/issues/1729")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestNoConflictWithParametersOrLocalsOfDelegateType()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+using System;
+class C
+{
+    void M1(Action [|callback$$|])
+    {
+        [|callback|]();
+    }
+
+    void M2(Func<bool> callback)
+    {
+        callback();
+    }
+
+    void M3()
+    {
+        Action callback = () => { };
+        callback();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="callback2")
+            End Using
+        End Sub
+
+        <WorkItem(1729, "https://github.com/dotnet/roslyn/issues/1729")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub TestConflictWithLocalsOfDelegateTypeWhenBindingChangesToNonDelegateLocal()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath="Test.cs"><![CDATA[
+using System;
+class C
+{
+    void M()
+    {
+        int [|x$$|] = 7; // Rename x to a. "a()" will bind to the first definition of a.
+        Action {|conflict:a|} = () => { };
+        {|conflict:a|}();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>, renameTo:="a")
+
+                result.AssertLabeledSpansAre("conflict", "a", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(446, "https://github.com/dotnet/roslyn/issues/446")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoCrashOrConflictOnRenameWithNameOfInAttribute()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    static void [|T|]$$(int x) { }
+
+    [System.Obsolete(nameof(Test))]
+    static void Test() { }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="Test")
+            End Using
+        End Sub
+
+        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictWhenNameOfReferenceDoesNotBindToAnyOriginalSymbols()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class C
+{
+    void Test()
+    {
+        int [|T$$|];
+        var x = nameof({|conflict:Test|});
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="Test")
+
+                result.AssertLabeledSpansAre("conflict", "Test", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictWhenNameOfReferenceDoesNotBindToSomeOriginalSymbols()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class Program
+{
+    void [|$$M|](int x) { }
+    void M() { var x = nameof(M); }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="X")
+            End Using
+        End Sub
+
+        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub NoConflictWhenNameOfReferenceBindsToSymbolForFirstTime()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class Program
+{
+    void [|X$$|]() { }
+    void M() { var x = nameof(T); }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="T")
+            End Using
+        End Sub
+
+        <WorkItem(1195, "https://github.com/dotnet/roslyn/issues/1195")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictWhenNameOfReferenceChangesBindingFromMetadataToSource()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+using System;
+
+class Program
+{
+    static void M()
+    {
+        var [|Consol$$|] = 7;
+        var x = nameof({|conflict:Console|});
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="Console")
+
+                result.AssertLabeledSpansAre("conflict", "Console", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub InvalidNamesDoNotCauseCrash_IntroduceQualifiedName()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class {|conflict:C$$|} { }
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="C.D")
+
+                result.AssertReplacementTextInvalid()
+                result.AssertLabeledSpansAre("conflict", "C.D", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(1031, "https://github.com/dotnet/roslyn/issues/1031")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub InvalidNamesDoNotCauseCrash_AccidentallyPasteLotsOfCode()
+            Dim renameTo = "class C { public void M() { for (int i = 0; i < 10; i++) { System.Console.Writeline(""This is a test""); } } }"
+
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class {|conflict:C$$|} { }
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo)
+
+                result.AssertReplacementTextInvalid()
+                result.AssertLabeledSpansAre("conflict", renameTo, RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DeclarationConflictInFileWithoutReferences_SameProject()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document FilePath="Test1.cs">
+class Program
+{
+    internal void [|A$$|]() { }
+    internal void {|conflict:B|}() { }
+}
+                            </Document>
+                           <Document FilePath="Test2.cs">
+class Program2
+{
+    void M()
+    {
+        Program p = null;
+        p.{|conflict:A|}();
+        p.{|conflict:B|}();
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="B")
+
+                result.AssertLabeledSpansAre("conflict", "B", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DeclarationConflictInFileWithoutReferences_DifferentProjects()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true" AssemblyName="CSAssembly1">
+                           <Document FilePath="Test1.cs">
+public class Program
+{
+    public void [|A$$|]() { }
+    public void {|conflict:B|}() { }
+}
+                            </Document>
+                       </Project>
+                       <Project Language="C#" CommonReferences="true" AssemblyName="CSAssembly2">
+                           <ProjectReference>CSAssembly1</ProjectReference>
+                           <Document FilePath="Test2.cs">
+class Program2
+{
+    void M()
+    {
+        Program p = null;
+        p.{|conflict:A|}();
+        p.{|conflict:B|}();
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="B")
+
+                result.AssertLabeledSpansAre("conflict", "B", RelatedLocationType.UnresolvedConflict)
+            End Using
+        End Sub
+
+        <WorkItem(2352, "https://github.com/dotnet/roslyn/issues/2352")>
+        <WorkItem(3303, "https://github.com/dotnet/roslyn/issues/3303")>
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub DeclarationConflictInFileWithoutReferences_PartialTypes()
+            Using result = RenameEngineResult.Create(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document FilePath="Test1.cs">
+partial class C
+{
+    private static void [|$$M|]()
+    {
+        {|conflict:M|}();
+    }
+}
+                            </Document>
+                           <Document FilePath="Test2.cs">
+partial class C
+{
+    private static void {|conflict:Method|}()
+    {
+    }
+}
+                            </Document>
+                       </Project>
+                   </Workspace>, renameTo:="Method")
+
+                result.AssertLabeledSpansAre("conflict", "Method", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
     End Class

@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' This method is an entry point for the Binder to collect extension methods with the given name
-        ''' declared within this named type. Overriden by RetargetingNamedTypeSymbol.
+        ''' declared within this named type. Overridden by RetargetingNamedTypeSymbol.
         ''' </summary>
         Friend Overridable Sub AppendProbableExtensionMethods(name As String, methods As ArrayBuilder(Of MethodSymbol))
             If Me.MightContainExtensionMethods Then
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim candidates = Me.GetSimpleNonTypeMembers(Name)
 
                 For Each member In candidates
-                    appendThrough.AddMemeberIfExtension(methods, member)
+                    appendThrough.AddMemberIfExtension(methods, member)
                 Next
             End If
         End Sub
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <remarks>
         ''' Forces binding and decoding of attributes.
-        ''' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We maintain comptability.
+        ''' NOTE: Conditional symbols on base type must be inherited by derived type, but the native VB compiler doesn't do so. We maintain compatibility.
         ''' </remarks>
         Friend ReadOnly Property IsConditional As Boolean
             Get
@@ -853,7 +853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             'NOTE: we can be at race with another thread here.
             ' the worst thing that can happen though, is that error on same cycle may be reported twice
-            ' if two threads analyse the same cycle at the same time but start from different ends.
+            ' if two threads analyze the same cycle at the same time but start from different ends.
             '
             ' For now we decided that this is something we can live with.
 

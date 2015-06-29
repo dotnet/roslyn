@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Specifies an encoding to be used if the actual encoding of the file 
         /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If <c>null</c> auto-detect heristics are used to determine the encoding. 
+        /// If <c>null</c> auto-detect heuristics are used to determine the encoding. 
         /// If these heuristics fail the decoding is assumed to be <see cref="Encoding.Default"/>.
         /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
         /// </summary>
@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis
             TextAndVersion textAndVersion;
             using (var stream = FileUtilities.OpenAsyncRead(_path))
             {
-                System.Diagnostics.Debug.Assert(stream.IsAsync);
                 var version = VersionStamp.Create(prevLastWriteTime);
 
                 Contract.Requires(stream.Position == 0);

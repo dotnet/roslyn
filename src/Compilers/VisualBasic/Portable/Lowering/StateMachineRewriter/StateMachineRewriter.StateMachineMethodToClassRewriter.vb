@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -220,14 +221,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Wrap the node in a StateMachineScope for debugging
                 Dim translatedStatement As BoundNode = wrapped
                 If hoistedLocalsWithDebugScopes.Count > 0 Then
-                    translatedStatement = Me.F.Block(New BoundStateMachineScope(Me.F.Syntax,
-                                                             hoistedLocalsWithDebugScopes.ToImmutable(),
-                                                             DirectCast(translatedStatement, BoundStatement)).MakeCompilerGenerated)
+                    translatedStatement = MakeStateMachineScope(hoistedLocalsWithDebugScopes.ToImmutable(), DirectCast(translatedStatement, BoundStatement))
                 End If
 
                 hoistedLocalsWithDebugScopes.Free()
 
                 Return translatedStatement
+            End Function
+
+            ''' <remarks>
+            ''' Must remain in sync with <see cref="TryUnwrapBoundStateMachineScope"/>.
+            ''' </remarks>
+            Friend Function MakeStateMachineScope(hoistedLocals As ImmutableArray(Of FieldSymbol), statement As BoundStatement) As BoundBlock
+                Return Me.F.Block(New BoundStateMachineScope(Me.F.Syntax, hoistedLocals, statement).MakeCompilerGenerated)
+            End Function
+
+            ''' <remarks>
+            ''' Must remain in sync with <see cref="MakeStateMachineScope"/>.
+            ''' </remarks>
+            Friend Function TryUnwrapBoundStateMachineScope(ByRef statement As BoundStatement, <Out> ByRef hoistedLocals As ImmutableArray(Of FieldSymbol)) As Boolean
+                If statement.Kind = BoundKind.Block Then
+                    Dim rewrittenBlock = DirectCast(statement, BoundBlock)
+                    Dim rewrittenStatements = rewrittenBlock.Statements
+                    If rewrittenStatements.Length = 1 AndAlso rewrittenStatements(0).Kind = BoundKind.StateMachineScope Then
+                        Dim stateMachineScope = DirectCast(rewrittenStatements(0), BoundStateMachineScope)
+                        statement = stateMachineScope.Statement
+                        hoistedLocals = stateMachineScope.Fields
+                        Return True
+                    End If
+                End If
+
+                hoistedLocals = ImmutableArray(Of FieldSymbol).Empty
+                Return False
             End Function
 
             Private Function NeedsProxy(localOrParameter As Symbol) As Boolean

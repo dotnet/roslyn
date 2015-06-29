@@ -1225,15 +1225,23 @@ BC30049: 'Redim' statement requires an array.
             Diagnostic(ERRID.ERR_ArrayRankLimit, "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33)"))
         End Sub
 
-        <Fact()>
-        Public Sub BC30053ERR_AsNewArray()
+        <Fact, WorkItem(2424, "https://github.com/dotnet/roslyn/issues/2424")>
+        Public Sub BC30053ERR_AsNewArray_01()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation name="AsNewArray">
         <file name="a.vb">
         Module M1
             Sub Foo()
                 Dim c() As New System.Exception
+                Dim d(), e() As New System.Exception
+                Dim f(), g As New System.Exception
+                Dim h, i() As New System.Exception
             End Sub
+
+            Dim x() As New System.Exception
+            Dim y(), z() As New System.Exception
+            Dim u(), v As New System.Exception
+            Dim w, q() As New System.Exception
         End Module
         </file>
     </compilation>)
@@ -1242,6 +1250,89 @@ BC30049: 'Redim' statement requires an array.
 BC30053: Arrays cannot be declared with 'New'.
                 Dim c() As New System.Exception
                            ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(), e() As New System.Exception
+                                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(), e() As New System.Exception
+                                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim f(), g As New System.Exception
+                              ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim h, i() As New System.Exception
+                              ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim x() As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(), z() As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(), z() As New System.Exception
+                     ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim u(), v As New System.Exception
+                ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim w, q() As New System.Exception
+                   ~~~
+</errors>
+            CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
+        End Sub
+
+        <Fact, WorkItem(2424, "https://github.com/dotnet/roslyn/issues/2424")>
+        Public Sub BC30053ERR_AsNewArray_02()
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation name="AsNewArray">
+        <file name="a.vb">
+        Module M1
+            Sub Foo()
+                Dim c(1) As New System.Exception
+                Dim d(1), e(1) As New System.Exception
+                Dim f(1), g As New System.Exception
+                Dim h, i(1) As New System.Exception
+            End Sub
+
+            Dim x(1) As New System.Exception
+            Dim y(1), z(1) As New System.Exception
+            Dim u(1), v As New System.Exception
+            Dim w, q(1) As New System.Exception
+        End Module
+        </file>
+    </compilation>)
+
+            Dim expectedErrors1 = <errors>
+BC30053: Arrays cannot be declared with 'New'.
+                Dim c(1) As New System.Exception
+                            ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(1), e(1) As New System.Exception
+                                  ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim d(1), e(1) As New System.Exception
+                                  ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim f(1), g As New System.Exception
+                               ~~~
+BC30053: Arrays cannot be declared with 'New'.
+                Dim h, i(1) As New System.Exception
+                               ~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim x(1) As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(1), z(1) As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim y(1), z(1) As New System.Exception
+                      ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim u(1), v As New System.Exception
+                ~~~~
+BC30053: Arrays cannot be declared with 'New'.
+            Dim w, q(1) As New System.Exception
+                   ~~~~
 </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
@@ -5818,11 +5909,9 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': 'Exit Try' can only appear inside a 'Try' statement.
-        x.Where(Function(y)
-          ~~~~~
+BC30393: 'Exit Try' can only appear inside a 'Try' statement.
+                        Exit Try
+                        ~~~~~~~~
 </expected>)
         End Sub
 
@@ -8087,11 +8176,9 @@ End Class
 </compilation>, {SystemCoreRef})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-    Extension method 'Public Function Where(predicate As Func(Of Integer, Integer, Boolean)) As IEnumerable(Of Integer)' defined in 'Enumerable': Branching out of a 'Finally' is not valid.
-        x.Where(Function(y)
-          ~~~~~
+BC30101: Branching out of a 'Finally' is not valid.
+                        Exit Function
+                        ~~~~~~~~~~~~~
 BC42353: Function '&lt;anonymous method>' doesn't return a value on all code paths. Are you missing a 'Return' statement?
                 End Function)
                 ~~~~~~~~~~~~
@@ -15868,7 +15955,7 @@ BC33035: Type 'c2' must define operator 'IsTrue' to be used in a 'OrElse' expres
             compilation1.VerifyDiagnostics(Diagnostic(ERRID.ERR_CopyBackTypeMismatch3, "o").WithArguments("x", "Integer", "c2"))
         End Sub
 
-        ' Rosly extra errors (last 3)
+        ' Roslyn extra errors (last 3)
         <Fact()>
         Public Sub BC33038ERR_ForLoopOperatorRequired2()
             CreateCompilationWithMscorlibAndVBRuntime(
@@ -19291,9 +19378,9 @@ BC42026: Expression recursively calls the containing property 'Public Property P
         End Sub
 
         <Fact()>
-        Public Sub BC42029WRN_OverlapingCatch()
+        Public Sub BC42029WRN_OverlappingCatch()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="OverlapingCatch">
+    <compilation>
         <file name="a.vb">
             Imports System
             Module Module1
@@ -20868,13 +20955,13 @@ BC42349: Using DirectCast operator to cast a value-type to the same type is obso
 
                     Module M1
                         Sub foo()
-                            ' resouce type is a concrete structure + immutable (OK)
+                            ' resource type is a concrete structure + immutable (OK)
                             Using a As New ImmutableStructure()
                             End Using
                             Using New ImmutableStructure() ' ok
                             End Using
 
-                            ' resouce type is a concrete structure + mutable (Warning)
+                            ' resource type is a concrete structure + mutable (Warning)
                             Using b As New MutableStructure()
                             End Using
                             Using New MutableStructure() ' as expression also ok.
@@ -21557,6 +21644,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
                                   </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
+
         <Fact(), WorkItem(530126, "DevDiv")>
         Public Sub Bug_15314_Structure()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -21579,6 +21667,7 @@ BC30289: Statement cannot appear within a method body. End of method assumed.
                                   </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation1, expectedErrors1)
         End Sub
+
         <Fact()>
         Public Sub Bug4185()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

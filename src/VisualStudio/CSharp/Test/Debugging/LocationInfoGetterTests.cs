@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
@@ -12,13 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
     public class LocationInfoGetterTests
     {
-        private void Test(string markup, string expectedName, int expectedLineOffset)
+        private void Test(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(markup))
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(new[] { markup }, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
-                var snapshot = testDocument.TextBuffer.CurrentSnapshot;
                 var locationInfo = LocationInfoGetter.GetInfoAsync(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     position,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        public void TestCSharpLanguageDebugInfoTryGetNameOfLocation()
+        public void TestClass()
         {
             Test("class F$$oo { }", "Foo", 0);
         }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestNamespaces()
+        public void TestNamespace()
         {
             Test(
 @"namespace Namespace
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(527668)]
-        public void TestDottedNamespaces()
+        public void TestDottedNamespace()
         {
             Test(
 @"namespace Namespace.Another
@@ -82,19 +82,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668)]
-        public void TestNestedTypes()
+        public void TestNestedNamespace()
         {
             Test(
-@"class Foo
+@"namespace Namespace
 {
-    class Bar
+    namespace Another
+    {
+        class Class
+        {
+            void Method()
+            {
+            }$$
+        }
+    }
+}", "Namespace.Another.Class.Method()", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [WorkItem(527668)]
+        public void TestNestedType()
+        {
+            Test(
+@"class Outer
+{
+    class Inner
     {
         void Quux()
         {$$
         }
     }
-}", "Foo.Bar.Quux()", 1);
+}", "Outer.Inner.Quux()", 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
@@ -111,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             return null;$$
         }
     }
-}", "Class.Property", 2);
+}", "Class.Property", 4);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
@@ -133,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             string s = $$value;
         }
     }
-}", "Class.Property", 2);
+}", "Class.Property", 9);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
@@ -149,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(543494)]
-        public void TestField2()
+        public void TestLambdaInFieldInitializer()
         {
             Test(
 @"class Class
@@ -160,13 +178,318 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         [WorkItem(543494)]
-        public void TestField3()
+        public void TestMultipleFields()
         {
             Test(
 @"class Class
 {
     int a1, a$$2;
 }", "Class.a2", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestConstructor()
+        {
+            Test(
+@"class C1
+{
+    C1()
+    {
+
+    $$}
+}
+", "C1.C1()", 3);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestDestructor()
+        {
+            Test(
+@"class C1
+{
+    ~C1()
+    {
+    $$}
+}
+", "C1.~C1()", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestOperator()
+        {
+            Test(
+@"namespace N1
+{
+    class C1
+    {
+        public static int operator +(C1 x, C1 y)
+        {
+            $$return 42;
+        }
+    }
+}
+", "N1.C1.+(C1 x, C1 y)", 2); // Old implementation reports "operator +" (rather than "+")...
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestConversionOperator()
+        {
+            Test(
+@"namespace N1
+{
+    class C1
+    {
+        public static explicit operator N1.C2(N1.C1 x)
+        {
+            $$return null;
+        }
+    }
+    class C2
+    {
+    }
+}
+", "N1.C1.N1.C2(N1.C1 x)", 2); // Old implementation reports "explicit operator N1.C2" (rather than "N1.C2")...
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestEvent()
+        {
+            Test(
+@"class C1
+{
+    delegate void D1();
+    event D1 e1$$;
+}
+", "C1.e1", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TextExplicitInterfaceImplementation()
+        {
+            Test(
+@"interface I1
+{
+    void M1();
+}
+class C1
+{
+    void I1.M1()
+    {
+    $$}
+}
+", "C1.M1()", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TextIndexer()
+        {
+            Test(
+@"class C1
+{
+    C1 this[int x]
+    {
+        get
+        {
+            $$return null;
+        }
+    }
+}
+", "C1.this[int x]", 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestParamsParameter()
+        {
+            Test(
+@"class C1
+{
+    void M1(params int[] x) { $$ }
+}
+", "C1.M1(params int[] x)", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestArglistParameter()
+        {
+            Test(
+@"class C1
+{
+    void M1(__arglist) { $$ }
+}
+", "C1.M1(__arglist)", 0); // Old implementation does not show "__arglist"...
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestRefAndOutParameters()
+        {
+            Test(
+@"class C1
+{
+    void M1( ref int x, out int y )
+    {
+        $$y = x;
+    }
+}
+", "C1.M1( ref int x, out int y )", 2); // Old implementation did not show extra spaces around the parameters...
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestOptionalParameters()
+        {
+            Test(
+@"class C1
+{
+    void M1(int x =1)
+    {
+        $$y = x;
+    }
+}
+", "C1.M1(int x =1)", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestExtensionMethod()
+        {
+            Test(
+@"static class C1
+{
+    static void M1(this int x)
+    {
+    }$$
+}
+", "C1.M1(this int x)", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestGenericType()
+        {
+            Test(
+@"class C1<T, U>
+{
+    static void M1() { $$ }
+}
+", "C1.M1()", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestGenericMethod()
+        {
+            Test(
+@"class C1<T, U>
+{
+    static void M1<V>() { $$ }
+}
+", "C1.M1()", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestGenericParameters()
+        {
+            Test(
+@"class C1<T, U>
+{
+    static void M1<V>(C1<int, V> x, V y) { $$ }
+}
+", "C1.M1(C1<int, V> x, V y)", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestMissingNamespace()
+        {
+            Test(
+@"{
+    class Class
+    {
+        int a1, a$$2;
+    }
+}", "Class.a2", 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestMissingNamespaceName()
+        {
+            Test(
+@"namespace
+{
+    class C1
+    {
+        int M1()
+        $${
+        }
+    }
+}", "?.C1.M1()", 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestMissingClassName()
+        {
+            Test(
+@"namespace N1
+    class 
+    {
+        int M1()
+        $${
+        }
+    }
+}", "N1.M1()", 1); // Old implementation displayed "N1.?.M1", but we don't see a class declaration in the syntax tree...
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestMissingMethodName()
+        {
+            Test(
+@"namespace N1
+{
+    class C1
+    {
+        static void (int x)
+        {
+        $$}
+    }
+}", "N1.C1", 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TestMissingParameterList()
+        {
+            Test(
+@"namespace N1
+{
+    class C1
+    {
+        static void M1
+        {
+        $$}
+    }
+}", "N1.C1.M1", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TopLevelField()
+        {
+            Test(
+@"$$int f1;
+", "f1", 0, new CSharpParseOptions(kind: SourceCodeKind.Script));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TopLevelMethod()
+        {
+            Test(
+@"int M1(int x)
+{
+$$}
+", "M1(int x)", 2, new CSharpParseOptions(kind: SourceCodeKind.Script));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        public void TopLevelStatement()
+        {
+            Test(
+@"
+
+$$System.Console.WriteLine(""Hello"")
+", null, 0, new CSharpParseOptions(kind: SourceCodeKind.Interactive));
         }
     }
 }

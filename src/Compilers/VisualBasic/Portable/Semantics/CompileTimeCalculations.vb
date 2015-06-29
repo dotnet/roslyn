@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function NarrowIntegralResult(
                         sourceValue As Long,
                         sourceType As TypeSymbol,
-                        sesultType As TypeSymbol,
+                        resultType As TypeSymbol,
                         ByRef overflow As Boolean) As Long
 
             Debug.Assert(sourceType.IsIntegralType() OrElse sourceType.IsBooleanType() OrElse sourceType.IsCharType(),
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return NarrowIntegralResult(sourceValue,
                                         sourceType.GetConstantValueTypeDiscriminator(),
-                                        sesultType.GetConstantValueTypeDiscriminator(),
+                                        resultType.GetConstantValueTypeDiscriminator(),
                                         overflow)
         End Function
 
@@ -633,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' // Conversion from double to uint64 is annoyingly implemented by the
             ' // VC++ compiler as (uint64)(int64)(double)val, so we have to do it by hand.
 
-            Dim result As Long = UncheckedCLng(UncheckedCULng(sourceValue))
+            Dim result As Long
 
             ' // code below stolen from jit...
             Dim two63 As Double = 2147483648.0 * 4294967296.0

@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             }
         }
 
-        /// Didnot Skip the test - will remove the explist cast (from IMethodSymbol to MethodSymbol)once this bug is fixed
+        /// Did not Skip the test - will remove the explicit cast (from IMethodSymbol to MethodSymbol) once this bug is fixed
         [Fact]
         public void TestInteropAttributesInterface()
         {
@@ -1312,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         #endregion
 
         [WorkItem(530209, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void Bug530209()
         {
             var ilSource = @"

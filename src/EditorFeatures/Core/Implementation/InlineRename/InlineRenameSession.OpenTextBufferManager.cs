@@ -9,12 +9,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -227,24 +226,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var trackingSpansAfterEdit = new NormalizedSpanCollection(GetEditableSpansForSnapshot(args.After).Select(ss => (Span)ss));
                     var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
 
-                    var intersection = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
-
-                    if (intersection.Count == 0)
+                    var intersectionSpans = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
+                    if (intersectionSpans.Count == 0)
                     {
                         // In Razor we sometimes get formatting changes during inline rename that
                         // do not intersect with any of our spans. Ideally this shouldn't happen at
                         // all, but if it does happen we can just ignore it.
                         return;
                     }
-                    else if (intersection.Count > 1)
-                    {
-                        Contract.Fail("we can't allow edits to touch multiple spans");
-                    }
 
-                    var intersectionSpan = intersection.Single();
-                    var singleTrackingSpanTouched = GetEditableSpansForSnapshot(args.After).Single(ss => ss.IntersectsWith(intersectionSpan));
-                    _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(intersectionSpan)).Single().Key;
+                    // Cases with invalid identifiers may cause there to be multiple intersection
+                    // spans, but they should still all map to a single tracked rename span (e.g.
+                    // renaming "two" to "one two three" may be interpreted as two distinct
+                    // additions of "one" and "three").
+                    var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
+                    var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
+                    Contract.Assert(trackingSpansTouched.Count() == 1);
 
+                    var singleTrackingSpanTouched = trackingSpansTouched.Single();
+                    _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(boundingIntersectionSpan)).Single().Key;
                     _session.UndoManager.OnTextChanged(this.ActiveTextview.Selection, singleTrackingSpanTouched);
                 }
             }
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            internal void Disconnect(bool documentIsClosed)
+            internal void Disconnect(bool documentIsClosed, bool rollbackTemporaryEdits)
             {
                 AssertIsForeground();
 
@@ -281,55 +281,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Remove any old read only regions we had
                 UpdateReadOnlyRegions(removeOnly: true);
 
-                if (!documentIsClosed)
+                if (rollbackTemporaryEdits && !documentIsClosed)
                 {
                     _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: true);
-                }
-            }
-
-            /// <summary>
-            /// Temporary until we figure out why Document.GetTextChangesAsync(Document) sometimes hangs
-            /// </summary>
-            private static async Task<IEnumerable<TextChange>> HACK_GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                try
-                {
-                    using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, newDocument.Name, cancellationToken))
-                    {
-                        if (oldDocument == newDocument)
-                        {
-                            // no changes
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        if (newDocument.Id != oldDocument.Id)
-                        {
-                            throw new ArgumentException(WorkspacesResources.DocumentVersionIsDifferent);
-                        }
-
-                        SourceText oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        SourceText newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        if (oldText == newText)
-                        {
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        var textChanges = newText.GetTextChanges(oldText).ToList();
-
-                        // if changes are significant (not the whole document being replaced) then use these changes
-                        if (textChanges.Count != 1 || textChanges[0].Span != new TextSpan(0, oldText.Length))
-                        {
-                            return textChanges;
-                        }
-
-                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -351,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var newDocument = mergeResult.MergedSolution.GetDocument(documents.First().Id);
                     var originalDocument = _baseDocuments.Single(d => d.Id == newDocument.Id);
 
-                    var changes = HACK_GetTextChangesAsync(originalDocument, newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var changes = GetTextChangesFromTextDifferencingServiceAsync(originalDocument, newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
 
                     // TODO: why does the following line hang when uncommented?
                     // newDocument.GetTextChangesAsync(this.baseDocuments.Single(d => d.Id == newDocument.Id), cancellationToken).WaitAndGetResult(cancellationToken).Reverse();
@@ -456,6 +410,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // 3. Reset the undo state and notify the taggers.
                     this.ApplyReplacementText(updateSelection: false);
                     RaiseSpansChanged();
+                }
+            }
+
+            private static async Task<IEnumerable<TextChange>> GetTextChangesFromTextDifferencingServiceAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                try
+                {
+                    using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, newDocument.Name, cancellationToken))
+                    {
+                        if (oldDocument == newDocument)
+                        {
+                            // no changes
+                            return SpecializedCollections.EmptyEnumerable<TextChange>();
+                        }
+
+                        if (newDocument.Id != oldDocument.Id)
+                        {
+                            throw new ArgumentException(WorkspacesResources.DocumentVersionIsDifferent);
+                        }
+
+                        SourceText oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        SourceText newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                        if (oldText == newText)
+                        {
+                            return SpecializedCollections.EmptyEnumerable<TextChange>();
+                        }
+
+                        var textChanges = newText.GetTextChanges(oldText).ToList();
+
+                        // if changes are significant (not the whole document being replaced) then use these changes
+                        if (textChanges.Count != 1 || textChanges[0].Span != new TextSpan(0, oldText.Length))
+                        {
+                            return textChanges;
+                        }
+
+                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
                 }
             }
 

@@ -174,7 +174,7 @@ line: 78
 line: 79
 ";
             var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected, emitters: TestEmitters.RefEmitBug_646048);
+            CompileAndVerify(compilation, expectedOutput: expected);
         }
 
         [Fact]
@@ -682,7 +682,7 @@ partial class D
                 // (13,10): warning CS4026: The CallerMemberNameAttribute applied to parameter 'member' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerMemberName] string member,
                 Diagnostic(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, "CallerMemberName").WithArguments("member"),
-                // (14,10): warning CS4025: The CalleFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerFilePath] string path) { }
                 Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
         }

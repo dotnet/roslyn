@@ -1648,12 +1648,12 @@ class UsePia4
 }
 ";
 
-            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia4.M5", expected_M5);
             verifier.VerifyIL("UsePia4.M6", expected_M6);
 
-            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia4.M5", expected_M5);
             verifier.VerifyIL("UsePia4.M6", expected_M6);
@@ -1762,9 +1762,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: false);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: false);
         }
 
         [Fact]
@@ -1864,7 +1864,8 @@ class UsePia
 {
   // Code size       41 (0x29)
   .maxstack  2
-  .locals init (ITest28 V_0)
+  .locals init (ITest28 V_0,
+                ITest28 V_1)
   IL_0000:  nop
   IL_0001:  ldstr      ""00000000-0000-0000-0000-000000000000""
   IL_0006:  newobj     ""System.Guid..ctor(string)""
@@ -1877,9 +1878,9 @@ class UsePia
   IL_001d:  callvirt   ""void ITest28.P1.set""
   IL_0022:  nop
   IL_0023:  ldloc.0
-  IL_0024:  stloc.0
+  IL_0024:  stloc.1
   IL_0025:  br.s       IL_0027
-  IL_0027:  ldloc.0
+  IL_0027:  ldloc.1
   IL_0028:  ret
 }
 ";
@@ -1899,14 +1900,14 @@ class UsePia
             var compilation = CreateCompilationWithMscorlib(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
 
-            var verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
 
             compilation = CreateCompilationWithMscorlib(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { piaCompilation.EmitToImageReference(embedInteropTypes: true) });
 
-            verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
         }
@@ -1987,7 +1988,7 @@ class UsePia
                                                 new MetadataReference[] { MscorlibRef_v4_0_30316_17626, new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                                                 options: TestOptions.DebugExe);
 
-            var verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
 
@@ -1995,7 +1996,7 @@ class UsePia
                                                         new MetadataReference[] { MscorlibRef_v4_0_30316_17626, piaCompilation.EmitToImageReference(embedInteropTypes: true) },
                                                         options: TestOptions.DebugExe);
 
-            verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            verifier = CompileAndVerify(compilation, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
         }
@@ -2229,11 +2230,11 @@ class UsePia
 }
 ";
 
-            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
 
-            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            verifier = CompileAndVerify(compilation2, symbolValidator: metadataValidator);
 
             verifier.VerifyIL("UsePia.Test", expected);
         }
@@ -2316,11 +2317,11 @@ class UsePia
 }
 ";
 
-            var verifier = CompileAndVerify(compilation1, emitters: TestEmitters.RefEmitBug);
+            var verifier = CompileAndVerify(compilation1);
 
             verifier.VerifyIL("UsePia.Test", expected);
 
-            verifier = CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug);
+            verifier = CompileAndVerify(compilation2);
 
             verifier.VerifyIL("UsePia.Test", expected);
         }
@@ -2710,9 +2711,9 @@ class UsePia5 : ITest29, ITest30
                     Assert.Equal("System.Runtime.InteropServices.InterfaceTypeAttribute(1)", interfaceType.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -2783,9 +2784,9 @@ class UsePia5 : ITest29, ITest30
                     Assert.Equal("System.Runtime.InteropServices.BestFitMappingAttribute(false, ThrowOnUnmappableChar = true)", interfaceType.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -2843,9 +2844,9 @@ class UsePia
                     Assert.Equal("System.FlagsAttribute", interfaceType.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -2907,9 +2908,9 @@ class UsePia
                     Assert.Equal("System.Int32[] ITest30.M1()", itest30.GetMembers("M1").Single().ToTestDisplayString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -2974,9 +2975,9 @@ class UsePia5 : ITest30
                     Assert.Equal("System.Runtime.InteropServices.LCIDConversionAttribute(123)", attr.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3041,9 +3042,9 @@ class UsePia5 : ITest30
                     Assert.Equal("System.Runtime.InteropServices.DispIdAttribute(124)", attr.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3107,9 +3108,9 @@ class UsePia5 : ITest30
                     Assert.Equal(0, m1.Parameters[0].GetAttributes().Length);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3172,9 +3173,9 @@ class UsePia5 : ITest30
                     Assert.Equal(new System.DateTime(987654321), m1.Parameters[0].ExplicitDefaultValue);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3245,9 +3246,9 @@ class UsePia5 : ITest30
                     Assert.Equal(79228162495817593528424333315m, m2.Parameters[0].ExplicitDefaultValue);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3334,7 +3335,7 @@ class UsePia5 : ITest30
                     Assert.Equal("System.Runtime.InteropServices.DefaultParameterValueAttribute(123.356)", attr.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3392,9 +3393,9 @@ class UsePia5
                     Assert.Equal("System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute(System.Runtime.InteropServices.CallingConvention.StdCall, SetLastError = true)", attr.ToString());
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3459,9 +3460,9 @@ class UsePia5
                     Assert.Equal(MethodImplAttributes.IL | MethodImplAttributes.PreserveSig, (MethodImplAttributes)m1.ImplementationAttributes);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -3772,32 +3773,32 @@ class UsePia
             var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseDll,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: false) }, assemblyName: "Consumer1");
 
-            CompileAndVerify(compilation1, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1);
             var metadata1 = AssemblyMetadata.CreateFromImage(compilation1.EmitToArray());
 
             var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true),
                                                       new CSharpCompilationReference(compilation1, embedInteropTypes: false) });
 
-            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true),
                                                       metadata1.GetReference(embedInteropTypes: false) });
 
-            CompileAndVerify(compilation3, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation3, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
 
             var compilation4 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaMetadata.GetReference(embedInteropTypes: true),
                                                       new CSharpCompilationReference(compilation1, embedInteropTypes: false) });
 
-            CompileAndVerify(compilation4, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation4, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
 
             var compilation5 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaMetadata.GetReference(embedInteropTypes: true),
                                                       metadata1.GetReference(embedInteropTypes: false) });
 
-            CompileAndVerify(compilation5, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation5, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -3868,32 +3869,32 @@ class UsePia
             var compilation1 = CreateCompilationWithMscorlib(consumer1, options: TestOptions.ReleaseDll,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: false) }, assemblyName: "Consumer1");
 
-            CompileAndVerify(compilation1, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1);
             var metadata1 = AssemblyMetadata.CreateFromImage(compilation1.EmitToArray());
 
             var compilation2 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true),
                                                       new CSharpCompilationReference(compilation1, embedInteropTypes: false) });
 
-            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
 
             var compilation3 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true),
                                                       metadata1.GetReference(embedInteropTypes: false) });
 
-            CompileAndVerify(compilation3, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation3, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
 
             var compilation4 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaMetadata.GetReference(embedInteropTypes: true),
                                                       new CSharpCompilationReference(compilation1, embedInteropTypes: false) });
 
-            CompileAndVerify(compilation4, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation4, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
 
             var compilation5 = CreateCompilationWithMscorlib(consumer2, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { piaMetadata.GetReference(embedInteropTypes: true),
                                                       metadata1.GetReference(embedInteropTypes: false) });
 
-            CompileAndVerify(compilation5, emitters: TestEmitters.RefEmitBug, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
+            CompileAndVerify(compilation5, symbolValidator: metadataValidator).VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -3969,9 +3970,9 @@ interface IUsePia6 : ITest35
                     var m3 = (PEMethodSymbol)itest35.GetMembers("M3").Single();
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4054,9 +4055,9 @@ class UsePia7 : UsePia6, ITest35
                     var m3 = (PEMethodSymbol)itest35.GetMembers("M3").Single();
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4132,9 +4133,9 @@ class UsePia
                     Assert.Equal(0, itest35.GetMembers().Length);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4197,9 +4198,9 @@ class UsePia7 : ITest33
                     Assert.Same(m1, m1Impl.ExplicitInterfaceImplementations[0]);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4258,9 +4259,9 @@ class UsePia
                     Assert.Equal(2, itest33.GetMembers("this[]").Length);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4319,9 +4320,9 @@ class UsePia
                     Assert.Equal(2, itest33.GetMembers("this[]").Length);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4380,9 +4381,9 @@ class UsePia
                     Assert.Equal(2, itest33.GetMembers("M1").Length);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4447,9 +4448,9 @@ class UsePia
                     Assert.Equal(2, itest33.GetMembers("Add").Length);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator);
         }
 
         [Fact]
@@ -4491,7 +4492,7 @@ public interface ITest34 : ITest33
             var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true) });
 
-            CompileAndVerify(piaCompilation2, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(piaCompilation2);
 
             string consumer = @"
 class UsePia5 
@@ -4560,7 +4561,7 @@ public interface ITest34
             var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true) });
 
-            CompileAndVerify(piaCompilation2, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(piaCompilation2);
 
             string consumer = @"
 class UsePia5 
@@ -4606,7 +4607,7 @@ class UsePia5
             Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation3.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
-            CompileAndVerify(compilation3, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation3);
 
             var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
@@ -4616,7 +4617,7 @@ class UsePia5
             Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].Modules[0].LookupTopLevelMetadataType(ref fullName));
             Assert.Null(compilation4.SourceModule.GetReferencedAssemblySymbols()[1].GetTypeByMetadataName(fullName.FullName));
 
-            CompileAndVerify(compilation4, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation4);
         }
 
         [Fact]
@@ -4693,11 +4694,11 @@ class UsePia5
 
             var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation3, verify: false);
 
             var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation4, verify: false);
         }
 
         [Fact]
@@ -4741,7 +4742,7 @@ public interface ITest34
             var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true) });
 
-            CompileAndVerify(piaCompilation2, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(piaCompilation2);
 
             string consumer = @"
 class UsePia5 
@@ -4982,7 +4983,7 @@ public interface ITest34
             var piaCompilation2 = CreateCompilationWithMscorlib(pia2, options: TestOptions.ReleaseDll, assemblyName: "Pia2",
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation1, embedInteropTypes: true) });
 
-            CompileAndVerify(piaCompilation2, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(piaCompilation2);
 
             string consumer = @"
 class UsePia5 
@@ -5012,11 +5013,11 @@ class UsePia5
 
             var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation3);
 
             var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation4);
         }
 
         [Fact]
@@ -5094,11 +5095,11 @@ class UsePia5
 
             var compilation3 = CreateCompilationWithMscorlib(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: false, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation3, verify: false);
 
             var compilation4 = CreateCompilationWithMscorlib(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: false, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation4, verify: false);
         }
 
         [Fact, WorkItem(611578, "DevDiv")]
@@ -5251,12 +5252,12 @@ public class NetImpl : IEventsDerived_Event
 
             var NetImpl_1_Compilation = CreateCompilationWithMscorlib(NetImpl_cs, new[] { new CSharpCompilationReference(IEvent_Compilation, embedInteropTypes: true) }, options: TestOptions.ReleaseDll, assemblyName: "NetImpl");
 
-            CompileAndVerify(NetImpl_1_Compilation, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(NetImpl_1_Compilation, symbolValidator: metadataValidator);
             var NetImpl_1_Image = NetImpl_1_Compilation.EmitToStream();
 
             var NetImpl_2_Compilation = CreateCompilationWithMscorlib(NetImpl_cs, new[] { IEvent_Metadata.GetReference(embedInteropTypes: true) }, options: TestOptions.ReleaseDll, assemblyName: "NetImpl");
 
-            CompileAndVerify(NetImpl_2_Compilation, symbolValidator: metadataValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(NetImpl_2_Compilation, symbolValidator: metadataValidator);
             var NetImpl_2_Image = NetImpl_2_Compilation.EmitToStream();
 
             string App_cs = @"
@@ -5315,7 +5316,7 @@ class Test
                 {
                     var app_compilation = CreateCompilationWithMscorlib(App_cs, new[] { NetImpl_ref, IEvent_ref, CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, assemblyName: "App");
 
-                    CompileAndVerify(app_compilation, symbolValidator: IEvent_ref.Properties.EmbedInteropTypes ? metadataValidator : null, emitters: TestEmitters.RefEmitBug,
+                    CompileAndVerify(app_compilation, symbolValidator: IEvent_ref.Properties.EmbedInteropTypes ? metadataValidator : null,
                         expectedOutput: @"E01
 E02");
                 }
@@ -5423,7 +5424,7 @@ namespace EventNS
 ";
 
             var piaCompilation = CreateCompilationWithMscorlib(pia, options: TestOptions.ReleaseDll);
-            CompileAndVerify(piaCompilation, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(piaCompilation);
 
             var piaRef1 = new CSharpCompilationReference(piaCompilation, embedInteropTypes: true);
             var piaRef2 = piaCompilation.EmitToImageReference(embedInteropTypes: true);
@@ -5455,10 +5456,10 @@ namespace NetImplNS
                     Assert.Equal("void EventNS.IEvents.OnEvent01()", m.GlobalNamespace.GetMember<NamespaceSymbol>("EventNS").GetMember<NamedTypeSymbol>("IEvents").GetMember<MethodSymbol>("OnEvent01").ToTestDisplayString());
                 };
 
-            CompileAndVerify(compilation0, symbolValidator: symbolValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation0, symbolValidator: symbolValidator);
 
             compilation0 = CreateCompilationWithMscorlib(consumer0, options: TestOptions.ReleaseDll, references: new MetadataReference[] { piaRef2 });
-            CompileAndVerify(compilation0, symbolValidator: symbolValidator, emitters: TestEmitters.RefEmitBug);
+            CompileAndVerify(compilation0, symbolValidator: symbolValidator);
 
             string consumer2 = consumer0 + @"
 namespace NetImplNS2
@@ -5552,5 +5553,140 @@ class UsePia
 
             VerifyEmitDiagnostics(compilation1, true, expected);
         }
+
+        [Fact, WorkItem(2793, "https://github.com/dotnet/roslyn/issues/2793")]
+        public void DefaultValueWithoutOptional_01()
+        {
+            var il = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly pia
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 0E 47 65 6E 65 72 61 6C 50 49 41 2E 64 6C   // ...GeneralPIA.dl
+                                                                                                                 6C 00 00 )                                        // l..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 66 39 63 32 64 35 31 64 2D 34 66 34 34   // ..$f9c2d51d-4f44
+                                                                                                  2D 34 35 66 30 2D 39 65 64 61 2D 63 39 64 35 39   // -45f0-9eda-c9d59
+                                                                                                  39 62 35 38 32 35 37 00 00 )                      // 9b58257..
+}
+.module pia.dll
+// MVID: {FDF1B1F7-A867-40B9-83CD-3F75B2D2B3C2}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+.class interface public abstract auto ansi import IA
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 45 41 44 42 45 45 46 2D 43 41 46 45   // ..$DEADBEEF-CAFE
+                                                                                                  2D 42 41 42 45 2D 42 41 41 44 2D 44 45 41 44 43   // -BABE-BAAD-DEADC
+                                                                                                  30 44 45 30 30 30 30 00 00 )                      // 0DE0000..
+  .method public newslot abstract strict virtual 
+          instance void  M(int32 x) cil managed
+  {
+    .param [1] = int32(0x0000000C)
+  } // end of method IA::M
+} // end of class IA
+";
+            MetadataReference piaReference = CompileIL(il, appendDefaultHeader: false, embedInteropTypes: true);
+            var csharp = @"
+class B : IA
+{
+    public void M(int x)
+    {
+    }
+}
+";
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+                ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+                var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
+                var m = (MethodSymbol)ia.GetMember("M");
+                var p = (PEParameterSymbol)m.Parameters[0];
+                Assert.False(p.IsMetadataOptional);
+                Assert.Equal(ParameterAttributes.HasDefault, p.Flags);
+                Assert.Equal((object)0x0000000C, p.ExplicitDefaultConstantValue.Value);
+                Assert.False(p.HasExplicitDefaultValue);
+                Assert.Throws(typeof(InvalidOperationException), delegate
+                    {
+                        var tmp = p.ExplicitDefaultValue;
+                    });
+            }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(2793, "https://github.com/dotnet/roslyn/issues/2793")]
+        public void DefaultValueWithoutOptional_02()
+        {
+            var il = @"
+.assembly extern mscorlib
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly extern System
+{
+  .publickeytoken = (B7 7A 5C 56 19 34 E0 89 )                         // .z\V.4..
+  .ver 4:0:0:0
+}
+.assembly pia
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.ImportedFromTypeLibAttribute::.ctor(string) = ( 01 00 0E 47 65 6E 65 72 61 6C 50 49 41 2E 64 6C   // ...GeneralPIA.dl
+                                                                                                                 6C 00 00 )                                        // l..
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 66 39 63 32 64 35 31 64 2D 34 66 34 34   // ..$f9c2d51d-4f44
+                                                                                                  2D 34 35 66 30 2D 39 65 64 61 2D 63 39 64 35 39   // -45f0-9eda-c9d59
+                                                                                                  39 62 35 38 32 35 37 00 00 )                      // 9b58257..
+}
+.module pia.dll
+// MVID: {FDF1B1F7-A867-40B9-83CD-3F75B2D2B3C2}
+.imagebase 0x10000000
+.file alignment 0x00000200
+.stackreserve 0x00100000
+.subsystem 0x0003       // WINDOWS_CUI
+.corflags 0x00000001    //  ILONLY
+.class interface public abstract auto ansi import IA
+{
+  .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = ( 01 00 24 44 45 41 44 42 45 45 46 2D 43 41 46 45   // ..$DEADBEEF-CAFE
+                                                                                                  2D 42 41 42 45 2D 42 41 41 44 2D 44 45 41 44 43   // -BABE-BAAD-DEADC
+                                                                                                  30 44 45 30 30 30 30 00 00 )                      // 0DE0000..
+  .method public newslot abstract strict virtual 
+          instance void  M(valuetype [mscorlib]System.DateTime x) cil managed
+  {
+  .param [1]
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 B1 68 DE 3A 00 00 00 00 00 00 )             // ...h.:......
+  } // end of method IA::M
+} // end of class IA
+";
+            MetadataReference piaReference = CompileIL(il, appendDefaultHeader: false, embedInteropTypes: true);
+            var csharp = @"
+class B : IA
+{
+    public void M(System.DateTime x)
+    {
+    }
+}
+";
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+                ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
+                var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
+                var m = (MethodSymbol)ia.GetMember("M");
+                var p = (PEParameterSymbol)m.Parameters[0];
+                Assert.False(p.IsMetadataOptional);
+                Assert.Equal(ParameterAttributes.None, p.Flags);
+                Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString());
+                Assert.Null(p.ExplicitDefaultConstantValue);
+                Assert.False(p.HasExplicitDefaultValue);
+                Assert.Throws(typeof(InvalidOperationException), delegate
+                {
+                    var tmp = p.ExplicitDefaultValue;
+                });
+            }).VerifyDiagnostics();
+        }
+
     }
 }

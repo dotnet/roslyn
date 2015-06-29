@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
     Public Class WinMdEventTest
         Inherits BasicTestBase
 
-        Private _eventInterfaceILTemplate As String = <![CDATA[
+        Private ReadOnly _eventInterfaceILTemplate As String = <![CDATA[
 .class interface public abstract auto ansi {0}
 {{
   .method public hidebysig newslot specialname abstract virtual 
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 ]]>.Value
         Private ReadOnly _eventLibRef As MetadataReference
 
-        Private _dynamicCommonSrc As XElement =
+        Private ReadOnly _dynamicCommonSrc As XElement =
             <compilation>
                 <file name="dynamic_common.vb">
                     <![CDATA[
@@ -211,16 +211,15 @@ End Class
                     _eventLibRef},
                 options:=TestOptions.ReleaseModule).EmitToImageReference()
 
-            Dim verifer = CompileAndVerifyOnWin8Only(
+            Dim verifier = CompileAndVerifyOnWin8Only(
                 src,
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
                     CSharpRef,
                     _eventLibRef,
-                    dynamicCommonRef},
-                emitters:=TestEmitters.RefEmitBug)
-            verifer.VerifyIL("C.Main", <![CDATA[
+                    dynamicCommonRef})
+            verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
   .maxstack  4
@@ -584,8 +583,7 @@ Public Partial Class A
                 allReferences:={
                     MscorlibRef_v4_0_30316_17626,
                     SystemCoreRef_v4_0_30319_17929,
-                    _eventLibRef},
-                emitters:=TestEmitters.RefEmitBug)
+                    _eventLibRef})
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("A.Scenario1", <![CDATA[
 {
@@ -945,15 +943,15 @@ End Class
             Assert.False(implementingNormalEvent.IsWindowsRuntimeEvent)
             Assert.True(implementingWinRTEvent.IsWindowsRuntimeEvent)
 
-            Dim subsitutedNormalEvent = implementingNormalEvent.ExplicitInterfaceImplementations.Single()
-            Dim subsitutedWinRTEvent = implementingWinRTEvent.ExplicitInterfaceImplementations.Single()
+            Dim substitutedNormalEvent = implementingNormalEvent.ExplicitInterfaceImplementations.Single()
+            Dim substitutedWinRTEvent = implementingWinRTEvent.ExplicitInterfaceImplementations.Single()
 
-            Assert.IsType(Of SubstitutedEventSymbol)(subsitutedNormalEvent)
-            Assert.IsType(Of SubstitutedEventSymbol)(subsitutedWinRTEvent)
+            Assert.IsType(Of SubstitutedEventSymbol)(substitutedNormalEvent)
+            Assert.IsType(Of SubstitutedEventSymbol)(substitutedWinRTEvent)
 
             ' Based on original definition.
-            Assert.False(subsitutedNormalEvent.IsWindowsRuntimeEvent)
-            Assert.True(subsitutedWinRTEvent.IsWindowsRuntimeEvent)
+            Assert.False(substitutedNormalEvent.IsWindowsRuntimeEvent)
+            Assert.True(substitutedWinRTEvent.IsWindowsRuntimeEvent)
 
             Dim retargetingAssembly = New RetargetingAssemblySymbol(DirectCast(comp.Assembly, SourceAssemblySymbol), isLinked:=False)
             retargetingAssembly.SetCorLibrary(comp.Assembly.CorLibrary)

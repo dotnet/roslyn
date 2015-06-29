@@ -2629,7 +2629,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_MissingCoClass" xml:space="preserve">
     <value>The managed coclass wrapper class '{0}' for interface '{1}' cannot be found (are you missing an assembly reference?)</value>
   </data>
-  <data name="ERR_AmbigousAttribute" xml:space="preserve">
+  <data name="ERR_AmbiguousAttribute" xml:space="preserve">
     <value>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</value>
   </data>
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
@@ -3561,7 +3561,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Because this call is not awaited, execution of the current method continues before the call is completed</value>
   </data>
   <data name="WRN_UnobservedAwaitableExpression_Description" xml:space="preserve">
-    <value>The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn’t apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn't what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from the method that contains the call.
+    <value>The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn't apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn't what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from the method that contains the call.
 
 An equally important issue is what happens to exceptions that are raised in the called async method. An exception that's raised in a method that returns a Task or Task&lt;TResult&gt; is stored in the returned task. If you don't await the task or explicitly check for exceptions, the exception is lost. If you await the task, its exception is rethrown.
 
@@ -3597,10 +3597,10 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>The CallerLineNumberAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation" xml:space="preserve">
-    <value>The CalleFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+    <value>The CallerFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation_Title" xml:space="preserve">
-    <value>The CalleFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+    <value>The CallerFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="WRN_CallerMemberNameParamForUnconsumedLocation" xml:space="preserve">
     <value>The CallerMemberNameAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
@@ -4407,6 +4407,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                diagnostics.
  /errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
                                diagnostics.
+ /reportanalyzer               Report additional analyzer information, such as
+                               execution time.
  
                         - LANGUAGE -
  /checked[+|-]                 Generate overflow checks
@@ -4594,6 +4596,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="IDS_AwaitInCatchAndFinally" xml:space="preserve">
+    <value>await in catch blocks and finally blocks</value>
+  </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
   </data>
@@ -4630,7 +4635,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AlignmentMagnitude_Title" xml:space="preserve">
     <value>Alignment value has a magnitude that may result in a large formatted string</value>
   </data>
-  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+  <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
 </root>

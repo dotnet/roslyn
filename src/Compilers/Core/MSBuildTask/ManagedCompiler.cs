@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ToolTask
     {
-        private CancellationTokenSource _sharedCompileCts = null;
+        private CancellationTokenSource _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         public ManagedCompiler()
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation || this.ToolPath != null )
+            if (!UseSharedCompilation || !String.IsNullOrEmpty(this.ToolPath))
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -324,9 +324,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
-                    ExitCode = responseTask.Result != null
-                        ? HandleResponse(responseTask.Result)
-                        : base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    var response = responseTask.Result;
+                    if (response != null)
+                    {
+                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
+                }
+                    else
+                    {
+                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -341,6 +347,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             return ExitCode;
         }
+
+
 
         /// <summary>
         /// Try to get the directory this assembly is in. Returns null if assembly
@@ -412,17 +420,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// to create our own.
         /// </summary>
         [Output]
-        public new int ExitCode { get; private set; } = 0;
+        public new int ExitCode { get; private set; }
 
         /// <summary>
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response)
+        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            var completedResponse = response as CompletedBuildResponse;
-            if (completedResponse != null)
+            switch (response.Type)
             {
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
+                    return -1;
+
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
                 LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
 
                 if (LogStandardErrorAsError)
@@ -434,16 +447,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
                 }
 
-                ExitCode = completedResponse.ReturnCode;
-            }
-            else
-            {
-                Debug.Assert(response is MismatchedVersionBuildResponse);
+                    return completedResponse.ReturnCode;
 
-                LogErrorOutput(CommandLineParser.MismatchedVersionErrorText);
-                ExitCode = -1;
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
             }
-            return ExitCode;
         }
 
         private void LogErrorOutput(string output)
@@ -574,8 +585,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);
             commandLine.AppendSwitchIfNotNull("/subsystemversion:", this.SubsystemVersion);
-            // TODO: uncomment the below line once "/reportanalyzer" switch is added to compiler.
-            //commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
+            commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
             commandLine.AppendSwitchIfNotNull("/resource:", this.Resources, new string[] { "LogicalName", "Access" });
             commandLine.AppendSwitchIfNotNull("/target:", this.TargetType);
@@ -631,10 +641,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Configure the debug switches which will be placed on the compiler commandline.
+        /// Configure the debug switches which will be placed on the compiler command-line.
         /// The matrix of debug type and symbol inputs and the desired results is as follows:
         /// 
-        /// Debug Symbols              DebugType   Desired Resilts
+        /// Debug Symbols              DebugType   Desired Results
         ///          True               Full        /debug+ /debug:full
         ///          True               PdbOnly     /debug+ /debug:PdbOnly
         ///          True               None        /debug-
@@ -646,7 +656,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///          Blank              Full                /debug:full
         ///          Blank              PdbOnly             /debug:PdbOnly
         ///          Blank              None        /debug-
-        /// Debug:   Blank              Blank       /debug+ //Microsof.common.targets will set this
+        /// Debug:   Blank              Blank       /debug+ //Microsoft.common.targets will set this
         /// Release: Blank              Blank       "Nothing for either switch"
         /// 
         /// The logic is as follows:
@@ -839,11 +849,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// The IDE and command line compilers unfortunately differ in how win32 
         /// manifests are specified.  In particular, the command line compiler offers a 
-        /// "/nowin32manifest" switch, while the IDE compiler does not offer analagous 
+        /// "/nowin32manifest" switch, while the IDE compiler does not offer analogous 
         /// functionality. If this switch is omitted from the command line and no win32 
         /// manifest is specified, the compiler will include a default win32 manifest 
         /// named "default.win32manifest" found in the same directory as the compiler 
-        /// executable. Again, the IDE compiler does not offer analagous support.
+        /// executable. Again, the IDE compiler does not offer analogous support.
         /// 
         /// We'd like to imitate the command line compiler's behavior in the IDE, but 
         /// it isn't aware of the default file, so we must compute the path to it if 

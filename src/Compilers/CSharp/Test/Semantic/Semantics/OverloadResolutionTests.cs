@@ -383,7 +383,7 @@ class P
         }
 
         [Fact]
-        public void ParametersImplicitlyConvertableToEachOther()
+        public void ParametersImplicitlyConvertibleToEachOther()
         {
             string source1 = @"
 using System;
@@ -1067,7 +1067,7 @@ class Test2
 
         [WorkItem(540153, "DevDiv")]
         [WorkItem(540406, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void TestOverridingMismatchedParamsErrorCase_Metadata()
         {
             // Tests:
@@ -5692,15 +5692,14 @@ class baz
     }
 }
 ";
-            // TODO: We could do a better job of choosing which two methods are the ambiguous ones.
-
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-// (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(sbyte, bar)'
-//         overload1(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(sbyte, bar)"),
-// (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(sbyte, bar)'
-//         overload2(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(sbyte, bar)"));
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(int, baz)'
+    //         overload1(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(int, baz)").WithLocation(6, 9),
+    // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(byte, foo)'
+    //         overload2(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(byte, foo)").WithLocation(7, 9)
+                );
         }
 
         [WorkItem(545382, "DevDiv")]
@@ -7605,7 +7604,7 @@ class Program
 }";
             CompileAndVerify(source, expectedOutput: @"pass
 pass").VerifyDiagnostics();
-            CreateCompilationWithMscorlib(source, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (12,36): error CS1657: Cannot pass 'M' as a ref or out argument because it is a 'method group'
                 //         Action a1 = new Action(ref M);
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "M").WithArguments("M", "method group").WithLocation(12, 36),
@@ -7837,8 +7836,66 @@ namespace VS2015CompilerBug
                 );
         }
 
+        [Fact, WorkItem(2533, "https://github.com/dotnet/roslyn/issues/2533")]
+        public void TieBreakOnNumberOfDeclaredParameters_04()
+        {
+            string source1 = @"
+public class Test
+{
+    static void M1(object o, object o1, string s, object o2 = null) 
+    { 
+        System.Console.WriteLine(""void M1(object o, object o1, string s, object o2 = null) "");
+    }
+
+    static void M1(string s, object o1, object o2)
+    {
+        System.Console.WriteLine(""void M1(string s, object o1, object o2)"");
+    }
+
+    public static void Main()
+    {
+        M1(""M"", null, null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"void M1(string s, object o1, object o2)");
+        }
+
+        [Fact, WorkItem(2533, "https://github.com/dotnet/roslyn/issues/2533")]
+        public void TieBreakOnNumberOfDeclaredParameters_05()
+        {
+            string source1 = @"
+public class Test
+{
+    static void M1(object o, object o1, string s) 
+    { 
+    }
+
+    static void M1(string s, object o1, object o2)
+    {
+    }
+
+    public static void Main()
+    {
+        M1(""M"", null, null);
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.M1(object, object, string)' and 'Test.M1(string, object, object)'
+    //         M1("M", null, null);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Test.M1(object, object, string)", "Test.M1(string, object, object)").WithLocation(14, 9)
+                );
+        }
+
         [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
-        public void BetterErrorMessage()
+        public void BetterErrorMessage_01()
         {
             string source1 = @"
 class C
@@ -8018,6 +8075,76 @@ class C
     // (41,16): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
     //         M19(1, x: 2, y: 3);
     Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(41, 16)
+                );
+        }
+
+        [Fact, WorkItem(2631, "https://github.com/dotnet/roslyn/issues/2631")]
+        public void ArglistCompilerCrash()
+        {
+            var source =
+@"class Program
+{
+    static void M(object x) { }
+    static void M(object x, object y) { }
+    static void M(object x, object y, object z) { }
+    static void M(object x, object y, object z, __arglist) { }
+    static void M(object x, params object[] args) { }
+    static void Main(string[] args)
+    {
+        M(x: 1, y: 2, z: 3);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1171723, "DevDiv"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
+        public void BetterErrorMessage_02()
+        {
+            string source1 = @"
+using FluentAssertions;
+using Extensions;
+using System;
+using System.Collections.Generic;
+using System.Collections;
+
+namespace FluentAssertions
+{
+    public static class AssertionExtensions
+    {
+        public static object Should(this object actualValue) { throw null; }
+        public static object Should(this IEnumerable actualValue) { throw null; }
+        public static object Should<T>(this IEnumerable<T> actualValue) { throw null; }
+        public static object Should<TKey, TValue>(this IDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace Extensions
+{
+    public static class TestExtensions
+    {
+        public static object Should<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace ClassLibraryOverloadResolution
+{    
+    public class Class1
+    {
+        void foo()
+        {
+            Dictionary<String, String> dict = null;
+            dict.Should();
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source1);
+
+            compilation.VerifyDiagnostics(
+    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
+    //             dict.Should();
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
                 );
         }
     }

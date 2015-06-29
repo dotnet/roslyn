@@ -4,91 +4,67 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 {
     internal static class LocationInfoGetter
     {
-        private static readonly SymbolDisplayFormat s_nameFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeExtensionThis |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeName,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
         internal static async Task<DebugLocationInfo> GetInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            string name = null;
-            int lineOffset = 0;
-
-            // Note that we get the current partial solution here.  Technically, this means that we may
-            // not fully understand the signature of the member.  But that's ok.  We just need this
-            // symbol so we can create a display string to put into the debugger.  If we try to
-            // find the document in the "CurrentSolution" then when we try to get the semantic 
-            // model below then it might take a *long* time as all dependent compilations are built.
-            var tree = await document.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            // PERF:  This method will be called synchronously on the UI thread for every breakpoint in the solution.
+            // Therefore, it is important that we make this call as cheap as possible.  Rather than constructing a
+            // containing Symbol and using ToDisplayString (which might be more *correct*), we'll just do the best we
+            // can with Syntax.  This approach is capable of providing parity with the pre-Roslyn implementation.
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            SyntaxNode memberDecl = token.GetAncestor<MemberDeclarationSyntax>();
+            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, position, useFullSpan: true);
+
+            // It might be reasonable to return an empty Name and a LineOffset from the beginning of the
+            // file for GlobalStatements.  However, the only known caller (Breakpoints Window) doesn't
+            // appear to consume this information, so we'll just return the simplest thing (no location).
+            if ((memberDeclaration == null) || (memberDeclaration.Kind() == SyntaxKind.GlobalStatement))
+            {
+                return default(DebugLocationInfo);
+            }
 
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.
             // If the position does not point to one, try using the first one.
-            if (memberDecl != null &&
-                (memberDecl.Kind() == SyntaxKind.FieldDeclaration || memberDecl.Kind() == SyntaxKind.EventFieldDeclaration))
+            VariableDeclaratorSyntax fieldDeclarator = null;
+            if (memberDeclaration.Kind() == SyntaxKind.FieldDeclaration || memberDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
             {
-                SeparatedSyntaxList<VariableDeclaratorSyntax> variableDeclarators = ((BaseFieldDeclarationSyntax)memberDecl).Declaration.Variables;
+                SeparatedSyntaxList<VariableDeclaratorSyntax> variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
 
                 foreach (var declarator in variableDeclarators)
                 {
-                    if (declarator.FullSpan.Contains(token.FullSpan))
+                    if (declarator.FullSpan.Contains(position))
                     {
-                        memberDecl = declarator;
+                        fieldDeclarator = declarator;
                         break;
                     }
                 }
 
-                if (memberDecl == null)
+                if (fieldDeclarator == null)
                 {
-                    memberDecl = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
+                    fieldDeclarator = variableDeclarators.Count > 0 ? variableDeclarators[0] : null;
                 }
             }
 
-            if (memberDecl != null)
-            {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
+            var name = syntaxFactsService.GetDisplayName((SyntaxNode)fieldDeclarator ?? memberDeclaration,
+                DisplayNameOptions.IncludeNamespaces |
+                DisplayNameOptions.IncludeParameters);
 
-                if (memberSymbol != null)
-                {
-                    var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var lineNumber = text.Lines.GetLineFromPosition(position).LineNumber;
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var lineNumber = text.Lines.GetLineFromPosition(position).LineNumber;
+            var accessor = memberDeclaration.GetAncestorOrThis<AccessorDeclarationSyntax>();
+            var memberLine = text.Lines.GetLineFromPosition(accessor?.SpanStart ?? memberDeclaration.SpanStart).LineNumber;
+            var lineOffset = lineNumber - memberLine;
 
-                    var accessor = token.GetAncestor<AccessorDeclarationSyntax>();
-                    var memberLine = accessor == null
-                        ? text.Lines.GetLineFromPosition(memberDecl.SpanStart).LineNumber
-                        : text.Lines.GetLineFromPosition(accessor.SpanStart).LineNumber;
-
-                    name = memberSymbol.ToDisplayString(s_nameFormat);
-                    lineOffset = lineNumber - memberLine;
-                    return new DebugLocationInfo(name, lineOffset);
-                }
-            }
-
-            return default(DebugLocationInfo);
+            return new DebugLocationInfo(name, lineOffset);
         }
     }
 }

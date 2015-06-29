@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
         {
             var logMessage = s_pool.Allocate();
-            logMessage.Constrcut(propertySetter);
+            logMessage.Construct(propertySetter);
 
             return logMessage;
         }
 
-        private Dictionary<string, object> _map = null;
-        private Action<Dictionary<string, object>> _propertySetter = null;
+        private Dictionary<string, object> _map;
+        private Action<Dictionary<string, object>> _propertySetter;
 
         private KeyValueLogMessage()
         {
             // prevent it from being created directly
         }
 
-        private void Constrcut(Action<Dictionary<string, object>> propertySetter)
+        private void Construct(Action<Dictionary<string, object>> propertySetter)
         {
             _propertySetter = propertySetter;
         }

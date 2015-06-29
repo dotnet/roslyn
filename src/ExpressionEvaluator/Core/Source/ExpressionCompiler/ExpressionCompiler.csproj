@@ -36,8 +36,8 @@
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="CustomTypeInfo.cs" />
     <Compile Include="DynamicFlagsCustomTypeInfo.cs" />
+    <Compile Include="DynamicFlagsCustomTypeInfo_Factory.cs" />
     <Compile Include="Placeholders.cs" />
-    <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="ImmutableArrayExtensions.cs" />
     <Compile Include="CompileResult.cs" />
     <Compile Include="FrameDecoder.cs" />
@@ -60,19 +60,17 @@
     <Compile Include="ExpressionCompiler.cs" />
     <Compile Include="ExpressionCompilerConstants.cs" />
     <Compile Include="DkmUtilities.cs" />
-    <Compile Include="InspectionContext.cs" />
     <Compile Include="LocalAndMethod.cs" />
     <Compile Include="MetadataBlock.cs" />
     <Compile Include="MetadataUtilities.cs" />
     <Compile Include="AbstractTypeParameterChecker.cs" />
     <Compile Include="MethodContextReuseConstraints.cs" />
     <Compile Include="PseudoVariableUtilities.cs" />
-    <Compile Include="RuntimeInspectionContext.cs" />
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="..\..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.4-rc2\lib\net45\Microsoft.DiaSymReader.dll" />
+    <Reference Include="..\..\..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
     <Reference Include="$(OutDir)Microsoft.VisualStudio.Debugger.Engine.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">

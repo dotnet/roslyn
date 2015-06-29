@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get { return _compilation; }
         }
-        
+
         /// <summary>
         /// Creates a new compilation by attaching diagnostic analyzers to an existing compilation.
         /// </summary>
@@ -53,9 +53,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void Initialize(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, CancellationToken cancellationToken)
         {
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
+            VerifyAnalyzersArgument(analyzers);
+
             _cancellationToken = cancellationToken;
             _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
             _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, onAnalyzerException ?? AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
+        }
+
+        private static void VerifyAnalyzersArgument(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            if (analyzers.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
+            }
+
+            if (analyzers.Any(a => a == null))
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
+            }
         }
 
         private void AddExceptionDiagnostic(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)
@@ -92,9 +113,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         {
                             _driver.StartCompleteAnalysis(_cancellationToken);
 
-                            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
-                            // Discard the returned diagnostics.
-                            _compilation.GetDiagnostics(_cancellationToken);
+            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
+            // Discard the returned diagnostics.
+            _compilation.GetDiagnostics(_cancellationToken);
 
                             ImmutableArray<Diagnostic> analyzerDiagnostics = await _driver.GetDiagnosticsAsync().ConfigureAwait(false);
                             return analyzerDiagnostics;
@@ -157,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         
                         modelTask = Task.Run(async () =>
                         {
-                            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
+            // Invoke GetDiagnostics to populate the compilation's CompilationEvent queue.
                             // Discard the returned diagnostics.
                             model.GetDiagnostics(null, _cancellationToken);
 
@@ -182,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<Diagnostic> analyzerDiagnostics = await GetAnalyzerDiagnosticsFromModelAsync(model).ConfigureAwait(false);
             return model.GetDiagnostics(null, _cancellationToken).AddRange(analyzerDiagnostics);
         }
-        
+
         /// <summary>
         /// Returns diagnostics produced for exceptions thrown by analyzer actions.
         /// Diagnostics are produced for exceptions only if no onAnalyzerException action is supplied at construction.
@@ -216,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (diagnostic != null)
                 {
-                    var effectiveDiagnostic = compilation.FilterDiagnostic(diagnostic);
+                    var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null && !suppressMessageState.IsDiagnosticSuppressed(effectiveDiagnostic))
                     {
                         yield return effectiveDiagnostic;
@@ -248,9 +269,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> voidHandler = (ex, a, diag) => { };
             onAnalyzerException = onAnalyzerException ?? voidHandler;
-            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance, CancellationToken.None);
+            var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, AnalyzerManager.Instance);
 
             return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, AnalyzerManager.Instance, analyzerExecutor);
+        }
+
+        /// <summary>
+        /// This method should be invoked when the analyzer host is disposing off the given <paramref name="analyzers"/>.
+        /// It clears the cached internal state (supported descriptors, registered actions, exception handlers, etc.) for analyzers.
+        /// </summary>
+        /// <param name="analyzers">Analyzers whose state needs to be cleared.</param>
+        public static void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            VerifyAnalyzersArgument(analyzers);
+
+            AnalyzerManager.Instance.ClearAnalyzerState(analyzers);
         }
     }
 }

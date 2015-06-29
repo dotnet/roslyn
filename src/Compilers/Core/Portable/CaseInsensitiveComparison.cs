@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// ToLower implements the Unicode lowercase mapping
-        /// as descriped in ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt.
+        /// as described in ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt.
         /// VB uses these mappings for case-insensitive comparison.
         /// </summary>
         /// <param name="c"></param>

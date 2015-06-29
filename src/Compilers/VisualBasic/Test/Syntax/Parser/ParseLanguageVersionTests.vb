@@ -234,4 +234,88 @@ End Class
             Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations").WithLocation(4, 31),
             Diagnostic(ERRID.ERR_LanguageVersion, "?").WithArguments("9.0", "null conditional operations").WithLocation(5, 22))
     End Sub
+
+    <[Fact]>
+    Public Sub GlobalKeyword_01()
+        Dim source = "
+Imports System
+
+Namespace Global
+    Module Program
+
+        Sub Main()
+        End Sub
+
+    End Module
+End Namespace"
+
+        For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10}
+            ParseAndVerify(source, version,
+                Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace").WithLocation(4, 11))
+        Next
+
+        For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+            ParseAndVerify(source, version, False, Nothing)
+        Next
+    End Sub
+
+    <[Fact]>
+    Public Sub GlobalKeyword_02()
+        Dim source = "
+Module Program
+    Function getValue() As Global.System.Int32
+        Return 14
+    End Function
+End Module"
+
+        For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10,
+                             LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12,
+                             LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+            ParseAndVerify(source, version, False, Nothing)
+        Next
+    End Sub
+
+    <[Fact]>
+    Public Sub GlobalKeyword_03()
+        Dim source = "
+Imports System
+
+Namespace Global.Ns1
+    Module Program
+
+        Sub Main()
+        End Sub
+
+    End Module
+End Namespace"
+
+        For Each version In {LanguageVersion.VisualBasic9, LanguageVersion.VisualBasic10}
+            ParseAndVerify(source, version,
+                Diagnostic(ERRID.ERR_LanguageVersion, "Global").WithArguments($"{CInt(version)}.0", "declaring a Global namespace").WithLocation(4, 11))
+        Next
+
+        For Each version In {LanguageVersion.VisualBasic11, LanguageVersion.VisualBasic12, LanguageVersion.VisualBasic14, VisualBasicParseOptions.Default.LanguageVersion}
+            ParseAndVerify(source, version, False, Nothing)
+        Next
+    End Sub
+
+    <Fact>
+    Public Sub InterpolatedStrings()
+        Dim x = Nothing
+        ParseAndVerify(
+        <![CDATA[
+Module Module1
+    Function M() As String
+        Dim x1 = $"world"
+        Dim x2 = $"hello {x1}"
+        Return x2
+    End Function
+End Module
+        ]]>.Value,
+            LanguageVersion.VisualBasic12,
+            Diagnostic(ERRID.ERR_LanguageVersion, "$""world""").WithArguments("12.0", "interpolated strings").WithLocation(4, 18),
+            Diagnostic(ERRID.ERR_LanguageVersion, "$""hello {x1}""").WithArguments("12.0", "interpolated strings").WithLocation(5, 18))
+    End Sub
+
+
 End Class

@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using VSLangProj;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets
 {
     [Export(typeof(RuleSetEventHandler))]
-    internal sealed class RuleSetEventHandler : IVsTrackProjectDocumentsEvents2
+    internal sealed class RuleSetEventHandler : IVsTrackProjectDocumentsEvents2, IVsTrackProjectDocumentsEvents3, IVsTrackProjectDocumentsEvents4
     {
         private readonly IServiceProvider _serviceProvider;
         private bool _eventsHookedUp = false;
@@ -71,26 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
 
         int IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgpszMkDocuments, VSREMOVEFILEFLAGS[] rgFlags)
         {
-            for (int i = 0; i < rgpProjects.Length; i++)
-            {
-                int indexOfFirstDocumentInProject = IndexOfFirstDocumentInProject(i, rgFirstIndices);
-                int indexOfFirstDocumentInNextProject = IndexOfFirstDocumentInProject(i + 1, rgFirstIndices);
-                for (int j = indexOfFirstDocumentInProject; j < indexOfFirstDocumentInNextProject; j++)
-                {
-                    string fileFullPath = rgpszMkDocuments[j];
-                    if (Path.GetExtension(fileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
-                    {
-                        EnvDTE.Project project;
-                        IVsHierarchy hierarchy = rgpProjects[i] as IVsHierarchy;
-                        if (hierarchy != null &&
-                            hierarchy.TryGetProject(out project))
-                        {
-                            UpdateCodeAnalysisRuleSetPropertiesInProject(project, fileFullPath, string.Empty);
-                        }
-                    }
-                }
-            }
-
             return VSConstants.S_OK;
         }
 
@@ -101,25 +82,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
 
         int IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
         {
-            for (int i = 0; i < rgpProjects.Length; i++)
+            Dictionary<string, string> ruleSetRenames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            for (int i = 0; i < rgszMkOldNames.Length; i++)
             {
-                int indexOfFirstDocumentInProject = IndexOfFirstDocumentInProject(i, rgFirstIndices);
-                int indexOfFirstDocumentInNextProject = IndexOfFirstDocumentInProject(i + 1, rgFirstIndices);
-                for (int j = indexOfFirstDocumentInProject; j < indexOfFirstDocumentInNextProject; j++)
+                string oldFileFullPath = rgszMkOldNames[i];
+                if (Path.GetExtension(oldFileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
                 {
-                    string oldFileFullPath = rgszMkOldNames[j];
-                    string newFileFullPath = rgszMkNewNames[j];
-                    if (Path.GetExtension(oldFileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
-                    {
-                        EnvDTE.Project project;
-                        IVsHierarchy hierarchy = rgpProjects[i] as IVsHierarchy;
-                        if (hierarchy != null &&
-                            hierarchy.TryGetProject(out project))
-                        {
-                            UpdateCodeAnalysisRuleSetPropertiesInProject(project, oldFileFullPath, newFileFullPath);
-                        }
-                    }
+                    string newFileFullPath = rgszMkNewNames[i];
+                    ruleSetRenames[oldFileFullPath] = newFileFullPath;
                 }
+            }
+
+            foreach (var renamePair in ruleSetRenames)
+            {
+                UpdateCodeAnalysisRuleSetPropertiesInAllProjects(renamePair.Key, renamePair.Value);
             }
 
             return VSConstants.S_OK;
@@ -160,12 +137,120 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
             return VSConstants.S_OK;
         }
 
+        int IVsTrackProjectDocumentsEvents3.OnBeginQueryBatch()
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsTrackProjectDocumentsEvents3.OnEndQueryBatch(out int pfActionOK)
+        {
+            pfActionOK = 1;
+            return VSConstants.S_OK;
+        }
+
+        int IVsTrackProjectDocumentsEvents3.OnCancelQueryBatch()
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsTrackProjectDocumentsEvents3.OnQueryAddFilesEx(IVsProject pProject, int cFiles, string[] rgpszNewMkDocuments, string[] rgpszSrcMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags, VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsTrackProjectDocumentsEvents3.HandsOffFiles(uint grfRequiredAccess, int cFiles, string[] rgpszMkDocuments)
+        {
+            return VSConstants.S_OK;
+        }
+
+        int IVsTrackProjectDocumentsEvents3.HandsOnFiles(int cFiles, string[] rgpszMkDocuments)
+        {
+            return VSConstants.S_OK;
+        }
+
+        void IVsTrackProjectDocumentsEvents4.OnQueryRemoveFilesEx(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, uint[] rgFlags, VSQUERYREMOVEFILERESULTS[] pSummaryResult, VSQUERYREMOVEFILERESULTS[] rgResults)
+        {
+        }
+
+        void IVsTrackProjectDocumentsEvents4.OnQueryRemoveDirectoriesEx(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments, uint[] rgFlags, VSQUERYREMOVEDIRECTORYRESULTS[] pSummaryResult, VSQUERYREMOVEDIRECTORYRESULTS[] rgResults)
+        {
+        }
+
+        void IVsTrackProjectDocumentsEvents4.OnAfterRemoveFilesEx(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgpszMkDocuments, uint[] rgFlags)
+        {
+            // First, handle the files that have been removed from projects (rather than deleted).
+            // Here we only want to update the projects from which the file was removed.
+
+            for (int i = 0; i < rgpProjects.Length; i++)
+            {
+                int indexOfFirstDocumentInProject = IndexOfFirstDocumentInProject(i, rgFirstIndices);
+                int indexOfFirstDocumentInNextProject = IndexOfFirstDocumentInProject(i + 1, rgFirstIndices);
+                for (int j = indexOfFirstDocumentInProject; j < indexOfFirstDocumentInNextProject; j++)
+                {
+                    string fileFullPath = rgpszMkDocuments[j];
+                    bool removed = (rgFlags[j] & (uint)__VSREMOVEFILEFLAGS2.VSREMOVEFILEFLAGS_IsRemovedFromProjectOnly) != 0;
+                    if (removed &&
+                        Path.GetExtension(fileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
+                    {
+                        EnvDTE.Project project;
+                        IVsHierarchy hierarchy = rgpProjects[i] as IVsHierarchy;
+                        if (hierarchy != null &&
+                            hierarchy.TryGetProject(out project))
+                        {
+                            UpdateCodeAnalysisRuleSetPropertiesInProject(project, fileFullPath, string.Empty);
+                        }
+                    }
+                }
+            }
+
+            // Second, handle the files that have been deleted. In this case we need to update
+            // every project that was using this file in some way.
+            HashSet<string> ruleSetDeletions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            for (int i = 0; i < rgpszMkDocuments.Length; i++)
+            {
+                string fileFullPath = rgpszMkDocuments[i];
+                bool deleted = (rgFlags[i] & (uint)__VSREMOVEFILEFLAGS2.VSREMOVEFILEFLAGS_IsRemovedFromProjectOnly) == 0;
+                if (deleted &&
+                    Path.GetExtension(fileFullPath).Equals(".ruleset", StringComparison.OrdinalIgnoreCase))
+                {
+                    ruleSetDeletions.Add(fileFullPath);
+                }
+            }
+
+            foreach (var fileFullPath in ruleSetDeletions)
+            {
+                UpdateCodeAnalysisRuleSetPropertiesInAllProjects(fileFullPath, string.Empty);
+            }
+        }
+
+        void IVsTrackProjectDocumentsEvents4.OnAfterRemoveDirectoriesEx(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgpszMkDocuments, uint[] rgFlags)
+        {
+        }
+
+        private void UpdateCodeAnalysisRuleSetPropertiesInAllProjects(string oldFileFullPath, string newFileFullPath)
+        {
+            EnvDTE.DTE dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(SDTE));
+            foreach (EnvDTE.Project project in dte.Solution.Projects)
+            {
+                UpdateCodeAnalysisRuleSetPropertiesInProject(project, oldFileFullPath, newFileFullPath);
+            }
+        }
+
         private static void UpdateCodeAnalysisRuleSetPropertiesInProject(EnvDTE.Project project, string oldRuleSetFilePath, string newRuleSetFilePath)
         {
-            string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
-            foreach (EnvDTE.Configuration config in project.ConfigurationManager)
+            if (project.Kind == PrjKind.prjKindCSharpProject ||
+                project.Kind == PrjKind.prjKindVBProject)
             {
-                UpdateCodeAnalysisRuleSetPropertyInConfiguration(config, oldRuleSetFilePath, newRuleSetFilePath, projectDirectoryFullPath);
+                string projectFullName = project.FullName;
+                if (!string.IsNullOrWhiteSpace(projectFullName))
+                {
+                    string projectDirectoryFullPath = Path.GetDirectoryName(project.FullName);
+                    foreach (EnvDTE.Configuration config in project.ConfigurationManager)
+                    {
+                        UpdateCodeAnalysisRuleSetPropertyInConfiguration(config, oldRuleSetFilePath, newRuleSetFilePath, projectDirectoryFullPath);
+                    }
+                }
             }
         }
 
@@ -174,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
             EnvDTE.Properties properties = config.Properties;
             try
             {
-                EnvDTE.Property codeAnalysisRuleSetFileProperty = properties.Item("CodeAnalysisRuleSet");
+                EnvDTE.Property codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
                 if (codeAnalysisRuleSetFileProperty != null)
                 {
@@ -182,6 +267,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
                     if (!string.IsNullOrWhiteSpace(codeAnalysisRuleSetFileName))
                     {
                         string codeAnalysisRuleSetFullPath = FileUtilities.ResolveRelativePath(codeAnalysisRuleSetFileName, projectDirectoryFullPath);
+                        codeAnalysisRuleSetFullPath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
+                        oldRuleSetFilePath = FileUtilities.NormalizeAbsolutePath(codeAnalysisRuleSetFullPath);
+
                         if (codeAnalysisRuleSetFullPath.Equals(oldRuleSetFilePath, StringComparison.OrdinalIgnoreCase))
                         {
                             string newRuleSetRelativePath = FilePathUtilities.GetRelativePath(projectDirectoryFullPath, newRuleSetFilePath);

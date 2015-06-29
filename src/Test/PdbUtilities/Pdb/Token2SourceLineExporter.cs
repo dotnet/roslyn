@@ -18,7 +18,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private class PdbSource
         {
-            internal string name;
+            internal readonly string name;
             internal Guid doctype;
             internal Guid language;
             internal Guid vendor;
@@ -34,12 +34,12 @@ namespace Roslyn.Test.PdbUtilities
 
         private class PdbTokenLine
         {
-            internal uint token;
-            internal uint file_id;
-            internal uint line;
-            internal uint column;
-            internal uint endLine;
-            internal uint endColumn;
+            internal readonly uint token;
+            internal readonly uint file_id;
+            internal readonly uint line;
+            internal readonly uint column;
+            internal readonly uint endLine;
+            internal readonly uint endColumn;
             internal PdbSource sourceFile;
             internal PdbTokenLine/*?*/ nextLine;
 
@@ -348,8 +348,8 @@ namespace Roslyn.Test.PdbUtilities
                 get { return _size == 0; }
             }
 
-            private int _size;
-            private uint[] _words;
+            private readonly int _size;
+            private readonly uint[] _words;
         }
 
         private class IntHashTable
@@ -381,7 +381,7 @@ namespace Roslyn.Test.PdbUtilities
             // Deleted entries have their key set to buckets
 
             // The hash table data.
-            // This cannot be serialised
+            // This cannot be serialized
             private struct bucket
             {
                 internal int key;
@@ -398,7 +398,7 @@ namespace Roslyn.Test.PdbUtilities
             private int _occupancy;
 
             private int _loadsize;
-            private int _loadFactorPerc;    // 100 = 1.0
+            private readonly int _loadFactorPerc;    // 100 = 1.0
 
             private int _version;
 
@@ -681,15 +681,15 @@ namespace Roslyn.Test.PdbUtilities
                 bits.ReadUInt32(out relocCrc);
             }
 
-            internal short section;                    // 0..1
-            internal short pad1;                       // 2..3
-            internal int offset;                     // 4..7
-            internal int size;                       // 8..11
-            internal uint flags;                      // 12..15
-            internal short module;                     // 16..17
-            internal short pad2;                       // 18..19
-            internal uint dataCrc;                    // 20..23
-            internal uint relocCrc;                   // 24..27
+            internal readonly short section;                    // 0..1
+            internal readonly short pad1;                       // 2..3
+            internal readonly int offset;                     // 4..7
+            internal readonly int size;                       // 8..11
+            internal readonly uint flags;                      // 12..15
+            internal readonly short module;                     // 16..17
+            internal readonly short pad2;                       // 18..19
+            internal readonly uint dataCrc;                    // 20..23
+            internal readonly uint relocCrc;                   // 24..27
         }
 
         private class DbiModuleInfo
@@ -721,19 +721,19 @@ namespace Roslyn.Test.PdbUtilities
                 bits.Align(4);
             }
 
-            internal int opened;                 //  0..3
-            internal ushort flags;                  // 32..33
-            internal short stream;                 // 34..35
-            internal int cbSyms;                 // 36..39
-            internal int cbOldLines;             // 40..43
-            internal int cbLines;                // 44..57
-            internal short files;                  // 48..49
-            internal short pad1;                   // 50..51
-            internal uint offsets;
-            internal int niSource;
-            internal int niCompiler;
-            internal string moduleName;
-            internal string objectName;
+            internal readonly int opened;                 //  0..3
+            internal readonly ushort flags;                  // 32..33
+            internal readonly short stream;                 // 34..35
+            internal readonly int cbSyms;                 // 36..39
+            internal readonly int cbOldLines;             // 40..43
+            internal readonly int cbLines;                // 44..57
+            internal readonly short files;                  // 48..49
+            internal readonly short pad1;                   // 50..51
+            internal readonly uint offsets;
+            internal readonly int niSource;
+            internal readonly int niCompiler;
+            internal readonly string moduleName;
+            internal readonly string objectName;
         }
 
         private struct DbiHeader
@@ -762,26 +762,26 @@ namespace Roslyn.Test.PdbUtilities
                 bits.ReadInt32(out reserved);
             }
 
-            internal int sig;                        // 0..3
-            internal int ver;                        // 4..7
-            internal int age;                        // 8..11
-            internal short gssymStream;                // 12..13
-            internal ushort vers;                       // 14..15
-            internal short pssymStream;                // 16..17
-            internal ushort pdbver;                     // 18..19
-            internal short symrecStream;               // 20..21
-            internal ushort pdbver2;                    // 22..23
-            internal int gpmodiSize;                 // 24..27
-            internal int secconSize;                 // 28..31
-            internal int secmapSize;                 // 32..35
-            internal int filinfSize;                 // 36..39
-            internal int tsmapSize;                  // 40..43
-            internal int mfcIndex;                   // 44..47
-            internal int dbghdrSize;                 // 48..51
-            internal int ecinfoSize;                 // 52..55
-            internal ushort flags;                      // 56..57
-            internal ushort machine;                    // 58..59
-            internal int reserved;                   // 60..63
+            internal readonly int sig;                        // 0..3
+            internal readonly int ver;                        // 4..7
+            internal readonly int age;                        // 8..11
+            internal readonly short gssymStream;                // 12..13
+            internal readonly ushort vers;                       // 14..15
+            internal readonly short pssymStream;                // 16..17
+            internal readonly ushort pdbver;                     // 18..19
+            internal readonly short symrecStream;               // 20..21
+            internal readonly ushort pdbver2;                    // 22..23
+            internal readonly int gpmodiSize;                 // 24..27
+            internal readonly int secconSize;                 // 28..31
+            internal readonly int secmapSize;                 // 32..35
+            internal readonly int filinfSize;                 // 36..39
+            internal readonly int tsmapSize;                  // 40..43
+            internal readonly int mfcIndex;                   // 44..47
+            internal readonly int dbghdrSize;                 // 48..51
+            internal readonly int ecinfoSize;                 // 52..55
+            internal readonly ushort flags;                      // 56..57
+            internal readonly ushort machine;                    // 58..59
+            internal readonly int reserved;                   // 60..63
         }
 
         private struct DbiDbgHdr
@@ -801,17 +801,17 @@ namespace Roslyn.Test.PdbUtilities
                 bits.ReadUInt16(out snSectionHdrOrig);
             }
 
-            internal ushort snFPO;                 // 0..1
-            internal ushort snException;           // 2..3 (deprecated)
-            internal ushort snFixup;               // 4..5
-            internal ushort snOmapToSrc;           // 6..7
-            internal ushort snOmapFromSrc;         // 8..9
-            internal ushort snSectionHdr;          // 10..11
-            internal ushort snTokenRidMap;         // 12..13
-            internal ushort snXdata;               // 14..15
-            internal ushort snPdata;               // 16..17
-            internal ushort snNewFPO;              // 18..19
-            internal ushort snSectionHdrOrig;      // 20..21
+            internal readonly ushort snFPO;                 // 0..1
+            internal readonly ushort snException;           // 2..3 (deprecated)
+            internal readonly ushort snFixup;               // 4..5
+            internal readonly ushort snOmapToSrc;           // 6..7
+            internal readonly ushort snOmapFromSrc;         // 8..9
+            internal readonly ushort snSectionHdr;          // 10..11
+            internal readonly ushort snTokenRidMap;         // 12..13
+            internal readonly ushort snXdata;               // 14..15
+            internal readonly ushort snPdata;               // 16..17
+            internal readonly ushort snNewFPO;              // 18..19
+            internal readonly ushort snSectionHdrOrig;      // 20..21
         }
 
         private class PdbFileHeader
@@ -838,11 +838,11 @@ namespace Roslyn.Test.PdbUtilities
 
             internal readonly byte[] magic;
             internal readonly int pageSize;
-            internal int freePageMap;
-            internal int pagesUsed;
-            internal int directorySize;
+            internal readonly int freePageMap;
+            internal readonly int pagesUsed;
+            internal readonly int directorySize;
             internal readonly int zero;
-            internal int[] directoryRoot;
+            internal readonly int[] directoryRoot;
         }
 
         private class PdbReader
@@ -953,8 +953,8 @@ namespace Roslyn.Test.PdbUtilities
                 get { return contentSize; }
             }
 
-            internal int contentSize;
-            internal int[] pages;
+            internal readonly int contentSize;
+            internal readonly int[] pages;
         }
 
         private class MsfDirectory
@@ -1005,7 +1005,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
             }
 
-            internal DataStream[] streams;
+            internal readonly DataStream[] streams;
         }
 
         private struct CV_FileCheckSum

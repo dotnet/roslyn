@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool IsSubmissionClass
+        {
+            get { return (_container.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsSubmissionClass; }
+        }
+
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             var type = _container as NamedTypeSymbol;
@@ -146,6 +151,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
                 }
+                else if (((NamedTypeSymbol)_container).IsScriptClass)
+                {
+                    for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                    {
+                        var scriptClass = submission.ScriptClass;
+                        if ((object)scriptClass != null)
+                        {
+                            scriptClass.GetExtensionMethods(methods, name, arity, options);
+                        }
+                    }
+                }
             }
         }
 
@@ -154,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            if (_container.IsSubmissionClass)
+            if (IsSubmissionClass)
             {
                 this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteDiagnostics);
                 return;
@@ -190,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AddMemberLookupSymbolsInfo(result, _container, options, originalBinder);
 
             // if we are looking only for labels we do not need to search through the imports
-            if (!_container.IsSubmissionClass && ((options & LookupOptions.LabelsOnly) == 0))
+            if (!IsSubmissionClass && ((options & LookupOptions.LabelsOnly) == 0))
             {
                 var imports = GetImports(basesBeingResolved: null);
 

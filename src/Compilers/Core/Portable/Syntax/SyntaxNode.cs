@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets an SyntaxReference for this syntax node. CommonSyntaxReferences can be used to
+        /// Gets a <see cref="SyntaxReference"/> for this syntax node. CommonSyntaxReferences can be used to
         /// regain access to a syntax node without keeping the entire tree and source text in
         /// memory.
         /// </summary>
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis
         /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
         /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
         /// </summary>
-        internal abstract SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body);
+        internal abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode body);
 
         internal abstract SyntaxNode GetLambda();
 
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 
-        protected internal abstract SyntaxNode NormalizeWhitespaceCore(string indentation, bool elasticTrivia);
+        protected internal abstract SyntaxNode NormalizeWhitespaceCore(string indentation, string eol, bool elasticTrivia);
 
         /// <summary>
         /// Determines if two nodes are the same, disregarding trivia differences.

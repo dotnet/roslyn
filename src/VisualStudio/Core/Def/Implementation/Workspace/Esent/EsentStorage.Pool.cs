@@ -11,27 +11,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
         {
             private static readonly ObjectPool<ColumnValue[]>[] s_columnValuePool = new[]
             {
-                new ObjectPool<ColumnValue[]>(() => new ColumnValue[2], 20),
-                new ObjectPool<ColumnValue[]>(() => new ColumnValue[3], 20)
+                new ObjectPool<ColumnValue[]>(() => new ColumnValue[3], 20),
+                new ObjectPool<ColumnValue[]>(() => new ColumnValue[4], 20)
             };
 
-            public static ColumnValue[] GetInt32Columns(JET_COLUMNID columnId1, int value1, JET_COLUMNID columnId2, int value2)
+            public static ColumnValue[] GetInt32Columns(JET_COLUMNID columnId1, int value1, JET_COLUMNID columnId2, int value2, JET_COLUMNID columnId3, int value3)
             {
                 var array = s_columnValuePool[0].Allocate();
 
                 array[0] = GetInt32Column(columnId1, value1);
                 array[1] = GetInt32Column(columnId2, value2);
+                array[2] = GetInt32Column(columnId3, value3);
 
                 return array;
             }
 
-            public static ColumnValue[] GetInt32Columns(JET_COLUMNID columnId1, int value1, JET_COLUMNID columnId2, int value2, JET_COLUMNID columnId3, int value3)
+            public static ColumnValue[] GetInt32Columns(JET_COLUMNID columnId1, int value1, JET_COLUMNID columnId2, int value2, JET_COLUMNID columnId3, int value3, JET_COLUMNID columnId4, int value4)
             {
                 var array = s_columnValuePool[1].Allocate();
 
                 array[0] = GetInt32Column(columnId1, value1);
                 array[1] = GetInt32Column(columnId2, value2);
                 array[2] = GetInt32Column(columnId3, value3);
+                array[3] = GetInt32Column(columnId4, value4);
 
                 return array;
             }
@@ -52,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Esent
                     Free(values[i]);
                 }
 
-                s_columnValuePool[values.Length - 2].Free(values);
+                s_columnValuePool[values.Length - 3].Free(values);
             }
 
             public static void Free(ColumnValue value)

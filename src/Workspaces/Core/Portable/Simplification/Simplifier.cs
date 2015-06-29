@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// The annotation the reducer uses to identify sub trees to be reduced.
         /// The Expand operations add this annotation to nodes so that the Reduce operations later find them.
         /// </summary>
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation();
+        public static SyntaxAnnotation Annotation { get; } = new SyntaxAnnotation();
 
         /// <summary>
         /// This is the annotation used by the simplifier and expander to identify Predefined type and preserving
         /// them from over simplification
         /// </summary>
-        public static readonly SyntaxAnnotation SpecialTypeAnnotation = new SyntaxAnnotation();
+        public static SyntaxAnnotation SpecialTypeAnnotation { get; } = new SyntaxAnnotation();
 
         /// <summary>
         /// Expand qualifying parts of the specified subtree, annotating the parts using the <see cref="Annotation" /> annotation.

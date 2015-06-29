@@ -100,7 +100,7 @@ Namespace ns1
                         virt(New Exception() {})
                         virt(New c1() {New c4(), New c2(Of String)()}) {ESC}{DOWN}{DOWN}{DOWN}{DOWN}{END}
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst{ESC}(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c1.abst(ref string, params int[])")
             x = x.ToString() : y = New Integer() {y(0)} ' Read, Write Ref + Paramarrays
@@ -393,7 +393,7 @@ Namespace ns1
                     virt(New Exception() {})
                     virt(New c1() {New c4(), New c2(Of String)()}) {ESC}{DOWN}{DOWN}{DOWN}{END}
 
-        ' Overriden Abstract Methods
+        ' Overridden Abstract Methods
         Public Overrides Function abst{ESC}(ByRef x As String, ParamArray y As Integer()) As Integer
             Console.WriteLine("    c2<T>.abst(ref string, params int[])")
             x = y(0).ToString() : y = Nothing ' Read, Write Ref + Paramarrays
@@ -404,7 +404,7 @@ Namespace ns1
             x = y(0).ToString() : y = Nothing ' Read, Write Ref + Paramarrays
             Return 1 {ESC}{DOWN}{END}
 
-        ' Overriden Virtual Methods
+        ' Overridden Virtual Methods
         Public Overrides Function virt{ESC}(ByRef x As Integer, y As c1, ParamArray z As c2(Of String)()) As Integer
             Console.WriteLine("    c2<T>.virt(ref int, c1, params c2<string>[])")
             x = 0 : x = y.GetHashCode() : z = Nothing ' Read, Write Ref + Paramarrays

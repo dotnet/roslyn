@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Gets the attributes applie[d on this symbol.
+        ''' Gets the attributes applied on this symbol.
         ''' Returns an empty array if there are no attributes.
         ''' </summary>
         ''' <remarks>
@@ -734,11 +734,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                             isOverrides:=True, isWithEvents:=Me.IsWithEvents))
                 End If
 
-                Dim overriden = overriddenMembers.OverriddenMember
+                Dim overridden = overriddenMembers.OverriddenMember
 
-                If overriden IsNot Nothing Then
+                If overridden IsNot Nothing Then
                     ' Copy custom modifiers
-                    Dim returnTypeWithCustomModifiers As TypeSymbol = overriden.Type
+                    Dim returnTypeWithCustomModifiers As TypeSymbol = overridden.Type
 
                     ' We do an extra check before copying the return type to handle the case where the overriding
                     ' property (incorrectly) has a different return type than the overridden property.  In such cases,
@@ -748,7 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         retType = returnTypeWithCustomModifiers
                     End If
 
-                    params = CustomModifierUtils.CopyParameterCustomModifiers(overriden.Parameters, params)
+                    params = CustomModifierUtils.CopyParameterCustomModifiers(overridden.Parameters, params)
                 End If
 
                 ' Unlike PropertySymbol, in SourcePropertySymbol we cache the result of MakeOverriddenOfHiddenMembers, because we use
@@ -881,12 +881,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property TypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                Dim overriden = Me.OverriddenProperty
+                Dim overridden = Me.OverriddenProperty
 
-                If overriden Is Nothing Then
+                If overridden Is Nothing Then
                     Return ImmutableArray(Of CustomModifier).Empty
                 Else
-                    Return overriden.TypeCustomModifiers
+                    Return overridden.TypeCustomModifiers
                 End If
             End Get
         End Property
@@ -1112,12 +1112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return syntaxTree.GetLocation(block.BlockStatement.Span)
         End Function
 
-        Private Shared s_overridableModifierKinds() As SyntaxKind =
+        Private Shared ReadOnly s_overridableModifierKinds() As SyntaxKind =
             {
                 SyntaxKind.OverridableKeyword
             }
 
-        Private Shared s_accessibilityModifierKinds() As SyntaxKind =
+        Private Shared ReadOnly s_accessibilityModifierKinds() As SyntaxKind =
             {
                 SyntaxKind.PrivateKeyword,
                 SyntaxKind.ProtectedKeyword,

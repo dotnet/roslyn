@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Cache of value types which were already calculated by LocalOrFieldNeedsToBeCleanedUp 
         ''' in this lowering, serves as an optimization 
         ''' </summary>
-        Private _valueTypesCleanUpCache As New Dictionary(Of TypeSymbol, Boolean)
+        Private ReadOnly _valueTypesCleanUpCache As New Dictionary(Of TypeSymbol, Boolean)
 
         Private Function LocalOrFieldNeedsToBeCleanedUp(currentType As TypeSymbol) As Boolean
             Debug.Assert(currentType IsNot Nothing)

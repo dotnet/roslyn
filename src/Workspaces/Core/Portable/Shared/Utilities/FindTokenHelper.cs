@@ -113,13 +113,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static SyntaxToken FindSkippedTokenBackward(IEnumerable<SyntaxToken> skippedTokenList, int position)
         {
             // the given skipped token list is already in order
-            var skippedTokenContainingPosition = skippedTokenList.LastOrDefault(skipped => skipped.Span.Length > 0 && skipped.SpanStart <= position);
-            if (skippedTokenContainingPosition != default(SyntaxToken))
+            // PERF: Expansion of return skippedTokenList.LastOrDefault(skipped => skipped.Span.Length > 0 && skipped.SpanStart <= position);
+            var skippedTokenContainingPosition = default(SyntaxToken);
+            foreach (var skipped in skippedTokenList)
             {
-                return skippedTokenContainingPosition;
+                if (skipped.Span.Length > 0 && skipped.SpanStart <= position)
+                {
+                    skippedTokenContainingPosition = skipped;
+                }
             }
 
-            return default(SyntaxToken);
+            return skippedTokenContainingPosition;
         }
 
         /// <summary>

@@ -1716,7 +1716,7 @@ Public Module Test
     Function t5(Of S)(a1 As Integer) As S
         Return Nothing
     End Function
-    ' usefull to infer on
+    ' useful to infer on
     Function t5(Of S)(a1 As S) As S
         Return Nothing
     End Function
@@ -1826,13 +1826,9 @@ BC42021: Cannot infer a return type because more than one type is possible; 'Obj
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30518: Overload resolution failed because no accessible '[Select]' can be called with these arguments:
-    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
-    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
-    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, Integer, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
-    Extension method 'Public Function [Select](Of TResult)(selector As Func(Of SnapshotSpan, Integer, TResult)) As IEnumerable(Of TResult)' defined in 'Enumerable': Data type(s) of the type parameter(s) cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36734: Cannot infer a return type because more than one type is possible. Consider adding an 'As' clause to specify the return type.
         Dim replacementSpans = sourceSpans.Select(Function(ss)
-                                           ~~~~~~
+                                                  ~~~~~~~~~~~~
 </expected>)
         End Sub
 

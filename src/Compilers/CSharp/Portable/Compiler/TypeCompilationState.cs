@@ -96,6 +96,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// The type passed to the runtime binder as context.
+        /// </summary>
+        public NamedTypeSymbol DynamicOperationContextType
+        {
+            get
+            {
+                var moduleBuilder = this.ModuleBuilderOpt;
+                if (moduleBuilder == null)
+                {
+                    return null;
+                }
+
+                return moduleBuilder.DynamicOperationContextType ?? this.Type;
+            }
+        }
+
         public bool Emitting
         {
             get { return ModuleBuilderOpt != null; }

@@ -25,18 +25,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Path or name used in error messages to identity the reference.
         /// </summary>
+        /// <remarks>
+        /// Should not be null.
+        /// </remarks>
         public virtual string Display
         {
             get { return null; }
         }
 
         /// <summary>
-        /// Returns true if this reference is an unresolved reference.
+        /// A unique identifier for this analyzer reference.
         /// </summary>
-        public virtual bool IsUnresolved
-        {
-            get { return false; }
-        }
+        /// <remarks>
+        /// Should not be null.
+        /// Note that this and <see cref="FullPath"/> serve different purposes. An analyzer reference may not
+        /// have a path, but it always has an ID. Further, two analyzer references with different paths may
+        /// represent two copies of the same analyzer, in which case the IDs should also be the same.
+        /// </remarks>
+        public abstract object Id { get; }
 
         /// <summary>
         /// Gets all the diagnostic analyzers defined in this assembly reference, irrespective of the language supported by the analyzer.

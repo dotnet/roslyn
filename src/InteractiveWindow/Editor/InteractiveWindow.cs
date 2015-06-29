@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal class InteractiveWindow : IInteractiveWindow
     {
-        private bool _adornmentToMinimize = false;
+        private bool _adornmentToMinimize;
 
         // true iff code is being executed:
         private bool _isRunning;
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private readonly OutputBuffer _buffer;
         private readonly TextWriter _outputWriter;
-        private readonly TextWriter _errorOutputWriter;
+        private readonly InteractiveWindowWriter _errorOutputWriter;
         private int _currentOutputProjectionSpan;
         private int _outputTrackingCaretPosition;
 
@@ -1844,20 +1844,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private void FinishCurrentSubmissionInput()
+        private void FinishCurrentSubmissionInput() 
         {
             Debug.Assert(CheckAccess());
 
             AppendLineNoPromptInjection(_currentLanguageBuffer);
             ApplyProtection(_currentLanguageBuffer, regions: null);
 
-            if (_adornmentToMinimize)
+            if (_adornmentToMinimize) 
             {
                 // TODO (tomat): remember the index of the adornment(s) in the current output and minimize those instead of the last one 
                 InlineAdornmentProvider.MinimizeLastInlineAdornment(TextView);
                 _adornmentToMinimize = false;
             }
 
+            NewOutputBuffer();
+        }
+
+        private void NewOutputBuffer()
+        {
             // Stop growing the current output projection span.
             Debug.Assert(_projectionSpans[_currentOutputProjectionSpan].Kind == ReplSpanKind.Output);
             var nonGrowingSpan = _projectionSpans[_currentOutputProjectionSpan].WithEndTrackingMode(PointTrackingMode.Negative);
@@ -1950,6 +1955,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     ReplaceProjectionSpan(i, newSpan);
                     ApplyProtection(_stdInputBuffer, _stdInputProtection, allowAppend: true);
 
+                    NewOutputBuffer();
+
                     if (wasRunning)
                     {
                         _isRunning = true;
@@ -2026,6 +2033,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             int result = _buffer.Write(text);
             _buffer.Write(LineBreak);
             return new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
+        }
+
+        public Span WriteError(string text)
+        {
+            int result = _buffer.Write(text);
+            var res = new Span(result, (text != null ? text.Length : 0));
+            _errorOutputWriter.Spans.Add(res);
+            return res;
+        }
+
+        public Span WriteErrorLine(string text = null)
+        {
+            int result = _buffer.Write(text);
+            _buffer.Write(LineBreak);
+            var res = new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
+            _errorOutputWriter.Spans.Add(res);
+            return res;
         }
 
         public void Write(UIElement element)
@@ -2577,9 +2601,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private struct SpanRangeEdit
         {
-            public int Start;
-            public int Count;
-            public ReplSpan[] Replacement;
+            public readonly int Start;
+            public readonly int Count;
+            public readonly ReplSpan[] Replacement;
 
             public SpanRangeEdit(int start, int count, ReplSpan[] replacement)
             {

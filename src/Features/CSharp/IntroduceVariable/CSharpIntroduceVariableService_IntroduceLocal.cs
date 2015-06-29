@@ -137,7 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         private bool CanUseVar(ITypeSymbol typeSymbol)
         {
-            return typeSymbol.TypeKind != TypeKind.Delegate && !typeSymbol.IsErrorType();
+            return typeSymbol.TypeKind != TypeKind.Delegate
+                && !typeSymbol.IsErrorType()
+                && !typeSymbol.IsFormattableString();
         }
 
         private static async Task<Tuple<SemanticDocument, ISet<ExpressionSyntax>>> ComplexifyParentingStatements(

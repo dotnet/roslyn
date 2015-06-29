@@ -20,17 +20,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Represents an exported type.
-    /// </summary>
-    internal interface ITypeExport : IDefinition
-    {
-        /// <summary>
-        /// Type reference of the exported type.
-        /// </summary>
-        ITypeReference ExportedType { get; }
-    }
-
-    /// <summary>
     /// This interface models the metadata representation of an array type reference.
     /// </summary>
     internal interface IArrayTypeReference : ITypeReference
@@ -343,7 +332,7 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// Models an explicit implemenation or override of a base class virtual method or an explicit implementation of an interface method.
+    /// Models an explicit implementation or override of a base class virtual method or an explicit implementation of an interface method.
     /// </summary>
     internal struct MethodImplementation
     {
@@ -619,7 +608,7 @@ namespace Microsoft.Cci
         Boolean,
 
         /// <summary>
-        /// An usigned 16 bit integer representing a Unicode UTF16 code point.
+        /// An unsigned 16 bit integer representing a Unicode UTF16 code point.
         /// </summary>
         Char,
 
@@ -699,7 +688,7 @@ namespace Microsoft.Cci
         UIntPtr,
 
         /// <summary>
-        /// A type that denotes the absense of a value.
+        /// A type that denotes the absence of a value.
         /// </summary>
         Void,
 

@@ -72,7 +72,7 @@ End Module
 
         End Sub
 
-        ' Can’t declare variable in argument
+        ' Can't declare variable in argument
         <Fact>
         Public Sub DeclVarInArgument()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -193,7 +193,7 @@ End Module
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="a0, a1, a2", DataFlowsOutSymbol:="", index:=2)
         End Sub
 
-        ' ‘Goto‘ is Invalid in expression
+        ' 'Goto' is Invalid in expression
         <Fact>
         Public Sub GotoInConditionalOperator()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -240,9 +240,9 @@ End Module
 
         ' Function call in return expression
         <Fact>
-        Public Sub FuntionCallAsArgument()
+        Public Sub FunctionCallAsArgument()
             Dim compilation1 = CreateCompilationWithMscorlib(
-<compilation name="FuntionCallAsArgument">
+<compilation>
     <file name="a.vb">
 imports System
 Module Program

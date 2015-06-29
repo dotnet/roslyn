@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -45,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private MenuCommand _removeMenuItem;
 
         // Diagnostic context menu items
+        private MenuCommand _setSeverityDefaultMenuItem;
         private MenuCommand _setSeverityErrorMenuItem;
         private MenuCommand _setSeverityWarningMenuItem;
         private MenuCommand _setSeverityInfoMenuItem;
@@ -88,6 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 _removeMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.RemoveAnalyzer, RemoveAnalyzerHandler);
 
                 // Diagnostic context menu items
+                _setSeverityDefaultMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityDefault, SetSeverityHandler);
                 _setSeverityErrorMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityError, SetSeverityHandler);
                 _setSeverityWarningMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityWarning, SetSeverityHandler);
                 _setSeverityInfoMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityInfo, SetSeverityHandler);
@@ -234,11 +234,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void UpdateOpenHelpLinkMenuItemVisibility()
         {
             _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
-                                                        !string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri);
+                                            _tracker.SelectedDiagnosticItems[0].GetHelpLink() != null;
         }
 
         private void UpdateSeverityMenuItemsChecked()
         {
+            _setSeverityDefaultMenuItem.Checked = false;
             _setSeverityErrorMenuItem.Checked = false;
             _setSeverityWarningMenuItem.Checked = false;
             _setSeverityInfoMenuItem.Checked = false;
@@ -279,7 +280,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
                 }
             }
-            
+
             if (selectedItemSeverities.Count != 1)
             {
                 return;
@@ -288,6 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             switch (selectedItemSeverities.Single())
             {
                 case ReportDiagnostic.Default:
+                    _setSeverityDefaultMenuItem.Checked = true;
                     break;
                 case ReportDiagnostic.Error:
                     _setSeverityErrorMenuItem.Checked = true;
@@ -318,6 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             bool configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
 
+            _setSeverityDefaultMenuItem.Enabled = configurable;
             _setSeverityErrorMenuItem.Enabled = configurable;
             _setSeverityWarningMenuItem.Enabled = configurable;
             _setSeverityInfoMenuItem.Enabled = configurable;
@@ -472,18 +475,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void OpenDiagnosticHelpLinkHandler(object sender, EventArgs e)
         {
-            if (_tracker.SelectedDiagnosticItems.Length != 1 ||
-                string.IsNullOrWhiteSpace(_tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri))
+            if (_tracker.SelectedDiagnosticItems.Length != 1)
             {
                 return;
             }
 
-            string link = _tracker.SelectedDiagnosticItems[0].Descriptor.HelpLinkUri;
-
-            Uri uri;
-            if (BrowserHelper.TryGetUri(link, out uri))
+            var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
+            if (uri != null)
             {
-                BrowserHelper.StartBrowser(_serviceProvider, uri);
+                BrowserHelper.StartBrowser(uri);
             }
         }
 
@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 try
                 {
-                    EnvDTE.Property codeAnalysisRuleSetFileProperty = properties.Item("CodeAnalysisRuleSet");
+                    EnvDTE.Property codeAnalysisRuleSetFileProperty = properties?.Item("CodeAnalysisRuleSet");
 
                     if (codeAnalysisRuleSetFileProperty != null)
                     {
@@ -573,6 +573,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 switch (selectedItem.CommandID.ID)
                 {
+                    case ID.RoslynCommands.SetSeverityDefault:
+                        selectedAction = ReportDiagnostic.Default;
+                        break;
+
                     case ID.RoslynCommands.SetSeverityError:
                         selectedAction = ReportDiagnostic.Error;
                         break;

@@ -1779,7 +1779,7 @@ public sealed class ContentType
                 var reader = block.MetadataReader;
                 foreach (var typeRef in reader.TypeReferences)
                 {
-                    Handle scope = reader.GetTypeReference(typeRef).ResolutionScope;
+                    EntityHandle scope = reader.GetTypeReference(typeRef).ResolutionScope;
                     if (scope.Kind == HandleKind.TypeReference)
                     {
                         Assert.InRange(reader.GetRowNumber(scope), 1, reader.GetRowNumber(typeRef) - 1);
@@ -2167,7 +2167,7 @@ public class Test
             string source2 = @"public class B: A {}";
             var comp = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
             var metadataRef = ModuleMetadata.CreateFromStream(comp.EmitToStream()).GetReference();
-            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, emitters: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(source2, additionalRefs: new[] { metadataRef }, options: TestOptions.ReleaseModule, verify: false);
         }
 
         [Fact]
@@ -2581,7 +2581,7 @@ public interface IUsePlatform
         {
             var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify(comp, emitters: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(comp, verify: false);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
         }
@@ -2784,7 +2784,7 @@ public class Program
                 ////// error CS0101: The namespace '<global namespace>' already contains a definition for '<PrivateImplementationDetails>'
                 ////Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("<PrivateImplementationDetails>", "<global namespace>").WithLocation(1, 1)
                 );
-            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
         [Fact]
@@ -2827,7 +2827,7 @@ public class Program
 
             var comp3 = CreateCompilationWithMscorlib(s3, options: TestOptions.ReleaseExe.WithModuleName("C"), references: new[] { ref1, ref2 });
             comp3.VerifyDiagnostics();
-            CompileAndVerify(comp3, emitters: TestEmitters.RefEmitBug, expectedOutput: "Hello, world!");
+            CompileAndVerify(comp3, expectedOutput: "Hello, world!");
         }
 
         /// <summary>

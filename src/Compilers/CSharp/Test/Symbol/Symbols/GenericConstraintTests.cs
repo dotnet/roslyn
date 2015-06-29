@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class GenericConstraintTests : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact]
         public void LoadAndPersist()
         {
             var source =
@@ -49,12 +49,11 @@ class D<T> where T : A<int>, new() { }";
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OverriddenMethods()
         {
             var source =
@@ -88,12 +87,11 @@ class B1 : A<int>
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ExplicitInterfaceMethods()
         {
             var source =
@@ -115,7 +113,6 @@ class C : I<C, object>
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -125,7 +122,7 @@ class C : I<C, object>
         /// of partial methods early - in the constructor. Ensure constraints for
         /// overridden methods are handled in these cases.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void PartialClassOverriddenMethods()
         {
             var source =
@@ -172,12 +169,11 @@ partial class B<T> : A<T>
 
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ConstraintWithTypeParameter()
         {
             var source =
@@ -194,7 +190,7 @@ delegate void D<T>() where T : I<T>;";
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ConstraintWithContainingType()
         {
             var source =
@@ -204,7 +200,7 @@ interface IB<T> where T : IB<T> { }";
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ConstraintWithSameType()
         {
             var source =
@@ -213,7 +209,7 @@ class C<T, U> where T : C<T, U> { }";
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void BaseWithSameType()
         {
             var source =
@@ -377,7 +373,7 @@ class G<T> where T : C
         /// <summary>
         /// Implicit implementations must specify constraints.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void ImplicitImplementation()
         {
             var source =
@@ -406,7 +402,7 @@ class B : I<object>
         /// <summary>
         /// Explicit implementations do not specify constraints.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void ExplicitImplementation()
         {
             var source =
@@ -683,7 +679,7 @@ partial class B<T> where T : struct
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 25));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void StructAndUnconstrainedTypeParameterConstraints()
         {
             var source =
@@ -694,7 +690,7 @@ partial class B<T> where T : struct
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void WhereTypeParameter()
         {
             var source =
@@ -703,7 +699,7 @@ class C<where> where where : I<where> { }";
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NewConstraintWithValueType()
         {
             var source =
@@ -738,7 +734,7 @@ class C<T> where T : new()
                 Diagnostic(ErrorCode.ERR_NoNewTyvar, "new T()").WithArguments("T").WithLocation(8, 11));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void RedundantConstraints()
         {
             var source =
@@ -1002,7 +998,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "C<T>").WithArguments("C<T>", "T", "C<T>").WithLocation(4, 19));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PartialClass()
         {
             var source =
@@ -1014,7 +1010,7 @@ partial class C<T> { }";
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SubstitutedLambdaConstraints()
         {
             var source =
@@ -1089,7 +1085,7 @@ static class C
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void DefaultT()
         {
             var source =
@@ -1145,7 +1141,7 @@ S");
         }
 
         [WorkItem(542376, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void NullT()
         {
             var source =
@@ -1206,7 +1202,7 @@ S");
             compilation.VerifyIL("C.F6<T>()", expectedIL);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void TryCast()
         {
             var source =
@@ -1248,7 +1244,7 @@ class B2<T>
             compilation.VerifyIL("B2<T>.F4<U>(U)", expectedIL);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void NewT()
         {
             var source =
@@ -1310,7 +1306,7 @@ S");
         }
 
         [WorkItem(542312, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void NewTStatement()
         {
             var source =
@@ -1385,7 +1381,7 @@ class C
         /// <summary>
         /// Invoke methods and properties on constrained generic types.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void Members()
         {
             var source =
@@ -1509,7 +1505,7 @@ B.M");
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Indexers()
         {
             var source =
@@ -1578,7 +1574,7 @@ S[0]");
         /// <summary>
         /// Access fields on constrained generic types.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void Fields()
         {
             var source =
@@ -1640,7 +1636,7 @@ class C
         /// <summary>
         /// Access events on constrained generic types.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void Events()
         {
             var source =
@@ -1776,7 +1772,7 @@ class D2 : C<A, B>
                 Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "X").WithArguments("X", "B", "A").WithLocation(10, 30));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void MovedConstraints()
         {
             var source =
@@ -2285,7 +2281,7 @@ class C
         /// Class constraint members should hide
         /// interface constraint members.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void EffectiveInterfaceSet03()
         {
             var source =
@@ -2360,7 +2356,7 @@ class C
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ThrowT()
         {
             var source =
@@ -2396,7 +2392,7 @@ class C
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CatchT()
         {
             var source =
@@ -2413,7 +2409,7 @@ class C
             CompileAndVerify(source);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CatchTLifted()
         {
             var source =
@@ -2537,7 +2533,7 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(13, 30));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LookupObjectMembers()
         {
             var source =
@@ -2561,7 +2557,7 @@ class C<T> where T : IA, IB
         /// Handle constraints from metadata that
         /// would be invalid from source.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void InvalidConstraintsFromMetadata()
         {
             var ilSource =
@@ -3068,7 +3064,7 @@ class C
         }
 
         [WorkItem(542174, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ConstraintsOnOverriddenMethod()
         {
             var source =
@@ -3201,7 +3197,7 @@ class D
         }
 
         [WorkItem(528855, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModReqsInConstraintsAreNotSupported()
         {
             var ilSource =
@@ -3253,7 +3249,7 @@ class C<T> : IT<T>
         /// generic methods with such constraints.)
         /// </summary>
         [WorkItem(528856, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ModOptsInConstraintsAreIgnored()
         {
             var ilSource =
@@ -3554,7 +3550,7 @@ class C4 : B4<I, A, object> { }
         }
 
         [WorkItem(542755, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SpellingOfGenericClassNameIsPreserved()
         {
             var ilSource =
@@ -3585,10 +3581,10 @@ class C : I
                     Assert.Equal("I2", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SpellingOfGenericClassNameIsPreserved2()
         {
             var ilSource =
@@ -3619,10 +3615,10 @@ class C : I
                     Assert.Equal("I2`2", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SpellingOfGenericClassNameIsPreserved3()
         {
             var ilSource =
@@ -3653,10 +3649,10 @@ class C : I
                     Assert.Equal("I2`1", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SpellingOfGenericClassNameIsPreserved4()
         {
             var ilSource =
@@ -3687,10 +3683,10 @@ class C : I
                     Assert.Equal("I2`01", i2.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SpellingOfGenericClassNameIsPreserved5()
         {
             var ilSource =
@@ -4175,7 +4171,7 @@ class C : I
                     Assert.Equal(2, t.Arity);
                 };
 
-            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier, emitOptions: TestEmitters.RefEmitBug);
+            CompileWithCustomILSource(csharpSource, ilSource, compilationVerifier: compilationVerifier);
         }
 
         [WorkItem(542358, "DevDiv")]
@@ -4342,7 +4338,7 @@ class Program
         }
 
         [WorkItem(542380, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void StructProperties()
         {
             var source =
@@ -4598,7 +4594,7 @@ class B
         }
 
         [WorkItem(542527, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints01()
         {
             var source =
@@ -4643,7 +4639,7 @@ System.String
 System.String");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints02()
         {
             var source =
@@ -4703,13 +4699,12 @@ abstract class E : D, IB
             };
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
 
         [WorkItem(542601, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints03()
         {
             var source =
@@ -4740,7 +4735,7 @@ System.Int32");
         }
 
         [WorkItem(542601, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SelfReferentialInheritedConstraints04()
         {
             var source =
@@ -4782,7 +4777,7 @@ class C : I<object>, I<C>
         }
 
         [WorkItem(542532, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void SelfReferentialConstraintsWithLambda()
         {
             var source =
@@ -4819,7 +4814,7 @@ M1<T, U>");
         }
 
         [WorkItem(542277, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void AccessToMembersOfInheritedConstraints()
         {
             var source =
@@ -4912,7 +4907,7 @@ class B<T>
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(T[])x").WithArguments("U[]", "T[]").WithLocation(36, 16));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ImplicitReferenceTypeParameterConversion()
         {
             var source =
@@ -4949,7 +4944,7 @@ class B<T>
         }
 
         [WorkItem(542620, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void DuplicateConstraintTypes()
         {
             var source =
@@ -4991,7 +4986,6 @@ interface I6<U> : I3<I<U>, I<U>> { }";
             };
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.CCI,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -5031,7 +5025,7 @@ class C
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<object, object>").WithArguments("C.M<T1, T2>()", "I<object>", "T2", "object").WithLocation(13, 9));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ContravariantInterfacesInConstraints()
         {
             var source =
@@ -5064,7 +5058,7 @@ class C
         /// constraint is specified.
         /// </summary>
         [WorkItem(543335, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectAndValueTypeMetadataConstraints()
         {
             var ilSource =
@@ -5093,7 +5087,7 @@ class C
         }
 
         [WorkItem(543335, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectAndValueTypeMethodMetadataConstraints()
         {
             var ilSource =
@@ -5139,7 +5133,7 @@ class C
         /// Overriding methods with implicit and explicit
         /// System.Object and System.ValueType constraints.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void OverridingObjectAndValueTypeMethodMetadataConstraints()
         {
             var ilSource =
@@ -5242,7 +5236,7 @@ class C1 : C0
         /// on import and type substitution.
         /// </summary>
         [WorkItem(543831, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ObjectConstraintTypes()
         {
             var ilSource =
@@ -5334,7 +5328,7 @@ class D0 : D<object>
         /// for compatibility with Dev10.
         /// </summary>
         [WorkItem(543710, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void EmittedObjectConstraint()
         {
             var source =
@@ -5367,7 +5361,6 @@ class A1 : A<C>
             };
             CompileAndVerify(
                 source: source,
-                emitters: TestEmitters.RefEmitBug,
                 sourceSymbolValidator: validator,
                 symbolValidator: validator);
         }
@@ -5503,7 +5496,7 @@ class B : A
         }
 
         [WorkItem(543710, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void InheritedObjectConstraint2()
         {
             var csCompilation = CreateCSharpCompilation("InheritedObjectConstraint2CS",
@@ -6315,7 +6308,7 @@ class B2 : A<dynamic>, I
         }
 
         [WorkItem(654522, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void Bug654522()
         {
             var compilation = CreateCompilationWithMscorlibAndSystemCore("public interface I<W> where W : struct {}").VerifyDiagnostics();
@@ -6554,7 +6547,7 @@ class B : A
         }
 
         [WorkItem(767334, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void ConstraintOnSynthesizedExplicitImplementationMethod()
         {
             var source1 =
@@ -6605,7 +6598,7 @@ class P
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, emitters: TestEmitters.RefEmitBug, expectedOutput:
+            CompileAndVerify(compilation2, expectedOutput:
 @"C0
 C1
 C2
@@ -6615,7 +6608,7 @@ C`1[A]");
         }
 
         [WorkItem(837422, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void RedundantValueTypeConstraint()
         {
             var source =

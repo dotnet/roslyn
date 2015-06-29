@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determines if the Unicode character can be the starting character of a Visual Basic identifier.
         ''' </summary>
         ''' <param name="c">The Unicode character.</param>
-        ''' <returns>A boolean value set to True if character can be part of a valid start charcater in an identifier.</returns>
+        ''' <returns>A boolean value set to True if character can be part of a valid start character in an identifier.</returns>
         Public Shared Function IsIdentifierStartCharacter(
             c As Char
         ) As Boolean
@@ -257,7 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
         End Function
 
-        Private Shared s_isIDChar As Boolean() =
+        Private Shared ReadOnly s_isIDChar As Boolean() =
         {
             False, False, False, False, False, False, False, False, False, False,
             False, False, False, False, False, False, False, False, False, False,

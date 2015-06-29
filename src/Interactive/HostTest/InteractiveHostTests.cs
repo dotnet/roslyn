@@ -42,12 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var remoteService = Host.TryGetService();
             Assert.NotNull(remoteService);
 
-            remoteService.ObjectFormattingOptions = new ObjectFormattingOptions(
-                memberFormat: MemberDisplayFormat.Inline,
-                quoteStrings: true,
-                useHexadecimalNumbers: false,
-                maxOutputLength: int.MaxValue,
-                memberIndentation: "  ");
+            remoteService.SetTestObjectFormattingOptions();
 
             // assert and remove logo:
             var output = ReadOutputToEnd().Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -169,7 +164,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             var compilation = CreateCompilation(
                 new[] { source },
                 assemblyName: assemblyName,
-                references: references.Concat(new[] { MetadataReference.CreateFromAssembly(typeof(object).Assembly) }),
+                references: references.Concat(new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) }),
                 options: fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? TestOptions.ReleaseExe : TestOptions.ReleaseDll);
 
             var image = compilation.EmitToArray();

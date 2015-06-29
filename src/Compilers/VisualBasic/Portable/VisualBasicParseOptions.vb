@@ -13,8 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits ParseOptions
         Implements IEquatable(Of VisualBasicParseOptions)
 
-        Public Shared ReadOnly [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
+        Public Shared ReadOnly Property [Default] As VisualBasicParseOptions = New VisualBasicParseOptions()
         Private Shared s_defaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
+
+        Private _features As ImmutableDictionary(Of String, String)
 
         Private _preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
         Private _languageVersion As LanguageVersion
@@ -35,7 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyClass.New(languageVersion,
                         documentationMode,
                         kind,
-                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)))
+                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
+                        ImmutableDictionary(Of String, String).Empty)
 
             If Not languageVersion.IsValid Then
                 Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
@@ -46,6 +49,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
+        End Sub
+
+        Friend Sub New(
+            languageVersion As LanguageVersion,
+            documentationMode As DocumentationMode,
+            kind As SourceCodeKind,
+            preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+            features As ImmutableDictionary(Of String, String))
+
+            MyClass.New(languageVersion,
+                        documentationMode,
+                        kind,
+                        If(preprocessorSymbols Is Nothing, DefaultPreprocessorSymbols, ImmutableArray.CreateRange(preprocessorSymbols)),
+                        features)
+
+            If Not languageVersion.IsValid Then
+                Throw New ArgumentOutOfRangeException(NameOf(languageVersion))
+            End If
+
+            If Not kind.IsValid Then
+                Throw New ArgumentOutOfRangeException(NameOf(kind))
+            End If
+
+            ValidatePreprocessorSymbols(preprocessorSymbols, NameOf(preprocessorSymbols))
+
+            If features Is Nothing Then
+                Throw New ArgumentException(NameOf(features))
+            End If
         End Sub
 
         Private Shared Sub ValidatePreprocessorSymbols(preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
@@ -71,17 +102,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Does not perform validation.
-        Friend Sub New(
+        Private Sub New(
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
-            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)))
+            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)),
+            features As ImmutableDictionary(Of String, String))
 
             MyBase.New(kind, documentationMode)
 
             Debug.Assert(Not preprocessorSymbols.IsDefault)
             _languageVersion = languageVersion
             _preprocessorSymbols = preprocessorSymbols
+            _features = features
         End Sub
 
         Private Sub New(other As VisualBasicParseOptions)
@@ -89,7 +122,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 languageVersion:=other._languageVersion,
                 documentationMode:=other.DocumentationMode,
                 kind:=other.Kind,
-                preprocessorSymbols:=other._preprocessorSymbols)
+                preprocessorSymbols:=other._preprocessorSymbols,
+                features:=other._features)
         End Sub
 
         Private Shared ReadOnly Property DefaultPreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
@@ -225,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="kind">The parser source code kind.</param>
         ''' <returns>A new instance of ParseOptions.</returns>
-        Protected Overrides Function CommonWithKind(kind As SourceCodeKind) As ParseOptions
+        Public Overrides Function CommonWithKind(kind As SourceCodeKind) As ParseOptions
             Return WithKind(kind)
         End Function
 
@@ -251,17 +285,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(NameOf(features))
             End If
 
-            If features.Any() Then
-                Throw New ArgumentException("Experimental features are not supported", NameOf(features))
-            End If
-
-            Return Me
+            Return New VisualBasicParseOptions(Me) With {._features = features.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase)}
         End Function
 
         Public Overrides ReadOnly Property Features As IReadOnlyDictionary(Of String, String)
             Get
-                ' There are no experimental features at this time.
-                Return New Dictionary(Of String, String)
+                Return _features
             End Get
         End Property
 

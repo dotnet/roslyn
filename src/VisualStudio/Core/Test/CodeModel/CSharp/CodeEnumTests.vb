@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -256,6 +254,36 @@ enum E
 }
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+        End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+enum $$E
+{
+    Foo = 1,
+    Bar
+}
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[Flags()]
+enum E
+{
+    Foo = 1,
+    Bar
+}
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
         End Sub
 
 #End Region

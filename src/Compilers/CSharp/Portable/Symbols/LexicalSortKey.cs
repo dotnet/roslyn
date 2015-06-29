@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // until later when it is known if they can be optimized or not.
         // As a result the last emitted method tokens are synthetic ctor and then synthetic cctor (if not optimized)
         // Since it is not too hard, we will try keeping the same order just to be easy on metadata diffing tools and such.
-        public static readonly LexicalSortKey SynthesisedCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 1 };
-        public static readonly LexicalSortKey SynthesisedCCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue };
+        public static readonly LexicalSortKey SynthesizedCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue - 1 };
+        public static readonly LexicalSortKey SynthesizedCCtor = new LexicalSortKey() { _treeOrdinal = int.MaxValue, _position = int.MaxValue };
 
         private LexicalSortKey(int treeOrdinal, int position)
         {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // WARNING: Only use this if the node is obtainable without allocating it (even if cached later). E.g., only
         // if the node is stored in the constructor of the symbol. In particular, do not call this on the result of a GetSyntax()
-        // call on a SyntacReference.
+        // call on a SyntaxReference.
         public LexicalSortKey(CSharpSyntaxNode node, CSharpCompilation compilation)
             : this(node.SyntaxTree, node.SpanStart, compilation)
         {

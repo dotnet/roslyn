@@ -58,19 +58,19 @@ namespace Roslyn.Utilities
         /// The hash set of all currently outstanding asynchronous requests. Null if there are no requests,
         /// and will never be empty.
         /// </summary>
-        private HashSet<Request> _requests = null;
+        private HashSet<Request> _requests;
 
         /// <summary>
         /// If an asynchronous request is active, the CancellationTokenSource that allows for
         /// cancelling the underlying computation.
         /// </summary>
-        private CancellationTokenSource _asynchronousComputationCancellationSource = null;
+        private CancellationTokenSource _asynchronousComputationCancellationSource;
 
         /// <summary>
         /// Whether a computation is active or queued on any thread, whether synchronous or
         /// asynchronous.
         /// </summary>
-        private bool _computationActive = false;
+        private bool _computationActive;
 
         /// <summary>
         /// Creates an AsyncLazy that always returns the value, analogous to <see cref="Task.FromResult{T}" />.
@@ -481,7 +481,7 @@ namespace Roslyn.Utilities
             using (TakeLock(CancellationToken.None))
             {
                 // Now try to remove it. It's possible that requests may already be null. You could
-                // imagine that cancellation was requested, but before we could aquire the lock
+                // imagine that cancellation was requested, but before we could acquire the lock
                 // here the computation completed and the entire CompleteWithTask synchronized
                 // block ran. In that case, the requests collection may already be null, or it
                 // (even scarier!) may have been replaced with another collection because another

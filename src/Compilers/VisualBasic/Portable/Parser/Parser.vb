@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Enum
 
         ' Keep this value in sync with C# LanguageParser
-        Private Const _maxUncheckedRecursionDepth As Integer = 30
+        Friend Const MaxUncheckedRecursionDepth As Integer = 20
 
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
@@ -158,7 +158,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Optional nonArrayName As Boolean = False,
                             Optional disallowGenericArgumentsOnLastQualifiedName As Boolean = False,
                             Optional allowEmptyGenericArguments As Boolean = False,
-                            Optional ByRef allowedEmptyGenericArguments As Boolean = False
+                            Optional ByRef allowedEmptyGenericArguments As Boolean = False,
+                            Optional isNameInNamespaceDeclaration As Boolean = False
                         ) As NameSyntax
 
             Debug.Assert(allowGenericArguments OrElse Not allowEmptyGenericArguments, "Inconsistency in generic arguments parsing requirements!!!")
@@ -171,7 +172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
 
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
-                result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+
+                If isNameInNamespaceDeclaration Then
+                    result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
+                End If
 
                 GetNextToken()
 
@@ -856,8 +860,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Try
                 _recursionDepth += 1
-                If _recursionDepth >= _maxUncheckedRecursionDepth Then
-                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack()
+                If _recursionDepth >= MaxUncheckedRecursionDepth Then
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack()
                 End If
 
                 _hadImplicitLineContinuation = False
@@ -1641,7 +1645,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 requireQualification:=False,
                 allowGlobalNameSpace:=True,
                 allowGenericArguments:=False,
-                allowGenericsWithoutOf:=True)
+                allowGenericsWithoutOf:=True,
+                isNameInNamespaceDeclaration:=True)
 
             If namespaceName.ContainsDiagnostics Then
                 ' Resync at EOS so we don't get expecting EOS errors
@@ -2501,7 +2506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         '''       RequireAtleastOneInitializer = false
         ''' 
         '''  While the grammar uses the nonterminal CollectionInitializer is modeled as an
-        '''  AnnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
+        '''  AnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
         ''' </remarks>
         ''' 
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
@@ -2535,7 +2540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim equals As PunctuationSyntax = Nothing
             Dim expression As ExpressionSyntax
 
-            ' Parse form: Key? '.'<IdentiferOrKeyword> '=' <Expression>
+            ' Parse form: Key? '.'<IdentifierOrKeyword> '=' <Expression>
 
             If anonymousTypeInitializer AndAlso
                 TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.KeyKeyword, optionalKey) Then
@@ -2616,7 +2621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return SyntaxFactory.InferredFieldInitializer(optionalKey, expression)
 
             Else
-                ' Assume that the "'.'<IdentiferOrKeyword> '='" was left out.
+                ' Assume that the "'.'<IdentifierOrKeyword> '='" was left out.
 
                 dot = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.DotToken)
                 id = InternalSyntaxFactory.MissingIdentifier()
@@ -2631,7 +2636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' TOO - davidsch - handle annonymous type initialization
+        ' TODO - davidsch - handle annonymous type initialization
         ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
 
         ' /*********************************************************************
@@ -2683,7 +2688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' We want to check for this and give a more informative error.
             If SyntaxFacts.IsSpecifier(identifierStart.Kind) Then
 
-                ' We don't want to look for specifiers if the errorneous declarator starts on a new line.
+                ' We don't want to look for specifiers if the erroneous declarator starts on a new line.
                 ' This is because we want to recover the error on the previous line and treat the line with the
                 ' specifier as a new statement
                 If identifierStartPrev IsNot Nothing AndAlso identifierStartPrev.IsEndOfLine Then
@@ -2724,7 +2729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ' Parse an identifier followed by optional? (but not optional array bounds), and return modified identifier
         ' Used inside LINQ queries.
-        Private Function ParseNullableModifiedIdentifer() As ModifiedIdentifierSyntax
+        Private Function ParseNullableModifiedIdentifier() As ModifiedIdentifierSyntax
             Dim optionalNullable As PunctuationSyntax = Nothing
             Dim id As IdentifierTokenSyntax = ParseNullableIdentifier(optionalNullable)
 
@@ -5479,7 +5484,7 @@ checkNullable:
 
         Private Shared Function StartsValidConditionalCompilationExpr(t As SyntaxToken) As Boolean
             Select Case (t.Kind)
-                ' Identifiers - note that only simple indentifiers are allowed.
+                ' Identifiers - note that only simple identifiers are allowed.
                 ' This check is done in ParseTerm.
 
                 ' Parenthesized expressions
@@ -5925,7 +5930,7 @@ checkNullable:
         '
 
         ' IdentifierAsKeyword returns the token type of a identifier token,
-        ' interpreting non-bracketed indentifiers as (non-reserved) keywords as appropriate.
+        ' interpreting non-bracketed identifiers as (non-reserved) keywords as appropriate.
 
         Private Shared Function TryIdentifierAsContextualKeyword(id As SyntaxToken, ByRef kind As SyntaxKind) As Boolean
             Debug.Assert(id IsNot Nothing)
@@ -5995,8 +6000,14 @@ checkNullable:
                 Return node
             End If
 
-            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            If feature = Feature.InterpolatedStrings Then
+                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
+                ' an unlocalized string and fix this to be localized in the next release.
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
+            Else
+                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+            End If
         End Function
 
         Private Function CheckFeatureAvailability(feature As Feature) As Boolean

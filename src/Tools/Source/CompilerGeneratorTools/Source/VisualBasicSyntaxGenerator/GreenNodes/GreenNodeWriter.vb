@@ -13,8 +13,8 @@ Friend Class GreenNodeWriter
     Inherits WriteUtils
 
     Private _writer As TextWriter    'output is sent here.
-    Private _nonterminalsWithOneChild As List(Of String) = New List(Of String)
-    Private _nonterminalsWithTwoChildren As List(Of String) = New List(Of String)
+    Private ReadOnly _nonterminalsWithOneChild As List(Of String) = New List(Of String)
+    Private ReadOnly _nonterminalsWithTwoChildren As List(Of String) = New List(Of String)
 
     ' Initialize the class with the parse tree to write.
     Public Sub New(parseTree As ParseTree)

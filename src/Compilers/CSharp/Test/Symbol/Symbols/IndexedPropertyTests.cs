@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class IndexedPropertyTests : CSharpTestBase
     {
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedProperties()
         {
             var source1 =
@@ -72,7 +72,7 @@ P[2] = 2
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OptionalParameters()
         {
             var source1 =
@@ -164,7 +164,7 @@ P[1, 2].set
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ParamsArrayParameters()
         {
             var source1 =
@@ -232,7 +232,7 @@ End Class";
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void RefParameters()
         {
             var source1 =
@@ -344,7 +344,7 @@ class B
 }";
             // Note that Dev11 (incorrectly) calls F() twice in a.P[ref F()[0]]
             // for compound assignment and increment.
-            var compilation2 = CompileAndVerify(source2, emitters: TestEmitters.RefEmitBug, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
 @"F()
 F()
 0
@@ -503,7 +503,7 @@ F()
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void RefParametersIndexers()
         {
             var source1 =
@@ -618,7 +618,7 @@ F()
 ");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OptionalRefParameters()
         {
             var source1 =
@@ -720,7 +720,7 @@ F()
         y = 0;
     }
 }";
-            var compilation2 = CompileAndVerify(source2, emitters: TestEmitters.RefEmitBug, additionalRefs: new[] { reference1 }, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
 @"0, 0
 0, 0
 0, 3");
@@ -818,7 +818,7 @@ F()
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void DefaultProperty()
         {
             var source1 =
@@ -877,7 +877,7 @@ End Class";
         a[2] = a[1];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 });
             compilation3.VerifyIL("C.M()",
 @"{
   // Code size       21 (0x15)
@@ -899,7 +899,7 @@ End Class";
         /// Allow calling indexed property accessors
         /// directly, for legacy code.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void CanBeReferencedByName()
         {
             var source1 =
@@ -1048,7 +1048,7 @@ Q[6] = 5
         /// CanBeReferencedByName should return false if
         /// the accessor name is not a valid identifier.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void CanBeReferencedByName_InvalidName()
         {
             // Note: Dev11 treats I.Q as invalid so Q is not recognized from source.
@@ -1078,7 +1078,7 @@ Q[6] = 5
         o = i.valid_name(1);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI, verify: true);
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, verify: true);
 
             var @namespace = (NamespaceSymbol)compilation2.Compilation.GlobalNamespace;
             // Indexed property with valid name.
@@ -1147,7 +1147,7 @@ class B
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "R").WithArguments("A", "R").WithLocation(16, 15));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void BaseProperties()
         {
             var source1 =
@@ -1183,7 +1183,7 @@ End Class";
             compilation2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void StaticProperties()
         {
             var source1 =
@@ -1230,7 +1230,7 @@ End Class";
         /// <summary>
         /// Indexed properties are only supported from [ComImport] types.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void ComImport()
         {
             var source1 =
@@ -1266,7 +1266,7 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "Q").WithArguments("IA.Q[object]", "IA.get_Q(object)", "IA.set_Q(object, object)").WithLocation(5, 23));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyAccesses()
         {
             var source1 =
@@ -1334,7 +1334,7 @@ End Interface";
         /// Cases where a PropertyGroup must be converted to a PropertyAccess.
         /// (resulting from an indexed property expression with no args).
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void PropertyGroup()
         {
             var source1 =
@@ -1364,7 +1364,7 @@ End Interface";
         /// Overload resolution should be supported for indexed properties,
         /// even though COM does not support overloads.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void OverloadResolution()
         {
             var source1 =
@@ -1402,7 +1402,7 @@ End Interface";
             compilation2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OverloadResolutionWithSimpleProperty()
         {
             var source1 =
@@ -1488,7 +1488,7 @@ End Class";
             compilation2.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void OverridesHidesImplements()
         {
             var source1 =
@@ -1555,7 +1555,7 @@ End Class";
         o = b.Q[2, 3];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI, verify: false);
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1 }, verify: false);
             compilation3.VerifyIL("C.M(B)",
 @"{
   // Code size       33 (0x21)
@@ -1581,7 +1581,7 @@ End Class";
         /// from C# if the accessors are implemented/overridden directly.
         /// </summary>
         [WorkItem(545516, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void InterfaceImplementation()
         {
             var source1 =
@@ -1681,7 +1681,7 @@ public class B2 : A2
         Console.WriteLine(""B2.set_P({0}, ...)"", index);
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI);
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 });
             var reference2 = MetadataReference.CreateFromImage(compilation2.EmittedAssemblyData);
             // Can invoke C# implementations by invoking the accessors directly
             // or by casting to the COM interface and invoking the indexed property.
@@ -1709,7 +1709,7 @@ public class B2 : A2
         i.P[6] = i.P[5];
     }
 }";
-            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1, reference2 }, emitters: TestEmitters.CCI, expectedOutput:
+            var compilation3 = CompileAndVerify(source3, additionalRefs: new[] { reference1, reference2 }, expectedOutput:
 @"A2.get_P(1)
 A2.set_P(2, ...)
 A2.get_P(3)
@@ -1763,7 +1763,7 @@ B2.set_P(6, ...)
         /// "new" required to hide indexed property accessors, although
         /// property from base class can still be invoked using property syntax.
         /// </summary>
-        [Fact]
+        [ClrOnlyFact]
         public void Hiding()
         {
             var source1 =
@@ -1830,7 +1830,7 @@ class C
         b2.set_P(1, b2.get_P(0));
     }
 }";
-            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, emitters: TestEmitters.CCI, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, additionalRefs: new[] { reference1 }, expectedOutput:
 @"B1.get_P(0)
 A1.set_P(1, ...)
 A1.get_P(0)
@@ -1876,7 +1876,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BindToBogusProp2, "P").WithArguments("A1.P[int]", "A1.get_P(int)", "A1.set_P(int, object)").WithLocation(25, 22));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ReadOnlyWriteOnly()
         {
             var source1 =
@@ -1907,7 +1907,7 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "a.Q[null]").WithArguments("IA.Q[object]").WithLocation(6, 21));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ObjectInitializer()
         {
             var source1 =
@@ -1960,7 +1960,7 @@ End Class";
         a = new IA() { P3 = { 6, 7 } };
     }
 }";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: true, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2006,7 +2006,7 @@ P3(3).get
 }");
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ObjectInitializer_Errors()
         {
             var source1 =
@@ -2058,7 +2058,7 @@ End Class";
                 Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("A.P3[int]").WithLocation(8, 23));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void Attributes()
         {
             var source1 =
@@ -2110,10 +2110,10 @@ class B
 class B
 {
 }";
-            var compilation3 = CompileAndVerify(source3, new[] { reference1 }, emitters: TestEmitters.CCI);
+            var compilation3 = CompileAndVerify(source3, new[] { reference1 });
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LinqMember()
         {
             var source1 =
@@ -2146,7 +2146,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "select o.P").WithArguments("IEnumerableOfA.Select[System.Func<IA, object>]"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void AmbiguityPropertyAndNonProperty()
         {
             var source1 =
@@ -2185,7 +2185,7 @@ End Interface";
                 Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("IA.P", "IB.P[object]").WithLocation(5, 18));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void LambdaWithIndexedProperty()
         {
             var source1 = @"
@@ -2252,7 +2252,7 @@ class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: true, expectedOutput:
 @"P1(1).set
 P2(2).get
 P1(1).set
@@ -2271,7 +2271,7 @@ P1(5).get
              */
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void QueryStatementIndexedProperty()
         {
             var source1 = @"
@@ -2322,7 +2322,7 @@ class B
 }
 ";
 
-            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1, SystemCoreRef }, verify: true, expectedOutput:
 @"P1(2).get
 P1(2).get
 P1(2).get
@@ -2348,7 +2348,7 @@ P1(2).get
              */
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void IncrementersAndIndexedProperties()
         {
             var source1 = @"
@@ -2397,7 +2397,7 @@ class B
     }
 }
 ";
-            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, emitters: TestEmitters.CCI, verify: true, expectedOutput:
+            var compilation2 = CompileAndVerify(source2, new[] { reference1 }, verify: true, expectedOutput:
 @"P1(3).get
 P1(3).set
 6
@@ -2581,7 +2581,7 @@ class Test
         }
 
         [WorkItem(846234, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedPropertyColorColor()
         {
             var source1 =
@@ -2644,7 +2644,7 @@ P[2] = 2
         }
 
         [WorkItem(853401, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedPropertyDynamicInvocation()
         {
             var source1 =
@@ -2703,7 +2703,7 @@ End Class";
 
         [WorkItem(846234, "DevDiv")]
         [WorkItem(853401, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void IndexedPropertyDynamicColorColorInvocation()
         {
             var source1 =

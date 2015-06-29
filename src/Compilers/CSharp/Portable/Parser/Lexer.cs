@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DirectiveStack _directives;
         private readonly LexerCache _cache;
         private readonly bool _allowPreprocessorDirectives;
+        private DocumentationCommentParser _xmlParser;
+        private int _badTokenCount; // cumulative count of bad tokens produced
 
         internal struct TokenInfo
         {
@@ -255,10 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.LexXmlCrefOrNameToken();
                 case LexerMode.XmlCharacter:
                     return this.LexXmlCharacter();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(ModeOf(_mode));
             }
-
-            Debug.Assert(false, "Unknown LexMode passed to Lexer.Lex");
-            return this.LexSyntaxToken();
         }
 
         private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
@@ -870,7 +871,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         TextWindow.AdvanceChar();
                     }
 
-                    info.Text = TextWindow.GetText(intern: true);
+                    if (_badTokenCount++ > 200)
+                    {
+                        // If we get too many characters that we cannot make sense of, absorb the rest of the input.
+                        int position = TextWindow.Position - 1;
+                        int end = TextWindow.Text.Length;
+                        int width = end - position;
+                        info.Text = TextWindow.Text.ToString(new TextSpan(position, width));
+                        TextWindow.Reset(end);
+                    }
+                    else
+                    {
+                        info.Text = TextWindow.GetText(intern: true);
+                    }
 
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     break;
@@ -879,6 +892,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void CheckFeatureAvailability(MessageID feature)
         {
+            if (feature.RequiredFeature() != null)
+            {
+                if (!this.Options.IsFeatureEnabled(feature))
+                {
+                    this.AddError(ErrorCode.ERR_FeatureIsExperimental, feature.Localize());
+                }
+                return;
+            }
+
             LanguageVersion availableVersion = this.Options.LanguageVersion;
             var requiredVersion = feature.RequiredVersion();
             if (availableVersion >= requiredVersion) return;
@@ -2728,8 +2750,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return trivia;
         }
-
-        private DocumentationCommentParser _xmlParser;
 
         private CSharpSyntaxNode LexXmlDocComment(XmlDocCommentStyle style)
         {

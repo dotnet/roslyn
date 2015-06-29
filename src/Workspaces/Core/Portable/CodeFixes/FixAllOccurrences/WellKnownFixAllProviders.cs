@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <see cref="ApplyChangesOperation"/> present within the individual diagnostic fixes. Other types of
         /// operations present within these fixes are ignored.
         /// </remarks>
-        public static readonly FixAllProvider BatchFixer = BatchFixAllProvider.Instance;
+        public static FixAllProvider BatchFixer => BatchFixAllProvider.Instance;
 
         /// <summary>
         /// Default batch fix all provider for simplification fixers which only add Simplifier annotations to documents.
@@ -30,6 +30,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// This fixer supports fixes for the following fix all scopes:
         /// <see cref="FixAllScope.Document"/>, <see cref="FixAllScope.Project"/> and <see cref="FixAllScope.Solution"/>.
         /// </summary>
-        internal static readonly FixAllProvider BatchSimplificationFixer = BatchSimplificationFixAllProvider.Instance;
+        internal static FixAllProvider BatchSimplificationFixer => BatchSimplificationFixAllProvider.Instance;
     }
 }

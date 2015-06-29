@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // a list to accumulate all the loaded projects
-            var loadedProjects = new List<ProjectInfo>();
+            var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
 
             // load all the projects
             foreach (var project in solutionFile.ProjectsInOrder)
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // a list to accumulate all the loaded projects
-            var loadedProjects = new List<ProjectInfo>();
+            var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
 
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 #endif
 
             // construct workspace from loaded project infos
-            this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects));
+            this.OnSolutionAdded(SolutionInfo.Create(SolutionId.CreateNewId(debugName: absoluteSolutionPath), version, absoluteSolutionPath, loadedProjects.Values));
 
             this.UpdateReferencesAfterAdd();
 
@@ -510,11 +510,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 IProjectFileLoader loader;
                 if (this.TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Throw, out loader))
                 {
-                    var loadedProjects = new List<ProjectInfo>();
+                    var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
                     var projectId = await GetOrLoadProjectAsync(fullPath, loader, this.LoadMetadataForReferencedProjects, loadedProjects, cancellationToken).ConfigureAwait(false);
 
                     // add projects to solution
-                    foreach (var project in loadedProjects)
+                    foreach (var project in loadedProjects.Values)
                     {
                         this.OnProjectAdded(project);
                     }
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return solution;
         }
 
-        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, List<ProjectInfo> loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> GetOrLoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, Dictionary<ProjectId, ProjectInfo> loadedProjects, CancellationToken cancellationToken)
         {
             var projectId = GetProjectId(projectFilePath);
             if (projectId == null)
@@ -629,14 +629,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return projectId;
         }
 
-        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, List<ProjectInfo> loadedProjects, CancellationToken cancellationToken)
+        private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, Dictionary<ProjectId, ProjectInfo> loadedProjects, CancellationToken cancellationToken)
         {
             System.Diagnostics.Debug.Assert(projectFilePath != null);
             System.Diagnostics.Debug.Assert(loader != null);
 
             var projectId = this.GetOrCreateProjectId(projectFilePath);
 
-            var name = Path.GetFileNameWithoutExtension(projectFilePath);
+            var projectName = Path.GetFileNameWithoutExtension(projectFilePath);
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
@@ -660,23 +660,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var docs = new List<DocumentInfo>();
             foreach (var docFileInfo in docFileInfos)
             {
+                string name;
+                ImmutableArray<string> folders;
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+
                 docs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    Path.GetFileName(docFileInfo.LogicalPath),
-                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    name,
+                    folders,
                     projectFile.GetSourceCodeKind(docFileInfo.FilePath),
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
                     docFileInfo.IsGenerated));
             }
 
-            var additonalDocs = new List<DocumentInfo>();
+            var additionalDocs = new List<DocumentInfo>();
             foreach (var docFileInfo in projectFileInfo.AdditionalDocuments)
             {
-                additonalDocs.Add(DocumentInfo.Create(
+                string name;
+                ImmutableArray<string> folders;
+                GetDocumentNameAndFolders(docFileInfo.LogicalPath, out name, out folders);
+
+                additionalDocs.Add(DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId, debugName: docFileInfo.FilePath),
-                    Path.GetFileName(docFileInfo.LogicalPath),
-                    GetDocumentFolders(docFileInfo.LogicalPath),
+                    name,
+                    folders,
                     SourceCodeKind.Regular,
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
@@ -685,7 +693,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             // project references
             var resolvedReferences = await this.ResolveProjectReferencesAsync(
-                projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
+                projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             var metadataReferences = projectFileInfo.MetadataReferences
                 .Concat(resolvedReferences.MetadataReferences);
@@ -706,10 +714,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             loadedProjects.Add(
+                projectId,
                 ProjectInfo.Create(
                     projectId,
                     version,
-                    name,
+                    projectName,
                     assemblyName,
                     loader.Language,
                     projectFilePath,
@@ -720,7 +729,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     resolvedReferences.ProjectReferences,
                     metadataReferences,
                     analyzerReferences: projectFileInfo.AnalyzerReferences,
-                    additionalDocuments: additonalDocs,
+                    additionalDocuments: additionalDocs,
                     isSubmission: false,
                     hostObjectType: null));
 
@@ -746,18 +755,29 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar };
+        private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
-        private static ImmutableArray<string> GetDocumentFolders(string logicalPath)
+        private static void GetDocumentNameAndFolders(string logicalPath, out string name, out ImmutableArray<string> folders)
         {
-            var logicalDirectory = Path.GetDirectoryName(logicalPath);
-
-            if (!string.IsNullOrEmpty(logicalDirectory))
+            var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
+            if (pathNames.Length > 0)
             {
-                return logicalDirectory.Split(s_directorySplitChars, StringSplitOptions.None).ToImmutableArray();
-            }
+                if (pathNames.Length > 1)
+                {
+                    folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
+                }
+                else
+                {
+                    folders = ImmutableArray.Create<string>();
+                }
 
-            return ImmutableArray.Create<string>();
+                name = pathNames[pathNames.Length - 1];
+            }
+            else
+            {
+                name = logicalPath;
+                folders = ImmutableArray.Create<string>();
+            }
         }
 
         private void CheckDocuments(IEnumerable<DocumentFileInfo> docs, string projectFilePath, ProjectId projectId)
@@ -781,10 +801,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         private async Task<ResolvedReferences> ResolveProjectReferencesAsync(
+            ProjectId thisProjectId,
             string thisProjectPath,
             IReadOnlyList<ProjectFileReference> projectFileReferences,
             bool preferMetadata,
-            List<ProjectInfo> loadedProjects,
+            Dictionary<ProjectId, ProjectInfo> loadedProjects,
             CancellationToken cancellationToken)
         {
             var resolvedReferences = new ResolvedReferences();
@@ -823,8 +844,25 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         // load the project
                         var projectId = await this.GetOrLoadProjectAsync(fullPath, loader, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
-                        resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
-                        continue;
+
+                        // If that other project already has a reference on us, this will cause a circularity.
+                        // This check doesn't need to be in the "already loaded" path above, since in any circularity this path
+                        // must be taken at least once.
+                        if (ProjectAlreadyReferencesProject(loadedProjects, projectId, targetProject: thisProjectId))
+                        {
+                            // We'll try to make this metadata if we can
+                            var projectMetadata = await this.GetProjectMetadata(fullPath, projectFileReference.Aliases, _properties, cancellationToken).ConfigureAwait(false);
+                            if (projectMetadata != null)
+                            {
+                                resolvedReferences.MetadataReferences.Add(projectMetadata);
+                            }
+                            continue;
+                        }
+                        else
+                        {
+                            resolvedReferences.ProjectReferences.Add(new ProjectReference(projectId, projectFileReference.Aliases));
+                            continue;
+                        }
                     }
                 }
                 else
@@ -838,6 +876,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return resolvedReferences;
+        }
+
+        /// <summary>
+        /// Returns true if the project identified by <paramref name="fromProject"/> has a reference (even indirectly)
+        /// on the project identified by <paramref name="targetProject"/>.
+        /// </summary>
+        private bool ProjectAlreadyReferencesProject(Dictionary<ProjectId, ProjectInfo> loadedProjects, ProjectId fromProject, ProjectId targetProject)
+        {
+            ProjectInfo info;
+
+            return loadedProjects.TryGetValue(fromProject, out info) && info.ProjectReferences.Any(pr => pr.ProjectId == targetProject ||
+                ProjectAlreadyReferencesProject(loadedProjects, pr.ProjectId, targetProject));
         }
 
         /// <summary>
@@ -978,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 Encoding encoding = DetermineEncoding(text, document);
 
-                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? Encoding.UTF8);
+                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }

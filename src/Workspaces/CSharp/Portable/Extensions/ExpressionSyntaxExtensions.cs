@@ -506,6 +506,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
 
+                // If the parent is a conditional access expression, we could introduce an LValue
+                // for the given expression, unless it is itself a MemberBindingExpression or starts with one.
+                // Case (1) : The WhenNotNull clause always starts with a memberbindingexpression.
+                //              expression '.Method()' in a?.Method()
+                // Case (2) : The Expression clause always starts with a memberbindingexpression if 
+                // the grandparent is a conditional access expression.
+                //              expression '.Method' in a?.Method()?.Length
+                // Case (3) : The child Conditional access expression always starts with a memberbindingexpression if
+                // the parent is a conditional access expression. This case is already covered before the parent kind switch
+                case SyntaxKind.ConditionalAccessExpression:
+                    var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
+                    return expression != parentConditionalAccessExpression.WhenNotNull && 
+                            !parentConditionalAccessExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression);
+
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                     // Can't introduce a variable for the type portion of an is/as check.
@@ -1331,8 +1345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             return true;
                         }
 
-                        if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
-                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel))
+                        // Don't simplify to predefined type if name is part of a QualifiedName.
+                        // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
+                        // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
+                        if (!name.Parent.IsKind(SyntaxKind.QualifiedName) &&
+                            (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
+                             PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel)))
                         {
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)

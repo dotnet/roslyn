@@ -30,24 +30,47 @@ namespace Microsoft.Cci
         {
             this.module = module;
 
-            //EDMAURER visit these assembly-level attributes even when producing a module.
-            //They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
+            // Visit these assembly-level attributes even when producing a module.
+            // They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
+            Visit(module.AssemblyAttributes);
+            Visit(module.AssemblySecurityAttributes);
 
-            this.Visit(module.AssemblyAttributes);
-            this.Visit(module.AssemblySecurityAttributes);
+            Visit(module.GetAssemblyReferences(Context));
+            Visit(module.ModuleReferences);
+            Visit(module.ModuleAttributes);
+            Visit(module.GetTopLevelTypes(Context));
 
-            this.Visit(module.GetAssemblyReferences(Context));
-            this.Visit(module.ModuleReferences);
-            this.Visit(module.ModuleAttributes);
-            this.Visit(module.GetTopLevelTypes(Context));
-            this.Visit(module.GetExportedTypes(Context));
+            foreach (ITypeReference exportedType in module.GetExportedTypes(Context))
+            {
+                VisitExportedType(exportedType);
+            }
 
             if (module.AsAssembly == null)
             {
-                this.Visit(module.GetResources(Context));
+                Visit(module.GetResources(Context));
             }
 
-            VisitImports(module.GetImports(Context));
+            VisitImports(module.GetImports());
+        }
+
+        private void VisitExportedType(ITypeReference exportedType)
+        {
+            // Do not visit the reference to aliased type, it does not get into the type ref table based only on its membership of the exported types collection.
+            // but DO visit the reference to assembly (if any) that defines the aliased type. That assembly might not already be in the assembly reference list.
+            var definingUnit = MetadataWriter.GetDefiningUnitReference(exportedType, Context);
+            var definingAssembly = definingUnit as IAssemblyReference;
+            if (definingAssembly != null)
+            {
+                Visit(definingAssembly);
+            }
+            else
+            {
+                definingAssembly = ((IModuleReference)definingUnit).GetContainingAssembly(Context);
+                if (definingAssembly != null && !ReferenceEquals(definingAssembly, this.module.GetContainingAssembly(Context)))
+                {
+                    Visit(definingAssembly);
+                }
+            }
         }
 
         public void VisitMethodBodyReference(IReference reference)
@@ -101,7 +124,7 @@ namespace Microsoft.Cci
                     {
                         if (_alreadySeenScopes.Add(scope))
                         {
-                            VisitImports(scope.GetUsedNamespaces(Context));
+                            VisitImports(scope.GetUsedNamespaces());
                         }
                         else
                         {

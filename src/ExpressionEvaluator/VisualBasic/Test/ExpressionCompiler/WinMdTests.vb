@@ -43,10 +43,9 @@ End Class"
                 exeBytes,
                 New SymReader(pdbBytes))
             Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("If(p Is Nothing, f, Nothing)", resultProperties, errorMessage, testData)
+            context.CompileExpression("If(p Is Nothing, f, Nothing)", errorMessage, testData)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size        7 (0x7)
@@ -122,10 +121,9 @@ End Class"
 End Class"
             Dim runtime = CreateRuntime(source, compileReferences, runtimeReferences)
             Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
             Dim errorMessage As String = Nothing
             Dim testData = New CompilationTestData()
-            context.CompileExpression("If(a, If(b, If(t, f)))", resultProperties, errorMessage, testData)
+            context.CompileExpression("If(a, If(b, If(t, f)))", errorMessage, testData)
             Assert.Null(errorMessage)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
@@ -147,7 +145,7 @@ End Class"
   IL_0010:  ret
 }")
             testData = New CompilationTestData()
-            Dim result = context.CompileExpression("f", resultProperties, errorMessage, testData)
+            Dim result = context.CompileExpression("f", errorMessage, testData)
             Assert.Null(errorMessage)
             Dim methodData = testData.GetMethodData("<>x.<>m0")
             methodData.VerifyIL(
@@ -197,24 +195,20 @@ End Class"
                 source,
                 ImmutableArray.CreateRange(WinRtRefs),
                 ImmutableArray.Create(MscorlibRef).Concat(ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage", "Windows.Foundation.Collections")))
-            Dim context = CreateMethodContext(runtime, "C.M")
-            Dim resultProperties As ResultProperties = Nothing
+            Dim context = CreateMethodContext(
+                runtime,
+                "C.M")
+            Dim aliases = ImmutableArray.Create(
+                VariableAlias("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
+                VariableAlias("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"))
             Dim errorMessage As String = Nothing
-            Dim missingAssemblyIdentities As ImmutableArray(Of AssemblyIdentity) = Nothing
             Dim testData = New CompilationTestData()
             context.CompileExpression(
-                InspectionContextFactory.Empty.
-                    Add("s", "Windows.Storage.StorageFolder, Windows.Storage, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime").
-                    Add("d", "Windows.Foundation.DateTime, Windows.Foundation, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime"),
                 "If(DirectCast(s.Attributes, Object), d.UniversalTime)",
                 DkmEvaluationFlags.TreatAsExpression,
-                DiagnosticFormatter.Instance,
-                resultProperties,
+                aliases,
                 errorMessage,
-                missingAssemblyIdentities,
-                EnsureEnglishUICulture.PreferredOrNull,
                 testData)
-            Assert.Empty(missingAssemblyIdentities)
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 "{
   // Code size       55 (0x37)

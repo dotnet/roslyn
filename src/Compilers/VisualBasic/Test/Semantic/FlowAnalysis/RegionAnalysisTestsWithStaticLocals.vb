@@ -1824,7 +1824,7 @@ end class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned)) ' In C# '=' is an assignment while in VB it is a comparison.
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
-            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut)) 'C# flows out because this is an assignement expression.  In VB this is an equality test.
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut)) 'C# flows out because this is an assignment expression.  In VB this is an equality test.
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside)) 'C# this is an assignment. In VB, this is a comparison so no assignment.
@@ -3341,7 +3341,7 @@ End Class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda1()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda1()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3377,7 +3377,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda2()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda2()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3424,7 +3424,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda3()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda3()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3473,7 +3473,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda4()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda4()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3518,7 +3518,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda5()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda5()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">
@@ -3562,7 +3562,7 @@ End Structure
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub ObjectInitializers_StructWitFiledsAccesesInLambda6()
+        Public Sub ObjectInitializers_StructWithFieldAccessesInLambda6()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
 <compilation>
     <file name="a.vb">

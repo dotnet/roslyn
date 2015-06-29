@@ -74,6 +74,40 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
             var result = CSharpScript.Run("Console.WriteLine(0);");
         }
 
+        [Fact(Skip = "Bug 170")]
+        public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
+        {
+
+            var result = CSharpScript.Run(@"
+class SomeClass
+{
+    public void Do()
+    {
+    }
+}
+dynamic d = new SomeClass();
+d.Do();"
+, ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+
+        }
+
+        [Fact(Skip = "Bug 170")]
+        public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
+        {
+
+            var result = CSharpScript.Run(@"
+class SomeClass
+{
+    public void Do()
+    {
+    }
+}
+dynamic d = new SomeClass();
+d.Do()"
+, ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+
+        }
+
         public class Globals
         {
             public int X;

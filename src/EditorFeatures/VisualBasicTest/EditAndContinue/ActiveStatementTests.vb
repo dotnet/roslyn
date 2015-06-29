@@ -1652,8 +1652,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933)>
@@ -1674,8 +1673,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1694,8 +1692,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(849649)>
@@ -1807,8 +1804,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"),
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Function()", FeaturesResources.Field))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"))
         End Sub
 
         <Fact, WorkItem(849649)>
@@ -1829,8 +1825,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, "Sub()", FeaturesResources.Field))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2576,6 +2571,57 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
+        <Fact>
+        Public Sub SyncLock_Update_Lambda1()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        SyncLock F(Function(a) a)
+            <AS:0>System.Console.WriteLine(1)</AS:0>
+        End SyncLock
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        SyncLock F(Function(a) a + 1)
+            <AS:0>System.Console.WriteLine(2)</AS:0>
+        End SyncLock
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub SyncLock_Update_Lambda2()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        SyncLock F(Function(a) a)
+            <AS:0>System.Console.WriteLine(1)</AS:0>
+        End SyncLock
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        SyncLock G(Function(a) a)
+            <AS:0>System.Console.WriteLine(2)</AS:0>
+        End SyncLock
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock G(Function(a) a)", "SyncLock statement"))
+        End Sub
+
 #End Region
 
 #Region "ForEach"
@@ -2813,6 +2859,57 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", VBFeaturesResources.ForEachBlock))
         End Sub
 
+        <Fact>
+        Public Sub ForEach_Update_Lambda1()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        For Each a In F(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        Next
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        For Each a In F(Function(a) a + 1)
+            <AS:0>System.Console.Write(2)</AS:0>
+        Next
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub ForEach_Update_Lambda2()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        For Each a In F(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        Next
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        For Each a In G(Function(a) a)
+            <AS:0>System.Console.Write(2)</AS:0>
+        Next
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "For Each a In G(Function(a) a)", "For Each statement"))
+        End Sub
+
 #End Region
 
 #Region "Using"
@@ -2887,6 +2984,57 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", VBFeaturesResources.UsingBlock))
+        End Sub
+
+        <Fact>
+        Public Sub Using_Update_Lambda1()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        Using F(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        Using F(Function(a) a + 1)
+            <AS:0>System.Console.Write(2)</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub Using_Update_Lambda2()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        Using F(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        Using G(Function(a) a)
+            <AS:0>System.Console.Write(2)</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Using G(Function(a) a)", VBFeaturesResources.UsingStatement))
         End Sub
 
 #End Region
@@ -2964,6 +3112,57 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", VBFeaturesResources.WithBlock))
+        End Sub
+
+        <Fact>
+        Public Sub With_Update_Lambda1()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        With F(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        End With
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        With F(Function(a) a + 1)
+            <AS:0>System.Console.Write(1)</AS:0>
+        End With
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub With_Update_Lambda2()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        With F(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        End With
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        With G(Function(a) a)
+            <AS:0>System.Console.Write(1)</AS:0>
+        End With
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "With G(Function(a) a)", VBFeaturesResources.WithStatement))
         End Sub
 
 #End Region
@@ -4402,6 +4601,52 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active)
         End Sub
+
+        <Fact, WorkItem(1359)>
+        Public Sub Lambdas_LeafEdits_GeneralStatement()
+            Dim src1 = "
+Class C
+    Sub Main() 
+        <AS:1>F(Function(a) <AS:0>1</AS:0>)</AS:1>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main() 
+        <AS:1>F(Function(a) <AS:0>2</AS:0>)</AS:1>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact, WorkItem(1359)>
+        Public Sub Lambdas_LeafEdits_NestedLambda()
+            Dim src1 = "
+Class C
+    Sub Main() 
+        <AS:2>F(Function(b) <AS:1>F(Function(a) <AS:0>1</AS:0>)</AS:1>)</AS:2>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main() 
+        <AS:2>F(Function(b) <AS:1>G(Function(a) <AS:0>1</AS:0>)</AS:1>)</AS:2>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "G(Function(a)       1       )"))
+        End Sub
+
 #End Region
 
 #Region "State Machines"
@@ -4730,8 +4975,68 @@ End Module"
             Extensions.VerifyUnchangedDocument(src2, active)
         End Sub
 
+
+
 #End Region
 
+        <Fact>
+        Public Sub PartiallyExecutedActiveStatement()
+            Dim src1 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(1)</AS:0> 
+        <AS:1>Console.WriteLine(2)</AS:1> 
+        <AS:2>Console.WriteLine(3)</AS:2> 
+        <AS:3>Console.WriteLine(4)</AS:3> 
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(10)</AS:0> 
+        <AS:1>Console.WriteLine(20)</AS:1> 
+        <AS:2>Console.WriteLine(30)</AS:2> 
+        <AS:3>Console.WriteLine(40)</AS:3> 
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
 
+            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
+            active.OldSpans(1) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted, active.OldSpans(1).Span)
+            active.OldSpans(2) = New ActiveStatementSpan(ActiveStatementFlags.LeafFrame, active.OldSpans(2).Span)
+            active.OldSpans(3) = New ActiveStatementSpan(ActiveStatementFlags.None, active.OldSpans(3).Span)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"))
+        End Sub
+
+        <Fact>
+        Public Sub PartiallyExecutedActiveStatement_Delete()
+            Dim src1 As String = "
+Class C
+    Sub F()
+        <AS:0>Console.WriteLine(1)</AS:0> 
+    End Sub
+End Class
+"
+            Dim src2 As String = "
+Class C
+    Sub F()
+    <AS:0>End Sub</AS:0> 
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            active.OldSpans(0) = New ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame, active.OldSpans(0).Span)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))
+        End Sub
     End Class
 End Namespace

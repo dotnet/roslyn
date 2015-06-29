@@ -301,7 +301,7 @@ partial struct S
 <Code>
 using System;
 
-struct $$C { }
+struct $$S { }
 </Code>
 
             Dim expected =
@@ -309,7 +309,7 @@ struct $$C { }
 using System;
 
 [Serializable()]
-struct C { }
+struct S { }
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
@@ -321,7 +321,7 @@ struct C { }
 using System;
 
 [Serializable]
-struct $$C { }
+struct $$S { }
 </Code>
 
             Dim expected =
@@ -330,10 +330,33 @@ using System;
 
 [Serializable]
 [CLSCompliant(true)]
-struct C { }
+struct S { }
 </Code>
             TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Sub
+
+        <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttribute_BelowDocComment()
+            Dim code =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+struct $$S { }
+</Code>
+
+            Dim expected =
+<Code>
+using System;
+
+/// &lt;summary&gt;&lt;/summary&gt;
+[CLSCompliant(true)]
+struct S { }
+</Code>
+            TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+        End Sub
+
 #End Region
 
 #Region "AddFunction tests"

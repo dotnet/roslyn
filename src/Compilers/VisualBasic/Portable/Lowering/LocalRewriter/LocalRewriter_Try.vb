@@ -118,7 +118,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 errorLineNumber = New BoundLocal(node.Syntax, _currentLineTemporary, isLValue:=False, type:=_currentLineTemporary.Type)
             End If
 
-            Return node.Update(node.LocalOpt, newExceptionSource, errorLineNumber, newFilter, newCatchBody, node.IsSynthesizedAsyncCatchAll)
+            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
+            ' the containing method is edited while methods invoked in the condition are being executed.
+            Return node.Update(node.LocalOpt,
+                               newExceptionSource,
+                               errorLineNumber,
+                               If(newFilter IsNot Nothing, AddConditionSequencePoint(newFilter, node), Nothing),
+                               newCatchBody,
+                               node.IsSynthesizedAsyncCatchAll)
         End Function
 
         Private Sub ReportErrorsOnCatchBlockHelpers(node As BoundCatchBlock)

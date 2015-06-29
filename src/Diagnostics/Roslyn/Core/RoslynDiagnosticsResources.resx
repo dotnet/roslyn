@@ -178,7 +178,7 @@
     <value>Do not directly invoke the property '{0}', instead use '{0}NoUseSiteDiagnostics'.</value>
   </data>
   <data name="UseProperCrefTagsDescription" xml:space="preserve">
-    <value>Use of cref tags with prefixes should be avoided, since it prevents the compiler from verifying references and the IDE from updating references during refactorings. It is permissible to suppress this error at a single documentation site if the cref must use a prefix because the type being mentioned is not findable by the compiler. For example, if a cref is mentioning a special attribute in the full framework but you’re in a file that compiles against the portable framework, or if you want to reference a type at higher layer of Roslyn, you should suppress the error. You should not suppress the error just because you want to take a shortcut and avoid using the full syntax.</value>
+    <value>Use of cref tags with prefixes should be avoided, since it prevents the compiler from verifying references and the IDE from updating references during refactorings. It is permissible to suppress this error at a single documentation site if the cref must use a prefix because the type being mentioned is not findable by the compiler. For example, if a cref is mentioning a special attribute in the full framework but you're in a file that compiles against the portable framework, or if you want to reference a type at higher layer of Roslyn, you should suppress the error. You should not suppress the error just because you want to take a shortcut and avoid using the full syntax.</value>
   </data>
   <data name="UseProperCrefTagsMessage" xml:space="preserve">
     <value>cref tag has prefix '{0}', which should be removed unless the type or member cannot be accessed.</value>
@@ -266,5 +266,14 @@
   </data>
   <data name="SymbolDeclaredEventRuleDescription" xml:space="preserve">
     <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it's base types must generate a symbol declared event.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeDescription" xml:space="preserve">
+    <value>When a base class is noninheritable because its constructor is internal, a derived class should not make it inheritable by having a public or protected constructor.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
+    <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members.</value>
+  </data>
+  <data name="ExposedNoninstantiableTypeTitle" xml:space="preserve">
+    <value>Constructor make noninheritable base class inheritable</value>
   </data>
 </root>

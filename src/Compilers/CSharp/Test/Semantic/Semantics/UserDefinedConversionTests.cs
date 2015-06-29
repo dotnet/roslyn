@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class SyntaxBinderTests : CompilingTestBase
     {
         #region "Source"
-        private string _userDefinedConversionTestTemplate = @"
+        private readonly string _userDefinedConversionTestTemplate = @"
 class C1 { }
 class C2 { }
 class D 
@@ -511,7 +511,7 @@ public class X
     }
 }
 ";
-            // Dev11 doens't use identity conversion and reports an error, which is wrong:
+            // Dev11 doesn't use identity conversion and reports an error, which is wrong:
             // error CS0457: Ambiguous user defined conversions 'A<dynamic>.explicit operator T(A<dynamic>)' and 'A<object>.explicit operator T(A<object>)' when converting from 'S' to 'T'
             CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics();
         }
@@ -1337,7 +1337,7 @@ struct C
         System.Console.WriteLine(c.str);
     }
 }";
-            var verifier = CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "b");
+            var verifier = CompileAndVerify(source, expectedOutput: "b");
         }
 
         [Fact, WorkItem(543440, "DevDiv")]

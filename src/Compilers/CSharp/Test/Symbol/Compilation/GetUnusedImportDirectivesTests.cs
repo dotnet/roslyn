@@ -206,7 +206,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AllAssemblyLevelAttributesMustBeBound()
         {
             var snkPath = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path;

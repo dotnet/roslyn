@@ -17,17 +17,178 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    //Catch all of the exceptions originating from writing PDBs and 
-    //surface them as PDB-writing failure diagnostics to the user. 
-    //Unfortunately, an exception originating in a user-implemented
-    //Stream derivation will come out of the symbol writer as a COMException
-    //missing all of the original exception info.
+    using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
+    /// <summary>
+    /// Exception to enable callers to catch all of the exceptions originating
+    /// from writing PDBs. We resurface such exceptions as this type, to eventually
+    /// be reported as PDB-writing failure diagnostics to the user.
+    /// Unfortunately, an exception originating in a user-implemented
+    /// Stream derivation will come out of the symbol writer as a COMException
+    /// missing all of the original exception info.
+    /// </summary>
     internal sealed class PdbWritingException : Exception
     {
         internal PdbWritingException(Exception inner) :
             base(inner.Message, inner)
         {
+        }
+    }
+
+    /// <summary>
+    /// A utility to log all operations and arguments to the native PDB writing
+    /// library, so that we can hash that log to generate a deterministic GUID and
+    /// timestamp.
+    /// </summary>
+    internal sealed class PdbLogger
+    {
+        // This class hashes the log data on-the-fly; see
+        // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.transformblock(v=vs.110).aspx
+        // That enables us to avoid producing a full log in memory.
+        // On the other hand, we do want to use a fairly large buffer as the hashing operations
+        // are invoked through reflection, which is fairly slow.
+        private readonly bool _logging;
+        private readonly BinaryWriter _logData;
+        private const int bufferFlushLimit = 64 * 1024;
+        private readonly HashAlgorithm _hashAlgorithm;
+
+        internal PdbLogger(bool logging)
+        {
+            _logging = logging;
+            if (logging)
+            {
+                _logData = new BinaryWriter(MemoryStream.GetInstance());
+                _hashAlgorithm = new SHA1CryptoServiceProvider();
+                Debug.Assert(_hashAlgorithm.SupportsTransform);
+            }
+            else
+            {
+                _logData = default(BinaryWriter);
+                _hashAlgorithm = null;
+            }
+        }
+
+        private void MaybeFlush()
+        {
+            if (_logData.BaseStream.Length >= bufferFlushLimit)
+            {
+                _hashAlgorithm.TransformBlock(_logData.BaseStream.Buffer, (int)_logData.BaseStream.Position);
+                _logData.BaseStream.Position = 0;
+            }
+        }
+
+        internal ContentId ContentIdFromLog()
+        {
+            Debug.Assert(_logData.BaseStream != null);
+            _hashAlgorithm.TransformFinalBlock(_logData.BaseStream.Buffer, (int)_logData.BaseStream.Position);
+            _logData.BaseStream.Position = 0;
+            return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
+        }
+
+        internal void Close()
+        {
+            _hashAlgorithm?.Dispose();
+            _logData.BaseStream?.Free();
+        }
+
+        internal enum PdbWriterOperation : byte
+        {
+            SetUserEntryPoint,
+            DefineDocument,
+            SetCheckSum,
+            OpenMethod,
+            OpenScope,
+            CloseMethod,
+            CloseScope,
+            UsingNamespace,
+            DefineSequencePoints,
+            SetSymAttribute,
+            DefineConstant2,
+            DefineLocalVariable2,
+            DefineAsyncStepInfo,
+            DefineCatchHandlerILOffset,
+            DefineKickoffMethod,
+            OpenMapTokensToSourceSpans,
+            MapTokenToSourceSpan,
+            CloseMapTokensToSourceSpans
+        }
+
+        public bool LogOperation(PdbWriterOperation op)
+        {
+            var logging = this._logging;
+            if (logging)
+            {
+                LogArgument((byte)op);
+            }
+
+            return logging;
+        }
+
+        public void LogArgument(uint[] data)
+        {
+            _logData.WriteInt(data.Length);
+            for (int i = 0; i < data.Length; i++)
+            {
+                _logData.WriteUint(data[i]);
+            }
+            MaybeFlush();
+        }
+
+        public void LogArgument(string data)
+        {
+            _logData.WriteString(data);
+            MaybeFlush();
+        }
+
+        public void LogArgument(uint data)
+        {
+            _logData.WriteUint(data);
+        }
+
+        public void LogArgument(byte data)
+        {
+            _logData.WriteByte(data);
+        }
+
+        public void LogArgument(byte[] data)
+        {
+            LogArgument(data.Length);
+            _logData.WriteBytes(data);
+            MaybeFlush();
+        }
+
+        public void LogArgument(int[] data)
+        {
+            LogArgument(data.Length);
+            foreach (int d in data) LogArgument(d);
+            MaybeFlush();
+        }
+
+        public void LogArgument(long data)
+        {
+            _logData.WriteLong(data);
+        }
+
+        public void LogArgument(int data)
+        {
+            _logData.WriteInt(data);
+        }
+
+        public void LogArgument(object data)
+        {
+            if (data is Decimal)
+            {
+                LogArgument(Decimal.GetBits((Decimal)data));
+            }
+            else if (data is DateTime)
+            {
+                LogArgument(((DateTime)data).ToBinary());
+            }
+            else
+            {
+                _logData.WriteConstantValueBlob(data);
+            }
+            MaybeFlush();
         }
     }
 
@@ -39,7 +200,6 @@ namespace Microsoft.Cci
 
         private static Type s_lazyCorSymWriterSxSType;
 
-        private readonly bool _deterministic;
         private readonly string _fileName;
         private readonly Func<object> _symWriterFactory;
         private ComMemoryStream _pdbStream;
@@ -58,13 +218,17 @@ namespace Microsoft.Cci
         private uint[] _sequencePointEndLines;
         private uint[] _sequencePointEndColumns;
 
+        // in support of determinism
+        private readonly bool _deterministic;
+        private readonly PdbLogger _callLogger;
+
         public PdbWriter(string fileName, Func<object> symWriterFactory, bool deterministic)
         {
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
-            _deterministic = deterministic;
-
             CreateSequencePointBuffers(capacity: 64);
+            _deterministic = deterministic;
+            _callLogger = new PdbLogger(deterministic);
         }
 
         public unsafe void WriteTo(Stream stream)
@@ -95,7 +259,7 @@ namespace Microsoft.Cci
         {
             Close();
         }
-        
+
         private void Close()
         {
             try
@@ -127,7 +291,7 @@ namespace Microsoft.Cci
 
             uint methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
 
-            OpenMethod(methodToken);
+            OpenMethod(methodToken, methodBody.MethodDefinition);
 
             var localScopes = methodBody.LocalScopes;
 
@@ -141,7 +305,7 @@ namespace Microsoft.Cci
             // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
             // that appears in source, not the synthesized ones), Dev10 only emits the ForwardIterator and IteratorLocal
             // custom debug info (e.g. there will be no information about the usings that were in scope).
-            if (!isIterator)
+            if (!isIterator && methodBody.ImportScope != null)
             {
                 IMethodDefinition forwardToMethod;
                 if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodToken, out forwardToMethod))
@@ -211,7 +375,7 @@ namespace Microsoft.Cci
             {
                 for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    foreach (var import in scope.GetUsedNamespaces(Context))
+                    foreach (var import in scope.GetUsedNamespaces())
                     {
                         if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
@@ -232,7 +396,7 @@ namespace Microsoft.Cci
             // file and namespace level
             for (IImportScope scope = namespaceScopes; scope != null; scope = scope.Parent)
             {
-                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
+                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
                 {
                     var importString = TryEncodeImport(import, lazyDeclaredExternAliases, isProjectLevel: false);
                     if (importString != null)
@@ -260,7 +424,7 @@ namespace Microsoft.Cci
                     UsingNamespace("&" + assemblyName, module);
                 }
 
-                foreach (UsedNamespaceOrType import in module.GetImports(Context))
+                foreach (UsedNamespaceOrType import in module.GetImports())
                 {
                     var importString = TryEncodeImport(import, null, isProjectLevel: true);
                     if (importString != null)
@@ -285,7 +449,7 @@ namespace Microsoft.Cci
         private string TryEncodeImport(UsedNamespaceOrType import, HashSet<string> declaredExternAliasesOpt, bool isProjectLevel)
         {
             // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
-            // but they were probably implementation details that do not affect roslyn.
+            // but they were probably implementation details that do not affect Roslyn.
 
             if (Module.GenerateVisualBasicStylePdb)
             {
@@ -460,6 +624,9 @@ namespace Microsoft.Cci
 
         private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliases)
         {
+            // no extern alias defined in scope at all -> error in compiler
+            Debug.Assert(declaredExternAliases != null);
+
             var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
             foreach (AssemblyReferenceAlias alias in allAliases)
             {
@@ -618,7 +785,7 @@ namespace Microsoft.Cci
                 if (_deterministic)
                 {
                     var deterministicSymWriter = symWriter as ISymUnmanagedWriter6;
-                    if (symWriter == null)
+                    if (deterministicSymWriter == null)
                     {
                         throw new NotSupportedException(CodeAnalysisResources.SymWriterNotDeterministic);
                     }
@@ -645,12 +812,7 @@ namespace Microsoft.Cci
             {
                 // Call to GetDebugInfo fails for SymWriter initialized using InitializeDeterministic.
                 // We already have all the info we need though.
-
-                // TODO (https://github.com/dotnet/roslyn/issues/926): calculate sha1 hash
-                var id = new ContentId(
-                    new byte[] { 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, 0x12, },
-                    new byte[] { 0x12, 0x12, 0x12, 0x12 });
-
+                var id = _callLogger.ContentIdFromLog();
                 try
                 {
                     Debug.Assert(BitConverter.IsLittleEndian);
@@ -673,7 +835,7 @@ namespace Microsoft.Cci
             //   memset( pIDD, 0, sizeof( *pIDD ) );
             //   pIDD->Type = IMAGE_DEBUG_TYPE_CODEVIEW;
             //   pIDD->SizeOfData = cTheData;
-            
+
             ImageDebugDirectory debugDir = new ImageDebugDirectory();
             uint dataLength;
 
@@ -713,7 +875,7 @@ namespace Microsoft.Cci
 
             // Retrieve the timestamp the PDB writer generates when creating a new PDB stream.
             // Note that ImageDebugDirectory.TimeDateStamp is not set by GetDebugInfo, 
-            // we need to go thru IPdbWriter interface to get it.
+            // we need to go through IPdbWriter interface to get it.
             uint stamp;
             uint age;
             ((IPdbWriter)_symWriter).GetSignatureAge(out stamp, out age);
@@ -728,6 +890,10 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.SetUserEntryPoint(entryMethodToken);
+                if (_callLogger.LogOperation(OP.SetUserEntryPoint))
+                {
+                    _callLogger.LogArgument(entryMethodToken);
+                }
             }
             catch (Exception ex)
             {
@@ -747,6 +913,13 @@ namespace Microsoft.Cci
                 try
                 {
                     writer = _symWriter.DefineDocument(document.Location, ref language, ref vendor, ref type);
+                    if (_callLogger.LogOperation(OP.DefineDocument))
+                    {
+                        _callLogger.LogArgument(document.Location);
+                        _callLogger.LogArgument(language.ToByteArray());
+                        _callLogger.LogArgument(vendor.ToByteArray());
+                        _callLogger.LogArgument(type.ToByteArray());
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -760,7 +933,16 @@ namespace Microsoft.Cci
                 {
                     try
                     {
-                        writer.SetCheckSum(checksumAndAlgorithm.Item2, (uint)checksumAndAlgorithm.Item1.Length, checksumAndAlgorithm.Item1.ToArray());
+                        var algorithmId = checksumAndAlgorithm.Item2;
+                        var checksum = checksumAndAlgorithm.Item1.ToArray();
+                        var checksumSize = (uint)checksum.Length;
+                        writer.SetCheckSum(algorithmId, checksumSize, checksum);
+                        if (_callLogger.LogOperation(OP.SetCheckSum))
+                        {
+                            _callLogger.LogArgument(algorithmId.ToByteArray());
+                            _callLogger.LogArgument(checksumSize);
+                            _callLogger.LogArgument(checksum);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -772,14 +954,26 @@ namespace Microsoft.Cci
             return writer;
         }
 
-        private void OpenMethod(uint methodToken)
+        private void OpenMethod(uint methodToken, IMethodDefinition method)
         {
             try
             {
                 _symWriter.OpenMethod(methodToken);
+                if (_callLogger.LogOperation(OP.OpenMethod))
+                {
+                    _callLogger.LogArgument(methodToken);
+                    // The PDB writer calls back into the PE writer to identify the method's fully qualified name.
+                    // So we log that. Note that this will be the same for overloaded methods.
+                    _callLogger.LogArgument(GetOrCreateSerializedTypeName(method.ContainingTypeDefinition));
+                    _callLogger.LogArgument(method.Name);
+                }
 
                 // open root scope:
                 _symWriter.OpenScope(startOffset: 0);
+                if (_callLogger.LogOperation(OP.OpenScope))
+                {
+                    _callLogger.LogArgument((uint)0);
+                }
             }
             catch (Exception ex)
             {
@@ -795,6 +989,7 @@ namespace Microsoft.Cci
                 CloseScope(endOffset: ilLength);
 
                 _symWriter.CloseMethod();
+                _callLogger.LogOperation(OP.CloseMethod);
             }
             catch (Exception ex)
             {
@@ -807,6 +1002,10 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.OpenScope((uint)offset);
+                if (_callLogger.LogOperation(OP.OpenScope))
+                {
+                    _callLogger.LogArgument((uint)offset);
+                }
             }
             catch (Exception ex)
             {
@@ -819,6 +1018,10 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.CloseScope((uint)endOffset);
+                if (_callLogger.LogOperation(OP.CloseScope))
+                {
+                    _callLogger.LogArgument((uint)endOffset);
+                }
             }
             catch (Exception ex)
             {
@@ -836,6 +1039,10 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.UsingNamespace(fullName);
+                if (_callLogger.LogOperation(OP.UsingNamespace))
+                {
+                    _callLogger.LogArgument(fullName);
+                }
             }
             catch (Exception ex)
             {
@@ -915,6 +1122,15 @@ namespace Microsoft.Cci
                     _sequencePointStartColumns,
                     _sequencePointEndLines,
                     _sequencePointEndColumns);
+                if (_callLogger.LogOperation(OP.DefineSequencePoints))
+                {
+                    _callLogger.LogArgument((uint)count);
+                    _callLogger.LogArgument(_sequencePointOffsets);
+                    _callLogger.LogArgument(_sequencePointStartLines);
+                    _callLogger.LogArgument(_sequencePointStartColumns);
+                    _callLogger.LogArgument(_sequencePointEndLines);
+                    _callLogger.LogArgument(_sequencePointEndColumns);
+                }
             }
             catch (Exception ex)
             {
@@ -930,6 +1146,13 @@ namespace Microsoft.Cci
                 {
                     // parent parameter is not used, it must be zero or the current method token passed to OpenMetod.
                     _symWriter.SetSymAttribute(0, name, (uint)metadata.Length, (IntPtr)pb);
+                    if (_callLogger.LogOperation(OP.SetSymAttribute))
+                    {
+                        _callLogger.LogArgument((uint)0);
+                        _callLogger.LogArgument(name);
+                        _callLogger.LogArgument((uint)metadata.Length);
+                        _callLogger.LogArgument(metadata);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -959,13 +1182,26 @@ namespace Microsoft.Cci
                 // number of days since 1899/12/30.  However, ConstantValue::VariantFromConstant in the native VB
                 // compiler actually created a variant with type VT_DATE and value equal to the tick count.
                 // http://blogs.msdn.com/b/ericlippert/archive/2003/09/16/eric-s-complete-guide-to-vt-date.aspx
-                _symWriter.DefineConstant2(name, new VariantStructure((DateTime)value), constantSignatureToken);
+                var dt = (DateTime)value;
+                _symWriter.DefineConstant2(name, new VariantStructure(dt), constantSignatureToken);
+                if (_callLogger.LogOperation(OP.DefineConstant2))
+                {
+                    _callLogger.LogArgument(name);
+                    _callLogger.LogArgument(constantSignatureToken);
+                    _callLogger.LogArgument(dt.ToBinary());
+                }
             }
             else
             {
                 try
                 {
                     _symWriter.DefineConstant2(name, value, constantSignatureToken);
+                    if (_callLogger.LogOperation(OP.DefineConstant2))
+                    {
+                        _callLogger.LogArgument(name);
+                        _callLogger.LogArgument(constantSignatureToken);
+                        _callLogger.LogArgument(value);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -993,6 +1229,12 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.DefineConstant2(name, value, constantSignatureToken);
+                if (_callLogger.LogOperation(OP.DefineConstant2))
+                {
+                    _callLogger.LogArgument(name);
+                    _callLogger.LogArgument(constantSignatureToken);
+                    _callLogger.LogArgument(value);
+                }
             }
             catch (ArgumentException)
             {
@@ -1017,6 +1259,18 @@ namespace Microsoft.Cci
             try
             {
                 _symWriter.DefineLocalVariable2(name, attributes, localVariablesSignatureToken, ADDR_IL_OFFSET, index, 0, 0, 0, 0);
+                if (_callLogger.LogOperation(OP.DefineLocalVariable2))
+                {
+                    _callLogger.LogArgument(name);
+                    _callLogger.LogArgument(attributes);
+                    _callLogger.LogArgument(localVariablesSignatureToken);
+                    _callLogger.LogArgument(ADDR_IL_OFFSET);
+                    _callLogger.LogArgument(index);
+                    _callLogger.LogArgument((uint)0);
+                    _callLogger.LogArgument((uint)0);
+                    _callLogger.LogArgument((uint)0);
+                    _callLogger.LogArgument((uint)0);
+                }
             }
             catch (Exception ex)
             {
@@ -1053,6 +1307,13 @@ namespace Microsoft.Cci
                     try
                     {
                         asyncMethodPropertyWriter.DefineAsyncStepInfo((uint)count, yields, resumes, methods);
+                        if (_callLogger.LogOperation(OP.DefineAsyncStepInfo))
+                        {
+                            _callLogger.LogArgument((uint)count);
+                            _callLogger.LogArgument(yields);
+                            _callLogger.LogArgument(resumes);
+                            _callLogger.LogArgument(methods);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -1065,8 +1326,16 @@ namespace Microsoft.Cci
                     if (catchHandlerOffset >= 0)
                     {
                         asyncMethodPropertyWriter.DefineCatchHandlerILOffset((uint)catchHandlerOffset);
+                        if (_callLogger.LogOperation(OP.DefineCatchHandlerILOffset))
+                        {
+                            _callLogger.LogArgument((uint)catchHandlerOffset);
+                        }
                     }
                     asyncMethodPropertyWriter.DefineKickoffMethod(kickoffMethodToken);
+                    if (_callLogger.LogOperation(OP.DefineKickoffMethod))
+                    {
+                        _callLogger.LogArgument(kickoffMethodToken);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1075,6 +1344,22 @@ namespace Microsoft.Cci
             }
         }
 
+        [Conditional("DEBUG")]
+        // Used to catch cases where file2definitions contain nonwriteable definitions early
+        // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
+        public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
+        {
+            foreach (var kvp in file2definitions)
+            {
+                foreach (var definition in kvp.Value)
+                {
+                    uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                    Debug.Assert(token != 0);
+                }
+            }
+        }
+
+        // Note: only used for WinMD
         public void WriteDefinitionLocations(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {
             var writer5 = _symWriter as ISymUnmanagedWriter5;
@@ -1082,7 +1367,7 @@ namespace Microsoft.Cci
             if ((object)writer5 != null)
             {
                 // NOTE: ISymUnmanagedWriter5 reports HRESULT = 0x806D000E in case we open and close 
-                //       the map without writing any resords with MapTokenToSourceSpan(...)
+                //       the map without writing any records with MapTokenToSourceSpan(...)
                 bool open = false;
 
                 foreach (var kvp in file2definitions)
@@ -1095,6 +1380,7 @@ namespace Microsoft.Cci
                             try
                             {
                                 writer5.OpenMapTokensToSourceSpans();
+                                _callLogger.LogOperation(OP.OpenMapTokensToSourceSpans);
                             }
                             catch (Exception ex)
                             {
@@ -1111,6 +1397,20 @@ namespace Microsoft.Cci
                         {
                             writer5.MapTokenToSourceSpan(token, docWriter,
                                 definition.StartLine + 1, definition.StartColumn + 1, definition.EndLine + 1, definition.EndColumn + 1);
+                            if (_callLogger.LogOperation(OP.MapTokenToSourceSpan))
+                            {
+                                _callLogger.LogArgument(token);
+                                _callLogger.LogArgument(kvp.Key.Location); // **
+                                _callLogger.LogArgument(definition.StartLine + 1);
+                                _callLogger.LogArgument(definition.StartColumn + 1);
+                                _callLogger.LogArgument(definition.EndLine + 1);
+                                _callLogger.LogArgument(definition.EndColumn + 1);
+                                // Note on the use of kcp.Key.Location above:
+                                // We are attempting to log an argument that uniquely identifies the document (for
+                                // which docWriter is relevant). kvp.Key.Location returns the file path, which might
+                                // be unique per document, but is an expensive way to log it. Better would be to
+                                // create a mapping to integers.
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -1124,6 +1424,7 @@ namespace Microsoft.Cci
                     try
                     {
                         writer5.CloseMapTokensToSourceSpans();
+                        _callLogger.LogOperation(OP.CloseMapTokensToSourceSpans);
                     }
                     catch (Exception ex)
                     {

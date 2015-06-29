@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -391,7 +391,7 @@ class C
             Assert.Equal(1, classC.GetMembers(WellKnownMemberNames.StaticConstructorName).Length);
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void ImportDecimalConstantAttribute()
         {
             const string ilSource = @"
@@ -413,7 +413,7 @@ class B {
   }
 }
 ";
-            CompileWithCustomILSource(cSharpSource, ilSource, emitOptions: TestEmitters.RefEmitBug, expectedOutput: "10");
+            CompileWithCustomILSource(cSharpSource, ilSource, expectedOutput: "10");
         }
 
         [Fact]

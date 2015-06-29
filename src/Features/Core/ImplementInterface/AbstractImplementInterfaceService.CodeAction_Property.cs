@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var getAccessor = property.GetMethod == null
                     ? null
                     : CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        property.GetMethod.RemoveAttributeFromParametersAndReturnType(comAliasNameAttribute),
+                        property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfType(
+                            accessibleWithin: this.State.ClassOrStructType,
+                            removeAttributeType: comAliasNameAttribute),
                         attributes: null,
                         accessibility: accessibility,
                         explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.GetMethod : null,
@@ -41,7 +43,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var setAccessor = property.SetMethod == null
                     ? null
                     : CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                        property.SetMethod.RemoveAttributeFromParametersAndReturnType(comAliasNameAttribute),
+                        property.SetMethod.RemoveInaccessibleAttributesAndAttributesOfType(
+                            accessibleWithin: this.State.ClassOrStructType,
+                            removeAttributeType: comAliasNameAttribute),
                         attributes: null,
                         accessibility: accessibility,
                         explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property.SetMethod : null,

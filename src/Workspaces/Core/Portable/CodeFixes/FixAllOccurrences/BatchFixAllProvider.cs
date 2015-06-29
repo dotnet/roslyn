@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             for (var i = 0; i < diagnostics.Length; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var diagnostic = diagnostics[i];
                 fixerTasks[i] = Task.Run(async () =>
                 {
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var fix in fixes)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         if (fix != null && fix.EquivalenceKey == fixAllContext.CodeActionEquivalenceKey)
                         {
                             addFix(fix);
@@ -250,12 +252,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         var tasks = new Task[projectsToFix.Length];
                         for (int i = 0; i < projectsToFix.Length; i++)
                         {
+                            fixAllContext.CancellationToken.ThrowIfCancellationRequested();
                             var projectToFix = projectsToFix[i];
                             tasks[i] = Task.Run(async () =>
                             {
                                 var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
                                 foreach (var diagnostic in projectDiagnostics)
                                 {
+                                    fixAllContext.CancellationToken.ThrowIfCancellationRequested();
                                     diagnostics.Add(diagnostic);
                                 }
                             }, fixAllContext.CancellationToken);
@@ -285,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var builder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
             foreach (var documentAndDiagnostics in diagnostics.GroupBy(d => GetReportedDocument(d, treeToDocumentMap)))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var document = documentAndDiagnostics.Key;
                 if (!isGeneratedCode(document))
                 {
@@ -301,8 +306,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, Document>();
             foreach (var project in projects)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 foreach (var document in project.Documents)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                     builder.Add(tree, document);
                 }
@@ -368,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             foreach (var codeAction in codeActions)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 // TODO: Parallelize GetChangedSolutionInternalAsync for codeActions
                 var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken).ConfigureAwait(false);
 
@@ -382,6 +390,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 foreach (var documentId in documentIdsWithChanges)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var document = changedSolution.GetDocument(documentId);
 
                     Document existingDocument;
@@ -411,6 +420,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var currentSolution = oldSolution;
             foreach (var kvp in changedDocumentsMap)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var document = kvp.Value;
                 if (document != null)
                 {
@@ -422,21 +432,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (documentsToMergeMap != null)
             {
                 var mergedDocuments = new ConcurrentDictionary<DocumentId, SourceText>();
-                var documentsToMergeArray = documentsToMergeMap.ToImmutableArray();                
+                var documentsToMergeArray = documentsToMergeMap.ToImmutableArray();
                 var mergeTasks = new Task[documentsToMergeArray.Length];
                 for (int i = 0; i < documentsToMergeArray.Length; i++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var kvp = documentsToMergeArray[i];
                     var documentId = kvp.Key;
                     var documentsToMerge = kvp.Value;
                     var oldDocument = oldSolution.GetDocument(documentId);
 
-                    mergeTasks[i] = Task.Run(async() =>
+                    mergeTasks[i] = Task.Run(async () =>
                     {
                         var appliedChanges = (await documentsToMerge[0].GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToList();
 
                         foreach (var document in documentsToMerge.Skip(1))
                         {
+                            cancellationToken.ThrowIfCancellationRequested();
                             appliedChanges = await TryAddDocumentMergeChangesAsync(
                                 oldDocument,
                                 document,
@@ -454,6 +466,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 foreach (var kvp in mergedDocuments)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     currentSolution = currentSolution.WithDocumentText(kvp.Key, kvp.Value);
                 }
             }
@@ -481,8 +494,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             int cumulativeChangeIndex = 0;
             foreach (var change in await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     // Existing change that does not overlap with the current change in consideration
                     successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
                     cumulativeChangeIndex++;
@@ -522,6 +537,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             while (cumulativeChangeIndex < cumulativeChanges.Count)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 // Existing change that does not overlap with the current change in consideration
                 successfullyMergedChanges.Add(cumulativeChanges[cumulativeChangeIndex]);
                 cumulativeChangeIndex++;

@@ -10404,7 +10404,7 @@ BC31086: 'Public Overrides Sub F1()' cannot override 'Public Sub F1()' because i
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
         End Sub
 
-        Private Shared s_typeWithMixedProperty As String = <![CDATA[
+        Private Shared ReadOnly s_typeWithMixedProperty As String = <![CDATA[
 .class public auto ansi beforefieldinit Base_VirtGet_Set
        extends [mscorlib]System.Object
 {
@@ -10530,7 +10530,7 @@ End Class
         ]]></file>
     </compilation>, s_typeWithMixedProperty)
 
-            ' WARNING: There are no Errors, but setter is actually not overriden!!!
+            ' WARNING: There are no Errors, but setter is actually not overridden!!!
 
             Dim expectedErrors1 = <errors><![CDATA[
                                   ]]></errors>
@@ -13240,7 +13240,7 @@ BC31527: 'Microsoft.VisualBasic.ComClassAttribute' cannot be applied to a class 
         ' BC31531ERR_DllImportNotLegalOnEventMethod
         ' see AttributeTests
 
-        <Fact>
+        <Fact, WorkItem(1116455, "DevDiv")>
         Public Sub BC31534ERR_FriendAssemblyBadArguments()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
     <compilation name="FriendAssemblyBadArguments">
@@ -13261,6 +13261,7 @@ Imports System.Runtime.CompilerServices
 <Assembly: InternalsVisibleTo("Test, Version=1.1.1.*")>              ' error
 <Assembly: InternalsVisibleTo("Test, ProcessorArchitecture=MSIL")>   ' error
 <Assembly: InternalsVisibleTo("Test, CuLTure=EN")>                   ' error
+<Assembly: InternalsVisibleTo("Test, PublicKeyToken=null")>          ' ok
         ]]></file>
     </compilation>, {SystemCoreRef})
 
@@ -19572,7 +19573,7 @@ BC40056: Namespace or type specified in the Imports 'Alias2' doesn't contain any
         End Sub
 
         <Fact>
-        Public Sub BC40057WRN_UndefinedOrEmpyProjectNamespaceOrClass1()
+        Public Sub BC40057WRN_UndefinedOrEmptyProjectNamespaceOrClass1()
             Dim globalImports = GlobalImport.Parse({"Alias2 = System", "N12 = Alias2"})
             Dim options = TestOptions.ReleaseExe.WithGlobalImports(globalImports)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
@@ -20791,7 +20792,7 @@ BC30926: 'MustInherit' cannot be specified for partial type 'A' because it canno
 
         End Sub
 
-        ' Checks for mising partial on clases
+        ' Checks for mising partial on classes
         <Fact>
         Public Sub ModifierWarningsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

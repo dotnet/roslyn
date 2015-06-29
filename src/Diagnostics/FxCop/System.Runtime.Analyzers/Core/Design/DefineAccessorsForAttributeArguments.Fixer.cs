@@ -120,13 +120,13 @@ namespace System.Runtime.Analyzers
             {
                 editor.SetAccessibility(property, Accessibility.Public);
 
-                // Having just made the property public, if it has a setter with no accesibility set, then we've just made the setter public. 
+                // Having just made the property public, if it has a setter with no Accessibility set, then we've just made the setter public. 
                 // Instead restore the setter's original accessibility so that we don't fire a violation with the generated code.
                 var setter = editor.Generator.GetAccessor(property, DeclarationKind.SetAccessor);
                 if (setter != null)
                 {
-                    var setterAccesibility = editor.Generator.GetAccessibility(setter);
-                    if (setterAccesibility == Accessibility.NotApplicable)
+                    var setterAccessibility = editor.Generator.GetAccessibility(setter);
+                    if (setterAccessibility == Accessibility.NotApplicable)
                     {
                         editor.SetAccessibility(setter, propertyAccessibility);
                     }

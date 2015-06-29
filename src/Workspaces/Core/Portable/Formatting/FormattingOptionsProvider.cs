@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     [ExportOptionProvider, Shared]
     internal class FormattingOptionsProvider : IOptionProvider
     {
-        private IEnumerable<IOption> _options = new List<IOption>
+        private readonly IEnumerable<IOption> _options = new List<IOption>
         {
             FormattingOptions.UseTabs,
             FormattingOptions.TabSize,

@@ -156,6 +156,33 @@ End Module
             Test(input)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(2667, "https://github.com/dotnet/roslyn/issues/2667")>
+        Public Sub TestLocalWithWithStatement()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+        Class C
+            Public Property P As String
+            Public Property L As New List(Of String)
+            Sub M()
+                Dim {|Definition:$$x|} As New C
+                With [|x|]
+                    .P = "abcd"
+                End With
+
+                With [|x|].L
+                    .Add("efgh")
+                End With
+            End Sub
+        End Class
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
 
 #Region "FAR on collection initializers"
         <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>

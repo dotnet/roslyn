@@ -224,6 +224,10 @@
     <Compile Include="CodeGen\EmitOperators.cs" />
     <Compile Include="CodeGen\EmitStatement.cs" />
     <Compile Include="CodeGen\Optimizer.cs" />
+    <Compile Include="CommandLine\CommandLineArguments.cs" />
+    <Compile Include="CommandLine\CommandLineDiagnosticFormatter.cs" />
+    <Compile Include="CommandLine\CommandLineParser.cs" />
+    <Compile Include="CommandLine\CSharpCompiler.cs" />
     <Compile Include="Compilation\AttributeSemanticModel.cs" />
     <Compile Include="Compilation\AwaitExpressionInfo.cs" />
     <Compile Include="Compilation\BuiltInOperators.cs" />
@@ -260,6 +264,7 @@
     <Compile Include="Compiler\UnprocessedDocumentationCommentFinder.cs" />
     <Compile Include="CSharpCompilationOptions.cs" />
     <Compile Include="CSharpExtensions.cs" />
+    <Compile Include="CSharpFileSystemExtensions.cs" />
     <Compile Include="CSharpParseOptions.cs" />
     <Compile Include="CSharpResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -704,6 +709,7 @@
     <Compile Include="Symbols\Synthesized\SynthesizedStaticConstructor.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedStringHashFunctionSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubmissionConstructor.cs" />
+    <Compile Include="Symbols\Synthesized\SynthesizedInteractiveInitializerMethod.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubstitutedTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Synthesized\TypeSubstitutedLocalSymbol.cs" />
     <Compile Include="Symbols\TypedConstantExtensions.cs" />
@@ -858,7 +864,6 @@
     </SyntaxDefinition>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler" />
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />

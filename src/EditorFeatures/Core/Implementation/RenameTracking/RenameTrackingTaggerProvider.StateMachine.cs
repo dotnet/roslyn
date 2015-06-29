@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 using (Logger.LogBlock(FunctionId.Rename_Tracking_BufferChanged, CancellationToken.None))
                 {
                     // When the buffer changes, several things might be happening:
-                    // 1. If a non-identifer character has been added or deleted, we stop tracking
+                    // 1. If a non-identifier character has been added or deleted, we stop tracking
                     //    completely.
                     // 2. Otherwise, if the changes are completely contained an existing session, then
                     //    continue that session.
@@ -253,8 +253,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 ISyntaxFactsService syntaxFactsService;
-                return TryGetSyntaxFactsService(out syntaxFactsService) &&
-                    trackingSession.CanInvokeRename(syntaxFactsService, isSmartTagCheck, waitForResult, cancellationToken);
+                IRenameTrackingLanguageHeuristicsService languageHeuristicsService;
+                return TryGetSyntaxFactsService(out syntaxFactsService) && TryGetLanguageHeuristicsService(out languageHeuristicsService) &&
+                    trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
             internal async Task<IEnumerable<Diagnostic>> GetDiagnostic(SyntaxTree tree, DiagnosticDescriptor diagnosticDescriptor, CancellationToken cancellationToken)
@@ -330,6 +331,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 return syntaxFactsService != null;
+            }
+
+            private bool TryGetLanguageHeuristicsService(out IRenameTrackingLanguageHeuristicsService languageHeuristicsService)
+            {
+                // Can be called on a background thread
+
+                languageHeuristicsService = null;
+                var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document != null)
+                {
+                    languageHeuristicsService = document.Project.LanguageServices.GetService<IRenameTrackingLanguageHeuristicsService>();
+                }
+
+                return languageHeuristicsService != null;
             }
 
             public void Connect()

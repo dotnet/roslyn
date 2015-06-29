@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         public static TextBlock ToTextBlock(this IEnumerable<SymbolDisplayPart> parts, ClassificationTypeMap typeMap)
         {
-            var result = new TextBlock();
+            var result = new TextBlock() { TextWrapping = TextWrapping.Wrap };
 
             var formatMap = typeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
             result.SetDefaultTextProperties(formatMap);

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Holds a collection of all the locations of anonymous types and delegates from source
         ''' </summary>
-        Private _sourceLocationsSeen As New ConcurrentDictionary(Of Location, Boolean)
+        Private ReadOnly _sourceLocationsSeen As New ConcurrentDictionary(Of Location, Boolean)
 #End If
 
         <Conditional("DEBUG")>

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim span = New TextSpan(position, 0)
-            Dim semanticModel = Await document.GetVisualBasicSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(False)
             Dim syntaxTree = semanticModel.SyntaxTree
 
             ' If we're option explicit off, then basically any expression context can have a

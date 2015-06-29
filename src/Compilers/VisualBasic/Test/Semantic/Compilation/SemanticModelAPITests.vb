@@ -1664,7 +1664,7 @@ End Class
             Assert.Equal("z", parameterSymbol.Name)
         End Sub
 
-        Private Shared Sub TestGetSpeculativeSemanticModelForTypeSyntax_Common(model As SemanticModel, position As Integer, speculatedTypeSyntax As TypeSyntax, bindingOption As SpeculativeBindingOption, expectedSymbolKind As SymbolKind, expectedTypeDislayString As String)
+        Private Shared Sub TestGetSpeculativeSemanticModelForTypeSyntax_Common(model As SemanticModel, position As Integer, speculatedTypeSyntax As TypeSyntax, bindingOption As SpeculativeBindingOption, expectedSymbolKind As SymbolKind, expectedTypeDisplayString As String)
             Assert.False(model.IsSpeculativeSemanticModel)
             Assert.Null(model.ParentModel)
             Assert.Equal(0, model.OriginalPositionForSpeculation)
@@ -1681,12 +1681,12 @@ End Class
             Dim symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol
             Assert.NotNull(symbol)
             Assert.Equal(expectedSymbolKind, symbol.Kind)
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
             Dim typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type
             Assert.NotNull(symbol)
             Assert.Equal(expectedSymbolKind, symbol.Kind)
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
             Dim methodGroupInfo = speculativeModel.GetMemberGroup(speculatedTypeSyntax)
             Dim constantInfo = speculativeModel.GetConstantValue(speculatedTypeSyntax)
@@ -1696,12 +1696,12 @@ End Class
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol
                 Assert.NotNull(symbol)
                 Assert.Equal(expectedSymbolKind, symbol.Kind)
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
 
                 typeSymbol = speculativeModel.GetTypeInfo(right).Type
                 Assert.NotNull(symbol)
                 Assert.Equal(expectedSymbolKind, symbol.Kind)
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString())
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString())
             End If
         End Sub
 
@@ -4349,6 +4349,31 @@ BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protec
         DoesntExist()
         ~~~~~~~~~~~
                                                                   </errors>, suppressInfos:=False)
+        End Sub
+
+        <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
+        Public Sub ConstantValueOfInterpolatedString()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation name="GetSemanticInfo">
+    <file name="a.vb"><![CDATA[
+Module Program
+    ''' <summary>
+    ''' <see cref=""/>
+    ''' </summary>
+    Sub Main(args As String())
+        System.Console.WriteLine($""Hello, world!"");
+        System.Console.WriteLine($""{DateTime.Now.ToString()}.{args(0)}"");
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot
+            Dim model = compilation.GetSemanticModel(tree)
+            For Each interp In root.DescendantNodes().OfType(Of InterpolatedStringExpressionSyntax)
+                Assert.False(model.GetConstantValue(interp).HasValue)
+            Next
         End Sub
 
     End Class

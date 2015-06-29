@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+//#define DEBUG_ALPHA // turn on DEBUG_ALPHA to help diagnose issues around type parameter alpha-renaming
+
 using System;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -14,6 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _map;
         private readonly TypeParameterSymbol _substitutedFrom;
 
+#if DEBUG_ALPHA
+        private static int _nextSequence = 1;
+        private readonly int _mySequence;
+#endif
+
         internal SubstitutedTypeParameterSymbol(Symbol newContainer, TypeMap map, TypeParameterSymbol substitutedFrom)
         {
             _container = newContainer;
@@ -21,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in by TypeMap.WithAlphaRename.  Instead, we can use the map lazily when yielding the constraints.
             _map = map;
             _substitutedFrom = substitutedFrom;
+#if DEBUG_ALPHA
+            _mySequence = _nextSequence++;
+#endif
         }
 
         public override TypeParameterKind TypeParameterKind
@@ -130,16 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _substitutedFrom.Name
-#if DEBUG_ALPHA // turn on DEBUG_ALPHA to help diagnose issues around type parameter alpha-renaming
-                    + "-" + nextSequence++
+#if DEBUG_ALPHA
+                    + "#" + _mySequence
 #endif
                     ;
             }
         }
-
-#if DEBUG_ALPHA
-        private static int nextSequence = 1;
-#endif
 
         public override bool IsImplicitlyDeclared
         {
@@ -184,6 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _map.SubstituteType(_substitutedFrom.GetDeducedBaseType(inProgress));
         }
 
-        private static Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
+        private static readonly Func<TypeSymbol, bool> s_isNotObjectFunc = type => type.SpecialType != SpecialType.System_Object;
     }
 }

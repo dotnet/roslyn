@@ -286,13 +286,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             return updatedDocument.Project.Solution;
         }
 
-        protected IPropertySymbol GenerateProperty(string propertyName, string fieldName, Accessibility accessiblity, IFieldSymbol field, INamedTypeSymbol containingSymbol, SyntaxAnnotation annotation, Document document, CancellationToken cancellationToken)
+        protected IPropertySymbol GenerateProperty(string propertyName, string fieldName, Accessibility accessibility, IFieldSymbol field, INamedTypeSymbol containingSymbol, SyntaxAnnotation annotation, Document document, CancellationToken cancellationToken)
         {
             var factory = document.GetLanguageService<SyntaxGenerator>();
 
             var propertySymbol = annotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreatePropertySymbol(containingType: containingSymbol,
                 attributes: SpecializedCollections.EmptyList<AttributeData>(),
-                accessibility: ComputeAccesibility(accessiblity, field.Type),
+                accessibility: ComputeAccessibility(accessibility, field.Type),
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
                 type: field.Type,
                 explicitInterfaceSymbol: null,
@@ -307,17 +307,17 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         protected abstract Tuple<string, string> GeneratePropertyAndFieldNames(IFieldSymbol field);
 
-        protected Accessibility ComputeAccesibility(Accessibility accessibility, ITypeSymbol type)
+        protected Accessibility ComputeAccessibility(Accessibility accessibility, ITypeSymbol type)
         {
-            var computedAccessbility = accessibility;
+            var computedAccessibility = accessibility;
             if (accessibility == Accessibility.NotApplicable || accessibility == Accessibility.Private)
             {
-                computedAccessbility = Accessibility.Public;
+                computedAccessibility = Accessibility.Public;
             }
 
             var returnTypeAccessibility = type.DetermineMinimalAccessibility();
 
-            return CommonAccessibilityUtilities.Minimum(computedAccessbility, returnTypeAccessibility);
+            return AccessibilityUtilities.Minimum(computedAccessibility, returnTypeAccessibility);
         }
 
         protected IMethodSymbol CreateSet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)

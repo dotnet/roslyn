@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -378,7 +379,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Sub
 
@@ -401,7 +402,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Sub
 
@@ -424,7 +425,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Sub
 
@@ -447,7 +448,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                state.AssertSelectedSignatureHelpItem($"({CSharpEditorResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
             End Using
         End Sub
     End Class

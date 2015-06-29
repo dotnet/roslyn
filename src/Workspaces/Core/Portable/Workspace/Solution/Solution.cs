@@ -827,7 +827,16 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, CompilationTranslationAction.ProjectParseOptions(newProject));
+            if (this.Workspace.PartialSemanticsEnabled)
+            {
+                // don't fork tracker with queued action since access via partial semantics can become inconsistent (throw).
+                // Since changing options is rare event, it is okay to start compilation building from scratch.
+                return this.ForkProject(newProject, forkTracker: false);
+            }
+            else
+            {
+                return this.ForkProject(newProject, CompilationTranslationAction.ProjectParseOptions(newProject));
+            }
         }
 
         private static async Task<Compilation> ReplaceSyntaxTreesWithTreesFromNewProjectStateAsync(Compilation compilation, ProjectState projectState, CancellationToken cancellationToken)
@@ -1177,7 +1186,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 name: name,
                 folders: folders,
-                sourceCodeKind: project.ParseOptions.Kind,
+                sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
                 filePath: filePath,
                 isGenerated: isGenerated);
@@ -1189,6 +1198,11 @@ namespace Microsoft.CodeAnalysis
                 _solutionServices);
 
             return this.AddDocument(doc);
+        }
+
+        private static SourceCodeKind GetSourceCodeKind(ProjectState project)
+        {
+            return project.ParseOptions != null ? project.ParseOptions.Kind : SourceCodeKind.Regular;
         }
 
         /// <summary>
@@ -1230,7 +1244,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 name: name,
                 folders: folders,
-                sourceCodeKind: project.ParseOptions.Kind,
+                sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader);
 
             return this.AddDocument(info);
@@ -1316,7 +1330,7 @@ namespace Microsoft.CodeAnalysis
                 documentId,
                 name: name,
                 folders: folders,
-                sourceCodeKind: project.ParseOptions.Kind,
+                sourceCodeKind: GetSourceCodeKind(project),
                 loader: loader,
                 filePath: filePath);
 
@@ -1737,7 +1751,8 @@ namespace Microsoft.CodeAnalysis
             ProjectState newProjectState,
             CompilationTranslationAction translate = null,
             bool withProjectReferenceChange = false,
-            ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null)
+            ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
+            bool forkTracker = true)
         {
             // make sure we are getting only known translate actions
             CompilationTranslationAction.CheckKnownActions(translate);
@@ -1750,10 +1765,15 @@ namespace Microsoft.CodeAnalysis
 
             // If we have a tracker for this project, then fork it as well (along with the
             // translation action and store it in the tracker map.
-            CompilationTracker state;
-            if (newTrackerMap.TryGetValue(projectId, out state))
+            CompilationTracker tracker;
+            if (newTrackerMap.TryGetValue(projectId, out tracker))
             {
-                newTrackerMap = newTrackerMap.Remove(projectId).Add(projectId, state.Fork(newProjectState, translate));
+                newTrackerMap = newTrackerMap.Remove(projectId);
+
+                if (forkTracker)
+                {
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
+                }
             }
 
             var modifiedDocumentOnly = translate is CompilationTranslationAction.TouchDocumentAction;
@@ -2122,7 +2142,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets an ProjectDependencyGraph that details the dependencies between projects for this solution.
+        /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
         public ProjectDependencyGraph GetProjectDependencyGraph()
         {

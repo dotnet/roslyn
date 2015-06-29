@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         Protected Overrides Function GetAdjustedContextPoint(contextPoint As Integer, document As Document) As Integer
-            Dim tree = document.GetVisualBasicSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+            Dim tree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
             Dim token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None)
 
             Dim containingNode = token.Parent.AncestorsAndSelf().Where(Function(s) TypeOf s Is ExpressionSyntax OrElse

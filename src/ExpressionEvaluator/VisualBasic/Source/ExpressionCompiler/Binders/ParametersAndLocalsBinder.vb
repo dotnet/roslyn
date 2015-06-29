@@ -28,7 +28,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim nameToSymbolMap As New Dictionary(Of String, Symbol)(CaseInsensitiveComparison.Comparer)
 
             For Each parameter In parameters
-                nameToSymbolMap(parameter.Name) = parameter
+                Dim name As String = parameter.Name
+                Dim kind As GeneratedNameKind = GeneratedNames.GetKind(name)
+                If kind = GeneratedNameKind.None OrElse kind = GeneratedNameKind.HoistedMeField Then
+                    nameToSymbolMap(name) = parameter
+                Else
+                    Debug.Assert(kind = GeneratedNameKind.TransparentIdentifier OrElse
+                                 kind = GeneratedNameKind.AnonymousTransparentIdentifier)
+                End If
             Next
 
             For Each local In locals

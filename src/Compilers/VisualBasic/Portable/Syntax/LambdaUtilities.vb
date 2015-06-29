@@ -571,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' All variables of any non-starting From/Aggregate clause are lambdas.
-            ' The first variable of each Aggregate clause represents teh lambda contaiing the query nested into the aggregate clause.
+            ' The first variable of each Aggregate clause represents the lambda containing the query nested into the aggregate clause.
             Return True
         End Function
 
@@ -601,6 +601,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function IsLambdaJoinCondition(joinCondition As SyntaxNode) As Boolean
             Debug.Assert(joinCondition.IsKind(SyntaxKind.JoinCondition))
             Return joinCondition Is DirectCast(joinCondition.Parent, JoinClauseSyntax).JoinConditions.First
+        End Function
+
+        ''' <summary>
+        ''' Compares content of two nodes ignoring lambda bodies and trivia.
+        ''' </summary>
+        Public Shared Function AreEquivalentIgnoringLambdaBodies(oldNode As SyntaxNode, newNode As SyntaxNode) As Boolean
+            ' all tokens that don't belong to a lambda body:
+            Dim oldTokens = oldNode.DescendantTokens(Function(node) node Is oldNode OrElse Not IsLambdaBodyStatementOrExpression(node))
+            Dim newTokens = newNode.DescendantTokens(Function(node) node Is newNode OrElse Not IsLambdaBodyStatementOrExpression(node))
+
+            Return oldTokens.SequenceEqual(newTokens, AddressOf SyntaxFactory.AreEquivalent)
         End Function
 
         ''' <summary>

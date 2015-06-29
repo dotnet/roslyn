@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
+using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -739,7 +740,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docText = doc.GetTextAsync().Result;
 
             Assert.NotNull(docText);
-            Assert.Equal(text, docText.ToString());
+            Assert.Equal(text, docText.ToString());            
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -1068,7 +1069,7 @@ End Class";
             var observed2 = GetObservedSyntaxTreeRootAsync(doc2.Project.Solution, did);
             StopObservingAndWaitForReferenceToGo(observed2);
 
-            // access the tree & root again (recovert it)
+            // access the tree & root again (recover it)
             var tree2 = doc2.GetSyntaxTreeAsync().Result;
 
             // this should cause deserialization
@@ -1342,6 +1343,24 @@ public class C : A {
             classC = comp3.GetTypeByMetadataName("C");
             projectForBaseType = solution2.GetProject(classC.BaseType.ContainingAssembly);
             Assert.Equal(pid1, projectForBaseType.Id);
+        }
+
+        [WorkItem(1088127, "DevDiv")]
+        [Fact]
+        public void TestEncodingRetainedAfterTreeChanged()
+        {
+            var ws = new AdhocWorkspace();
+            var proj = ws.AddProject("proj", LanguageNames.CSharp);
+            var doc = ws.AddDocument(proj.Id, "a.cs", SourceText.From("public class c { }", Encoding.UTF32));
+
+            Assert.Equal(Encoding.UTF32, doc.GetTextAsync().Result.Encoding);
+
+            // updating root doesn't change original encoding
+            var root = doc.GetSyntaxRootAsync().Result;
+            var newRoot = root.WithLeadingTrivia(root.GetLeadingTrivia().Add(CS.SyntaxFactory.Whitespace("    ")));
+            var newDoc = doc.WithSyntaxRoot(newRoot);
+
+            Assert.Equal(Encoding.UTF32, newDoc.GetTextAsync().Result.Encoding);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceService(typeof(IAnalyzerService), ServiceLayer.Default), Shared]
     internal sealed class SimpleAnalyzerAssemblyLoaderService : IAnalyzerService
     {
-        private SimpleAnalyzerAssemblyLoader _loader = new SimpleAnalyzerAssemblyLoader();
+        private readonly SimpleAnalyzerAssemblyLoader _loader = new SimpleAnalyzerAssemblyLoader();
 
         public IAnalyzerAssemblyLoader GetLoader()
         {

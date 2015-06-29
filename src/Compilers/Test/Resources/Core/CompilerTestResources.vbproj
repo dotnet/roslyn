@@ -99,7 +99,6 @@
     <Content Include="MetadataTests\Interop\Interop.Mock01.Impl.dll" />
     <Content Include="MetadataTests\Invalid\ClassLayout.dll" />
     <Content Include="MetadataTests\Invalid\ClassLayout.il" />
-    <Content Include="MetadataTests\Invalid\CustomAttributeTableDeclaredUnsorted.dll" />
     <Content Include="MetadataTests\Invalid\CustomAttributeTableUnsorted.dll" />
     <Content Include="MetadataTests\Invalid\EmptyModuleTable.netmodule" />
     <Content Include="MetadataTests\Invalid\IncorrectCustomAssemblyTableSize_TooManyMethodSpecs.dll" />
@@ -126,7 +125,7 @@
     <Content Include="MetadataTests\NetModule01\ModuleCS01.mod" />
     <Content Include="MetadataTests\NetModule01\ModuleVB01.mod" />
     <Content Include="MetadataTests\NetModule01\ModuleVB01.vb.txt" />
-    <Content Include="NetFX\aacorlib\aacorlib.v15.0.3928.dll" />
+    <Content Include="NetFX\aacorlib\aacorlib.v15.0.3928.cs" />
     <Content Include="NetFX\Minimal\build.cmd" />
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
@@ -257,12 +256,8 @@
     <Content Include="SymbolsTests\MultiModule\MultiModule.dll" />
     <Content Include="SymbolsTests\MultiModule\MultiModule.vb" />
     <Content Include="SymbolsTests\MultiTargeting\c1.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c1.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c3.dll" />
     <Content Include="SymbolsTests\MultiTargeting\c3.dll" />
     <Content Include="SymbolsTests\MultiTargeting\c4.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c4.dll" />
-    <Content Include="SymbolsTests\MultiTargeting\c7.dll" />
     <Content Include="SymbolsTests\MultiTargeting\c7.dll" />
     <Content Include="SymbolsTests\MultiTargeting\Source1.vb" />
     <Content Include="SymbolsTests\MultiTargeting\Source1Module.netmodule" />
@@ -340,7 +335,6 @@
     <Content Include="SymbolsTests\snPublicKey2.snk" />
     <Content Include="SymbolsTests\TypeForwarders\Forwarded.netmodule" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
-    <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.dll" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder.vb" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder1.cs" />
     <Content Include="SymbolsTests\TypeForwarders\TypeForwarder2.cs" />
@@ -407,6 +401,8 @@
     <None Include="packages.config" />
     <None Include="SymbolsTests\netModule\hash_module.cs" />
     <None Include="SymbolsTests\NoPia\MissingPIAAttributes.dll" />
+    <None Include="WinRt\WImpl.il" />
+    <None Include="WinRt\WImpl.winmd" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Analyzers\AnalyzerTests.resx">

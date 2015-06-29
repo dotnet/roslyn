@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class AlwaysAssignedWalker : AbstractRegionDataFlowPass
     {
         private LocalState _endOfRegionState;
-        private HashSet<LabelSymbol> _labelsInside = new HashSet<LabelSymbol>();
+        private readonly HashSet<LabelSymbol> _labelsInside = new HashSet<LabelSymbol>();
 
         private AlwaysAssignedWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)

@@ -104,7 +104,7 @@ End Namespace
     Friend Class TestWalker
         Inherits StatementSyntaxWalker
 
-        Private _arg As TextWriter
+        Private ReadOnly _arg As TextWriter
 
         Public Sub New(arg As TextWriter)
             Me._arg = arg

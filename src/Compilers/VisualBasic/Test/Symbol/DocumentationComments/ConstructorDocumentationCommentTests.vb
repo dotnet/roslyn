@@ -6,9 +6,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class ConstructorDocumentationCommentTests
 
-        Private _compilation As VisualBasicCompilation
-        Private _acmeNamespace As NamespaceSymbol
-        Private _widgetClass As NamedTypeSymbol
+        Private ReadOnly _compilation As VisualBasicCompilation
+        Private ReadOnly _acmeNamespace As NamespaceSymbol
+        Private ReadOnly _widgetClass As NamedTypeSymbol
 
         Public Sub New()
             _compilation = CompilationUtils.CreateCompilationWithMscorlib(

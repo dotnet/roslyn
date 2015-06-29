@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// would bind x++ as "X temp = x; x = (X)(short)((int)(short)temp + 1); return temp;"
         /// </summary>
         /// <param name="node">The unary operator expression representing the increment/decrement.</param>
-        /// <returns>A bound sequence that uses a temp to acheive the correct side effects and return value.</returns>
+        /// <returns>A bound sequence that uses a temp to achieve the correct side effects and return value.</returns>
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             bool isPrefix = IsPrefix(node);
@@ -768,8 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Addition: member = SpecialMember.System_Decimal__op_Increment; break;
                 case BinaryOperatorKind.Subtraction: member = SpecialMember.System_Decimal__op_Decrement; break;
                 default:
-                    Debug.Assert(false); // Cannot reach here
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(oper.Operator());
             }
 
             var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
@@ -907,9 +906,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node.Type;
                 case UnaryOperatorKind.UserDefined:
                 case UnaryOperatorKind.Bool:
-                    Debug.Assert(false, "Unexpected unary operator kind");
-                    goto default;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

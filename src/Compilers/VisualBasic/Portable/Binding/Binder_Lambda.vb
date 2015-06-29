@@ -358,8 +358,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
-                Debug.Assert(False)
-                Return Nothing
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode
@@ -1059,8 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitLambda(node As BoundLambda) As BoundNode
-                Debug.Assert(False)
-                Return Nothing
+                Throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function VisitReturnStatement(node As BoundReturnStatement) As BoundNode

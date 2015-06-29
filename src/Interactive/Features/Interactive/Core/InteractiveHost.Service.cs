@@ -426,22 +426,15 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             #region Operations
 
-            public ObjectFormattingOptions ObjectFormattingOptions
+            // TODO (tomat): testing only
+            public void SetTestObjectFormattingOptions()
             {
-                get
-                {
-                    return _formattingOptions;
-                }
-
-                set
-                {
-                    if (value == null)
-                    {
-                        throw new ArgumentNullException(nameof(value));
-                    }
-
-                    _formattingOptions = value;
-                }
+                _formattingOptions = new ObjectFormattingOptions(
+                    memberFormat: MemberDisplayFormat.Inline,
+                    quoteStrings: true,
+                    useHexadecimalNumbers: false,
+                    maxOutputLength: int.MaxValue,
+                    memberIndentation: "  ");
             }
 
             /// <summary>
@@ -724,7 +717,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 bool hasValue;
-                var resultType = script.GetCompilation().GetSubmissionResultType(out hasValue);
+                var resultType = GetSubmissionResultType(script.GetCompilation(), out hasValue);
                 if (hasValue)
                 {
                     if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
@@ -739,6 +732,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return true;
             }
+
+            // TODO: replace by direct call to GetSubmissionResultType when it becomes public
+            private delegate ITypeSymbol GetSubmissionResultTypeDelegate(Compilation compilation, out bool hasValue);
+            private GetSubmissionResultTypeDelegate GetSubmissionResultType = typeof(Compilation).GetTypeInfo().GetDeclaredMethod("GetSubmissionResultType").CreateDelegate<GetSubmissionResultTypeDelegate>();
 
             private class ExecuteSubmissionError
             {
@@ -810,9 +807,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            #endregion
+#endregion
 
-            #region Win32 API
+#region Win32 API
 
             [DllImport("kernel32", PreserveSig = true)]
             internal static extern ErrorMode SetErrorMode(ErrorMode mode);
@@ -849,9 +846,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 SEM_NOOPENFILEERRORBOX = 0x8000,
             }
 
-            #endregion
+#endregion
 
-            #region Testing
+#region Testing
 
             // TODO(tomat): remove when the compiler supports events
             // For testing purposes only!
@@ -889,7 +886,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return _metadataFileProvider.IsShadowCopy(path);
             }
 
-            #endregion
+#endregion
         }
     }
 }

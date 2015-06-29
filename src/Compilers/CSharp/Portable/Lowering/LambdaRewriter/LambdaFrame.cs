@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (scopeSyntaxOpt == null)
             {
-                // Display class is shared among static non-generic lambdas accross generations, method ordinal is -1 in that case.
+                // Display class is shared among static non-generic lambdas across generations, method ordinal is -1 in that case.
                 // A new display class of a static generic lambda is created for each method and each generation.
                 return GeneratedNames.MakeStaticLambdaDisplayClassName(methodId.Ordinal, methodId.Generation);
             }

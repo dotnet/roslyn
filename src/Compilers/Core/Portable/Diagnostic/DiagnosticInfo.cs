@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis
             _arguments = arguments;
         }
 
-        private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overridenSeverity)
+        private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
         {
             _messageProvider = original.MessageProvider;
             _errorCode = original._errorCode;
             _defaultSeverity = original.DefaultSeverity;
             _arguments = original._arguments;
 
-            _effectiveSeverity = overridenSeverity;
+            _effectiveSeverity = overriddenSeverity;
         }
 
         internal static DiagnosticDescriptor GetDescriptor(int errorCode, CommonMessageProvider messageProvider)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                Debug.Assert(false, "Unexpected type: " + type);
+                throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
 

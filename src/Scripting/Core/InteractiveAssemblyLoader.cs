@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An assembly is loaded into CLR’s Load Context if it is in the GAC, otherwise it's loaded into No Context via <see cref="Assembly.LoadFile(string)"/>.
+    /// An assembly is loaded into CLR's Load Context if it is in the GAC, otherwise it's loaded into No Context via <see cref="Assembly.LoadFile(string)"/>.
     /// <see cref="Assembly.LoadFile(string)"/> automatically redirects to GAC if the assembly has a strong name and there is an equivalent assembly in GAC. 
     /// </para>
     /// <para>
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         /// <param name="path">Absolute assembly file path.</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an exisiting assembly file path.</exception>
+        /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing assembly file path.</exception>
         /// <exception cref="System.Reflection.TargetInvocationException">The assembly resolver threw an exception.</exception>
         public AssemblyLoadResult LoadFromPath(string path)
         {

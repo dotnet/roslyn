@@ -118,9 +118,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                         {
                             return GetIndentationFromCommaSeparatedList(previousToken);
                         }
-
-                        // okay, beginning of the line is not trivia, use the last token on the line as base token
-                        return GetIndentationBasedOnToken(token);
+                        else if (!previousToken.IsKind(SyntaxKind.None))
+                        {
+                            // okay, beginning of the line is not trivia, use the last token on the line as base token
+                            return GetIndentationBasedOnToken(token);
+                        }
                     }
 
                     // this case we will keep the indentation of this trivia line
@@ -488,10 +490,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 var text = currentLine.GetText();
                 Contract.Requires(!string.IsNullOrWhiteSpace(text));
 
-                var trimedText = text.Trim();
+                var trimmedText = text.Trim();
 
                 Contract.Assert(SyntaxFacts.GetText(SyntaxKind.HashToken).Length == 1);
-                return trimedText[0] == SyntaxFacts.GetText(SyntaxKind.HashToken)[0];
+                return trimmedText[0] == SyntaxFacts.GetText(SyntaxKind.HashToken)[0];
             }
 
             private int GetCurrentPositionNotBelongToEndOfFileToken(int position)

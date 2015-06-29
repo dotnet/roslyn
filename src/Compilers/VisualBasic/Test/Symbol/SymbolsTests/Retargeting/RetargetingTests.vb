@@ -738,7 +738,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -1078,7 +1078,7 @@ Class NewClass_Using_Attribute
         End Class
 
 
-        Class New_InhertitedAttribute
+        Class New_InheritedAttribute
             Inherits ClassLibrary1.TestAttribute
         End Class
 
@@ -1511,7 +1511,7 @@ End Namespace
             Dim sourceMethod As MethodSymbol = Nothing
             Dim retargetingMethod As MethodSymbol = Nothing
 
-            'Public With Different Accessible Memeber
+            'Public With Different Accessible Member
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)
@@ -2584,7 +2584,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 
@@ -2864,7 +2864,7 @@ Class NewClass_ImplementingInterface
 End Class
 
 
-Class New_InhertitedAttribute
+Class New_InheritedAttribute
     Inherits ClassLibrary1.TestAttribute
 End Class
 

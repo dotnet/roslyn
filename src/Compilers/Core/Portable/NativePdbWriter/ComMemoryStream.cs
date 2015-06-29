@@ -18,7 +18,7 @@ namespace Roslyn.Utilities
     internal class ComMemoryStream : IUnsafeComStream
     {
         private const int ChunkSize = 32768;
-        private List<byte[]> _chunks = new List<byte[]>();
+        private readonly List<byte[]> _chunks = new List<byte[]>();
         private int _position;
         private int _length;
 

@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var storages = new List<ITemporaryStreamStorage>();
             newMetadata = CreateAssemblyMetadataFromTemporaryStorage(key, storages);
 
-            // don't dispose assembly metadata since it shares module metdata
+            // don't dispose assembly metadata since it shares module metadata
             if (!_metadataCache.TryGetOrAddMetadata(key, new RecoverableMetadataValueSource(newMetadata, storages, s_lifetimeMap), out metadata))
             {
                 newMetadata.Dispose();

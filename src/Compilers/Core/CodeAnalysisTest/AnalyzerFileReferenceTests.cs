@@ -8,19 +8,80 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    public class FromFileLoader : IAnalyzerAssemblyLoader
+    {
+        public static FromFileLoader Instance = new FromFileLoader();
+
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+        {
+            return Assembly.LoadFrom(fullPath);
+        }
+    }
+
+    public class RemoteAssert : MarshalByRefObject
+    {
+        public static RemoteAssert Instance = new RemoteAssert();
+
+        public override object InitializeLifetimeService()
+        {
+            return null;
+        }
+
+        public void True(bool value, string message)
+        {
+            Assert.True(value, message);
+        }
+    }
+
+    public class RemoteAnalyzerFileReferenceTest : MarshalByRefObject
+    {
+        private RemoteAssert _assert;
+
+        public override object InitializeLifetimeService()
+        {
+            return null;
+        }
+
+        public void TestTypeLoadException(string analyzerPath)
+        {
+            var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
+            analyzerRef.AnalyzerLoadFailed += (s, e) => _assert.True(e.Exception is TypeLoadException, "Expected TypeLoadException");
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
+        }
+
+        public void TestSuccess(string analyzerPath)
+        {
+            var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
+            analyzerRef.AnalyzerLoadFailed += (s, e) => _assert.True(false, "Unexpected exception: " + e.Message);
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
+        }
+
+        internal void SetAssert(RemoteAssert assert)
+        {
+            _assert = assert;
+        }
+    }
+
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
+        private static readonly SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
-            return new AnalyzerFileReference(fullPath, _analyzerLoader.LoadFromPath);
+            return new AnalyzerFileReference(fullPath, _analyzerLoader);
         }
 
         [Fact]
@@ -127,6 +188,94 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestAnalyzerLoading()
+        {
+            var analyzerSource = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class TestAnalyzer : DiagnosticAnalyzer
+{
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+    public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
+}";
+
+            var dir = Temp.CreateDirectory();
+
+            var metadata = dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
+            var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
+            var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+
+            var analyzerCompilation = CSharp.CSharpCompilation.Create(
+                "MyAnalyzer",
+                new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
+                new MetadataReference[]
+                {
+                    SystemRuntimePP7Ref,
+                    MetadataReference.CreateFromFile(immutable.Path),
+                    MetadataReference.CreateFromFile(analyzer.Path)
+                },
+                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
+
+            var loadDomain = AppDomain.CreateDomain("AnalyzerTestDomain", null, dir.Path, dir.Path, false);
+            var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
+            remoteTest.SetAssert(RemoteAssert.Instance);
+            remoteTest.TestSuccess(analyzerFile.Path);
+            AppDomain.Unload(loadDomain);
+        }
+        
+        [Fact]
+        public void TestAnalyzerLoading_Error()
+        {
+            var analyzerSource = @"
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using System.Runtime.InteropServices;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+[StructLayout(LayoutKind.Sequential, Size = 10000000)]
+public class TestAnalyzer : DiagnosticAnalyzer
+{
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
+    public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
+}";
+
+            var dir = Temp.CreateDirectory();
+
+            var metadata = dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
+            var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
+            var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+
+            var analyzerCompilation = CSharp.CSharpCompilation.Create(
+                "MyAnalyzer",
+                new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
+                new MetadataReference[]
+                {
+                    SystemRuntimePP7Ref,
+                    MetadataReference.CreateFromFile(immutable.Path),
+                    MetadataReference.CreateFromFile(analyzer.Path)
+                },
+                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
+
+            var loadDomain = AppDomain.CreateDomain("AnalyzerTestDomain", null, dir.Path, dir.Path, false);
+            var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
+            remoteTest.SetAssert(RemoteAssert.Instance);
+            remoteTest.TestTypeLoadException(analyzerFile.Path);
+            AppDomain.Unload(loadDomain);
+        }
+
+        [Fact]
         [WorkItem(1029928, "DevDiv")]
         public void BadAnalyzerReference_DisplayName()
         {
@@ -134,7 +283,44 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
-            Assert.Equal(expected: "Foo.txt", actual: reference.Display);
+            Assert.Equal(expected: "Foo", actual: reference.Display);
+        }
+
+        [Fact]
+        public void ValidAnalyzerReference_DisplayName()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+
+            Assert.Equal(expected: "Alpha", actual: reference.Display);
+        }
+
+        [Fact]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
+        public void ValidAnalyzerReference_Id()
+        {
+            var directory = Temp.CreateDirectory();
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+
+            AssemblyIdentity expectedIdentity = null;
+            AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedIdentity);
+
+            Assert.Equal(expected: expectedIdentity, actual: reference.Id);
+        }
+
+        [Fact]
+        [WorkItem(2781, "https://github.com/dotnet/roslyn/issues/2781")]
+        [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
+        public void BadAnalyzerReference_Id()
+        {
+            var directory = Temp.CreateDirectory();
+            var textFile = directory.CreateFile("Foo.txt").WriteAllText("I am the very model of a modern major general.");
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
+
+            Assert.Equal(expected: "Foo", actual: reference.Id);
         }
 
         [Fact]

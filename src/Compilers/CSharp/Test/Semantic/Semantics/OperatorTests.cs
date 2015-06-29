@@ -1315,7 +1315,7 @@ class C
                 .ToArray());
 
             var expected = string.Join("\n", source
-                .Split(new[] { "\r\n" }, System.StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { Environment.NewLine }, System.StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.Contains("//-"))
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
@@ -3678,7 +3678,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "").VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "").VerifyDiagnostics();
         }
 
         [WorkItem(546655, "DevDiv")]
@@ -3710,7 +3710,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: @"False
+            var comp = CompileAndVerify(source, expectedOutput: @"False
 False");
             comp.VerifyDiagnostics();
         }
@@ -3994,7 +3994,7 @@ struct S
 }
 
 ";
-            CompileAndVerify(source1, emitters: TestEmitters.CCI, expectedOutput: "1");
+            CompileAndVerify(source1, expectedOutput: "1");
             CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
 // (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
 //     if (s == null) s = default(S);
@@ -4080,7 +4080,7 @@ class D
 ";
             string expectedOutput = @"True
 False";
-            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(543431, "DevDiv")]
@@ -4204,7 +4204,7 @@ class D
 ";
             string expectedOutput = @"True
 False";
-            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(543754, "DevDiv")]
@@ -4884,7 +4884,7 @@ A");
         }
 
         [WorkItem(656739, "DevDiv")]
-        [Fact]
+        [ClrOnlyFact]
         public void DynamicAmbiguousOrConversion()
         {
             string source = @"
@@ -6423,9 +6423,9 @@ public static class Program
         M(1 - Color.Red);
     }
 }";
-            CreateCompilationWithMscorlib(source1, options: Test.Utilities.TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
-            CreateCompilationWithMscorlib(source1, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (7,11): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'Color'
                 //         M(1 - Color.Red);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - Color.Red").WithArguments("-", "int", "Color").WithLocation(7, 11)
@@ -8650,8 +8650,31 @@ class M
 
             var err = compilation.GetDiagnostics().Single();
 
-            Assert.Equal((int)ErrorCode.ERR_ContantStringTooLong, err.Code);
+            Assert.Equal((int)ErrorCode.ERR_ConstantStringTooLong, err.Code);
             Assert.Equal("Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull));
+        }
+
+        [Fact, WorkItem(2075, "https://github.com/dotnet/roslyn/issues/2075")]
+        public void NegateALiteral()
+        {
+            string source = @"
+using System;
+
+namespace roslynChanges
+{
+    class MainClass
+    {
+        public static void Main (string[] args)
+        {
+            Console.WriteLine ((-(2147483648)).GetType ());
+            Console.WriteLine ((-2147483648).GetType ());
+        }
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"System.Int64
+System.Int32
+");
         }
     }
 }

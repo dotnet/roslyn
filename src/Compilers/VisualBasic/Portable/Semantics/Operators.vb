@@ -1933,7 +1933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' is no most specific narrowing conversion, then the conversion is undefined and a compile-time error occurs.
             ' When collecting the candidate user-defined conversions for a type T?, the user-defined conversion operators
             ' defined by T are used instead. If the type being converted to is also a nullable value type, then any of
-            ' T’s user-defined conversions operators that involve only non-nullable value types are lifted. A conversion
+            ' T's user-defined conversions operators that involve only non-nullable value types are lifted. A conversion
             ' operator from T to S is lifted to be a conversion from T? to S? 
             '
             ' !!! Dev10 implementation doesn't match the spec here (the behavior is duplicated):
@@ -2078,12 +2078,12 @@ Done:
             ' -	The most encompassing type in a set of types is the one type that encompasses
             '   all other types in the set. If no single type encompasses all other types, then
             '   the set has no most encompassing type. In intuitive terms, the most encompassing
-            '   type is the “largest” type in the set—the one type to which each of the other
+            '   type is the "largest" type in the set—the one type to which each of the other
             '   types can be converted through a widening conversion.
             ' -	The most encompassed type in a set of types is the one type that is encompassed
             '   by all other types in the set. If no single type is encompassed by all other types,
             '   then the set has no most encompassed type. In intuitive terms, the most encompassed
-            '   type is the “smallest” type in the set—the one type that can be converted from each
+            '   type is the "smallest" type in the set—the one type that can be converted from each
             '   of the other types through a narrowing conversion.
 
             Dim viableCandidates As Integer = 0
@@ -2340,9 +2340,9 @@ Done:
             ' Ignore user defined conversions between types that already have intrinsic conversions.
             ' This could happen for generics after generic param substituion.
             If Not method.ContainingType.IsDefinition Then
-                Dim useSiteDiagnoctics As HashSet(Of DiagnosticInfo) = Nothing
-                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnoctics)) OrElse
-                   Not useSiteDiagnoctics.IsNullOrEmpty Then
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnostics)) OrElse
+                   Not useSiteDiagnostics.IsNullOrEmpty Then
                     Return False
                 End If
             End If
@@ -2419,12 +2419,12 @@ Done:
             ' -	The most encompassing type in a set of types is the one type that encompasses
             '   all other types in the set. If no single type encompasses all other types, then
             '   the set has no most encompassing type. In intuitive terms, the most encompassing
-            '   type is the “largest” type in the set—the one type to which each of the other
+            '   type is the "largest" type in the set—the one type to which each of the other
             '   types can be converted through a widening conversion.
             ' -	The most encompassed type in a set of types is the one type that is encompassed
             '   by all other types in the set. If no single type is encompassed by all other types,
             '   then the set has no most encompassed type. In intuitive terms, the most encompassed
-            '   type is the “smallest” type in the set—the one type that can be converted from each
+            '   type is the "smallest" type in the set—the one type that can be converted from each
             '   of the other types through a narrowing conversion.
 
             Dim haveWideningInConversions As Integer = 0
@@ -2662,7 +2662,7 @@ Done:
         ''' The most encompassed type in a set of types is the one type that is encompassed
         ''' by all other types in the set. If no single type is encompassed by all other types,
         ''' then the set has no most encompassed type. In intuitive terms, the most encompassed
-        ''' type is the “smallest” type in the set—the one type that can be converted from each
+        ''' type is the "smallest" type in the set—the one type that can be converted from each
         ''' of the other types through a narrowing conversion.
         ''' </summary>
         Private Shared Function MostEncompassed(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
@@ -2707,7 +2707,7 @@ Next_i:
         ''' The most encompassing type in a set of types is the one type that encompasses
         ''' all other types in the set. If no single type encompasses all other types, then
         ''' the set has no most encompassing type. In intuitive terms, the most encompassing
-        ''' type is the “largest” type in the set—the one type to which each of the other
+        ''' type is the "largest" type in the set—the one type to which each of the other
         ''' types can be converted through a widening conversion.
         ''' </summary>
         Private Shared Function MostEncompassing(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol

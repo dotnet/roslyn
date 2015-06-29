@@ -104,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             // We calculate the set of supported projects
             candidateResults.Remove(bestBinding);
-
             foreach (var candidate in candidateResults)
             {
-                if (!candidate.Item3.SequenceEqual(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance))
+                // Does the candidate have anything remotely equivalent?
+                if (!candidate.Item3.Intersect(bestBinding.Item3, LinkedFilesSymbolEquivalenceComparer.Instance).Any())
                 {
                     invalidProjects.Add(candidate.Item1.ProjectId);
                 }
@@ -119,6 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         private async Task<SyntaxToken> FindTokenInLinkedDocument(SyntaxToken token, Document linkedDocument, CancellationToken cancellationToken)
         {
+            if (!linkedDocument.SupportsSyntaxTree)
+            {
+                return default(SyntaxToken);
+            }
+
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // Don't search trivia because we want to ignore inactive regions
@@ -235,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                 // if generating quick info for an attribute, bind to the class instead of the constructor
                 if (syntaxFactsService.IsAttributeName(token.Parent) &&
-                    symbol.ContainingType.IsAttribute())
+                    symbol.ContainingType?.IsAttribute() == true)
                 {
                     symbol = symbol.ContainingType;
                 }

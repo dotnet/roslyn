@@ -4211,7 +4211,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -6801,7 +6801,7 @@ class MyDerived : MyClass
                 //         Foo<int>.Y = 2;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Foo<int>.Y").WithArguments("Foo<int>.Y").WithLocation(6, 9)
                 );
-            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll.WithStrictMode()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (5,9): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
                 //         Foo<int>.X = 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "Foo<int>.X").WithLocation(5, 9),
@@ -7008,7 +7008,7 @@ public class B : A
 }";
             var compilation1 = CreateCompilationWithMscorlib(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1, emitters: TestEmitters.CCI);
+            var compilationVerifier = CompileAndVerify(compilation1);
             var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
@@ -8052,6 +8052,34 @@ public class MemberInitializerTest
                 //     private Foo f = new Foo{i = i, s = s};
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "s").WithArguments("MemberInitializerTest.s").WithLocation(12, 40));
         }
+
+        [Fact]
+        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializerr()
+        {
+            CreateCompilationWithMscorlib(
+@"
+class TestClass
+{
+    int P1 { get; }
+
+    int y = (P1 = 123);
+    int y1 { get; } = (P1 = 123);
+
+    static void Main()
+    {
+    }
+}
+")
+            .VerifyDiagnostics(
+    // (6,14): error CS0236: A field initializer cannot reference the non-static field, method, or property 'TestClass.P1'
+    //     int y = (P1 = 123);
+    Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(6, 14),
+    // (7,24): error CS0236: A field initializer cannot reference the non-static field, method, or property 'TestClass.P1'
+    //     int y1 { get; } = (P1 = 123);
+    Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "P1").WithArguments("TestClass.P1").WithLocation(7, 24)
+                );
+        }
+
 
         [Fact]
         public void CS0242ERR_VoidError()
@@ -16637,7 +16665,7 @@ interface IInv<T> { }";
         /// -------------------------+----------------------+------------------------+--------------------
         /// Type Param Covariant     | Covariant            | Contravariant          | Invariant
         /// Type Param Contravariant | Contravariant        | Covariant              | Invariant
-        /// Type Param Invariant     | Error                | Error                  | Invarian
+        /// Type Param Invariant     | Error                | Error                  | Invariant
         /// </summary>
         [Fact]
         public void CS1961ERR_UnexpectedVariance_Generics()
@@ -18815,7 +18843,7 @@ class MyClass
    }
 }
 ";
-            var verifier = CompileAndVerify(source: text, emitters: TestEmitters.RefEmitBug, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
+            var verifier = CompileAndVerify(source: text, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffff
 ffff");
 
@@ -19361,7 +19389,7 @@ ftftftft";
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithStrictMode()).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]
@@ -19650,7 +19678,7 @@ class B
                 Diagnostic(ErrorCode.WRN_IncorrectBooleanAssg, "b = false"));
         }
 
-        [Fact]
+        [Fact, WorkItem(909, "https://github.com/dotnet/roslyn/issues/909")]
         public void CS0675WRN_BitwiseOrSignExtend()
         {
             var text = @"
@@ -19695,6 +19723,22 @@ public class sign
       object v19 = 0xDEADBEEFU | (uint?)ni16;   // CS0675 
    }
 }
+
+class Test
+{
+    static void Main()
+    {
+        long bits = 0;
+        for (int i = 0; i < 32; i++)
+        {
+            if (i % 2 == 0)
+            {
+                bits |= (1 << i);
+                bits = bits | (1 << i);
+            }
+        }
+    }
+}
 ";
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
@@ -19721,7 +19765,13 @@ public class sign
                 Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "(ulong?)(uint?)(ushort?)ni08 | (ulong?)ni32_lo"),
                 // (40,20): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
                 //       object v19 = 0xDEADBEEFU | (uint?)ni16;   // CS0675 
-                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "0xDEADBEEFU | (uint?)ni16")
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "0xDEADBEEFU | (uint?)ni16"),
+                // (53,17): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
+                //                 bits |= (1 << i);
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits |= (1 << i)").WithLocation(53, 17),
+                // (54,24): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
+                //                 bits = bits | (1 << i);
+                Diagnostic(ErrorCode.WRN_BitwiseOrSignExtend, "bits | (1 << i)").WithLocation(54, 24)
                 );
         }
 
@@ -19784,7 +19834,8 @@ class C
                     Diagnostic(ErrorCode.WRN_AssignmentToLockOrDispose, "d").WithArguments("d").WithLocation(16, 19));
         }
 
-        [Fact, WorkItem(543615, "DevDiv"), WorkItem(546550, "DevDiv")]
+        [WorkItem(543615, "DevDiv"), WorkItem(546550, "DevDiv")]
+        [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void CS0811ERR_DebugFullNameTooLong()
         {
             var text = @"
@@ -20195,7 +20246,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "Main").WithArguments("Test.Main()"));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CS1592WRN_XMLParseIncludeError()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");
@@ -22403,6 +22454,36 @@ class Program
     //         x?.ToString()[1];
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.ToString()[1]").WithLocation(10, 9)
                );
+        }
+
+        [Fact]
+        [WorkItem(1179322, "DevDiv")]
+        public void LabelSameNameAsParameter()
+        {
+            var text = @"
+class Program
+{
+    static object M(object obj, object value)
+    {
+        if (((string)obj).Length == 0)  value: new Program();
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text);
+            compilation.GetParseDiagnostics().Verify(
+                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         if (((string)obj).Length == 0)  value: new Program();
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
+
+            // Make sure the compiler can handle producing method body diagnostics for this pattern when 
+            // queriied via an API (command line compile would exit after parse errors were reported). 
+            compilation.GetMethodBodyDiagnostics().Verify(
+                // (6,41): warning CS0164: This label has not been referenced
+                //         if (((string)obj).Length == 0)  value: new Program();
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "value").WithLocation(6, 41),
+                // (4,19): error CS0161: 'Program.M(object, object)': not all code paths return a value
+                //     static object M(object obj, object value)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("Program.M(object, object)").WithLocation(4, 19));
         }
     }
 }

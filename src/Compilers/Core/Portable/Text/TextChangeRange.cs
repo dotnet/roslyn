@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Provides hash code for current instnce of <see cref="TextChangeRange"/>.
+        /// Provides hash code for current instance of <see cref="TextChangeRange"/>.
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// An empty set of changes.
         /// </summary>
-        public static readonly IReadOnlyList<TextChangeRange> NoChanges = SpecializedCollections.EmptyReadOnlyList<TextChangeRange>();
+        public static IReadOnlyList<TextChangeRange> NoChanges => SpecializedCollections.EmptyReadOnlyList<TextChangeRange>();
 
         /// <summary>
         /// Collapse a set of <see cref="TextChangeRange"/>s into a single encompassing range.  If

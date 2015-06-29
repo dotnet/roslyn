@@ -1951,5 +1951,67 @@ index: 1);
         {
             TestMissing(@"using [|Sample|] ; ");
         }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccessibilityForPublicFields()
+        {
+            Test(
+@"class A { public B b = new [|B|](); }",
+@"public class B { public B() { } }",
+index: 0,
+isAddedDocument:true);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccessibilityForPublicFields2()
+        {
+            Test(
+@"class A { public B b = new [|B|](); }",
+@"class A { public B b = new B(); } public class B { public B() {}}",
+index: 1);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccessibilityForPublicFields3()
+        {
+            Test(
+@"class A { public B b = new [|B|](); }",
+@"class A { public B b = new B(); public class B { public B() {}}}",
+index: 2);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccessibilityForPublicFields4()
+        {
+            Test(
+@"class A { public B<int> b = new [|B|]<int>(); }",
+@"public class B<T> { public B() {}}",
+index: 0,
+isAddedDocument: true);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccessibilityForPublicFields5()
+        {
+            Test(
+@"class A { public B<int> b = new [|B|]<int>(); }",
+@"class A { public B<int> b = new B<int>(); } public class B<T>{ public B(){}}",
+index: 1);
+        }
+
+        [WorkItem(1107929)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public void TestAccessibilityForPublicFields6()
+        {
+            Test(
+@"class A { public B<int> b = new [|B|]<int>(); }",
+@"class A { public B<int> b = new B<int>(); public class B<T>{ public B(){}}}",
+index: 2);
+        }
     }
 }

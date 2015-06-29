@@ -28,15 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
                 Return
             End If
-
-            Dim multiLineLambda = TryCast(node, MultiLineLambdaExpressionSyntax)
-            If multiLineLambda IsNot Nothing Then
-                Dim baseToken = multiLineLambda.SubOrFunctionHeader.GetFirstToken(includeZeroWidth:=True)
-                Dim tokenToAlign = multiLineLambda.EndSubOrFunctionStatement.GetFirstToken(includeZeroWidth:=True)
-
-                AddAlignIndentationOfTokensToBaseTokenOperation(operations, multiLineLambda, baseToken, SpecializedCollections.SingletonEnumerable(tokenToAlign))
-                Return
-            End If
         End Sub
     End Class
 End Namespace

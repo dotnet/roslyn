@@ -63,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            var comHandleToThis = provider.ProjectCodeModel.GetFileCodeModelInstance(this.Workspace.GetFilePath(GetDocumentId()));
-            if (comHandleToThis == null)
+            ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle;
+            if (!provider.ProjectCodeModel.TryGetCachedFileCodeModel(this.Workspace.GetFilePath(GetDocumentId()), out fileCodeModelHandle))
             {
                 return needMoreTime;
             }
@@ -343,7 +343,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                int testOridinal = 0;
+                int testOrdinal = 0;
                 foreach (EnvDTE.CodeElement element in elementsToSearch)
                 {
                     if (element.Kind != EnvDTE.vsCMElement.vsCMElementAttribute)
@@ -353,12 +353,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                     if (element.Name == name)
                     {
-                        if (ordinal == testOridinal)
+                        if (ordinal == testOrdinal)
                         {
                             return element;
                         }
 
-                        testOridinal++;
+                        testOrdinal++;
                     }
                 }
             }

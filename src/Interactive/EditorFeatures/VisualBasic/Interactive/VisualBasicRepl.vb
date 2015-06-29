@@ -26,7 +26,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
         End Function
 
         Public Function GetCommandLineParser() As CommandLineParser Implements IRepl.GetCommandLineParser
+#If SCRIPTING Then
             Return VisualBasicCommandLineParser.Interactive
+#Else
+            Return VisualBasicCommandLineParser.Default
+#End If
         End Function
 
         Public Function GetDiagnosticFormatter() As DiagnosticFormatter Implements IRepl.GetDiagnosticFormatter

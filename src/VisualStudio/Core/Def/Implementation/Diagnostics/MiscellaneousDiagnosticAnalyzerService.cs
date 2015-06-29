@@ -152,17 +152,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
             }
 
-            private class MiscUpdateArgsId : ErrorSourceId.Base<DocumentId>, ISupportLiveUpdate
+            private class MiscUpdateArgsId : BuildToolId.Base<DocumentId>, ISupportLiveUpdate
             {
                 public MiscUpdateArgsId(DocumentId documentId) : base(documentId)
                 {
                 }
 
-                public override string ErrorSource
+                public override string BuildTool
                 {
                     get
                     {
-                        return PredefinedErrorSources.Compiler;
+                        return PredefinedBuildTools.Live;
                     }
                 }
 

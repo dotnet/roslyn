@@ -727,9 +727,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMemmber)
+            private bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
             {
-                return oldMember.GetModifierFlags() == newMemmber.GetModifierFlags();
+                return oldMember.GetModifierFlags() == newMember.GetModifierFlags();
             }
 
             private bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)

@@ -90,13 +90,13 @@ namespace ConsoleApplication1
         [Fact]
         public void Test2()
         {
-            //x is “assigned when true” after “false”
-            //Therefore x is “assigned” before “z == 1” (5.3.3.24)
-            //Therefore x is “assigned” after “z == 1” (5.3.3.20)
-            //Therefore x is “assigned when true” after “(false && z == 1)” (5.3.3.24)
+            //x is "assigned when true" after "false"
+            //Therefore x is "assigned" before "z == 1" (5.3.3.24)
+            //Therefore x is "assigned" after "z == 1" (5.3.3.20)
+            //Therefore x is "assigned when true" after "(false && z == 1)" (5.3.3.24)
             //Since the condition of the ?: expression is the constant true, the state of x after the ?: expression is the same as the state of x after the consequence (5.3.3.28)
-            //Since the state of x after the consequence is “assigned when true”, the state of x after the ?: expression is “assigned when true” (5.3.3.28)
-            //Since the state of x after the if’s condition is “assigned when true”, x is assigned in the then block (5.3.3.5)
+            //Since the state of x after the consequence is "assigned when true", the state of x after the ?: expression is "assigned when true" (5.3.3.28)
+            //Since the state of x after the if's condition is "assigned when true", x is assigned in the then block (5.3.3.5)
             //Therefore, there should be no error.
             string program = @"
 namespace ConsoleApplication1

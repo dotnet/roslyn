@@ -26,6 +26,7 @@ using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -54,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
                 _patterns = patterns;
             }
 
-            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, SearchOption searchOption)
+            internal override IEnumerable<string> EnumerateFiles(string directory, string fileNamePattern, object searchOption)
             {
                 var key = directory + "|" + fileNamePattern;
-                if (searchOption == SearchOption.TopDirectoryOnly)
+                if (searchOption == PortableShim.SearchOption.TopDirectoryOnly)
                 {
                     return _patterns[key];
                 }
@@ -4186,7 +4187,7 @@ class myClass
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             // csc errors_whitespace_008.cs @errors_whitespace_008.cs.rsp 
-            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en"});
+            var csc = new MockCSharpCompiler(rsp, _baseDirectory, new[] { source, "/preferreduilang:en" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
 
@@ -4566,6 +4567,30 @@ class C
             int exitCode = csc.Run(outWriter);
             Assert.NotEqual(0, exitCode);
             Assert.Equal("error CS5001: Program does not contain a static 'Main' method suitable for an entry point", outWriter.ToString().Trim());
+
+            CleanupAllGeneratedFiles(file.Path);
+        }
+
+        [Fact, WorkItem(1093063, "DevDiv")]
+        public void VerifyDiagnosticSeverityNotLocalized()
+        {
+            string source = @"
+class C
+{
+}
+";
+            var dir = Temp.CreateDirectory();
+
+            var file = dir.CreateFile("a.cs");
+            file.WriteAllText(source);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/target:exe", "a.cs" });
+            int exitCode = csc.Run(outWriter);
+            Assert.NotEqual(0, exitCode);
+
+            // If "error" was localized, below assert will fail on PLOC builds. The output would be something like: "!pTCvB!vbc : !FLxft!error 表! CS5001:"
+            Assert.Contains("error CS5001:", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(file.Path);
         }
@@ -5312,7 +5337,7 @@ class C
         }
 
         [WorkItem(544926, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void ResponseFilesWithNoconfig_01()
         {
             string source = Temp.CreateFile("a.cs").WriteAllText(@"
@@ -6235,7 +6260,7 @@ class Program3
                     throw new IOException();
                 }
 
-                return File.Open(file, mode, access, share);
+                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6261,7 +6286,7 @@ class Program3
                     throw new IOException();
                 }
 
-                return File.Open(file, mode, access, share);
+                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6287,7 +6312,7 @@ class Program3
                 }
                 else
                 {
-                    return File.Open(file, mode, access, share);
+                    return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
                 }
             };
 
@@ -6564,6 +6589,57 @@ public class C { }
         }
 
         [Fact]
+        public void ReportAnalyzer()
+        {
+            var parsedArgs1 = DefaultParse(new[] { "a.cs", "/reportanalyzer" }, _baseDirectory);
+            Assert.True(parsedArgs1.ReportAnalyzer);
+
+            var parsedArgs2 = DefaultParse(new[] { "a.cs", "" }, _baseDirectory);
+            Assert.False(parsedArgs2.ReportAnalyzer);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, srcDirectory, new[] { "/reportanalyzer", "/t:library", "/a:" + Assembly.GetExecutingAssembly().Location, srcFile.Path });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        [WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")]
+        public void AnalyzerDiagnosticThrowsInGetMessage()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
+               analyzer: new AnalyzerThatThrowsInGetMessage());
+
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+
+            // Verify that the diagnostic reported by AnalyzerThatThrowsInGetMessage is reported, though it doesn't have the message.
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal);
+
+            // Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal);
+            Assert.Contains(nameof(NotImplementedException), output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         public void ErrorPathsFromLineDirectives()
         {
             string sampleProgram = @"
@@ -6790,31 +6866,31 @@ using System.Diagnostics; // Unused.
         {
             var args = DefaultParse(new[] { "/features:Test", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal("Test", args.CompilationOptions.Features.Single());
+            Assert.Equal("Test", args.ParseOptions.Features.Single().Key);
 
             args = DefaultParse(new[] { "/features:Test", "a.vb", "/Features:Experiment" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(2, args.CompilationOptions.Features.Length);
-            Assert.Equal("Test", args.CompilationOptions.Features[0]);
-            Assert.Equal("Experiment", args.CompilationOptions.Features[1]);
+            Assert.Equal(2, args.ParseOptions.Features.Count);
+            Assert.True(args.ParseOptions.Features.ContainsKey("Test"));
+            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"));
 
-            args = DefaultParse(new[] { "/features:Test:false,Key:value", "a.vb" }, _baseDirectory);
+            args = DefaultParse(new[] { "/features:Test=false,Key=value", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal("Test:false,Key:value", args.CompilationOptions.Features.Single());
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "false" }, { "Key", "value" } }));
 
-            // We don't do any rigorous validation of /features arguments...
+            // We don't do any rigorous validation of / features arguments...
 
             args = DefaultParse(new[] { "/features", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Empty(args.CompilationOptions.Features);
+            Assert.Empty(args.ParseOptions.Features);
 
             args = DefaultParse(new[] { "/features:,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(",", args.CompilationOptions.Features.Single());
+            Assert.Equal("", args.ParseOptions.Features.Single().Key);
 
             args = DefaultParse(new[] { "/features:Test,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.Equal("Test,", args.CompilationOptions.Features.Single());
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" }, { "", "true" } }));
         }
 
         [Fact]
@@ -6891,7 +6967,7 @@ using System.Diagnostics; // Unused.
         }
 
         private static string VerifyOutput(TempDirectory sourceDir, TempFile sourceFile,
-                                           bool includeCurrentAssemblyAsAnalyzerReferecne = true,
+                                           bool includeCurrentAssemblyAsAnalyzerReference = true,
                                            string[] additionalFlags = null,
                                            int expectedInfoCount = 0,
                                            int expectedWarningCount = 0,
@@ -6901,7 +6977,7 @@ using System.Diagnostics; // Unused.
                                 "/nologo", "/preferreduilang:en", "/t:library",
                                 sourceFile.Path
                              };
-            if (includeCurrentAssemblyAsAnalyzerReferecne)
+            if (includeCurrentAssemblyAsAnalyzerReference)
             {
                 args = args.Append("/a:" + Assembly.GetExecutingAssembly().Location);
             }
@@ -7204,7 +7280,7 @@ using System.Diagnostics; // Unused.
         private string GetOutput(
             string name,
             string source,
-            bool includeCurrentAssemblyAsAnalyzerReferecne = true,
+            bool includeCurrentAssemblyAsAnalyzerReference = true,
             string[] additionalFlags = null,
             int expectedInfoCount = 0,
             int expectedWarningCount = 0,
@@ -7214,7 +7290,7 @@ using System.Diagnostics; // Unused.
             var file = dir.CreateFile(name);
             file.WriteAllText(source);
 
-            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount);
+            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference, additionalFlags, expectedInfoCount, expectedWarningCount, expectedErrorCount);
             CleanupAllGeneratedFiles(file.Path);
             return output;
         }
@@ -7513,41 +7589,41 @@ class C
             var file = dir.CreateFile("a.cs");
             file.WriteAllText(source);
 
-            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, expectedErrorCount: 1);
+            var output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler error CS0029 can't be suppressed via /warn:0.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warn:0" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warn:0" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that compiler error CS0029 can't be suppressed via /nowarn:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/nowarn:29" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:29" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/nowarn:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/nowarn:CS0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens when using /warnaserror[+/-] when compiler error CS0029 is present.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror+" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror+" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror-" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             // TEST: Verify that nothing bad happens if someone passes compiler error CS0029 to /warnaserror[+/-]:.
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror:0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror:0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror+:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror+:CS0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror-:29" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-:29" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
-            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReferecne: false, additionalFlags: new[] { "/warnaserror-:CS0029" }, expectedErrorCount: 1);
+            output = VerifyOutput(dir, file, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/warnaserror-:CS0029" }, expectedErrorCount: 1);
             Assert.Contains("a.cs(6,17): error CS0029: Cannot implicitly convert type 'System.Exception' to 'int'", output, StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(file.Path);

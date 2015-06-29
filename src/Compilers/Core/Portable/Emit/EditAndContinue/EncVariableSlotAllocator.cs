@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // syntax:
         private readonly Func<SyntaxNode, SyntaxNode> _syntaxMapOpt;
-        private readonly IMethodSymbolInternal _previousMethod;
+        private readonly IMethodSymbolInternal _previousTopLevelMethod;
         private readonly DebugId _methodId;
 
         // locals:
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
-            IMethodSymbolInternal previousMethod,
+            IMethodSymbolInternal previousTopLevelMethod,
             DebugId methodId,
             ImmutableArray<EncLocalInfo> previousLocals,
             IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMapOpt,
@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMapOpt)
         {
             Debug.Assert(symbolMap != null);
-            Debug.Assert(previousMethod != null);
+            Debug.Assert(previousTopLevelMethod != null);
             Debug.Assert(!previousLocals.IsDefault);
 
             _symbolMap = symbolMap;
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;
-            _previousMethod = previousMethod;
+            _previousTopLevelMethod = previousTopLevelMethod;
             _methodId = methodId;
             _hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
             _hoistedLocalSlotCount = hoistedLocalSlotCount;
@@ -87,11 +87,19 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override DebugId? MethodId => _methodId;
 
+        private int CalculateSyntaxOffsetInPreviousMethod(int position, SyntaxTree tree)
+        {
+            // Note that syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method,
+            // not by the lambda method. The offset is thus relative to the top-level method body start. We can thus avoid mapping 
+            // the current lambda symbol or body to the corresponding previous lambda symbol or body, whcih is non-trivial. 
+            return _previousTopLevelMethod.CalculateLocalSyntaxOffset(position, tree);
+        }
+
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
             builder.AddRange(_previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
         }
-
+        
         private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
         {
             if (_syntaxMapOpt == null)
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            int syntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
+            int syntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousDeclarator.SpanStart, previousDeclarator.SyntaxTree);
             previousId = new LocalDebugId(syntaxOffset, currentId.Ordinal);
             return true;
         }
@@ -216,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            previousSyntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
             return true;
         }
 
@@ -240,14 +248,19 @@ namespace Microsoft.CodeAnalysis.Emit
             SyntaxNode previousSyntax;
             if (isLambdaBody)
             {
-                previousSyntax = previousLambdaSyntax.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                previousSyntax = previousLambdaSyntax.TryGetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+                if (previousSyntax == null)
+                {
+                    previousSyntaxOffset = 0;
+                    return false;
+                }
             }
             else
             {
                 previousSyntax = previousLambdaSyntax;
             }
 
-            previousSyntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            previousSyntaxOffset = CalculateSyntaxOffsetInPreviousMethod(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
             return true;
         }
 

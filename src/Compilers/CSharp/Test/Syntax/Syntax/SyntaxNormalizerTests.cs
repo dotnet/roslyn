@@ -229,6 +229,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("[a(b,c)]class d{}", "[a(b, c)]\r\nclass d\r\n{\r\n}");
             TestNormalizeDeclaration("[a][b]class c{}", "[a]\r\n[b]\r\nclass c\r\n{\r\n}");
             TestNormalizeDeclaration("[a:b]class c{}", "[a: b]\r\nclass c\r\n{\r\n}");
+
+            // parameter attributes
+            TestNormalizeDeclaration("class c{void M([a]int x,[b] [c,d]int y){}}", "class c\r\n{\r\n  void M([a] int x, [b][c, d] int y)\r\n  {\r\n  }\r\n}");
         }
 
         [WorkItem(541684, "DevDiv")]
@@ -314,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(expected, actual);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         [WorkItem(1066, "github")]
         public void TestNormalizePreprocessorDirectives()
         {
@@ -352,7 +355,7 @@ namespace foo
 ");
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         [WorkItem(531607, "DevDiv")]
         public void TestNormalizeLineDirectiveTrivia()
         {
@@ -388,7 +391,7 @@ namespace foo
         }
 
         [WorkItem(542887, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestFormattingForBlockSyntax()
         {
             var code =
@@ -415,14 +418,14 @@ int i = 1;
         }
 
         [WorkItem(1079042, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestNormalizeDocumentationComments()
         {
             var code =
 @"class c1
 {
     ///<summary>
-    /// A documenation comment
+    /// A documentation comment
     ///</summary>
     void foo()
     {
@@ -433,7 +436,7 @@ int i = 1;
 @"class c1
 {
   ///<summary>
-  /// A documenation comment
+  /// A documentation comment
   ///</summary>
   void foo()
   {
@@ -441,14 +444,14 @@ int i = 1;
 }");
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestNormalizeDocumentationComments2()
         {
             var code =
 @"class c1
 {
     ///  <summary>
-    ///  A documenation comment
+    ///  A documentation comment
     ///  </summary>
     void foo()
     {
@@ -459,7 +462,7 @@ int i = 1;
 @"class c1
 {
   ///  <summary>
-  ///  A documenation comment
+  ///  A documentation comment
   ///  </summary>
   void foo()
   {
@@ -467,10 +470,21 @@ int i = 1;
 }");
         }
 
-        private void TestNormalizeTrivia(string text, string expected)
+        [Fact]
+        public void TestNormalizeEOL()
         {
-            var list = SyntaxFactory.ParseLeadingTrivia(text);
-            var actual = SyntaxNormalizer.Normalize(list, "    ").ToFullString();
+            var code = "class c{}";
+            var expected = "class c\n{\n}";
+            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "  ", eol: "\n").ToFullString();
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestNormalizeTabs()
+        {
+            var code = "class c{void m(){}}";
+            var expected = "class c\r\n{\r\n\tvoid m()\r\n\t{\r\n\t}\r\n}";
+            var actual = SyntaxFactory.ParseCompilationUnit(code).NormalizeWhitespace(indentation: "\t").ToFullString();
             Assert.Equal(expected, actual);
         }
 
@@ -480,9 +494,15 @@ int i = 1;
             Assert.Equal(expected, actual);
         }
 
+        private void TestNormalizeTrivia(string text, string expected)
+        {
+            var list = SyntaxFactory.ParseLeadingTrivia(text);
+            TestNormalize(list, expected);
+        }
+
         private void TestNormalize(SyntaxTriviaList trivia, string expected)
         {
-            var actual = SyntaxNormalizer.Normalize(trivia, "    ").ToFullString();
+            var actual = trivia.NormalizeWhitespace("    ").ToFullString();
             Assert.Equal(expected, actual);
         }
     }

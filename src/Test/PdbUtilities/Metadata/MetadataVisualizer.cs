@@ -49,7 +49,7 @@ namespace Roslyn.Test.MetadataUtilities
         private readonly MetadataVisualizerOptions _options;
 
         // enc map for each delta reader
-        private readonly ImmutableArray<ImmutableArray<Handle>> _encMaps;
+        private readonly ImmutableArray<ImmutableArray<EntityHandle>> _encMaps;
 
         private MetadataReader _reader;
         private readonly List<string[]> _pendingRows = new List<string[]>();
@@ -229,7 +229,7 @@ namespace Roslyn.Test.MetadataUtilities
             _pendingRows.Clear();
         }
 
-        private Handle GetAggregateHandle(Handle generationHandle, int generation)
+        private EntityHandle GetAggregateHandle(EntityHandle generationHandle, int generation)
         {
             var encMap = _encMaps[generation - 1];
 
@@ -242,7 +242,7 @@ namespace Roslyn.Test.MetadataUtilities
             return encMap[start + MetadataTokens.GetRowNumber(generationHandle) - 1];
         }
 
-        private static bool TryGetHandleRange(ImmutableArray<Handle> handles, HandleKind handleType, out int start, out int count)
+        private static bool TryGetHandleRange(ImmutableArray<EntityHandle> handles, HandleKind handleType, out int start, out int count)
         {
             TableIndex tableIndex;
             MetadataTokens.TryGetTableIndex(handleType, out tableIndex);
@@ -354,7 +354,9 @@ namespace Roslyn.Test.MetadataUtilities
                 return string.Format("#{0:x}", _reader.GetHeapOffset(handle));
             }
 
-            return $"{GetValueChecked(getValue, _reader, handle):x} (#{_reader.GetHeapOffset(handle):x})";
+            // virtual heap handles don't have offset:
+            int heapOffset = MetadataTokens.GetHeapOffset(handle);
+            return $"{GetValueChecked(getValue, _reader, handle):x}" + (heapOffset >= 0 ? $" (#{heapOffset:x})" : "");
         }
 
         private string GetValueChecked(Func<MetadataReader, Handle, string> getValue, MetadataReader reader, Handle handle)
@@ -409,13 +411,13 @@ namespace Roslyn.Test.MetadataUtilities
         }
 
         // TODO (tomat): handle collections should implement IReadOnlyCollection<Handle>
-        private string TokenRange<THandle>(IReadOnlyCollection<THandle> handles, Func<THandle, Handle> conversion)
+        private string TokenRange<THandle>(IReadOnlyCollection<THandle> handles, Func<THandle, EntityHandle> conversion)
         {
             var genericHandles = handles.Select(conversion);
             return (handles.Count == 0) ? "nil" : Token(genericHandles.First(), displayTable: false) + "-" + Token(genericHandles.Last(), displayTable: false);
         }
 
-        public string TokenList(IReadOnlyCollection<Handle> handles, bool displayTable = false)
+        public string TokenList(IReadOnlyCollection<EntityHandle> handles, bool displayTable = false)
         {
             if (handles.Count == 0)
             {
@@ -836,7 +838,7 @@ namespace Roslyn.Test.MetadataUtilities
                 if (_aggregator != null)
                 {
                     int generation;
-                    Handle primary = _aggregator.GetGenerationHandle(entry, out generation);
+                    EntityHandle primary = (EntityHandle)_aggregator.GetGenerationHandle(entry, out generation);
                     bool isUpdate = _readers[generation] != _reader;
 
                     var primaryModule = _readers[generation].GetModuleDefinition();
@@ -1138,7 +1140,57 @@ namespace Roslyn.Test.MetadataUtilities
                 }
             }
 
-            _writer.WriteLine();
+            // don't calculate statistics for EnC delta, it's not interesting
+            if (_aggregator == null)
+            {
+                _writer.WriteLine();
+                _writer.WriteLine("CustomAttribute sizes by constructor:");
+                foreach (var grouping in from caHandle in _reader.CustomAttributes
+                                         let ca = _reader.GetCustomAttribute(caHandle)
+                                         group ca.Constructor by ca.Value into values   // blob -> { ctor1, ctor2, ... }
+                                         group values.Key by values.First() into g      // ctor1 -> { blob1, ... }
+                                         select new { Ctor = g.Key, Size = g.Sum(ca => _reader.GetBlobReader(ca).Length) } into ctorAndSize
+                                         orderby ctorAndSize.Size descending
+                                         select ctorAndSize)
+                {
+                    string typeStr = null;
+                    switch (grouping.Ctor.Kind)
+                    {
+                        case HandleKind.MemberReference:
+                            var memberRef = _reader.GetMemberReference((MemberReferenceHandle)grouping.Ctor);
+
+                            switch (memberRef.Parent.Kind)
+                            {
+                                case HandleKind.TypeReference:
+                                    var typeRef = _reader.GetTypeReference((TypeReferenceHandle)memberRef.Parent);
+                                    typeStr = typeRef.Namespace.IsNil ? _reader.GetString(typeRef.Name) : _reader.GetString(typeRef.Namespace) + "." + _reader.GetString(typeRef.Name);
+                                    break;
+
+                                case HandleKind.TypeDefinition:
+                                    var typeDef = _reader.GetTypeDefinition((TypeDefinitionHandle)memberRef.Parent);
+                                    typeStr = typeDef.Namespace.IsNil ? _reader.GetString(typeDef.Name) : _reader.GetString(typeDef.Namespace) + "." + _reader.GetString(typeDef.Name);
+                                    break;
+
+                                case HandleKind.MethodDefinition:
+                                case HandleKind.ModuleReference:
+                                case HandleKind.TypeSpecification:
+                                    break;
+                            }
+
+                            break;
+
+                        case HandleKind.MethodDefinition:
+                            // TODO
+                            break;
+                    }
+
+
+                    // grouping.Key
+                    _writer.WriteLine($"  {typeStr ?? Token(grouping.Ctor)}: {grouping.Size} bytes");
+                }
+
+                _writer.WriteLine();
+            }
         }
 
         private void WriteGuids()
@@ -1198,11 +1250,11 @@ namespace Roslyn.Test.MetadataUtilities
             _writer.Write(builder.ToString());
         }
 
-        private sealed class TokenTypeComparer : IComparer<Handle>
+        private sealed class TokenTypeComparer : IComparer<EntityHandle>
         {
             public static readonly TokenTypeComparer Instance = new TokenTypeComparer();
 
-            public int Compare(Handle x, Handle y)
+            public int Compare(EntityHandle x, EntityHandle y)
             {
                 return x.Kind.CompareTo(y.Kind);
             }

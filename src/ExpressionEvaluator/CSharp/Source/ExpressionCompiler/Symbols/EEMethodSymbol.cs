@@ -149,11 +149,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             foreach (var pair in sourceDisplayClassVariables)
             {
                 var variable = pair.Value;
-                var displayClassInstanceFromLocal = variable.DisplayClassInstance as DisplayClassInstanceFromLocal;
-                var displayClassInstance = (displayClassInstanceFromLocal == null) ?
-                    (DisplayClassInstance)new DisplayClassInstanceFromThis(_parameters[0]) :
-                    new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[displayClassInstanceFromLocal.Local]);
-                variable = variable.SubstituteFields(displayClassInstance, this.TypeMap);
+                var oldDisplayClassInstance = variable.DisplayClassInstance;
+
+                // Note: we don't call ToOtherMethod in the local case because doing so would produce
+                // a new LocalSymbol that would not be ReferenceEquals to the one in this.LocalsForBinding.
+                var oldDisplayClassInstanceFromLocal = oldDisplayClassInstance as DisplayClassInstanceFromLocal;
+                var newDisplayClassInstance = (oldDisplayClassInstanceFromLocal == null) ?
+                    oldDisplayClassInstance.ToOtherMethod(this, this.TypeMap) :
+                    new DisplayClassInstanceFromLocal((EELocalSymbol)localsMap[oldDisplayClassInstanceFromLocal.Local]);
+
+                variable = variable.SubstituteFields(newDisplayClassInstance, this.TypeMap);
                 displayClassVariables.Add(pair.Key, variable);
             }
 

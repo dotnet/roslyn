@@ -379,6 +379,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                        DebuggerBrowsableState.Never)));
         }
 
+        internal SynthesizedAttributeData SynthesizeDebuggerStepThroughAttribute()
+        {
+            if (Options.OptimizationLevel != OptimizationLevel.Debug)
+            {
+                return null;
+            }
+
+            return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
+        }
+
         internal SynthesizedAttributeData SynthesizeDebuggableAttribute()
         {
             TypeSymbol debuggableAttribute = GetWellKnownType(WellKnownType.System_Diagnostics_DebuggableAttribute);

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return new TextSpan(index, textToFind.Length);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestGetSourceLocationInFile()
         {
             string sampleProgram = @"class X {
@@ -110,7 +110,7 @@ int x;
             Assert.Equal(1, flpsXToCloseBrace.EndLinePosition.Character);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestLineMapping1()
         {
             string sampleProgram = @"using System;
@@ -203,7 +203,7 @@ class X {
             AssertMappedSpanEqual(syntaxTree, "int s", "seconddirective", 19, 4, 19, 9, hasMappedPath: true);
         }
 
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestLineMappingNoDirectives()
         {
             string sampleProgram = @"using System;
@@ -365,7 +365,7 @@ end class";
 
         [WorkItem(541612, "DevDiv")]
         [Fact]
-        public void DiagnsoticsGetLineSpanForErrorinTryCatch()
+        public void DiagnosticsGetLineSpanForErrorinTryCatch()
         {
             string sampleProgram = @"
 class Program
@@ -395,7 +395,7 @@ class Program
         }
 
         [WorkItem(537926, "DevDiv")]
-        [ConditionalFact(typeof(ClrOnly))]
+        [ClrOnlyFact]
         public void TestSourceLocationToString()
         {
             string sampleProgram = @"using System;

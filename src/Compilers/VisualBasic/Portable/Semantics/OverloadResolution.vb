@@ -1099,7 +1099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '         delegate types in M are widening conversions, but not all are in N, eliminate N from the set.
             '
             ' The spec implies that this rule is applied to the set of most applicable candidate as one of the tie breaking rules.
-            ' However, doing it there wouldn’t have any effect because all candidates in the set of most applicable candidates
+            ' However, doing it there wouldn't have any effect because all candidates in the set of most applicable candidates
             ' are equally applicable, therefore, have the same types for corresponding parameters. Thus all the candidates
             ' have exactly the same delegate relaxation level and none would be eliminated. 
             ' Dev10 applies this rule much earlier, even before eliminating narrowing candidates, and it does it across the board.
@@ -2398,15 +2398,15 @@ BreakTheTie:
                                         Dim lost As Boolean = False
 
                                         If (conv.Key And ConversionKind.UserDefined) = 0 Then
-                                            If IsUnwrappinNullable(conv.Key, arguments(j).Type, current.Candidate.Parameters(j).Type) Then
+                                            If IsUnwrappingNullable(conv.Key, arguments(j).Type, current.Candidate.Parameters(j).Type) Then
                                                 lost = True
                                             End If
                                         Else
                                             ' Lifted user-defined conversions don't unwrap nullables, they are marked with Nullable bit.
                                             If (conv.Key And ConversionKind.Nullable) = 0 Then
-                                                If IsUnwrappinNullable(arguments(j).Type, conv.Value.Parameters(0).Type, useSiteDiagnostics) Then
+                                                If IsUnwrappingNullable(arguments(j).Type, conv.Value.Parameters(0).Type, useSiteDiagnostics) Then
                                                     lost = True
-                                                ElseIf IsUnwrappinNullable(conv.Value.ReturnType, current.Candidate.Parameters(j).Type, useSiteDiagnostics) Then
+                                                ElseIf IsUnwrappingNullable(conv.Value.ReturnType, current.Candidate.Parameters(j).Type, useSiteDiagnostics) Then
                                                     lost = True
                                                 End If
                                             End If
@@ -2437,7 +2437,7 @@ Next_i:
 
             If lateBindingIsAllowed Then
                 ' Are there all narrowing from object candidates?
-                Dim haveAllNarrowingFromObject As Boolean = HaveNarrorwingOnlyFromObjectCandidates(candidates)
+                Dim haveAllNarrowingFromObject As Boolean = HaveNarrowingOnlyFromObjectCandidates(candidates)
 
                 If haveAllNarrowingFromObject AndAlso Not appliedTieBreakingRules Then
                     ' Apply shadowing rules, Dev10 compiler does that for narrowing candidates too.
@@ -2448,7 +2448,7 @@ Next_i:
                         Return applicableCandidates
                     End If
 
-                    haveAllNarrowingFromObject = HaveNarrorwingOnlyFromObjectCandidates(candidates)
+                    haveAllNarrowingFromObject = HaveNarrowingOnlyFromObjectCandidates(candidates)
                 End If
 
                 If haveAllNarrowingFromObject Then
@@ -2527,7 +2527,7 @@ Done:
             Return applicableCandidates
         End Function
 
-        Private Shared Function IsUnwrappinNullable(
+        Private Shared Function IsUnwrappingNullable(
             conv As ConversionKind,
             sourceType As TypeSymbol,
             targetType As TypeSymbol
@@ -2539,16 +2539,16 @@ Done:
                    Not targetType.IsNullableType()
         End Function
 
-        Private Shared Function IsUnwrappinNullable(
+        Private Shared Function IsUnwrappingNullable(
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As Boolean
             Return sourceType IsNot Nothing AndAlso
-                   IsUnwrappinNullable(Conversions.ClassifyPredefinedConversion(sourceType, targetType, useSiteDiagnostics), sourceType, targetType)
+                   IsUnwrappingNullable(Conversions.ClassifyPredefinedConversion(sourceType, targetType, useSiteDiagnostics), sourceType, targetType)
         End Function
 
-        Private Shared Function HaveNarrorwingOnlyFromObjectCandidates(
+        Private Shared Function HaveNarrowingOnlyFromObjectCandidates(
             candidates As ArrayBuilder(Of CandidateAnalysisResult)
         ) As Boolean
             Dim haveAllNarrowingFromObject As Boolean = False
@@ -3473,7 +3473,7 @@ Bailout:
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             delegateReturnType As TypeSymbol,
-            delegateReturnTypeReferenceBoundeNode As BoundNode,
+            delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
             isQueryOperatorInvocation As Boolean,
             forceExpandedForm As Boolean,
@@ -3500,7 +3500,7 @@ Bailout:
 
                 If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule Then
                     CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
-                                               delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                               delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                useSiteDiagnostics)
                     Continue For
@@ -3615,12 +3615,12 @@ Bailout:
 
                     If info.State <> CandidateAnalysisResultState.Ambiguous Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
-                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                    useSiteDiagnostics)
                     ElseIf includeEliminatedCandidates Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
-                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                    useSiteDiagnostics)
 
@@ -3630,7 +3630,7 @@ Bailout:
                             If info2.Candidate IsNot Nothing AndAlso info2.State = CandidateAnalysisResultState.Ambiguous Then
                                 quickInfo(l) = Nothing
                                 CollectOverloadedCandidate(results, info2, typeArguments, arguments, argumentNames,
-                                                           delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                           delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                            includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                            useSiteDiagnostics)
                             End If
@@ -3765,7 +3765,7 @@ Bailout:
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
             delegateReturnType As TypeSymbol,
-            delegateReturnTypeReferenceBoundeNode As BoundNode,
+            delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
@@ -3820,7 +3820,7 @@ Bailout:
 #End If
                         InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(results, candidateAnalysis, typeArguments,
                                                                                    arguments, argumentNames,
-                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
                                                                                    useSiteDiagnostics)
                     End If
@@ -3836,7 +3836,7 @@ Bailout:
                         candidateAnalysis.ExpandedParamArrayArgumentsUsed = Math.Max(arguments.Length - candidate.Candidate.ParameterCount + 1, 0)
                         InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(results, candidateAnalysis, typeArguments,
                                                                                    arguments, argumentNames,
-                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundeNode,
+                                                                                   delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
                                                                                    useSiteDiagnostics)
                     End If
@@ -4198,7 +4198,7 @@ ContinueCandidatesLoop:
             '    respect to type parameters on the type, then M is less generic than N.
             '
             ' A parameter M is considered to be equally generic to a parameter N if their types Mt and Nt 
-            ' both refer to type parameters or both don’t refer to type parameters. M is considered to be less 
+            ' both refer to type parameters or both don't refer to type parameters. M is considered to be less 
             ' generic than N if Mt does not refer to a type parameter and Nt does.
             ' 
             ' Extension method type parameters that were fixed during currying are considered type parameters on the type, 

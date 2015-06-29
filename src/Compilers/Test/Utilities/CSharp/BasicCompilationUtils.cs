@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 references = new[] { TestBase.MscorlibRef };
             }
             var compilation = CreateCompilationWithMscorlib(source, assemblyName, references);
-            var verifier = Instance.CompileAndVerify(compilation, emitters: TestEmitters.CCI, verify: verify);
+            var verifier = Instance.CompileAndVerify(compilation, verify: verify);
             return MetadataReference.CreateFromImage(verifier.EmittedAssemblyData);
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 get { throw new NotImplementedException(); }
             }
 
-            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options)
+            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
             {
                 throw new NotImplementedException();
             }

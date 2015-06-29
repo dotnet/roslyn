@@ -367,5 +367,88 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x96, 0x02, 0x14, 0x01
             }, deserialized[1].Data);
         }
+
+        [Fact]
+        public void InvalidAlignment1()
+        {
+            // CDIs that don't support alignment:
+            var bytes = new byte[]
+            {
+                0x04, // version
+                0x01, // count
+                0x00,
+                0x00,
+
+                0x04, // version
+                0x06, // kind
+                0x00,
+                0x03, // bad alignment
+
+                // body size
+                0x0a, 0x00, 0x00, 0x00,
+
+                // payload
+                0x01, 0x00
+            };
+
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray());
+        }
+
+        [Fact]
+        public void InvalidAlignment2()
+        {
+            // CDIs that don't support alignment:
+            var bytes = new byte[]
+            {
+                0x04, // version
+                0x01, // count
+                0x00,
+                0x00,
+
+                0x04, // version
+                0x06, // kind
+                0x00,
+                0x03, // bad alignment
+
+                // body size
+                0x02, 0x00, 0x00, 0x00,
+
+                // payload
+                0x01, 0x00, 0x00, 0x06
+            };
+
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray());
+        }
+
+        [Fact]
+        public void InvalidAlignment_KindDoesntSupportAlignment()
+        {
+            // CDIs that don't support alignment:
+            var bytes = new byte[]
+            {
+                0x04, // version
+                0x01, // count
+                0x00,
+                0x00,
+
+                0x04, // version
+                0x01, // kind
+                0x11, // invalid data
+                0x14, // invalid data
+
+                // body size
+                0x0c, 0x00, 0x00, 0x00,
+
+                // payload
+                0x01, 0x00, 0x00, 0x06
+            };
+
+            var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
+            Assert.Equal(1, records.Length);
+
+            Assert.Equal(CustomDebugInfoKind.ForwardInfo, records[0].Kind);
+            Assert.Equal(4, records[0].Version);
+            AssertEx.Equal(new byte[] { 0x01, 0x00, 0x00, 0x06 }, records[0].Data);
+        }
     }
 }

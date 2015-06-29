@@ -864,7 +864,7 @@ public class Test
 	}
 }";
 
-            var compVerifier = CompileAndVerify(text, emitters: TestEmitters.CCI, expectedOutput: "0");
+            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.DoEnum", @"
 {
   // Code size      127 (0x7f)
@@ -3449,7 +3449,7 @@ class Program
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: false, emitters: TestEmitters.RefEmitUnsupported);
+            var verifier = CompileAndVerify(comp, verify: false);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)
@@ -4521,7 +4521,7 @@ namespace ConsoleApplication24
             ERR_ParamsCantBeRefOut = 1611,
             ERR_ReturnNotLValue = 1612,
             ERR_MissingCoClass = 1613,
-            ERR_AmbigousAttribute = 1614,
+            ERR_AmbiguousAttribute = 1614,
             ERR_BadArgExtraRef = 1615,
             WRN_CmdOptionConflictsSource = 1616,
             ERR_BadCompatMode = 1617,

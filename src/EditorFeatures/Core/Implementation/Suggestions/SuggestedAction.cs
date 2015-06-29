@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // Underscores will become an accelerator in the VS smart tag.  So we double all
                 // underscores so they actually get represented as an underscore in the UI.
                 var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-                var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, string.Empty);
+                var text = extensionManager.PerformFunction(Provider, () => CodeAction.Title, defaultValue: string.Empty);
                 return text.Replace("_", "__");
             }
         }
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // 'null' / empty collection from within GetPreviewAsync().
 
                 return true;
-        }
+            }
         }
 
         public virtual async Task<object> GetPreviewAsync(CancellationToken cancellationToken)
@@ -162,6 +163,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // Light bulb will always invoke this function on the UI thread.
             AssertIsForeground();
+
+            var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+            var preferredProjectId = preferredDocumentId?.ProjectId;
 
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
             var previewContent = await extensionManager.PerformFunctionAsync(Provider, async () =>
@@ -175,16 +179,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
                 else
                 {
-                    var preferredDocumentId = Workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
-                    var preferredProjectid = preferredDocumentId == null ? null : preferredDocumentId.ProjectId;
-
                     // TakeNextPreviewAsync() needs to run on UI thread.
                     AssertIsForeground();
-                    return await previewResult.TakeNextPreviewAsync(preferredDocumentId, preferredProjectid, cancellationToken).ConfigureAwait(true);
+                    return await previewResult.TakeNextPreviewAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
                 }
 
                 // GetPreviewPane() below needs to run on UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-            }).ConfigureAwait(true);
+            }, defaultValue: null).ConfigureAwait(true);
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
@@ -196,7 +197,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContent);
+
+            string language;
+            string projectType;
+            Workspace.GetLanguageAndProjectType(preferredProjectId, out language, out projectType);
+
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
         }
 
         protected virtual Diagnostic GetDiagnostic()
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 return false;
             }
-            }
+        }
 
         public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {

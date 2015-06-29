@@ -1119,7 +1119,7 @@ public class foo
 public class A : Attribute { }
 ";
 
-            CompileAndVerify(source, emitters: TestEmitters.CCI, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
+            CompileAndVerify(source, expectedOutput: "Attribute Count=1").VerifyDiagnostics(
                 // (12,6): warning CS0658: 'foo' is not a recognized attribute location. All attributes in this block will be ignored.
                 Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "foo").WithArguments("foo"));
         }
@@ -1153,10 +1153,10 @@ class D { [@return:@X] void M() { } }  // Fine, binds to X
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (7,19): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
                 // class A { [return:X] void M() { } }  // Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "X").WithArguments("X", "X", "XAttribute"),
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "X").WithArguments("X", "X", "XAttribute"),
                 // (8,20): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
                 // class B { [@return:X] void M() { } }  // Ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigousAttribute, "X").WithArguments("X", "X", "XAttribute"));
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "X").WithArguments("X", "X", "XAttribute"));
         }
     }
 }

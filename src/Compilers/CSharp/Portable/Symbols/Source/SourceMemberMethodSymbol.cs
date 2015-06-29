@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);
                 }
-                else if (!ContainingType.IsStatic || ContainingType.Arity != 0)
+                else if (!ContainingType.IsScriptClass && !(ContainingType.IsStatic && ContainingType.Arity == 0))
                 {
                     // Duplicate Dev10 behavior by selecting the containing type identifier. However if there
                     // is no containing type (in the interactive case for instance), select the method identifier.
@@ -1075,9 +1075,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.CallsAreOmitted(syntaxTree);
         }
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return !IsAsync; }
-        }
+        internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
     }
 }

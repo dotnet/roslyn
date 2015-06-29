@@ -84,29 +84,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitNoOpStatement(statement As BoundNoOpStatement)
             Select Case statement.Flavor
                 Case NoOpStatementFlavor.Default
-                    ' Do Nothing.
-                    Return
+                    If _optimizations = OptimizationLevel.Debug Then
+                        _builder.EmitOpCode(ILOpCode.Nop)
+                    End If
 
                 Case NoOpStatementFlavor.AwaitYieldPoint
-                    Debug.Assert((Me._asyncYieldPoints Is Nothing) = (Me._asyncResumePoints Is Nothing))
-                    If Me._asyncYieldPoints Is Nothing Then
-                        Me._asyncYieldPoints = ArrayBuilder(Of Integer).GetInstance
-                        Me._asyncResumePoints = ArrayBuilder(Of Integer).GetInstance
+                    Debug.Assert((_asyncYieldPoints Is Nothing) = (_asyncResumePoints Is Nothing))
+                    If _asyncYieldPoints Is Nothing Then
+                        _asyncYieldPoints = ArrayBuilder(Of Integer).GetInstance
+                        _asyncResumePoints = ArrayBuilder(Of Integer).GetInstance
                     End If
-                    Debug.Assert(Me._asyncYieldPoints.Count = Me._asyncResumePoints.Count)
-                    Me._asyncYieldPoints.Add(Me._builder.AllocateILMarker())
-                    Return
+                    Debug.Assert(_asyncYieldPoints.Count = _asyncResumePoints.Count)
+                    _asyncYieldPoints.Add(_builder.AllocateILMarker())
 
                 Case NoOpStatementFlavor.AwaitResumePoint
-                    Debug.Assert(Me._asyncYieldPoints IsNot Nothing)
-                    Debug.Assert(Me._asyncResumePoints IsNot Nothing)
-                    Debug.Assert((Me._asyncYieldPoints.Count - 1) = Me._asyncResumePoints.Count)
-                    Me._asyncResumePoints.Add(Me._builder.AllocateILMarker())
-                    Return
+                    Debug.Assert(_asyncYieldPoints IsNot Nothing)
+                    Debug.Assert(_asyncResumePoints IsNot Nothing)
+                    Debug.Assert((_asyncYieldPoints.Count - 1) = _asyncResumePoints.Count)
+                    _asyncResumePoints.Add(_builder.AllocateILMarker())
 
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(statement.Flavor)
             End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(statement.Flavor)
         End Sub
 
         Private Sub EmitTryStatement(statement As BoundTryStatement, Optional emitCatchesOnly As Boolean = False)
@@ -458,36 +457,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Enum
 
         Private Sub EmitConditionalGoto(boundConditionalGoto As BoundConditionalGoto)
-            If _optimizations = OptimizationLevel.Debug Then
-                'TODO: what is the point of this?
-                'native compiler does intentional dead-store here. Does it still help debugging?
-                Dim boolTemp = AllocateTemp(boundConditionalGoto.Condition.Type, boundConditionalGoto.Condition.Syntax)
-
-                Dim crk As ConstResKind = EmitCondExpr(boundConditionalGoto.Condition, boundConditionalGoto.JumpIfTrue)
-                _builder.EmitLocalStore(boolTemp)
-
-                Select Case crk
-                    Case ConstResKind.ConstFalse
-
-                    Case ConstResKind.ConstTrue
-                        _builder.EmitBranch(ILOpCode.Br, boundConditionalGoto.Label)
-
-                    Case ConstResKind.NotAConst
-ConstResKindNotAConst:
-                        _builder.EmitLocalLoad(boolTemp)
-                        _builder.EmitBranch(ILOpCode.Brtrue, boundConditionalGoto.Label)
-
-                    Case Else
-                        Debug.Assert(False)
-                        GoTo ConstResKindNotAConst
-                End Select
-
-                Me.FreeTemp(boolTemp)
-            Else
-                Dim label As Object = boundConditionalGoto.Label
-                Debug.Assert(label IsNot Nothing)
-                EmitCondBranch(boundConditionalGoto.Condition, label, boundConditionalGoto.JumpIfTrue)
-            End If
+            Dim label As Object = boundConditionalGoto.Label
+            Debug.Assert(label IsNot Nothing)
+            EmitCondBranch(boundConditionalGoto.Condition, label, boundConditionalGoto.JumpIfTrue)
         End Sub
 
         ' 3.17 The brfalse instruction transfers control to target if value (of type int32, int64, object reference, managed
@@ -501,17 +473,17 @@ ConstResKindNotAConst:
 
             Dim tc = ts.PrimitiveTypeCode
             Select Case tc
-                Case Microsoft.Cci.PrimitiveTypeCode.Float32, Microsoft.Cci.PrimitiveTypeCode.Float64
+                Case Cci.PrimitiveTypeCode.Float32, Cci.PrimitiveTypeCode.Float64
                     Return False
 
-                Case Microsoft.Cci.PrimitiveTypeCode.NotPrimitive
+                Case Cci.PrimitiveTypeCode.NotPrimitive
                     ' if this is a generic type param, verifier will want us to box
                     ' EmitCondBranch knows that
                     Return ts.IsReferenceType
 
                 Case Else
-                    Debug.Assert(tc <> Microsoft.Cci.PrimitiveTypeCode.Invalid)
-                    Debug.Assert(tc <> Microsoft.Cci.PrimitiveTypeCode.Void)
+                    Debug.Assert(tc <> Cci.PrimitiveTypeCode.Invalid)
+                    Debug.Assert(tc <> Cci.PrimitiveTypeCode.Void)
                     Return True
             End Select
         End Function
@@ -1190,19 +1162,21 @@ OtherExpressions:
                 cur = cur + 1
 
                 ' Emit case statement sequence point
-                If _emitPdbSequencePoints Then
-                    Dim caseStatement = caseBlock.CaseStatement
-                    If Not caseStatement.WasCompilerGenerated Then
-                        Debug.Assert(caseStatement.Syntax IsNot Nothing)
+
+                Dim caseStatement = caseBlock.CaseStatement
+                If Not caseStatement.WasCompilerGenerated Then
+                    Debug.Assert(caseStatement.Syntax IsNot Nothing)
+
+                    If _emitPdbSequencePoints Then
                         EmitSequencePoint(caseStatement.Syntax)
                     End If
-                End If
 
-                If _optimizations = OptimizationLevel.Debug Then
-                    ' Emit nop for the case statement otherwise the above sequence point
-                    ' will get associated with the first statement in subsequent case block.
-                    ' This matches the native compiler codegen.
-                    _builder.EmitOpCode(ILOpCode.Nop)
+                    If _optimizations = OptimizationLevel.Debug Then
+                        ' Emit nop for the case statement otherwise the above sequence point
+                        ' will get associated with the first statement in subsequent case block.
+                        ' This matches the native compiler codegen.
+                        _builder.EmitOpCode(ILOpCode.Nop)
+                    End If
                 End If
 
                 ' Emit case block body

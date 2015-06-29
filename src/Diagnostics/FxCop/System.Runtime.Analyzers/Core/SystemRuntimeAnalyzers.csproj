@@ -40,9 +40,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="System.Composition.AttributedModel, Version=$(MicrosoftCompositionVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +58,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractSyntaxNodeAnalyzer.cs" />
     <Compile Include="Design\AssemblyAttributesDiagnosticAnalyzer.cs" />
     <Compile Include="Design\EnumWithFlagsAttribute.Fixer.cs" />
     <Compile Include="Design\MarkAllAssembliesWithComVisible.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Design\UseGenericEventHandler.cs" />
     <Compile Include="DiagnosticCategory.cs" />
     <Compile Include="Design\EnumWithFlagsAttribute.cs" />
+    <Compile Include="Performance\TestForEmptyStringsUsingStringLength.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.Fixer.cs" />
     <Compile Include="Globalization\UseOrdinalStringComparison.cs" />
     <Compile Include="Performance\AvoidUnsealedAttributes.cs" />
@@ -97,6 +99,7 @@
     <EmbeddedResource Include="SystemRuntimeAnalyzersResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SystemRuntimeAnalyzersResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />

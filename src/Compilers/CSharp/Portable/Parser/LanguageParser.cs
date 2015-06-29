@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //  2. A modified version of the parser was run on the Roslyn source base and the maximum depth 
         //     discovered was 7.  Having 20 as a minimum seems reasonable in that context 
         //
-        private const int MaxUncheckedRecursionDepth = 20;
+        internal const int MaxUncheckedRecursionDepth = 20;
 
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
@@ -410,42 +410,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // happenning.  It's not a bug but it's inefficient and should be changed.
             Debug.Assert(_recursionDepth == 0);
 
-            TNode node;
-            var hitStackBoundary = false;
-            var resetPoint = GetResetPoint();
-
-            // TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-            // is available in the PCL
             try
             {
-                node = parseFunc();
+                return parseFunc();
             }
+            // TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
+            // is available in the PCL
             catch (Exception ex) when (ex.GetType().Name == "InsufficientExecutionStackException")
             {
-                hitStackBoundary = true;
-                node = CreateForInsufficientStack(ref resetPoint, createEmptyNodeFunc());
+                return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
             }
-
-            if (!hitStackBoundary)
-            {
-                Release(ref resetPoint);
-            }
-
-            return node;
         }
 
-        private TNode CreateForInsufficientStack<TNode>(ref ResetPoint state, TNode node) where TNode : CSharpSyntaxNode
+        private TNode CreateForGlobalFailure<TNode>(int position, TNode node) where TNode : CSharpSyntaxNode
         {
-            var position = this.lexer.TextWindow.Position;
-            this.Reset(ref state);
-            var builder = new SyntaxListBuilder(4);
-            while (CurrentToken.Kind != SyntaxKind.EndOfFileToken)
-            {
-                builder.Add(this.EatToken());
-            }
-
+            // Turn the complete input into a single skipped token. This avoids running the lexer, and therefore
+            // the preprocessor directive parser, which may itself run into the same problem that caused the
+            // original failure.
+            var builder = new SyntaxListBuilder(1);
+            builder.Add(SyntaxFactory.BadToken(null, lexer.TextWindow.Text.ToString(), null));
             var fileAsTrivia = _syntaxFactory.SkippedTokensTrivia(builder.ToList<SyntaxToken>());
             node = AddLeadingSkippedSyntax(node, fileAsTrivia);
+            ForceEndOfFile(); // force the scanner to report that it is at the end of the input.
             return AddError(node, position, 0, ErrorCode.ERR_InsufficientStack);
         }
 
@@ -508,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool ContainsAlias(NameSyntax name)
+        private static bool ContainsAlias(NameSyntax name)
         {
             switch (name.Kind)
             {
@@ -517,14 +503,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.AliasQualifiedName:
                     return true;
                 case SyntaxKind.QualifiedName:
-                    var qualifedName = (QualifiedNameSyntax)name;
-                    return ContainsAlias(qualifedName.Left);
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsAlias(qualifiedName.Left);
             }
 
             return false;
         }
 
-        private bool ContainsGeneric(NameSyntax name)
+        private static bool ContainsGeneric(NameSyntax name)
         {
             switch (name.Kind)
             {
@@ -533,8 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.AliasQualifiedName:
                     return ContainsGeneric(((AliasQualifiedNameSyntax)name).Name);
                 case SyntaxKind.QualifiedName:
-                    var qualifedName = (QualifiedNameSyntax)name;
-                    return ContainsGeneric(qualifedName.Left) || ContainsGeneric(qualifedName.Right);
+                    var qualifiedName = (QualifiedNameSyntax)name;
+                    return ContainsGeneric(qualifiedName.Left) || ContainsGeneric(qualifiedName.Right);
             }
 
             return false;
@@ -2635,8 +2621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         types.AddSeparator((SyntaxToken)p);
                         break;
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(p.Kind);
                 }
             }
 
@@ -4327,7 +4312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, isEvent: true);
 
-            // If we got an explicitInterfaceOpt but not an identifer, then we're in the special
+            // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
             if (explicitInterfaceOpt != null && identifierOrThisOpt == null)
             {
@@ -5722,7 +5707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         //   event EventDelegate Parent.E; //(or anything else where the next token isn't open brace
                         //
                         // To recover: rollback to before the name of the field was parsed (just the part after the last
-                        // dot), insert a missing identifer for the field name, insert missing accessors, and then treat
+                        // dot), insert a missing identifier for the field name, insert missing accessors, and then treat
                         // the event name that's actually there as the beginning of a new member. e.g.
                         //
                         //   event EventDelegate Parent./*Missing nodes here*/
@@ -6317,7 +6302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _recursionDepth++;
                 if (_recursionDepth > MaxUncheckedRecursionDepth)
                 {
-                    EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack();
+                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
                 }
 
                 if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
@@ -8210,7 +8195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return this.IsInAsync && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            return (this.IsInteractive || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
         }
 
         private bool IsAwaitExpression()
@@ -8262,7 +8247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (_recursionDepth > MaxUncheckedRecursionDepth)
             {
-                EnsureSufficientExecutionStackLightUp.EnsureSufficientExecutionStack();
+                PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
             }
 
             var result = ParseSubExpressionCore(precedence);

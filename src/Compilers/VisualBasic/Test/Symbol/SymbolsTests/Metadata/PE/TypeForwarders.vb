@@ -933,7 +933,7 @@ End Class
             Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
 
             ' Attribute is erased. This is an intentional change in behavior by comparison to Dev12.
-            Dim verifier = CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug,
+            Dim verifier = CompileAndVerify(compilation,
                                             sourceSymbolValidator:=Sub(moduleSymbol)
                                                                        Assert.Equal(1, moduleSymbol.ContainingAssembly.GetAttributes(AttributeDescription.TypeForwardedToAttribute).Count)
                                                                    End Sub,
@@ -987,10 +987,10 @@ End class
             Dim metadataReader = metadata.GetMetadataReader()
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType))
 
-            Dim token As Handle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
+            Dim token As EntityHandle = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM")
             Assert.True(token.IsNil)
 
-            CompileAndVerify(appCompilation, emitters:=TestEmitters.RefEmitBug,
+            CompileAndVerify(appCompilation,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(0, peReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1044,7 +1044,7 @@ End class
             Assert.True(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
 
             ' Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, emitters:=TestEmitters.RefEmitBug, verify:=False,
+            CompileAndVerify(appCompilation, verify:=False,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(1, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1102,7 +1102,7 @@ End class
             Assert.False(token.IsNil)   'could the type ref be located? If not then the attribute's not there.
             Assert.Equal(1, metadataReader.CustomAttributes.Count)
 
-            CompileAndVerify(appCompilation, emitters:=TestEmitters.RefEmitBug,
+            CompileAndVerify(appCompilation,
                 symbolValidator:=Sub(m)
                                      Dim metadataReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(0, metadataReader1.GetTableRowCount(TableIndex.ExportedType))
@@ -1212,7 +1212,7 @@ End class
             Dim appCompilation = CreateCompilationWithMscorlibAndReferences(app, {modRef, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
             ' Exported types in .Net module cause PEVerify to fail.
-            CompileAndVerify(appCompilation, emitters:=TestEmitters.RefEmitBug, verify:=False,
+            CompileAndVerify(appCompilation, verify:=False,
                 symbolValidator:=Sub(m)
                                      Dim peReader1 = DirectCast(m, PEModuleSymbol).Module.GetMetadataReader()
                                      Assert.Equal(2, peReader1.GetTableRowCount(TableIndex.ExportedType))

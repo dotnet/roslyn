@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit.NoPia;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract CommonModuleCompilationState CommonModuleCompilationState { get; }
         internal abstract void CompilationFinished();
         internal abstract ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> GetSynthesizedMembers();
+        internal abstract CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt { get; }
+        internal abstract Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics);
     }
 
     /// <summary>
@@ -48,15 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EmitOptions _emitOptions;
         private readonly ModulePropertiesForSerialization _serializationProperties;
         private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
-
-        /// <summary>
-        /// Used to translate assembly symbols to assembly references in scenarios when the physical assemblies 
-        /// being emitted don't correspond to the assembly symbols 1:1. This happens, for example, in interactive sessions where
-        /// multiple code submissions might be compiled into a single dynamic assembly or into multiple assemblies 
-        /// depending on properties of the code being emitted. If null we map assembly symbol exactly to its assembly name.
-        /// </summary>
-        protected readonly Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper;
-
+        
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly StringTokenMap _stringsInILMap = new StringTokenMap();
         private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
@@ -95,7 +90,6 @@ namespace Microsoft.CodeAnalysis.Emit
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
-            Func<TAssemblySymbol, AssemblyIdentity> assemblySymbolMapper,
             EmitOptions emitOptions,
             TModuleCompilationState compilationState)
         {
@@ -107,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Emit
             _serializationProperties = serializationProperties;
             this.ManifestResources = manifestResources;
             _outputKind = outputKind;
-            this.assemblySymbolMapper = assemblySymbolMapper;
             _emitOptions = emitOptions;
             this.CompilationState = compilationState;
 
@@ -145,6 +138,16 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+
+        internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbol type, DiagnosticBag diagnostics)
+        {
+            return EncTranslateLocalVariableType((TTypeSymbol)type, diagnostics);
+        }
+
+        internal virtual Cci.ITypeReference EncTranslateLocalVariableType(TTypeSymbol type, DiagnosticBag diagnostics)
+        {
+            return Translate(type, null, diagnostics);
+        }
 
         protected bool HaveDeterminedTopLevelTypes
         {
@@ -237,54 +240,16 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
-        internal OutputKind OutputKind
-        {
-            get
-            {
-                return _outputKind;
-            }
-        }
+        internal OutputKind OutputKind => _outputKind;
+        internal TSourceModuleSymbol SourceModule => _sourceModule;
+        internal TCompilation Compilation => _compilation;
 
-        internal TSourceModuleSymbol SourceModule
-        {
-            get
-            {
-                return _sourceModule;
-            }
-        }
-
-        internal TCompilation Compilation
-        {
-            get
-            {
-                return _compilation;
-            }
-        }
-
-        internal override Compilation CommonCompilation
-        {
-            get
-            {
-                return _compilation;
-            }
-        }
-
-        internal override CommonModuleCompilationState CommonModuleCompilationState
-        {
-            get
-            {
-                return this.CompilationState;
-            }
-        }
+        internal sealed override Compilation CommonCompilation => _compilation;
+        internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
+        internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
 
         // General entry point method. May be a PE entry point or a submission entry point.
-        internal sealed override Cci.IMethodReference EntryPoint
-        {
-            get
-            {
-                return _entryPoint;
-            }
-        }
+        internal sealed override Cci.IMethodReference EntryPoint => _entryPoint;
 
         internal void SetEntryPoint(TMethodSymbol value)
         {
@@ -718,7 +683,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return GetTopLevelTypes(context);
         }
 
-        public abstract IEnumerable<Cci.ITypeExport> GetExportedTypes(EmitContext context);
+        public abstract IEnumerable<Cci.ITypeReference> GetExportedTypes(EmitContext context);
 
         Cci.ITypeReference Cci.IModule.GetPlatformType(Cci.PlatformType platformType, EmitContext context)
         {
@@ -778,8 +743,8 @@ namespace Microsoft.CodeAnalysis.Emit
         IEnumerable<string> Cci.IModule.LinkedAssembliesDebugInfo => LinkedAssembliesDebugInfo;
         protected abstract IEnumerable<string> LinkedAssembliesDebugInfo { get; }
 
-        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IModule.GetImports(EmitContext context) => GetImports(context);
-        protected abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports(EmitContext context);
+        ImmutableArray<Cci.UsedNamespaceOrType> Cci.IModule.GetImports() => GetImports();
+        protected abstract ImmutableArray<Cci.UsedNamespaceOrType> GetImports();
 
         string Cci.IModule.DefaultNamespace => DefaultNamespace;
         protected abstract string DefaultNamespace { get; }

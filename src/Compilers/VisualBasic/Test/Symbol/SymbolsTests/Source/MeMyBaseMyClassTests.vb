@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
 #Region "Me test"
-        ' 'Me' is key word and can’t use as in identify
+        ' 'Me' is key word and can't use as in identify
         <Fact>
         Public Sub MeIsKeyWord()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -669,7 +669,7 @@ End Class
 
 #Region "MyBase test"
 
-        ' 'MyBase' is key word and can’t use as in identify
+        ' 'MyBase' is key word and can't use as in identify
         <Fact>
         Public Sub MyBaseIsKeyWord()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
@@ -830,7 +830,7 @@ End Class
 Class DerivedClass2
     Inherits DerivedClass
     Sub test()
-        MyBase.mybase.Mymetod()
+        MyBase.mybase.Mymethod()
     End Sub
 End Class
     </file>

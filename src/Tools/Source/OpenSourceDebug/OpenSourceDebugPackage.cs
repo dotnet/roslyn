@@ -33,7 +33,7 @@ namespace Microsoft.OpenSourceDebug
         private const string VisualStudioHive = "VisualStudio";
         private const string MSBuildDirectory = @"Microsoft\MSBuild\14.0";
 
-        private string _CSharpTargetsTemplate =
+        private readonly string _CSharpTargetsTemplate =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)'=='{0}'"">

@@ -41,7 +41,7 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 //element.
 //
 //* An Address method that takes a sequence of int32 arguments, one for each dimension of the array, and
-//has a return type that is a managed pointer to the array‘s element type. This method is used to return a
+//has a return type that is a managed pointer to the array's element type. This method is used to return a
 //managed pointer to a specific element of the array where the arguments specify the index into each
 //dimension, beginning with the first, of the element whose address is to be returned.
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         /// <summary>
         /// "newobj ArrayConstructor"  is equivalent of "newarr ElementType" 
-        /// when working with multidimentsional arrays
+        /// when working with multidimensional arrays
         /// </summary>
         private sealed class ArrayConstructor : ArrayMethod
         {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         /// <summary>
         /// "call ArrayGet"  is equivalent of "ldelem ElementType" 
-        /// when working with multidimentsional arrays
+        /// when working with multidimensional arrays
         /// </summary>
         private sealed class ArrayGet : ArrayMethod
         {
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         /// <summary>
         /// "call ArrayAddress"  is equivalent of "ldelema ElementType" 
-        /// when working with multidimentsional arrays
+        /// when working with multidimensional arrays
         /// </summary>
         private sealed class ArrayAddress : ArrayMethod
         {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         /// <summary>
         /// "call ArraySet"  is equivalent of "stelem ElementType" 
-        /// when working with multidimentsional arrays
+        /// when working with multidimensional arrays
         /// </summary>
         private sealed class ArraySet : ArrayMethod
         {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// <summary>
     /// Represents a parameter in an array pseudo-method.
     /// 
-    /// NOTE: It appears that that only number of indeces is used for verification, 
+    /// NOTE: It appears that only number of indices is used for verification, 
     /// types just have to be Int32.
     /// Even though actual arguments can be native ints.
     /// </summary>

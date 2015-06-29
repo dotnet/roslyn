@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Box
             End Enum
 
-            Private _container As Symbol
+            Private ReadOnly _container As Symbol
 
             Private _counter As Integer = 0
             Private _evalStack As Integer = 0
@@ -72,10 +72,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Sub
 
             Public Shared Function Analyze(container As Symbol, node As BoundNode, <Out> ByRef locals As Dictionary(Of LocalSymbol, LocalDefUseInfo)) As BoundNode
-                Dim analyser = New Analyzer(container)
+                Dim analyzer = New Analyzer(container)
 
-                Dim rewritten As BoundNode = analyser.Visit(node)
-                locals = analyser._locals
+                Dim rewritten As BoundNode = analyzer.Visit(node)
+                locals = analyzer._locals
 
                 Return rewritten
             End Function
@@ -560,10 +560,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator) As BoundNode
-                Dim isIndirectAssignement As Boolean = IsIndirectAssignment(node)
+                Dim isIndirect As Boolean = IsIndirectAssignment(node)
 
                 Dim left As BoundExpression = VisitExpression(node.Left,
-                                                              If(isIndirectAssignement,
+                                                              If(isIndirect,
                                                                  ExprContext.Address,
                                                                  ExprContext.AssignmentTarget))
 
@@ -623,7 +623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(node.Left.Type.IsSameTypeIgnoringCustomModifiers(node.Right.Type),
                                  "cannot use stack when assignment involves implicit coercion of the value")
 
-                    Debug.Assert(Not isIndirectAssignement, "indirect assignment is a read, not a write")
+                    Debug.Assert(Not isIndirect, "indirect assignment is a read, not a write")
 
                     RecordVarWrite(storedAssignmentLocal.LocalSymbol)
                 End If

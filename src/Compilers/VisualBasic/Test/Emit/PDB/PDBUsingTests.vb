@@ -48,7 +48,6 @@ End Class
                     <slot kind="0" offset="6"/>
                     <slot kind="0" offset="34"/>
                     <slot kind="0" offset="62"/>
-                    <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
@@ -60,18 +59,18 @@ End Class
                 <entry offset="0x10" startLine="19" startColumn="13" endLine="19" endColumn="47" document="0"/>
                 <entry offset="0x1b" hidden="true" document="0"/>
                 <entry offset="0x1d" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
-                <entry offset="0x2e" hidden="true" document="0"/>
-                <entry offset="0x30" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
-                <entry offset="0x41" hidden="true" document="0"/>
-                <entry offset="0x43" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
-                <entry offset="0x54" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
+                <entry offset="0x29" hidden="true" document="0"/>
+                <entry offset="0x2b" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
+                <entry offset="0x37" hidden="true" document="0"/>
+                <entry offset="0x39" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
+                <entry offset="0x45" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x55">
+            <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="MyDisposable" methodName="Dispose"/>
-                <scope startOffset="0x2" endOffset="0x53">
-                    <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
-                    <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
-                    <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
+                <scope startOffset="0x2" endOffset="0x44">
+                    <local name="foo1" il_index="0" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="foo2" il_index="1" il_start="0x2" il_end="0x44" attributes="0"/>
+                    <local name="foo3" il_index="2" il_start="0x2" il_end="0x44" attributes="0"/>
                 </scope>
             </scope>
         </method>
@@ -370,8 +369,8 @@ End Class
                 {SystemCoreRef, SystemDataRef},
                 options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("System.Data.DataColumn")))
 
-            CompileAndVerify(comp, emitters:=TestEmitters.CCI, validator:=
-                Sub(peAssembly, emitters)
+            CompileAndVerify(comp, validator:=
+                Sub(peAssembly)
                     Dim reader = peAssembly.ManifestModule.MetadataReader
 
                     Assert.Equal(

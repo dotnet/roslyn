@@ -755,7 +755,7 @@ yield return /*2*/ 3;
 foreach (var x in y) { yield return /*3*/ 2; }
 ";
 
-            var match = GetMethodMatches(src1, src2, stateMachine: StateMachineKind.Iterator);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Iterator);
             var actual = ToMatchingPairs(match);
 
             // note that yield returns are matched in source order, regardless of the yielded expressions:
@@ -816,6 +816,88 @@ Console.WriteLine(1)/*4*/;
             {
                 { "Console.WriteLine(1)/*1*/;", "Console.WriteLine(1)/*3*/;" },
                 { "Console.WriteLine(1)/*2*/;", "Console.WriteLine(1)/*4*/;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchConstructorWithInitializer1()
+        {
+            var src1 = @"
+(int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
+";
+            var src2 = @"
+(int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.ConstructorWithParameters);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "a => a + 1", "a => a + 1" },
+                { "{ Console.WriteLine(1); }", "{ Console.WriteLine(1); }" },
+                { "Console.WriteLine(1);", "Console.WriteLine(1);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchConstructorWithInitializer2()
+        {
+            var src1 = @"
+() : base(a => a + 1) { Console.WriteLine(1); }
+";
+            var src2 = @"
+() { Console.WriteLine(1); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.ConstructorWithParameters);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "{ Console.WriteLine(1); }", "{ Console.WriteLine(1); }" },
+                { "Console.WriteLine(1);", "Console.WriteLine(1);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void MatchExceptionHandlers()
+        {
+            var src1 = @"
+try { throw new InvalidOperationException(1); }
+catch (IOException e) when (filter(e)) { Console.WriteLine(2); }
+catch (Exception e) when (filter(e)) { Console.WriteLine(3); }
+";
+            var src2 = @"
+try { throw new InvalidOperationException(10); }
+catch (IOException e) when (filter(e)) { Console.WriteLine(20); }
+catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "try { throw new InvalidOperationException(1); } catch (IOException e) when (filter(e)) { Console.WriteLine(2); } catch (Exception e) when (filter(e)) { Console.WriteLine(3); }", "try { throw new InvalidOperationException(10); } catch (IOException e) when (filter(e)) { Console.WriteLine(20); } catch (Exception e) when (filter(e)) { Console.WriteLine(30); }" },
+                { "{ throw new InvalidOperationException(1); }", "{ throw new InvalidOperationException(10); }" },
+                { "throw new InvalidOperationException(1);", "throw new InvalidOperationException(10);" },
+                { "catch (IOException e) when (filter(e)) { Console.WriteLine(2); }", "catch (IOException e) when (filter(e)) { Console.WriteLine(20); }" },
+                { "(IOException e)", "(IOException e)" },
+                { "when (filter(e))", "when (filter(e))" },
+                { "{ Console.WriteLine(2); }", "{ Console.WriteLine(20); }" },
+                { "Console.WriteLine(2);", "Console.WriteLine(20);" },
+                { "catch (Exception e) when (filter(e)) { Console.WriteLine(3); }", "catch (Exception e) when (filter(e)) { Console.WriteLine(30); }" },
+                { "(Exception e)", "(Exception e)" },
+                { "when (filter(e))", "when (filter(e))" },
+                { "{ Console.WriteLine(3); }", "{ Console.WriteLine(30); }" },
+                { "Console.WriteLine(3);", "Console.WriteLine(30);" }
             };
 
             expected.AssertEqual(actual);
@@ -3054,7 +3136,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", "lambda", "x1", "x0")
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x0", CSharpFeaturesResources.Lambda, "x1", "x0")
                 );
         }
 
@@ -3802,6 +3884,56 @@ class C
         var f1 = new Func<int, int, int>((a1, a2) => 
         {
             var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
+            return a1;
+        });
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact, WorkItem(2223, "https://github.com/dotnet/roslyn/issues/2223")]
+        public void Lambdas_Update_CapturedParameters2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => x1 + a2);
+            return a1;
+        });
+
+        var f3 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f4 = new Func<int, int>(a3 => x1 + a2);
+            return a1;
+        });
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F(int x1)
+    {
+        var f1 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f2 = new Func<int, int>(a3 => x1 + a2 + 1);
+            return a1;
+        });
+
+        var f3 = new Func<int, int, int>((a1, a2) => 
+        {
+            var f4 = new Func<int, int>(a3 => x1 + a2 + 1);
             return a1;
         });
     }
@@ -4700,6 +4832,124 @@ class C
                 Diagnostic(RudeEditKind.NotAccessingCapturedVariableInLambda, "a", "y1", CSharpFeaturesResources.Lambda).WithFirstLine("G(a => x);         // error: disconnecting previously connected closures"));
         }
 
+        [Fact]
+        public void Lambdas_Update_Accessing_Closure_NestedLambdas()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G(Func<int, Func<int, int>> f) {}
+
+    void F()                       
+    {                              
+        { int x0 = 0;      // Group #0             
+            { int x1 = 0;  // Group #1               
+                                         
+                G(a => b => x0);
+                G(a => b => x1);
+            }
+        }
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G(Func<int, Func<int, int>> f) {}
+
+    void F()
+    {
+        { int x0 = 0;      // Group #0          
+            { int x1 = 0;  // Group #1              
+                                         
+                G(a => b => x0);
+                G(a => b => x1);
+
+                G(a => b => x0);      // ok
+                G(a => b => x1);      // ok
+                G(a => b => x0 + x1); // error
+            }
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"),
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", "lambda", "x0", "x1"));
+        }
+
+        [Fact]
+        public void Lambdas_RenameCapturedLocal()
+        {
+            string src1 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        Func<int> f = () => x;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main()
+    {
+        int X = 1;
+        Func<int> f = () => X;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.RenamingCapturedVariable, "X", "x", "X"));
+        }
+
+        [Fact]
+        public void Lambdas_RenameCapturedParameter()
+        {
+            string src1 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(int x)
+    {
+        Func<int> f = () => x;
+    }
+}";
+            string src2 = @"
+using System;
+using System.Diagnostics;
+
+class Program
+{
+    static void Main(int X)
+    {
+        Func<int> f = () => X;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "int X", "parameter"));
+        }
+
         #endregion
 
         #region Queries
@@ -5223,6 +5473,72 @@ class C
         }
 
         [Fact]
+        public void Queries_Select_Reduced1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a + 1;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_Select_Reduced2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a + 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} where a > 0 select a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
         public void Queries_FromSelect_Delete()
         {
             var src1 = "F(from a in b from c in d select a + c);";
@@ -5284,6 +5600,132 @@ class C
 
             edits.VerifyEdits(
                 "Reorder [a.c ascending]@46 -> @30");
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced1()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1.0 by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.GroupByClause));
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced2()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1 by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced3()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1.0 by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.GroupByClause));
+        }
+
+        [Fact]
+        public void Queries_GroupBy_Reduced4()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a + 1 by a;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = from a in new[] {1} group a by a;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -5590,8 +6032,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.SelectClause));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -5839,7 +6280,7 @@ yield return 1;
 yield return 3;
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Iterator);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Iterator);
 
             bodyEdits.VerifyEdits(
                 "Delete [yield return 2;]@42");
@@ -5889,7 +6330,7 @@ yield return 3;
 yield return 4;
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Iterator);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Iterator);
 
             bodyEdits.VerifyEdits(
                 "Insert [yield return 2;]@42",
@@ -6052,7 +6493,7 @@ await F(1);
 await F(3);
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Async);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Async);
 
             bodyEdits.VerifyEdits(
                 "Delete [await F(2);]@37",
@@ -6177,7 +6618,7 @@ await F(3);
 await F(4);
 ";
 
-            var bodyEdits = GetMethodEdits(src1, src2, stateMachine: StateMachineKind.Async);
+            var bodyEdits = GetMethodEdits(src1, src2, kind: MethodKind.Async);
 
             bodyEdits.VerifyEdits(
                 "Insert [await F(2);]@37",

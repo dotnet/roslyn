@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text =
 @"
 // Peter Golde[7/19/2010]: I managed to construct the following interesting example today,
-// which Dev10 does compile. Interestingly, the resolution of one “using” can depend
-// on the resolution of another “using” later in the same namespace.
+// which Dev10 does compile. Interestingly, the resolution of one ""using"" can depend
+// on the resolution of another ""using"" later in the same namespace.
 using K = A.Q;
 using L = B.R;
  
@@ -2408,7 +2408,7 @@ class C
             TypeSyntax speculatedTypeSyntax,
             SpeculativeBindingOption bindingOption,
             SymbolKind expectedSymbolKind,
-            string expectedTypeDislayString)
+            string expectedTypeDisplayString)
         {
             Assert.False(model.IsSpeculativeSemanticModel);
             Assert.Null(model.ParentModel);
@@ -2427,12 +2427,12 @@ class C
             var symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             var typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
-            Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+            Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             if (speculatedTypeSyntax.Kind() == SyntaxKind.QualifiedName)
             {
@@ -2441,12 +2441,12 @@ class C
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol;
                 Assert.NotNull(symbol);
                 Assert.Equal(expectedSymbolKind, symbol.Kind);
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
                 typeSymbol = speculativeModel.GetTypeInfo(right).Type;
                 Assert.NotNull(symbol);
                 Assert.Equal(expectedSymbolKind, symbol.Kind);
-                Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
+                Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
             }
         }
 
@@ -3207,7 +3207,7 @@ class C
 
         [WorkItem(1019366, "DevDiv")]
         [WorkItem(273, "CodePlex")]
-        [Fact]
+        [ClrOnlyFact]
         public void Bug1019366()
         {
             var source = @"
@@ -3408,6 +3408,53 @@ class C
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
             var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfInterpolatedString()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""Hello, world!"");
+        Console.WriteLine($""{DateTime.Now.ToString()}.{args[0]}"");
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+            {
+                Assert.False(model.GetConstantValue(interp).HasValue);
+            }
+        }
+
+        [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]
+        [Fact]
+        public void TypeOfDynamic()
+        {
+            var source = @"
+using System;
+using System.Dynamic;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            dynamic a = 5;
+        }   
+     }
+";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var typeSyntax = SyntaxFactory.ParseTypeName("dynamic");
+            int spanStart = source.IndexOf("dynamic a = 5;");
+            var dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
         }
 
         #region "regression helper"

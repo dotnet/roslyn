@@ -313,7 +313,7 @@ public partial class C { }
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsCSharp()
             Dim workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -330,6 +330,7 @@ class Program
         [|foo|]();
 
         var a = "foo";
+        var b = $"{1}foo{2}";
     }
 
     public void foo(int i)
@@ -358,6 +359,7 @@ class Program
         [|foo|]();
 
         var a = "foo";
+        var b = $"{1}foo{2}";
     }
 
     public void [|foo|](int i)
@@ -386,6 +388,7 @@ class Program
         [|foo|]();
 
         var a = "[|foo|]";
+        var b = $"{1}[|foo|]{2}";
     }
 
     public void foo(int i)
@@ -402,7 +405,7 @@ class Program
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(700923), WorkItem(700925)>
+        <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsVisualBasic()
             Dim workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -417,6 +420,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "foo"
+		Dim b = $"{1}foo{2}"
 	End Sub
 
 	Public Sub foo(i As Integer)
@@ -443,6 +447,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "foo"
+		Dim b = $"{1}foo{2}"
 	End Sub
 
 	Public Sub [|foo|](i As Integer)
@@ -469,6 +474,7 @@ Class Program
 		[|foo|]()
 
 		Dim a = "[|foo|]"
+		Dim b = $"{1}[|foo|]{2}"
 	End Sub
 
 	Public Sub foo(i As Integer)
@@ -1257,6 +1263,8 @@ class C
                 Dim renameService = workspace.GetService(Of IInlineRenameService)()
                 Assert.NotNull(renameService.ActiveSession)
 
+                VerifyTagsAreCorrect(workspace, "BarFoo")
+
                 ' Simulate starting a debugging session
                 Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
                 editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
@@ -1298,6 +1306,9 @@ class C
                 Dim renameService = workspace.GetService(Of IInlineRenameService)()
                 Assert.NotNull(renameService.ActiveSession)
 
+
+                VerifyTagsAreCorrect(workspace, "BarFoo")
+
                 ' Simulate ending break mode in the debugger (by stepping or continuing)
                 Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
                 editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
@@ -1305,6 +1316,41 @@ class C
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
                 VerifyTagsAreCorrect(workspace, "BarFoo")
+            End Using
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(3316, "https://github.com/dotnet/roslyn/issues/3316")>
+        Public Sub InvalidInvocationExpression()
+            ' Everything on the last line of main is parsed as a single invocation expression
+            ' with CType(...) as the receiver and everything else as arguments.
+            ' Rename doesn't expect to see CType as the receiver of an invocation.
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true">
+                            <Document>
+Module Module1
+    Sub Main()
+        Dim [|$$p|] As IEnumerable(Of Integer) = {1, 2, 3}
+        Dim linked = Enumerable.Aggregate(Of Global.&lt;anonymous type:head As Global.System.Int32, tail As Global.System.Object&gt;)(
+            CType([|p|], IEnumerable(Of Integer)), Nothing, Function(total, curr) Nothing)
+    End Sub
+End Module
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Insert(caretPosition, "q")
+                session.Commit()
+
+                VerifyTagsAreCorrect(workspace, "qp")
             End Using
         End Sub
     End Class

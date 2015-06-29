@@ -17,12 +17,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public abstract class DiagnosticAnalyzerTestBase
     {
-        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
-        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromAssembly(typeof(Enumerable).Assembly);
-        private static readonly MetadataReference s_CSharpSymbolsReference = MetadataReference.CreateFromAssembly(typeof(CSharpCompilation).Assembly);
-        private static readonly MetadataReference s_visualBasicSymbolsReference = MetadataReference.CreateFromAssembly(typeof(VisualBasicCompilation).Assembly);
-        private static readonly MetadataReference s_codeAnalysisReference = MetadataReference.CreateFromAssembly(typeof(Compilation).Assembly);
-        private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromAssembly(typeof(ImmutableArray<int>).Assembly);
+        private static readonly MetadataReference s_corlibReference = MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly);
+        private static readonly MetadataReference s_systemCoreReference = MetadataReference.CreateFromAssemblyInternal(typeof(Enumerable).Assembly);
+        private static readonly MetadataReference s_CSharpSymbolsReference = MetadataReference.CreateFromAssemblyInternal(typeof(CSharpCompilation).Assembly);
+        private static readonly MetadataReference s_visualBasicSymbolsReference = MetadataReference.CreateFromAssemblyInternal(typeof(VisualBasicCompilation).Assembly);
+        private static readonly MetadataReference s_codeAnalysisReference = MetadataReference.CreateFromAssemblyInternal(typeof(Compilation).Assembly);
+        private static readonly MetadataReference s_workspacesReference = MetadataReference.CreateFromAssemblyInternal(typeof(Workspace).Assembly);
+        private static readonly MetadataReference s_immutableCollectionsReference = MetadataReference.CreateFromAssemblyInternal(typeof(ImmutableArray<int>).Assembly);
         private static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
         private static readonly CompilationOptions s_visualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
@@ -267,7 +268,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddMetadataReference(projectId, s_codeAnalysisReference)
                 .AddMetadataReference(projectId, TestBase.SystemRef)
                 .AddMetadataReference(projectId, TestBase.SystemRuntimeFacadeRef)
+                .AddMetadataReference(projectId, TestBase.SystemThreadingFacadeRef)
+                .AddMetadataReference(projectId, TestBase.SystemThreadingTaskFacadeRef)
                 .AddMetadataReference(projectId, s_immutableCollectionsReference)
+                .AddMetadataReference(projectId, s_workspacesReference)
                 .WithProjectCompilationOptions(projectId, options);
 
             if (addLanguageSpecificCodeAnalysisReference)

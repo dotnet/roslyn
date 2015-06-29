@@ -9,12 +9,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
         Private Class GenerateEventCodeAction
             Inherits CodeAction
 
-            Private _solution As Solution
-            Private _targetSymbol As INamedTypeSymbol
-            Private _generatedEvent As IEventSymbol
-            Private _codeGenerationOptions As CodeGenerationOptions
-            Private _codeGenService As ICodeGenerationService
-            Private _generatedType As INamedTypeSymbol
+            Private ReadOnly _solution As Solution
+            Private ReadOnly _targetSymbol As INamedTypeSymbol
+            Private ReadOnly _generatedEvent As IEventSymbol
+            Private ReadOnly _codeGenerationOptions As CodeGenerationOptions
+            Private ReadOnly _codeGenService As ICodeGenerationService
+            Private ReadOnly _generatedType As INamedTypeSymbol
 
             Public Sub New(solution As Solution,
                     targetSymbol As INamedTypeSymbol,

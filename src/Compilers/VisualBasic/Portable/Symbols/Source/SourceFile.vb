@@ -430,19 +430,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Function GetUsedNamespaces(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+        Public Function Translate(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As Cci.IImportScope
             If _lazyTranslatedImports.IsDefault Then
-                ImmutableInterlocked.InterlockedInitialize(_lazyTranslatedImports, TranslateImports(context))
+                ImmutableInterlocked.InterlockedInitialize(_lazyTranslatedImports, TranslateImports(moduleBuilder, diagnostics))
             End If
 
+            Return Me
+        End Function
+
+        Public Function GetUsedNamespaces() As ImmutableArray(Of Cci.UsedNamespaceOrType) Implements Cci.IImportScope.GetUsedNamespaces
+            ' The imports should have been translated during code gen.
+            Debug.Assert(Not _lazyTranslatedImports.IsDefault)
             Return _lazyTranslatedImports
         End Function
 
-        Private Function TranslateImports(context As EmitContext) As ImmutableArray(Of Cci.UsedNamespaceOrType)
-            Return NamespaceScopeBuilder.BuildNamespaceScope(context,
+        Private Function TranslateImports(moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As ImmutableArray(Of Cci.UsedNamespaceOrType)
+            Return NamespaceScopeBuilder.BuildNamespaceScope(moduleBuilder,
                                                              XmlNamespaces,
                                                              If(AliasImports IsNot Nothing, AliasImports.Values, Nothing),
-                                                             MemberImports)
+                                                             MemberImports,
+                                                             diagnostics)
         End Function
     End Class
 End Namespace

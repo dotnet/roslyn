@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -445,7 +445,7 @@ class ClassA
             Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
         }
 
-        [Fact()]
+        [ClrOnlyFact]
         public void AnonymousTypeSymbols_DontCrashIfNameIsQueriedBeforeEmit()
         {
             var source = @"
@@ -700,7 +700,7 @@ public class A
         }
 
         [WorkItem(546416, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Queryable()
         {
             CompileAndVerify(
@@ -728,7 +728,7 @@ public class Program
         }
 
         [WorkItem(546416, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()
         {
             CompileAndVerify(
@@ -757,7 +757,7 @@ public class Program
         }
 
         [WorkItem(546416, "DevDiv")]
-        [Fact()]
+        [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable2()
         {
             CompileAndVerify(
@@ -869,7 +869,8 @@ public class Program
             var compilation = GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                TestOptions.ReleaseDll
+                TestOptions.ReleaseDll,
+                TestOptions.Regular
             );
 
             compilation.VerifyDiagnostics(diagnostics);
@@ -913,7 +914,8 @@ public class Program
             return GetCompilationForEmit(
                 new[] { source },
                 new MetadataReference[] { },
-                TestOptions.ReleaseDll
+                TestOptions.ReleaseDll,
+                TestOptions.Regular
             );
         }
 

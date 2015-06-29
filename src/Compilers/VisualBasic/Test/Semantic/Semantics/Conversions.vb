@@ -251,7 +251,7 @@ End Class
                     objectType, booleanType, byteType, sbyteType, int16Type, uint16Type, int32Type, uint32Type, int64Type, uint64Type, doubleType, singleType, decimalType, dateType,
                     stringType, charType, intPtrType, typeCodeType}
 
-            Dim convertableTypes = New HashSet(Of TypeSymbol)({
+            Dim convertibleTypes = New HashSet(Of TypeSymbol)({
                     booleanType, byteType, sbyteType, int16Type, uint16Type, int32Type, uint32Type, int64Type, uint64Type, doubleType, singleType, decimalType, dateType,
                     stringType, charType, typeCodeType})
 
@@ -280,7 +280,7 @@ End Class
 
                 resultValue = Conversions.TryFoldConstantConversion(_nothing, testType, integerOverflow)
 
-                If convertableTypes.Contains(testType) Then
+                If convertibleTypes.Contains(testType) Then
                     Assert.NotNull(resultValue)
                     Assert.Equal(If(testType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, testType.GetConstantValueTypeDiscriminator()), resultValue.Discriminator)
 
@@ -329,7 +329,7 @@ End Class
                 Assert.Equal(0, resultValue.Int32Value)
             Next
 
-            For Each convertibleType In convertableTypes
+            For Each convertibleType In convertibleTypes
                 If Not integralTypes.Contains(convertibleType) Then
 
                     Dim zero = ConstantValue.Default(If(convertibleType.IsStringType(), ConstantValueTypeDiscriminator.Nothing, convertibleType.GetConstantValueTypeDiscriminator()))
@@ -361,7 +361,7 @@ End Class
             Dim nullableType = c1.GetSpecialType(System_Nullable_T)
 
             ' Zero
-            For Each type1 In convertableTypes
+            For Each type1 In convertibleTypes
 
                 Dim zero = ConstantValue.Default(If(type1.IsStringType(), ConstantValueTypeDiscriminator.Nothing, type1.GetConstantValueTypeDiscriminator()))
 
@@ -1111,7 +1111,7 @@ End Class
                     objectType, booleanType, byteType, sbyteType, int16Type, uint16Type, int32Type, uint32Type, int64Type, uint64Type, doubleType, singleType, decimalType, dateType,
                     stringType, charType, intPtrType, typeCodeType}
 
-            Dim convertableTypes = New HashSet(Of TypeSymbol)({
+            Dim convertibleTypes = New HashSet(Of TypeSymbol)({
                     booleanType, byteType, sbyteType, int16Type, uint16Type, int32Type, uint32Type, int64Type, uint64Type, doubleType, singleType, decimalType, dateType,
                     stringType, charType, typeCodeType})
 

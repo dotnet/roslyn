@@ -94,17 +94,17 @@ Friend Class RedNodeFactoryWriter
         ' Generate secondary factory w/o auto-creatable tokens
         Dim allFullFactoryChildren = GetAllFactoryChildrenOfStructure(nodeStructure).ToList()
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-        Dim allFactoryChildrenWithoutAutoCreateableTokens = GetAllFactoryChildrenWithoutAutoCreatableTokens(nodeStructure, nodeKind)
+        Dim allFactoryChildrenWithoutAutoCreatableTokens = GetAllFactoryChildrenWithoutAutoCreatableTokens(nodeStructure, nodeKind)
         Dim leastSignature = allFullFactoryChildren
-        If Not Enumerable.SequenceEqual(allFullFactoryChildren, allFactoryChildrenWithoutAutoCreateableTokens) Then
-            GenerateSecondaryFactoryMethod(nodeStructure, nodeKind, allFullFactoryChildren, allFields, allFactoryChildrenWithoutAutoCreateableTokens, AddressOf GetDefaultedFactoryParameterExpression)
-            leastSignature = allFactoryChildrenWithoutAutoCreateableTokens
+        If Not Enumerable.SequenceEqual(allFullFactoryChildren, allFactoryChildrenWithoutAutoCreatableTokens) Then
+            GenerateSecondaryFactoryMethod(nodeStructure, nodeKind, allFullFactoryChildren, allFields, allFactoryChildrenWithoutAutoCreatableTokens, AddressOf GetDefaultedFactoryParameterExpression)
+            leastSignature = allFactoryChildrenWithoutAutoCreatableTokens
         End If
 
         ' Generate secondary factory with only required children 
         ' TODO: (if there is only one child and it is an optional list, then allow it to be optional unless there is already a zero-parameter factory)
         Dim allRequiredFactoryChildren = GetAllRequiredFactoryChildren(nodeStructure, nodeKind)
-        If Not (Enumerable.SequenceEqual(allFullFactoryChildren, allRequiredFactoryChildren) OrElse Enumerable.SequenceEqual(allFactoryChildrenWithoutAutoCreateableTokens, allRequiredFactoryChildren)) Then
+        If Not (Enumerable.SequenceEqual(allFullFactoryChildren, allRequiredFactoryChildren) OrElse Enumerable.SequenceEqual(allFactoryChildrenWithoutAutoCreatableTokens, allRequiredFactoryChildren)) Then
             GenerateSecondaryFactoryMethod(nodeStructure, nodeKind, allFullFactoryChildren, allFields, allRequiredFactoryChildren, AddressOf GetDefaultedFactoryParameterExpression)
             leastSignature = allRequiredFactoryChildren
         End If

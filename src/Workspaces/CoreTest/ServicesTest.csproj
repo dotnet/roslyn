@@ -21,17 +21,9 @@
     <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
-      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
-      <Name>CodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Desktop\CSharpCodeAnalysis.Desktop.csproj">
-      <Project>{079af8ef-1058-48b6-943f-ab02d39e0641}</Project>
-      <Name>CSharpCodeAnalysis.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
@@ -45,10 +37,6 @@
       <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
       <Name>CompilerTestUtilities2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Desktop\BasicCodeAnalysis.Desktop.vbproj">
-      <Project>{73f3e2c5-d742-452e-b9e1-20732ddbc75d}</Project>
-      <Name>BasicCodeAnalysis.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
@@ -61,17 +49,9 @@
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\Desktop\CSharpWorkspace.Desktop.csproj">
-      <Project>{687daffd-9bd9-4331-96b7-483b941edeaa}</Project>
-      <Name>CSharpWorkspace.Desktop</Name>
-    </ProjectReference>
     <ProjectReference Include="..\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>CSharpWorkspace</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\Desktop\BasicWorkspace.Desktop.vbproj">
-      <Project>{e637ad92-8397-4337-a9cd-9f2570078e59}</Project>
-      <Name>BasicWorkspace.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\Portable\BasicWorkspace.vbproj">
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
@@ -100,6 +80,7 @@
     <Compile Include="Editting\SyntaxEditorTests.cs" />
     <Compile Include="ExtensionOrdererTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
+    <Compile Include="Host\WorkspaceServices\TestTemporaryStorageService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
@@ -111,6 +92,7 @@
     <Compile Include="CodeCleanup\NormalizeModifiersOrOperatorsTests.cs" />
     <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
     <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
+    <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
@@ -189,25 +171,25 @@
     <Reference Include="System" />
     <Reference Include="System.Collections" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Convention, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Convention">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Hosting, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Hosting">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.Runtime, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.Runtime">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
     </Reference>
-    <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Composition.TypedParts">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
+      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
@@ -290,6 +272,7 @@
     <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_UnknownProjectExtension.vbproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -310,6 +293,29 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\VisualBasicProject_VisualBasicProject_WithoutVBTargetsImported.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_BadLink.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_ExternAlias2.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularCSharpProject1.csproj" />
+    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularCSharpProject2.csproj" />
+    <EmbeddedResource Include="TestFiles\CircularProjectReferences\CircularSolution.sln" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_ReferencesPortableProject.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\CSharpProject_PortableProject.csproj">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

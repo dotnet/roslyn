@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -68,8 +68,8 @@ ValueD,
             var text =
 @"public enum Suits : byte 
 { 
-ValueA = ""3"", // Can’t implicitly convert 
-ValueB = 2.2, // Can’t implicitly convert 
+ValueA = ""3"", // Can't implicitly convert 
+ValueB = 2.2, // Can't implicitly convert 
 ValueC = 257 // Out of underlying range 
 }; 
 ";
@@ -285,7 +285,7 @@ void foo()
         }
 
         // Convert integer to Enum instance
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void ConvertOnEnum()
         {
             var source =
@@ -383,7 +383,7 @@ class c1
         }
 
         // The literal 0 implicitly converts to any enum type. 
-        [Fact]
+        [ClrOnlyFact]
         public void ZeroInEnum()
         {
             var source =
@@ -589,7 +589,7 @@ public enum Enum2 : byte { A2, B2 };
 
         [WorkItem(5030, "DevDiv_Projects/Roslyn")]
         // Operator on enum member 
-        [Fact]
+        [ClrOnlyFact]
         public void OperatorOnEnumMember()
         {
             var source =
@@ -654,7 +654,7 @@ public class c1
         }
 
         [WorkItem(539178, "DevDiv")]
-        // No underlying type after ‘:’ 
+        // No underlying type after ':' 
         [Fact]
         public void CS3031ERR_TypeExpected_NoUnderlyingTypeForEnum()
         {
@@ -688,7 +688,7 @@ enum Figure : C { One, Two, Three }
             VerifyEnumsValue(comp, "Figure", SpecialType.System_Int32, 0, 1, 2);
         }
 
-        // ‘partial’ as Enum name
+        // 'partial' as Enum name
         [Fact]
         public void partialAsEnumName()
         {

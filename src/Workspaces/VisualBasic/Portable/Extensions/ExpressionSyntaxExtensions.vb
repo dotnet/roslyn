@@ -583,7 +583,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                expression.IsParentKind(SyntaxKind.ForEachStatement) OrElse
                expression.IsParentKind(SyntaxKind.ForStatement) OrElse
                expression.IsParentKind(SyntaxKind.ConditionalAccessExpression) OrElse
-               expression.IsParentKind(SyntaxKind.TypeOfIsExpression) Then
+               expression.IsParentKind(SyntaxKind.TypeOfIsExpression) OrElse
+               expression.IsParentKind(SyntaxKind.TypeOfIsNotExpression) Then
 
                 Return True
             End If
@@ -1287,7 +1288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
 
                     Dim aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken)
-                    If nameHasNoAlias AndAlso aliasInfo Is Nothing Then
+
+                    ' Don't simplify to predefined type if name is part of a QualifiedName.
+                    ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
+                    ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
+                    If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
                         If PreferPredefinedTypeKeywordInDeclarations(name, optionSet) OrElse
                            PreferPredefinedTypeKeywordInMemberAccess(name, optionSet) Then
                             Dim type = semanticModel.GetTypeInfo(name).Type

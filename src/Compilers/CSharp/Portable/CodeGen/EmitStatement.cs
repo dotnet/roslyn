@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         };
 
         /// <summary>
-        /// Produces opcode for a jump that corresponds to given opearation and sense.
+        /// Produces opcode for a jump that corresponds to given operation and sense.
         /// Also produces a reverse opcode - opcode for the same condition with inverted sense.
         /// </summary>
         private static ILOpCode CodeForJump(BoundBinaryOperator op, bool sense, out ILOpCode revOpCode)
@@ -518,7 +518,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             DefineLocals(sequence);
             EmitSideEffects(sequence);
             EmitCondBranch(sequence.Value, ref dest, sense);
-            FreeLocals(sequence);
+
+            // sequence is used as a value, can release all locals
+            FreeLocals(sequence, doNotRelease: null);
         }
 
         private void EmitLabelStatement(BoundLabelStatement boundLabelStatement)
@@ -610,7 +612,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // debuggable code. This function is a stub for the logic that decides that.
         private bool ShouldUseIndirectReturn()
         {
-            return _optimizations == OptimizationLevel.Debug || _builder.InExceptionHandler;
+            // If the method/lambda body is a block we define a sequence point for the closing brace of the body
+            // and associate it with the ret instruction. If there is a return statement we need to store the value 
+            // to a long-lived synthesized local since a sequence point requires an empty evaluation stack.
+            //
+            // The emitted pattern is:
+            //   <evaluate return statement expression>
+            //   stloc $ReturnValue
+            //   ldloc  $ReturnValue // sequence point
+            //   ret
+            //
+            // Do not emit this pattern if the method doesn't include user code or doesn't have a block body.
+            return _optimizations == OptimizationLevel.Debug && _method.GenerateDebugInfo && _methodBodySyntaxOpt?.IsKind(SyntaxKind.Block) == true || 
+                   _builder.InExceptionHandler;
         }
 
         // Compiler generated return mapped to a block is very likely the synthetic return
@@ -626,11 +640,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitReturnStatement(BoundReturnStatement boundReturnStatement)
         {
-            this.EmitExpression(boundReturnStatement.ExpressionOpt, true);
+            var expressionOpt = boundReturnStatement.ExpressionOpt;
+
+            this.EmitExpression(expressionOpt, used: true);
 
             if (ShouldUseIndirectReturn())
             {
-                if (boundReturnStatement.ExpressionOpt != null)
+                if (expressionOpt != null)
                 {
                     _builder.EmitLocalStore(LazyReturnTemp);
                 }
@@ -653,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (_indirectReturnState == IndirectReturnState.Needed && CanHandleReturnLabel(boundReturnStatement))
                 {
-                    if (boundReturnStatement.ExpressionOpt != null)
+                    if (expressionOpt != null)
                     {
                         _builder.EmitLocalStore(LazyReturnTemp);
                     }
@@ -662,7 +678,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    _builder.EmitRet(boundReturnStatement.ExpressionOpt == null);
+                    if (expressionOpt != null)
+                    {
+                        // Ensure the return type has been translated. (Necessary
+                        // for cases of untranslated anonymous types.)
+                        var returnType = expressionOpt.Type;
+                        var byRefType = returnType as ByRefReturnErrorTypeSymbol;
+                        if ((object)byRefType != null)
+                        {
+                            returnType = byRefType.ReferencedType;
+                        }
+                        _module.Translate(returnType, boundReturnStatement.Syntax, _diagnostics);
+                    }
+                    _builder.EmitRet(expressionOpt == null);
                 }
             }
         }
@@ -1101,7 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (sequence != null)
             {
-                FreeLocals(sequence);
+                FreeLocals(sequence, doNotRelease: null);
             }
         }
 
@@ -1435,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// <summary>
         /// Allocates a temp without identity.
         /// </summary>
-        private LocalDefinition AllocateTemp(TypeSymbol type, CSharpSyntaxNode syntaxNode)
+        private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode)
         {
             return _builder.LocalSlotManager.AllocateSlot(
                 _module.Translate(type, syntaxNode, _diagnostics),

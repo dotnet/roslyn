@@ -25,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ''' <see cref="ModifiedIdentifierSyntax"/> for fields with shared AsNew initialization "Dim a, b As New C" or array initializer "Dim a(n), b(n)".
         ''' A null reference otherwise.
         ''' </returns>
-        Friend Overrides Function FindMemberDeclaration(root As SyntaxNode, node As SyntaxNode) As SyntaxNode
-            While node IsNot root
+        Friend Overrides Function FindMemberDeclaration(rootOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
+            While node IsNot rootOpt
                 Select Case node.Kind
                     Case SyntaxKind.SubBlock,
                          SyntaxKind.FunctionBlock,
@@ -179,10 +179,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim arrayBounds = TryCast(memberBody, ArgumentListSyntax)
             If arrayBounds IsNot Nothing Then
                 Return ImmutableArray.CreateRange(
-                    arrayBounds.Arguments.SelectMany(Function(argument) model.AnalyzeDataFlow(argument).Captured).Distinct())
+                    arrayBounds.Arguments.
+                        SelectMany(AddressOf GetArgumentExpressions).
+                        SelectMany(Function(expr) model.AnalyzeDataFlow(expr).Captured).
+                        Distinct())
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(memberBody)
+        End Function
+
+        Private Shared Iterator Function GetArgumentExpressions(argument As ArgumentSyntax) As IEnumerable(Of ExpressionSyntax)
+            Select Case argument.Kind
+                Case SyntaxKind.SimpleArgument
+                    Yield DirectCast(argument, SimpleArgumentSyntax).Expression
+
+                Case SyntaxKind.RangeArgument
+                    Dim range = DirectCast(argument, RangeArgumentSyntax)
+                    Yield range.LowerBound
+                    Yield range.UpperBound
+
+                Case SyntaxKind.OmittedArgument
+
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(argument.Kind)
+            End Select
         End Function
 
         Friend Overrides Function HasParameterClosureScope(member As ISymbol) As Boolean
@@ -442,9 +462,78 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node
         End Function
 
-        Friend Overrides Function CreateSyntaxMapForEquivalentNodes(oldRoot As SyntaxNode, newRoot As SyntaxNode) As Func(Of SyntaxNode, SyntaxNode)
-            Debug.Assert(SyntaxFactory.AreEquivalent(oldRoot, newRoot))
-            Return Function(newNode) SyntaxUtilities.FindPartner(newRoot, oldRoot, newNode)
+        Friend Overrides Function FindPartnerInMemberInitializer(leftModel As SemanticModel, leftType As INamedTypeSymbol, leftNode As SyntaxNode, rightType As INamedTypeSymbol, cancellationToken As CancellationToken) As SyntaxNode
+            Dim leftInitializer = leftNode.FirstAncestorOrSelf(Of SyntaxNode)(
+                Function(node)
+                    Return node.IsKind(SyntaxKind.EqualsValue) AndAlso (node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse node.Parent.IsKind(SyntaxKind.PropertyStatement)) OrElse
+                           node.IsKind(SyntaxKind.AsNewClause) AndAlso node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) OrElse
+                           IsArrayBoundsArgument(node)
+                End Function)
+
+            If leftInitializer Is Nothing Then
+                Return Nothing
+            End If
+
+            Dim rightInitializer As SyntaxNode
+            If leftInitializer.Parent.IsKind(SyntaxKind.PropertyStatement) Then
+                ' property initializer
+                Dim leftDeclaration = DirectCast(leftInitializer.Parent, PropertyStatementSyntax)
+                Dim leftSymbol = leftModel.GetDeclaredSymbol(leftDeclaration, cancellationToken)
+                Debug.Assert(leftSymbol IsNot Nothing)
+
+                Dim rightProperty = rightType.GetMembers(leftSymbol.Name).Single()
+                Dim rightDeclaration = DirectCast(GetSymbolSyntax(rightProperty, cancellationToken), PropertyStatementSyntax)
+
+                rightInitializer = rightDeclaration.Initializer
+            ElseIf leftInitializer.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration)
+                ' field initializer or AsNewClause
+                Dim leftDeclarator = DirectCast(leftInitializer.Parent, VariableDeclaratorSyntax)
+
+                Dim leftSymbol = leftModel.GetDeclaredSymbol(leftDeclarator.Names.First(), cancellationToken)
+                Debug.Assert(leftSymbol IsNot Nothing)
+
+                Dim rightSymbol = rightType.GetMembers(leftSymbol.Name).Single()
+                Dim rightDeclarator = DirectCast(GetSymbolSyntax(rightSymbol, cancellationToken).Parent, VariableDeclaratorSyntax)
+
+                rightInitializer = If(leftInitializer.IsKind(SyntaxKind.EqualsValue), rightDeclarator.Initializer, DirectCast(rightDeclarator.AsClause, SyntaxNode))
+            Else
+                ' ArrayBounds argument
+                Dim leftArguments = DirectCast(leftInitializer.Parent, ArgumentListSyntax)
+                Dim argumentIndex = GetItemIndexByPosition(leftArguments.Arguments, leftInitializer.Span.Start)
+
+                Dim leftIdentifier = leftArguments.Parent
+                Debug.Assert(leftIdentifier.IsKind(SyntaxKind.ModifiedIdentifier))
+
+                Dim leftSymbol = leftModel.GetDeclaredSymbol(leftIdentifier, cancellationToken)
+                Debug.Assert(leftSymbol IsNot Nothing)
+
+                Dim rightSymbol = rightType.GetMembers(leftSymbol.Name).Single()
+                Dim rightIdentifier = DirectCast(GetSymbolSyntax(rightSymbol, cancellationToken), ModifiedIdentifierSyntax)
+
+                rightInitializer = rightIdentifier.ArrayBounds.Arguments(argumentIndex)
+            End If
+
+            If rightInitializer Is Nothing Then
+                Return Nothing
+            End If
+
+            Return FindPartner(leftInitializer, rightInitializer, leftNode)
+        End Function
+
+        Friend Overrides Function FindPartner(leftRoot As SyntaxNode, rightRoot As SyntaxNode, leftNode As SyntaxNode) As SyntaxNode
+            Return SyntaxUtilities.FindPartner(leftRoot, rightRoot, leftNode)
+        End Function
+
+        Private Shared Function IsArrayBoundsArgument(node As SyntaxNode) As Boolean
+            Dim argumentSyntax = TryCast(node, ArgumentSyntax)
+
+            If argumentSyntax IsNot Nothing Then
+                Debug.Assert(argumentSyntax.Parent.IsKind(SyntaxKind.ArgumentList))
+                Dim identifier = argumentSyntax.Parent.Parent
+                Return identifier.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso identifier.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration)
+            End If
+
+            Return False
         End Function
 
         Friend Overrides Function IsClosureScope(node As SyntaxNode) As Boolean
@@ -466,7 +555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Protected Overrides Function GetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
+        Protected Overrides Function TryGetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
@@ -637,11 +726,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function TryGetEnclosingBreakpointSpan(root As SyntaxNode, position As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return root.TryGetEnclosingBreakpointSpan(position, span)
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(root, position, span)
         End Function
 
         Protected Overrides Function TryGetActiveSpan(node As SyntaxNode, statementPart As Integer, <Out> ByRef span As TextSpan) As Boolean
-            Return node.TryGetEnclosingBreakpointSpan(node.SpanStart, span)
+            Return BreakpointSpans.TryGetEnclosingBreakpointSpan(node, node.SpanStart, span)
         End Function
 
         Protected Overrides Iterator Function EnumerateNearStatements(statement As SyntaxNode) As IEnumerable(Of KeyValuePair(Of SyntaxNode, Integer))
@@ -726,6 +815,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Function
 
+        Protected Overrides Function AreEquivalent(left As SyntaxNode, right As SyntaxNode) As Boolean
+            Return SyntaxFactory.AreEquivalent(left, right)
+        End Function
+
+        Private Shared Function AreEquivalentIgnoringLambdaBodies(left As SyntaxNode, right As SyntaxNode) As Boolean
+            ' usual case
+            If SyntaxFactory.AreEquivalent(left, right) Then
+                Return True
+            End If
+
+            Return LambdaUtilities.AreEquivalentIgnoringLambdaBodies(left, right)
+        End Function
+
         Protected Overrides Function AreEquivalentActiveStatements(oldStatement As SyntaxNode, newStatement As SyntaxNode, statementPart As Integer) As Boolean
             If oldStatement.RawKind <> newStatement.RawKind Then
                 Return False
@@ -734,9 +836,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' Dim a,b,c As <NewExpression>
             ' We need to check the actual initializer expression in addition to the identifier.
             If HasMultiInitializer(oldStatement) Then
-                Return SyntaxFactory.AreEquivalent(oldStatement, newStatement) AndAlso
-                       SyntaxFactory.AreEquivalent(DirectCast(oldStatement.Parent, VariableDeclaratorSyntax).AsClause,
-                                                   DirectCast(newStatement.Parent, VariableDeclaratorSyntax).AsClause)
+                Return AreEquivalentIgnoringLambdaBodies(oldStatement, newStatement) AndAlso
+                       AreEquivalentIgnoringLambdaBodies(DirectCast(oldStatement.Parent, VariableDeclaratorSyntax).AsClause,
+                                                         DirectCast(newStatement.Parent, VariableDeclaratorSyntax).AsClause)
             End If
 
             Select Case oldStatement.Kind
@@ -755,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
 
                 Case Else
-                    Return SyntaxFactory.AreEquivalent(oldStatement, newStatement)
+                    Return AreEquivalentIgnoringLambdaBodies(oldStatement, newStatement)
             End Select
         End Function
 
@@ -776,11 +878,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return SyntaxUtilities.HasBackingField(propertyDeclaration)
         End Function
 
-        Friend Overrides Function HasInitializer(declaration As SyntaxNode, <Out> ByRef isStatic As Boolean) As Boolean
+        Friend Overrides Function IsDeclarationWithInitializer(declaration As SyntaxNode) As Boolean
             Select Case declaration.Kind
                 Case SyntaxKind.VariableDeclarator
                     Dim declarator = DirectCast(declaration, VariableDeclaratorSyntax)
-                    isStatic = IsDeclarationStatic(declarator)
                     Return GetInitializerExpression(declarator.Initializer, declarator.AsClause) IsNot Nothing
 
                 Case SyntaxKind.ModifiedIdentifier
@@ -788,35 +889,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                  declaration.Parent.IsKind(SyntaxKind.Parameter))
 
                     If Not declaration.Parent.IsKind(SyntaxKind.VariableDeclarator) Then
-                        isStatic = False
                         Return False
                     End If
 
                     Dim declarator = DirectCast(declaration.Parent, VariableDeclaratorSyntax)
-                    isStatic = IsDeclarationStatic(declarator)
 
-                    Dim identitifer = DirectCast(declaration, ModifiedIdentifierSyntax)
-                    Return identitifer.ArrayBounds IsNot Nothing OrElse
+                    Dim identifier = DirectCast(declaration, ModifiedIdentifierSyntax)
+                    Return identifier.ArrayBounds IsNot Nothing OrElse
                            GetInitializerExpression(declarator.Initializer, declarator.AsClause) IsNot Nothing
 
                 Case SyntaxKind.PropertyStatement
                     Dim propertyStatement = DirectCast(declaration, PropertyStatementSyntax)
-                    isStatic = IsDeclarationStatic(propertyStatement.Modifiers, propertyStatement)
                     Return GetInitializerExpression(propertyStatement.Initializer, propertyStatement.AsClause) IsNot Nothing
 
                 Case Else
-                    isStatic = False
                     Return False
             End Select
-        End Function
-
-        Private Shared Function IsDeclarationStatic(declarator As VariableDeclaratorSyntax) As Boolean
-            Dim fieldDeclaration = DirectCast(declarator.Parent, FieldDeclarationSyntax)
-            Return IsDeclarationStatic(fieldDeclaration.Modifiers, fieldDeclaration)
-        End Function
-
-        Private Shared Function IsDeclarationStatic(modifiers As SyntaxTokenList, declaration As DeclarationStatementSyntax) As Boolean
-            Return modifiers.Any(SyntaxKind.SharedKeyword) OrElse declaration.Parent.IsKind(SyntaxKind.ModuleBlock)
         End Function
 
         Private Shared Function GetInitializerExpression(equalsValue As EqualsValueSyntax, asClause As AsClauseSyntax) As ExpressionSyntax
@@ -831,13 +919,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Friend Overrides Function IncludesInitializers(constructorDeclaration As SyntaxNode) As Boolean
+        Friend Overrides Function IsConstructorWithMemberInitializers(declaration As SyntaxNode) As Boolean
+            Dim ctor = TryCast(declaration, ConstructorBlockSyntax)
+            If ctor Is Nothing Then
+                Return False
+            End If
+
             ' Constructor includes field initializers if the first statement 
-            ' isn 't a call to another constructor of the declaring class.
+            ' isn't a call to another constructor of the declaring class or module.
 
-            Debug.Assert(constructorDeclaration.IsKind(SyntaxKind.SubNewStatement))
-
-            Dim ctor = DirectCast(constructorDeclaration.Parent, ConstructorBlockSyntax)
             If ctor.Statements.Count = 0 Then
                 Return True
             End If
@@ -923,6 +1013,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Case SyntaxKind.ModifiedIdentifier
                     If node.Parent.IsKind(SyntaxKind.Parameter) Then
                         Return Nothing
+                    End If
+
+                Case SyntaxKind.VariableDeclarator
+                    ' An update to a field variable declarator might either be
+                    ' 1) variable declarator update (an initializer is changes)
+                    ' 2) modified identifier update (an array bound changes)
+                    ' Handle the first one here. 
+                    If editKind = EditKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                        ' If multiple fields are defined by this declaration pick the first one.
+                        ' We want to analyze the associated initializer just once. Any of the fields is good.
+                        node = DirectCast(node, VariableDeclaratorSyntax).Names.First()
                     End If
             End Select
 
@@ -1349,6 +1450,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End)
+        End Function
+
+        Friend Overrides Function GetLambdaParameterDiagnosticSpan(lambda As SyntaxNode, ordinal As Integer) As TextSpan
+            Select Case lambda.Kind
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return DirectCast(lambda, LambdaExpressionSyntax).SubOrFunctionHeader.ParameterList.Parameters(ordinal).Identifier.Span
+
+                Case Else
+                    Return lambda.Span
+            End Select
         End Function
 
         Protected Overrides Function GetTopLevelDisplayName(node As SyntaxNode, editKind As EditKind) As String
@@ -2321,7 +2435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 ' Otherwise only the size of the array changed, which is a legal initializer update
                 ' unless it contains lambdas, queries etc.
-                ClassifyDeclarationBodyRudeUpdates(newNode, allowLambdas:=False)
+                ClassifyDeclarationBodyRudeUpdates(newNode)
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As VariableDeclaratorSyntax, newNode As VariableDeclaratorSyntax)
@@ -2398,7 +2512,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Dim newInitializer = GetInitializerExpression(newEqualsValue, newClause)
 
                 If newInitializer IsNot Nothing AndAlso Not SyntaxFactory.AreEquivalent(oldInitializer, newInitializer) Then
-                    ClassifyDeclarationBodyRudeUpdates(newInitializer, allowLambdas:=False)
+                    ClassifyDeclarationBodyRudeUpdates(newInitializer)
                     Return True
                 End If
 
@@ -2434,8 +2548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=newNode,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
-                                             allowLambdas:=True)
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As MethodStatementSyntax, newNode As MethodStatementSyntax)
@@ -2521,8 +2634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
-                                             allowLambdas:=True)
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As OperatorStatementSyntax, newNode As OperatorStatementSyntax)
@@ -2542,8 +2654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax),
-                                             allowLambdas:=True)
+                                             containingType:=DirectCast(newNode.Parent.Parent, TypeBlockSyntax))
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As AccessorStatementSyntax, newNode As AccessorStatementSyntax)
@@ -2572,8 +2683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
-                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax),
-                                             allowLambdas:=False)
+                                             containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As SubNewStatementSyntax, newNode As SubNewStatementSyntax)
@@ -2624,8 +2734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyMethodBodyRudeUpdate(oldBody As MethodBlockBaseSyntax,
                                                      newBody As MethodBlockBaseSyntax,
                                                      containingMethod As MethodBlockSyntax,
-                                                     containingType As TypeBlockSyntax,
-                                                     allowLambdas As Boolean)
+                                                     containingType As TypeBlockSyntax)
 
                 If (oldBody.EndBlockStatement Is Nothing) <> (newBody.EndBlockStatement Is Nothing) Then
                     If oldBody.EndBlockStatement Is Nothing Then
@@ -2642,7 +2751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Debug.Assert(newBody.EndBlockStatement IsNot Nothing)
 
                 ClassifyMemberBodyRudeUpdate(containingMethod, containingType, isTriviaUpdate:=False)
-                ClassifyDeclarationBodyRudeUpdates(newBody, allowLambdas)
+                ClassifyDeclarationBodyRudeUpdates(newBody)
             End Sub
 
             Public Sub ClassifyMemberBodyRudeUpdate(containingMethodOpt As MethodBlockSyntax, containingTypeOpt As TypeBlockSyntax, isTriviaUpdate As Boolean)
@@ -2657,26 +2766,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode, allowLambdas As Boolean)
+            Public Sub ClassifyDeclarationBodyRudeUpdates(newDeclarationOrBody As SyntaxNode)
                 For Each node In newDeclarationOrBody.DescendantNodesAndSelf()
                     Select Case node.Kind
-                        Case SyntaxKind.MultiLineFunctionLambdaExpression,
-                             SyntaxKind.SingleLineFunctionLambdaExpression,
-                             SyntaxKind.MultiLineSubLambdaExpression,
-                             SyntaxKind.SingleLineSubLambdaExpression
-                            ' TODO:
-                            If Not allowLambdas Then
-                                ReportError(RudeEditKind.RUDE_EDIT_LAMBDA_EXPRESSION, node, Me._newNode)
-                                Return
-                            End If
-
-                        Case SyntaxKind.QueryExpression
-                            ' TODO:
-                            If Not allowLambdas Then
-                                ReportError(RudeEditKind.RUDE_EDIT_QUERY_EXPRESSION, node, Me._newNode)
-                                Return
-                            End If
-
                         Case SyntaxKind.AggregateClause,
                              SyntaxKind.GroupByClause,
                              SyntaxKind.SimpleJoinClause,
@@ -2701,7 +2793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                       editMap As Dictionary(Of SyntaxNode, EditKind))
 
             ' For most nodes we ignore Insert and Delete edits if their parent was also inserted or deleted, respectively.
-            ' For ModifiedIdentifiers though we check the grandparent instead because variables can move accross 
+            ' For ModifiedIdentifiers though we check the grandparent instead because variables can move across 
             ' VariableDeclarators. Moving a variable from a VariableDeclarator that only has a single variable results in
             ' deletion of that declarator. We don't want to report that delete. Similarly for moving to a new VariableDeclarator.
 
@@ -2737,11 +2829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 newMember.FirstAncestorOrSelf(Of TypeBlockSyntax)(),
                 isTriviaUpdate:=True)
 
-            classifier.ClassifyDeclarationBodyRudeUpdates(newMember,
-                                                          allowLambdas:=Not newMember.IsKind(SyntaxKind.ConstructorBlock) AndAlso
-                                                                        Not newMember.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso
-                                                                        Not newMember.IsKind(SyntaxKind.VariableDeclarator) AndAlso
-                                                                        Not newMember.IsKind(SyntaxKind.PropertyStatement))
+            classifier.ClassifyDeclarationBodyRudeUpdates(newMember)
         End Sub
 
 #End Region
@@ -2879,7 +2967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetStateMachineSuspensionPoints(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
-            ' In VB declaration and body are reprsented by teh same node for both lambdas and methods (unlike C#)
+            ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
                 Return SyntaxUtilities.GetAwaitExpressions(body)
             Else
@@ -3045,20 +3133,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
             ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, SyntaxKind.SyncLockBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
                 areSimilar:=Nothing)
 
             ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, SyntaxKind.WithBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.WithStatement.Expression, n2.WithStatement.Expression),
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
                 areSimilar:=Nothing)
 
             ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, SyntaxKind.UsingBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing)
 
             ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, SyntaxKind.ForEachBlock, oldActiveStatement, newActiveStatement,
-                areEquivalent:=Function(n1, n2) SyntaxFactory.AreEquivalent(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
-                areSimilar:=Function(n1, n2) SyntaxFactory.AreEquivalent(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
+                areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
+                areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
 #End Region

@@ -280,7 +280,7 @@ class C
     C(){}
 }
 ");
-            var foriegnType = SyntaxFactory.ParseSyntaxTree(@"
+            var foreignType = SyntaxFactory.ParseSyntaxTree(@"
 public class B
 {
   public int member(string s) { return s.Length; }
@@ -288,7 +288,7 @@ public class B
 }
 ");
 
-            var countedTree = new CountedSyntaxTree(foriegnType);
+            var countedTree = new CountedSyntaxTree(foreignType);
 
             var compilation = CreateCompilationWithMscorlib(new SyntaxTree[] { underlyingTree, countedTree });
 
@@ -365,7 +365,7 @@ public class B
             private readonly SyntaxTree _underlyingTree;
             private readonly CompilationUnitSyntax _root;
 
-            public int AccessCount = 0;
+            public int AccessCount;
 
             public CountedSyntaxTree(SyntaxTree underlying)
             {

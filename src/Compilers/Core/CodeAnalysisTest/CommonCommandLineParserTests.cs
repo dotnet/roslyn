@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, "Action", "Default"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, "Action", "Default"));
         }
 
         [Fact]
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rule", "Id"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rule", "Id"));
         }
 
         [Fact]
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rule", "Action"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rule", "Action"));
         }
 
         [Fact]
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rules", "AnalyzerId"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rules", "AnalyzerId"));
         }
 
         [Fact]
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "Rules", "RuleNamespace"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "Rules", "RuleNamespace"));
         }
 
         [Fact]
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "RuleSet", "ToolsVersion"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "RuleSet", "ToolsVersion"));
         }
 
         [Fact]
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetMissingAttribute, "RuleSet", "Name"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetMissingAttribute, "RuleSet", "Name"));
         }
 
         [Fact]
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
 
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, "Action", "Default"));
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, "Action", "Default"));
         }
 
         [Fact]
@@ -441,8 +441,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(ruleSet.Includes.First().IncludePath, "foo.ruleset");
         }
 
-        [WorkItem(156)]
-        [Fact(Skip = "156")]
+        [WorkItem(1184500, "DevDiv 1184500")]
+        [Fact]
         public void TestRuleSetInclude1()
         {
             string source = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -453,7 +453,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] { "" });
+            var dir = Temp.CreateDirectory();
+            var file = dir.CreateFile("a.ruleset");
+            file.WriteAllText(source);
+
+            var ruleSet = RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
+
+            Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+            Assert.Contains("CA1013", ruleSet.SpecificDiagnosticOptions.Keys);
+            Assert.Equal(ReportDiagnostic.Warn, ruleSet.SpecificDiagnosticOptions["CA1013"]);
         }
 
         [Fact]
@@ -969,7 +977,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 catch (InvalidRuleSetException e)
                 {
-                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisDesktopResources.RuleSetBadAttributeValue, "Action", "Default")), e.Message, StringComparison.Ordinal);
+                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetBadAttributeValue, "Action", "Default")), e.Message, StringComparison.Ordinal);
                 }
             }
         }

@@ -1,16 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Linq
 Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Collections
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -192,6 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ' (whitespace* comment whitespace* newline)+ OneOrMoreBlankLines
         Private ReadOnly s_bannerMatcher As Matcher(Of SyntaxTrivia)
 
+        ' Used to match the following:
+        '
+        ' <start-of-file> (whitespace* comment whitespace* newline)+ blankLine*
+        Private ReadOnly s_fileBannerMatcher As Matcher(Of SyntaxTrivia)
+
         Sub New()
             Dim whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"))
             Dim endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n")
@@ -205,6 +204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
                     s_oneOrMoreBlankLines)
+            s_fileBannerMatcher =
+                Matcher.Sequence(
+                    Matcher.OneOrMore(commentLine),
+                    Matcher.Repeat(singleBlankLine))
         End Sub
 
         Private Function Match(kind As SyntaxKind, description As String) As Matcher(Of SyntaxTrivia)
@@ -537,11 +540,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 leadingTriviaToStrip = New List(Of SyntaxTrivia)()
             End If
 
-            ' Now, consume as many banners as we can.
+            ' Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
+            ' the start of the file.
             Dim index = 0
             While (
                 s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, index) OrElse
-                s_bannerMatcher.TryMatch(leadingTriviaToKeep, index))
+                s_bannerMatcher.TryMatch(leadingTriviaToKeep, index) OrElse
+                (node.FullSpan.Start = 0 AndAlso s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, index)))
             End While
 
             leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index))
@@ -731,13 +736,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' <summary>
         ''' Look inside a trivia list for a skipped token that contains the given position.
         ''' </summary>
-        Private s_findSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
+        Private ReadOnly s_findSkippedTokenForward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
             Function(l, p) FindTokenHelper.FindSkippedTokenForward(GetSkippedTokens(l), p)
 
         ''' <summary>
         ''' Look inside a trivia list for a skipped token that contains the given position.
         ''' </summary>
-        Private s_findSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
+        Private ReadOnly s_findSkippedTokenBackward As Func(Of SyntaxTriviaList, Integer, SyntaxToken) =
             Function(l, p) FindTokenHelper.FindSkippedTokenBackward(GetSkippedTokens(l), p)
 
         ''' <summary>

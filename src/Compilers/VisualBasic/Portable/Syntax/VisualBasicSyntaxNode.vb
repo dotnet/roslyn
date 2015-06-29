@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Serialization"
 
-        Private Shared s_binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
+        Private Shared ReadOnly s_binder As RecordingObjectBinder = New ConcurrentRecordingObjectBinder()
         ''' <summary>
         ''' Serialize this node to a byte stream.
         ''' </summary>
@@ -636,8 +636,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxReplacer.InsertTriviaInList(Me, originalTrivia, newTrivia, insertBefore)
         End Function
 
-        Protected Overrides Function NormalizeWhitespaceCore(indentation As String, elasticTrivia As Boolean) As SyntaxNode
-            Return SyntaxNormalizer.Normalize(Me, indentation, elasticTrivia, useDefaultCasing:=False)
+        Protected Overrides Function NormalizeWhitespaceCore(indentation As String, eol As String, elasticTrivia As Boolean) As SyntaxNode
+            Return SyntaxNormalizer.Normalize(Me, indentation, eol, elasticTrivia, useDefaultCasing:=False)
         End Function
 #End Region
 
@@ -677,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
 
-        Friend Overrides Function GetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
+        Friend Overrides Function TryGetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
             Return LambdaUtilities.GetCorrespondingLambdaBody(body, Me)
         End Function
 

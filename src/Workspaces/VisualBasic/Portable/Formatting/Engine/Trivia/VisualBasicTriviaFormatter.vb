@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Inherits AbstractTriviaFormatter(Of SyntaxTrivia)
 
         Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
+        Private _newLine As SyntaxTrivia
 
         Private _succeeded As Boolean = True
 
@@ -56,11 +57,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Protected Overrides Function CreateWhitespace(text As String) As SyntaxTrivia
-            Return SyntaxFactory.Whitespace(text, elastic:=False)
+            Return SyntaxFactory.Whitespace(text)
         End Function
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
-            Return SyntaxFactory.CarriageReturnLineFeed
+            If _newLine = Nothing Then
+                Dim text = Me.Context.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic)
+                _newLine = SyntaxFactory.EndOfLine(text)
+            End If
+
+            Return _newLine
         End Function
 
         Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
@@ -278,7 +284,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 indentation:=indentation,
                 indentationDelta:=0,
                 useTab:=Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic),
-                tabSize:=Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic))
+                tabSize:=Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic),
+                newLine:=Me.OptionSet.GetOption(FormattingOptions.NewLine, LanguageNames.VisualBasic))
 
             If text = singlelineDocComments Then
                 Return trivia

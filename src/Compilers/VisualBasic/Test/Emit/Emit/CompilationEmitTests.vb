@@ -1064,10 +1064,10 @@ Imports System
             Next
         End Sub
 
-        Private Shared Function GetExpectedParentToken(metadataReader As MetadataReader, entry As DeclSecurityEntry) As Handle
+        Private Shared Function GetExpectedParentToken(metadataReader As MetadataReader, entry As DeclSecurityEntry) As EntityHandle
             Select Case entry.ParentKind
                 Case SymbolKind.Assembly
-                    Return Handle.AssemblyDefinition
+                    Return EntityHandle.AssemblyDefinition
 
                 Case SymbolKind.NamedType
                     Return GetTokenForType(metadataReader, entry.ParentNameOpt)
@@ -2108,7 +2108,7 @@ End Class
     <file name="a.vb">
 imports System.Security.Permissions
 
-&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistantFile.xml")&gt;
+&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistentFile.xml")&gt;
 &lt;PermissionSetAttribute(SecurityAction.Deny, File:=nothing)&gt;
 public class AClass 
 end class
@@ -2118,7 +2118,7 @@ end class
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default)).VerifyDiagnostics(
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                     Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
-                    Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File"),
+                    Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File"),
                     Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=nothing").WithArguments("<empty>", "File"))
         End Sub
 
@@ -2129,7 +2129,7 @@ end class
     <file name="a.vb">
 imports System.Security.Permissions
 
-&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistantFile.xml")&gt;
+&lt;PermissionSetAttribute(SecurityAction.Deny, File:="NonExistentFile.xml")&gt;
 public class AClass 
 end class
     </file>
@@ -2137,7 +2137,7 @@ end class
 
             CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll.WithXmlReferenceResolver(Nothing)).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.").WithLocation(3, 25),
-                Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistantFile.xml""").WithArguments("NonExistantFile.xml", "File").WithLocation(3, 46))
+                Diagnostic(ERRID.ERR_PermissionSetAttributeInvalidFile, "File:=""NonExistentFile.xml""").WithArguments("NonExistentFile.xml", "File").WithLocation(3, 46))
         End Sub
 
         <WorkItem(546074, "DevDiv")>
@@ -2760,7 +2760,7 @@ End interface
 
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
-            CompileAndVerify(compilation, emitters:=TestEmitters.RefEmitBug, verify:=False)
+            CompileAndVerify(compilation, verify:=False)
             Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
             compilation.GetSpecialType(SpecialType.System_Int32)
         End Sub

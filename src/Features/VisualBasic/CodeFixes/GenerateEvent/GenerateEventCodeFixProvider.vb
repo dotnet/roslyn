@@ -152,10 +152,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
             End If
         End Function
 
-        Private Function TryGetDelegateSymbol(handlerExpresion As ExpressionSyntax, semanticModel As SemanticModel, ByRef delegateSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Boolean
-            delegateSymbol = TryCast(semanticModel.GetSymbolInfo(handlerExpresion, cancellationToken).GetAnySymbol(), IMethodSymbol)
+        Private Function TryGetDelegateSymbol(handlerExpression As ExpressionSyntax, semanticModel As SemanticModel, ByRef delegateSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Boolean
+            delegateSymbol = TryCast(semanticModel.GetSymbolInfo(handlerExpression, cancellationToken).GetAnySymbol(), IMethodSymbol)
             If delegateSymbol Is Nothing Then
-                Dim typeSymbol = TryCast(semanticModel.GetTypeInfo(handlerExpresion, cancellationToken).Type, INamedTypeSymbol)
+                Dim typeSymbol = TryCast(semanticModel.GetTypeInfo(handlerExpression, cancellationToken).Type, INamedTypeSymbol)
                 If typeSymbol IsNot Nothing AndAlso typeSymbol.DelegateInvokeMethod IsNot Nothing Then
                     delegateSymbol = typeSymbol.DelegateInvokeMethod
                 Else

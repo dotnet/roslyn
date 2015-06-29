@@ -399,8 +399,10 @@ class C
     }
 }
 ";
+            var standardCompilation = CreateCompilationWithMscorlib(source);
+            var strictCompilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithStrictFeature());
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            standardCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
                 //         lock (default(object)) ;
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
@@ -413,8 +415,8 @@ class C
                 // (12,15): error CS0185: 'TStruct' is not a reference type as required by the lock statement
                 //         lock (default(TStruct)) {}  // new CS0185 - constraints to value type (Bug#10756)
                 Diagnostic(ErrorCode.ERR_LockNeedsReference, "default(TStruct)").WithArguments("TStruct").WithLocation(12, 15)
-                )
-            .WithStrictMode().VerifyDiagnostics(
+                );
+            strictCompilation.VerifyDiagnostics(
                 // (8,32): warning CS0642: Possible mistaken empty statement
                 //         lock (default(object)) ;
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(8, 32),
@@ -555,7 +557,7 @@ partial class C
     }
 }";
             // Dev12 would emit "2, 1 | T1, T2 | x, y".
-            CompileAndVerify(source, emitters: TestEmitters.RefEmitBug, expectedOutput: "2, 1 | T, U | x, y");
+            CompileAndVerify(source, expectedOutput: "2, 1 | T, U | x, y");
         }
 
         [Fact, WorkItem(529279, "DevDiv")]
@@ -619,7 +621,7 @@ public class Test
         }
 
         [Fact, WorkItem(529362, "DevDiv")]
-        public void TestNullCoalescingOverImplicitExplictUDC()
+        public void TestNullCoalescingOverImplicitExplicitUDC()
         {
             string source = @"using System;
 
@@ -653,12 +655,12 @@ class Program
     }
 }
 ";
-            // Native compiler picks explict conversion - print 3
+            // Native compiler picks explicit conversion - print 3
             CompileAndVerify(source, expectedOutput: "2");
         }
 
         [Fact, WorkItem(529362, "DevDiv")]
-        public void TestNullCoalescingOverImplicitExplictUDC_2()
+        public void TestNullCoalescingOverImplicitExplicitUDC_2()
         {
             string source = @"using System;
 
@@ -687,7 +689,7 @@ class Program
     }
 }
 ";
-            // Native compiler picks explict conversion
+            // Native compiler picks explicit conversion
             CompileAndVerify(source, expectedOutput: "Implicit");
         }
 
@@ -1289,15 +1291,15 @@ static int Main()
             // var y = ObsoleteType.field1;
             //
             // then the native compiler reports ObsoleteType as obsolete only once. This is because the native compiler caches
-            // the lookup of typenames for certain cases and doesn’t report errors on the second lookup as that just comes 
+            // the lookup of typenames for certain cases and doesn't report errors on the second lookup as that just comes 
             // from the cache. Note how I said caches sometimes. If you simply say -
             //
             // var x= new ObsoleteType();
             // var y = new ObsoleteType();
             //
-            // Then the native compiler reports the error twice. I don’t think we should replicate this in Roslyn. Note however
+            // Then the native compiler reports the error twice. I don't think we should replicate this in Roslyn. Note however
             // that this is a breaking change because if the first line had been #pragma disabled, then the code would compile
-            // without warnings in Dev11 but we will report warnings. I think it’s a corner enough scenario and the native
+            // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
             // behavior is quirky enough to warrant a break.
             // </quote>
             CompileAndVerify(@"
@@ -1342,7 +1344,7 @@ public class Program
 @"public class CS3 : CS2<CS1> {}",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new Compilation[] { cs1Compilation, cs2Compilation });
-            var cs3Verifier = CompileAndVerify(cs3Compilation, emitters: TestEmitters.RefEmitBug);
+            var cs3Verifier = CompileAndVerify(cs3Compilation);
             cs3Verifier.VerifyDiagnostics();
 
             var cs4Compilation = CreateCSharpCompilation("CS4",

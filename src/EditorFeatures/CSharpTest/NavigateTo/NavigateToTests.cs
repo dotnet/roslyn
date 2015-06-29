@@ -837,6 +837,52 @@ class D
             }
         }
 
+        [WorkItem(1174255)]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public void NoNavigationToGeneratedFiles()
+        {
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document FilePath=""File1.cs"">
+            namespace N
+            {
+                public partial class C
+                {
+                    public void VisibleMethod() { }
+                }
+            }
+        </Document>
+        <Document FilePath=""File1.g.cs"">
+            namespace N
+            {
+                public partial class C
+                {
+                    public void VisibleMethod_Not() { }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+"))
+            {
+                var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
+
+                _provider = new NavigateToItemProvider(workspace, _glyphServiceMock.Object, aggregateListener);
+                _aggregator = new NavigateToTestAggregator(_provider);
+
+                var items = _aggregator.GetItems("VisibleMethod");
+                var expectedItems = new List<NavigateToItem>()
+                {
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                };
+
+                // The pattern matcher should match 'VisibleMethod' to both 'VisibleMethod' and 'VisibleMethod_Not', except that
+                // the _Not method is declared in a generated file.
+                VerifyNavigateToResultItems(expectedItems, items);
+            }
+        }
+
         private void VerifyNavigateToResultItems(List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
             expecteditems = expecteditems.OrderBy(i => i.Name).ToList();

@@ -61,8 +61,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             get
             {
+                // If the completion item has an async description, then we don't want to force it
+                // to be computed here.  That will cause blocking on the UI thread.  Note: the only
+                // caller of this is the VS tooltip code which uses the presence of the Description
+                // to then decide to show the tooltip.  But once they decide to show the tooltip,
+                // they defer to us to get the contents for it asynchronously.  As such, we just want
+                // to give them something non-empty so they know to go get the async description.
+                if (this.CompletionItem.HasAsyncDescription)
+                {
+                    return "...";
+                }
+
                 return this.CompletionItem.GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetFullText();
             }
+        }
+
+        public string GetDescription_TestingOnly()
+        {
+            return this.CompletionItem.GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetFullText();
         }
 
         public override ImageMoniker IconMoniker

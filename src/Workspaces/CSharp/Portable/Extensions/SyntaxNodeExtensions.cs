@@ -133,15 +133,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static NamespaceDeclarationSyntax GetInnermostNamespaceDeclarationWithUsings(this SyntaxNode contextNode)
         {
-            var usingDirectiveAncsestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
-            if (usingDirectiveAncsestor == null)
+            var usingDirectiveAncestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
+            if (usingDirectiveAncestor == null)
             {
                 return contextNode.GetAncestorsOrThis<NamespaceDeclarationSyntax>().FirstOrDefault(n => n.Usings.Count > 0);
             }
             else
             {
                 // We are inside a using directive. In this case, we should find and return the first 'parent' namespace with usings.
-                var containingNamespace = usingDirectiveAncsestor.GetAncestor<NamespaceDeclarationSyntax>();
+                var containingNamespace = usingDirectiveAncestor.GetAncestor<NamespaceDeclarationSyntax>();
                 if (containingNamespace == null)
                 {
                     // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
@@ -164,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         // (whitespace* (single-comment|multi-comment) whitespace* newline)+ OneOrMoreBlankLines
         private static readonly Matcher<SyntaxTrivia> s_bannerMatcher;
 
+        // Used to match the following:
+        //
+        // <start-of-file> (whitespace* (single-comment|multi-comment) whitespace* newline)+ blankLine*
+        private static readonly Matcher<SyntaxTrivia> s_fileBannerMatcher;
+
         static SyntaxNodeExtensions()
         {
             var whitespace = Matcher.Repeat(Match(SyntaxKind.WhitespaceTrivia, "\\b"));
@@ -181,6 +186,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 Matcher.Sequence(
                     Matcher.OneOrMore(commentLine),
                     s_oneOrMoreBlankLines);
+            s_fileBannerMatcher =
+                Matcher.Sequence(
+                    Matcher.OneOrMore(commentLine),
+                    Matcher.Repeat(singleBlankLine));
         }
 
         private static Matcher<SyntaxTrivia> Match(SyntaxKind kind, string description)
@@ -668,11 +677,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 leadingTriviaToStrip = new List<SyntaxTrivia>();
             }
 
-            // Now, consume as many banners as we can.
+            // Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
+            // the start of the file.
             var index = 0;
             while (
                 s_oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index) ||
-                s_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index))
+                s_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index) ||
+                (node.FullSpan.Start == 0 && s_fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index)))
             {
             }
 
@@ -769,8 +780,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </summary>
         private static IEnumerable<SyntaxToken> GetSkippedTokens(SyntaxTriviaList list)
         {
+            // PERF: Avoid allocations in the most common case of no skipped tokens.
+            if (!HasSkippedTokens(list))
+            {
+                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+            }
+
             return list.Where(trivia => trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
                        .SelectMany(t => ((SkippedTokensTriviaSyntax)t.GetStructure()).Tokens);
+        }
+
+        private static bool HasSkippedTokens(SyntaxTriviaList list)
+        {
+            foreach (var trivia in list)
+            {
+                if (trivia.RawKind == (int)SyntaxKind.SkippedTokensTrivia)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

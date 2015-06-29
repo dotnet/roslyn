@@ -17,73 +17,41 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         internal static readonly AssemblyIdentity SystemIdentity = new AssemblyIdentity("System");
         internal static readonly AssemblyIdentity SystemCoreIdentity = new AssemblyIdentity("System.Core");
+        internal static readonly AssemblyIdentity SystemLinqIdentity = new AssemblyIdentity("System.Linq");
         internal static readonly AssemblyIdentity SystemXmlIdentity = new AssemblyIdentity("System.Xml");
         internal static readonly AssemblyIdentity SystemXmlLinqIdentity = new AssemblyIdentity("System.Xml.Linq");
         internal static readonly AssemblyIdentity MicrosoftVisualBasicIdentity = new AssemblyIdentity("Microsoft.VisualBasic");
 
-        /// <summary>
-        /// Compile C# expression and emit assembly with evaluation method.
-        /// </summary>
-        /// <returns>
-        /// Result containing generated assembly, type and method names, and any format specifiers.
-        /// </returns>
-        internal CompileResult CompileExpression(
-            InspectionContext inspectionContext,
-            string expr,
-            DkmEvaluationFlags compilationFlags,
-            DiagnosticFormatter formatter,
-            out ResultProperties resultProperties,
-            out string error,
-            out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities,
-            CultureInfo preferredUICulture,
-            CompilationTestData testData)
-        {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var result = this.CompileExpression(inspectionContext, expr, compilationFlags, diagnostics, out resultProperties, testData);
-            if (diagnostics.HasAnyErrors())
-            {
-                bool useReferencedModulesOnly;
-                error = GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, out useReferencedModulesOnly, out missingAssemblyIdentities);
-            }
-            else
-            {
-                error = null;
-                missingAssemblyIdentities = ImmutableArray<AssemblyIdentity>.Empty;
-            }
-            diagnostics.Free();
-            return result;
-        }
-
         internal abstract CompileResult CompileExpression(
-            InspectionContext inspectionContext,
             string expr,
             DkmEvaluationFlags compilationFlags,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             CompilationTestData testData);
 
         internal abstract CompileResult CompileAssignment(
-            InspectionContext inspectionContext,
             string target,
             string expr,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out ResultProperties resultProperties,
             CompilationTestData testData);
 
         internal abstract ReadOnlyCollection<byte> CompileGetLocals(
-            ReadOnlyCollection<Alias> aliases,
             ArrayBuilder<LocalAndMethod> locals,
             bool argumentsOnly,
+            ImmutableArray<Alias> aliases,
             DiagnosticBag diagnostics,
             out string typeName,
             CompilationTestData testData);
 
-        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
+        internal string GetErrorMessageAndMissingAssemblyIdentities(DiagnosticBag diagnostics, DiagnosticFormatter formatter, CultureInfo preferredUICulture, AssemblyIdentity linqLibrary, out bool useReferencedModulesOnly, out ImmutableArray<AssemblyIdentity> missingAssemblyIdentities)
         {
             var errors = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error);
             foreach (var error in errors)
             {
-                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error);
+                missingAssemblyIdentities = this.GetMissingAssemblyIdentities(error, linqLibrary);
                 if (!missingAssemblyIdentities.IsDefault)
                 {
                     break;
@@ -108,7 +76,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract bool HasDuplicateTypesOrAssemblies(Diagnostic diagnostic);
 
-        internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic);
+        internal abstract ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic, AssemblyIdentity linqLibrary);
+
+        // ILOffset == 0xffffffff indicates an instruction outside of IL.
+        // Treat such values as the beginning of the IL.
+        protected static int NormalizeILOffset(uint ilOffset)
+        {
+            return (ilOffset == uint.MaxValue) ? 0 : (int)ilOffset;
+        }
 
         protected sealed class SimpleMessageDiagnostic : Diagnostic
         {

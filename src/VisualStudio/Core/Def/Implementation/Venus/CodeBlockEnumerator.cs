@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         }
 
         /// <summary>
-        /// Clones another instance of a CodeBockEnumerator.
+        /// Clones another instance of a CodeBlockEnumerator.
         /// </summary>
         private CodeBlockEnumerator(CodeBlockEnumerator previousEnumerator)
         {
