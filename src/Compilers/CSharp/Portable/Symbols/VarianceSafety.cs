@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -318,8 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             requireOut = true;
                             break;
                         default:
-                            Debug.Assert(false, "Unknown variance kind " + typeParam.Variance);
-                            goto case VarianceKind.None;
+                            throw ExceptionUtilities.UnexpectedValue(typeParam.Variance);
                     }
 
                     if (IsVarianceUnsafe(typeArg, requireOut, requireIn, context, locationProvider, locationArg, diagnostics))
@@ -368,8 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     actualVariance = MessageID.IDS_Covariant;
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected variance " + unsafeTypeParameter.Variance);
-                    return;
+                    throw ExceptionUtilities.UnexpectedValue(unsafeTypeParameter.Variance);
             }
 
             // Get a location that roughly represents the unsafe type parameter use.

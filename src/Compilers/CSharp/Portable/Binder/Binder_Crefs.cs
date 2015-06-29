@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConversionOperatorMemberCref:
                     return BindMemberCref((MemberCrefSyntax)syntax, containerOpt: null, ambiguityWinner: out ambiguityWinner, diagnostics: diagnostics);
                 default:
-                    Debug.Assert(false, "Unexpected cref kind " + syntax.Kind());
-                    ambiguityWinner = null;
-                    return ImmutableArray<Symbol>.Empty;
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
         }
 
@@ -127,10 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindConversionOperatorMemberCref((ConversionOperatorMemberCrefSyntax)syntax, containerOpt, out ambiguityWinner, diagnostics);
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected member cref kind " + syntax.Kind());
-                    ambiguityWinner = null;
-                    result = ImmutableArray<Symbol>.Empty;
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
 
             if (!result.Any())

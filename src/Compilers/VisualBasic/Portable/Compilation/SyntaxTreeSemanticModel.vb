@@ -1577,7 +1577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            Debug.Assert(False)
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
         ''' <summary>

@@ -196,9 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     clauseKind = SyntaxFacts.GetText(SyntaxKind.FromKeyword);
                     break;
                 default:
-                    clauseKind = "unknown";
-                    Debug.Assert(false, "invalid query clause kind " + queryClause.Kind());
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(queryClause.Kind());
             }
 
             diagnostics.Add(new DiagnosticInfoWithSymbols(

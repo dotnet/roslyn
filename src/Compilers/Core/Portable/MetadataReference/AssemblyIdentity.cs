@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis
                 return x._publicKey.SequenceEqual(y._publicKey);
             }
 
-            // one of the strong names doesn't have PK, other other doesn't have PTK initialized.
+            // one of the strong names doesn't have PK, other doesn't have PTK initialized.
             if (xToken.IsDefault)
             {
                 return x.PublicKeyToken.SequenceEqual(yToken);
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        #region AssemblyName convesions 
+        #region AssemblyName conversions 
 
         /// <summary>
         /// Retrieves assembly definition identity from given runtime assembly.

@@ -123,39 +123,38 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
         }
 
-        public override string FormatTypeName(Type type, ObjectFormattingOptions options)
+        public override string FormatLiteral(DateTime value)
         {
-            return GetPrimitiveTypeName(type) ?? AppendComplexTypeName(new StringBuilder(), type, options).ToString();
+            // DateTime is not primitive in C#
+            return null;
         }
 
-        private static string GetPrimitiveTypeName(Type type)
+        public override string FormatTypeName(Type type, ObjectFormattingOptions options)
         {
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Boolean: return "bool";
-                case TypeCode.Byte: return "byte";
-                case TypeCode.Char: return "char";
-                case TypeCode.Decimal: return "decimal";
-                case TypeCode.Double: return "double";
-                case TypeCode.Int16: return "short";
-                case TypeCode.Int32: return "int";
-                case TypeCode.Int64: return "long";
-                case TypeCode.SByte: return "sbyte";
-                case TypeCode.Single: return "float";
-                case TypeCode.String: return "string";
-                case TypeCode.UInt16: return "ushort";
-                case TypeCode.UInt32: return "uint";
-                case TypeCode.UInt64: return "ulong";
+            return GetPrimitiveTypeName(GetPrimitiveSpecialType(type)) ?? AppendComplexTypeName(new StringBuilder(), type, options).ToString();
+        }
 
-                case TypeCode.Object:
-                case TypeCode.Empty:
-                case TypeCode.DBNull:
-                case TypeCode.DateTime:
+        private static string GetPrimitiveTypeName(SpecialType type)
+        {
+            switch (type)
+            {
+                case SpecialType.System_Boolean: return "bool";
+                case SpecialType.System_Byte: return "byte";
+                case SpecialType.System_Char: return "char";
+                case SpecialType.System_Decimal: return "decimal";
+                case SpecialType.System_Double: return "double";
+                case SpecialType.System_Int16: return "short";
+                case SpecialType.System_Int32: return "int";
+                case SpecialType.System_Int64: return "long";
+                case SpecialType.System_SByte: return "sbyte";
+                case SpecialType.System_Single: return "float";
+                case SpecialType.System_String: return "string";
+                case SpecialType.System_UInt16: return "ushort";
+                case SpecialType.System_UInt32: return "uint";
+                case SpecialType.System_UInt64: return "ulong";
+                case SpecialType.System_Object: return "object";
+
                 default:
-                    if (type == typeof(object))
-                    {
-                        return "object";
-                    }
                     return null;
             }
         }
@@ -219,8 +218,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             return builder;
         }
 
-        private StringBuilder AppendTypeInstantiation(StringBuilder builder, Type type, Type[] genericArguments, ref int genericArgIndex,
-            ObjectFormattingOptions options)
+        private StringBuilder AppendTypeInstantiation(StringBuilder builder, Type type, Type[] genericArguments, ref int genericArgIndex, ObjectFormattingOptions options)
         {
             // generic arguments of all the outer types and the current type;
             Type[] currentGenericArgs = type.GetGenericArguments();

@@ -1291,15 +1291,15 @@ static int Main()
             // var y = ObsoleteType.field1;
             //
             // then the native compiler reports ObsoleteType as obsolete only once. This is because the native compiler caches
-            // the lookup of typenames for certain cases and doesn’t report errors on the second lookup as that just comes 
+            // the lookup of typenames for certain cases and doesn't report errors on the second lookup as that just comes 
             // from the cache. Note how I said caches sometimes. If you simply say -
             //
             // var x= new ObsoleteType();
             // var y = new ObsoleteType();
             //
-            // Then the native compiler reports the error twice. I don’t think we should replicate this in Roslyn. Note however
+            // Then the native compiler reports the error twice. I don't think we should replicate this in Roslyn. Note however
             // that this is a breaking change because if the first line had been #pragma disabled, then the code would compile
-            // without warnings in Dev11 but we will report warnings. I think it’s a corner enough scenario and the native
+            // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
             // behavior is quirky enough to warrant a break.
             // </quote>
             CompileAndVerify(@"

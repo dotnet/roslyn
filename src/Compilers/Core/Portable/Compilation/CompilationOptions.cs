@@ -150,6 +150,13 @@ namespace Microsoft.CodeAnalysis
         internal MetadataImportOptions MetadataImportOptions_internal_protected_set { set { MetadataImportOptions = value; } }
 
         /// <summary>
+        /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null) based on the compilation options.
+        /// </summary>
+        /// <param name="diagnostic"></param>
+        /// <returns>The modified diagnostic, or null</returns>
+        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
+
+        /// <summary>
         /// Warning report option for each warning.
         /// </summary>
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// method.
         /// </param>
         /// <param name="hasCircularReference">
-        /// True if the assembly being compiled is indirectly referenced thru some of its own references.
+        /// True if the assembly being compiled is indirectly referenced through some of its own references.
         /// </param>
         /// <param name="corLibraryIndex">
         /// The definition index of the COR library.

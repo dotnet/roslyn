@@ -68,10 +68,10 @@ class C : Base
     }
 
 }").VerifyDiagnostics(
-    // (12,25): error CS8080: “Auto-implemented properties must override all accessors of the overridden property.”
+    // (12,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
     //     public override int P { get; }
     Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P").WithArguments("C.P").WithLocation(12, 25),
-    // (13,25): error CS8080: “Auto-implemented properties must override all accessors of the overridden property.”
+    // (13,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
     //     public override int P1 { get; }
     Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("C.P1").WithLocation(13, 25)
 

@@ -678,9 +678,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else if (typeDeclaringMemberAndInfo.Type != null)
             {
+                bool unused;
                 if (typeDeclaringMemberAndInfo.Type.IsInterface)
                 {
-                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
+                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused);
                     name = string.Format("{0}.{1}", interfaceTypeName, name);
                 }
                 else
@@ -689,7 +690,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var builder = pooled.Builder;
                     builder.Append(name);
                     builder.Append(" (");
-                    builder.Append(this.Formatter.GetTypeName(typeDeclaringMemberAndInfo));
+                    builder.Append(this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused));
                     builder.Append(')');
                     name = pooled.ToStringAndFree();
                 }
@@ -699,7 +700,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string display;
             if (value.HasExceptionThrown())
             {
-                display = dataItem.DisplayValue ?? value.GetExceptionMessage(dataItem.FullNameWithoutFormatSpecifiers, this.Formatter);
+                display = dataItem.DisplayValue ?? value.GetExceptionMessage(dataItem.FullNameWithoutFormatSpecifiers ?? dataItem.Name, this.Formatter);
             }
             else if (displayValue != null)
             {
