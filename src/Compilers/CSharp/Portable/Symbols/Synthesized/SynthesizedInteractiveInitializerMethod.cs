@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetReturnType(bool isAsync, TypeSymbol returnType)
         {
-            Debug.Assert((_lazyReturnType == null) || (_lazyReturnType.ReturnType == returnType));
+            Debug.Assert(_lazyReturnType == null);
             Interlocked.CompareExchange(ref _lazyReturnType, new ReturnTypeState(isAsync, returnType), null);
         }
     }

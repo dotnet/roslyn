@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
-                    return new BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType) { WasCompilerGenerated = true };
+                    return new BoundPreviousSubmissionReference(syntax, currentType) { WasCompilerGenerated = true };
                 }
                 else
                 {
