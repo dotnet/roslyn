@@ -364,15 +364,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     analyzerManager = new AnalyzerManager();
-                    Action<Exception, DiagnosticAnalyzer, Diagnostic> addExceptionDiagnostic = (exception, analyzer, diagnostic) => analyzerExceptionDiagnostics.Add(diagnostic);
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
+                    Action<Exception, DiagnosticAnalyzer, Diagnostic> addExceptionDiagnostic = (exception, analyzer, diagnostic) => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
                     analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, true, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
-                    getAnalyzerDiagnostics = () =>
-                        {
-                            var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
-                            return analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
-                        };
+                    getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync().Result;
                 }
 
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
