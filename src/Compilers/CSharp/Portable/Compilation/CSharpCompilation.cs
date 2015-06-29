@@ -1305,17 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyHostObjectTypeSymbol;
         }
 
-        internal TypeSymbol GetSubmissionReturnType()
+        internal SynthesizedInteractiveInitializerMethod GetSubmissionInitializer()
         {
-            if (IsSubmission && (object)ScriptClass != null)
-            {
-                // the second parameter of Script class instance constructor is the submission return value:
-                return ((MethodSymbol)ScriptClass.GetMembers(WellKnownMemberNames.InstanceConstructorName)[0]).Parameters[1].Type;
-            }
-            else
-            {
-                return null;
-            }
+            return (IsSubmission && (object)ScriptClass != null) ?
+                ScriptClass.GetScriptInitializer() :
+                null;
         }
 
         /// <summary>
