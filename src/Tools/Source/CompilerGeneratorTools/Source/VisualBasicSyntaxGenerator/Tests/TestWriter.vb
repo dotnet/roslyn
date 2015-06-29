@@ -172,12 +172,11 @@ Public Class TestWriter
                 '    callTokens.Add("String.Empty")
                 '    first = False
                 'End If
-
-                If nodeKind.Name.EndsWith("LiteralToken", StringComparison.Ordinal) OrElse
-                   nodeKind.Name.EndsWith("XmlNameToken", StringComparison.Ordinal) OrElse
-                   nodeKind.Name.EndsWith("DocumentationCommentLineBreakToken", StringComparison.Ordinal) OrElse
-                   nodeKind.Name = "InterpolatedStringTextToken" _
-                Then
+                Dim nn = nodeKind.Name
+                If nn.EndsWith("LiteralToken", StringComparison.Ordinal) OrElse
+                   nn.EndsWith("XmlNameToken", StringComparison.Ordinal) OrElse
+                   nn.EndsWith("DocumentationCommentLineBreakToken", StringComparison.Ordinal) OrElse
+                   nn = "InterpolatedStringTextToken" Then
                     If Not first Then callTokens.Add(", ")
                     callTokens.Add("String.Empty")
                     first = False
