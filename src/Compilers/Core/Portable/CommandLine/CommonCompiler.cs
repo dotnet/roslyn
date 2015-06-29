@@ -364,20 +364,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     analyzerManager = new AnalyzerManager();
-                    var analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
                     Action<Exception, DiagnosticAnalyzer, Diagnostic> addExceptionDiagnostic = (exception, analyzer, diagnostic) => analyzerExceptionDiagnostics.Add(diagnostic);
                     analyzerExceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-                    Action<Diagnostic> addExceptionDiagnostic = diagnostic => analyzerExceptionDiagnostics.Add(diagnostic);
                     var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
-                    var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, true, out compilation, analyzerCts.Token);
-
+                    analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, true, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
                     getAnalyzerDiagnostics = () =>
                         {
                             var analyzerDiagnostics = analyzerDriver.GetDiagnosticsAsync().Result;
                             return analyzerDiagnostics.AddRange(analyzerExceptionDiagnostics);
                         };
-                    analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, analyzerOptions, analyzerManager, addExceptionDiagnostic, Arguments.ReportAnalyzer, out compilation, analyzerCts.Token);
-                    getAnalyzerDiagnostics = () => analyzerDriver.GetDiagnosticsAsync().Result;
                 }
 
                 // Print the diagnostics produced during the parsing stage and exit if there were any errors.
@@ -538,9 +533,9 @@ namespace Microsoft.CodeAnalysis
 
                     if (analyzerManager != null)
                     {
-                    // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
-                    analyzerManager.ClearAnalyzerState(analyzers);
-                }
+                        // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
+                        analyzerManager.ClearAnalyzerState(analyzers);
+                    }
 
                     if (Arguments.ReportAnalyzer && analyzerDriver != null && compilation != null)
                     {

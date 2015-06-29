@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _cancellationToken = cancellationToken;
             _exceptionDiagnostics = new ConcurrentSet<Diagnostic>();
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, onAnalyzerException ?? AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
-            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, AddExceptionDiagnostic, false, out _compilation, _cancellationToken);
+            _driver = AnalyzerDriver.Create(compilation, analyzers, options, AnalyzerManager.Instance, onAnalyzerException ?? AddExceptionDiagnostic, false, false, out _compilation, _cancellationToken);
         }
 
         private static void VerifyAnalyzersArgument(ImmutableArray<DiagnosticAnalyzer> analyzers)
