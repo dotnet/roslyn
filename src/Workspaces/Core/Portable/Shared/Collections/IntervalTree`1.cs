@@ -309,17 +309,28 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 yield break;
             }
 
-            var candidates = new Stack<Node>();
-            candidates.Push(root);
+            // The bool indicates if this is the first time we are seeing the node.
+            var candidates = new Stack<ValueTuple<Node,bool>>();
+            candidates.Push(ValueTuple.Create(root, true));
             while (candidates.Count != 0)
             {
-                var current = candidates.Pop();
-                if (current != null)
+                var currentTuple = candidates.Pop();
+                var currentNode = currentTuple.Item1;
+                if (currentNode != null)
                 {
-                    candidates.Push(current.Right);
-                    candidates.Push(current.Left);
-
-                    yield return current.Value;
+                    if (currentTuple.Item2)
+                    {
+                        // First time seeing this node.  Mark that we've been seen and recurse
+                        // down the left side.  The next time we see this node we'll yield it
+                        // out.
+                        candidates.Push(ValueTuple.Create(currentNode.Right, true));
+                        candidates.Push(ValueTuple.Create(currentNode, false));
+                        candidates.Push(ValueTuple.Create(currentNode.Left, true));
+                    }
+                    else
+                    {
+                        yield return currentNode.Value;
+                    }
                 }
             }
         }
