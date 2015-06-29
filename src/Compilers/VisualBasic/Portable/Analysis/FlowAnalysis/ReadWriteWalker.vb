@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case RegionPlace.Inside
                         _readInside.Add(variable)
                     Case Else
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
                 End Select
                 MyBase.NoteRead(variable)
                 CheckCaptured(variable)
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case RegionPlace.Inside
                         _writtenInside.Add(variable)
                     Case Else
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
                 End Select
                 MyBase.NoteWrite(variable, value)
                 CheckCaptured(variable)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case RegionPlace.Inside
                         _captured.Add(variable)
                     Case Else
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(Me._regionPlace)
                 End Select
             End If
         End Sub

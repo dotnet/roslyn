@@ -285,24 +285,17 @@ class C
         private static ImmutableArray<BoundInitializer> BindInitializersWithoutDiagnostics(SourceNamedTypeSymbol typeSymbol, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            try
-            {
-                ImportChain unused;
-                var boundInitializers = Binder.BindFieldInitializers(
-                    containingType: typeSymbol,
-                    scriptCtor: null,
-                    initializers: initializers,
-                    diagnostics: diagnostics,
-                    firstImportChain: out unused);
-
-                diagnostics.Verify();
-
-                return boundInitializers;
-            }
-            finally
-            {
-                diagnostics.Free();
-            }
+            ImportChain unused;
+            var boundInitializers = ArrayBuilder<BoundInitializer>.GetInstance();
+            Binder.BindRegularCSharpFieldInitializers(
+                typeSymbol.DeclaringCompilation,
+                initializers,
+                boundInitializers,
+                diagnostics,
+                firstDebugImports: out unused);
+            diagnostics.Verify();
+            diagnostics.Free();
+            return boundInitializers.ToImmutableAndFree();
         }
 
         private class ExpectedInitializer

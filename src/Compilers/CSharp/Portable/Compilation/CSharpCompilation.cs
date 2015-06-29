@@ -1305,17 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyHostObjectTypeSymbol;
         }
 
-        internal TypeSymbol GetSubmissionReturnType()
+        internal SynthesizedInteractiveInitializerMethod GetSubmissionInitializer()
         {
-            if (IsSubmission && (object)ScriptClass != null)
-            {
-                // the second parameter of Script class instance constructor is the submission return value:
-                return ((MethodSymbol)ScriptClass.GetMembers(WellKnownMemberNames.InstanceConstructorName)[0]).Parameters[1].Type;
-            }
-            else
-            {
-                return null;
-            }
+            return (IsSubmission && (object)ScriptClass != null) ?
+                ScriptClass.GetScriptInitializer() :
+                null;
         }
 
         /// <summary>
@@ -2070,16 +2064,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override Diagnostic FilterDiagnostic(Diagnostic d)
-        {
-            return FilterDiagnostic(d, _options);
-        }
-
-        private static Diagnostic FilterDiagnostic(Diagnostic d, CSharpCompilationOptions options)
-        {
-            return CSharpDiagnosticFilter.Filter(d, options.WarningLevel, options.GeneralDiagnosticOption, options.SpecificDiagnosticOptions);
-        }
-
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
@@ -2090,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (Diagnostic d in incoming)
             {
-                var filtered = FilterDiagnostic(d, _options);
+                var filtered = _options.FilterDiagnostic(d);
                 if (filtered == null)
                 {
                     continue;

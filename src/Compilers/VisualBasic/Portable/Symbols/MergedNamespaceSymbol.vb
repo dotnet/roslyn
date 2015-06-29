@@ -650,7 +650,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' of memory overhead) unless there is actual merging going on. 
                 Debug.Assert(namespaceArray.Count <> 0)
                 If namespaceArray.Count = 0 Then
-                    Debug.Assert(False)
                     namespaceArray.Free()
                     Return Me
                 End If
@@ -665,8 +664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return result
                     End If
 
-                    Debug.Assert(False)
-                    Return Me
+                    Throw ExceptionUtilities.Unreachable
                 End If
 
                 Dim lookup = New SmallDictionary(Of NamespaceSymbol, Boolean)()

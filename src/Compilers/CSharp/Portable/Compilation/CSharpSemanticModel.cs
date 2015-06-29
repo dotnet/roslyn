@@ -1699,15 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var builder = ArrayBuilder<Symbol>.GetInstance();
                     foreach (var s in symbols)
                     {
-                        var originalErrorSymbol = s.OriginalDefinition as ErrorTypeSymbol;
-                        if ((object)originalErrorSymbol != null)
-                        {
-                            builder.AddRange(originalErrorSymbol.CandidateSymbols);
-                        }
-                        else
-                        {
-                            builder.Add(s);
-                        }
+                        AddUnwrappingErrorTypes(builder, s);
                     }
 
                     symbols = builder.ToImmutableAndFree();
@@ -1727,6 +1719,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return SymbolInfo.None;
+        }
+
+        private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
+        {
+            var originalErrorSymbol = s.OriginalDefinition as ErrorTypeSymbol;
+            if ((object)originalErrorSymbol != null)
+            {
+                builder.AddRange(originalErrorSymbol.CandidateSymbols);
+            }
+            else
+            {
+                builder.Add(s);
+            }
         }
 
         private static bool IsUserDefinedTrueOrFalse(BoundUnaryOperator @operator)
@@ -1972,7 +1977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Symbol> builder = ArrayBuilder<Symbol>.GetInstance();
             foreach (Symbol sym in symbols)
             {
-                builder.Add(UnwrapAlias(sym));
+                // Caas clients don't want ErrorTypeSymbol in the symbols, but the best guess
+                // instead. If no best guess, then nothing is returned.
+                AddUnwrappingErrorTypes(builder, UnwrapAlias(sym));
             }
 
             return builder.ToImmutableAndFree();
@@ -3359,8 +3366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(boundNodeForSyntacticParent.Kind);
                 }
 
                 AdjustSymbolsForObjectCreation(boundNode, typeSymbol, constructor, binderOpt, ref resultKind, ref symbols, ref memberGroup);

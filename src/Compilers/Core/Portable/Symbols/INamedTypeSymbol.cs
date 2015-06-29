@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// For delegate types, gets the delegate's invoke method.  Returns null on
-        /// all other kinds of types.  Note that is is possible to have an ill-formed
+        /// all other kinds of types.  Note that it is possible to have an ill-formed
         /// delegate type imported from metadata which does not have an Invoke method.
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
