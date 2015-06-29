@@ -130,16 +130,21 @@ namespace Microsoft.CodeAnalysis.Performance
                                                      if (advanceIncrement != null)
                                                      {
                                                          int incrementValue = (int)advanceIncrement.ConstantValue;
-                                                         if ((advanceOperationCode == BinaryOperatorCode.IntegerAdd &&
-                                                              (condition.RelationalCode == RelationalOperatorCode.IntegerLess ||
-                                                               condition.RelationalCode == RelationalOperatorCode.IntegerLessEqual ||
-                                                               condition.RelationalCode == RelationalOperatorCode.IntegerNotEqual)) ||
-                                                             (advanceOperationCode == BinaryOperatorCode.IntegerSubtract &&
-                                                              (condition.RelationalCode == RelationalOperatorCode.IntegerGreater ||
-                                                               condition.RelationalCode == RelationalOperatorCode.IntegerGreaterEqual ||
-                                                               condition.RelationalCode == RelationalOperatorCode.IntegerNotEqual)))
+                                                         if (advanceOperationCode == BinaryOperatorCode.IntegerSubtract)
                                                          {
-                                                             int iterationCount = Abs(testValue - initialValue) / incrementValue;
+                                                             advanceOperationCode = BinaryOperatorCode.IntegerAdd;
+                                                             incrementValue = -incrementValue;
+                                                         }
+
+                                                         if (advanceOperationCode == BinaryOperatorCode.IntegerAdd &&
+                                                             incrementValue != 0 &&
+                                                             (condition.RelationalCode == RelationalOperatorCode.IntegerLess ||
+                                                              condition.RelationalCode == RelationalOperatorCode.IntegerLessEqual ||
+                                                              condition.RelationalCode == RelationalOperatorCode.IntegerNotEqual ||
+                                                              condition.RelationalCode == RelationalOperatorCode.IntegerGreater ||
+                                                              condition.RelationalCode == RelationalOperatorCode.IntegerGreaterEqual))
+                                                         {
+                                                             int iterationCount = (testValue - initialValue) / incrementValue;
                                                              if (iterationCount >= 1000000)
                                                              {
                                                                  Report(operationContext, forLoop.Syntax, BigForDescriptor);

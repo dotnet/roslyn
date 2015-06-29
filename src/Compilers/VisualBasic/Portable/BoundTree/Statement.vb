@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim limitValue As IExpression = If(BoundFor.LimitValue.IsConstant, DirectCast(BoundFor.LimitValue, IExpression), New Temporary(TemporaryKind.LimitValue, BoundFor, BoundFor.LimitValue))
                         Dim controlVariable As BoundExpression = BoundFor.ControlVariable
 
-                        Dim booleanType As ITypeSymbol = BoundFor.ControlVariable.Type.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
+                        Dim booleanType As ITypeSymbol = controlVariable.ExpressionSymbol.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean)
 
                         Dim operators As BoundForToUserDefinedOperators = Me.OperatorsOpt
                         If operators IsNot Nothing Then
