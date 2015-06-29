@@ -46,20 +46,15 @@ class C
         for (x = 0; x < 2000000; x = x + 1)
         {
         }
-
     }
 }
 ";
 
             VerifyCSharp(Source, new[]
             {
-                GetCSharpResultAt(9, 25, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetCSharpResultAt(9, 34, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetCSharpResultAt(10, 22, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetCSharpResultAt(13, 21, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetCSharpResultAt(17, 21, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetCSharpResultAt(35, 9, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetCSharpResultAt(36, 13, BoxingOperationAnalyzer.BoxingDescriptor)
+                GetCSharpResultAt(11, 9, OperationTestAnalyzer.BigForDescriptor),
+                GetCSharpResultAt(19, 9, OperationTestAnalyzer.BigForDescriptor),
+                GetCSharpResultAt(27, 9, OperationTestAnalyzer.BigForDescriptor)
             });
         }
 
@@ -84,13 +79,8 @@ End Class
 
             VerifyBasic(Source, new[]
             {
-                GetBasicResultAt(7, 32, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetBasicResultAt(7, 39, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetBasicResultAt(8, 29, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetBasicResultAt(10, 21, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetBasicResultAt(13, 21, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetBasicResultAt(28, 9, BoxingOperationAnalyzer.BoxingDescriptor),
-                GetBasicResultAt(29, 13, BoxingOperationAnalyzer.BoxingDescriptor)
+                GetBasicResultAt(7, 9, OperationTestAnalyzer.BigForDescriptor),
+                GetBasicResultAt(11, 9, OperationTestAnalyzer.BigForDescriptor)
             });
         }
     }
