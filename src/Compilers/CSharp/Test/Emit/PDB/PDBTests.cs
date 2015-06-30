@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -254,7 +255,8 @@ class C
     };
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"<symbols>
+            c.VerifyPdb(@"
+<symbols>
   <methods>
     <method containingType=""C"" name="".cctor"">
       <customDebugInfo>
@@ -3863,14 +3865,13 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
             //        unparied surrogates.
-            c.VerifyPdb(string.Format(@"
+            c.VerifyPdb(@"
 <symbols>
-  <entryPoint declaringType=""T"" methodName=""Main"" />
   <methods>
     <method containingType=""T"" name=""Main"">
       <customDebugInfo>
@@ -3884,13 +3885,13 @@ public class T
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
-        <constant name=""HighSurrogateCharacter"" value=""{0}"" type=""String"" />
-        <constant name=""LowSurrogateCharacter"" value=""{0}"" type=""String"" />
-        <constant name=""MatchedSurrogateCharacters"" value=""{1}"" type=""String"" />
+        <constant name=""HighSurrogateCharacter"" value=""\uFFFD"" type=""String"" />
+        <constant name=""LowSurrogateCharacter"" value=""\uFFFD"" type=""String"" />
+        <constant name=""MatchedSurrogateCharacters"" value=""\uD800\uDC00"" type=""String"" />
       </scope>
     </method>
   </methods>
-</symbols>", "\uFFFD", "\uD800\uDC00"));
+</symbols>", DebugInformationFormat.Pdb);
         }
 
         [Fact, WorkItem(546862, "DevDiv")]
@@ -3906,14 +3907,13 @@ public class T
     }
 }";
 
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
             //        unparied surrogates.
-            c.VerifyPdb(string.Format(@"
+            c.VerifyPdb(@"
 <symbols>
-  <entryPoint declaringType=""T"" methodName=""Main"" />
   <methods>
     <method containingType=""T"" name=""Main"">
       <customDebugInfo>
@@ -3927,11 +3927,11 @@ public class T
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
-        <constant name=""invalidUnicodeString"" value=""{0}"" type=""String"" />
+        <constant name=""invalidUnicodeString"" value=""\uFFFD\u0000\uFFFD"" type=""String"" />
       </scope>
     </method>
   </methods>
-</symbols>", "\uFFFDU+0000\uFFFD"));
+</symbols>", DebugInformationFormat.Pdb);
         }
 
         [Fact]
@@ -4077,11 +4077,11 @@ public class C<S>
         <constant name=""EU1"" value=""0"" signature=""15-11-14-01-08"" />
         <constant name=""EI2"" value=""0"" signature=""15-11-18-01-08"" />
         <constant name=""EU2"" value=""0"" signature=""15-11-1C-01-08"" />
-        <constant name=""EI4"" value=""null"" signature=""15-11-20-01-08"" />
+        <constant name=""EI4"" value=""0"" signature=""15-11-20-01-08"" />
         <constant name=""EU4"" value=""0"" signature=""15-11-24-01-08"" />
         <constant name=""EI8"" value=""0"" signature=""15-11-28-01-08"" />
         <constant name=""EU8"" value=""0"" signature=""15-11-2C-01-08"" />
-        <constant name=""StrWithNul"" value=""U+0000"" type=""String"" />
+        <constant name=""StrWithNul"" value=""\u0000"" type=""String"" />
         <constant name=""EmptyStr"" value="""" type=""String"" />
         <constant name=""NullStr"" value=""null"" type=""String"" />
         <constant name=""NullObject"" value=""null"" type=""Object"" />
