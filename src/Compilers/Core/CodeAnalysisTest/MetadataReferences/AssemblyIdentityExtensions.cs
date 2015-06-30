@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class AssemblyIdentityExtensions
     {

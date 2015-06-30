@@ -180,6 +180,16 @@
       <VSIXSubPath>$(PkgdefVSIXSubPath)</VSIXSubPath>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <IncludeInVsix>true</IncludeInVsix>
+      <VSIXSubPath>.</VSIXSubPath>
+    </Content>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
+      <IncludeInVsix>true</IncludeInVsix>
+      <VSIXSubPath>.</VSIXSubPath>
+    </Content>
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />

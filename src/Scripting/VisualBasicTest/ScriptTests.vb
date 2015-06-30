@@ -1,11 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.Test
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
     Public Class ScriptTests
         Inherits BasicTestBase

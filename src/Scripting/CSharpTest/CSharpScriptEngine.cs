@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
     /// </summary>
     internal sealed class CSharpScriptEngine : ScriptEngine
     {
-        public CSharpScriptEngine(MetadataFileReferenceProvider metadataReferenceProvider = null, AssemblyLoader assemblyLoader = null)
-            : base(metadataReferenceProvider, assemblyLoader)
+        public CSharpScriptEngine(MetadataFileReferenceProvider metadataReferenceProvider = null)
+            : base(metadataReferenceProvider)
         {
         }
 
