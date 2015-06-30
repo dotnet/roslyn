@@ -118,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
 
                 Dim rootNamespace = SourceModule.RootNamespace
-                If rootNamespace Is Nothing OrElse rootNamespace.IsGlobalNamespace Then
-                    Return Nothing
+                If rootNamespace.IsGlobalNamespace Then
+                    Return String.Empty
                 End If
 
                 _lazyDefaultNamespace = rootNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)

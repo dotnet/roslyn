@@ -640,6 +640,61 @@ End Class
 </symbols>)
         End Sub
 
+        <WorkItem(1085911)>
+        <Fact>
+        Public Sub AsyncReturnVariable()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function M() As Task(Of Integer)
+        Return 1
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            c.AssertNoErrors()
+
+            ' NOTE: No <local> for the return variable "M".
+            c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="0"/>
+                <entry offset="0x7" startLine="5" startColumn="5" endLine="5" endColumn="50" document="0"/>
+                <entry offset="0x8" startLine="6" startColumn="9" endLine="6" endColumn="17" document="0"/>
+                <entry offset="0xc" hidden="true" document="0"/>
+                <entry offset="0x13" hidden="true" document="0"/>
+                <entry offset="0x2f" startLine="7" startColumn="5" endLine="7" endColumn="17" document="0"/>
+                <entry offset="0x39" hidden="true" document="0"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x47">
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+            <asyncInfo>
+                <kickoffMethod declaringType="C" methodName="M"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
         <Fact>
         Sub AsyncAndClosure()
             Dim source =
@@ -647,7 +702,6 @@ End Class
     <file>
 Imports System
 Imports System.Threading.Tasks
-
 Module M
     Async Function F() As Task(Of Boolean)
         Dim z = Await Task.FromResult(1)
@@ -783,7 +837,5 @@ End Module
 }
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
-
-
     End Class
 End Namespace

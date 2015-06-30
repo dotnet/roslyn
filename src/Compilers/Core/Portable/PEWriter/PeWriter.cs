@@ -68,6 +68,7 @@ namespace Microsoft.Cci
             EmitContext context,
             CommonMessageProvider messageProvider,
             Func<Stream> getPeStream,
+            Func<Stream> getPortablePdbStreamOpt,
             PdbWriter nativePdbWriterOpt,
             string pdbPathOpt,
             bool allowMissingMethodBodies,
@@ -78,12 +79,12 @@ namespace Microsoft.Cci
             Debug.Assert(nativePdbWriterOpt == null || pdbPathOpt != null);
 
             var peWriter = new PeWriter(context.Module, pdbPathOpt, deterministic);
-            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, getPortablePdbStreamOpt != null, cancellationToken);
 
-            return peWriter.WritePeToStream(mdWriter, getPeStream, nativePdbWriterOpt);
+            return peWriter.WritePeToStream(mdWriter, getPeStream, getPortablePdbStreamOpt, nativePdbWriterOpt);
         }
 
-        private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, PdbWriter nativePdbWriterOpt)
+        private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPortablePdbStreamOpt, PdbWriter nativePdbWriterOpt)
         {
             // TODO: we can precalculate the exact size of IL stream
             var ilBuffer = new MemoryStream(32 * 1024);
@@ -94,6 +95,9 @@ namespace Microsoft.Cci
             var mappedFieldDataWriter = new BinaryWriter(mappedFieldDataBuffer);
             var managedResourceBuffer = new MemoryStream(1024);
             var managedResourceWriter = new BinaryWriter(managedResourceBuffer);
+
+            var debugMetadataBuffer = (getPortablePdbStreamOpt != null) ? new MemoryStream(16 * 1024) : null;
+            var debugMetadataWriterOpt = new BinaryWriter(debugMetadataBuffer);
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -109,11 +113,12 @@ namespace Microsoft.Cci
                 return (int)_textSection.RelativeVirtualAddress + _sizeOfImportAddressTable + 72;
             });
 
-            MetadataSizes metadataSizes;
             uint entryPointToken;
+            MetadataSizes metadataSizes;
             mdWriter.SerializeMetadataAndIL(
-                nativePdbWriterOpt,
                 metadataWriter,
+                debugMetadataWriterOpt,
+                nativePdbWriterOpt,
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceWriter,
@@ -123,7 +128,7 @@ namespace Microsoft.Cci
                 out entryPointToken,
                 out metadataSizes);
 
-            ContentId pdbContentId;
+            ContentId nativePdbContentId;
             if (nativePdbWriterOpt != null)
             {
                 if (entryPointToken != 0)
@@ -147,14 +152,14 @@ namespace Microsoft.Cci
 #endif
                 }
 
-                pdbContentId = nativePdbWriterOpt.GetContentId();
+                nativePdbContentId = nativePdbWriterOpt.GetContentId();
 
                 // the writer shall not be used after this point for writing:
                 nativePdbWriterOpt = null;
             }
             else
             {
-                pdbContentId = default(ContentId);
+                nativePdbContentId = default(ContentId);
             }
 
             FillInSectionHeaders();
@@ -183,7 +188,7 @@ namespace Microsoft.Cci
                 mappedFieldDataBuffer,
                 managedResourceBuffer,
                 metadataSizes,
-                pdbContentId,
+                nativePdbContentId,
                 out metadataPosition);
 
             WriteRdataSection(peStream);
@@ -1412,7 +1417,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteDebugTable(Stream peStream, ContentId pdbContentId, MetadataSizes metadataSizes)
+        private void WriteDebugTable(Stream peStream, ContentId nativePdbContentId, MetadataSizes metadataSizes)
         {
             if (!EmitPdb)
             {
@@ -1426,7 +1431,7 @@ namespace Microsoft.Cci
             writer.WriteUint(0);
 
             // PDB stamp
-            writer.WriteBytes(pdbContentId.Stamp);
+            writer.WriteBytes(nativePdbContentId.Stamp);
 
             // version
             writer.WriteUint(0);
@@ -1452,7 +1457,7 @@ namespace Microsoft.Cci
             writer.WriteByte((byte)'S');
 
             // PDB id:
-            writer.WriteBytes(pdbContentId.Guid);
+            writer.WriteBytes(nativePdbContentId.Guid);
 
             // age
             writer.WriteUint(PdbWriter.Age);

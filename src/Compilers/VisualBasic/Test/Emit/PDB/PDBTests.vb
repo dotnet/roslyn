@@ -4057,7 +4057,7 @@ End Class
                 <constant name="EU1" value="0" signature="15-11-14-01-08"/>
                 <constant name="EI2" value="0" signature="15-11-18-01-08"/>
                 <constant name="EU2" value="0" signature="15-11-1C-01-08"/>
-                <constant name="EI4" value="null" signature="15-11-20-01-08"/>
+                <constant name="EI4" value="0" signature="15-11-20-01-08"/>
                 <constant name="EU4" value="0" signature="15-11-24-01-08"/>
                 <constant name="EI8" value="0" signature="15-11-28-01-08"/>
                 <constant name="EU8" value="0" signature="15-11-2C-01-08"/>

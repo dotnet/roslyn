@@ -18,6 +18,8 @@ namespace Microsoft.Cci
             Stamp = stamp;
         }
 
+        public bool IsDefault => Guid == null;
+
         internal static ContentId FromHash(ImmutableArray<byte> hashCode)
         {
             Debug.Assert(hashCode.Length >= 20);
