@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
+    using Collections;
     using TypeInfo = System.Reflection.TypeInfo;
 
     /// <summary>
@@ -459,6 +460,55 @@ namespace Microsoft.CodeAnalysis.Scripting
         #region Language Specific Formatting
 
         /// <summary>
+        /// String that describes "void" return type in the language.
+        /// </summary>
+        public abstract object VoidDisplayString { get; }
+
+        /// <summary>
+        /// String that describes "null" literal in the language.
+        /// </summary>
+        public abstract string NullLiteral { get; }
+
+        public abstract string FormatLiteral(bool value);
+        public abstract string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(char value, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(byte value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(short value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(ushort value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(int value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(uint value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(long value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(ulong value, bool useHexadecimalNumbers = false);
+        public abstract string FormatLiteral(double value);
+        public abstract string FormatLiteral(float value);
+        public abstract string FormatLiteral(decimal value);
+        public abstract string FormatLiteral(DateTime value);
+
+        // TODO (tomat): Use DebuggerDisplay.Type if specified?
+        public abstract string FormatGeneratedTypeName(Type type);
+        public abstract string FormatMemberName(MemberInfo member);
+        public abstract string GetPrimitiveTypeName(SpecialType type);
+
+        public abstract string GenericParameterOpening { get; }
+        public abstract string GenericParameterClosing { get; }
+
+        /// <summary>
+        /// Formats an array type name (vector or multidimensional).
+        /// </summary>
+        public abstract string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options);
+
+        /// <summary>
+        /// Returns true if the member shouldn't be displayed (e.g. it's a compiler generated field).
+        /// </summary>
+        public virtual bool IsHiddenMember(MemberInfo member) => false;
+
+        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
+        {
+            return useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
+        }
+
+        /// <summary>
         /// Returns null if the type is not considered primitive in the target language.
         /// </summary>
         private string FormatPrimitive(object obj, bool quoteStrings, bool includeCodePoints, bool useHexadecimalNumbers)
@@ -629,52 +679,114 @@ namespace Microsoft.CodeAnalysis.Scripting
             return SpecialType.None;
         }
 
-        /// <summary>
-        /// String that describes "void" return type in the language.
-        /// </summary>
-        public abstract object VoidDisplayString { get; }
-
-        /// <summary>
-        /// String that describes "null" literal in the language.
-        /// </summary>
-        public abstract string NullLiteral { get; }
-
-        public abstract string FormatLiteral(bool value);
-        public abstract string FormatLiteral(string value, bool quote, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(char value, bool quote, bool includeCodePoints = false, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(sbyte value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(byte value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(short value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(ushort value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(int value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(uint value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(long value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(ulong value, bool useHexadecimalNumbers = false);
-        public abstract string FormatLiteral(double value);
-        public abstract string FormatLiteral(float value);
-        public abstract string FormatLiteral(decimal value);
-        public abstract string FormatLiteral(DateTime value);
-
-        // TODO (tomat): Use DebuggerDisplay.Type if specified?
-        public abstract string FormatTypeName(Type type, ObjectFormattingOptions options);
-        public abstract string FormatMemberName(MemberInfo member);
-
-        /// <summary>
-        /// Formats an array type name (vector or multidimensional).
-        /// </summary>
-        public abstract string FormatArrayTypeName(Array array, ObjectFormattingOptions options);
-
-        /// <summary>
-        /// Returns true if the member shouldn't be displayed (e.g. it's a compiler generated field).
-        /// </summary>
-        public virtual bool IsHiddenMember(MemberInfo member)
+        public string FormatTypeName(Type type, ObjectFormattingOptions options)
         {
-            return false;
+            string result = GetPrimitiveTypeName(GetPrimitiveSpecialType(type));
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = FormatGeneratedTypeName(type);
+            if (result != null)
+            {
+                return result;
+            }
+
+            if (type.IsArray)
+            {
+                return FormatArrayTypeName(type, arrayOpt: null, options: options);
+            }
+
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsGenericType)
+            {
+                return FormatGenericTypeName(typeInfo, options);
+            }
+
+            if (typeInfo.DeclaringType != null)
+            {
+                return typeInfo.Name.Replace('+', '.');
+            }
+
+            return typeInfo.Name;
         }
 
-        internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
+        private string FormatGenericTypeName(TypeInfo typeInfo, ObjectFormattingOptions options)
         {
-            return useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            // consolidated generic arguments (includes arguments of all declaring types):
+            Type[] genericArguments = typeInfo.GenericTypeArguments;
+
+            if (typeInfo.DeclaringType != null)
+            {
+                var nestedTypes = ArrayBuilder<TypeInfo>.GetInstance();
+                do
+                {
+                    nestedTypes.Add(typeInfo);
+                    typeInfo = typeInfo.DeclaringType?.GetTypeInfo();
+                }
+                while (typeInfo != null);
+
+                int typeArgumentIndex = 0;
+                for (int i = nestedTypes.Count - 1; i >= 0; i--)
+                {
+                    AppendTypeInstantiation(builder, nestedTypes[i], genericArguments, ref typeArgumentIndex, options);
+                    if (i > 0)
+                    {
+                        builder.Append('.');
+                    }
+                }
+
+                nestedTypes.Free();
+            }
+            else
+            {
+                int typeArgumentIndex = 0;
+                AppendTypeInstantiation(builder, typeInfo, genericArguments, ref typeArgumentIndex, options);
+            }
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private void AppendTypeInstantiation(StringBuilder builder, TypeInfo typeInfo, Type[] genericArguments, ref int genericArgIndex, ObjectFormattingOptions options)
+        {
+            // generic arguments of all the outer types and the current type;
+            int currentArgCount = (typeInfo.IsGenericTypeDefinition ? typeInfo.GenericTypeParameters.Length : typeInfo.GenericTypeArguments.Length) - genericArgIndex;
+
+            if (currentArgCount > 0)
+            {
+                string name = typeInfo.Name;
+
+                int backtick = name.IndexOf('`');
+                if (backtick > 0)
+                {
+                    builder.Append(name.Substring(0, backtick));
+                }
+                else
+                {
+                    builder.Append(name);
+                }
+
+                builder.Append(GenericParameterOpening);
+
+                for (int i = 0; i < currentArgCount; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+                    builder.Append(FormatTypeName(genericArguments[genericArgIndex++], options));
+                }
+
+                builder.Append(GenericParameterClosing);
+            }
+            else
+            {
+                builder.Append(typeInfo.Name);
+            }
         }
 
         #endregion

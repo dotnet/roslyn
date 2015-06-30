@@ -876,7 +876,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             // print default:
             Host.ExecuteAsync(@"ReferencePaths").Wait();
             var output = ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", ScriptOptions.Default.SearchPaths)) + "\" }\r\n", output);
+            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", InteractiveHost.Service.DefaultReferenceSearchPaths)) + "\" }\r\n", output);
 
             Host.ExecuteAsync(@"SourcePaths").Wait();
             output = ReadOutputToEnd();
@@ -896,7 +896,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Host.ExecuteAsync(@"ReferencePaths").Wait();
 
             output = ReadOutputToEnd();
-            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", ScriptOptions.Default.SearchPaths.Concat(new[] { dllDir }))) + "\" }\r\n", output);
+            Assert.Equal("SearchPaths { \"" + normalizeSeparatorsAndFrameworkFolders(string.Join("\", \"", InteractiveHost.Service.DefaultReferenceSearchPaths.Concat(new[] { dllDir }))) + "\" }\r\n", output);
 
             Host.AddReferenceAsync(Path.GetFileName(dll.Path)).Wait();
 

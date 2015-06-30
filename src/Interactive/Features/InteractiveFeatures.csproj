@@ -116,6 +116,7 @@
     <Compile Include="Interactive\Core\RemoteExecutionResult.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteService.cs" />
     <Compile Include="Interactive\Core\SearchPaths.cs" />
+    <Compile Include="Interactive\Core\SerializableAssemblyLoadResult.cs" />
     <Compile Include="Interactive\Core\SynchronizedVersionedList.cs" />
     <Compile Include="Interactive\InteractiveCommandCompletionService.cs" />
   </ItemGroup>
