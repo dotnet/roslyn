@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.ActiveStatementLambdaRemoved,              FeaturesResources.RemovingThatContainsActiveStatement) },
             // TODO: change the error message to better explain what's going on
             { GetDescriptorPair(RudeEditKind.PartiallyExecutedActiveStatementUpdate,    FeaturesResources.UpdatingAnActiveStatement) },
+            { GetDescriptorPair(RudeEditKind.PartiallyExecutedActiveStatementDelete,    FeaturesResources.AnActiveStatementHasBeenRemoved) },
             { GetDescriptorPair(RudeEditKind.InsertFile,                                FeaturesResources.AddingANewFile) },
 
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.ModifyingAWhichContainsComplexQuery) },

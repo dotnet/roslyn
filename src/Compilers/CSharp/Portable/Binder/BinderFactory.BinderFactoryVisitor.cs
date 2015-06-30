@@ -262,8 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 }
                             default:
-                                Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind());
-                                break;
+                                throw ExceptionUtilities.UnexpectedValue(propertyOrEventDecl.Kind());
                         }
 
                         if ((object)accessor != null)

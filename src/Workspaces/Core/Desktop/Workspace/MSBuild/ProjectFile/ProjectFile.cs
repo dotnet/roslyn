@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (identity != null)
             {
                 var shortAssemblyName = identity.Name;
-                var fullAssemblyName = identity.ToAssemblyName().FullName;
+                var fullAssemblyName = identity.GetDisplayName();
 
                 // check for short name match
                 item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);

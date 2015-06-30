@@ -322,6 +322,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
             bool tryAgain;
+            var linqLibrary = EvaluationContextBase.SystemLinqIdentity;
             do
             {
                 errorMessage = null;
@@ -338,8 +339,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         diagnostics,
                         formatter,
                         preferredUICulture: null,
+                        linqLibrary: linqLibrary,
                         useReferencedModulesOnly: out useReferencedModulesOnly,
                         missingAssemblyIdentities: out missingAssemblyIdentities);
+                    // If there were LINQ-related errors, we'll initially add System.Linq (set above).
+                    // If that doesn't work, we'll fall back to System.Core for subsequent retries.
+                    linqLibrary = EvaluationContextBase.SystemCoreIdentity;
+
                     if (useReferencedModulesOnly)
                     {
                         Debug.Assert(missingAssemblyIdentities.IsEmpty);

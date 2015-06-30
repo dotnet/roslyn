@@ -7,10 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
-using Ref = System.Reflection;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
+    using TypeInfo = System.Reflection.TypeInfo;
+
     public abstract partial class ObjectFormatter
     {
         // internal for testing
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
 
                 object originalObj = obj;
-                Type originalType = originalObj.GetType();
+                TypeInfo originalType = originalObj.GetType().GetTypeInfo();
 
                 //
                 // Override KeyValuePair<,>.ToString() to get better dictionary elements formatting:
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 {
                     if (memberFormat != MemberDisplayFormat.InlineValue)
                     {
-                        result.Append(_language.FormatTypeName(originalType, _options));
+                        result.Append(_language.FormatTypeName(originalType.AsType(), _options));
                         result.Append(' ');
                     }
 
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 {
                     if (memberFormat != MemberDisplayFormat.InlineValue)
                     {
-                        result.Append(_language.FormatTypeName(originalType, _options));
+                        result.Append(_language.FormatTypeName(originalType.AsType(), _options));
                         result.Append('(');
                     }
 
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
                 else
                 {
-                    result.Append(_language.FormatTypeName(originalType, _options));
+                    result.Append(_language.FormatTypeName(originalType.AsType(), _options));
                 }
 
                 if (memberFormat == MemberDisplayFormat.NoMembers)
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             /// }
             /// </code>
             /// </summary>
-            private void FormatObjectMembers(Builder result, object obj, Type originalType, bool includeNonPublic, bool inline)
+            private void FormatObjectMembers(Builder result, object obj, TypeInfo originalType, bool includeNonPublic, bool inline)
             {
                 int lengthLimit = result.Remaining;
                 if (lengthLimit < 0)
@@ -269,9 +271,9 @@ namespace Microsoft.CodeAnalysis.Scripting
                 result.AppendGroupClosing(inline);
             }
 
-            private static bool UseCollectionFormat(IEnumerable<FormattedMember> members, Type originalType)
+            private static bool UseCollectionFormat(IEnumerable<FormattedMember> members, TypeInfo originalType)
             {
-                return typeof(IEnumerable).IsAssignableFrom(originalType) && members.All(member => member.Index >= 0);
+                return typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(originalType) && members.All(member => member.Index >= 0);
             }
 
             private struct FormattedMember
@@ -344,18 +346,21 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 Debug.Assert(obj != null);
 
-                var type = obj.GetType();
-                var fields = type.GetFields(Ref.BindingFlags.Instance | Ref.BindingFlags.Public | Ref.BindingFlags.NonPublic);
-                var properties = type.GetProperties(Ref.BindingFlags.Instance | Ref.BindingFlags.Public | Ref.BindingFlags.NonPublic);
-                var members = new List<Ref.MemberInfo>(fields.Length + properties.Length);
-                members.AddRange(fields);
-                members.AddRange(properties);
+                var members = new List<MemberInfo>();
 
-                // kirillo: need case-sensitive comparison here so that the order of members is
-                // always well-defined (members can differ by case only). And we don't want to
-                // depend on that order. TODO (tomat): sort by visibility. 
-                members.Sort(new Comparison<Ref.MemberInfo>((x, y) =>
+                var type = obj.GetType().GetTypeInfo();
+                while (type != null)
                 {
+                    members.AddRange(type.DeclaredFields.Where(f => !f.IsStatic));
+                    members.AddRange(type.DeclaredProperties.Where(f => f.GetMethod != null && !f.GetMethod.IsStatic));
+                    type = type.BaseType?.GetTypeInfo();
+                }
+
+                members.Sort((x, y) =>
+                {
+                    // Need case-sensitive comparison here so that the order of members is
+                    // always well-defined (members can differ by case only). And we don't want to
+                    // depend on that order.
                     int comparisonResult = StringComparer.OrdinalIgnoreCase.Compare(x.Name, y.Name);
                     if (comparisonResult == 0)
                     {
@@ -363,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     }
 
                     return comparisonResult;
-                }));
+                });
 
                 foreach (var member in members)
                 {
@@ -385,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         rootHidden = browsable.State == DebuggerBrowsableState.RootHidden;
                     }
 
-                    Ref.FieldInfo field = member as Ref.FieldInfo;
+                    FieldInfo field = member as FieldInfo;
                     if (field != null)
                     {
                         if (!(includeNonPublic || ignoreVisibility || field.IsPublic || field.IsFamily || field.IsFamilyOrAssembly))
@@ -395,14 +400,20 @@ namespace Microsoft.CodeAnalysis.Scripting
                     }
                     else
                     {
-                        Ref.PropertyInfo property = (Ref.PropertyInfo)member;
+                        PropertyInfo property = (PropertyInfo)member;
 
-                        var getter = property.GetGetMethod(nonPublic: true);
-                        var setter = property.GetSetMethod(nonPublic: true);
+                        var getter = property.GetMethod;
+                        if (getter == null)
+                        {
+                            continue;
+                        }
 
-                        if (!(includeNonPublic || ignoreVisibility ||
-                            getter != null && (getter.IsPublic || getter.IsFamily || getter.IsFamilyOrAssembly) ||
-                            setter != null && (setter.IsPublic || setter.IsFamily || setter.IsFamilyOrAssembly)))
+                        var setter = property.SetMethod;
+
+                        // If not ignoring visibility include properties that has a visible getter or setter.
+                        if (!(includeNonPublic || ignoreVisibility || 
+                            getter.IsPublic || getter.IsFamily || getter.IsFamilyOrAssembly || 
+                            (setter != null && (setter.IsPublic || setter.IsFamily || setter.IsFamilyOrAssembly))))
                         {
                             continue;
                         }
@@ -417,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                     if (debuggerDisplay != null)
                     {
                         string k = FormatWithEmbeddedExpressions(lengthLimit, debuggerDisplay.Name, obj) ?? _language.FormatMemberName(member);
-                        string v = FormatWithEmbeddedExpressions(lengthLimit, debuggerDisplay.Value, obj) ?? String.Empty; // TODO: ?
+                        string v = FormatWithEmbeddedExpressions(lengthLimit, debuggerDisplay.Value, obj) ?? string.Empty; // TODO: ?
                         if (!AddMember(result, new FormattedMember(-1, k, v), ref lengthLimit))
                         {
                             return;
@@ -454,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                                     Builder valueBuilder = MakeMemberBuilder(lengthLimit);
                                     FormatObjectRecursive(valueBuilder, item, _options.QuoteStrings, MemberDisplayFormat.InlineValue, out name);
 
-                                    if (!String.IsNullOrEmpty(name))
+                                    if (!string.IsNullOrEmpty(name))
                                     {
                                         name = FormatWithEmbeddedExpressions(MakeMemberBuilder(lengthLimit), name, item).ToString();
                                     }
@@ -506,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 // We can add more members to the result than it will eventually fit, we shouldn't add less.
                 // Add 2 more, even if only one or half of it fit, so that the separator is included in edge cases.
 
-                if (remainingLength == Int32.MinValue)
+                if (remainingLength == int.MinValue)
                 {
                     return false;
                 }
@@ -514,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 remainingLength -= member.MinimalLength;
                 if (remainingLength <= 0)
                 {
-                    remainingLength = Int32.MinValue;
+                    remainingLength = int.MinValue;
                 }
 
                 return true;
@@ -533,9 +544,9 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             private void FormatKeyValuePair(Builder result, object obj)
             {
-                Type type = obj.GetType();
-                object key = type.GetProperty("Key").GetValue(obj, SpecializedCollections.EmptyObjects);
-                object value = type.GetProperty("Value").GetValue(obj, SpecializedCollections.EmptyObjects);
+                TypeInfo type = obj.GetType().GetTypeInfo();
+                object key = type.GetDeclaredProperty("Key").GetValue(obj, SpecializedCollections.EmptyObjects);
+                object value = type.GetDeclaredProperty("Value").GetValue(obj, SpecializedCollections.EmptyObjects);
                 string _;
                 result.AppendGroupOpening();
                 result.AppendCollectionItemSeparator(isFirst: true, inline: true);
@@ -550,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 Array array = collection as Array;
                 if (array != null)
                 {
-                    result.Append(_language.FormatArrayTypeName(array, _options));
+                    result.Append(_language.FormatArrayTypeName(array.GetType(), array, _options));
                     return;
                 }
 
@@ -787,7 +798,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                                 break;
                             }
 
-                            Ref.MemberInfo member = ResolveMember(obj, memberName, callableOnly);
+                            MemberInfo member = ResolveMember(obj, memberName, callableOnly);
                             if (member == null)
                             {
                                 result.AppendFormat(callableOnly ? "!<Method '{0}' not found>" : "!<Member '{0}' not found>", memberName);

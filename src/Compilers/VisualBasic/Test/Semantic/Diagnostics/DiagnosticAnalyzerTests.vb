@@ -820,5 +820,73 @@ End Class
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
                     AnalyzerDiagnostic(CodeBlockActionAnalyzer.CodeBlockTopLevelRule.Id, <![CDATA[M]]>).WithArguments("M"))
         End Sub
+
+        Private Shared Sub TestEffectiveSeverity(defaultSeverity As DiagnosticSeverity, expectedEffectiveSeverity As ReportDiagnostic, Optional specificOptions As Dictionary(Of String, ReportDiagnostic) = Nothing, Optional generalOption As ReportDiagnostic = ReportDiagnostic.Default, Optional isEnabledByDefault As Boolean = True)
+            specificOptions = If(specificOptions, New Dictionary(Of String, ReportDiagnostic))
+            Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication,
+                                                            generalDiagnosticOption:=generalOption,
+                                                            specificDiagnosticOptions:=specificOptions)
+            Dim descriptor = New DiagnosticDescriptor(id:="Test0001", title:="Test0001", messageFormat:="Test0001", category:="Test0001", defaultSeverity:=defaultSeverity, isEnabledByDefault:=isEnabledByDefault)
+            Dim effectiveSeverity = descriptor.GetEffectiveSeverity(options)
+            Assert.Equal(expectedEffectiveSeverity, effectiveSeverity)
+        End Sub
+
+        <Fact>
+        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
+        Public Sub EffectiveSeverity_DiagnosticDefault1()
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, ReportDiagnostic.Warn)
+        End Sub
+
+        <Fact>
+        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
+        Public Sub EffectiveSeverity_DiagnosticDefault2()
+            Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", ReportDiagnostic.Default}}
+            Dim generalOption = ReportDiagnostic.Error
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=ReportDiagnostic.Warn, specificOptions:=specificOptions, generalOption:=generalOption)
+        End Sub
+
+        <Fact>
+        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
+        Public Sub EffectiveSeverity_GeneralOption()
+            Dim generalOption = ReportDiagnostic.Error
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=generalOption, generalOption:=generalOption)
+        End Sub
+
+        <Fact>
+        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
+        Public Sub EffectiveSeverity_SpecificOption()
+            Dim specificOption = ReportDiagnostic.Suppress
+            Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", specificOption}}
+            Dim generalOption = ReportDiagnostic.Error
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=specificOption, specificOptions:=specificOptions, generalOption:=generalOption)
+        End Sub
+
+        <Fact>
+        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
+        Public Sub EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
+            Dim generalOption = ReportDiagnostic.Error
+            Dim enabledByDefault = False
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=ReportDiagnostic.Suppress, generalOption:=generalOption, isEnabledByDefault:=enabledByDefault)
+        End Sub
+
+        <Fact>
+        <WorkItem(1107500, "DevDiv")>
+        <WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")>
+        Public Sub EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
+            Dim specificOption = ReportDiagnostic.Warn
+            Dim specificOptions = New Dictionary(Of String, ReportDiagnostic) From {{"Test0001", specificOption}}
+            Dim generalOption = ReportDiagnostic.Error
+            Dim enabledByDefault = False
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity:=specificOption, specificOptions:=specificOptions, generalOption:=generalOption, isEnabledByDefault:=enabledByDefault)
+        End Sub
     End Class
 End Namespace

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AsyncRewriter(
             BoundStatement body,
-            SourceMethodSymbol method,
+            MethodSymbol method,
             int methodOrdinal,
             AsyncStateMachine stateMachineType,
             VariableSlotAllocator slotAllocatorOpt,
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, (SourceMethodSymbol)method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter._constructedSuccessfully)
             {
                 return body;

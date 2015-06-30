@@ -4,13 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
-using Ref = System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
+    using Collections;
+    using TypeInfo = System.Reflection.TypeInfo;
+
     /// <summary>
     /// Object pretty printer.
     /// </summary>
@@ -27,53 +30,64 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         #region Reflection Helpers
 
-        private static bool HasOverriddenToString(Type type)
+        private static bool HasOverriddenToString(TypeInfo type)
         {
-            Ref.MethodInfo method = type.GetMethod(
-                "ToString",
-                Ref.BindingFlags.Public | Ref.BindingFlags.Instance,
-                null,
-                Type.EmptyTypes,
-                null
-            );
-            return method.DeclaringType != typeof(object);
+            if (type.IsInterface)
+            {
+                return false;
+            }
+
+            while (type.AsType() != typeof(object))
+            {
+                if (type.GetDeclaredMethod("ToString", Type.EmptyTypes) != null)
+                {
+                    return true;
+                }
+
+                type = type.BaseType.GetTypeInfo();
+            }
+
+            return false;
         }
 
-        private static DebuggerDisplayAttribute GetApplicableDebuggerDisplayAttribute(Ref.MemberInfo member)
+        private static DebuggerDisplayAttribute GetApplicableDebuggerDisplayAttribute(MemberInfo member)
         {
-            var result = (DebuggerDisplayAttribute)member.GetCustomAttributes(typeof(DebuggerDisplayAttribute), inherit: true).FirstOrDefault();
+            // Includes inherited attributes. The debugger uses the first attribute if multiple are applied.
+            var result = member.GetCustomAttributes<DebuggerDisplayAttribute>().FirstOrDefault();
             if (result != null)
             {
                 return result;
             }
 
             // TODO (tomat): which assembly should we look at for dd attributes?
-            Type type = member as Type;
+            var type = member as TypeInfo;
             if (type != null)
             {
-                foreach (DebuggerDisplayAttribute attr in type.Assembly.GetCustomAttributes(typeof(DebuggerDisplayAttribute), inherit: true))
+                foreach (DebuggerDisplayAttribute attr in type.Assembly.GetCustomAttributes<DebuggerDisplayAttribute>())
                 {
-                    if (IsApplicableAttribute(type, attr.Target, attr.TargetTypeName))
+                    if (IsApplicableAttribute(type, attr.Target.GetTypeInfo(), attr.TargetTypeName))
                     {
                         return attr;
                     }
                 }
             }
+
             return null;
         }
 
-        private static DebuggerTypeProxyAttribute GetApplicableDebuggerTypeProxyAttribute(Type type)
+        private static DebuggerTypeProxyAttribute GetApplicableDebuggerTypeProxyAttribute(TypeInfo type)
         {
-            var result = (DebuggerTypeProxyAttribute)type.GetCustomAttributes(typeof(DebuggerTypeProxyAttribute), inherit: true).FirstOrDefault();
+            // includes inherited attributes. The debugger uses the first attribute if multiple are applied.
+            var result = type.GetCustomAttributes<DebuggerTypeProxyAttribute>().FirstOrDefault();
             if (result != null)
             {
                 return result;
             }
 
             // TODO (tomat): which assembly should we look at for proxy attributes?
-            foreach (DebuggerTypeProxyAttribute attr in type.Assembly.GetCustomAttributes(typeof(DebuggerTypeProxyAttribute), inherit: true))
+            foreach (DebuggerTypeProxyAttribute attr in type.Assembly.GetCustomAttributes<DebuggerTypeProxyAttribute>())
             {
-                if (IsApplicableAttribute(type, attr.Target, attr.TargetTypeName))
+                if (IsApplicableAttribute(type, attr.Target.GetTypeInfo(), attr.TargetTypeName))
                 {
                     return attr;
                 }
@@ -82,70 +96,68 @@ namespace Microsoft.CodeAnalysis.Scripting
             return null;
         }
 
-        private static bool IsApplicableAttribute(Type type, Type targetType, string targetTypeName)
+        private static bool IsApplicableAttribute(TypeInfo type, TypeInfo targetType, string targetTypeName)
         {
-            return type != null && targetType.IsEquivalentTo(type)
+            return type != null && AreEquivalent(targetType, type)
                 || targetTypeName != null && type.FullName == targetTypeName;
+        }
+
+        private static bool AreEquivalent(TypeInfo type, TypeInfo other)
+        {
+            // TODO: Unify NoPIA interfaces
+            // https://github.com/dotnet/corefx/issues/2101
+            return type.Equals(other);
         }
 
         private static object GetDebuggerTypeProxy(object obj)
         {
             // use proxy type if defined:
-            Type type = obj.GetType();
+            var type = obj.GetType().GetTypeInfo();
             var debuggerTypeProxy = GetApplicableDebuggerTypeProxyAttribute(type);
             if (debuggerTypeProxy != null)
             {
-                var proxyType = Type.GetType(debuggerTypeProxy.ProxyTypeName, false, false);
-                if (proxyType != null)
+                try
                 {
-                    try
+                    var proxyType = Type.GetType(debuggerTypeProxy.ProxyTypeName, throwOnError: false, ignoreCase: false);
+                    if (proxyType != null)
                     {
-                        if (proxyType.IsGenericTypeDefinition)
+                        if (proxyType.GetTypeInfo().IsGenericTypeDefinition)
                         {
-                            proxyType = proxyType.MakeGenericType(type.GetGenericArguments());
+                            proxyType = proxyType.MakeGenericType(type.GenericTypeArguments);
                         }
 
-                        return Activator.CreateInstance(
-                            proxyType,
-                            Ref.BindingFlags.Instance | Ref.BindingFlags.NonPublic | Ref.BindingFlags.Public,
-                            null,
-                            new object[] { obj },
-                            null,
-                            null
-                        );
+                        return Activator.CreateInstance(proxyType, new object[] { obj });
                     }
-                    catch (Exception)
-                    {
-                        // no-op, ignore proxy if it is implemented incorrectly
-                    }
+                }
+                catch (Exception)
+                {
+                    // no-op, ignore proxy if it is implemented incorrectly or can't be loaded
                 }
             }
 
             return null;
         }
 
-        private static Ref.MemberInfo ResolveMember(object obj, string memberName, bool callableOnly)
+        private static MemberInfo ResolveMember(object obj, string memberName, bool callableOnly)
         {
-            Type type = obj.GetType();
-            const Ref.BindingFlags flags = Ref.BindingFlags.Instance | Ref.BindingFlags.Static | Ref.BindingFlags.Public | Ref.BindingFlags.NonPublic |
-                Ref.BindingFlags.DeclaredOnly;
+            TypeInfo type = obj.GetType().GetTypeInfo();
 
             // case-sensitive:
-            Type currentType = type;
-            while (currentType != null)
+            TypeInfo currentType = type;
+            while (true)
             {
                 if (!callableOnly)
                 {
-                    var field = currentType.GetField(memberName, flags);
+                    var field = currentType.GetDeclaredField(memberName);
                     if (field != null)
                     {
                         return field;
                     }
 
-                    var property = currentType.GetProperty(memberName, flags, null, null, Type.EmptyTypes, null);
+                    var property = currentType.GetDeclaredProperty(memberName);
                     if (property != null)
                     {
-                        var getter = property.GetGetMethod(nonPublic: true);
+                        var getter = property.GetMethod;
                         if (getter != null)
                         {
                             return getter;
@@ -153,65 +165,64 @@ namespace Microsoft.CodeAnalysis.Scripting
                     }
                 }
 
-                var method = currentType.GetMethod(memberName, flags, null, Type.EmptyTypes, null);
+                var method = currentType.GetDeclaredMethod(memberName, Type.EmptyTypes);
                 if (method != null)
                 {
                     return method;
                 }
 
-                currentType = currentType.BaseType;
+                if (currentType.BaseType == null)
+                {
+                    break;
+                }
+
+                currentType = currentType.BaseType.GetTypeInfo();
             }
 
             // case-insensitive:
             currentType = type;
-            while (currentType != null)
+            while (true)
             {
-                IEnumerable<Ref.MemberInfo> members;
+                IEnumerable<MemberInfo> members;
                 if (callableOnly)
                 {
-                    members = type.GetMethods(flags);
+                    members = type.DeclaredMethods;
                 }
                 else
                 {
-                    members = ((IEnumerable<Ref.MemberInfo>)type.GetFields(flags)).Concat(type.GetProperties(flags));
+                    members = ((IEnumerable<MemberInfo>)type.DeclaredFields).Concat(type.DeclaredProperties);
                 }
 
-                Ref.MemberInfo candidate = null;
+                MemberInfo candidate = null;
                 foreach (var member in members)
                 {
                     if (StringComparer.OrdinalIgnoreCase.Equals(memberName, member.Name))
                     {
-                        if (candidate == null)
+                        if (candidate != null)
                         {
-                            switch (member.MemberType)
+                            return null;
+                        }
+
+                        MethodInfo method;
+
+                        if (member is FieldInfo)
+                        {
+                            candidate = member;
+                        }
+                        else if ((method = member as MethodInfo) != null)
+                        {
+                            if (method.GetParameters().Length == 0)
                             {
-                                case Ref.MemberTypes.Field:
-                                    candidate = member;
-                                    break;
-
-                                case Ref.MemberTypes.Method:
-                                    if (((Ref.MethodInfo)member).GetParameters().Length == 0)
-                                    {
-                                        candidate = member;
-                                    }
-
-                                    break;
-
-                                case Ref.MemberTypes.Property:
-                                    var getter = ((Ref.PropertyInfo)member).GetGetMethod(nonPublic: true);
-                                    if (getter != null && getter.GetParameters().Length == 0)
-                                    {
-                                        candidate = member;
-                                    }
-                                    break;
-
-                                default:
-                                    throw ExceptionUtilities.UnexpectedValue(member.MemberType);
+                                candidate = member;
                             }
                         }
                         else
                         {
-                            return null;
+                            var getter = ((PropertyInfo)member).GetMethod;
+                            if (getter?.GetParameters().Length == 0)
+                            {
+                                candidate = member;
+                            }
                         }
                     }
                 }
@@ -220,39 +231,50 @@ namespace Microsoft.CodeAnalysis.Scripting
                 {
                     return candidate;
                 }
-                currentType = currentType.BaseType;
+
+                if (currentType.BaseType == null)
+                {
+                    break;
+                }
+
+                currentType = currentType.BaseType.GetTypeInfo();
             }
 
             return null;
         }
 
-        private static object GetMemberValue(Ref.MemberInfo member, object obj, out Exception exception)
+        private static object GetMemberValue(MemberInfo member, object obj, out Exception exception)
         {
             exception = null;
+
             try
             {
-                switch (member.MemberType)
+                FieldInfo field;
+                MethodInfo method;
+
+                if ((field = member as FieldInfo) != null)
                 {
-                    case Ref.MemberTypes.Field:
-                        var field = (Ref.FieldInfo)member;
-                        return field.GetValue(obj);
-
-                    case Ref.MemberTypes.Method:
-                        var method = (Ref.MethodInfo)member;
-                        return (method.ReturnType == typeof(void)) ? s_voidValue : method.Invoke(obj, SpecializedCollections.EmptyObjects);
-
-                    case Ref.MemberTypes.Property:
-                        var property = (Ref.PropertyInfo)member;
-                        return property.GetValue(obj, SpecializedCollections.EmptyObjects);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(member.MemberType);
+                    return field.GetValue(obj);
                 }
+
+                if ((method = member as MethodInfo) != null)
+                {
+                    return (method.ReturnType == typeof(void)) ? s_voidValue : method.Invoke(obj, SpecializedCollections.EmptyObjects);
+                }
+
+                var property = (PropertyInfo)member;
+                if (property.GetMethod == null)
+                {
+                    return null;
+                }
+
+                return property.GetValue(obj, SpecializedCollections.EmptyObjects);
             }
-            catch (Ref.TargetInvocationException e)
+            catch (TargetInvocationException e)
             {
                 exception = e.InnerException;
             }
+
             return null;
         }
 
@@ -437,97 +459,6 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         #region Language Specific Formatting
 
-        private string FormatPrimitive(object obj, bool quoteStrings, bool includeCodePoints, bool useHexadecimalNumbers)
-        {
-            if (ReferenceEquals(obj, s_voidValue))
-            {
-                return String.Empty;
-            }
-
-            if (obj == null)
-            {
-                return NullLiteral;
-            }
-
-            if (obj is bool)
-            {
-                return FormatLiteral((bool)obj);
-            }
-
-            string str;
-            if ((str = obj as string) != null)
-            {
-                return FormatLiteral(str, quoteStrings, useHexadecimalNumbers);
-            }
-
-            if (obj is char)
-            {
-                return FormatLiteral((char)obj, quoteStrings, includeCodePoints, useHexadecimalNumbers);
-            }
-
-            if (obj is sbyte)
-            {
-                return FormatLiteral((sbyte)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is byte)
-            {
-                return FormatLiteral((byte)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is short)
-            {
-                return FormatLiteral((short)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is ushort)
-            {
-                return FormatLiteral((ushort)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is int)
-            {
-                return FormatLiteral((int)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is uint)
-            {
-                return FormatLiteral((uint)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is long)
-            {
-                return FormatLiteral((long)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is ulong)
-            {
-                return FormatLiteral((ulong)obj, useHexadecimalNumbers);
-            }
-
-            if (obj is double)
-            {
-                return FormatLiteral((double)obj);
-            }
-
-            if (obj is float)
-            {
-                return FormatLiteral((float)obj);
-            }
-
-            if (obj is decimal)
-            {
-                return FormatLiteral((decimal)obj);
-            }
-
-            if (obj.GetType().IsEnum)
-            {
-                return obj.ToString();
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// String that describes "void" return type in the language.
         /// </summary>
@@ -552,27 +483,310 @@ namespace Microsoft.CodeAnalysis.Scripting
         public abstract string FormatLiteral(double value);
         public abstract string FormatLiteral(float value);
         public abstract string FormatLiteral(decimal value);
+        public abstract string FormatLiteral(DateTime value);
 
         // TODO (tomat): Use DebuggerDisplay.Type if specified?
-        public abstract string FormatTypeName(Type type, ObjectFormattingOptions options);
-        public abstract string FormatMemberName(Ref.MemberInfo member);
+        public abstract string FormatGeneratedTypeName(Type type);
+        public abstract string FormatMemberName(MemberInfo member);
+        public abstract string GetPrimitiveTypeName(SpecialType type);
+
+        public abstract string GenericParameterOpening { get; }
+        public abstract string GenericParameterClosing { get; }
 
         /// <summary>
         /// Formats an array type name (vector or multidimensional).
         /// </summary>
-        public abstract string FormatArrayTypeName(Array array, ObjectFormattingOptions options);
+        public abstract string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options);
 
         /// <summary>
         /// Returns true if the member shouldn't be displayed (e.g. it's a compiler generated field).
         /// </summary>
-        public virtual bool IsHiddenMember(Ref.MemberInfo member)
-        {
-            return false;
-        }
+        public virtual bool IsHiddenMember(MemberInfo member) => false;
 
         internal static ObjectDisplayOptions GetObjectDisplayOptions(bool useHexadecimalNumbers)
         {
             return useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
+        }
+
+        /// <summary>
+        /// Returns null if the type is not considered primitive in the target language.
+        /// </summary>
+        private string FormatPrimitive(object obj, bool quoteStrings, bool includeCodePoints, bool useHexadecimalNumbers)
+        {
+            if (ReferenceEquals(obj, s_voidValue))
+            {
+                return string.Empty;
+            }
+
+            if (obj == null)
+            {
+                return NullLiteral;
+            }
+
+            var type = obj.GetType();
+
+            if (type.GetTypeInfo().IsEnum)
+            {
+                return obj.ToString();
+            }
+
+            switch (GetPrimitiveSpecialType(type))
+            {
+                case SpecialType.System_Int32:
+                    return FormatLiteral((int)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_String:
+                    return FormatLiteral((string)obj, quoteStrings, useHexadecimalNumbers);
+
+                case SpecialType.System_Boolean:
+                    return FormatLiteral((bool)obj);
+
+                case SpecialType.System_Char:
+                    return FormatLiteral((char)obj, quoteStrings, includeCodePoints, useHexadecimalNumbers);
+
+                case SpecialType.System_Int64:
+                    return FormatLiteral((long)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_Double:
+                    return FormatLiteral((double)obj);
+
+                case SpecialType.System_Byte:
+                    return FormatLiteral((byte)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_Decimal:
+                    return FormatLiteral((decimal)obj);
+
+                case SpecialType.System_UInt32:
+                    return FormatLiteral((uint)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_UInt64:
+                    return FormatLiteral((ulong)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_Single:
+                    return FormatLiteral((float)obj);
+
+                case SpecialType.System_Int16:
+                    return FormatLiteral((short)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_UInt16:
+                    return FormatLiteral((ushort)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_DateTime:
+                    return FormatLiteral((DateTime)obj);
+
+                case SpecialType.System_SByte:
+                    return FormatLiteral((sbyte)obj, useHexadecimalNumbers);
+
+                case SpecialType.System_Object:
+                case SpecialType.System_Void:
+                case SpecialType.None:
+                    return null;
+
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        internal static SpecialType GetPrimitiveSpecialType(Type type)
+        {
+            Debug.Assert(type != null);
+
+            if (type == typeof(int))
+            {
+                return SpecialType.System_Int32;
+            }
+
+            if (type == typeof(string))
+            {
+                return SpecialType.System_String;
+            }
+
+            if (type == typeof(bool))
+            {
+                return SpecialType.System_Boolean;
+            }
+
+            if (type == typeof(char))
+            {
+                return SpecialType.System_Char;
+            }
+
+            if (type == typeof(long))
+            {
+                return SpecialType.System_Int64;
+            }
+
+            if (type == typeof(double))
+            {
+                return SpecialType.System_Double;
+            }
+
+            if (type == typeof(byte))
+            {
+                return SpecialType.System_Byte;
+            }
+
+            if (type == typeof(decimal))
+            {
+                return SpecialType.System_Decimal;
+            }
+
+            if (type == typeof(uint))
+            {
+                return SpecialType.System_UInt32;
+            }
+
+            if (type == typeof(ulong))
+            {
+                return SpecialType.System_UInt64;
+            }
+
+            if (type == typeof(float))
+            {
+                return SpecialType.System_Single;
+            }
+
+            if (type == typeof(short))
+            {
+                return SpecialType.System_Int16;
+            }
+
+            if (type == typeof(ushort))
+            {
+                return SpecialType.System_UInt16;
+            }
+
+            if (type == typeof(DateTime))
+            {
+                return SpecialType.System_DateTime;
+            }
+
+            if (type == typeof(sbyte))
+            {
+                return SpecialType.System_SByte;
+            }
+
+            if (type == typeof(object))
+            {
+                return SpecialType.System_Object;
+            }
+
+            if (type == typeof(void))
+            {
+                return SpecialType.System_Void;
+            }
+
+            return SpecialType.None;
+        }
+
+        public string FormatTypeName(Type type, ObjectFormattingOptions options)
+        {
+            string result = GetPrimitiveTypeName(GetPrimitiveSpecialType(type));
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = FormatGeneratedTypeName(type);
+            if (result != null)
+            {
+                return result;
+            }
+
+            if (type.IsArray)
+            {
+                return FormatArrayTypeName(type, arrayOpt: null, options: options);
+            }
+
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsGenericType)
+            {
+                return FormatGenericTypeName(typeInfo, options);
+            }
+
+            if (typeInfo.DeclaringType != null)
+            {
+                return typeInfo.Name.Replace('+', '.');
+            }
+
+            return typeInfo.Name;
+        }
+
+        private string FormatGenericTypeName(TypeInfo typeInfo, ObjectFormattingOptions options)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            // consolidated generic arguments (includes arguments of all declaring types):
+            Type[] genericArguments = typeInfo.GenericTypeArguments;
+
+            if (typeInfo.DeclaringType != null)
+            {
+                var nestedTypes = ArrayBuilder<TypeInfo>.GetInstance();
+                do
+                {
+                    nestedTypes.Add(typeInfo);
+                    typeInfo = typeInfo.DeclaringType?.GetTypeInfo();
+                }
+                while (typeInfo != null);
+
+                int typeArgumentIndex = 0;
+                for (int i = nestedTypes.Count - 1; i >= 0; i--)
+                {
+                    AppendTypeInstantiation(builder, nestedTypes[i], genericArguments, ref typeArgumentIndex, options);
+                    if (i > 0)
+                    {
+                        builder.Append('.');
+                    }
+                }
+
+                nestedTypes.Free();
+            }
+            else
+            {
+                int typeArgumentIndex = 0;
+                AppendTypeInstantiation(builder, typeInfo, genericArguments, ref typeArgumentIndex, options);
+            }
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private void AppendTypeInstantiation(StringBuilder builder, TypeInfo typeInfo, Type[] genericArguments, ref int genericArgIndex, ObjectFormattingOptions options)
+        {
+            // generic arguments of all the outer types and the current type;
+            int currentArgCount = (typeInfo.IsGenericTypeDefinition ? typeInfo.GenericTypeParameters.Length : typeInfo.GenericTypeArguments.Length) - genericArgIndex;
+
+            if (currentArgCount > 0)
+            {
+                string name = typeInfo.Name;
+
+                int backtick = name.IndexOf('`');
+                if (backtick > 0)
+                {
+                    builder.Append(name.Substring(0, backtick));
+                }
+                else
+                {
+                    builder.Append(name);
+                }
+
+                builder.Append(GenericParameterOpening);
+
+                for (int i = 0; i < currentArgCount; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+                    builder.Append(FormatTypeName(genericArguments[genericArgIndex++], options));
+                }
+
+                builder.Append(GenericParameterClosing);
+            }
+            else
+            {
+                builder.Append(typeInfo.Name);
+            }
         }
 
         #endregion

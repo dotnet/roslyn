@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -281,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Conversion.PointerToPointer;
 
                     default:
-                        Debug.Assert(false, "Unexpected conversion kind returned by ClassifyStandardImplicitConversion");
-                        return Conversion.NoConversion;
+                        throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                 }
             }
 

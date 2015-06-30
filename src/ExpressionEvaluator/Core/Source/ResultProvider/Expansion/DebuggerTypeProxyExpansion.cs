@@ -121,9 +121,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatter);
             if (proxyMembers != null)
             {
-                var proxyMemberFullNamePrefix = (childFullNamePrefix == null) ?
-                    null :
-                    formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true), childFullNamePrefix);
+                string proxyMemberFullNamePrefix = null;
+                if (childFullNamePrefix != null)
+                {
+                    bool sawInvalidIdentifier;
+                    var proxyTypeName = formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier);
+                    if (!sawInvalidIdentifier)
+                    {
+                        proxyMemberFullNamePrefix = formatter.GetObjectCreationExpression(proxyTypeName, childFullNamePrefix);
+                    }
+                }
                 _proxyItem = new EvalResultDataItem(
                     ExpansionKind.Default,
                     name: string.Empty,

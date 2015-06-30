@@ -381,7 +381,7 @@ namespace Roslyn.Test.PdbUtilities
             // Deleted entries have their key set to buckets
 
             // The hash table data.
-            // This cannot be serialised
+            // This cannot be serialized
             private struct bucket
             {
                 internal int key;

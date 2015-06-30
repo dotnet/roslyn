@@ -416,6 +416,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsSubmissionClass
+        {
+            get
+            {
+                return TypeKind == TypeKind.Submission;
+            }
+        }
+
+        internal SynthesizedInstanceConstructor GetScriptConstructor()
+        {
+            Debug.Assert(IsScriptClass);
+            return (SynthesizedInstanceConstructor)InstanceConstructors.Single();
+        }
+
+        internal SynthesizedInteractiveInitializerMethod GetScriptInitializer()
+        {
+            Debug.Assert(IsScriptClass);
+            return (SynthesizedInteractiveInitializerMethod)GetMembers(SynthesizedInteractiveInitializerMethod.InitializerName).Single();
+        }
+
         /// <summary>
         /// Returns true if the type is the implicit class that holds onto invalid global members (like methods or
         /// statements in a non script file).

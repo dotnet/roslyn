@@ -1,8 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections
-Imports System.Collections.Generic
+Imports System.Reflection
 Imports System.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -33,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
-        Public Overloads Function FormatLiteral(value As DateTime) As String
+        Public Overrides Function FormatLiteral(value As Date) As String
             Return ObjectDisplay.FormatLiteral(value)
         End Function
 
@@ -106,134 +104,63 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             Return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None)
         End Function
 
-        Public Overrides Function FormatTypeName(type As Type, options As ObjectFormattingOptions) As String
-            Return If(GetPrimitiveTypeName(type), AppendComplexTypeName(New StringBuilder(), type, options).ToString())
-        End Function
-
-        Private Shared Function GetPrimitiveTypeName(type As Type) As String
-            Select Case Type.GetTypeCode(type)
-                Case TypeCode.Boolean
+        Public Overrides Function GetPrimitiveTypeName(type As SpecialType) As String
+            Select Case type
+                Case SpecialType.System_Boolean
                     Return "Boolean"
-                Case TypeCode.Byte
+                Case SpecialType.System_Byte
                     Return "Byte"
-                Case TypeCode.Char
+                Case SpecialType.System_Char
                     Return "Char"
-                Case TypeCode.Decimal
+                Case SpecialType.System_Decimal
                     Return "Decimal"
-                Case TypeCode.Double
+                Case SpecialType.System_Double
                     Return "Double"
-                Case TypeCode.Int16
+                Case SpecialType.System_Int16
                     Return "Short"
-                Case TypeCode.Int32
+                Case SpecialType.System_Int32
                     Return "Integer"
-                Case TypeCode.Int64
+                Case SpecialType.System_Int64
                     Return "Long"
-                Case TypeCode.SByte
+                Case SpecialType.System_SByte
                     Return "SByte"
-                Case TypeCode.Single
+                Case SpecialType.System_Single
                     Return "Single"
-                Case TypeCode.String
+                Case SpecialType.System_String
                     Return "String"
-                Case TypeCode.UInt16
+                Case SpecialType.System_UInt16
                     Return "UShort"
-                Case TypeCode.UInt32
+                Case SpecialType.System_UInt32
                     Return "UInteger"
-                Case TypeCode.UInt64
+                Case SpecialType.System_UInt64
                     Return "ULong"
+                Case SpecialType.System_DateTime
+                    Return "Date"
+                Case SpecialType.System_Object
+                    Return "Object"
                 Case Else
-                    If type = GetType(Object) Then
-                        Return "Object"
-                    End If
-
                     Return Nothing
             End Select
         End Function
 
-        Private Function AppendComplexTypeName(builder As StringBuilder, type As Type, options As ObjectFormattingOptions) As StringBuilder
-            If type.IsArray Then
-                builder.Append(FormatArrayTypeName(type, arrayOpt:=Nothing, options:=options))
-                Return builder
-            End If
+        Public Overrides ReadOnly Property GenericParameterOpening As String
+            Get
+                Return "(Of "
+            End Get
+        End Property
 
-            ' compiler generated (e.g. iterator/async)
-            ' Dim stateMachineName As String
-            ' If GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, stateMachineName) Then
-            '     builder.Append(stateMachineName)
-            '     Return builder
-            ' End If
+        Public Overrides ReadOnly Property GenericParameterClosing As String
+            Get
+                Return ")"
+            End Get
+        End Property
 
-            If type.IsGenericType Then
-                ' consolidated generic arguments (includes arguments of all declaring types):
-                Dim genericArguments As Type() = type.GetGenericArguments()
-                If type.DeclaringType IsNot Nothing Then
-                    Dim nestedTypes As List(Of Type) = New List(Of Type)()
-                    Do
-                        nestedTypes.Add(type)
-                        type = type.DeclaringType
-                    Loop While type IsNot Nothing
-
-                    Dim typeArgumentIndex As Integer = 0
-                    Dim i As Integer = nestedTypes.Count - 1
-
-                    While i >= 0
-                        AppendTypeInstantiation(builder, nestedTypes(i), genericArguments, typeArgumentIndex, options)
-                        If i > 0 Then
-                            builder.Append("."c)
-                        End If
-
-                        i = i - 1
-                    End While
-                Else
-                    Dim typeArgumentIndex As Integer = 0
-                    Return AppendTypeInstantiation(builder, type, genericArguments, typeArgumentIndex, options)
-                End If
-            ElseIf type.DeclaringType IsNot Nothing Then
-                builder.Append(type.Name.Replace("+"c, "."c))
-            Else
-                builder.Append(type.Name)
-            End If
-
-            Return builder
+        Public Overrides Function FormatGeneratedTypeName(type As Type) As String
+            ' TODO:  https://github.com/dotnet/roslyn/issues/3739
+            Return Nothing
         End Function
 
-        Private Function AppendTypeInstantiation(builder As StringBuilder, type As Type, genericArguments As Type(), ByRef genericArgIndex As Integer, options As ObjectFormattingOptions) As StringBuilder
-            ' generic arguments of all the outer types and the current type;
-            Dim currentGenericArgs As Type() = type.GetGenericArguments()
-            Dim currentArgCount As Integer = currentGenericArgs.Length - genericArgIndex
-            If currentArgCount > 0 Then
-                Dim backtick As Integer = type.Name.IndexOf("`"c)
-                If backtick > 0 Then
-                    builder.Append(type.Name.Substring(0, backtick))
-                Else
-                    builder.Append(type.Name)
-                End If
-
-                builder.Append("(Of ")
-                Dim i As Integer = 0
-
-                While i < currentArgCount
-                    If i > 0 Then
-                        builder.Append(", ")
-                    End If
-
-                    builder.Append(FormatTypeName(genericArguments(genericArgIndex), options))
-                    genericArgIndex = genericArgIndex + 1
-                    i = i + 1
-                End While
-
-                builder.Append(")"c)
-            Else
-                builder.Append(type.Name)
-            End If
-
-            Return builder
-        End Function
-
-        Public Overrides Function FormatArrayTypeName(array As Array, options As ObjectFormattingOptions) As String
-            Return FormatArrayTypeName(array.[GetType](), array, options)
-        End Function
-
-        Private Overloads Function FormatArrayTypeName(arrayType As Type, arrayOpt As Array, options As ObjectFormattingOptions) As String
+        Public Overrides Function FormatArrayTypeName(arrayType As Type, arrayOpt As Array, options As ObjectFormattingOptions) As String
             Dim sb As StringBuilder = New StringBuilder()
             ' print the inner-most element type first:
             Dim elementType As Type = arrayType.GetElementType()
@@ -262,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
                     For i = 0 To rank - 1
                         Dim lowerBound As Integer = arrayOpt.GetLowerBound(i)
-                        Dim length As Long = arrayOpt.GetLongLength(i)
+                        Dim length As Integer = arrayOpt.GetLength(i)
                         If i > 0 Then
                             sb.Append(", ")
                         End If
@@ -308,11 +235,11 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             sb.Append("]"c)
         End Sub
 
-        Public Overrides Function FormatMemberName(member As System.Reflection.MemberInfo) As String
+        Public Overrides Function FormatMemberName(member As MemberInfo) As String
             Return member.Name
         End Function
 
-        Public Overrides Function IsHiddenMember(member As System.Reflection.MemberInfo) As Boolean
+        Public Overrides Function IsHiddenMember(member As MemberInfo) As Boolean
             ' TODO (tomat)
             Return False
         End Function

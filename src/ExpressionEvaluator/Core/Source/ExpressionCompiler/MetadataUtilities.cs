@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // and perhaps multiple application winmds. At runtime, Windows.winmd
             // is replaced by multiple Windows.*.winmd version >= 1.3. In the EE, we
             // need to map compile-time assembly references to the runtime assemblies
-            // supplied by the debugger. To do so, we “merge” all winmds named
+            // supplied by the debugger. To do so, we "merge" all winmds named
             // Windows.*.winmd into a single fake Windows.winmd at runtime.
             // All other (application) winmds are left as is.
             var runtimeWinMdBuilder = ArrayBuilder<ModuleMetadata>.GetInstance();

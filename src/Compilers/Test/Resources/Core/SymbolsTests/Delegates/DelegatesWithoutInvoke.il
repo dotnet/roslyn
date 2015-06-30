@@ -2,7 +2,6 @@
 // ilasm DelegatesWithoutInvoke.il /output=DelegatesWithoutInvoke.dll /dll
 
 //  Microsoft (R) .NET Framework IL Disassembler.  Version 4.0.30319.1
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
 
 
 

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1038,8 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.WRN_UnmatchedTypeParamRefTag, identifier.Location, identifier, memberSymbol);
                         break;
                     default:
-                        Debug.Assert(false, "Unknown element kind " + syntax.GetElementKind());
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(elementKind);
                 }
             }
             else

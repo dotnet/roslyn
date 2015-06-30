@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             //      -------------- ------------ ------- ------  ----------------------------------------------
             //      Origin         SubCategory  Cat.    Code    Text
             // 
-            // To accomodate absolute filenames in Origin, tolerate a colon in the second position
+            // To accommodate absolute filenames in Origin, tolerate a colon in the second position
             // as long as its preceded by a letter.
             //
             // Localization Note:

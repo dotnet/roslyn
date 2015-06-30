@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 

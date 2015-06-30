@@ -183,8 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ((MethodSymbol)symbol).ConstructedFrom;
 
                 default:
-                    Debug.Assert(false, "Unexpected symbol: " + symbol.Kind);
-                    return symbol;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
 

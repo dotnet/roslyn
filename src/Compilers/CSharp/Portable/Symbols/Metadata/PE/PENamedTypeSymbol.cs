@@ -538,8 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
-                        Debug.Assert(false, "Unexpected!!!");
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(_flags & TypeAttributes.VisibilityMask);
                 }
 
                 return access;
