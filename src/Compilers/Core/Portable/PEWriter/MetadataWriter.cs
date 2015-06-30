@@ -453,7 +453,6 @@ namespace Microsoft.Cci
         {
             var rowCounts = new int[MetadataTokens.TableCount];
 
-            rowCounts[(int)TableIndex.Module] = 1;
             rowCounts[(int)TableIndex.Assembly] = (this.module.AsAssembly != null) ? 1 : 0;
             rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
             rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
@@ -481,6 +480,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.MethodSpec] = _methodSpecTable.Count;
             rowCounts[(int)TableIndex.MethodDef] = _methodTable.Length;
             rowCounts[(int)TableIndex.ModuleRef] = _moduleRefTable.Count;
+            rowCounts[(int)TableIndex.Module] = 1;
             rowCounts[(int)TableIndex.NestedClass] = _nestedClassTable.Count;
             rowCounts[(int)TableIndex.Param] = _paramTable.Count;
             rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
