@@ -172,6 +172,7 @@ d.Do()"
             Assert.Equal(10100, result.ReturnValue);
         }
 
+#if TODO // https://github.com/dotnet/roslyn/issues/3720
         [Fact]
         public void TestCreateMethodDelegate()
         {
@@ -181,6 +182,7 @@ d.Do()"
             var result = fn(5);
             Assert.Equal(25, result);
         }
+#endif
 
         [Fact]
         public void TestGetScriptVariableAfterRunningScript()

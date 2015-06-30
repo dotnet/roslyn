@@ -11,32 +11,28 @@ namespace Microsoft.CodeAnalysis.Emit
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public class EmitResult
     {
-        private readonly bool _success;
-        private readonly ImmutableArray<Diagnostic> _diagnostics;
-
         /// <summary>
         /// True if the compilation successfully produced an executable.
         /// If false then the diagnostics should include at least one error diagnostic
         /// indicating the cause of the failure.
         /// </summary>
-        public bool Success
-        {
-            get { return _success; }
-        }
+        public bool Success { get; }
 
         /// <summary>
         /// A list of all the diagnostics associated with compilations. This include parse errors, declaration errors,
         /// compilation errors, and emitting errors.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics
-        {
-            get { return _diagnostics; }
-        }
+        public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics)
+        // TODO: Temporary workaround to support interactive.
+        // Remove when https://github.com/dotnet/roslyn/issues/3719 is fixed.
+        internal IMethodSymbol EntryPointOpt { get; }
+
+        internal EmitResult(bool success, ImmutableArray<Diagnostic> diagnostics, IMethodSymbol entryPointOpt)
         {
-            _success = success;
-            _diagnostics = diagnostics;
+            Success = success;
+            Diagnostics = diagnostics;
+            EntryPointOpt = entryPointOpt;
         }
 
         protected virtual string GetDebuggerDisplay()

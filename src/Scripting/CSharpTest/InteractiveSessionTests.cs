@@ -52,7 +52,7 @@ namespace InteractiveFixtures
 
 #endregion
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
+namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 {
     public class HostModel
     {
@@ -61,13 +61,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
 
     public class InteractiveSessionTests : CSharpTestBase
     {
-        // TODO (tomat): to be merged with Microsoft.CSharp.dll?
-
-        static InteractiveSessionTests()
-        {
-            ScriptBuilder.DisableJitOptimizations = true;
-        }
-
         #region Namespaces, Types
 
         [Fact]
@@ -2758,14 +2751,13 @@ static T G<T>(T t, Func<T, Task<T>> f)
             //Assert.Equal(2, i);
         }
 
-        /// <summary>
-        /// By default Framework directory is included in search paths.
-        /// </summary>
         [Fact]
-        public void SearchPaths_DefaultWithSession()
+        public void SearchPaths1()
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
+
+            session.SetReferenceSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
 
             object result = session.Execute(@"
 #r ""System.Data.dll""
@@ -2899,6 +2891,9 @@ new System.Windows.Forms.Form();
         public void References2()
         {
             var engine = new CSharpScriptEngine();
+
+            engine.SetReferenceSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
+
             engine.AddReference("System.Core");
             engine.AddReference("System.dll");
             engine.AddReference(typeof(System.Data.DataSet).Assembly);

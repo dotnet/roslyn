@@ -162,7 +162,6 @@
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
     <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="InternalImplementationOnlyAttribute.cs" />
-    <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
     <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
     <Compile Include="DocumentationCommentId.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
