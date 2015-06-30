@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///             break;
         ///             
         ///         case state5:
-        ///             ... another dispatch of nested states to their finallies ...
+        ///             ... another dispatch of nested states to their finally blocks ...
         ///             break;
         ///     }
         /// }
