@@ -67,7 +67,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         // hold directly on to compiler analyzer
                         _compilerAnalyzer = analyzerManager.GetCompilerDiagnosticAnalyzer(language);
-                        Contract.ThrowIfNull(_compilerAnalyzer);
+
+                        // in test case, we might not have the compiler analyzer.
+                        if (_compilerAnalyzer == null)
+                        {
+                            _map = analyzerMap;
+                            return;
+                        }
 
                         _compilerStateSet = analyzerMap[_compilerAnalyzer];
 
@@ -77,8 +83,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     public IEnumerable<StateSet> GetStateSets()
                     {
-                        // always return compiler one first
-                        yield return _compilerStateSet;
+                        // always return compiler one first if it exists.
+                        // it might not exist in test environment.
+                        if (_compilerAnalyzer != null)
+                        {
+                            yield return _compilerStateSet;
+                        }
 
                         // TODO: for now, this is static, but in future, we might consider making this a dynamic so that we process cheaper analyzer first.
                         foreach (var set in _map.Values)
