@@ -231,7 +231,7 @@ namespace Microsoft.Cci
                 const int RegularStreamHeaderSizes = 76;
                 const int MinimalDeltaMarkerStreamSize = 16;
 
-                Debug.Assert(RegularStreamHeaderSizes == 
+                Debug.Assert(RegularStreamHeaderSizes ==
                     GetMetadataStreamHeaderSize("#~") +
                     GetMetadataStreamHeaderSize("#Strings") +
                     GetMetadataStreamHeaderSize("#US") +

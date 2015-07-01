@@ -381,8 +381,8 @@ namespace Microsoft.CodeAnalysis
                 Module.GetTypeRefPropsOrThrow(typeRef, out name, out @namespace, out resolutionScope);
                 Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(name));
 
-                MetadataTypeName mdName = @namespace.Length > 0 
-                    ? MetadataTypeName.FromNamespaceAndTypeName(@namespace, name) 
+                MetadataTypeName mdName = @namespace.Length > 0
+                    ? MetadataTypeName.FromNamespaceAndTypeName(@namespace, name)
                     : MetadataTypeName.FromTypeName(name);
 
                 result = GetTypeByNameOrThrow(ref mdName, resolutionScope, out isNoPiaLocalType);
@@ -523,16 +523,16 @@ namespace Microsoft.CodeAnalysis
 
                 string namespaceName = Module.GetTypeDefNamespaceOrThrow(typeDef);
 
-                mdName = namespaceName.Length > 0 
-                    ? MetadataTypeName.FromNamespaceAndTypeName(namespaceName, name) 
+                mdName = namespaceName.Length > 0
+                    ? MetadataTypeName.FromNamespaceAndTypeName(namespaceName, name)
                     : MetadataTypeName.FromTypeName(name);
-                    // It is extremely difficult to hit the last branch because it is executed 
-                    // only for types in the Global namespace and they are getting loaded 
-                    // as soon as we start traversing Symbol Table, therefore, their TypeDef
-                    // handle is getting cached and lookup in the cache succeeds. 
-                    // Probably we can hit it if the first thing we do is to interrogate 
-                    // Module/Assembly level attributes, which refer to a TypeDef in the 
-                    // Global namespace.
+                // It is extremely difficult to hit the last branch because it is executed 
+                // only for types in the Global namespace and they are getting loaded 
+                // as soon as we start traversing Symbol Table, therefore, their TypeDef
+                // handle is getting cached and lookup in the cache succeeds. 
+                // Probably we can hit it if the first thing we do is to interrogate 
+                // Module/Assembly level attributes, which refer to a TypeDef in the 
+                // Global namespace.
 
                 // Check if this is NoPia local type which should be substituted 
                 // with corresponding canonical type
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert((object)result != null);
                         return result;
                     }
-                    
+
                     // Unification of generic local types is not supported 
                     result = GetUnsupportedMetadataTypeSymbol();
 
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis
         {
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
-            for (; ;)
+            for (;;)
             {
                 typeCode = signatureReader.ReadSignatureTypeCode();
 
@@ -1266,8 +1266,8 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            TypedConstant value = typeCode == SerializationTypeCode.SZArray 
-                ? DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type) 
+            TypedConstant value = typeCode == SerializationTypeCode.SZArray
+                ? DecodeCustomAttributeElementArrayOrThrow(ref argReader, elementTypeCode, elementType, type)
                 : DecodeCustomAttributeElementOrThrow(ref argReader, typeCode, type);
 
             return new KeyValuePair<string, TypedConstant>(name, value);
@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis
                 SignatureTypeCode typeCode;
                 ArrayBuilder<ModifierInfo<TypeSymbol>> customModifierBuilder = null;
 
-                for (; ;)
+                for (;;)
                 {
                     typeCode = signatureReader.ReadSignatureTypeCode();
 
@@ -2043,8 +2043,8 @@ namespace Microsoft.CodeAnalysis
             HandleKind type = memberToken.Kind;
             Debug.Assert(type == HandleKind.MethodDefinition || type == HandleKind.MemberReference);
 
-            return type == HandleKind.MethodDefinition 
-                ? FindMethodSymbolInType(container, (MethodDefinitionHandle)memberToken) 
+            return type == HandleKind.MethodDefinition
+                ? FindMethodSymbolInType(container, (MethodDefinitionHandle)memberToken)
                 : GetMethodSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
         }
 
@@ -2054,8 +2054,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(type == HandleKind.FieldDefinition ||
                             type == HandleKind.MemberReference);
 
-            return type == HandleKind.FieldDefinition 
-                ? FindFieldSymbolInType(container, (FieldDefinitionHandle)memberToken) 
+            return type == HandleKind.FieldDefinition
+                ? FindFieldSymbolInType(container, (FieldDefinitionHandle)memberToken)
                 : GetFieldSymbolForMemberRef((MemberReferenceHandle)memberToken, container);
         }
 

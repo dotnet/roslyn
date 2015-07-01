@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // the parent is a conditional access expression. This case is already covered before the parent kind switch
                 case SyntaxKind.ConditionalAccessExpression:
                     var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
-                    return expression != parentConditionalAccessExpression.WhenNotNull && 
+                    return expression != parentConditionalAccessExpression.WhenNotNull &&
                             !parentConditionalAccessExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression);
 
                 case SyntaxKind.IsExpression:

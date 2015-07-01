@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(features));
             }
 
-            this._features = features;
+            _features = features;
         }
 
         private CSharpParseOptions(CSharpParseOptions other) : this(
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!preprocessorSymbols.IsDefault);
             this.LanguageVersion = languageVersion;
             this.PreprocessorSymbols = preprocessorSymbols;
-            this._features = ImmutableDictionary<string, string>.Empty;
+            _features = ImmutableDictionary<string, string>.Empty;
         }
 
         public new CSharpParseOptions WithKind(SourceCodeKind kind)

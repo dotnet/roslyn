@@ -268,7 +268,7 @@ End If
         End Sub
 
         <Fact>
-<Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ElseNotWithinDo()
             VerifyRecommendationsMissing(
 <MethodBody>

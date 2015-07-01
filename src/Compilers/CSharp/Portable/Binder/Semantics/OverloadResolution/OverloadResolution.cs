@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 MemberAnalysisResult.Worse();
                         results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, analysisResult);
                     }
-                    else 
+                    else
                     {
                         Debug.Assert(worse[i] != notBetterThanEverything || i == notBestIdx);
                     }

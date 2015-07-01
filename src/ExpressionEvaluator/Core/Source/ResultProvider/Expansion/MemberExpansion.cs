@@ -428,8 +428,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var formatter = resultProvider.Formatter;
             bool sawInvalidIdentifier;
             memberName = formatter.GetIdentifierEscapingPotentialKeywords(memberName, out sawInvalidIdentifier);
-            var fullName = sawInvalidIdentifier 
-                ? null 
+            var fullName = sawInvalidIdentifier
+                ? null
                 : MakeFullName(
                     formatter,
                     memberName,

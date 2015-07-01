@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         return _workItemQueue.TryTakeAnyWork(
                             preferableProjectId: null,
-                            dependencyGraph: this._processor.DependencyGraph,
+                            dependencyGraph: _processor.DependencyGraph,
                             workItem: out workItem,
                             source: out documentCancellation);
                     }

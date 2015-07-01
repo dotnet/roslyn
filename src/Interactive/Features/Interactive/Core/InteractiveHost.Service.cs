@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 bool hasValue;
-                var resultType = GetSubmissionResultType(script.GetCompilation(), out hasValue);
+                var resultType = _getSubmissionResultType(script.GetCompilation(), out hasValue);
                 if (hasValue)
                 {
                     if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // TODO: replace by direct call to GetSubmissionResultType when it becomes public
             private delegate ITypeSymbol GetSubmissionResultTypeDelegate(Compilation compilation, out bool hasValue);
-            private GetSubmissionResultTypeDelegate GetSubmissionResultType = typeof(Compilation).GetTypeInfo().GetDeclaredMethod("GetSubmissionResultType").CreateDelegate<GetSubmissionResultTypeDelegate>();
+            private GetSubmissionResultTypeDelegate _getSubmissionResultType = typeof(Compilation).GetTypeInfo().GetDeclaredMethod("GetSubmissionResultType").CreateDelegate<GetSubmissionResultTypeDelegate>();
 
             private class ExecuteSubmissionError
             {
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-#endregion
+            #endregion
 
             #region Win32 API
 

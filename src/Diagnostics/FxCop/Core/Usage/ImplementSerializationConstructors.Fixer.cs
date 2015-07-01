@@ -22,7 +22,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "CA2229 CodeFix provider"), Shared]
     public sealed class ImplementSerializationConstructorsFixer : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id); 
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(SerializationRulesDiagnosticAnalyzer.RuleCA2229Id);
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -88,7 +88,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
 
             // This would be constructor and can have only one definition.
             Debug.Assert(methodSymbol.IsConstructor() && methodSymbol.DeclaringSyntaxReferences.Count() == 1);
-            await editor.EditOneDeclarationAsync(methodSymbol, (docEditor, declaration) => 
+            await editor.EditOneDeclarationAsync(methodSymbol, (docEditor, declaration) =>
             {
                 var newAccessibility = methodSymbol.ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
                 docEditor.SetAccessibility(declaration, newAccessibility);

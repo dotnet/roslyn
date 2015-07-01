@@ -41,8 +41,8 @@ namespace Microsoft.Cci
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
-			
-			// Portable PDBs not supported yet:
+
+            // Portable PDBs not supported yet:
             MetadataHeapsBuilder debugHeapsOpt = null;
 
             return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
@@ -50,7 +50,7 @@ namespace Microsoft.Cci
 
         private FullMetadataWriter(
             EmitContext context,
-            MetadataHeapsBuilder heaps, 
+            MetadataHeapsBuilder heaps,
             MetadataHeapsBuilder debugHeapsOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,

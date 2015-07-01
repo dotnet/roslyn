@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             var runtime = CreateRuntimeInstance(compilation0);
             var context = CreateMethodContext(
-                runtime, 
+                runtime,
                 "C.M");
             var aliases = ImmutableArray.Create(
                 ExceptionAlias(typeof(System.IO.IOException)),
@@ -1630,7 +1630,7 @@ class C
   IL_0006:  ret
 }");
             locals.Free();
-        }        
+        }
 
         [WorkItem(996571)]
         [Fact]
@@ -1652,7 +1652,7 @@ public struct B
 }";
             var compilation0 = CreateCompilationWithMscorlib(
                 source0,
-                options: TestOptions.DebugDll, 
+                options: TestOptions.DebugDll,
                 assemblyName: "Comp1");
 
             var compilation1 = CreateCompilationWithMscorlib(

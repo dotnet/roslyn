@@ -1,5 +1,5 @@
 ﻿Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
-    Module CodeSnippets
+    Friend Module CodeSnippets
 
         Public Const FormattableStringType = "
 Namespace System

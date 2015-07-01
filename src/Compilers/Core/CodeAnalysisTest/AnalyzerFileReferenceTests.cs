@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static readonly SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
+        private static readonly SimpleAnalyzerAssemblyLoader s_analyzerLoader = new SimpleAnalyzerAssemblyLoader();
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
-            return new AnalyzerFileReference(fullPath, _analyzerLoader);
+            return new AnalyzerFileReference(fullPath, s_analyzerLoader);
         }
 
         [Fact]
@@ -229,7 +229,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             remoteTest.TestSuccess(analyzerFile.Path);
             AppDomain.Unload(loadDomain);
         }
-        
+
         [Fact]
         public void TestAnalyzerLoading_Error()
         {

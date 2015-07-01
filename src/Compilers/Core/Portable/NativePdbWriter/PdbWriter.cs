@@ -115,7 +115,7 @@ namespace Microsoft.Cci
 
         public bool LogOperation(PdbWriterOperation op)
         {
-            var logging = this._logging;
+            var logging = _logging;
             if (logging)
             {
                 LogArgument((byte)op);
@@ -715,7 +715,7 @@ namespace Microsoft.Cci
 
         #region SymWriter calls
 
-        const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
+        private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 

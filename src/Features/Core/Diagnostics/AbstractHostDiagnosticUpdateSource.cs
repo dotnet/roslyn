@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // check whether we are reporting project specific diagnostic or workspace wide diagnostic
             var project = projectIdOpt != null ? workspace.CurrentSolution.GetProject(projectIdOpt) : null;
-            
+
             // check whether project the diagnostic belong to still exist
             if (projectIdOpt != null && project == null)
             {
@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId id) : base(analyzer)
             {
-                this._source = source;
-                this._projectId = id;
+                _source = source;
+                _projectId = id;
             }
 
             public override bool Equals(object obj)

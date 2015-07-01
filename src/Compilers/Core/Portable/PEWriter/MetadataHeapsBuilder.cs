@@ -297,7 +297,7 @@ namespace Microsoft.Cci
             _stringIndex = null;
 
             // Create VirtIdx to Idx map and add entry for empty string
-            _stringIndexMap = new uint[sorted.Count+1];
+            _stringIndexMap = new uint[sorted.Count + 1];
             _stringIndexMap[0] = 0;
 
             // Find strings that can be folded

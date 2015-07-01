@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             // try to lower the expression.
             {
-
                 if (operatorKind.IsDynamic())
                 {
                     Debug.Assert(!isPointerElementAccess);
@@ -209,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return LowerUserDefinedBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, type, method);
                 }
-                
+
                 switch (operatorKind.OperatorWithLogical() | operatorKind.OperandTypes())
                 {
                     case BinaryOperatorKind.NullableNullEqual:
@@ -689,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Optimization #3: If one side is null and the other is definitely not, then we generate the side effects
             // of the non-null side and result in true (for not-equals) or false (for everything else.)
-            
+
             BinaryOperatorKind operatorKind = kind.Operator();
 
             if (leftAlwaysNull && rightNonNull != null || rightAlwaysNull && leftNonNull != null)
@@ -1681,7 +1680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // arr?.Length == null   
             var conditionalAccess = nullable as BoundLoweredConditionalAccess;
-            if (conditionalAccess != null && 
+            if (conditionalAccess != null &&
                 (conditionalAccess.WhenNullOpt == null || conditionalAccess.WhenNullOpt.IsDefaultValue()))
             {
                 BoundExpression whenNotNull = RewriteNullableNullEquality(

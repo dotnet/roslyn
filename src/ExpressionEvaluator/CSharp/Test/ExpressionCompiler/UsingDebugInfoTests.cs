@@ -1077,7 +1077,7 @@ public class C2 : C1
 ";
             ImmutableArray<MetadataReference> unused;
 
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20}, TestOptions.DebugDll, assemblyName: "A");
+            var comp1 = CreateCompilation(source1, new[] { MscorlibRef_v20 }, TestOptions.DebugDll, assemblyName: "A");
             byte[] dllBytes1;
             byte[] pdbBytes1;
             comp1.EmitAndGetReferences(out dllBytes1, out pdbBytes1, out unused);
