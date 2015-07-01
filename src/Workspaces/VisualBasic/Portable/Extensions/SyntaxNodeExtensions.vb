@@ -394,31 +394,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Also, keep track of those spans so that if we see #else/#elif we
             ' can tell if they belong to a pp span that is entirely within the
             ' node.
-            Dim ifEndIfSpans = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance)
             Dim span = node.Span
-
-            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken, ifEndIfSpans))
+            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken))
         End Function
 
         Private Function ContainsInterleavedDirective(
             textSpan As TextSpan,
             token As SyntaxToken,
-            cancellationToken As CancellationToken,
-            ByRef ifEndIfSpans As SimpleIntervalTree(Of TextSpan)) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
-            Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken, ifEndIfSpans) OrElse
-                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, cancellationToken, ifEndIfSpans)
+            Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) OrElse
+                ContainsInterleavedDirective(textSpan, token.TrailingTrivia, cancellationToken)
         End Function
 
         Private Function ContainsInterleavedDirective(
             textSpan As TextSpan,
             list As SyntaxTriviaList,
-            cancellationToken As CancellationToken,
-            ByRef ifEndIfSpans As SimpleIntervalTree(Of TextSpan)) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
             For Each trivia In list
                 If textSpan.Contains(trivia.Span) Then
-                    If ContainsInterleavedDirective(textSpan, trivia, cancellationToken, ifEndIfSpans) Then
+                    If ContainsInterleavedDirective(textSpan, trivia, cancellationToken) Then
                         Return True
                     End If
                 End If
@@ -430,8 +426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function ContainsInterleavedDirective(
             textSpan As TextSpan,
             trivia As SyntaxTrivia,
-            cancellationToken As CancellationToken,
-            ByRef ifEndIfSpans As SimpleIntervalTree(Of TextSpan)) As Boolean
+            cancellationToken As CancellationToken) As Boolean
 
             If trivia.HasStructure AndAlso TypeOf trivia.GetStructure() Is DirectiveTriviaSyntax Then
                 Dim parentSpan = trivia.GetStructure().Span
@@ -445,18 +440,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             ' this node.
                             Return True
                         End If
-
-                        If directiveSyntax.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia) Then
-                            Dim ppSpan = TextSpan.FromBounds(Math.Min(parentSpan.Start, matchSpan.Start), Math.Max(parentSpan.End, matchSpan.End))
-
-                            ifEndIfSpans = ifEndIfSpans.AddInterval(ppSpan)
-                        End If
                     End If
                 ElseIf directiveSyntax.IsKind(SyntaxKind.ElseDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia) Then
-                    If Not ifEndIfSpans.IntersectsWith(parentSpan.Start) Then
-                        ' This else/elif belongs to a pp span that isn't 
-                        ' entirely within this node.
-                        Return True
+                    Dim directives = directiveSyntax.GetMatchingConditionalDirectives(cancellationToken)
+                    If directives IsNot Nothing AndAlso directives.Count > 0 Then
+                        If Not textSpan.Contains(directives(0).SpanStart) OrElse
+                           Not textSpan.Contains(directives(directives.Count - 1).SpanStart) Then
+                            ' This else/elif belongs to a pp span that isn't 
+                            ' entirely within this node.
+                            Return True
+                        End If
                     End If
                 End If
             End If
