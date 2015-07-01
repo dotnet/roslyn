@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document>
 Module M
     Sub Main()
-lable1: GoTo $$[|200|]
+label1: GoTo $$[|200|]
 {|Definition:200|}:    GoTo label1
     End Sub
 End Module
@@ -72,7 +72,7 @@ End Module
         <Document>
 Module M
     Sub Main()
-lable1: GoTo [|200|]
+label1: GoTo [|200|]
 {|Definition:$$200|}:    GoTo label1
     End Sub
 End Module

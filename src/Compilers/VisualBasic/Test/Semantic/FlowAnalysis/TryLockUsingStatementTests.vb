@@ -2092,7 +2092,7 @@ Class Program
         [|Using x = New MyManagedClass()
             GoTo label1
         End Using|]
-lable1:
+label1:
     End Sub
 End Class
 Class MyManagedClass

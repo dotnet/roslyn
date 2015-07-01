@@ -7131,7 +7131,7 @@ Module Program
     Sub Main(ByVal args As String())
         [|GoTo Label1
         For i = 1 To 5
-Lable1:
+Label1:
             Dim q = i
         Next|]
     End Sub
