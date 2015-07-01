@@ -3921,7 +3921,7 @@ End Class
             CompilationUtils.AssertNoErrors(other)
 
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
-<compilation name="AccessCheckCrossAssemblyDeiver2">
+<compilation name="AccessCheckCrossAssemblyDerived2">
     <file name="a.vb"><![CDATA[
 Public Class A
     Inherits C
@@ -20792,7 +20792,7 @@ BC30926: 'MustInherit' cannot be specified for partial type 'A' because it canno
 
         End Sub
 
-        ' Checks for mising partial on classes
+        ' Checks for missing partial on classes
         <Fact>
         Public Sub ModifierWarningsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

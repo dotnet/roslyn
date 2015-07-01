@@ -2661,7 +2661,7 @@ End Class
 
         <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToTypeParameterWithExceptionContraint()
+        Public Sub DontRemoveCastToTypeParameterWithExceptionConstraint()
             Dim markup =
 <File>
 Imports System
@@ -2679,7 +2679,7 @@ End Class
 
         <WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DontRemoveCastToTypeParameterWithExceptionSubTypeContraint()
+        Public Sub DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
             Dim markup =
 <File>
 Imports System

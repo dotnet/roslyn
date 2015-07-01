@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
             // okay, we don't have one. so create one now.
 
             // first, prepare image
-            // * NOTE * image is cancellable, do not create it inside of canditional weak table.
+            // * NOTE * image is cancellable, do not create it inside of conditional weak table.
             var service = solution.Workspace.Services.GetService<ITemporaryStorageService>();
             var image = MetadataOnlyImage.Create(service, finalCompilation, cancellationToken);
             if (image.IsEmpty)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
             if (newReferenceSet != referenceSet)
             {
                 // someone else has beaten us. 
-                // let image go eagarly. otherwise, finalizer in temporary storage will take care of it
+                // let image go eagerly. otherwise, finalizer in temporary storage will take care of it
                 image.Cleanup();
 
                 // return new reference

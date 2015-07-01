@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (finished)
                 {
-                    // since we are finised, we need to treat this as a potential Leave
+                    // since we are finished, we need to treat this as a potential Leave
                     gotoExit = (BoundGotoStatement)VisitGotoStatement(gotoExit);
                 }
 

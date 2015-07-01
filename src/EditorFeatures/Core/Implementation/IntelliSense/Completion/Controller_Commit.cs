@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Let the rules factories know that this item was committed.
             foreach (var rules in GetCompletionRules())
             {
-                rules.CompletionItemComitted(item);
+                rules.CompletionItemCommitted(item);
             }
         }
 

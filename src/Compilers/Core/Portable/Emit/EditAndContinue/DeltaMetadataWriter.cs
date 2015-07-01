@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.Emit
             Guid encId,
             DefinitionMap definitionMap,
             SymbolChanges changes,
-            CancellationToken cancellationToken)
-            : base(MakeHeapsBuilder(previousGeneration), context, messageProvider, false, false, cancellationToken)
+            CancellationToken cancellationToken) 
+            : base(MakeHeapsBuilder(previousGeneration), null, context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -229,11 +229,6 @@ namespace Microsoft.CodeAnalysis.Emit
         protected override Guid EncBaseId
         {
             get { return _previousGeneration.EncId; }
-        }
-
-        protected override bool CompressMetadataStream
-        {
-            get { return false; }
         }
 
         protected override uint GetEventDefIndex(IEventDefinition def)
@@ -605,9 +600,9 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected override uint SerializeLocalVariablesSignature(IMethodBody body)
+        protected override int SerializeLocalVariablesSignature(IMethodBody body)
         {
-            uint result = 0;
+            int localSignatureRowId;
             var localVariables = body.LocalVariables;
             var encInfos = ArrayBuilder<EncLocalInfo>.GetInstance();
 
@@ -641,10 +636,12 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
-                uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
+                localSignatureRowId = (int)this.GetOrAddStandAloneSignatureIndex(blobIndex);
                 stream.Free();
-
-                result = 0x11000000 | signatureIndex;
+            }
+            else
+            {
+                localSignatureRowId = 0;
             }
 
             var method = body.MethodDefinition;
@@ -663,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             encInfos.Free();
-            return result;
+            return localSignatureRowId;
         }
 
         private EncLocalInfo CreateEncLocalInfo(ILocalDefinition localDef, byte[] signature)

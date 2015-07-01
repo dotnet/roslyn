@@ -11,7 +11,10 @@ namespace Microsoft.Cci
     {
         private const int StreamAlignment = 4;
 
-        private readonly bool _isMinimalDelta;
+        public readonly bool IsMinimalDelta;
+
+        // EnC delta tables are stored as uncompressed metadata table stream
+        public bool IsMetadataTableStreamCompressed => !IsMinimalDelta;
 
         public readonly byte BlobIndexSize;
         public readonly byte StringIndexSize;
@@ -42,6 +45,11 @@ namespace Microsoft.Cci
         /// Table row counts. 
         /// </summary>
         public readonly ImmutableArray<int> RowCounts;
+
+        /// <summary>
+        /// Non-empty tables that are emitted into the metadata table stream.
+        /// </summary>
+        public readonly ulong PresentTablesMask;
 
         /// <summary>
         /// Exact (unaligned) heap sizes.
@@ -92,20 +100,22 @@ namespace Microsoft.Cci
             this.ResourceDataSize = resourceDataSize;
             this.ILStreamSize = ilStreamSize;
             this.MappedFieldDataSize = mappedFieldDataSize;
-            _isMinimalDelta = isMinimalDelta;
+            this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;
             this.StringIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.String] > ushort.MaxValue) ? large : small;
             this.GuidIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Guid] > ushort.MaxValue) ? large : small;
 
-            this.CustomAttributeTypeCodedIndexSize = this.GetIndexByteSize(3, TableIndex.MethodDef, TableIndex.MemberRef);
-            this.DeclSecurityCodedIndexSize = this.GetIndexByteSize(2, TableIndex.MethodDef, TableIndex.TypeDef);
-            this.EventDefIndexSize = this.GetIndexByteSize(0, TableIndex.Event);
-            this.FieldDefIndexSize = this.GetIndexByteSize(0, TableIndex.Field);
-            this.GenericParamIndexSize = this.GetIndexByteSize(0, TableIndex.GenericParam);
-            this.HasConstantCodedIndexSize = this.GetIndexByteSize(2, TableIndex.Field, TableIndex.Param, TableIndex.Property);
+            PresentTablesMask = ComputeNonEmptyTableMask(rowCounts);
 
-            this.HasCustomAttributeCodedIndexSize = this.GetIndexByteSize(5,
+            this.CustomAttributeTypeCodedIndexSize = this.GetReferenceByteSize(3, TableIndex.MethodDef, TableIndex.MemberRef);
+            this.DeclSecurityCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.MethodDef, TableIndex.TypeDef);
+            this.EventDefIndexSize = this.GetReferenceByteSize(0, TableIndex.Event);
+            this.FieldDefIndexSize = this.GetReferenceByteSize(0, TableIndex.Field);
+            this.GenericParamIndexSize = this.GetReferenceByteSize(0, TableIndex.GenericParam);
+            this.HasConstantCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.Field, TableIndex.Param, TableIndex.Property);
+
+            this.HasCustomAttributeCodedIndexSize = this.GetReferenceByteSize(5,
                 TableIndex.MethodDef,
                 TableIndex.Field,
                 TableIndex.TypeRef,
@@ -129,31 +139,31 @@ namespace Microsoft.Cci
                 TableIndex.GenericParamConstraint,
                 TableIndex.MethodSpec);
 
-            this.HasFieldMarshalCodedIndexSize = this.GetIndexByteSize(1, TableIndex.Field, TableIndex.Param);
-            this.HasSemanticsCodedIndexSize = this.GetIndexByteSize(1, TableIndex.Event, TableIndex.Property);
-            this.ImplementationCodedIndexSize = this.GetIndexByteSize(2, TableIndex.File, TableIndex.AssemblyRef, TableIndex.ExportedType);
-            this.MemberForwardedCodedIndexSize = this.GetIndexByteSize(1, TableIndex.Field, TableIndex.MethodDef);
-            this.MemberRefParentCodedIndexSize = this.GetIndexByteSize(3, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.ModuleRef, TableIndex.MethodDef, TableIndex.TypeSpec);
-            this.MethodDefIndexSize = this.GetIndexByteSize(0, TableIndex.MethodDef);
-            this.MethodDefOrRefCodedIndexSize = this.GetIndexByteSize(1, TableIndex.MethodDef, TableIndex.MemberRef);
-            this.ModuleRefIndexSize = this.GetIndexByteSize(0, TableIndex.ModuleRef);
-            this.ParameterIndexSize = this.GetIndexByteSize(0, TableIndex.Param);
-            this.PropertyDefIndexSize = this.GetIndexByteSize(0, TableIndex.Property);
-            this.ResolutionScopeCodedIndexSize = this.GetIndexByteSize(2, TableIndex.Module, TableIndex.ModuleRef, TableIndex.AssemblyRef, TableIndex.TypeRef);
-            this.TypeDefIndexSize = this.GetIndexByteSize(0, TableIndex.TypeDef);
-            this.TypeDefOrRefCodedIndexSize = this.GetIndexByteSize(2, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.TypeSpec);
-            this.TypeOrMethodDefCodedIndexSize = this.GetIndexByteSize(1, TableIndex.TypeDef, TableIndex.MethodDef);
+            this.HasFieldMarshalCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.Field, TableIndex.Param);
+            this.HasSemanticsCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.Event, TableIndex.Property);
+            this.ImplementationCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.File, TableIndex.AssemblyRef, TableIndex.ExportedType);
+            this.MemberForwardedCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.Field, TableIndex.MethodDef);
+            this.MemberRefParentCodedIndexSize = this.GetReferenceByteSize(3, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.ModuleRef, TableIndex.MethodDef, TableIndex.TypeSpec);
+            this.MethodDefIndexSize = this.GetReferenceByteSize(0, TableIndex.MethodDef);
+            this.MethodDefOrRefCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.MethodDef, TableIndex.MemberRef);
+            this.ModuleRefIndexSize = this.GetReferenceByteSize(0, TableIndex.ModuleRef);
+            this.ParameterIndexSize = this.GetReferenceByteSize(0, TableIndex.Param);
+            this.PropertyDefIndexSize = this.GetReferenceByteSize(0, TableIndex.Property);
+            this.ResolutionScopeCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.Module, TableIndex.ModuleRef, TableIndex.AssemblyRef, TableIndex.TypeRef);
+            this.TypeDefIndexSize = this.GetReferenceByteSize(0, TableIndex.TypeDef);
+            this.TypeDefOrRefCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.TypeSpec);
+            this.TypeOrMethodDefCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.TypeDef, TableIndex.MethodDef);
 
             int size = this.CalculateTableStreamHeaderSize();
 
             size += GetTableSize(TableIndex.Module, 2 + 3 * this.GuidIndexSize + this.StringIndexSize);
             size += GetTableSize(TableIndex.TypeRef, this.ResolutionScopeCodedIndexSize + this.StringIndexSize + this.StringIndexSize);
             size += GetTableSize(TableIndex.TypeDef, 4 + this.StringIndexSize + this.StringIndexSize + this.TypeDefOrRefCodedIndexSize + this.FieldDefIndexSize + this.MethodDefIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.FieldPtr] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.FieldPtr] == 0);
             size += GetTableSize(TableIndex.Field, 2 + this.StringIndexSize + this.BlobIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.MethodPtr] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.MethodPtr] == 0);
             size += GetTableSize(TableIndex.MethodDef, 8 + this.StringIndexSize + this.BlobIndexSize + this.ParameterIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.ParamPtr] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.ParamPtr] == 0);
             size += GetTableSize(TableIndex.Param, 4 + this.StringIndexSize);
             size += GetTableSize(TableIndex.InterfaceImpl, this.TypeDefIndexSize + this.TypeDefOrRefCodedIndexSize);
             size += GetTableSize(TableIndex.MemberRef, this.MemberRefParentCodedIndexSize + this.StringIndexSize + this.BlobIndexSize);
@@ -165,10 +175,10 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.FieldLayout, 4 + this.FieldDefIndexSize);
             size += GetTableSize(TableIndex.StandAloneSig, this.BlobIndexSize);
             size += GetTableSize(TableIndex.EventMap, this.TypeDefIndexSize + this.EventDefIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.EventPtr] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.EventPtr] == 0);
             size += GetTableSize(TableIndex.Event, 2 + this.StringIndexSize + this.TypeDefOrRefCodedIndexSize);
             size += GetTableSize(TableIndex.PropertyMap, this.TypeDefIndexSize + this.PropertyDefIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.PropertyPtr] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.PropertyPtr] == 0);
             size += GetTableSize(TableIndex.Property, 2 + this.StringIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.MethodSemantics, 2 + this.MethodDefIndexSize + this.HasSemanticsCodedIndexSize);
             size += GetTableSize(TableIndex.MethodImpl, 0 + this.TypeDefIndexSize + this.MethodDefOrRefCodedIndexSize + this.MethodDefOrRefCodedIndexSize);
@@ -179,11 +189,11 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.EncLog, 8);
             size += GetTableSize(TableIndex.EncMap, 4);
             size += GetTableSize(TableIndex.Assembly, 16 + this.BlobIndexSize + this.StringIndexSize + this.StringIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.AssemblyProcessor] == 0);
-            Debug.Assert(RowCounts[(int)TableIndex.AssemblyOS] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.AssemblyProcessor] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.AssemblyOS] == 0);
             size += GetTableSize(TableIndex.AssemblyRef, 12 + this.BlobIndexSize + this.StringIndexSize + this.StringIndexSize + this.BlobIndexSize);
-            Debug.Assert(RowCounts[(int)TableIndex.AssemblyRefProcessor] == 0);
-            Debug.Assert(RowCounts[(int)TableIndex.AssemblyRefOS] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.AssemblyRefProcessor] == 0);
+            Debug.Assert(rowCounts[(int)TableIndex.AssemblyRefOS] == 0);
             size += GetTableSize(TableIndex.File, 4 + this.StringIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.ExportedType, 8 + this.StringIndexSize + this.StringIndexSize + this.ImplementationCodedIndexSize);
             size += GetTableSize(TableIndex.ManifestResource, 8 + this.StringIndexSize + this.ImplementationCodedIndexSize);
@@ -205,7 +215,7 @@ namespace Microsoft.Cci
             this.MetadataStreamStorageSize = size;
         }
 
-        public bool IsEmpty(TableIndex table) => RowCounts[(int)table] == 0;
+        public bool IsPresent(TableIndex table) => (PresentTablesMask & (1UL << (int)table)) != 0;
 
         /// <summary>
         /// Metadata header size.
@@ -218,29 +228,51 @@ namespace Microsoft.Cci
         {
             get
             {
-                return _isMinimalDelta ? 124 : 108;
+                const int RegularStreamHeaderSizes = 76;
+                const int MinimalDeltaMarkerStreamSize = 16;
+
+                Debug.Assert(RegularStreamHeaderSizes == 
+                    GetMetadataStreamHeaderSize("#~") +
+                    GetMetadataStreamHeaderSize("#Strings") +
+                    GetMetadataStreamHeaderSize("#US") +
+                    GetMetadataStreamHeaderSize("#GUID") +
+                    GetMetadataStreamHeaderSize("#Blob"));
+
+                Debug.Assert(MinimalDeltaMarkerStreamSize == GetMetadataStreamHeaderSize("#JTD"));
+
+                return
+                    sizeof(uint) +                 // signature
+                    sizeof(ushort) +               // major version
+                    sizeof(ushort) +               // minor version
+                    sizeof(uint) +                 // reserved
+                    sizeof(uint) +                 // padded metadata version length
+                    MetadataVersionPaddedLength +  // metadata version
+                    sizeof(ushort) +               // storage header: reserved
+                    sizeof(ushort) +               // stream count
+                    RegularStreamHeaderSizes +
+                    (IsMinimalDelta ? MinimalDeltaMarkerStreamSize : 0);
             }
+        }
+
+        // version must be 12 chars long, this observation is not supported by the standard
+        public const int MetadataVersionPaddedLength = 12;
+
+        public static int GetMetadataStreamHeaderSize(string streamName)
+        {
+            return
+                sizeof(int) + // offset
+                sizeof(int) + // size
+                BitArithmeticUtilities.Align(streamName.Length + 1, 4); // zero-terminated name, padding
         }
 
         /// <summary>
         /// Total size of metadata (header and all streams).
         /// </summary>
-        public int MetadataSize
-        {
-            get
-            {
-                return MetadataHeaderSize + MetadataStreamStorageSize;
-            }
-        }
+        public int MetadataSize => MetadataHeaderSize + MetadataStreamStorageSize;
 
         public int GetAlignedHeapSize(HeapIndex index)
         {
             return BitArithmeticUtilities.Align(HeapSizes[(int)index], StreamAlignment);
-        }
-
-        private int GetTableSize(TableIndex index, int rowSize)
-        {
-            return RowCounts[(int)index] * rowSize;
         }
 
         internal int CalculateTableStreamHeaderSize()
@@ -252,11 +284,11 @@ namespace Microsoft.Cci
                          sizeof(long) +       // Valid table mask
                          sizeof(long);        // Sorted table mask
 
-            foreach (int rowCount in RowCounts)
+            // present table row counts
+            for (int i = 0; i < RowCounts.Length; i++)
             {
-                if (rowCount > 0)
+                if (((1UL << i) & PresentTablesMask) != 0)
                 {
-                    // present table row count
                     result += sizeof(int);
                 }
             }
@@ -264,24 +296,46 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private byte GetIndexByteSize(int discriminatingBits, params TableIndex[] tables)
+        private static ulong ComputeNonEmptyTableMask(ImmutableArray<int> rowCounts)
         {
-            const int BitsPerShort = 16;
-            return (byte)(_isMinimalDelta || IndexDoesNotFit(BitsPerShort - discriminatingBits, tables) ? 4 : 2);
+            ulong mask = 0;
+            for (int i = 0; i < rowCounts.Length; i++)
+            {
+                if (rowCounts[i] > 0)
+                {
+                    mask |= (1UL << i);
+                }
+            }
+
+            return mask;
         }
 
-        private bool IndexDoesNotFit(int numberOfBits, params TableIndex[] tables)
+        private int GetTableSize(TableIndex index, int rowSize)
         {
-            int maxIndex = (1 << numberOfBits) - 1;
+            return (PresentTablesMask & (1UL << (int)index)) != 0 ? RowCounts[(int)index] * rowSize : 0;
+        }
+
+        private byte GetReferenceByteSize(int tagBitSize, params TableIndex[] tables)
+        {
+            const byte large = 4;
+            const byte small = 2;
+            const int smallBitCount = 16;
+
+            return (!IsMetadataTableStreamCompressed || !ReferenceFits(smallBitCount - tagBitSize, tables)) ? large : small;
+        }
+
+        private bool ReferenceFits(int bitCount, TableIndex[] tables)
+        {
+            int maxIndex = (1 << bitCount) - 1;
             foreach (TableIndex table in tables)
             {
                 if (RowCounts[(int)table] > maxIndex)
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
     }
 }

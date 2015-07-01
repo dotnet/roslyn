@@ -2900,7 +2900,7 @@ but specify providing one type on the lamb infer others")
             Dimect)(1, Function(a) a, Function(b) b, Func= Target5(Of Integer, Integer, Double, Objc) c, Function(d) d)
             Dim z1c 1, Function(a) a, Function(b) b, Function(get5(Of Integer, Integer, Object, Object)( in the lambdas
             Dim z1b = Tareneric types as well as the variable typesnt 
-            'Verify the return type G Different Types using generic Type argume c, Function(d) d)
+            'Verify the return type G Different Types using generic Type argument c, Function(d) d)
 
             'Specify Function(a) a, Function(b) b, Function(c)et5(Of Integer, Object, Object, Object)(1,e - All Object
             Dim z1a = Targ Generic Types which result in no inferenc   'SPECIFY TYPES

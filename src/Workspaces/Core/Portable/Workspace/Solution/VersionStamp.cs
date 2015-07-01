@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis
             // with 50ms (typing) as an interval for a new version, it gives more than 1 year before int32 to overflow.
             // with 5ms as an interval, it gives more than 120 days before it overflows.
             // since global version is only for per VS session, I think we don't need to worry about overflow.
-            // or we could use Int64 which will give more than a milliion years turn around even on 1ms internval.
+            // or we could use Int64 which will give more than a million years turn around even on 1ms interval.
 
             // this will let versions to be compared safely between multiple items
             // without worring about collision within same session

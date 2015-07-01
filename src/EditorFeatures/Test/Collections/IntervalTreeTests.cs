@@ -33,14 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
         private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
         {
             yield return SimpleIntervalTree.Create(new TupleIntrospector<string>(), values);
-
-            var tree1 = SimpleIntervalTree.Create(new TupleIntrospector<string>());
-            foreach (var v in values)
-            {
-                tree1 = tree1.AddInterval(v);
-            }
-
-            yield return tree1;
         }
 
         [Fact]

@@ -7231,7 +7231,7 @@ class C
             string src1 = @"
 class C
 {
-    static int F(IEnumerbale<int> e) => <AS:0>1</AS:0>;
+    static int F(IEnumerable<int> e) => <AS:0>1</AS:0>;
 
     static void Main()
     {
@@ -7241,7 +7241,7 @@ class C
             string src2 = @"
 class C
 {
-    static int F(IEnumerbale<int> e) => <AS:0>1</AS:0>;
+    static int F(IEnumerable<int> e) => <AS:0>1</AS:0>;
    
     static void Main()
     {
@@ -7291,7 +7291,7 @@ class C
             string src1 = @"
 class C
 {
-    static int F(IEnumerbale<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
+    static int F(IEnumerable<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
 
     static void Main()
     {
@@ -7301,7 +7301,7 @@ class C
             string src2 = @"
 class C
 {
-    static int F(IEnumerbale<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
+    static int F(IEnumerable<IGrouping<int, int>> e) => <AS:0>1</AS:0>;
    
     static void Main()
     {

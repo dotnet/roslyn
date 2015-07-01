@@ -9,14 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class Worker
-#If DEBUG Then
-        ''' <summary>
-        ''' nonOverlappingSpans spans used for Debug validation that
-        ''' spans that worker produces are not mutually overlapping.
-        ''' </summary>
-        Private _nonOverlappingSpans As SimpleIntervalTree(Of TextSpan)
-#End If
-
         Private ReadOnly _list As List(Of ClassifiedSpan)
         Private ReadOnly _textSpan As TextSpan
         Private ReadOnly _docCommentClassifier As DocumentationCommentClassifier
@@ -46,22 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             worker.ClassifyNode(node)
         End Sub
 
-        <Conditional("DEBUG")>
-        Private Sub Validate(textSpan As TextSpan)
-#If DEBUG Then
-            If _nonOverlappingSpans Is Nothing Then
-                _nonOverlappingSpans = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance)
-            End If
-
-            ' new span should not overlap with any span that we already have.
-            Contract.Requires(Not _nonOverlappingSpans.GetOverlappingIntervals(textSpan.Start, textSpan.Length).Any())
-
-            _nonOverlappingSpans = _nonOverlappingSpans.AddInterval(textSpan)
-#End If
-        End Sub
-
         Private Sub AddClassification(textSpan As TextSpan, classificationType As String)
-            Validate(textSpan)
             _list.Add(New ClassifiedSpan(classificationType, textSpan))
         End Sub
 

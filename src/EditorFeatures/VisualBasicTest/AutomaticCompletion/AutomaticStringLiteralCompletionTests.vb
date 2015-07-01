@@ -116,7 +116,7 @@ End Class</code>
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)>
-        Public Sub Proprocessor_Backsapce()
+        Public Sub Proprocessor_Backspace()
             Dim code = <code>Class C
     Sub Method()
         #Region $$

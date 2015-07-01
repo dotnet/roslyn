@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         // Returns true if this looks like a possible type name that is on it's own (i.e. not after
         // a dot).  This function is not exhaustive and additional checks may be added if they are
-        // beleived to be valuable.
+        // believed to be valuable.
         public static bool LooksLikeStandaloneTypeName(this SimpleNameSyntax simpleName)
         {
             if (simpleName == null)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            // Looks good.  However, feel free to add additional checks if this funciton is too
+            // Looks good.  However, feel free to add additional checks if this function is too
             // lenient in some circumstances.
             return true;
         }

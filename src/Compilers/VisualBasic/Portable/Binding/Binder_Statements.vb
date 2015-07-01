@@ -2366,7 +2366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       it might cause errors for write-only property, etc.
                 notParenthesized = MakeRValue(notParenthesized, diagnostics)
 
-                ' this is not an event. Add diagnostics if node is not aready bad
+                ' this is not an event. Add diagnostics if node is not already bad
                 ' NOTE that we are not marking the node as bad if it is not
                 '      in such case there is nothing wrong with the event access node.
                 '      However since we cannot provide event symbol, the AddRemovehandler

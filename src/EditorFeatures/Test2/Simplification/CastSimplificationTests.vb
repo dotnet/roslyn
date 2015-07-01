@@ -3615,7 +3615,7 @@ unsafe class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537)>
-        Public Sub Csharp_DoNotRemove_NecessaryExplicitCastInReferenceComparision()
+        Public Sub Csharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3651,7 +3651,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537)>
-        Public Sub Csharp_DoNotRemove_NecessaryExplicitCastInReferenceComparision2()
+        Public Sub Csharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison2()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3687,7 +3687,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537)>
-        Public Sub Csharp_Remove_UnnecessaryExplicitCastInReferenceComparision()
+        Public Sub Csharp_Remove_UnnecessaryExplicitCastInReferenceComparison()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3724,7 +3724,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537), WorkItem(902508)>
-        Public Sub Csharp_Remove_UnnecessaryExplicitCastInReferenceComparision2()
+        Public Sub Csharp_Remove_UnnecessaryExplicitCastInReferenceComparison2()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

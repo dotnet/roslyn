@@ -1688,7 +1688,7 @@ End Class</x>.Value)
 <x>Structure s(Of a As x, b)
 End Structure</x>.Value)
 
-            ' interface delcarations
+            ' interface declarations
             VerifySyntax(Of InterfaceBlockSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeParameters(

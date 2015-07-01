@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         public override void AfterReturn(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
             // check whether shape of the braces are what we support
-            // shape must be eiter "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
+            // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior
             if (!ContainsOnlyWhitespace(session))
             {
                 return;

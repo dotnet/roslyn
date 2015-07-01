@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    // Invoke method of a deelgate used in a dynamic call-site must be public 
+                    // Invoke method of a delegate used in a dynamic call-site must be public 
                     // since the DLR looks only for public Invoke methods:
                     return Accessibility.Public;
                 }

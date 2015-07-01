@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
             HANDLE hThread = IntPtr.Zero;
             try
             {
-                // allocate some native to accomidate the SECURITY_ATTRIBUTES structure needed to create the event object and get its handle
+                // allocate some native to accommodate the SECURITY_ATTRIBUTES structure needed to create the event object and get its handle
                 pSecAttrib = Marshal.AllocHGlobal(sizeof(NativeWin32Stubs.SECURITY_ATTRIBUTES));
                 if (pSecAttrib == IntPtr.Zero)
                 {

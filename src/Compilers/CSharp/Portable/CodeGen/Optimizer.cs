@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLabel(BoundLabel node)
         {
-            Debug.Assert(true, "we should not have label expressons at this stage");
+            Debug.Assert(true, "we should not have label expressions at this stage");
 
             return node;
         }

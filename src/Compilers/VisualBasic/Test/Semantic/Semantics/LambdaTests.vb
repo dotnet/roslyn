@@ -1755,7 +1755,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub FunctionValueOfLamdbdaDoesNotHavaAName()
+        Public Sub FunctionValueOfLambdaDoesNotHaveAName()
 
             Dim compilationDef =
 <compilation>

@@ -691,7 +691,7 @@ public class DATest : DATestBase {
         if (f) { int a; do No(); while (fFalse || G(out a)); F(a); } // Assigned
     }
 
-    // Do statement with break and contine.
+    // Do statement with break and continue.
     public void T131() {
         if (f) { int a; do { break; F(a); } while (f); } // Unreachable
         if (f) { int a; do break; while (F(a)); } // Unreachable

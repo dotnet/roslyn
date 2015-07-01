@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             if (innermostClauses.Count == 1)
             {
                 // If there was only one match, or all the matches came from the same
-                // statement, hten we want to place the declaration right above that
+                // statement, then we want to place the declaration right above that
                 // statement. Note: we special case this because the statement we are going
                 // to go above might not be in a block and we may have to generate it
                 return Task.FromResult(IntroduceQueryLocalForSingleOccurrence(

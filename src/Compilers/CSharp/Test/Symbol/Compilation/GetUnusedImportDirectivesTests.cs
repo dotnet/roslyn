@@ -119,7 +119,7 @@ class Program
 }";
             var tree = Parse(text);
             var comp = CreateCompilationWithMscorlib(tree);
-            //all unused because system.core was not included and Eunmerable didn't bind
+            //all unused because system.core was not included and Enumerable didn't bind
             comp.VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // using System.Linq;

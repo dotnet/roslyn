@@ -73,6 +73,7 @@ namespace Microsoft.Cci
 
         protected MetadataWriter(
             MetadataHeapsBuilder heaps,
+            MetadataHeapsBuilder debugHeapsOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
@@ -134,11 +135,6 @@ namespace Microsoft.Cci
         /// if full metadata or generation 1 delta.
         /// </summary>
         protected abstract Guid EncBaseId { get; }
-
-        /// <summary>
-        /// Returns true if the metadata stream should be compressed.
-        /// </summary>
-        protected abstract bool CompressMetadataStream { get; }
 
         /// <summary>
         /// Returns true and the 1-based index of the type definition
@@ -480,7 +476,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.Param] = _paramTable.Count;
             rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
             rowCounts[(int)TableIndex.Property] = _propertyTable.Count;
-            rowCounts[(int)TableIndex.StandAloneSig] = this.GetStandAloneSignatures().Count;
+            rowCounts[(int)TableIndex.StandAloneSig] = GetStandAloneSignatures().Count;
             rowCounts[(int)TableIndex.TypeDef] = _typeDefTable.Count;
             rowCounts[(int)TableIndex.TypeRef] = _typeRefTable.Count;
             rowCounts[(int)TableIndex.TypeSpec] = _typeSpecTable.Count;
@@ -1903,6 +1899,14 @@ namespace Microsoft.Cci
             throw ExceptionUtilities.Unreachable;
         }
 
+        private void SerializeCustomModifiers(ImmutableArray<ICustomModifier> customModifiers, BinaryWriter writer)
+        {
+            foreach (ICustomModifier customModifier in customModifiers)
+            {
+                this.SerializeCustomModifier(customModifier, writer);
+            }
+        }
+
         private void SerializeCustomModifier(ICustomModifier customModifier, BinaryWriter writer)
         {
             if (customModifier.IsOptional)
@@ -1921,37 +1925,55 @@ namespace Microsoft.Cci
         {
             uint startOffset = writer.BaseStream.Position;
 
-            // Storage signature
-            writer.WriteUint(0x424A5342); // Signature 4
-            writer.WriteUshort(1); // metadata version major 6
-            writer.WriteUshort(1); // metadata version minor 8
-            writer.WriteUint(0); // reserved 12
-            writer.WriteUint(12); // version must be 12 chars long (TODO: this observation is not supported by the standard or the ILAsm book). 16
-            string targetRuntimeVersion = this.module.TargetRuntimeVersion;
-            int n = targetRuntimeVersion.Length;
-            for (int i = 0; i < 12 && i < n; i++)
+            // signature
+            writer.WriteUint(0x424A5342);
+
+            // major version
+            writer.WriteUshort(1); 
+
+            // minor version
+            writer.WriteUshort(1);
+
+            // reserved
+            writer.WriteUint(0);
+
+            // metadata version length
+            writer.WriteUint(MetadataSizes.MetadataVersionPaddedLength); 
+
+            string targetRuntimeVersion = module.TargetRuntimeVersion;
+
+            int n = Math.Min(MetadataSizes.MetadataVersionPaddedLength, targetRuntimeVersion.Length);
+            for (int i = 0; i < n; i++)
             {
                 writer.WriteByte((byte)targetRuntimeVersion[i]);
             }
 
-            for (int i = n; i < 12; i++)
+            for (int i = n; i < MetadataSizes.MetadataVersionPaddedLength; i++)
             {
-                writer.WriteByte(0); // 28
+                writer.WriteByte(0);
             }
 
-            // Storage header
-            writer.WriteByte(0); // flags 29
-            writer.WriteByte(0); // padding 30
-            writer.WriteUshort((ushort)(this.IsMinimalDelta ? 6 : 5)); // number of streams 32
+            // reserved
+            writer.WriteUshort(0);
 
-            // Stream headers
+            // number of streams
+            writer.WriteUshort((ushort)(5 + (metadataSizes.IsMinimalDelta ? 1 : 0)));
+
+            // stream headers
             int offsetFromStartOfMetadata = metadataSizes.MetadataHeaderSize;
-            SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.MetadataTableStreamSize, (this.CompressMetadataStream ? "#~" : "#-"), writer);
+
+            // Spec: Some compilers store metadata in a #- stream, which holds an uncompressed, or non-optimized, representation of metadata tables;
+            // this includes extra metadata -Ptr tables. Such PE files do not form part of ECMA-335 standard.
+            //
+            // Note: EnC delta is stored as uncompressed metadata stream.
+            SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.MetadataTableStreamSize, (metadataSizes.IsMetadataTableStreamCompressed ? "#~" : "#-"), writer);
+
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.String), "#Strings", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.UserString), "#US", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.Guid), "#GUID", writer);
             SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.GetAlignedHeapSize(HeapIndex.Blob), "#Blob", writer);
-            if (this.IsMinimalDelta)
+
+            if (metadataSizes.IsMinimalDelta)
             {
                 SerializeStreamHeader(ref offsetFromStartOfMetadata, 0, "#JTD", writer);
             }
@@ -1963,7 +1985,7 @@ namespace Microsoft.Cci
         private static void SerializeStreamHeader(ref int offsetFromStartOfMetadata, int alignedStreamSize, string streamName, BinaryWriter writer)
         {
             // 4 for the first uint (offset), 4 for the second uint (padded size), length of stream name + 1 for null terminator (then padded)
-            int sizeOfStreamHeader = 8 + BitArithmeticUtilities.Align(streamName.Length + 1, 4);
+            int sizeOfStreamHeader = MetadataSizes.GetMetadataStreamHeaderSize(streamName);
             writer.WriteInt(offsetFromStartOfMetadata);
             writer.WriteInt(alignedStreamSize);
             foreach (char ch in streamName)
@@ -2008,8 +2030,9 @@ namespace Microsoft.Cci
             uint entryPointToken;
 
             SerializeMetadataAndIL(
-                pdbWriterOpt,
                 metadataWriter,
+                default(BinaryWriter),
+                pdbWriterOpt,
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceDataWriter,
@@ -2028,8 +2051,9 @@ namespace Microsoft.Cci
         }
 
         public void SerializeMetadataAndIL(
-            PdbWriter pdbWriterOpt,
             BinaryWriter metadataWriter,
+            BinaryWriter debugMetadataWriterOpt,
+            PdbWriter nativePdbWriterOpt,
             BinaryWriter ilWriter,
             BinaryWriter mappedFieldDataWriter,
             BinaryWriter managedResourceDataWriter,
@@ -2042,7 +2066,7 @@ namespace Microsoft.Cci
             // Extract information from object model into tables, indices and streams
             CreateIndices();
 
-            uint[] methodBodyRvas = SerializeMethodBodies(ilWriter, pdbWriterOpt);
+            uint[] methodBodyRvas = SerializeMethodBodies(ilWriter, nativePdbWriterOpt);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -2057,6 +2081,11 @@ namespace Microsoft.Cci
             if (IsFullMetadata && entryPoint?.GetResolvedMethod(Context) != null)
             {
                 entryPointToken = GetMethodToken(entryPoint);
+
+                // entry point can only be a MethodDef:
+                Debug.Assert((entryPointToken & 0xff000000) == 0x06000000);
+
+                nativePdbWriterOpt?.SetEntryPoint(entryPointToken);
             }
             else
             {
@@ -2065,9 +2094,11 @@ namespace Microsoft.Cci
 
             heaps.Complete();
 
+            var tableRowCounts = GetRowCounts();
+
             metadataSizes = new MetadataSizes(
-                GetRowCounts(),
-                heaps.GetHeapSizes(),
+                rowCounts: tableRowCounts,
+                heapSizes: heaps.GetHeapSizes(),
                 ilStreamSize: (int)ilWriter.BaseStream.Length,
                 mappedFieldDataSize: (int)mappedFieldDataWriter.BaseStream.Length,
                 resourceDataSize: (int)managedResourceDataWriter.BaseStream.Length,
@@ -2077,15 +2108,16 @@ namespace Microsoft.Cci
             int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
 
             uint guidHeapStartOffset;
-            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, out guidHeapStartOffset);
+            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, entryPointToken, out guidHeapStartOffset);
             moduleVersionIdOffsetInMetadataStream = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
         }
 
         private void SerializeMetadata(
-            BinaryWriter metadataWriter,
-            MetadataSizes metadataSizes,
-            int methodBodyStreamRva,
+            BinaryWriter metadataWriter, 
+            MetadataSizes metadataSizes, 
+            int methodBodyStreamRva, 
             int mappedFieldDataStreamRva,
+            uint entryPointToken,
             out uint guidHeapStartOffset)
         {
             uint metadataStartOffset = metadataWriter.BaseStream.Position;
@@ -2094,8 +2126,8 @@ namespace Microsoft.Cci
             // It's easier to write it at the end then to precalculate the sizes.
             metadataWriter.BaseStream.Position = metadataStartOffset + (uint)metadataSizes.MetadataHeaderSize;
 
-            // #~ stream:
-            this.SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
+            // #~ or #- stream:
+            SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
             heaps.WriteTo(metadataWriter.BaseStream, out guidHeapStartOffset);
@@ -2104,7 +2136,7 @@ namespace Microsoft.Cci
 
             // write header at the start of the metadata stream:
             metadataWriter.BaseStream.Position = 0;
-            this.SerializeMetadataHeader(metadataWriter, metadataSizes);
+            SerializeMetadataHeader(metadataWriter, metadataSizes);
 
             metadataWriter.BaseStream.Position = metadataSize;
         }
@@ -2130,180 +2162,182 @@ namespace Microsoft.Cci
 
             this.SerializeTablesHeader(writer, metadataSizes);
 
-            Debug.Assert(!metadataSizes.IsEmpty(TableIndex.Module));
-            SerializeModuleTable(writer, metadataSizes, heaps, ref _moduleRow);
+            if (metadataSizes.IsPresent(TableIndex.Module))
+            {
+                SerializeModuleTable(writer, metadataSizes, heaps);
+            }
 
-            if (!metadataSizes.IsEmpty(TableIndex.TypeRef))
+            if (metadataSizes.IsPresent(TableIndex.TypeRef))
             {
                 this.SerializeTypeRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.TypeDef))
+            if (metadataSizes.IsPresent(TableIndex.TypeDef))
             {
                 this.SerializeTypeDefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Field))
+            if (metadataSizes.IsPresent(TableIndex.Field))
             {
                 this.SerializeFieldTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodDef))
+            if (metadataSizes.IsPresent(TableIndex.MethodDef))
             {
                 this.SerializeMethodDefTable(writer, metadataSizes, methodBodyStreamRva);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Param))
+            if (metadataSizes.IsPresent(TableIndex.Param))
             {
                 this.SerializeParamTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.InterfaceImpl))
+            if (metadataSizes.IsPresent(TableIndex.InterfaceImpl))
             {
                 this.SerializeInterfaceImplTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MemberRef))
+            if (metadataSizes.IsPresent(TableIndex.MemberRef))
             {
                 this.SerializeMemberRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Constant))
+            if (metadataSizes.IsPresent(TableIndex.Constant))
             {
                 this.SerializeConstantTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.CustomAttribute))
+            if (metadataSizes.IsPresent(TableIndex.CustomAttribute))
             {
                 this.SerializeCustomAttributeTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.FieldMarshal))
+            if (metadataSizes.IsPresent(TableIndex.FieldMarshal))
             {
                 this.SerializeFieldMarshalTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.DeclSecurity))
+            if (metadataSizes.IsPresent(TableIndex.DeclSecurity))
             {
                 this.SerializeDeclSecurityTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ClassLayout))
+            if (metadataSizes.IsPresent(TableIndex.ClassLayout))
             {
                 this.SerializeClassLayoutTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.FieldLayout))
+            if (metadataSizes.IsPresent(TableIndex.FieldLayout))
             {
                 this.SerializeFieldLayoutTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.StandAloneSig))
+            if (metadataSizes.IsPresent(TableIndex.StandAloneSig))
             {
                 this.SerializeStandAloneSigTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.EventMap))
+            if (metadataSizes.IsPresent(TableIndex.EventMap))
             {
                 this.SerializeEventMapTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Event))
+            if (metadataSizes.IsPresent(TableIndex.Event))
             {
                 this.SerializeEventTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.PropertyMap))
+            if (metadataSizes.IsPresent(TableIndex.PropertyMap))
             {
                 this.SerializePropertyMapTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Property))
+            if (metadataSizes.IsPresent(TableIndex.Property))
             {
                 this.SerializePropertyTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodSemantics))
+            if (metadataSizes.IsPresent(TableIndex.MethodSemantics))
             {
                 this.SerializeMethodSemanticsTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodImpl))
+            if (metadataSizes.IsPresent(TableIndex.MethodImpl))
             {
                 this.SerializeMethodImplTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ModuleRef))
+            if (metadataSizes.IsPresent(TableIndex.ModuleRef))
             {
                 this.SerializeModuleRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.TypeSpec))
+            if (metadataSizes.IsPresent(TableIndex.TypeSpec))
             {
                 this.SerializeTypeSpecTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ImplMap))
+            if (metadataSizes.IsPresent(TableIndex.ImplMap))
             {
                 this.SerializeImplMapTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.FieldRva))
+            if (metadataSizes.IsPresent(TableIndex.FieldRva))
             {
                 this.SerializeFieldRvaTable(writer, metadataSizes, mappedFieldDataStreamRva);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.EncLog))
+            if (metadataSizes.IsPresent(TableIndex.EncLog))
             {
                 this.SerializeEncLogTable(writer);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.EncMap))
+            if (metadataSizes.IsPresent(TableIndex.EncMap))
             {
                 this.SerializeEncMapTable(writer);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.Assembly))
+            if (metadataSizes.IsPresent(TableIndex.Assembly))
             {
                 this.SerializeAssemblyTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.AssemblyRef))
+            if (metadataSizes.IsPresent(TableIndex.AssemblyRef))
             {
                 this.SerializeAssemblyRefTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.File))
+            if (metadataSizes.IsPresent(TableIndex.File))
             {
                 this.SerializeFileTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ExportedType))
+            if (metadataSizes.IsPresent(TableIndex.ExportedType))
             {
                 this.SerializeExportedTypeTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.ManifestResource))
+            if (metadataSizes.IsPresent(TableIndex.ManifestResource))
             {
                 this.SerializeManifestResourceTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.NestedClass))
+            if (metadataSizes.IsPresent(TableIndex.NestedClass))
             {
                 this.SerializeNestedClassTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.GenericParam))
+            if (metadataSizes.IsPresent(TableIndex.GenericParam))
             {
                 this.SerializeGenericParamTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.MethodSpec))
+            if (metadataSizes.IsPresent(TableIndex.MethodSpec))
             {
                 this.SerializeMethodSpecTable(writer, metadataSizes);
             }
 
-            if (!metadataSizes.IsEmpty(TableIndex.GenericParamConstraint))
+            if (metadataSizes.IsPresent(TableIndex.GenericParamConstraint))
             {
                 this.SerializeGenericParamConstraintTable(writer, metadataSizes);
             }
@@ -3600,59 +3634,43 @@ namespace Microsoft.Cci
                 heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
             }
 
-            ulong validTables;
-            ulong sortedTables;
-            ComputeValidAndSortedMasks(metadataSizes, out validTables, out sortedTables);
+            const ulong sortedTables = 0x16003301fa00;
 
             writer.WriteUint(0); // reserved
-            writer.WriteByte(this.module.MetadataFormatMajorVersion);
-            writer.WriteByte(this.module.MetadataFormatMinorVersion);
+            writer.WriteByte(module.MetadataFormatMajorVersion);
+            writer.WriteByte(module.MetadataFormatMinorVersion);
             writer.WriteByte((byte)heapSizes);
             writer.WriteByte(1); // reserved
-            writer.WriteUlong(validTables);
+            writer.WriteUlong(metadataSizes.PresentTablesMask);
             writer.WriteUlong(sortedTables);
-            SerializeRowCounts(writer, metadataSizes);
+            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.PresentTablesMask);
 
             uint endPosition = writer.BaseStream.Position;
             Debug.Assert(metadataSizes.CalculateTableStreamHeaderSize() == endPosition - startPosition);
         }
 
-        private static void ComputeValidAndSortedMasks(MetadataSizes metadataSizes, out ulong validTables, out ulong sortedTables)
+        private static void SerializeRowCounts(BinaryWriter writer, ImmutableArray<int> rowCounts, ulong includeTables)
         {
-            validTables = 0;
-            ulong validBit = 1;
-
-            foreach (int rowCount in metadataSizes.RowCounts)
+            for (int i = 0; i < rowCounts.Length; i++)
             {
-                if (rowCount > 0)
+                if (((1UL << i) & includeTables) != 0)
                 {
-                    validTables |= validBit;
-                }
-
-                validBit <<= 1;
-            }
-
-            sortedTables = 0x16003301fa00/* & validTables*/;
-        }
-
-        private static void SerializeRowCounts(BinaryWriter writer, MetadataSizes tableSizes)
-        {
-            foreach (int rowCount in tableSizes.RowCounts)
-            {
-                if (rowCount > 0)
-                {
-                    writer.WriteInt(rowCount);
+                    int rowCount = rowCounts[i];
+                    if (rowCount > 0)
+                    {
+                        writer.WriteInt(rowCount);
+                    }
                 }
             }
         }
 
-        private static void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps, ref ModuleRow moduleRow)
+        private void SerializeModuleTable(BinaryWriter writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps)
         {
-            writer.WriteUshort(moduleRow.Generation);
-            writer.WriteReference(heaps.ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
-            writer.WriteReference(moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
-            writer.WriteReference(moduleRow.EncId, metadataSizes.GuidIndexSize);
-            writer.WriteReference(moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
+            writer.WriteUshort(_moduleRow.Generation);
+            writer.WriteReference(heaps.ResolveStringIndex(_moduleRow.Name), metadataSizes.StringIndexSize);
+            writer.WriteReference(_moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
+            writer.WriteReference(_moduleRow.EncId, metadataSizes.GuidIndexSize);
+            writer.WriteReference(_moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
         }
 
         private void SerializeEncLogTable(BinaryWriter writer)
@@ -4040,20 +4058,23 @@ namespace Microsoft.Cci
             var methods = this.GetMethodDefs();
             uint[] rvas = new uint[methods.Count];
 
-            int i = 0;
+            int methodRid = 1;
             foreach (IMethodDefinition method in methods)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 uint rva;
+                IMethodBody body;
+                int localSignatureRid;
 
                 if (method.HasBody())
                 {
-                    IMethodBody body = method.GetBody(Context);
+                    body = method.GetBody(Context);
                     Debug.Assert(body != null || allowMissingMethodBodies);
 
                     if (body != null)
                     {
-                        uint localSignatureToken = this.SerializeLocalVariablesSignature(body);
+                        localSignatureRid = this.SerializeLocalVariablesSignature(body);
+                        uint localSignatureToken = (localSignatureRid != 0) ? (uint)(0x11000000 | localSignatureRid) : 0;
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
                         rva = this.SerializeMethodBody(body, writer, localSignatureToken);
@@ -4063,15 +4084,20 @@ namespace Microsoft.Cci
                     else
                     {
                         rva = 0;
+                        localSignatureRid = 0;
                     }
                 }
                 else
                 {
                     // 0 is actually written to metadata when the row is serialized
                     rva = uint.MaxValue;
+                    body = null;
+                    localSignatureRid = 0;
                 }
 
-                rvas[i++] = rva;
+                rvas[methodRid - 1] = rva;
+
+                methodRid++;
             }
 
             return rvas;
@@ -4136,7 +4162,7 @@ namespace Microsoft.Cci
         /// Serialize the method local signature to the blob.
         /// </summary>
         /// <returns>Standalone signature token</returns>
-        protected virtual uint SerializeLocalVariablesSignature(IMethodBody body)
+        protected virtual int SerializeLocalVariablesSignature(IMethodBody body)
         {
             Debug.Assert(!_tableIndicesAreComplete);
 
@@ -4156,10 +4182,10 @@ namespace Microsoft.Cci
             }
 
             uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
-            uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
+            int signatureIndex = (int)this.GetOrAddStandAloneSignatureIndex(blobIndex);
             stream.Free();
 
-            return 0x11000000 | signatureIndex;
+            return signatureIndex;
         }
 
         protected void SerializeLocalVariableSignature(BinaryWriter writer, ILocalDefinition local)
@@ -4189,7 +4215,7 @@ namespace Microsoft.Cci
             }
         }
 
-        internal uint SerializeLocalConstantSignature(ILocalDefinition localConstant)
+        internal uint SerializeLocalConstantStandAloneSignature(ILocalDefinition localConstant)
         {
             MemoryStream sig = MemoryStream.GetInstance();
             BinaryWriter writer = new BinaryWriter(sig);

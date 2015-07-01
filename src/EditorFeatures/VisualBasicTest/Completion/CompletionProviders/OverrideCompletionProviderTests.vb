@@ -18,7 +18,7 @@ Public Class OverrideCompletionProviderTests
 #Region "CompletionItem tests"
 
     <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotOfferedBaseClassMemeber()
+    Public Sub NotOfferedBaseClassMember()
         Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Foo()
 End Class

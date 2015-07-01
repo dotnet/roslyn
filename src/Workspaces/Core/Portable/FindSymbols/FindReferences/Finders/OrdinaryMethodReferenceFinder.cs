@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             // TODO(cyrusn): Handle searching for Monitor.Enter and Monitor.Exit.  If a user
             // searches for these, then we should find usages of 'lock(foo)' or 'synclock(foo)'
-            // since they implicity call those methods.
+            // since they implicitly call those methods.
 
             var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)

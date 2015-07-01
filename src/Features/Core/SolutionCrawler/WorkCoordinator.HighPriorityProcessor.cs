@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
                         // we only put workitem in high priority queue if there is a text change.
-                        // this is to prevent things like opening a file, changing in other files keep enquening
+                        // this is to prevent things like opening a file, changing in other files keep enqueuing
                         // expensive high priority work.
                         if (!item.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                         {
