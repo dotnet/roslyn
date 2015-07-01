@@ -4,6 +4,7 @@
   <ImportGroup Label="Settings">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
     <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\packages\xunit.core.2.1.0-beta2-build2981\build\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -68,11 +69,13 @@
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
     </ProjectReference>
-    <Reference Include="xunit.core">
-      <HintPath>..\..\..\packages\xunit.core.netcore.1.0.1-prerelease\lib\portable-net45+aspnetcore50+win+wpa81+wp80\xunit.core.dll</HintPath>
+    <Reference Include="xunit.assert, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\xunit.assert.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.assert.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.assert">
-      <HintPath>..\..\..\packages\xunit.assert.2.0.0-beta5-build2785\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monoandroid+monotouch10\xunit.assert.dll</HintPath>
+    <Reference Include="xunit.core, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\xunit.extensibility.core.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -101,6 +104,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\packages\xunit.runner.console.2.1.0-beta2-build2981\tools\xunit.console.exe">
+      <Link>xunit.console.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </None>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
