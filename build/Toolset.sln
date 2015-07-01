@@ -116,9 +116,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vbc", "..\src\Compilers\Vis
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debugging", "Debugging", "{3E3F5457-4B04-469F-B25C-332DE591C65F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb", "PortablePdb\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj", "{F83343BA-B4EA-451C-B6DB-5D645E6171BC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb", "..\src\Debugging\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj", "{F83343BA-B4EA-451C-B6DB-5D645E6171BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb.UnitTests", "PortablePdb\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj", "{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.PortablePdb.UnitTests", "..\src\Debugging\Microsoft.DiaSymReader.PortablePdb.Tests\Microsoft.DiaSymReader.PortablePdb.UnitTests.csproj", "{DEB3D675-5A3C-46DA-8945-F2EFAB135EA0}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
