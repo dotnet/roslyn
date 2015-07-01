@@ -58,12 +58,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The syntax nodes associated with each captured variable.
             /// </summary>
-            public readonly MultiDictionary<Symbol, CSharpSyntaxNode> capturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+            public MultiDictionary<Symbol, CSharpSyntaxNode> capturedVariables = new MultiDictionary<Symbol, CSharpSyntaxNode>();
 
             /// <summary>
             /// For each lambda in the code, the set of variables that it captures.
             /// </summary>
-            public readonly MultiDictionary<MethodSymbol, Symbol> capturedVariablesByLambda = new MultiDictionary<MethodSymbol, Symbol>();
+            public MultiDictionary<MethodSymbol, Symbol> capturedVariablesByLambda = new MultiDictionary<MethodSymbol, Symbol>();
+
+            /// <summary>
+            /// If a local function is in the set, at some point in the code it is converted to a delegate and should then not be optimized to a struct closure.
+            /// Also contains all lambdas (as they are converted to delegates implicitly).
+            /// </summary>
+            private readonly HashSet<MethodSymbol> methodsConvertedToDelegates = new HashSet<MethodSymbol>();
+
+            /// <summary>
+            /// Any scope that a method in <see cref="methodsConvertedToDelegates"/> closes over. If a scope is in this set, don't use a struct closure.
+            /// </summary>
+            public readonly HashSet<BoundNode> scopesThatCantBeStructs = new HashSet<BoundNode>();
 
             /// <summary>
             /// Blocks that are positioned between a block declaring some lifted variables
@@ -163,12 +174,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
+            /// Optimizes local functions that reference other local functions (even themselves) to not need closures if they aren't required.
+            /// </summary>
+            private void RemoveUnneededReferences()
+            {
+                var capturedVariablesByLambdaNew = new MultiDictionary<MethodSymbol, Symbol>();
+                var capturedVariablesKeepSet = new HashSet<Symbol>();
+                foreach (var methodKvp in capturedVariablesByLambda)
+                {
+                    var isOnlyThis = false;
+                    var isGeneral = false;
+                    foreach (var reference in capturedVariablesByLambda.TransitiveClosure(methodKvp.Key))
+                    {
+                        if (reference.Kind != SymbolKind.Method)
+                        {
+                            if (reference == _topLevelMethod.ThisParameter)
+                            {
+                                isOnlyThis = true;
+                            }
+                            else
+                            {
+                                isGeneral = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (isGeneral)
+                    {
+                        foreach (var value in methodKvp.Value)
+                        {
+                            capturedVariablesByLambdaNew.Add(methodKvp.Key, value);
+                            capturedVariablesKeepSet.Add(value);
+                        }
+                    }
+                    else if (isOnlyThis)
+                    {
+                        capturedVariablesByLambdaNew.Add(methodKvp.Key, _topLevelMethod.ThisParameter);
+                        capturedVariablesKeepSet.Add(_topLevelMethod.ThisParameter);
+                    }
+                }
+                capturedVariablesByLambda = capturedVariablesByLambdaNew;
+                var capturedVariablesNew = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+                foreach (var oldCaptured in capturedVariables)
+                {
+                    if (capturedVariablesKeepSet.Contains(oldCaptured.Key))
+                    {
+                        foreach (var value in oldCaptured.Value)
+                        {
+                            capturedVariablesNew.Add(oldCaptured.Key, value);
+                        }
+                    }
+                }
+                capturedVariables = capturedVariablesNew;
+            }
+
+            /// <summary>
             /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
             ///  </summary>
             internal void ComputeLambdaScopesAndFrameCaptures()
             {
                 lambdaScopes = new Dictionary<MethodSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 needsParentFrame = new HashSet<BoundNode>();
+
+                RemoveUnneededReferences();
 
                 foreach (var kvp in capturedVariablesByLambda)
                 {
@@ -223,10 +291,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         lambdaScopes.Add(kvp.Key, innermostScope);
 
+                        var markAsNoStruct = methodsConvertedToDelegates.Contains(kvp.Key);
+                        if (markAsNoStruct)
+                        {
+                            scopesThatCantBeStructs.Add(innermostScope);
+                        }
+
                         while (innermostScope != outermostScope)
                         {
                             needsParentFrame.Add(innermostScope);
                             scopeParent.TryGetValue(innermostScope, out innermostScope);
+                            if (markAsNoStruct)
+                            {
+                                scopesThatCantBeStructs.Add(innermostScope);
+                            }
                         }
                     }
                 }
@@ -355,6 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitLambda(BoundLambda node)
             {
+                methodsConvertedToDelegates.Add(node.Symbol);
                 return VisitLambdaOrFunction(node);
             }
 
@@ -363,6 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
                 {
                     ReferenceVariable(node.Syntax, node.MethodOpt);
+                    methodsConvertedToDelegates.Add(node.MethodOpt);
                 }
                 return base.VisitDelegateCreationExpression(node);
             }
@@ -459,6 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
                     {
                         ReferenceVariable(node.Syntax, node.SymbolOpt);
+                        methodsConvertedToDelegates.Add(node.SymbolOpt);
                     }
                     if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
                     {

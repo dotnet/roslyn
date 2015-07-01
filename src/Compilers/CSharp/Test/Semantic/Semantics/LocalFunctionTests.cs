@@ -838,6 +838,22 @@ class Program
         }
 
         [Fact]
+        public void StructClosure()
+        {
+            var source = @"
+int x = 2;
+void Foo()
+{
+    Console.Write(x);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+}
+Foo();
+";
+            VerifyOutputInMain(source, "2 System.ValueType", "System");
+        }
+
+        [Fact]
         public void Recursion()
         {
             var source = @"
@@ -875,6 +891,41 @@ void Foo(int depth)
 Foo(0);
 ";
             VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
+        public void RecursionThisOnlyClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    int _x;
+    void Outer()
+    {
+        void Inner()
+        {
+            if (_x == 0)
+            {
+                // Ensure we're in a this-only closure. Should NOT print a display class.
+                Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+                return;
+            }
+            Console.Write(_x);
+            Console.Write(' ');
+            _x = 0;
+            Inner();
+        }
+        Inner();
+    }
+    public static void Main()
+    {
+        new Program() { _x = 2 }.Outer();
+    }
+}
+";
+            VerifyOutput(source, "2 Program");
         }
 
         [Fact]
