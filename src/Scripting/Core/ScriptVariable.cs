@@ -1,14 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -42,14 +36,13 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             get
             {
-                if (_member.MemberType == MemberTypes.Field)
+                var field = _member as FieldInfo;
+                if (field != null)
                 {
-                    return ((FieldInfo)_member).FieldType;
+                    return field.FieldType;
                 }
-                else
-                {
-                    return ((PropertyInfo)_member).PropertyType;
-                }
+
+                return ((PropertyInfo)_member).PropertyType;
             }
         }
 
@@ -60,20 +53,19 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             get
             {
-                if (_member.MemberType == MemberTypes.Field)
+                var field = _member as FieldInfo;
+                if (field != null)
                 {
-                    return ((FieldInfo)_member).GetValue(_instance);
+                    return field.GetValue(_instance);
                 }
-                else
-                {
-                    return ((PropertyInfo)_member).GetValue(_instance);
-                }
+
+                return ((PropertyInfo)_member).GetValue(_instance);
             }
         }
 
         private string GetDebuggerDisplay()
         {
-            return string.Format("{0}: {1}", this.Name, (this.Value != null) ? this.Value : "<null>");
+            return string.Format("{0}: {1}", this.Name, this.Value?.ToString() ?? "<null>");
         }
     }
 }

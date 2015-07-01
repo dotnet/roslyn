@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly Option<bool> SolutionCrawler = new Option<bool>("FeatureManager/Components", "Solution Crawler", defaultValue: true);
 
         [ExportOption]
-        public static readonly Option<int> ActiveFileWorkerBackOffTimeSpanInMS = new Option<int>(OptionName, "Active file worker backoff timespan in ms", defaultValue: 200);
+        public static readonly Option<int> ActiveFileWorkerBackOffTimeSpanInMS = new Option<int>(OptionName, "Active file worker backoff timespan in ms", defaultValue: 800);
 
         [ExportOption]
         public static readonly Option<int> AllFilesWorkerBackOffTimeSpanInMS = new Option<int>(OptionName, "All files worker backoff timespan in ms", defaultValue: 1500);

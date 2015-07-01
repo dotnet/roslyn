@@ -5,12 +5,9 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.CodeAnalysis.Scripting
-Imports Roslyn.Utilities
-Imports VisualBasicInteractive.BasicInteractive
 
 Friend NotInheritable Class Vbi
     Inherits VisualBasicCompiler
@@ -24,7 +21,7 @@ Friend NotInheritable Class Vbi
     Public Shared Function Main(args As String()) As Integer
         Try
             Dim responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName)
-            Return ScriptCompilerUtil.RunInteractive(New Vbi(responseFile, Directory.GetCurrentDirectory(), args, New SimpleAnalyzerAssemblyLoader()), Console.Out)
+            Return ScriptCompilerUtil.RunInteractive(New Vbi(responseFile, Directory.GetCurrentDirectory(), args, New NotImplementedAnalyzerLoader()), Console.Out)
         Catch ex As Exception
             Console.WriteLine(ex.ToString())
             Return Failed

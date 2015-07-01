@@ -1,19 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
-Imports System.Threading.Thread
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.Scripting
-Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Scripting.UnitTests
+Imports ObjectFormatterFixtures
 Imports Xunit
 
-Namespace Roslyn.VisualBasic.Runtime.UnitTests
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
     Public Class ObjectFormatterTests
-        Private Shared ReadOnly s_hexa As ObjectFormattingOptions = New ObjectFormattingOptions(useHexadecimalNumbers:=True)
-        Private Shared ReadOnly s_memberList As ObjectFormattingOptions = New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.List)
-        Private Shared ReadOnly s_inline As ObjectFormattingOptions = New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.Inline)
+        Inherits ObjectFormatterTestBase
 
         <Fact()>
         Public Sub InlineCharacters()
@@ -30,6 +24,48 @@ Namespace Roslyn.VisualBasic.Runtime.UnitTests
             Assert.Equal("a    b", VisualBasicObjectFormatter.Instance.FormatObject(s, s_hexa.Copy(quoteStrings:=False)))
         End Sub
 
+        <Fact>
+        Public Sub Objects()
+            Dim str As String
+            Dim nested As Object = New Outer.Nested(Of Integer)()
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(nested, s_inline)
+            Assert.Equal("Outer.Nested(Of Integer) { A=1, B=2 }", str)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(nested, New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.NoMembers))
+            Assert.Equal("Outer.Nested(Of Integer)", str)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(A(Of Integer).X, New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.NoMembers))
+            Assert.Equal("A(Of Integer).B(Of Integer)", str)
+
+            Dim obj As Object = New A(Of Integer).B(Of Boolean).C.D(Of String, Double).E()
+            str = VisualBasicObjectFormatter.Instance.FormatObject(obj, New ObjectFormattingOptions(memberFormat:=MemberDisplayFormat.NoMembers))
+            Assert.Equal("A(Of Integer).B(Of Boolean).C.D(Of String, Double).E", str)
+
+            Dim sort = New Sort()
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=51, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, a ...", str)
+            Assert.Equal(51, str.Length)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=5, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("S ...", str)
+            Assert.Equal(5, str.Length)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=4, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("...", str)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=3, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("...", str)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=2, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("...", str)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=1, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("...", str)
+
+            str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=80, memberFormat:=MemberDisplayFormat.Inline))
+            Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)
+        End Sub
     End Class
 
 End Namespace

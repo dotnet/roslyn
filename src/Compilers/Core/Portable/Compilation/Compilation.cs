@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis
 
             if (diagnostics.HasAnyErrors())
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             var moduleBeingBuilt = this.CreateModuleBuilder(
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis
 
             if (moduleBeingBuilt == null)
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             var win32Resources = win32ResourcesStreamProvider?.GetOrCreateStream(diagnostics);
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis
                 filterOpt: null,
                 cancellationToken: cancellationToken))
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             var hostDiagnostics = getHostDiagnostics?.Invoke() ?? ImmutableArray<Diagnostic>.Empty;
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis
             diagnostics.AddRange(hostDiagnostics);
             if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             bool success = SerializeToPeStream(
@@ -1622,12 +1622,12 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly: options.EmitMetadataOnly,
                 cancellationToken: cancellationToken);
 
-            return ToEmitResultAndFree(diagnostics, success);
+            return ToEmitResultAndFree(diagnostics, success, (IMethodSymbol)moduleBeingBuilt.EntryPoint);
         }
 
-        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
+        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success, IMethodSymbol entryPointOpt)
         {
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+            return new EmitResult(success, diagnostics.ToReadOnlyAndFree(), entryPointOpt);
         }
 
         internal bool SerializeToPeStream(

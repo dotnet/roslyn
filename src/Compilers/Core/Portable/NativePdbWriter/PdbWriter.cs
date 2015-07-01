@@ -295,7 +295,7 @@ namespace Microsoft.Cci
 
             var localScopes = methodBody.LocalScopes;
 
-            // Define locals, constants and namespaces in the outermost local scope (open in OpenMethod):
+            // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);

@@ -254,6 +254,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 var baseProject = _baseSolution.GetProject(project.Id);
 
+                // TODO (https://github.com/dotnet/roslyn/issues/1204):
+                if (baseProject == null)
+                {
+                    return ProjectAnalysisSummary.NoChanges;
+                }
+
                 var documentAnalyses = GetChangedDocumentsAnalyses(baseProject, project);
                 if (documentAnalyses.Count == 0)
                 {

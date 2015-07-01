@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static IEnumerable<DkmClrModuleInstance> GetModulesInAppDomain(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
+            if (appDomain.IsUnloaded)
+            {
+                return SpecializedCollections.EmptyEnumerable<DkmClrModuleInstance>();
+            }
+
             var appDomainId = appDomain.Id;
             return runtime.GetModuleInstances().
                 Cast<DkmClrModuleInstance>().
