@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 // if branch is blocked by a finally, then should branch to corresponding 
                 // BlockedBranchDestination instead. Original label may not be reachable.
-                // if there are no blocking finallies, then BlockedBranchDestination returns null
+                // if there are no blocking finally blocks, then BlockedBranchDestination returns null
                 // and we just visit the target.
                 var blockedDest = BlockedBranchDestination(block, branchBlock);
                 if (blockedDest == null)
@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 destHandlerScope = destHandler.ContainingExceptionScope;
             }
 
-            // go from the source out until we no longer crossing any finallies 
+            // go from the source out until no longer crossing any finally blocks
             // between source and destination
-            // if any finallies found in the process, check if they are blocking
+            // if any finally blocks found in the process, check if they are blocking
             while (srcHandler != destHandler)
             {
                 // branches within same ContainingExceptionScope do not go through finally.

@@ -110,13 +110,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private bool IsDisposed
-            {
-                get
-                {
-                    return _host == null;
-                }
-            }
+            private bool IsDisposed => _host == null;
 
             internal void Dispose(bool joinThreads)
             {
