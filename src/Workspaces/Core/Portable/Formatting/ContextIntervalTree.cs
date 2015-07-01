@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Func<T, int, int, bool> _containPredicate;
 
         public ContextIntervalTree(IIntervalIntrospector<T> introspector)
-            : base(introspector)
+            : base(introspector, values: null)
         {
             _edgeExclusivePredicate = ContainsEdgeExclusive;
             _edgeInclusivePredicate = ContainsEdgeInclusive;

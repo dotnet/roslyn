@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         private readonly IIntervalIntrospector<T> _introspector;
 
-        public SimpleIntervalTree(IIntervalIntrospector<T> introspector) : this(introspector, values: null)
-        {
-        }
-
         public SimpleIntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
         {
             this._introspector = introspector;
