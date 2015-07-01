@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         {
             foreach (var value in values)
             {
-                root = Insert(root, new Node(introspector, value), introspector, inPlace: true);
+                root = Insert(root, new Node(introspector, value), introspector);
             }
         }
 
@@ -223,13 +223,13 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return this.root == null;
         }
 
-        protected static Node Insert(Node root, Node newNode, IIntervalIntrospector<T> introspector, bool inPlace)
+        protected static Node Insert(Node root, Node newNode, IIntervalIntrospector<T> introspector)
         {
             var newNodeStart = introspector.GetStart(newNode.Value);
-            return Insert(root, newNode, newNodeStart, introspector, inPlace);
+            return Insert(root, newNode, newNodeStart, introspector);
         }
 
-        private static Node Insert(Node root, Node newNode, int newNodeStart, IIntervalIntrospector<T> introspector, bool inPlace)
+        private static Node Insert(Node root, Node newNode, int newNodeStart, IIntervalIntrospector<T> introspector)
         {
             if (root == null)
             {
@@ -240,30 +240,22 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
             if (newNodeStart < introspector.GetStart(root.Value))
             {
-                newLeft = Insert(root.Left, newNode, newNodeStart, introspector, inPlace);
+                newLeft = Insert(root.Left, newNode, newNodeStart, introspector);
                 newRight = root.Right;
             }
             else
             {
                 newLeft = root.Left;
-                newRight = Insert(root.Right, newNode, newNodeStart, introspector, inPlace);
+                newRight = Insert(root.Right, newNode, newNodeStart, introspector);
             }
 
-            Node newRoot;
-            if (inPlace)
-            {
-                root.SetLeftRight(newLeft, newRight, introspector);
-                newRoot = root;
-            }
-            else
-            {
-                newRoot = new Node(introspector, root.Value, newLeft, newRight);
-            }
+            root.SetLeftRight(newLeft, newRight, introspector);
+            var newRoot = root;
 
-            return Balance(newRoot, inPlace, introspector);
+            return Balance(newRoot, introspector);
         }
 
-        private static Node Balance(Node node, bool inPlace, IIntervalIntrospector<T> introspector)
+        private static Node Balance(Node node, IIntervalIntrospector<T> introspector)
         {
             int balanceFactor = BalanceFactor(node);
             if (balanceFactor == -2)
@@ -271,12 +263,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 int rightBalance = BalanceFactor(node.Right);
                 if (rightBalance == -1)
                 {
-                    return node.LeftRotation(inPlace, introspector);
+                    return node.LeftRotation(introspector);
                 }
                 else
                 {
                     Contract.Requires(rightBalance == 1);
-                    return node.InnerRightOuterLeftRotation(inPlace, introspector);
+                    return node.InnerRightOuterLeftRotation(introspector);
                 }
             }
             else if (balanceFactor == 2)
@@ -284,12 +276,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 int leftBalance = BalanceFactor(node.Left);
                 if (leftBalance == 1)
                 {
-                    return node.RightRotation(inPlace, introspector);
+                    return node.RightRotation(introspector);
                 }
                 else
                 {
                     Contract.Requires(leftBalance == -1);
-                    return node.InnerLeftOuterRightRotation(inPlace, introspector);
+                    return node.InnerLeftOuterRightRotation(introspector);
                 }
             }
 

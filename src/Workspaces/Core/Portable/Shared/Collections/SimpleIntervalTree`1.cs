@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 foreach (var value in values)
                 {
-                    root = Insert(root, new Node(introspector, value), introspector, inPlace: true);
+                    root = Insert(root, new Node(introspector, value), introspector);
                 }
             }
         }

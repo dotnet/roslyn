@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public void AddIntervalInPlace(T value)
         {
             var newNode = new Node(Introspector, value);
-            this.root = Insert(root, newNode, Introspector, inPlace: true);
+            this.root = Insert(root, newNode, Introspector);
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
