@@ -3945,7 +3945,6 @@ public class T
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
         <constant name=""invalidUnicodeString"" value=""\uFFFD\u0000\uFFFD"" type=""String"" />
-<<<<<<< HEAD
       </scope>
     </method>
   </methods>
@@ -3965,12 +3964,6 @@ public class T
     </method>
   </methods>
 </symbols>", DebugInformationFormat.PortablePdb);
-=======
-      </scope>
-    </method>
-  </methods>
-</symbols>", DebugInformationFormat.Pdb);
->>>>>>> 8e56ccbb243dd1d9aa65c5d5e6bd0dcfd5806bf0
         }
 
         [Fact]
@@ -4112,7 +4105,6 @@ public class C<S>
         <constant name=""U8"" value=""0"" type=""UInt64"" />
         <constant name=""R4"" value=""0"" type=""Single"" />
         <constant name=""R8"" value=""0"" type=""Double"" />
-<<<<<<< HEAD
         <constant name=""EI1"" value=""0"" signature=""EnumI1{Int32}"" />
         <constant name=""EU1"" value=""0"" signature=""EnumU1{Int32}"" />
         <constant name=""EI2"" value=""0"" signature=""EnumI2{Int32}"" />
@@ -4121,16 +4113,6 @@ public class C<S>
         <constant name=""EU4"" value=""0"" signature=""EnumU4{Int32}"" />
         <constant name=""EI8"" value=""0"" signature=""EnumI8{Int32}"" />
         <constant name=""EU8"" value=""0"" signature=""EnumU8{Int32}"" />
-=======
-        <constant name=""EI1"" value=""0"" signature=""15-11-10-01-08"" />
-        <constant name=""EU1"" value=""0"" signature=""15-11-14-01-08"" />
-        <constant name=""EI2"" value=""0"" signature=""15-11-18-01-08"" />
-        <constant name=""EU2"" value=""0"" signature=""15-11-1C-01-08"" />
-        <constant name=""EI4"" value=""0"" signature=""15-11-20-01-08"" />
-        <constant name=""EU4"" value=""0"" signature=""15-11-24-01-08"" />
-        <constant name=""EI8"" value=""0"" signature=""15-11-28-01-08"" />
-        <constant name=""EU8"" value=""0"" signature=""15-11-2C-01-08"" />
->>>>>>> 8e56ccbb243dd1d9aa65c5d5e6bd0dcfd5806bf0
         <constant name=""StrWithNul"" value=""\u0000"" type=""String"" />
         <constant name=""EmptyStr"" value="""" type=""String"" />
         <constant name=""NullStr"" value=""null"" type=""String"" />
