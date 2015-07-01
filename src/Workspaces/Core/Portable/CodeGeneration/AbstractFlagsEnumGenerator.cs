@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var result = constantValueULong;
 
             // We will not optimize this code further to keep it maintainable. There are some
-            // boundary checks that can be applied to minimize the comparsions required. This code
+            // boundary checks that can be applied to minimize the comparisons required. This code
             // works the same for the best/worst case. In general the number of items in an enum are
             // sufficiently small and not worth the optimization.
             for (int index = allFieldsAndValues.Count - 1; index >= 0 && result != 0; index--)

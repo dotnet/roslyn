@@ -3029,7 +3029,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ApplyAttributeWithNonCompliantyArgument()
+        Public Sub ApplyAttributeWithNonCompliantArgument()
 
             Dim source =
                 <compilation>

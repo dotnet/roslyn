@@ -691,7 +691,7 @@ p1 as vb$anonymous1
     End Sub
 
     <Fact>
-    Public Sub BC30363ERR_NewInInterface_InteraceWithSubNew()
+    Public Sub BC30363ERR_NewInInterface_InterfaceWithSubNew()
         ParseAndVerify(<![CDATA[
         Interface i
             Sub new ()
@@ -731,7 +731,7 @@ p1 as vb$anonymous1
 
     <WorkItem(887508, "DevDiv/Personal")>
     <Fact>
-    Public Sub BC30603ERR_InvInsideInterface_ParseInteraceWithSubWithEndSub()
+    Public Sub BC30603ERR_InvInsideInterface_ParseInterfaceWithSubWithEndSub()
         ParseAndVerify(<![CDATA[
             Interface i1
               Sub foo()

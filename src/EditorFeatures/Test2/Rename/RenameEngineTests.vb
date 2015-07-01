@@ -5583,7 +5583,7 @@ End Module
 
         <WorkItem(641231)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDontReplaceBaseContructorToken_CSharp()
+        Public Sub RenameDontReplaceBaseConstructorToken_CSharp()
             Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5613,7 +5613,7 @@ class Program
 
         <WorkItem(641231)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameDontReplaceBaseContructorToken_VisualBasic()
+        Public Sub RenameDontReplaceBaseConstructorToken_VisualBasic()
             Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">

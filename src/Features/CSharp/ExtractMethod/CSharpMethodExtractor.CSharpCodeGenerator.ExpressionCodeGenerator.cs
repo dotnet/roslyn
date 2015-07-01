@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     newEnclosingStatement = updatedRoot.GetAnnotatedNodesAndTokens(enclosingStatementAnnotation).Single().AsNode();
 
-                    // because of the complexifiction we cannot guarantee that there is only one annotation.
+                    // because of the complexification we cannot guarantee that there is only one annotation.
                     // however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
 

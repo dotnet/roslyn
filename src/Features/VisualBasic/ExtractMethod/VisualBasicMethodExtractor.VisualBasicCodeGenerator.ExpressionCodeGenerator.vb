@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                     newEnclosingStatement = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(enclosingStatementAnnotation).Single().AsNode(), StatementSyntax)
 
-                    ' because of the complexifiction we cannot guarantee that there is only one annotation.
+                    ' because of the complexification we cannot guarantee that there is only one annotation.
                     ' however complexification of names is prepended, so the last annotation should be the original one.
                     sourceNode = DirectCast(updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode(), SyntaxNode)
 

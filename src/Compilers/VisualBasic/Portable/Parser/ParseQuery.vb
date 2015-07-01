@@ -1239,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim isQueryKwd As Boolean = KeywordTable.IsQueryClause(kind)
 
             If isQueryKwd AndAlso kind = SyntaxKind.SelectKeyword Then
-                ' //We do not want to allow an implicit line continuation before a "select" keyword if it is immedietly
+                ' //We do not want to allow an implicit line continuation before a "select" keyword if it is immediately
                 ' //followed by the "case" keyword. This allows code like the following to parse correctly:
                 ' //    dim a = from x in xs
                 ' //    select case b

@@ -2398,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         public void TestAtStartOfLine_202()
         {
             ////             // Invocations definitely have side effects.  So we assume this
-            ////             // is invalid initiall;
+            ////             // is invalid initially
             //// ^
             var tree = GetTree();
             var terms = CSharpProximityExpressionsService.Do(tree, 9318);
@@ -2409,7 +2409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public void TestAtStartOfLine_203()
         {
-            ////             // is invalid initiall;
+            ////             // is invalid initially
             ////             expressionType = ExpressionType.Invalid;
             //// ^
             var tree = GetTree();

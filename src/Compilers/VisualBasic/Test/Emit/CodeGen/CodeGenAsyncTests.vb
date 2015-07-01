@@ -3185,7 +3185,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Spilling_ExpceptionInArrayAccess()
+        Public Sub Spilling_ExceptionInArrayAccess()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3235,7 +3235,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Spilling_ExpceptionInFieldAccess()
+        Public Sub Spilling_ExceptionInFieldAccess()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3288,7 +3288,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Capture_ExpceptionInArrayAccess()
+        Public Sub Capture_ExceptionInArrayAccess()
             Dim source = <compilation>
                              <file name="a.vb">
 Imports System
@@ -3340,7 +3340,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Capture_ExpceptionInFieldAccess()
+        Public Sub Capture_ExceptionInFieldAccess()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3393,7 +3393,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Spilling_ExpceptionInArrayAccess2()
+        Public Sub Spilling_ExceptionInArrayAccess2()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3449,7 +3449,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Capture_ExpceptionInArrayAccess2()
+        Public Sub Capture_ExceptionInArrayAccess2()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddCylicProjectMetadataReferences()
+        public void AddCyclicProjectMetadataReferences()
         {
             using (var environment = new TestEnvironment())
             {
@@ -69,7 +69,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddCylicProjectReferences()
+        public void AddCyclicProjectReferences()
         {
             using (var environment = new TestEnvironment())
             {
@@ -89,7 +89,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddCylicProjectReferencesDeep()
+        public void AddCyclicProjectReferencesDeep()
         {
             using (var environment = new TestEnvironment())
             {

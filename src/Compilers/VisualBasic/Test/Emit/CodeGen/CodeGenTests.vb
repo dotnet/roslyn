@@ -3370,24 +3370,24 @@ Namespace TernaryAndVarianceConversion
     Delegate Sub ContravariantDelegateWithValidInParm(Of In T)(inVal As T)
 
     Interface ICovariantInterface(Of Out T)
-        Sub CovariantInterfaceMathodWithVoidReturn()
-        Function CovariantInterfaceMathodWithValidReturn() As T
+        Sub CovariantInterfaceMethodWithVoidReturn()
+        Function CovariantInterfaceMethodWithValidReturn() As T
         ReadOnly Property CovariantInterfacePropertyWithValidGetter As T
         Sub Test()
     End Interface
 
     Interface IContravariantInterface(Of In T)
-        Sub ContravariantInterfaceMathodWithVoidReturn()
-        Sub ContravariantInterfaceMathodWithValidInParm(inVal As T)
+        Sub ContravariantInterfaceMethodWithVoidReturn()
+        Sub ContravariantInterfaceMethodWithValidInParm(inVal As T)
         WriteOnly Property ContravariantInterfacePropertyWithValidSetter As T
         Sub Test()
     End Interface
 
     Class CovariantInterfaceImpl(Of T) : Implements ICovariantInterface(Of T)
-        Public Sub CovariantInterfaceMathodWithVoidReturn() Implements ICovariantInterface(Of T).CovariantInterfaceMathodWithVoidReturn
+        Public Sub CovariantInterfaceMethodWithVoidReturn() Implements ICovariantInterface(Of T).CovariantInterfaceMethodWithVoidReturn
 
         End Sub
-        Public Function CovariantInterfaceMathodWithValidReturn() As T Implements ICovariantInterface(Of T).CovariantInterfaceMathodWithValidReturn
+        Public Function CovariantInterfaceMethodWithValidReturn() As T Implements ICovariantInterface(Of T).CovariantInterfaceMethodWithValidReturn
             Return Nothing
         End Function
 
@@ -3403,11 +3403,11 @@ Namespace TernaryAndVarianceConversion
     End Class
 
     Class ContravariantInterfaceImpl(Of T) : Implements IContravariantInterface(Of T)
-        Public Sub ContravariantInterfaceMathodWithVoidReturn() Implements IContravariantInterface(Of T).ContravariantInterfaceMathodWithVoidReturn
+        Public Sub ContravariantInterfaceMethodWithVoidReturn() Implements IContravariantInterface(Of T).ContravariantInterfaceMethodWithVoidReturn
 
         End Sub
 
-        Public Sub ContravariantInterfaceMathodWithValidInParm(inVal As T) Implements IContravariantInterface(Of T).ContravariantInterfaceMathodWithValidInParm
+        Public Sub ContravariantInterfaceMethodWithValidInParm(inVal As T) Implements IContravariantInterface(Of T).ContravariantInterfaceMethodWithValidInParm
 
         End Sub
 

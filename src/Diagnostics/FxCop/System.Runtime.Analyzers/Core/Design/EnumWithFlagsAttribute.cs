@@ -102,7 +102,7 @@ namespace System.Runtime.Analyzers
                     else
                     {
                         // Check "CA1027: Mark enums with FlagsAttribute"
-                        // Ignore continguous value enums to reduce noise.
+                        // Ignore contiguous value enums to reduce noise.
                         if (!IsContiguous(memberValues) && ShouldBeFlags(memberValues))
                         {
                             addDiagnostic(symbol.CreateDiagnostic(Rule1027, symbol.Name));

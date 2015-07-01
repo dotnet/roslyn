@@ -2985,7 +2985,7 @@ End Namespace
         <WorkItem(15925, "DevDiv_Projects/Roslyn")> <Fact>
         Public Sub VbCoreWithStaticLocals_IncorrectDefinedTypes()
             'Static Locals use types in VB Runtime so verify with no VBRuntime but appropriate types specified in Source the static
-            'local scenarios should work correctly buyt if we define the types incorrectly we should generate errors although we 
+            'local scenarios should work correctly but if we define the types incorrectly we should generate errors although we 
             'should not crash.
             Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>

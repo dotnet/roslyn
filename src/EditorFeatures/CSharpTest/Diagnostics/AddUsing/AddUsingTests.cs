@@ -883,7 +883,7 @@ systemSpecialCase: true);
         [WorkItem(860648)]
         [WorkItem(902014)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestImcompleteSimpleLambdaExpression()
+        public void TestIncompleteSimpleLambdaExpression()
         {
             Test(
 @"using System.Linq;
@@ -912,7 +912,7 @@ class Program
         [WorkItem(860648)]
         [WorkItem(902014)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestImcompleteParenthesizedLambdaExpression()
+        public void TestIncompleteParenthesizedLambdaExpression()
         {
             Test(
 @"using System;

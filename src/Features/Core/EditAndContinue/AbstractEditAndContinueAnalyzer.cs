@@ -1676,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (newNode != null)
                 {
                     // Any difference can be expressed as insert, delete & insert, edit, or move & edit.
-                    // Heristic: If the nesting levels of the old and new nodes are the same we report an edit.
+                    // Heuristic: If the nesting levels of the old and new nodes are the same we report an edit.
                     // Otherwise we report an insert.
                     if (i < oldNodeCount && oldNodes[i] != null)
                     {
@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             [Out]List<RudeEditDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
-            // { new type -> contructor update }
+            // { new type -> constructor update }
             Dictionary<INamedTypeSymbol, ConstructorEdit> instanceConstructorEdits = null;
             Dictionary<INamedTypeSymbol, ConstructorEdit> staticConstructorEdits = null;
 
@@ -3377,8 +3377,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Parameter capture can't be changed to local capture and vice versa
                 // because parameters can't be introduced or deleted during EnC 
                 // (we checked above for changes in lambda signatures).
-                // Also range variables can't be mapped to other variables since htey have 
-                // different kinds of delcarator syntax nodes.
+                // Also range variables can't be mapped to other variables since they have 
+                // different kinds of declarator syntax nodes.
                 Debug.Assert(oldCapture.Kind == newCapture.Kind);
 
                 // Range variables don't have types. Each transparent identifier (range variable use)

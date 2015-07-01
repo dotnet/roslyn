@@ -2516,7 +2516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   is elided, along with the corresponding arguments(s).
 
                     // We don't need to check constraints of types of the non-elided parameters since they 
-                    // have no effect on aplicability of this candidate.
+                    // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
                     effectiveParameters = constructedEffectiveParameters;
                 }

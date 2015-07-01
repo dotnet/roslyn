@@ -527,7 +527,7 @@ class SomeClass : Derived
 
         [WorkItem(543748)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotOfferedBaseClassMemeber()
+        public void NotOfferedBaseClassMember()
         {
             var markup = @"abstract class Base
 {

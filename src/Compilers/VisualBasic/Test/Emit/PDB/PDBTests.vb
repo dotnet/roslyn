@@ -3555,14 +3555,14 @@ End Module
     <file><![CDATA[
 Public Class IntervalUpdate
     Public Shared Sub Update()
-        RaiseEvent IntervalEllapsed()
+        RaiseEvent IntervalElapsed()
     End Sub
     
     Shared Sub Main()
         Update()
     End Sub
 
-    Public Shared Event IntervalEllapsed()
+    Public Shared Event IntervalElapsed()
 End Class
 ]]></file>
 </compilation>
@@ -3578,14 +3578,14 @@ End Class
 {
   // Code size       18 (0x12)
   .maxstack  1
-  .locals init (IntervalUpdate.IntervalEllapsedEventHandler V_0)
+  .locals init (IntervalUpdate.IntervalElapsedEventHandler V_0)
  -IL_0000:  nop
- -IL_0001:  ldsfld     ""IntervalUpdate.IntervalEllapsedEvent As IntervalUpdate.IntervalEllapsedEventHandler""
+ -IL_0001:  ldsfld     ""IntervalUpdate.IntervalElapsedEvent As IntervalUpdate.IntervalElapsedEventHandler""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0011
   IL_000a:  ldloc.0
-  IL_000b:  callvirt   ""Sub IntervalUpdate.IntervalEllapsedEventHandler.Invoke()""
+  IL_000b:  callvirt   ""Sub IntervalUpdate.IntervalElapsedEventHandler.Invoke()""
   IL_0010:  nop
  -IL_0011:  ret
 }
@@ -3597,7 +3597,7 @@ End Class
         <method containingType="IntervalUpdate" name="Update">
             <sequencePoints>
                 <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="31" document="0"/>
-                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="38" document="0"/>
+                <entry offset="0x1" startLine="3" startColumn="9" endLine="3" endColumn="37" document="0"/>
                 <entry offset="0x11" startLine="4" startColumn="5" endLine="4" endColumn="12" document="0"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
@@ -4057,7 +4057,7 @@ End Class
                 <constant name="EU1" value="0" signature="15-11-14-01-08"/>
                 <constant name="EI2" value="0" signature="15-11-18-01-08"/>
                 <constant name="EU2" value="0" signature="15-11-1C-01-08"/>
-                <constant name="EI4" value="null" signature="15-11-20-01-08"/>
+                <constant name="EI4" value="0" signature="15-11-20-01-08"/>
                 <constant name="EU4" value="0" signature="15-11-24-01-08"/>
                 <constant name="EI8" value="0" signature="15-11-28-01-08"/>
                 <constant name="EU8" value="0" signature="15-11-2C-01-08"/>

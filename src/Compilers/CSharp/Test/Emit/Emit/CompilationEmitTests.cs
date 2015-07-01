@@ -169,7 +169,7 @@ namespace N.Foo;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "ro").WithArguments("N.X.ro"));
         }
 
-        // Check that EmitMetadaOnly works
+        // Check that EmitMetadataOnly works
         [Fact]
         public void EmitMetadataOnly()
         {

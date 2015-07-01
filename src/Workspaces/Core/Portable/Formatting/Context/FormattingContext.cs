@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public bool IsSpacingSuppressed(TextSpan textSpan)
         {
-            // use edge exclusive version of GetSmallestCointainingInterval
+            // use edge exclusive version of GetSmallestContainingInterval
             var data = _suppressSpacingTree.GetSmallestEdgeExclusivelyContainingInterval(textSpan.Start, textSpan.Length);
             if (data == null)
             {

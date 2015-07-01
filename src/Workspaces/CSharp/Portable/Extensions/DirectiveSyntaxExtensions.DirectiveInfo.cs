@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public IDictionary<DirectiveTriviaSyntax, IReadOnlyList<DirectiveTriviaSyntax>> ConditionalMap { get; }
 
             // A set of inactive regions spans.  The items in the tuple are the start and end line
-            // *both inclusive* of the inactive region. Actual PP lines are not contined within.
+            // *both inclusive* of the inactive region. Actual PP lines are not continued within.
             //
             // Note: an interval tree might be a better structure here if there are lots of inactive
             // regions.  Consider switching to that if necessary.

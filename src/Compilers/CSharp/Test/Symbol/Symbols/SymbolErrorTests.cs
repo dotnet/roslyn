@@ -14418,7 +14418,7 @@ class AAttribute : Attribute { }
         }
 
         [Fact]
-        public void CS0133ERR_InvalidFixzedBufferCountFromField()
+        public void CS0133ERR_InvalidFixedBufferCountFromField()
         {
             var text = @"unsafe struct s
     {
@@ -16268,7 +16268,7 @@ partial class AnotherChild : Parent
 
 public class cly : clx
 {
-    public void f() // CS0114, hides base class membe
+    public void f() // CS0114, hides base class member
     {
     }
 

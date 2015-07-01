@@ -754,7 +754,7 @@ Lambda(
         End Sub
 
         <Fact()>
-        Public Sub TypeConversions_Unchecked_Std_DeirectTrySpecialized()
+        Public Sub TypeConversions_Unchecked_Std_DirectTrySpecialized()
             TestConversion_TypeMatrix_Standard_DirectTrySpecialized(False, ExpTreeTestResources.UncheckedDirectTrySpecificConversions)
         End Sub
 
@@ -5557,7 +5557,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub ExprTreeWithCollectionIntitializer()
+        Public Sub ExprTreeWithCollectionIntializer()
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System

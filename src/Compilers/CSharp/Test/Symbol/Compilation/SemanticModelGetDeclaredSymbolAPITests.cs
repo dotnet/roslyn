@@ -577,7 +577,7 @@ class C
         }
 
         [Fact]
-        public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitialzier()
+        public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 
@@ -602,7 +602,7 @@ class C
         }
 
         [Fact]
-        public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitialzier_WithErrors()
+        public void TestGetDeclaredSymbolFromAnonymousTypePropertyInitializer_WithErrors()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 
@@ -677,7 +677,7 @@ class C
         }
 
         [Fact]
-        public void TestGetDeclaredSymbolFromSwitchDefaultabel()
+        public void TestGetDeclaredSymbolFromSwitchDefaultLabel()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 
