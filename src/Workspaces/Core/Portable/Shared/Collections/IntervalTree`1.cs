@@ -23,18 +23,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private static readonly TestInterval s_containsTest = Contains;
         private static readonly TestInterval s_overlapsWithTest = OverlapsWith;
 
-        protected IntervalTree(Node root)
-        {
-            this.root = root;
-        }
-
         public IntervalTree()
-            : this(root: null)
         {
         }
 
         public IntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
-            : this(root: null)
         {
             foreach (var value in values)
             {

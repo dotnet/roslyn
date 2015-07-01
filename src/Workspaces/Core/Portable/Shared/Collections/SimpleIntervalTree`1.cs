@@ -11,23 +11,14 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     {
         private readonly IIntervalIntrospector<T> _introspector;
 
-        public SimpleIntervalTree(IIntervalIntrospector<T> introspector) : this(introspector, root: null)
+        public SimpleIntervalTree(IIntervalIntrospector<T> introspector) : this(introspector, values: null)
         {
-        }
-
-        protected SimpleIntervalTree(IIntervalIntrospector<T> introspector, Node root) : base(root)
-        {
-            if (introspector == null)
-            {
-                throw new ArgumentNullException(nameof(introspector));
-            }
-
-            _introspector = introspector;
         }
 
         public SimpleIntervalTree(IIntervalIntrospector<T> introspector, IEnumerable<T> values)
-            : this(introspector, root: null)
         {
+            this._introspector = introspector;
+
             if (values != null)
             {
                 foreach (var value in values)
