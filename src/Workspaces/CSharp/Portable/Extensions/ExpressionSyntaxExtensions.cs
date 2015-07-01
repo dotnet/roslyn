@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // the parent is a conditional access expression. This case is already covered before the parent kind switch
                 case SyntaxKind.ConditionalAccessExpression:
                     var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
-                    return expression != parentConditionalAccessExpression.WhenNotNull && 
+                    return expression != parentConditionalAccessExpression.WhenNotNull &&
                             !parentConditionalAccessExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression);
 
                 case SyntaxKind.IsExpression:
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
-            // If the Symbol is a contrcutor get its containing type
+            // If the Symbol is a constructor get its containing type
             if (symbol.IsConstructor())
             {
                 symbol = symbol.ContainingType;

@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // TODO: Implement!
         }
 
-        public void ImplementAbstractClass(EnvDTE.CodeType imlpementor, object abstractClass)
+        public void ImplementAbstractClass(EnvDTE.CodeType implementor, object abstractClass)
         {
             // TODO: Implement!
         }

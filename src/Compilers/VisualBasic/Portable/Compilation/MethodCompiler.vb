@@ -1910,7 +1910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
 
-                ' Otherwise we should bind invocation exprerssion
+                ' Otherwise we should bind invocation expression
                 ' Binder must be passed in 'binderOpt'
                 Debug.Assert(binderOpt IsNot Nothing)
 

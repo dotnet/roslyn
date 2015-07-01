@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias PDB;
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +20,7 @@ using Microsoft.CodeAnalysis.Emit;
 using PDB::Roslyn.Test.MetadataUtilities;
 using PDB::Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return methodData;
         }
-        
+
         internal static void VerifyIL(
             this CompilationTestData.MethodData method,
             string expectedIL,
@@ -77,46 +80,80 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static void VerifyPdb(
             this Compilation compilation,
             string expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, "", expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             string expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            string actualPdb = GetPdbXml(compilation, qualifiedMethodName);
-            AssertXml.Equal(ParseExpectedPdbXml(expectedPdb), XElement.Parse(actualPdb), expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: false);
-        }
+            var expectedPdbXml = XElement.Parse(string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb);
 
-        private static XElement ParseExpectedPdbXml(string str)
-        {
-            return XElement.Parse(string.IsNullOrWhiteSpace(str) ? "<symbols></symbols>" : str);
+            VerifyPdbImpl(
+                compilation,
+                qualifiedMethodName,
+                expectedPdbXml,
+                format,
+                expectedValueSourceLine,
+                expectedValueSourcePath,
+                expectedIsXmlLiteral: false);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             XElement expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(compilation, "", expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+            VerifyPdb(compilation, "", expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
         }
 
         internal static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             XElement expectedPdb,
+            DebugInformationFormat format = 0,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            XElement actualPdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName));
-            AssertXml.Equal(expectedPdb, actualPdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral: true);
+            VerifyPdbImpl(
+                compilation,
+                qualifiedMethodName,
+                expectedPdb,
+                format,
+                expectedValueSourceLine,
+                expectedValueSourcePath,
+                expectedIsXmlLiteral: true);
+        }
+
+        private static void VerifyPdbImpl(
+            this Compilation compilation,
+            string qualifiedMethodName,
+            XElement expectedPdb,
+            DebugInformationFormat format,
+            int expectedValueSourceLine,
+            string expectedValueSourcePath,
+            bool expectedIsXmlLiteral)
+        {
+            if (format == 0 || format == DebugInformationFormat.Pdb)
+            {
+                XElement actualNativePdb = XElement.Parse(GetPdbXml(compilation, qualifiedMethodName));
+                AssertXml.Equal(expectedPdb, actualNativePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+            }
+            else
+            {
+                // Portable PDBs not supported yet
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         internal static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
@@ -126,7 +163,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 using (var pdbbits = new MemoryStream())
                 {
-                    compilation.Emit(exebits, pdbbits);
+                    compilation.Emit(
+                        exebits,
+                        pdbbits,
+                        options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb));
 
                     pdbbits.Position = 0;
                     exebits.Position = 0;

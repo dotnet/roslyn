@@ -551,10 +551,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Consider: should we allow to OSS sign if the key file only contains public key?
 
             if (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&
-                DeclaringCompilation.Options.CryptoPublicKey.IsEmpty &&                
-                Identity.HasPublicKey&&
+                DeclaringCompilation.Options.CryptoPublicKey.IsEmpty &&
+                Identity.HasPublicKey &&
                 !IsDelaySigned &&
-                !StrongNameKeys.CanSign&&
+                !StrongNameKeys.CanSign &&
                 StrongNameKeys.DiagnosticOpt == null)
             {
                 // Since the container always contains both keys, the problem is that the key file didn't contain private key.
@@ -1969,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Allow public key token due to compatibility reasons, but we are not going to use its value.
-            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey | AssemblyIdentityParts.PublicKeyToken; 
+            const AssemblyIdentityParts allowedParts = AssemblyIdentityParts.Name | AssemblyIdentityParts.PublicKey | AssemblyIdentityParts.PublicKeyToken;
 
             if ((parts & ~allowedParts) != 0)
             {

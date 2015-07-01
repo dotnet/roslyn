@@ -218,14 +218,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var p2 = method2.Parameters;
 
             // If the methods don't have the same parameter count, then method1 can't be more or 
-            // less specific htan method2.
+            // less specific than method2.
             if (p1.Length != p2.Length)
             {
                 return null;
             }
 
             // If the methods' parameter types differ, or they have different names, then one can't
-            // be more specific htan the other.
+            // be more specific than the other.
             if (!SignatureComparer.Instance.HaveSameSignature(method1.Parameters, method2.Parameters) ||
                 !method1.Parameters.Select(p => p.Name).SequenceEqual(method2.Parameters.Select(p => p.Name)))
             {

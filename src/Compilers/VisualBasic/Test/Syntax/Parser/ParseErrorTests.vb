@@ -1771,7 +1771,7 @@ BC30306: Array subscript expression missing.
     <WorkItem(527673, "DevDiv")>
     <Fact()>
     Public Sub BC30311ERR_InvalidArrayInitialize()
-        'This is used to verify that only a parse error only is genrated for this scenario - as per the bug investigation
+        'This is used to verify that only a parse error only is generated for this scenario - as per the bug investigation
         'another test in BindingErrorTest.vb (BC30311ERR_WithArray_ParseAndDeclarationErrors) will verify the diagnostics which will result in multiple errors
 
         Dim code = <![CDATA[

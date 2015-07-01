@@ -2076,7 +2076,7 @@ class Test
         [WorkItem(906835, "DevDiv/Personal")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressNegRegionWithInvalidExcapeString()
+        public void TestRegressNegRegionWithInvalidEscapeString()
         {
             // Dev10 compiler gives errors CS1009
             var text = @"
@@ -2109,7 +2109,7 @@ class Test
         [WorkItem(527079, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressRegionWithExcapeUnicodePrefixOnly()
+        public void TestRegressRegionWithEscapeUnicodePrefixOnly()
         {
             // [Breaking Change] Dev10 compiler gives errors CS1009
             var text = @"#region \u

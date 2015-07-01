@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                // Can't generate an invisible member if the lanugage doesn't support it.
+                // Can't generate an invisible member if the language doesn't support it.
                 return false;
             }
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 if (member.Kind == SymbolKind.Method && baseMember.Kind == SymbolKind.Method)
                 {
-                    // A method only conflicts with another method if htey have the same parameter
+                    // A method only conflicts with another method if they have the same parameter
                     // signature (return type is irrelevant). 
                     var method1 = (IMethodSymbol)member;
                     var method2 = (IMethodSymbol)baseMember;

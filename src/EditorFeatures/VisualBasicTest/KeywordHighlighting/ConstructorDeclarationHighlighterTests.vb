@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestContructorExample1_1()
+        Public Sub TestConstructorExample1_1()
             Test(<Text>
 Class C
 {|Cursor:[|Public Sub New|]|}()
@@ -21,7 +21,7 @@ End Class</Text>)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestContructorExample1_2()
+        Public Sub TestConstructorExample1_2()
             Test(<Text>
 Class C
 [|Public Sub New|]()
@@ -31,7 +31,7 @@ End Class</Text>)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
-        Public Sub TestContructorExample1_3()
+        Public Sub TestConstructorExample1_3()
             Test(<Text>
 Class C
 [|Public Sub New|]()

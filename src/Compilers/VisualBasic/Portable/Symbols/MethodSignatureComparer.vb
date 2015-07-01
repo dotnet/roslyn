@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 #End Region
 
-#Region "Detailed comparision functions"
+#Region "Detailed comparison functions"
         Public Shared Function DetailedCompare(
             method1 As MethodSymbol,
             method2 As MethodSymbol,

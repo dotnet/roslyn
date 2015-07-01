@@ -5334,7 +5334,7 @@ End Module</text>
 
             <WorkItem(543244)>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub UnreachableUninitalized()
+            Public Sub UnreachableUninitialized()
                 Dim code = <text>Option Infer On
 Imports System
 Class Program
@@ -5852,7 +5852,7 @@ End Module</text>
 
             <WorkItem(529967)>
             <Fact(), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub TestExtactObjectArray()
+            Public Sub TestExtractObjectArray()
                 Dim code = <text>Imports System
 Module Program
     Sub Main(args As String())

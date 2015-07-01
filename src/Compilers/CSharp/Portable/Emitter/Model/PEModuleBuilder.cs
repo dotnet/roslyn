@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             //but the OS appcompat infrastructure uses it to identify apps. It is useful for us to have
             //a mechanism to identify the compiler that produced the binary. This is the appropriate
             //value to use for that. That is what it was invented for. We don't want to have the high
-            //bit set for this in case some users perform a signed comparision to determine if the value
+            //bit set for this in case some users perform a signed comparison to determine if the value
             //is less than some version. The C++ linker is at 0x0B. We'll start our numbering at 0x30.
             //Roslyn VB will start numbering at 0x50
             get { return 0x30; }
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
             // We don't need to recursively replace the dynamic type with Object since the DynamicTypeSymbol adapter 
-            // masquarades the TypeRef as System.Object when used to encode signatures.
+            // masquerades the TypeRef as System.Object when used to encode signatures.
             return GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics);
         }
 

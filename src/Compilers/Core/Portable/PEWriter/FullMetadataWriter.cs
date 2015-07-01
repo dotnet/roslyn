@@ -37,20 +37,26 @@ namespace Microsoft.Cci
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
+            bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
-            return new FullMetadataWriter(context, heaps, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+
+            // Portable PDBs not supported yet:
+            MetadataHeapsBuilder debugHeapsOpt = null;
+
+            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
             MetadataHeapsBuilder heaps,
+            MetadataHeapsBuilder debugHeapsOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -92,11 +98,6 @@ namespace Microsoft.Cci
         protected override Guid EncBaseId
         {
             get { return Guid.Empty; }
-        }
-
-        protected override bool CompressMetadataStream
-        {
-            get { return true; }
         }
 
         protected override bool TryGetTypeDefIndex(ITypeDefinition def, out uint index)

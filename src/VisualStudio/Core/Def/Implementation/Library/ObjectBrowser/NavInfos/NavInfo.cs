@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var index = 0;
 
             // In some cases, Class View presentation NavInfo objects will have extra nodes (LLT_PACKAGE & LLT_HIERARCHY) up front.
-            // When this NavInfo is consumed by Object Browser (for 'Browse to Definiition'), we need to skip first two nodes
+            // When this NavInfo is consumed by Object Browser (for 'Browse to Definition'), we need to skip first two nodes
             if (isObjectBrowser && !isCanonical)
             {
                 if (navInfoList.Count >= 2 && navInfoList[1].ListType == (uint)_LIB_LISTTYPE.LLT_HIERARCHY)

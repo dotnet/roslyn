@@ -115,7 +115,7 @@ namespace Microsoft.Cci
 
         public bool LogOperation(PdbWriterOperation op)
         {
-            var logging = this._logging;
+            var logging = _logging;
             if (logging)
             {
                 LogArgument((byte)op);
@@ -295,8 +295,7 @@ namespace Microsoft.Cci
 
             var localScopes = methodBody.LocalScopes;
 
-            // Open the outer-most language defined scope, the namespace scopes will be emitted to it.
-            // Note that the root scope has already been open, but native compilers leave it empty.
+            // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);
@@ -413,7 +412,7 @@ namespace Microsoft.Cci
             {
                 string defaultNamespace = module.DefaultNamespace;
 
-                if (defaultNamespace != null)
+                if (!string.IsNullOrEmpty(defaultNamespace))
                 {
                     // VB marks the default/root namespace with an asterisk
                     UsingNamespace("*" + defaultNamespace, module);
@@ -697,7 +696,7 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                uint token = _metadataWriter.SerializeLocalConstantSignature(scopeConstant);
+                uint token = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
                     DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), token);
@@ -716,7 +715,7 @@ namespace Microsoft.Cci
 
         #region SymWriter calls
 
-        const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
+        private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 
@@ -968,7 +967,7 @@ namespace Microsoft.Cci
                     _callLogger.LogArgument(method.Name);
                 }
 
-                // open root scope:
+                // open outermost scope:
                 _symWriter.OpenScope(startOffset: 0);
                 if (_callLogger.LogOperation(OP.OpenScope))
                 {
@@ -1144,7 +1143,7 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    // parent parameter is not used, it must be zero or the current method token passed to OpenMetod.
+                    // parent parameter is not used, it must be zero or the current method token passed to OpenMethod.
                     _symWriter.SetSymAttribute(0, name, (uint)metadata.Length, (IntPtr)pb);
                     if (_callLogger.LogOperation(OP.SetSymAttribute))
                     {

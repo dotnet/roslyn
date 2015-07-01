@@ -2522,8 +2522,8 @@ Done:
                             ' Note that {Narrowing in, Widening (non-identity) out} operator is not considered as an applicable candidate.
                             ' In fact, an operator like this cannot exist unless nullable in/out conversions are involved.
                             ' Basically we would be dealing with an operator that converts from type derived from source to type derived from destination,
-                            ' it would have to be difined in one of those types. When we collect operators we only visit source, destination and their
-                            ' bases. So, in order for such an operator to be found, there must be an inheritense relationship between source and
+                            ' it would have to be defined in one of those types. When we collect operators we only visit source, destination and their
+                            ' bases. So, in order for such an operator to be found, there must be an inheritance relationship between source and
                             ' destination and the operator must be defined in a type that is in between of them in the inheritance hierarchy. Thus,
                             ' there would be an inheritance relationship between parameter type ant return type of the operator, which makes the operator
                             ' inapplicable - there would be a predefined conversion between the types.

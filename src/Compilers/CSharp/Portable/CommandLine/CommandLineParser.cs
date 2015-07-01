@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "resource":
                             if (value == null)
                             {
-                                break; // Dev11 reports inrecognized option
+                                break; // Dev11 reports unrecognized option
                             }
 
                             var embeddedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: true);
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "linkresource":
                             if (value == null)
                             {
-                                break; // Dev11 reports inrecognized option
+                                break; // Dev11 reports unrecognized option
                             }
 
                             var linkedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: false);

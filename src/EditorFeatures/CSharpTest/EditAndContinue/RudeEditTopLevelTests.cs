@@ -5180,7 +5180,7 @@ class C
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                new[] 
+                new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors[0], syntaxMap[0]),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<NamedTypeSymbol>("C").Constructors[1], syntaxMap[0])
@@ -5274,7 +5274,7 @@ class C
         }
 
         [Fact]
-        public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda1()
+        public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
         {
             string src1 = @"
 using System;
@@ -5316,7 +5316,7 @@ class C
         }
 
         [Fact]
-        public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda_Trivia1()
+        public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
         {
             string src1 = @"
 using System;
@@ -5358,7 +5358,7 @@ class C
         }
 
         [Fact]
-        public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithoutLambda1()
+        public void FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
         {
             string src1 = @"
 using System;
@@ -5400,7 +5400,7 @@ class C
         }
 
         [Fact]
-        public void FieldInitializerUpdate_Lambdas_EditContructorNotIncludingInitializers()
+        public void FieldInitializerUpdate_Lambdas_EditConstructorNotIncludingInitializers()
         {
             string src1 = @"
 using System;

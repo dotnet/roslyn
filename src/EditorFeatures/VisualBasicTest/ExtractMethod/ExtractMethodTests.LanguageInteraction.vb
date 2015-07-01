@@ -2455,7 +2455,7 @@ End Module</text>
 
             <WorkItem(545292)>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub LocalCosnt()
+            Public Sub LocalConst()
                 Dim code = <text>Class C
     Sub Method()
         Const i as Integer = [|1|]
@@ -2691,7 +2691,7 @@ End Module</text>
 
             <WorkItem(544597)>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub DefaultValueForAutoImpletemedProperty()
+            Public Sub DefaultValueForAutoImplementedProperty()
                 Dim code = <text>Class B
     Property IntList() As New List(Of Integer) With {.Capacity = [|100|]}
 End Class </text>

@@ -118,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End If
 
                 Dim rootNamespace = SourceModule.RootNamespace
-                If rootNamespace Is Nothing OrElse rootNamespace.IsGlobalNamespace Then
-                    Return Nothing
+                If rootNamespace.IsGlobalNamespace Then
+                    Return String.Empty
                 End If
 
                 _lazyDefaultNamespace = rootNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat)
@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 'It is useful for us to have
                 'a mechanism to identify the compiler that produced the binary. This is the appropriate
                 'value to use for that. That is what it was invented for. We don't want to have the high
-                'bit set for this in case some users perform a signed comparision to determine if the value
+                'bit set for this in case some users perform a signed comparison to determine if the value
                 'is less than some version. The C++ linker is at 0x0B. Roslyn C# will start at &H30. We'll start our numbering at &H50.
                 Return &H50
             End Get

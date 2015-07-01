@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.AnalyzerPowerPack.CSharp .Performance
+namespace Microsoft.AnalyzerPowerPack.CSharp.Performance
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpRemoveEmptyFinalizers : RemoveEmptyFinalizers<SyntaxKind>

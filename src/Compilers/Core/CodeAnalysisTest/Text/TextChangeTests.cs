@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestChangedTextWithMultipleConsequitiveInsertsSamePosition()
+        public void TestChangedTextWithMultipleConsecutiveInsertsSamePosition()
         {
             var text = SourceText.From("Hello World");
 

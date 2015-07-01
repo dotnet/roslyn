@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
-                            // this is an best effort algorithm with some shortcommings.
+                            // this is a best effort algorithm with some shortcomings.
                             //
                             // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
                             // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one

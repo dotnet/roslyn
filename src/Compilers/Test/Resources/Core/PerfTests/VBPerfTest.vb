@@ -1414,7 +1414,7 @@ Namespace ns1
                 Console.WriteLine("    c8.prop2.get()")
                 Return _prop2
             End Get
-            ' Inaccessibile Setter
+            ' Inaccessible Setter
             Private Set(value As List(Of Integer))
                 _prop2 = value
                 Console.WriteLine("    c8.prop2.set()")

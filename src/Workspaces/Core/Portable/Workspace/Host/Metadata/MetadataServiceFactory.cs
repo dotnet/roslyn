@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Host
             public Service(IDocumentationProviderService documentationService)
             {
                 _provider = new Provider(this);
-                _metadataCache = new MetadataReferenceCache((path, properties) => 
+                _metadataCache = new MetadataReferenceCache((path, properties) =>
                     MetadataReference.CreateFromFile(path, properties, documentationService.GetDocumentationProvider(path)));
             }
 

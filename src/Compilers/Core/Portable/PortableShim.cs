@@ -270,7 +270,7 @@ namespace Roslyn.Utilities
 
             internal static readonly object None = Enum.ToObject(Type, 0);
 
-            internal static readonly object Asynchronous = Enum.ToObject(Type,  1073741824);
+            internal static readonly object Asynchronous = Enum.ToObject(Type, 1073741824);
         }
 
         internal static class SearchOption
@@ -447,8 +447,6 @@ namespace Roslyn.Utilities
         /// </summary>
         internal static class Proposed
         {
-
-
         }
 
         internal static class Misc

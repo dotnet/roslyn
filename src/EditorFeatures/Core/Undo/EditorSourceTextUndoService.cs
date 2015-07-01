@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
     [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
     internal sealed class EditorSourceTextUndoService : ISourceTextUndoService
     {
-        private Dictionary<SourceText, SourceTextUndoTransaction> transactions = new Dictionary<SourceText, SourceTextUndoTransaction>();
+        private Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new Dictionary<SourceText, SourceTextUndoTransaction>();
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
             if (sourceText != null && !string.IsNullOrWhiteSpace(description))
             {
                 var transaction = new SourceTextUndoTransaction(this, sourceText, description);
-                transactions.Add(sourceText, transaction);
+                _transactions.Add(sourceText, transaction);
                 return transaction;
             }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
             var sourceText = snapshot?.AsText();
             if (sourceText != null)
             {
-                transactions.TryGetValue(sourceText, out transaction);
+                _transactions.TryGetValue(sourceText, out transaction);
                 if (transaction != null)
                 {
                     return transaction.Begin(_undoHistoryRegistry?.GetHistory(snapshot.TextBuffer));
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
 
         public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
         {
-            if (transaction != null && transactions.ContainsKey(transaction.SourceText))
+            if (transaction != null && _transactions.ContainsKey(transaction.SourceText))
             {
-                transactions.Remove(transaction.SourceText);
+                _transactions.Remove(transaction.SourceText);
                 return true;
             }
 

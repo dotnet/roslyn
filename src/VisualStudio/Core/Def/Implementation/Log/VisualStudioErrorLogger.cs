@@ -71,15 +71,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
             return false;
         }
 
-        private static IEnumerable<string> PredefinedCodeRefactoringProviderNames => LazyPredefinedCodeRefactoringProviderNames.Value;
+        private static IEnumerable<string> PredefinedCodeRefactoringProviderNames => s_lazyPredefinedCodeRefactoringProviderNames.Value;
 
-        private static Lazy<IEnumerable<string>> LazyPredefinedCodeRefactoringProviderNames =
+        private static Lazy<IEnumerable<string>> s_lazyPredefinedCodeRefactoringProviderNames =
             new Lazy<IEnumerable<string>>(() => typeof(PredefinedCodeRefactoringProviderNames).GetFields().Select(f => f.GetRawConstantValue().ToString()));
 
 
-        private static IEnumerable<string> PredefinedCodeFixProviderNames => LazyPredefinedCodeFixProviderNames.Value;
+        private static IEnumerable<string> PredefinedCodeFixProviderNames => s_lazyPredefinedCodeFixProviderNames.Value;
 
-        private static Lazy<IEnumerable<string>> LazyPredefinedCodeFixProviderNames =
+        private static Lazy<IEnumerable<string>> s_lazyPredefinedCodeFixProviderNames =
             new Lazy<IEnumerable<string>>(() => typeof(PredefinedCodeFixProviderNames).GetFields().Select(f => f.GetRawConstantValue().ToString()));
 
         private static string ToLogFormat(Exception exception)

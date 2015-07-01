@@ -589,7 +589,7 @@ class C
         }
 
         [Fact]
-        public void NullCoallescing()
+        public void NullCoalescing()
         {
             string sourceCode = @"
 class C

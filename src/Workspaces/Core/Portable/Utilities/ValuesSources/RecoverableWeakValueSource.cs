@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         protected abstract T Recover(CancellationToken cancellationToken);
 
-        // enfore saving in a queue so save's don't overload the thread pool.
+        // enforce saving in a queue so save's don't overload the thread pool.
         private static Task s_latestTask = SpecializedTasks.EmptyTask;
         private static readonly NonReentrantLock s_taskGuard = new NonReentrantLock();
 

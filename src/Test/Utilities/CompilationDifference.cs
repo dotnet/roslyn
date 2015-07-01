@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public void VerifyPdb(
-            IEnumerable<int> methodTokens, 
+            IEnumerable<int> methodTokens,
             string expectedPdb,
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)

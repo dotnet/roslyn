@@ -91,7 +91,7 @@ void Foo() {};
         }
 
         [Fact]
-        public void BindBoolenField()
+        public void BindBooleanField()
         {
             var testSrc = @"
 bool result = true ;

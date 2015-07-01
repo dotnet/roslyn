@@ -201,11 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the local variable is declared in resource-acquisition of a 'using statement';
         /// otherwise false
         /// </summary>
-        /// <exmaple>
+        /// <example>
         /// <code>
         ///     using (var localVariable = new StreamReader("C:\\Temp\\MyFile.txt")) { ... } 
         /// </code>
-        /// </exmaple>
+        /// </example>
         public bool IsUsing
         {
             get

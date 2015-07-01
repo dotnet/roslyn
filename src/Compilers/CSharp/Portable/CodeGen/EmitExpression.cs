@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
-            Debug.Assert(!receiverType.IsValueType || 
+            Debug.Assert(!receiverType.IsValueType ||
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // LEAKING A TEMP IS OK HERE 
-                // generally taking a ref for the purpose of ref assignmnt should not be done on homeless values
+                // generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a copy in synthetic code and we have to leak those.
                 // fortunately these are very shortlived temps that should not cause value sharing.
                 var temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
@@ -2642,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
             if (used)
             {
-                // If we get to consequenceLabel, we should not have Aternative on stack, adjust for that.
+                // If we get to consequenceLabel, we should not have Alternative on stack, adjust for that.
                 _builder.AdjustStack(-1);
             }
 

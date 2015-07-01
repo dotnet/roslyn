@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 UpdateText(hostDocument.TextBuffer, string.Empty);
             }
 
-            // and set the conent
+            // and set the content
             UpdateText(hostDocument.TextBuffer, text);
 
             this.Workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);

@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     if (response != null)
                     {
                         ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
-                }
+                    }
                     else
                     {
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return null;
 
             var uri = new Uri(assembly.CodeBase);
-            string assemblyPath = uri.IsFile 
+            string assemblyPath = uri.IsFile
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
             return Path.GetDirectoryName(assemblyPath);
@@ -436,16 +436,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+                    LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
 
-                if (LogStandardErrorAsError)
-                {
-                    LogErrorOutput(completedResponse.ErrorOutput);
-                }
-                else
-                {
-                    LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
-                }
+                    if (LogStandardErrorAsError)
+                    {
+                        LogErrorOutput(completedResponse.ErrorOutput);
+                    }
+                    else
+                    {
+                        LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                    }
 
                     return completedResponse.ReturnCode;
 

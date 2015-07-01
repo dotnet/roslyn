@@ -416,7 +416,7 @@ Public Class TestWriter
                         If (i <> aePositions(exceptionChecks)) Then
                             _writer.Write(callTokens(i))
                         Else
-                            _writer.Write("SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword)") ' this syntaxtoken should not be legan anywhere in the tests
+                            _writer.Write("SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword)") ' this syntaxtoken should not be legal anywhere in the tests
                         End If
                     Next
                     _writer.WriteLine()

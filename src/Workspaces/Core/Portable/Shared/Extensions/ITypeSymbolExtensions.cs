@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             if (type != null)
             {
-                switch(type.Kind)
+                switch (type.Kind)
                 {
                     case SymbolKind.NamedType:
                         foreach (var baseType in type.GetBaseTypesAndThis())

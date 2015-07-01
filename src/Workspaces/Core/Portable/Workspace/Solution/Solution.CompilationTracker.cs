@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis
                         var projectId = this.ProjectState.Id;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                        // get or build compilation up to decleration state. this compilation will be used to provide live xml doc comment
+                        // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         MetadataReference reference;
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
             }
 
-#region Versions
+            #region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis
 
                 return version;
             }
-#endregion
+            #endregion
         }
     }
 }

@@ -6848,7 +6848,7 @@ docComment.Trim().Replace(vbLf, "").Replace(vbCr, ""))
 Imports System
 
 Partial Public Class TestClass
-    ''' <summary> Delaration </summary>
+    ''' <summary> Declaration </summary>
     Partial Private Sub PS()
     End Sub
 End Class
@@ -6886,7 +6886,7 @@ AssemblyName
 </assembly>
 <members>
 <member name="M:TestClass.PS">
- <summary> Delaration </summary>
+ <summary> Declaration </summary>
 </member>
 </members>
 </doc>

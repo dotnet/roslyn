@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
     Public Class DiagnosticServiceTests
 
-        Dim _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
+        Private _assemblyLoader As IAnalyzerAssemblyLoader = New InMemoryAssemblyLoader()
 
         Public Function CreateAnalyzerFileReference(ByVal fullPath As String) As AnalyzerFileReference
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
