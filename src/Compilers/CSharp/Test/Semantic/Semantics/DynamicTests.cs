@@ -1297,7 +1297,7 @@ class C
         }
 
         [Fact]
-        public void TestDynamicMemberAccess_EarlyBoundReceiver_OuterIntance()
+        public void TestDynamicMemberAccess_EarlyBoundReceiver_OuterInstance()
         {
             string source = @"
 using System;

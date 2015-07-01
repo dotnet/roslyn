@@ -513,7 +513,7 @@ public class foo<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void CommitCommentnNoOpenAngle()
+        public void CommitCommentNoOpenAngle()
         {
             var markupBeforeCommit = @"class c
 {

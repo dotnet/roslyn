@@ -1583,7 +1583,7 @@ static class E
         <Fact>
         <WorkItem(530817)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub CSharpShowDeclarationConflictsImmidiately()
+        Public Sub CSharpShowDeclarationConflictsImmediately()
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="C#" CommonReferences="true">
@@ -1619,7 +1619,7 @@ static class E
         <Fact>
         <WorkItem(530817)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VBShowDeclarationConflictsImmidiately()
+        Public Sub VBShowDeclarationConflictsImmediately()
             Using workspace = CreateWorkspaceWithWaiter(
                         <Workspace>
                             <Project Language="Visual Basic" CommonReferences="true">

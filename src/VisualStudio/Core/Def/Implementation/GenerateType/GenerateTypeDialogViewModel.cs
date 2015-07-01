@@ -136,12 +136,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
             }
         }
 
-        private void PopulateTypeKind(TypeKind typeKind, string csharpkKey, string visualBasicKey)
+        private void PopulateTypeKind(TypeKind typeKind, string csharpKey, string visualBasicKey)
         {
             _typeKindMap.Add(visualBasicKey, typeKind);
-            _typeKindMap.Add(csharpkKey, typeKind);
+            _typeKindMap.Add(csharpKey, typeKind);
 
-            _csharpTypeKindList.Add(csharpkKey);
+            _csharpTypeKindList.Add(csharpKey);
             _visualBasicTypeKindList.Add(visualBasicKey);
         }
 

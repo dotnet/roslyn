@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             get
             {
                 // Since FixAllSuggestedAction will always be presented as a
-                // 'flavored' action, it will never havve a preview.
+                // 'flavored' action, it will never have a preview.
                 return false;
             }
         }

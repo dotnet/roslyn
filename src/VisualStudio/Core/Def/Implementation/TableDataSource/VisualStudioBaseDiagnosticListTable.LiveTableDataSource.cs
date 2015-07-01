@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     private string GetBuildTool(string buildTool)
                     {
-                        // for build tool, regardless where error is comming from ("build" or "live"), 
+                        // for build tool, regardless where error is coming from ("build" or "live"), 
                         // we show "compiler" to users.
                         if (buildTool == PredefinedBuildTools.Live)
                         {

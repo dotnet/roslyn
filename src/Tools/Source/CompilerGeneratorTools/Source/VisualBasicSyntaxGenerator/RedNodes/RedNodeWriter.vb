@@ -428,7 +428,7 @@ Friend Class RedNodeWriter
             Next
             _writer.WriteLine(")")
 
-            ' Generate call to create new builder, and pass result to my private constructure.
+            ' Generate call to create new builder, and pass result to my private constructor.
 
             _writer.Write("            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}(", StructureTypeName(nodeStructure))
 
@@ -1095,7 +1095,7 @@ Friend Class RedNodeWriter
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
         Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
 
-        ' create anyChanges varialbe
+        ' create anyChanges variable
         _writer.WriteLine("            Dim anyChanges As Boolean = False")
         _writer.WriteLine()
 

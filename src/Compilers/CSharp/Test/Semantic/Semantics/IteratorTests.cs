@@ -142,7 +142,7 @@ public class Item
 }
 public class Program
 {
-    private IEnumerable<Item> DeferredFeedItemsems(IEnumerator elements, bool hasMoved)
+    private IEnumerable<Item> DeferredFeedItems(IEnumerator elements, bool hasMoved)
     {
         while (hasMoved)
         {

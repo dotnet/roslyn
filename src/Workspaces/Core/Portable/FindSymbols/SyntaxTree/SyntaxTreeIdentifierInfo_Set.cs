@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var esentStorage = storage as ISyntaxTreeInfoPersistentStorage;
                 if (esentStorage == null)
                 {
-                    // basically, we don't support it. return true so that we don't try to precalcuate it
+                    // basically, we don't support it. return true so that we don't try to precalculate it
                     return false;
                 }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var esentStorage = storage as ISyntaxTreeInfoPersistentStorage;
                 if (esentStorage == null)
                 {
-                    // basically, we don't support it. return true so that we don't try to precalcuate it
+                    // basically, we don't support it. return true so that we don't try to precalculate it
                     return true;
                 }
 

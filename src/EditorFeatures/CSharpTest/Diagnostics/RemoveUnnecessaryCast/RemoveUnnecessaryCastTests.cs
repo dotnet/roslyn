@@ -1046,7 +1046,7 @@ class X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastWithImplicitConversionInThrow()
         {
-            // The cast below can't be removed beause the throw statement expects
+            // The cast below can't be removed because the throw statement expects
             // an expression of type Exception -- not an expression convertible to
             // Exception.
 
@@ -1073,7 +1073,7 @@ class E
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void DontRemoveNecessaryCastInThrow()
         {
-            // The cast below can't be removed beause the throw statement expects
+            // The cast below can't be removed because the throw statement expects
             // an expression of type Exception -- not an expression convertible to
             // Exception.
 
@@ -2628,7 +2628,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToICloneableForDelegate()
         {
-            // Note: The cast below can be removed because delegates are implictly
+            // Note: The cast below can be removed because delegates are implicitly
             // sealed.
 
             Test(
@@ -2665,7 +2665,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToICloneableForArray()
         {
-            // Note: The cast below can be removed because arrays are implictly
+            // Note: The cast below can be removed because arrays are implicitly
             // sealed.
 
             Test(
@@ -2702,7 +2702,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public void RemoveCastToIConvertibleForEnum()
         {
-            // Note: The cast below can be removed because enums are implictly
+            // Note: The cast below can be removed because enums are implicitly
             // sealed.
 
             Test(
@@ -3752,7 +3752,7 @@ class D : C
 
         [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public void DontRemoveCastToTypeParameterWithExceptionContraint()
+        public void DontRemoveCastToTypeParameterWithExceptionConstraint()
         {
             TestMissing(
 @"using System;
@@ -3772,7 +3772,7 @@ class Program
 
         [WorkItem(3254, "https://github.com/dotnet/roslyn/issues/3254")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public void DontRemoveCastToTypeParameterWithExceptionSubTypeContraint()
+        public void DontRemoveCastToTypeParameterWithExceptionSubTypeConstraint()
         {
             TestMissing(
 @"using System;

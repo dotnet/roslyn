@@ -282,8 +282,8 @@ Module Module1
 
     Sub Main()
         Dim c1 as C = {1}
-        Dim c2 = DirectCast({1}, C) 'Should fail, user defined conversion should not be appled.
-        Dim c3 = TryCast({1}, C)    'Should fail, user defined conversion should not be appled.
+        Dim c2 = DirectCast({1}, C) 'Should fail, user defined conversion should not be applied.
+        Dim c3 = TryCast({1}, C)    'Should fail, user defined conversion should not be applied.
     End Sub
 
 End Module

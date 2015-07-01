@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 string outputPath = _vsProject.TryGetObjOutputPath();
 
                 // The project doesn't produce a debuggable binary or we can't read it.
-                // Continute on since the debugger ignores HResults and we need to handle subsequent calls.
+                // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
                 if (outputPath != null)
                 {
                     try

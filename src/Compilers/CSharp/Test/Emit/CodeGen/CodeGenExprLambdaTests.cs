@@ -5299,7 +5299,7 @@ public class ExpressionVisitor
 
     internal virtual MemberListBinding VisitMemberListBinding(MemberListBinding binding)
     {
-        toStr = toStr + ""Initiailizers->"" + ""\n"";
+        toStr = toStr + ""Initializers->"" + ""\n"";
         IEnumerable<ElementInit> initializers = this.VisitElementInitializerList(binding.Initializers);
 
         if (initializers != binding.Initializers)

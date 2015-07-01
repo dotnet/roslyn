@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(@class.Interfaces.Contains(interface2));
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method").Single();   //  the method is considered to be Ordinary 
-            Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);              //  becasue it has name without '.'
+            Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);              //  because it has name without '.'
 
             var explicitImpls = classMethod.ExplicitInterfaceImplementations;
             Assert.Equal(2, explicitImpls.Length);
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.True(@class.Interfaces.Contains(implementedInterface));
 
             var classMethod = (MethodSymbol)@class.GetMembers("Method").Single();   //  the method is considered to be Ordinary 
-            Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);              //  becasue it has name without '.'
+            Assert.Equal(MethodKind.Ordinary, classMethod.MethodKind);              //  because it has name without '.'
 
             var explicitImpl = classMethod.ExplicitInterfaceImplementations.Single();
             Assert.Equal(interface2Method, explicitImpl);

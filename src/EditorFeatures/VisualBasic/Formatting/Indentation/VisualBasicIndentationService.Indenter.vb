@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return GetIndentationOfLine(triviaLine, Me.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
                     End If
 
-                    ' no base line to use to calcuate the indentation
+                    ' no base line to use to calculate the indentation
                     Return IndentFromStartOfLine(0)
                 End If
 

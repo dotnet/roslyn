@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly List<string> _committedItems = new List<string>(MruSize);
         private readonly object _mruGate = new object();
 
-        private void CompletionItemComitted(CompletionItem item)
+        private void CompletionItemCommitted(CompletionItem item)
         {
             lock (_mruGate)
             {

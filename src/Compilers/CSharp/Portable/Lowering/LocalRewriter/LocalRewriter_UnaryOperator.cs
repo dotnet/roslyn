@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantOne.SpecialType != SpecialType.None);
             Debug.Assert(binaryOperatorKind.OperandTypes() != 0);
 
-            // The intput/output type of the binary operand. "int" in the example. 
+            // The input/output type of the binary operand. "int" in the example. 
             TypeSymbol binaryOperandType = _compilation.GetSpecialType(constantOne.SpecialType);
 
             // 1

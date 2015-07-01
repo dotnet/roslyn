@@ -902,7 +902,7 @@ OtherExpressions:
             Dim caseBlockLabels As ImmutableArray(Of GeneratedLabelSymbol) = CreateCaseBlockLabels(caseBlocks)
 
             ' Create an array of key value pairs (key: case clause constant value, value: case block label)
-            ' for emiting switch table based header.
+            ' for emitting switch table based header.
             ' This function also ensures the correct fallThroughLabel is set, i.e. case else block label if one exists, otherwise exit label.
             Dim caseLabelsForEmit As KeyValuePair(Of ConstantValue, Object)() = GetCaseLabelsForEmitSwitchHeader(caseBlocks, caseBlockLabels, fallThroughLabel)
 
@@ -932,7 +932,7 @@ OtherExpressions:
         End Function
 
         ' Creates an array of key value pairs (key: case clause constant value, value: case block label)
-        ' for emiting switch table based header.
+        ' for emitting switch table based header.
         ' This function also ensures the correct fallThroughLabel is set, i.e. case else block label if one exists, otherwise exit label.
         Private Function GetCaseLabelsForEmitSwitchHeader(
             caseBlocks As ImmutableArray(Of BoundCaseBlock),

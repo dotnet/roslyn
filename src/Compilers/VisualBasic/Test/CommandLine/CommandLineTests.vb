@@ -4840,7 +4840,7 @@ End Module
 
         <Fact()>
         Public Sub SpecifyProperCodePage()
-            ' Class <UTF8 Cyryllic Character>
+            ' Class <UTF8 Cyrillic Character>
             ' End Class
             Dim source() As Byte = {
                                     &H43, &H6C, &H61, &H73, &H73, &H20, &HD0, &H96, &HD, &HA,

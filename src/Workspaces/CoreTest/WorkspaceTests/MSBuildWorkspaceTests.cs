@@ -681,7 +681,7 @@ class C1
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_WithInvalidFileExtension()
         {
-            // make sure the file does in fact exist, but with an unrecognized exstension
+            // make sure the file does in fact exist, but with an unrecognized extension
             CreateFiles(GetSimpleCSharpSolutionFiles()
                 .WithFile(@"CSharpProject\CSharpProject.csproj.nyi", GetResourceText("CSharpProject_CSharpProject.csproj")));
 
@@ -1289,7 +1289,7 @@ class C1
             Assert.Equal(0, vbproject.ProjectReferences.Count());
             Assert.Equal(true, vbproject.MetadataReferences.Any(r => r is PortableExecutableReference && ((PortableExecutableReference)r).Display.Contains("CSharpProject.dll")));
 
-            // now expliticly open the c# project that got referenced as metadata
+            // now explicitly open the c# project that got referenced as metadata
             var csproject = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
 
             // show that the vb project now references the c# project directly (not as metadata)
@@ -1343,7 +1343,7 @@ class C1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void TestCompilationOptions_CSharp_OutputKind_ConsoleAppliaction()
+        public void TestCompilationOptions_CSharp_OutputKind_ConsoleApplication()
         {
             CreateCSharpFilesWith("OutputType", "Exe");
             AssertOptions(OutputKind.ConsoleApplication, options => options.OutputKind);
@@ -1966,7 +1966,7 @@ class C1
             });
 
 #if false // No current text changing API's for additional documents
-            // chanding additional documents not supported
+            // changing additional documents not supported
             Assert.Throws<NotSupportedException>(delegate
             {
             });

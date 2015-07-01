@@ -782,7 +782,7 @@ class C
         }
 
         [Fact]
-        public void WRN_InvalidMainSig_MultiDementionalArray()
+        public void WRN_InvalidMainSig_MultiDimensionalArray()
         {
             string source = @"
 class B

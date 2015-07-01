@@ -740,7 +740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '        End If
 
                 '        ' My type parameters are substituted
-                '        Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AddjustParent(Nothing)
+                '        Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AdjustParent(Nothing)
 
                 '        Return New ConstructedInstanceType(_fullInstanceType, substitution)
                 '    End If
@@ -755,7 +755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '    Return constructFrom
                 'Else
                 '    ' My type parameters are substituted
-                '    Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AddjustParent(newContainer.TypeSubstitution)
+                '    Dim substitution As TypeSubstitution = additionalSubstitutionForMe.AdjustParent(newContainer.TypeSubstitution)
                 '    Return New ConstructedSpecializedGenericType(constructFrom, substitution)
                 'End If
             End Function
@@ -850,7 +850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim newContainer = DirectCast(_container.InternalSubstituteTypeParameters(additionalSubstitution), NamedTypeSymbol)
 
                 If newContainer IsNot _container Then
-                    ' The constainer is affected.
+                    ' The container is affected.
 
                     Dim definition = Me.OriginalDefinition
 

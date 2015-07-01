@@ -98,7 +98,7 @@ namespace System.Runtime.Analyzers
 
         private static IEnumerable<IParameterSymbol> GetAllPublicConstructorParameters(INamedTypeSymbol attributeType)
         {
-            // FxCop compability:
+            // FxCop compatibility:
             // Only examine parameters of public constructors. Can't use protected 
             // constructors to define an attribute so this rule only applies to
             // public constructors.

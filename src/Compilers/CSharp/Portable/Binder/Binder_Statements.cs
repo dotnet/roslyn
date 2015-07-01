@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(System.Linq.Enumerable.Contains(result.Syntax.AncestorsAndSelf(), node), @"Bound statement (or one of its parents) 
                                                                             should have same syntax as the given syntax node. 
-                                                                            Otherwise it may be confusung to the binder cache that uses syntax node as keys.");
+                                                                            Otherwise it may be confusing to the binder cache that uses syntax node as keys.");
 
             return result;
         }
