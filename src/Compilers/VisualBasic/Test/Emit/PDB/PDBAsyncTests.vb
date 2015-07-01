@@ -370,7 +370,7 @@ End Module
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -444,7 +444,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact()>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -506,7 +506,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact, WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
+        <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -578,7 +578,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <Fact()>
         Public Sub LocalNotCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>

@@ -935,10 +935,6 @@ namespace Roslyn.Test.PdbUtilities
                     }
                     else
                     {
-                        // TODO:
-                        // A null reference, the type is encoded in the signature. 
-                        // Ideally we would parse the signature and display the target type name. 
-                        // That requires MetadataReader vNext though.
                         _writer.WriteAttributeString("signature", FormatSignature(signature));
                     }
                 }
