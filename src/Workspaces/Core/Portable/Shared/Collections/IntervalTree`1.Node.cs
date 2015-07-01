@@ -18,9 +18,11 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             internal int Height { get; private set; }
             internal Node MaxEndNode { get; private set; }
 
-            internal Node(IIntervalIntrospector<T> introspector, T interval)
-                : this(introspector, interval, left: null, right: null)
+            internal Node(T value)
             {
+                this.Value = value;
+                this.Height = 1;
+                this.MaxEndNode = this;
             }
 
             internal Node(IIntervalIntrospector<T> introspector, T value, Node left, Node right)

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddIntervalInPlace(T value)
         {
-            var newNode = new Node(Introspector, value);
+            var newNode = new Node(value);
             this.root = Insert(root, newNode, Introspector);
         }
 
