@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation that can be used in scripting.
         /// </summary>
-        internal static CSharpCompilation CreateSubmission(
+        public static CSharpCompilation CreateSubmission(
             string assemblyName,
             SyntaxTree syntaxTree = null,
             IEnumerable<MetadataReference> references = null,
@@ -2673,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithAssemblyName(assemblyName);
         }
 
-        internal override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
+        protected override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
         {
             return GetSubmissionResultType(out hasValue);
         }
@@ -2693,7 +2693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        internal override Compilation CommonPreviousSubmission
+        protected override Compilation CommonPreviousSubmission
         {
             get { return _previousSubmission; }
         }
@@ -2758,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        internal override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
+        protected override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return this.WithPreviousSubmission((CSharpCompilation)newPreviousSubmission);
         }
@@ -2798,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetTypeByMetadataName(metadataName);
         }
 
-        internal override INamedTypeSymbol CommonScriptClass
+        protected override INamedTypeSymbol CommonScriptClass
         {
             get { return this.ScriptClass; }
         }
