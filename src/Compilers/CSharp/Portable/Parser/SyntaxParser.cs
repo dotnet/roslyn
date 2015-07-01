@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetStart;
 
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
-        
+
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(

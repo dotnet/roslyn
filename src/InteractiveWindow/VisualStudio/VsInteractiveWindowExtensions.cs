@@ -12,32 +12,40 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio {
-    public static class VsInteractiveWindowExtensions {
-        public static IWpfTextViewHost GetTextViewHost(this IInteractiveWindow window) {
+namespace Microsoft.VisualStudio
+{
+    public static class VsInteractiveWindowExtensions
+    {
+        public static IWpfTextViewHost GetTextViewHost(this IInteractiveWindow window)
+        {
             var cmdFilter = VsInteractiveWindowEditorFactoryService.GetCommandFilter(window);
-            if (cmdFilter != null) {
+            if (cmdFilter != null)
+            {
                 return cmdFilter.TextViewHost;
             }
             return null;
         }
 
-        public static void SetLanguage(this IInteractiveWindow window, Guid languageServiceGuid, IContentType contentType) {
+        public static void SetLanguage(this IInteractiveWindow window, Guid languageServiceGuid, IContentType contentType)
+        {
             VsInteractiveWindowEditorFactoryService.GetDispatcher(window).CheckAccess();
 
             var commandFilter = VsInteractiveWindowEditorFactoryService.GetCommandFilter(window);
             window.Properties[typeof(IContentType)] = contentType;
             commandFilter.firstLanguageServiceCommandFilter = null;
             var provider = commandFilter._oleCommandTargetProviders.OfContentType(contentType, commandFilter._contentTypeRegistry);
-            if (provider != null) {
+            if (provider != null)
+            {
                 var targetFilter = commandFilter.firstLanguageServiceCommandFilter ?? commandFilter.EditorServicesCommandFilter;
                 var target = provider.GetCommandTarget(window.TextView, targetFilter);
-                if (target != null) {
+                if (target != null)
+                {
                     commandFilter.firstLanguageServiceCommandFilter = target;
                 }
             }
 
-            if (window.CurrentLanguageBuffer != null) {
+            if (window.CurrentLanguageBuffer != null)
+            {
                 window.CurrentLanguageBuffer.ChangeContentType(contentType, null);
             }
 

@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// A rude edit is reported if an active statement is changed and this method returns true.
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
-        
+
         protected abstract ISymbol GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, Dictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken);
 
         /// <summary>
@@ -808,12 +808,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public readonly bool HasStateMachineSuspensionPoint;
 
             public UpdatedMemberInfo(
-                int editOrdinal, 
-                SyntaxNode oldBody, 
-                SyntaxNode newBody, 
-                BidirectionalMap<SyntaxNode> map, 
+                int editOrdinal,
+                SyntaxNode oldBody,
+                SyntaxNode newBody,
+                BidirectionalMap<SyntaxNode> map,
                 IReadOnlyDictionary<SyntaxNode, LambdaInfo> activeOrMatchedLambdasOpt,
-                bool hasActiveStatement, 
+                bool hasActiveStatement,
                 bool hasStateMachineSuspensionPoint)
             {
                 Debug.Assert(editOrdinal >= 0);
@@ -1960,8 +1960,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         protected static bool MemberSignaturesEquivalent(
-            ISymbol oldMemberOpt, 
-            ISymbol newMemberOpt, 
+            ISymbol oldMemberOpt,
+            ISymbol newMemberOpt,
             Func<ImmutableArray<IParameterSymbol>, ITypeSymbol, ImmutableArray<IParameterSymbol>, ITypeSymbol, bool> signatureComparer = null)
         {
             if (oldMemberOpt == newMemberOpt)
@@ -2193,7 +2193,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref layoutAttribute);
                             }
 
-                            bool isConstructorWithMemberInitializers; 
+                            bool isConstructorWithMemberInitializers;
                             if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) ||
                                 IsDeclarationWithInitializer(edit.NewNode))
                             {
@@ -2204,7 +2204,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     edit.NewNode,
                                     newSymbol,
                                     newModel,
-                                    isConstructorWithMemberInitializers, 
+                                    isConstructorWithMemberInitializers,
                                     ref syntaxMapOpt,
                                     ref instanceConstructorEdits,
                                     ref staticConstructorEdits,
@@ -2231,7 +2231,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     case EditKind.Update:
                         {
                             editKind = SemanticEditKind.Update;
-                            
+
                             newSymbol = GetSymbolForEdit(newModel, edit.NewNode, edit.Kind, editMap, cancellationToken);
                             if (newSymbol == null)
                             {
@@ -2248,15 +2248,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                 bool newBodyHasLambdas;
                                 ReportLambdaAndClosureRudeEdits(
-                                    oldModel, 
+                                    oldModel,
                                     updatedMember.OldBody,
                                     oldSymbol,
-                                    newModel, 
+                                    newModel,
                                     updatedMember.NewBody,
-                                    newSymbol, 
-                                    updatedMember.ActiveOrMatchedLambdasOpt, 
-                                    updatedMember.Map, 
-                                    diagnostics, 
+                                    newSymbol,
+                                    updatedMember.ActiveOrMatchedLambdasOpt,
+                                    updatedMember.Map,
+                                    diagnostics,
                                     out newBodyHasLambdas,
                                     cancellationToken);
 
@@ -2287,8 +2287,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // If a constructor changes from including initializers to not including initializers
                             // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
                             bool isConstructorWithMemberInitializers;
-                            if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) || 
-                                IsDeclarationWithInitializer(edit.OldNode) || 
+                            if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.NewNode)) ||
+                                IsDeclarationWithInitializer(edit.OldNode) ||
                                 IsDeclarationWithInitializer(edit.NewNode))
                             {
                                 if (DeferConstructorEdit(
@@ -2300,7 +2300,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     newModel,
                                     isConstructorWithMemberInitializers,
                                     ref syntaxMapOpt,
-                                    ref instanceConstructorEdits, 
+                                    ref instanceConstructorEdits,
                                     ref staticConstructorEdits,
                                     diagnostics,
                                     cancellationToken))
@@ -2342,20 +2342,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(IsDeclarationWithInitializer(edit.Key) == IsDeclarationWithInitializer(edit.Value));
 
                 bool isConstructorWithMemberInitializers;
-                if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.Value)) || 
+                if ((isConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(edit.Value)) ||
                     IsDeclarationWithInitializer(edit.Value))
                 {
                     if (DeferConstructorEdit(
-                        oldSymbol.ContainingType, 
+                        oldSymbol.ContainingType,
                         newSymbol.ContainingType,
                         SemanticEditKind.Update,
                         edit.Value,
-                        newSymbol, 
+                        newSymbol,
                         newModel,
                         isConstructorWithMemberInitializers,
-                        ref syntaxMap, 
-                        ref instanceConstructorEdits, 
-                        ref staticConstructorEdits, 
+                        ref syntaxMap,
+                        ref instanceConstructorEdits,
+                        ref staticConstructorEdits,
                         diagnostics,
                         cancellationToken))
                     {
@@ -2776,13 +2776,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     //
                     // We will create an aggregate syntax map even in cases when we don't neccessarily need it,
                     // for example if none of the edited declarations are active. It's ok to have a map that we don't need.
-                    var aggregateSyntaxMap = (oldCtor != null && update.ChangedDeclarations.Count > 0) ? 
+                    var aggregateSyntaxMap = (oldCtor != null && update.ChangedDeclarations.Count > 0) ?
                         CreateAggregateSyntaxMap(topMatch.ReverseMatches, update.ChangedDeclarations) : null;
 
                     semanticEdits.Add(new SemanticEdit(
-                        (oldCtor == null) ? SemanticEditKind.Insert : SemanticEditKind.Update, 
-                        oldCtor, 
-                        newCtor, 
+                        (oldCtor == null) ? SemanticEditKind.Insert : SemanticEditKind.Update,
+                        oldCtor,
+                        newCtor,
                         aggregateSyntaxMap,
                         preserveLocalVariables: aggregateSyntaxMap != null));
                 }
@@ -2806,7 +2806,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var member in type.GetMembers())
             {
-                if (member.IsStatic == isStatic && 
+                if (member.IsStatic == isStatic &&
                     (member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property) &&
                     member.DeclaringSyntaxReferences.Length > 0) // skip generated fields (e.g. VB auto-property backing fields)
                 {
@@ -2890,7 +2890,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             newQueryClause,
                             new[] { GetStatementDisplayName(newQueryClause, EditKind.Update) }));
                     }
-                    
+
                     lazyNewErroneousClauses.Free();
                     anySignatureErrors = true;
                 }
@@ -2910,7 +2910,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // { new capture index -> old capture index }
             var reverseCapturesMap = ArrayBuilder<int>.GetInstance(newCaptures.Length, 0);
-            
+
             // { new capture index -> new closure scope or null for "this" }
             var newCapturesToClosureScopes = ArrayBuilder<SyntaxNode>.GetInstance(newCaptures.Length, null);
 
@@ -3079,11 +3079,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         private void ReportMultiScopeCaptures(
-            SyntaxNode lambdaBody, 
+            SyntaxNode lambdaBody,
             SemanticModel model,
-            ImmutableArray<ISymbol> captures, 
-            ImmutableArray<ISymbol> newCaptures, 
-            ArrayBuilder<SyntaxNode> newCapturesToClosureScopes, 
+            ImmutableArray<ISymbol> captures,
+            ImmutableArray<ISymbol> newCaptures,
+            ArrayBuilder<SyntaxNode> newCapturesToClosureScopes,
             PooledDictionary<ISymbol, int> capturesIndex,
             ArrayBuilder<int> reverseCapturesMap,
             List<RudeEditDiagnostic> diagnostics,
@@ -3153,7 +3153,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 MarkVariables(ref result, dataFlow.ReadInside, capturesIndex);
                 MarkVariables(ref result, dataFlow.WrittenInside, capturesIndex);
             }
-            
+
             return result;
         }
 
@@ -3247,7 +3247,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void CalculateCapturedVariablesMaps(
             SemanticModel oldModel,
-            ImmutableArray<ISymbol> oldCaptures, 
+            ImmutableArray<ISymbol> oldCaptures,
             ISymbol oldMember,
             SyntaxNode oldMemberBody,
             SemanticModel newModel,
@@ -3294,7 +3294,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             //   closure scopes in the new version to the previous ones, keeping empty closures around.
 
             var oldLocalCapturesBySyntax = PooledDictionary<SyntaxNode, int>.GetInstance();
-            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<ValueTuple<SyntaxNode, int>, int>.GetInstance(); 
+            var oldParameterCapturesByLambdaAndOrdinal = PooledDictionary<ValueTuple<SyntaxNode, int>, int>.GetInstance();
 
             for (int i = 0; i < oldCaptures.Length; i++)
             {
@@ -3525,7 +3525,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
-            List<RudeEditDiagnostic> diagnostics, 
+            List<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
@@ -3550,7 +3550,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 rudeEdit = RudeEditKind.ChangingLambdaParameters;
             }
-            else if (!s_assemblyEqualityComparer.ReturnTypeEquals(oldLambdaSymbol, newLambdaSymbol)) 
+            else if (!s_assemblyEqualityComparer.ReturnTypeEquals(oldLambdaSymbol, newLambdaSymbol))
             {
                 rudeEdit = RudeEditKind.ChangingLambdaReturnType;
             }

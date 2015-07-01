@@ -179,7 +179,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // make sure p2p reference doesnt go to implicit cache
             CollectGarbage();
             Assert.False(weak.IsAlive);
-
         }
 
         [Fact]

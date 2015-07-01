@@ -399,7 +399,7 @@ Imports System
 #End Region
 
         <WorkItem(632305)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
         Public Sub TestHiddenRegion()
             Dim code =
 <File>

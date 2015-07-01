@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return ImmutableSortedSet<int>.Empty;
             }
 
-            var constraintsBuilder = 
+            var constraintsBuilder =
                 new MethodContextReuseConstraints.Builder(methodContextReuseConstraints, ilOffset, areRangesEndInclusive: false);
 
             var scopesBuilder = ArrayBuilder<int>.GetInstance();

@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         internal static TokenRenameInfo GetTokenRenameInfo(
-            ISemanticFactsService semanticFacts, 
-            SemanticModel semanticModel, 
-            SyntaxToken token, 
+            ISemanticFactsService semanticFacts,
+            SemanticModel semanticModel,
+            SyntaxToken token,
             CancellationToken cancellationToken)
         {
             var symbol = semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken);

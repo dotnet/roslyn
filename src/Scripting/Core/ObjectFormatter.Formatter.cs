@@ -411,8 +411,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                         var setter = property.SetMethod;
 
                         // If not ignoring visibility include properties that has a visible getter or setter.
-                        if (!(includeNonPublic || ignoreVisibility || 
-                            getter.IsPublic || getter.IsFamily || getter.IsFamilyOrAssembly || 
+                        if (!(includeNonPublic || ignoreVisibility ||
+                            getter.IsPublic || getter.IsFamily || getter.IsFamilyOrAssembly ||
                             (setter != null && (setter.IsPublic || setter.IsFamily || setter.IsFamilyOrAssembly))))
                         {
                             continue;

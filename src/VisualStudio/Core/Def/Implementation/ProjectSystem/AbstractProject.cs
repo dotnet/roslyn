@@ -595,7 +595,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             visited.Add(this.Id);
 
-            foreach (var pr in this._projectReferences)
+            foreach (var pr in _projectReferences)
             {
                 if (projectId == pr.ProjectId)
                 {

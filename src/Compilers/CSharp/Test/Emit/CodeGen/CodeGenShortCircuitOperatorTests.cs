@@ -3418,7 +3418,7 @@ interface I1
 }
 ";
             var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
-            base.CompileAndVerify(comp, expectedOutput:"420");
+            base.CompileAndVerify(comp, expectedOutput: "420");
         }
 
         [Fact]
@@ -6842,6 +6842,5 @@ class C
 }
 ");
         }
-
     }
 }

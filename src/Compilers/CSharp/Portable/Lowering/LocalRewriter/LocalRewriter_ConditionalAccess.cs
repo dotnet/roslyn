@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
-            var currentConditionalAccessID = ++this._currentConditionalAccessID;
+            var currentConditionalAccessID = ++_currentConditionalAccessID;
 
             LocalSymbol temp = null;
             BoundExpression unconditionalAccess = null;
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
                     _currentConditionalAccessTarget = new BoundConditionalReceiver(
-                        loweredReceiver.Syntax, 
-                        currentConditionalAccessID, 
+                        loweredReceiver.Syntax,
+                        currentConditionalAccessID,
                         receiverType);
 
                     break;
@@ -136,12 +136,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
                     result = new BoundLoweredConditionalAccess(
-                        node.Syntax, 
+                        node.Syntax,
                         loweredReceiver,
                         receiverType.IsNullableType() ?
-                                 GetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue):
+                                 GetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :
                                  null,
-                        loweredAccessExpression, 
+                        loweredAccessExpression,
                         rewrittenWhenNull,
                         currentConditionalAccessID,
                         type);

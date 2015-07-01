@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// on between accesses. 
         /// </summary>
         internal static bool CanChangeValueBetweenReads(
-            BoundExpression expression, 
+            BoundExpression expression,
             bool localsMayBeAssignedOrCaptured = true)
         {
             if (expression.IsDefaultValue())
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Conversion:
                     var conv = (BoundConversion)expression;
-                    return conv.ConversionHasSideEffects() || 
+                    return conv.ConversionHasSideEffects() ||
                         ReadIsSideeffecting(conv.Operand);
 
                 case BoundKind.ObjectCreationExpression:

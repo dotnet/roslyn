@@ -296,7 +296,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // but if the entering break mode fails for some projects we should avoid leaking the solution.
                 Debug.Assert(s_breakStateEntrySolution == null);
                 s_breakStateEntrySolution = null;
-                
+
                 // EnC service is global (per solution), but the debugger calls this for each project.
                 // Avoid ending the debug session if it has already been ended.
                 if (_encService.DebuggingSession != null)

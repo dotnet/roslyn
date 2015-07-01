@@ -55,7 +55,6 @@ namespace System.Runtime.InteropServices.Analyzers
                                                          async ct => await FixDeclareStatement(context.Document, node, ct).ConfigureAwait(false)),
                                         diagnostic);
             }
-
         }
 
         protected abstract bool IsAttribute(SyntaxNode node);
@@ -99,7 +98,7 @@ namespace System.Runtime.InteropServices.Analyzers
                 // [MarshalAs] attribute, replace the only argument
                 var newArgument = generator.AttributeArgument(
                                         generator.MemberAccessExpression(
-                                            generator.TypeExpression(unmanagedType), 
+                                            generator.TypeExpression(unmanagedType),
                                             generator.IdentifierName(LPWStrText)));
 
                 editor.ReplaceNode(arguments[0], newArgument);

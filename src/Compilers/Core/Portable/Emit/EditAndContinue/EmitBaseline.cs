@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
         internal MetadataSymbols LazyMetadataSymbols;
-        
+
         internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.StringStreamLengthAdded = stringStreamLengthAdded;
             this.UserStringStreamLengthAdded = userStringStreamLengthAdded;
             this.GuidStreamLengthAdded = guidStreamLengthAdded;
-            this._anonymousTypeMap = anonymousTypeMap;
+            _anonymousTypeMap = anonymousTypeMap;
             this.SynthesizedMembers = synthesizedMembers;
             this.AddedOrChangedMethods = methodsAddedOrChanged;
 

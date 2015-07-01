@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     //    word part. That way we don't match something like 'Class' when the user types 'a'.
                     //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
                     var wordSpans = GetWordSpans(candidate);
-                    for(int i = 0; i < wordSpans.Count; i++)
+                    for (int i = 0; i < wordSpans.Count; i++)
                     {
                         var span = wordSpans[i];
                         if (PartStartsWith(candidate, span, chunk.Text, CompareOptions.IgnoreCase))

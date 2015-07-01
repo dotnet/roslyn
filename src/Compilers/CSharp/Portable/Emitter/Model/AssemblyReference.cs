@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class AssemblyReference : Cci.IAssemblyReference
     {
-
         // assembly symbol that represents the target assembly:
         private readonly AssemblySymbol _targetAssembly;
 

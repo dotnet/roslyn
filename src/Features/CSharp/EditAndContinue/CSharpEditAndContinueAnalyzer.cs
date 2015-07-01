@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    from node in root.DescendantNodesAndSelf()
                    where node.IsKind(SyntaxKind.IdentifierName)
                    let nameSyntax = (IdentifierNameSyntax)node
-                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name && 
+                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name &&
                          (model.GetSymbolInfo(nameSyntax, cancellationToken).Symbol?.Equals(localOrParameter) ?? false)
                    select node;
         }
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
         {
-            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) && 
+            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) &&
                    SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
         }
 

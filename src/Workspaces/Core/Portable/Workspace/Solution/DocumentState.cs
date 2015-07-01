@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this._languageServices.SyntaxTreeFactory != null;
+                return _languageServices.SyntaxTreeFactory != null;
             }
         }
 

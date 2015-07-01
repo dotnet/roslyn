@@ -694,7 +694,7 @@ End Module
         End Sub
 
         <WorkItem(607862)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
         Public Sub ParenthesizeToKeepParseTheSame2()
             Dim markup =
 <File>

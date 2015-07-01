@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 if (analyzer != null)
                 {
                     compilationContext.RegisterSymbolAction(c => analyzer.AnalyzeSymbol(c), SymbolKind.NamedType);
-                }                
+                }
             });
         }
 

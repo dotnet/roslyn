@@ -177,6 +177,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             return _dependencyCheckingService;
         }
-
     }
 }

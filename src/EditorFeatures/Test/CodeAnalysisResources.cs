@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis
     {
         public static string InMemoryAssembly => GetString("InMemoryAssembly");
 
-        private static ResourceManager _codeAnalysisResourceManager;
+        private static ResourceManager s_codeAnalysisResourceManager;
 
         private static string GetString(string resourceName)
         {
-            if (_codeAnalysisResourceManager == null)
+            if (s_codeAnalysisResourceManager == null)
             {
-                _codeAnalysisResourceManager = new ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(Compilation).Assembly);
+                s_codeAnalysisResourceManager = new ResourceManager("Microsoft.CodeAnalysis.CodeAnalysisResources", typeof(Compilation).Assembly);
             }
 
-            return _codeAnalysisResourceManager.GetString(resourceName);
+            return s_codeAnalysisResourceManager.GetString(resourceName);
         }
     }
 }

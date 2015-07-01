@@ -114,6 +114,5 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 project1.Disconnect();
             }
         }
-
     }
 }

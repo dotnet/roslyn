@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
             }
 
-#region Versions
+            #region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis
 
                 return version;
             }
-#endregion
+            #endregion
         }
     }
 }

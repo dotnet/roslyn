@@ -167,7 +167,6 @@ public class MyAttribute : Attribute { public MyAttribute(int[] values) { } }",
 public class MyAttribute : Attribute { public int Value {get; set;} }",
 @"[MyAttribute(Value = 123)]")),
 @"[global::MyAttribute(Value = 123)]");
-
         }
 
         private AttributeData GetAttributeData(string decl, string use)
@@ -638,9 +637,9 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 _g.VoidReturningLambdaExpression(new[] { _g.LambdaParameter("x", _g.IdentifierName("y")), _g.LambdaParameter("a", _g.IdentifierName("b")) }, _g.IdentifierName("z")),
                 "(y x, b a) => z");
         }
-#endregion
+        #endregion
 
-#region Declarations
+        #region Declarations
         [Fact]
         public void TestFieldDeclarations()
         {
@@ -1494,9 +1493,9 @@ public class C { } // end").Members[0];
     }
 }");
         }
-#endregion
+        #endregion
 
-#region Add/Insert/Remove/Get declarations & members/elements
+        #region Add/Insert/Remove/Get declarations & members/elements
 
         private void AssertNamesEqual(string[] expectedNames, IEnumerable<SyntaxNode> actualNodes)
         {

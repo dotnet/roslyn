@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private class InprogressState
         {
-            private readonly ExternalErrorDiagnosticUpdateSource owner;
+            private readonly ExternalErrorDiagnosticUpdateSource _owner;
 
             private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
             private readonly Dictionary<ProjectId, HashSet<DiagnosticData>> _projectMap = new Dictionary<ProjectId, HashSet<DiagnosticData>>();
@@ -391,17 +391,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public InprogressState(ExternalErrorDiagnosticUpdateSource owner)
             {
-                this.owner = owner;
+                _owner = owner;
 
                 // let people know build has started
                 // TODO: to be more accurate, it probably needs to be counted. but for now,
                 //       I think the way it is doing probably enough.
-                this.owner.RaiseBuildStarted(started: true);
+                _owner.RaiseBuildStarted(started: true);
             }
 
             public void Done()
             {
-                this.owner.RaiseBuildStarted(started: false);
+                _owner.RaiseBuildStarted(started: false);
             }
 
             public ImmutableArray<DiagnosticData> GetBuildDiagnostics()

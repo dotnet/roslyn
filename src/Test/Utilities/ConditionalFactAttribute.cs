@@ -45,7 +45,7 @@ namespace Roslyn.Test.Utilities
         // Mono lists certain methods in a different order than the CLR.  For example
         // Equals, GetHashCode, ToString, etc ... which breaks our tests which hard
         // code the order. 
-        MemberOrder, 
+        MemberOrder,
 
         // Can't emit a PDB.
         Pdb,
@@ -77,7 +77,7 @@ namespace Roslyn.Test.Utilities
         }
 
         private static string GetSkipReason(ClrOnlyReason reason)
-        { 
+        {
             switch (reason)
             {
                 case ClrOnlyReason.Ilasm:
