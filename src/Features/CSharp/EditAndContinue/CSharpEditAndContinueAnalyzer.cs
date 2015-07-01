@@ -2889,7 +2889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var oldContainingStatementPart = FindContainingStatementPart(oldNode);
                 var newContainingStatementPart = FindContainingStatementPart(newNode);
 
-                // If the old statememnt has spilled state and the new doesn't the edit is ok. We'll just not use the spilled state.
+                // If the old statement has spilled state and the new doesn't the edit is ok. We'll just not use the spilled state.
                 if (!SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) &&
                     !HasNoSpilledState(newNode, newContainingStatementPart))
                 {

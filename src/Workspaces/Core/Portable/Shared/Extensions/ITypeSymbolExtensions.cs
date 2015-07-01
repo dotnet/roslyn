@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
 
-        public static bool IsUnexpressableTypeParameterConstraint(this ITypeSymbol typeSymbol)
+        public static bool IsUnexpressibleTypeParameterConstraint(this ITypeSymbol typeSymbol)
         {
             if (typeSymbol.IsSealed || typeSymbol.IsValueType)
             {

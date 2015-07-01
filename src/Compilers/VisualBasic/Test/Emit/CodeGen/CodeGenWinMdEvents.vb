@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact()>
-        Public Sub MissingReferences_SyntehesizedAccessors()
+        Public Sub MissingReferences_SynthesizedAccessors()
             Dim source =
                 <compilation name="MissingReferences">
                     <file name="a.vb">

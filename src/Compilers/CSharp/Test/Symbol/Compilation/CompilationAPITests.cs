@@ -347,7 +347,7 @@ namespace A.B {
 
             Assert.Empty(comp.GetDiagnostics());
 
-            // use exported type witl partial alias
+            // use exported type with partial alias
             comp = CSharpCompilation.Create("APP1",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(

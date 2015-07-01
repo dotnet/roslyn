@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // call "TryExecuteTask" on this task above *and* we allow another "Wait"ing thread to 
             // execute it, the TPL ensures that only one will ever get a go.  And, since we have no
             // ordering guarantees (or other constraints) we're happy to let some other thread try
-            // to execute this task.  It means less work for us, and it makes that other thred not
+            // to execute this task.  It means less work for us, and it makes that other thread not
             // be blocked.
             return this.TryExecuteTask(task);
         }

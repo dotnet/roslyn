@@ -8,7 +8,7 @@ namespace Roslyn.SyntaxVisualizer.Control
 {
     public static class SyntaxKindHelper
     {
-        // Helpers that return the language-sepcific (C# / VB) SyntaxKind of a language-agnostic
+        // Helpers that return the language-specific (C# / VB) SyntaxKind of a language-agnostic
         // SyntaxNode / SyntaxToken / SyntaxTrivia.
 
         public static string GetKind(this SyntaxNodeOrToken nodeOrToken)

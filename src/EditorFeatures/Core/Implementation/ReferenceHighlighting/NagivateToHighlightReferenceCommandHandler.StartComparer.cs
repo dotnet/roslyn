@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
-    internal partial class NagivateToHighlightReferenceCommandHandler
+    internal partial class NavigateToHighlightReferenceCommandHandler
     {
         private class StartComparer : IComparer<SnapshotSpan>
         {

@@ -2160,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = targetType.GetDelegateType();
 
-            // The target type is a vaid delegate or expression tree type. Is there something wrong with the 
+            // The target type is a valid delegate or expression tree type. Is there something wrong with the 
             // parameter list?
 
             // First off, is there a parameter list at all?

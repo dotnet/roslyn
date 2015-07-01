@@ -540,7 +540,7 @@ Microsoft.CodeAnalysis.Project.Solution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Project.SupportsCompilation.get -> bool
 Microsoft.CodeAnalysis.Project.TryGetCompilation(out Microsoft.CodeAnalysis.Compilation compilation) -> bool
 Microsoft.CodeAnalysis.Project.Version.get -> Microsoft.CodeAnalysis.VersionStamp
-Microsoft.CodeAnalysis.Project.WithAnalyzerReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferencs) -> Microsoft.CodeAnalysis.Project
+Microsoft.CodeAnalysis.Project.WithAnalyzerReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithAssemblyName(string assemblyName) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithCompilationOptions(Microsoft.CodeAnalysis.CompilationOptions options) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Project.WithMetadataReferences(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences) -> Microsoft.CodeAnalysis.Project

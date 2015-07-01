@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         [Fact]
         [WorkItem(544296)]
-        public void BreakIntoWordParts_VarbatimIdentifier()
+        public void BreakIntoWordParts_VerbatimIdentifier()
         {
             VerifyBreakIntoWordParts("@int:", "int");
         }

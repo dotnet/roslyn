@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' // Even though # is valid in content, abort xml scanning if the m_State shows and error
                         ' // and the line begins with NL WS* # WS* KW
 
-                        'TODO: error recovery - how can we do ths?
+                        'TODO: error recovery - how can we do this?
 
                         'If m_State.m_IsXmlError Then
                         '    MakeXmlCharToken(tokens.tkXmlCharData, Here - m_InputStreamPosition, IsAllWhitespace)

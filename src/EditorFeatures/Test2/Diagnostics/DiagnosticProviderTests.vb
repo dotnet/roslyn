@@ -310,7 +310,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
             Dim snapshot = workspace.CurrentSolution
 
-            Dim notificationServie = New TestForegroundNotificationService()
+            Dim notificationService = New TestForegroundNotificationService()
 
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))

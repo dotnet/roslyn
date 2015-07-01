@@ -4775,7 +4775,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PeopertyUpdate_InstanceCtorInsertExplicit()
+        Public Sub PropertyUpdate_InstanceCtorInsertExplicit()
             Dim src1 = "Class C : Private Property a As Integer : End Class"
             Dim src2 = "Class C : Private Property a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)

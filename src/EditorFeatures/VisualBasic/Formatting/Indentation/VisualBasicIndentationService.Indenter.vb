@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                     Return GetIndentationOfLine(baseLine)
                 End If
 
-                ' if position is between "," and next token, consider the positon to be belonged to the list that
+                ' if position is between "," and next token, consider the position to be belonged to the list that
                 ' owns the ","
                 If IsCommaInParameters(token) AndAlso (token.Span.End <= position AndAlso position <= token.GetNextToken().SpanStart) Then
                     Return GetIndentationOfCurrentPosition(token, token.SpanStart)

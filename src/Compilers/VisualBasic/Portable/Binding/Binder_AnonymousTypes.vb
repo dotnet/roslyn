@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       In Roslyn we disable this functionality which is a breaking change in a sense,
                     '       but really should only affect a very few customers.
 
-                    ' TODO: revice and maybe report a special error message
+                    ' TODO: revise and maybe report a special error message
                 End If
 
                 ' NOTE: since we don't have the symbol of the anonymous type, we use 

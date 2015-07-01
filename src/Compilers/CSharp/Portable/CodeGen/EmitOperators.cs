@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if operator does not have sideeffects itself and is not shortcircuiting
-            // we can simply emit sideefects from the first operand and then from the second one
+            // we can simply emit sideeffects from the first operand and then from the second one
             if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
             {
                 EmitExpression(expression.Left, false);

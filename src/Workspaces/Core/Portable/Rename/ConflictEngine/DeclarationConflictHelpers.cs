@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         private static IEnumerable<List<ITypeSymbol>> GetAllSignatures(IMethodSymbol method, bool trimOptionalParameters)
         {
             // First we'll construct the full signature. This consists of the types of the
-            // parameters, as well as the reutrn type if it's a conversion operator
+            // parameters, as well as the return type if it's a conversion operator
             var signature = new List<ITypeSymbol>();
 
             if (method.MethodKind == MethodKind.Conversion)

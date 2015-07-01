@@ -564,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub StartStopSanity()
-            ' Verify that mutliple calls to start/stop don't blow up
+            ' Verify that multiple calls to start/stop don't blow up
             Using worker = SetupWorkspace("Public Class Foo", "End Class")
                 ' Do one query
                 Assert.Single(_aggregator.GetItems("Foo"))

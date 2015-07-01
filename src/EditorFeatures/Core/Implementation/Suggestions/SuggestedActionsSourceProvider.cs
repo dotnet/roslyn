@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return false;
                 }
 
-                using (var asyncToken = provider._listener.BeginAsyncOperation("HasSuggesetedActionsAsync"))
+                using (var asyncToken = provider._listener.BeginAsyncOperation("HasSuggestedActionsAsync"))
                 {
                     var documentAndSnapshot = await GetMatchingDocumentAndSnapshotAsync(range.Snapshot, cancellationToken).ConfigureAwait(false);
                     if (!documentAndSnapshot.HasValue)

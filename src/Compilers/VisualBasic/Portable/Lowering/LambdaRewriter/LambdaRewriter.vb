@@ -815,7 +815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             ' It needs to run before the exception variable is accessed.
-            ' To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffecs.
+            ' To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffects.
             If prologue.Count <> 0 Then
                 rewrittenExceptionSource = New BoundSequence(
                     rewrittenExceptionSource.Syntax,

@@ -6968,7 +6968,7 @@ class SampleCollection<T>
         }
 
         [Fact]
-        public void EventAccessorReoder3()
+        public void EventAccessorReorder3()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E2 { add { } remove { } } }";
             var src2 = "class C { event int E2 { remove { } add { } }    event int E1 { remove { } add { } } }";

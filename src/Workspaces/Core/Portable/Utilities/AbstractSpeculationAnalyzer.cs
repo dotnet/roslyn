@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             //     * A named argument matches a parameter that is in a different position
             //       in the two parameter lists.
             //
-            // After checking the specifed arguments, we walk the unspecified parameters
+            // After checking the specified arguments, we walk the unspecified parameters
             // in both parameter lists to ensure that they have matching default values.
 
             var specifiedParameters1 = new List<IParameterSymbol>();

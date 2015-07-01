@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenParameter, baseType, ref unusedUseSiteDiagnostics);
             Debug.Assert(unusedUseSiteDiagnostics == null || !conversion.IsValid || unusedUseSiteDiagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
 
-            // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwile to
+            // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwhile to
             // introduce a bunch of new overloads to accommodate isBaseConversion.
             return new BoundConversion(
                 syntax,

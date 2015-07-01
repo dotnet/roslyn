@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             ConnectHierarchyEvents();
 
-            SetIsWebstite(hierarchy);
+            SetIsWebsite(hierarchy);
         }
 
         private static string GetProjectType(IVsHierarchy hierarchy)
@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return Guid.Empty;
         }
 
-        private void SetIsWebstite(IVsHierarchy hierarchy)
+        private void SetIsWebsite(IVsHierarchy hierarchy)
         {
             EnvDTE.Project project;
             try
@@ -713,7 +713,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // It's possible this file is open in some very strange editor. In that case, we'll just ignore it.
                 // This might happen if somebody decides to mark a non-source-file as something to compile.
 
-                // TODO: Venus does this for .aspx/.cshtml files which is completely unecessary for Roslyn. We should remove that code.
+                // TODO: Venus does this for .aspx/.cshtml files which is completely unnecessary for Roslyn. We should remove that code.
                 AddUntrackedFile(filename);
                 return;
             }
@@ -1084,7 +1084,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // as a child of the root item. There is no such item in the 'visual' hierarchy in solution explorer and no such folder
                 // is present on disk either. Since this is not a real 'folder', we exclude it from the contents of Document.Folders.
                 // Note: The parent of the hierarchy item that contains < characher in its name is VSITEMID.Root. So we don't need to
-                // worry about accidental propogation out of the Shared project to any containing 'Solution' folders - the check for
+                // worry about accidental propagation out of the Shared project to any containing 'Solution' folders - the check for
                 // VSITEMID.Root below already takes care of that.
                 var name = (string)nameObj;
                 if (!name.StartsWith("<", StringComparison.OrdinalIgnoreCase))

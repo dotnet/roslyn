@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     }
 }
 
-// This is deliberately declared in the global namespace so that it will always be discoverable (regarless of usings).
+// This is deliberately declared in the global namespace so that it will always be discoverable (regardless of usings).
 internal static class Extensions
 {
     /// <summary>

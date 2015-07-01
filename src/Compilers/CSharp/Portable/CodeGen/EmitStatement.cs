@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // here we have our exception on the stack in a form of a reference type (O)
                 // it means that we have to "unbox" it before storing to the local 
-                // if exception's type is a generic type prameter.
+                // if exception's type is a generic type parameter.
                 if (!exceptionSourceOpt.Type.IsVerifierReference())
                 {
                     Debug.Assert(exceptionSourceOpt.Type.IsTypeParameter()); // only expecting type parameters

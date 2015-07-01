@@ -317,7 +317,7 @@ End Module
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsMoveToTopOfFile)>
-        Public Sub AttributePrserveTrivia()
+        Public Sub AttributePreserveTrivia()
             Dim text = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
 Module Program

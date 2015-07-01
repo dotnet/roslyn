@@ -1655,7 +1655,7 @@ public class C { } // end").Members[0];
         }
 
         [Fact]
-        public void TestWithtName()
+        public void TestWithName()
         {
             Assert.Equal("c", _g.GetName(_g.WithName(_g.ClassDeclaration("x"), "c")));
             Assert.Equal("s", _g.GetName(_g.WithName(_g.StructDeclaration("x"), "s")));

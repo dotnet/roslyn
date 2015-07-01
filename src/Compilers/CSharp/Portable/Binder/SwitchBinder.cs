@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (switchGoverningType.IsValidSwitchGoverningType())
                 {
-                    // Condition (1) satisified
+                    // Condition (1) satisfied
 
                     // Note: dev11 actually checks the stripped type, but nullable was introduced at the same
                     // time, so it doesn't really matter.
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(node, useSiteDiagnostics);
                     if (conversion.IsValid)
                     {
-                        // Condition (2) satisified
+                        // Condition (2) satisfied
                         Debug.Assert(conversion.Kind == ConversionKind.ImplicitUserDefined);
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);

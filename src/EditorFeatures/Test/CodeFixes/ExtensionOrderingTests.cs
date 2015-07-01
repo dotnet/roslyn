@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
         [Fact]
         public void TestNoCyclesInSuppressionProviders()
         {
-            // This test will fail if a cycle is detected in the ordering of our supppression fix providers.
+            // This test will fail if a cycle is detected in the ordering of our suppression fix providers.
             // If this test fails, you can break the cycle by inspecting and fixing up the contents of
             // any [ExtensionOrder()] attributes present on our suppression fix providers.
             var providers = _exportProvider.GetExports<ISuppressionFixProvider, CodeChangeProviderMetadata>();

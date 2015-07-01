@@ -2255,7 +2255,7 @@ class C
                 // using ZBad = N.SBad;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ZBad = N.SBad;"));
 
-            // Usings of embedded types are currently ommitted:
+            // Usings of embedded types are currently omitted:
             v.VerifyPdb("C.M", @"
 <symbols>
   <methods>

@@ -665,7 +665,7 @@ TryAgain:
                     Dim receiver As ExpressionSyntax = If(memberAccess.Expression, PopAndGetConditionalAccessReceiver(conditionalAccessStack))
 
                     If input.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        ' See if this is an identifier qualifed with XmlElementAccessExpression or XmlDescendantAccessExpression
+                        ' See if this is an identifier qualified with XmlElementAccessExpression or XmlDescendantAccessExpression
                         If receiver IsNot Nothing Then
                             Select Case receiver.Kind
                                 Case SyntaxKind.XmlElementAccessExpression,
