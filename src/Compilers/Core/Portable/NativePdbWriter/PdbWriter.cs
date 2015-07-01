@@ -136,7 +136,7 @@ namespace Microsoft.Cci
 
         public void LogArgument(string data)
         {
-            _logData.WriteString(data);
+            _logData.WriteUTF8(data);
             MaybeFlush();
         }
 
@@ -176,18 +176,24 @@ namespace Microsoft.Cci
 
         public void LogArgument(object data)
         {
-            if (data is Decimal)
+            string str;
+            if (data is decimal)
             {
-                LogArgument(Decimal.GetBits((Decimal)data));
+                LogArgument(decimal.GetBits((decimal)data));
             }
             else if (data is DateTime)
             {
                 LogArgument(((DateTime)data).ToBinary());
             }
+            else if ((str = data as string) != null)
+            {
+                LogArgument(str);
+            }
             else
             {
-                _logData.WriteConstantValueBlob(data);
+                _logData.WriteConstant(data);
             }
+
             MaybeFlush();
         }
     }

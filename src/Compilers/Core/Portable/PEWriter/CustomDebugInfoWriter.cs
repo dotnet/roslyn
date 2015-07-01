@@ -170,14 +170,15 @@ namespace Microsoft.Cci
         {
             if (iteratorClassName == null) return;
             MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata, unicode: true);
+            BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardIterator);
             cmw.Align(4);
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
             cmw.WriteUint(length);
-            cmw.WriteString(iteratorClassName, emitNullTerminator: true);
+            cmw.WriteUTF16(iteratorClassName);
+            cmw.WriteShort(0);
             cmw.Align(4);
             Debug.Assert(customMetadata.Position == length);
             customDebugInfo.Add(customMetadata);
@@ -251,7 +252,7 @@ namespace Microsoft.Cci
 
             const int blobSize = 200;//DynamicAttribute - 64, DynamicAttributeLength - 4, SlotIndex -4, IdentifierName - 128
             MemoryStream customMetadata = new MemoryStream();
-            BinaryWriter cmw = new BinaryWriter(customMetadata, true);
+            BinaryWriter cmw = new BinaryWriter(customMetadata);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindDynamicLocals);
             cmw.Align(4);
@@ -300,7 +301,7 @@ namespace Microsoft.Cci
 
                 char[] localName = new char[64];
                 local.Name.CopyTo(0, localName, 0, local.Name.Length);
-                cmw.WriteChars(localName);
+                cmw.WriteUTF16(localName);
 
                 localIndex++;
             }

@@ -4556,7 +4556,7 @@ namespace Microsoft.Cci
                         this.SerializeTypeReference(namedArgument.Type, writer, true, true);
                     }
 
-                    writer.WriteString(namedArgument.ArgumentName, emitNullTerminator: false);
+                    writer.WriteSerializedString(namedArgument.ArgumentName);
 
                     this.SerializeMetadataExpression(writer, namedArgument.ArgumentValue, namedArgument.Type);
                 }
@@ -4620,16 +4620,16 @@ namespace Microsoft.Cci
                     }
                     else if (c.Type.TypeCode(Context) == PrimitiveTypeCode.String)
                     {
-                        writer.WriteString((string)c.Value);
+                        writer.WriteSerializedString((string)c.Value);
                     }
                     else if (this.module.IsPlatformType(c.Type, PlatformType.SystemType))
                     {
                         Debug.Assert(c.Value == null);
-                        writer.WriteByte(0xFF); // null string
+                        writer.WriteSerializedString(null);
                     }
                     else
                     {
-                        writer.WriteConstantValueBlob(c.Value);
+                        writer.WriteConstant(c.Value);
                     }
                 }
                 else
@@ -4673,7 +4673,7 @@ namespace Microsoft.Cci
                     }
                     else if (marshaller != null)
                     {
-                        writer.WriteString((string)marshaller, emitNullTerminator: false);
+                        writer.WriteSerializedString((string)marshaller);
                     }
                     else
                     {
@@ -4683,7 +4683,7 @@ namespace Microsoft.Cci
                     var arg = marshallingInformation.CustomMarshallerRuntimeArgument;
                     if (arg != null)
                     {
-                        writer.WriteString(arg, emitNullTerminator: false);
+                        writer.WriteSerializedString(arg);
                     }
                     else
                     {
@@ -4744,7 +4744,7 @@ namespace Microsoft.Cci
 
         private void SerializeTypeName(ITypeReference typeReference, BinaryWriter writer)
         {
-            writer.WriteString(typeReference.GetSerializedTypeName(this.Context), emitNullTerminator: false);
+            writer.WriteSerializedString(typeReference.GetSerializedTypeName(this.Context));
         }
 
         /// <summary>
@@ -4812,7 +4812,7 @@ namespace Microsoft.Cci
                     }
                 }
 
-                writer.WriteString(typeName, emitNullTerminator: false);
+                writer.WriteSerializedString(typeName);
                 BinaryWriter customAttributeWriter = new BinaryWriter(new MemoryStream());
                 this.SerializeCustomAttributeSignature(customAttribute, true, customAttributeWriter);
                 writer.WriteCompressedUInt(customAttributeWriter.BaseStream.Length);

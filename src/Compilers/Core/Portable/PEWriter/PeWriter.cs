@@ -858,7 +858,7 @@ namespace Microsoft.Cci
             }
 
             MemoryStream stream = MemoryStream.GetInstance();
-            BinaryWriter dataWriter = new BinaryWriter(stream, true);
+            BinaryWriter dataWriter = new BinaryWriter(stream);
 
             //'dataWriter' is where opaque resource data goes as well as strings that are used as type or name identifiers
             this.WriteDirectory(typeDirectory, _win32ResourceWriter, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
@@ -937,7 +937,7 @@ namespace Microsoft.Cci
 
                     writer.WriteUint(nameOffset | 0x80000000);
                     dataWriter.WriteUshort((ushort)name.Length);
-                    dataWriter.WriteChars(name.ToCharArray());  // REVIEW: what happens if the name contains chars that do not fit into a single utf8 code point?
+                    dataWriter.WriteUTF16(name);
                 }
 
                 if (subDir != null)
@@ -1463,7 +1463,8 @@ namespace Microsoft.Cci
             writer.WriteUint(PdbWriter.Age);
 
             // UTF-8 encoded zero-terminated path to PDB
-            writer.WriteString(_pdbPathOpt, emitNullTerminator: true);
+            writer.WriteUTF8(_pdbPathOpt);
+            writer.WriteByte(0);
 
             writer.BaseStream.WriteTo(peStream);
             stream.Free();

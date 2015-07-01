@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -12,18 +13,10 @@ namespace Microsoft.Cci
     internal struct BinaryWriter
     {
         internal readonly MemoryStream BaseStream;
-        private readonly bool _utf8;
 
         internal BinaryWriter(MemoryStream output)
         {
             this.BaseStream = output;
-            _utf8 = true;
-        }
-
-        internal BinaryWriter(MemoryStream output, bool unicode)
-        {
-            this.BaseStream = output;
-            _utf8 = !unicode;
         }
 
         public bool IsDefault => BaseStream == null;
@@ -116,54 +109,6 @@ namespace Microsoft.Cci
             while (i < end)
             {
                 m.Buffer[i++] = value;
-            }
-        }
-
-        internal void WriteChars(char[] chars)
-        {
-            if (chars == null)
-            {
-                return;
-            }
-
-            Debug.Assert(!_utf8, "WriteChars has a problem with unmatched surrogate pairs and does not support writing utf8");
-
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-
-            m.Position = i + (uint)chars.Length * 2;
-            byte[] buffer = m.Buffer;
-            for (int j = 0; j < chars.Length; j++, i += 2)
-            {
-                char ch = chars[j];
-                unchecked
-                {
-                    buffer[i] = (byte)ch;
-                    buffer[i + 1] = (byte)(ch >> 8);
-                }
-            }
-        }
-
-        internal void WriteStringUtf16LE(string str)
-        {
-            if (str == null)
-            {
-                return;
-            }
-
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-
-            m.Position = i + (uint)str.Length * 2;
-            byte[] buffer = m.Buffer;
-            for (int j = 0; j < str.Length; j++, i += 2)
-            {
-                char ch = str[j];
-                unchecked
-                {
-                    buffer[i] = (byte)ch;
-                    buffer[i + 1] = (byte)(ch >> 8);
-                }
             }
         }
 
@@ -332,58 +277,103 @@ namespace Microsoft.Cci
             }
         }
 
-        internal void WriteString(string str)
+        /// <summary>
+        /// Writes UTF16 (little-endian) encoded string at the current position.
+        /// </summary>
+        public void WriteUTF16(char[] value)
         {
-            this.WriteString(str, false);
-        }
+            Debug.Assert(BitConverter.IsLittleEndian);
 
-        internal void WriteString(string str, bool emitNullTerminator)
-        {
-            if (str == null)
+            if (value == null)
             {
-                this.WriteByte(0xff);
                 return;
-            }
-
-            int n = str.Length;
-            uint size = _utf8 ? GetUTF8ByteCount(str) : (uint)n * 2;
-            if (emitNullTerminator)
-            {
-                // No size recorded for null-terminated strings.
-                //this.WriteUint(size);
-            }
-            else
-            {
-                this.WriteCompressedUInt(size);
             }
 
             MemoryStream m = this.BaseStream;
+            int size = value.Length * sizeof(char);
             uint i = m.Position;
-            if (_utf8)
+            m.Position = i + (uint)size;
+            Buffer.BlockCopy(value, 0, m.Buffer, (int)i, size);
+        }
+
+        /// <summary>
+        /// Writes UTF16 (little-endian) encoded string at the current position.
+        /// </summary>
+        public unsafe void WriteUTF16(string value)
+        {
+            Debug.Assert(BitConverter.IsLittleEndian);
+
+            if (value == null)
             {
-                m.Position = i + (uint)n;
-                byte[] buffer = m.Buffer;
-                for (int j = 0; j < n; j++)
-                {
-                    char ch = str[j];
-                    if (ch >= 0x80)
-                    {
-                        goto writeUTF8;
-                    }
-
-                    buffer[i++] = unchecked((byte)ch);
-                }
-
-                if (emitNullTerminator)
-                {
-                    m.Position = i + 1;
-                    buffer = m.Buffer;
-                    buffer[i] = 0;
-                }
-
                 return;
-            writeUTF8:
-                for (int j = n - (int)(m.Position - i); j < n; j++)
+            }
+
+            MemoryStream m = this.BaseStream;
+            int size = value.Length * sizeof(char);
+            uint i = m.Position;
+            m.Position = i + (uint)size;
+
+            fixed (char* ptr = value)
+            {
+                Marshal.Copy((IntPtr)ptr, m.Buffer, (int)i, size);
+            }
+        }
+
+        /// <summary>
+        /// Writes string in SerString format (see ECMA-335-II 23.3 Custom attributes): 
+        /// The string is UTF8 encoded and prefixed by the its size in bytes. 
+        /// Null string is represented as a single byte 0xFF.
+        /// </summary>
+        public void WriteSerializedString(string str)
+        {
+            if (str == null)
+            {
+                WriteByte(0xff);
+                return;
+            }
+
+            int byteCount = GetUTF8ByteCount(str);
+            WriteCompressedUInt((uint)byteCount);
+            WriteUTF8(str, byteCount);
+        }
+
+        internal void WriteString(string str, Encoding encoding)
+        {
+            MemoryStream m = this.BaseStream;
+            uint i = m.Position;
+            m.Position = i + (uint)encoding.GetByteCount(str);
+            encoding.GetBytes(str, 0, str.Length, m.Buffer, (int)i);
+        }
+
+        /// <summary>
+        /// Writes UTF8 encoded string at the current position.
+        /// </summary>
+        public void WriteUTF8(string str)
+        {
+            WriteUTF8(str, GetUTF8ByteCount(str));
+        }
+
+        // TODO: Use UTF8Encoding https://github.com/dotnet/corefx/issues/2217
+        public void WriteUTF8(string str, int byteCount)
+        {
+            Debug.Assert(byteCount >= str.Length);
+            MemoryStream m = this.BaseStream;
+
+            int i = (int)m.Position;
+            m.Position = (uint)(i + byteCount);
+            byte[] buffer = m.Buffer;
+
+            if (byteCount == str.Length)
+            {
+                for (int j = 0; j < str.Length; j++)
+                {
+                    Debug.Assert(str[j] <= 0x7f);
+                    buffer[i++] = unchecked((byte)str[j]);
+                }
+            }
+            else
+            {
+                for (int j = 0; j < str.Length; j++)
                 {
                     if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, j))
                     {
@@ -391,8 +381,6 @@ namespace Microsoft.Cci
                         int highSurrogate = str[j++];
                         int lowSurrogate = str[j];
                         int codepoint = (((highSurrogate - 0xd800) << 10) + lowSurrogate - 0xdc00) + 0x10000;
-                        m.Position = i + 4;
-                        buffer = m.Buffer;
                         buffer[i++] = (byte)(((codepoint >> 18) & 0x7) | 0xF0);
                         buffer[i++] = (byte)(((codepoint >> 12) & 0x3F) | 0x80);
                         buffer[i++] = (byte)(((codepoint >> 6) & 0x3F) | 0x80);
@@ -403,62 +391,74 @@ namespace Microsoft.Cci
                         char ch = str[j];
                         if (ch < 0x80)
                         {
-                            m.Position = i + 1;
-                            buffer = m.Buffer;
                             buffer[i++] = (byte)ch;
                         }
                         else if (ch < 0x800)
                         {
-                            m.Position = i + 2;
-                            buffer = m.Buffer;
                             buffer[i++] = (byte)(((ch >> 6) & 0x1F) | 0xC0);
                             buffer[i++] = (byte)((ch & 0x3F) | 0x80);
                         }
                         else
                         {
-                            m.Position = i + 3;
-                            buffer = m.Buffer;
                             buffer[i++] = (byte)(((ch >> 12) & 0xF) | 0xE0);
                             buffer[i++] = (byte)(((ch >> 6) & 0x3F) | 0x80);
                             buffer[i++] = (byte)((ch & 0x3F) | 0x80);
                         }
                     }
                 }
-
-                if (emitNullTerminator)
-                {
-                    m.Position = i + 1;
-                    buffer = m.Buffer;
-                    buffer[i] = 0;
-                }
-            }
-            else
-            {
-                m.Position = i + (uint)n * 2;
-                byte[] buffer = m.Buffer;
-                for (int j = 0; j < n; j++)
-                {
-                    char ch = str[j];
-                    buffer[i++] = (byte)ch;
-                    buffer[i++] = (byte)(ch >> 8);
-                }
-
-                if (emitNullTerminator)
-                {
-                    m.Position = i + 2;
-                    buffer = m.Buffer;
-                    buffer[i++] = 0;
-                    buffer[i] = 0;
-                }
             }
         }
 
-        internal void WriteString(string str, Encoding encoding)
+        internal static int GetUTF8ByteCount(string str)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + (uint)encoding.GetByteCount(str);
-            encoding.GetBytes(str, 0, str.Length, m.Buffer, (int)i);
+            int count = 0;
+            for (int i = 0; i < str.Length; i++)
+            {
+                if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, i))
+                {
+                    // High surrogate character followed by a Low surrogate character encoded specially.
+                    count += 4;
+                    i++;
+                }
+                else
+                {
+                    char ch = str[i];
+                    if (ch < 0x80)
+                    {
+                        count += 1;
+                    }
+                    else if (ch < 0x800)
+                    {
+                        count += 2;
+                    }
+                    else
+                    {
+                        count += 3;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private static bool IsHighSurrogateCharFollowedByLowSurrogateChar(string str, int index)
+        {
+            if (!IsHighSurrogateChar(str[index++]))
+            {
+                return false;
+            }
+
+            return index < str.Length && IsLowSurrogateChar(str[index]);
+        }
+
+        private static bool IsHighSurrogateChar(char ch)
+        {
+            return 0xD800 <= ch && ch <= 0xDBFF;
+        }
+
+        private static bool IsLowSurrogateChar(char ch)
+        {
+            return 0xDC00 <= ch && ch <= 0xDFFF;
         }
 
         /// <summary>
@@ -547,59 +547,10 @@ namespace Microsoft.Cci
             }
         }
 
-        internal static uint GetUTF8ByteCount(string str)
-        {
-            uint count = 0;
-            for (int i = 0, n = str.Length; i < n; i++)
-            {
-                if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, i))
-                {
-                    // High surrogate character followed by a Low surrogate character encoded specially.
-                    count += 4;
-                    i++;
-                }
-                else
-                {
-                    char ch = str[i];
-                    if (ch < 0x80)
-                    {
-                        count += 1;
-                    }
-                    else if (ch < 0x800)
-                    {
-                        count += 2;
-                    }
-                    else
-                    {
-                        count += 3;
-                    }
-                }
-            }
-
-            return count;
-        }
-
-        private static bool IsHighSurrogateCharFollowedByLowSurrogateChar(string str, int index)
-        {
-            if (!IsHighSurrogateChar(str[index++]))
-            {
-                return false;
-            }
-
-            return index < str.Length && IsLowSurrogateChar(str[index]);
-        }
-
-        private static bool IsHighSurrogateChar(char ch)
-        {
-            return 0xD800 <= ch && ch <= 0xDBFF;
-        }
-
-        private static bool IsLowSurrogateChar(char ch)
-        {
-            return 0xDC00 <= ch && ch <= 0xDFFF;
-        }
-
-        public void WriteConstantValueBlob(object value)
+        /// <summary>
+        /// Writes a constant value (see ECMA-335 Partition II section 22.9) at the current position.
+        /// </summary>
+        public void WriteConstant(object value)
         {
             if (value == null)
             {
@@ -624,7 +575,7 @@ namespace Microsoft.Cci
             }
             else if (type == typeof(string))
             {
-                WriteString((string)value);
+                WriteUTF16((string)value);
             }
             else if (type == typeof(byte))
             {

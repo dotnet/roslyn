@@ -33,7 +33,7 @@ namespace Microsoft.Cci
 
         // #US heap
         private readonly Dictionary<string, uint> _userStringIndex = new Dictionary<string, uint>();
-        private readonly BinaryWriter _userStringWriter = new BinaryWriter(new MemoryStream(1024), true);
+        private readonly BinaryWriter _userStringWriter = new BinaryWriter(new MemoryStream(1024));
         private readonly int _userStringIndexStartOffset;
 
         // #String heap
@@ -109,8 +109,8 @@ namespace Microsoft.Cci
             }
 
             MemoryStream sig = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(sig, true);
-            writer.WriteConstantValueBlob(value);
+            BinaryWriter writer = new BinaryWriter(sig);
+            writer.WriteConstant(value);
             return this.GetBlobIndex(sig);
         }
 
@@ -169,7 +169,7 @@ namespace Microsoft.Cci
         {
             fixed (byte* ptr = _blobWriter.BaseStream.Buffer)
             {
-                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.BaseStream.Length + (int)_blobIndexStartOffset - signatureOffset);
+                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.BaseStream.Length + _blobIndexStartOffset - signatureOffset);
                 int size;
                 bool isValid = reader.TryReadCompressedInteger(out size);
                 Debug.Assert(isValid);
@@ -208,7 +208,7 @@ namespace Microsoft.Cci
                 index = _userStringWriter.BaseStream.Position + (uint)_userStringIndexStartOffset;
                 _userStringIndex.Add(str, index);
                 _userStringWriter.WriteCompressedUInt((uint)str.Length * 2 + 1);
-                _userStringWriter.WriteStringUtf16LE(str);
+                _userStringWriter.WriteUTF16(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple
                 byte stringKind = 0;
@@ -301,7 +301,7 @@ namespace Microsoft.Cci
             _stringIndexMap[0] = 0;
 
             // Find strings that can be folded
-            string prev = String.Empty;
+            string prev = string.Empty;
             foreach (KeyValuePair<string, StringIdx> cur in sorted)
             {
                 uint position = _stringWriter.BaseStream.Position + (uint)_stringIndexStartOffset;
