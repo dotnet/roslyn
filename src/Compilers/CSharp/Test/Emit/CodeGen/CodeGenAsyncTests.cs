@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
-        private CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
+        private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             SynchronizationContext.SetSynchronizationContext(null);
 
-            var compilation = this.CreateCompilation(source, references: references, options: options);
+            var compilation = CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -3362,6 +3361,53 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
+        }
+
+        [Fact]
+        public void AwaitInScript()
+        {
+            var source =
+@"int x = await System.Threading.Tasks.Task.Run(() => 1);
+System.Console.WriteLine(x);";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (1,9): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
+                // int x = await System.Threading.Tasks.Task.Run(() => 1);
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.Run(() => 1)").WithLocation(1, 9));
+        }
+
+        [Fact]
+        public void AwaitInInteractive()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"static async System.Threading.Tasks.Task<int> F()
+{
+    return await System.Threading.Tasks.Task.FromResult(2);
+}";
+            var source1 =
+@"await F()";
+            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
+            var s1 = CSharpCompilation.CreateSubmission("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Interactive), references, previousSubmission: s0);
+            s1.VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// await should be disallowed in static field initializer
+        /// since the static initialization of the class should
+        /// complete before other members are used.
+        /// </summary>
+        [Fact(Skip = "Not handled")]
+        public void AwaitInStaticInitializer()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source =
+@"static int x = await System.Threading.Tasks.Task.FromResult(1);";
+            var compilation = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Interactive), references);
+            compilation.VerifyDiagnostics(
+                // (1,16): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
+                // static int x = await System.Threading.Tasks.Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(1, 16));
         }
     }
 }

@@ -209,8 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 default:
-                    Debug.Assert(false, "Unexpected member symbol kind: " + this.MemberSymbol.Kind);
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(this.MemberSymbol.Kind);
             }
         }
 

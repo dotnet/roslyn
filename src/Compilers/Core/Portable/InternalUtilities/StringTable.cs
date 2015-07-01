@@ -44,7 +44,7 @@ namespace Roslyn.Utilities
 
         // local (L1) cache
         // simple fast and not threadsafe cache 
-        // with lmited size and "last add wins" expiration policy
+        // with limited size and "last add wins" expiration policy
         //
         // The main purpose of the local cache is to use in long lived
         // single threaded operations with lots of locality (like parsing).
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         // the counter is not static to avoid interlocked operations and cross-thread traffic
         private int _localRandom = Environment.TickCount;
 
-        // same asabove but for users that go directly with unbuffered shared cache.
+        // same as above but for users that go directly with unbuffered shared cache.
         private static int s_sharedRandom = Environment.TickCount;
 
         internal StringTable() :
@@ -127,7 +127,7 @@ namespace Roslyn.Utilities
             string shared = FindSharedEntry(chars, start, len, hashCode);
             if (shared != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new Entry(...)
                 arr[idx].HashCode = hashCode;
@@ -161,7 +161,7 @@ namespace Roslyn.Utilities
             string shared = FindSharedEntry(chars, start, len, hashCode);
             if (shared != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new Entry(...)
                 arr[idx].HashCode = hashCode;
@@ -195,7 +195,7 @@ namespace Roslyn.Utilities
             string shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new Entry(...)
                 arr[idx].HashCode = hashCode;
@@ -229,7 +229,7 @@ namespace Roslyn.Utilities
             string shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new Entry(...)
                 arr[idx].HashCode = hashCode;
@@ -263,7 +263,7 @@ namespace Roslyn.Utilities
             string shared = FindSharedEntry(chars, hashCode);
             if (shared != null)
             {
-                // PERF: the following code does elementwise assignment of a struct
+                // PERF: the following code does element-wise assignment of a struct
                 //       because current JIT produces better code compared to
                 //       arr[idx] = new Entry(...)
                 arr[idx].HashCode = hashCode;
@@ -671,7 +671,7 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            // use array.Length to eliminate the rangecheck
+            // use array.Length to eliminate the range check
             for (var i = 0; i < array.Length; i++)
             {
                 if (array[i] != text[start + i])
@@ -735,7 +735,7 @@ namespace Roslyn.Utilities
 
         private static bool TextEqualsCore(string array, char[] text, int start)
         {
-            // use array.Length to eliminate the rangecheck
+            // use array.Length to eliminate the range check
             int s = start;
             for (var i = 0; i < array.Length; i++)
             {

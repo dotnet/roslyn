@@ -146,7 +146,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// The unmanaged type to which the managed type will be marshalled. This can be be UnmanagedType.CustomMarshaler, in which case the unmanaged type
+        /// The unmanaged type to which the managed type will be marshalled. This can be UnmanagedType.CustomMarshaler, in which case the unmanaged type
         /// is decided at runtime.
         /// </summary>
         System.Runtime.InteropServices.UnmanagedType UnmanagedType { get; }

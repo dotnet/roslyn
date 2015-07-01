@@ -22,16 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindAwait(BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            MethodSymbol getAwaiter = null;
-            PropertySymbol isCompleted = null;
-            MethodSymbol getResult = null;
+            MethodSymbol getAwaiter;
+            PropertySymbol isCompleted;
+            MethodSymbol getResult;
 
-            bool hasErrors = false;
-
-            hasErrors =
+            bool hasErrors =
                 ReportBadAwaitWithoutAsync(node, diagnostics) |
                 ReportBadAwaitContext(node, diagnostics) |
-                !GetAwaitableExpressionInfo(expression, ref getAwaiter, ref isCompleted, ref getResult, node, diagnostics);
+                !GetAwaitableExpressionInfo(expression, out getAwaiter, out isCompleted, out getResult, node, diagnostics);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
@@ -49,9 +47,50 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool CouldBeAwaited(BoundExpression expression)
         {
+            // If the expression doesn't have a type, just bail out now. Also,
+            // the dynamic type is always awaitable in an async method and
+            // could generate a lot of noise if we warned on it. Finally, we only want
+            // to warn on method calls, not other kinds of expressions.
+
+            if (expression.Kind != BoundKind.Call)
+            {
+                return false;
+            }
+
+            var type = expression.Type;
+            if (((object)type == null) ||
+                type.IsDynamic() ||
+                (type.SpecialType == SpecialType.System_Void))
+            {
+                return false;
+            }
+
+            var call = (BoundCall)expression;
+
+            // First check if the target method is async.
+            if ((object)call.Method != null && call.Method.IsAsync)
+            {
+                return true;
+            }
+
+            // Then check if the method call returns a WinRT async type.
+            if (ImplementsWinRTAsyncInterface(call.Type))
+            {
+                return true;
+            }
+
+            // Finally, if we're in an async method, and the expression could be awaited, report that it is instead discarded.
             var containingMethod = this.ContainingMemberOrLambda as MethodSymbol;
-            if ((object)containingMethod == null || !containingMethod.IsAsync) return false;
-            if (ContextForbidsAwait) return false;
+            if ((object)containingMethod == null || !containingMethod.IsAsync)
+            {
+                return false;
+            }
+
+            if (ContextForbidsAwait)
+            {
+                return false;
+            }
+
             var fakeDiagnostics = DiagnosticBag.GetInstance();
             var boundAwait = BindAwait(expression, expression.Syntax, fakeDiagnostics);
             fakeDiagnostics.Free();
@@ -77,13 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if the expression contains errors.</returns>
         private bool ReportBadAwaitWithoutAsync(CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            if ((object)this.ContainingMemberOrLambda == null || this.ContainingMemberOrLambda.Kind != SymbolKind.Method)
+            var containingMemberOrLambda = this.ContainingMemberOrLambda;
+            if ((object)containingMemberOrLambda == null || containingMemberOrLambda.Kind != SymbolKind.Method)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitWithoutAsync, node);
                 return true;
             }
 
-            var method = (MethodSymbol)this.ContainingMemberOrLambda;
+            var method = (MethodSymbol)containingMemberOrLambda;
             if (!method.IsAsync)
             {
                 if (method.MethodKind == MethodKind.AnonymousFunction)
@@ -162,12 +202,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if the expression is awaitable; false otherwise.</returns>
         private bool GetAwaitableExpressionInfo(
             BoundExpression expression,
-            ref MethodSymbol getAwaiter,
-            ref PropertySymbol isCompleted,
-            ref MethodSymbol getResult,
+            out MethodSymbol getAwaiter,
+            out PropertySymbol isCompleted,
+            out MethodSymbol getResult,
             CSharpSyntaxNode node,
             DiagnosticBag diagnostics)
         {
+            getAwaiter = null;
+            isCompleted = null;
+            getResult = null;
+
             if (!ValidateAwaitedExpression(expression, node, diagnostics))
             {
                 return false;

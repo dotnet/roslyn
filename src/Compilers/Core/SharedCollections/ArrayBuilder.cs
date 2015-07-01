@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis
                 // We do not want to retain (potentially indefinitely) very large builders 
                 // while the chance that we will need their size is diminishingly small.
                 // It makes sense to constrain the size to some "not too small" number. 
-                // Overal perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
+                // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
                 if (this.Count < 128)
                 {
                     if (this.Count != 0)

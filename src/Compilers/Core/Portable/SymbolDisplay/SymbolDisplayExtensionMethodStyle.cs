@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Specifies how how to display extension methods.
+    /// Specifies how to display extension methods.
     /// </summary>
     public enum SymbolDisplayExtensionMethodStyle
     {

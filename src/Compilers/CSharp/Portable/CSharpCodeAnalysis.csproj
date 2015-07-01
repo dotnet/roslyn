@@ -711,6 +711,7 @@
     <Compile Include="Symbols\Synthesized\SynthesizedStaticConstructor.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedStringHashFunctionSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubmissionConstructor.cs" />
+    <Compile Include="Symbols\Synthesized\SynthesizedInteractiveInitializerMethod.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubstitutedTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Synthesized\TypeSubstitutedLocalSymbol.cs" />
     <Compile Include="Symbols\TypedConstantExtensions.cs" />

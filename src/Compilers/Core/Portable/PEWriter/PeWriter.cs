@@ -141,7 +141,7 @@ namespace Microsoft.Cci
                 else
                 {
 #if DEBUG
-                    // validate that all definitions are writeable
+                    // validate that all definitions are writable
                     // if same scenario would happen in an winmdobj project
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(_module.GetSymbolToLocationMap());
 #endif
@@ -163,7 +163,7 @@ namespace Microsoft.Cci
             FillInNtHeader(metadataSizes, CalculateMappedFieldDataStreamRva(metadataSizes));
             var corHeader = CreateCorHeader(metadataSizes, entryPointToken);
 
-            // write to pe stream.
+            // write to PE stream.
             Stream peStream = getPeStream();
             if (peStream == null)
             {
@@ -627,7 +627,7 @@ namespace Microsoft.Cci
         ////
         //// This structure allows fast lookup by either name or number, but for any
         //// given resource entry only one form of lookup is supported, not both.
-        //// This is consistant with the syntax of the .RC file and the .RES file.
+        //// This is consistent with the syntax of the .RC file and the .RES file.
         ////
 
         //typedef struct _IMAGE_RESOURCE_DIRECTORY {
@@ -1000,10 +1000,10 @@ namespace Microsoft.Cci
         }
 
         //#define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
-        //#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved externel references).
-        //#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line nunbers stripped from file.
+        //#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
+        //#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line numbers stripped from file.
         //#define IMAGE_FILE_LOCAL_SYMS_STRIPPED       0x0008  // Local symbols stripped from file.
-        //#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Agressively trim working set
+        //#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Aggressively trim working set
         //#define IMAGE_FILE_LARGE_ADDRESS_AWARE       0x0020  // App can handle >2gb addresses
         //#define IMAGE_FILE_BYTES_REVERSED_LO         0x0080  // Bytes of machine word are reversed.
         //#define IMAGE_FILE_32BIT_MACHINE             0x0100  // 32 bit word machine.

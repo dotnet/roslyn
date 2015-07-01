@@ -13,11 +13,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 
     Public Class LocationInfoGetterTests
 
-        Private Sub Test(text As String, expectedName As String, expectedLineOffset As Integer, Optional rootNamespace As String = Nothing)
+        Private Sub Test(text As String, expectedName As String, expectedLineOffset As Integer, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional rootNamespace As String = Nothing)
             Dim position As Integer
             MarkupTestFile.GetPosition(text, text, position)
             Dim compilationOptions = If(rootNamespace IsNot Nothing, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:=rootNamespace), Nothing)
-            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(LanguageNames.VisualBasic, compilationOptions, Nothing, text)
+            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(LanguageNames.VisualBasic, compilationOptions, parseOptions, text)
                 Dim locationInfo = LocationInfoGetter.GetInfoAsync(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     position,
@@ -400,9 +400,10 @@ End Namespace
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
         Public Sub TopLevelField()
+            ' Unlike C#, VB will not report a name for top level fields (consistent with old implementation).
             Test(<text>
 $$Dim f1 As Integer
-</text>.NormalizedValue, Nothing, 0) ' Unlike C#, VB will not report a name for top level fields (consistent with old implementation).
+</text>.NormalizedValue, Nothing, 0, New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
@@ -410,7 +411,15 @@ $$Dim f1 As Integer
             Test(<text>
 Function F1(x As Integer) As Integer
 $$End Function
-</text>.NormalizedValue, "F1(x As Integer) As Integer", 1)
+</text>.NormalizedValue, "F1(x As Integer) As Integer", 1, New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)>
+        Public Sub TopLevelStatement()
+            Test(<text>
+
+$$System.Console.WriteLine("Hello")
+</text>.NormalizedValue, Nothing, 0, New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
         End Sub
 
     End Class

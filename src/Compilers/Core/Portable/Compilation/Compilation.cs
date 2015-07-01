@@ -914,13 +914,6 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
 
-        /// <summary>
-        /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null).
-        /// </summary>
-        /// <param name="diagnostic"></param>
-        /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
-
         #endregion
 
         #region Resources
@@ -1252,7 +1245,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // A module cannot be signed. The native compiler allowed one to create a netmodule with an AssemblyKeyFile 
                 // or Container attribute (or specify a key via the cmd line). When the module was linked into an assembly,
-                // alink would sign the assembly. So rather than give an error we just don't sign when outputting a module.
+                // a link would sign the assembly. So rather than give an error we just don't sign when outputting a module.
 
                 return !IsDelaySigned
                     && Options.OutputKind != OutputKind.NetModule

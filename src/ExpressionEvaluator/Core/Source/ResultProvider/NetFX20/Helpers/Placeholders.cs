@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -11,6 +12,18 @@ namespace Microsoft.CodeAnalysis
         internal static Type GetTypeInfo(this Type type)
         {
             return type;
+        }
+
+        // Replaces a missing 4.5 method.
+        public static FieldInfo GetDeclaredField(this Type type, string name)
+        {
+            return type.GetField(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);
+        }
+
+        // Replaces a missing 4.5 method.
+        public static MethodInfo GetDeclaredMethod(this Type type, string name, Type[] parameterTypes)
+        {
+            return type.GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly, null, parameterTypes, null);
         }
     }
 

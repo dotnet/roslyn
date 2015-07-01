@@ -947,8 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     GetFieldOrPropertyInitializerBinder(enumSymbol, outer));
                             }
                         default:
-                            Debug.Assert(false, "Unexpected node: " + node.Parent);
-                            return null;
+                            throw ExceptionUtilities.UnexpectedValue(node.Parent.Kind());
                     }
 
                 case SyntaxKind.ArrowExpressionClause:
@@ -1355,8 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredMember(container, declarationSyntax.Span) as MethodSymbol;
 
                 default:
-                    Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind());
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(propertyOrEventDecl.Kind());
             }
         }
 
@@ -1465,8 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
 
                 default:
-                    Debug.Assert(false, "Unexpected declaration: " + declaration);
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(declaration.Kind());
             }
         }
 

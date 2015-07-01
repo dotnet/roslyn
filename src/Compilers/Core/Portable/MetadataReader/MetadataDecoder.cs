@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis
                 // TypeDef tokens are unique within Module.
                 // This cache makes lookup of top level types about twice as fast, about three times as fast if 
                 // EmittedNameToTypeMap in LookupTopLevelType doesn't contain the name. 
-                // It is likely that gain for nested types will be bigger because we don’t cache names of nested types.
+                // It is likely that gain for nested types will be bigger because we don't cache names of nested types.
 
                 ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> cache = GetTypeHandleToTypeMap();
 

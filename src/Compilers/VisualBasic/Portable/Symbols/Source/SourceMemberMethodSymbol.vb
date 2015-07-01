@@ -752,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Valid context
 
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(ContainingType.TypeKind)
             End Select
 
             Dim receiverOpt As BoundExpression = Nothing

@@ -60,7 +60,7 @@ run_nuget()
 {
     i=5
     while [ $i -gt 0 ]; do
-        mono src/.nuget/NuGet.exe "$@"
+        mono .nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
             i=0
         else
@@ -110,7 +110,7 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    xbuild /v:m /t:Clean src/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    xbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
@@ -119,7 +119,7 @@ build_roslyn()
     BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
     echo Building CrossPlatform.sln
-    run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+    run_xbuild $BOOTSTRAP_ARG CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -202,7 +202,7 @@ test_roslyn()
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
-run_nuget restore src/Roslyn.sln
+run_nuget restore Roslyn.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 set_mono_path

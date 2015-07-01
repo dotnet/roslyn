@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class YieldsInTryAnalysis : LabelCollector
         {
-            // all try blocks with yields in them and complete set of lables inside those trys
+            // all try blocks with yields in them and complete set of labels inside those trys
             // NOTE: non-yielding Trys are transparently ignored - i.e. their labels are included
             //       in the label set of the nearest yielding-try parent  
             private Dictionary<BoundTryStatement, HashSet<LabelSymbol>> _labelsInYieldingTrys;

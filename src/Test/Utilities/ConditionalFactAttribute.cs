@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
             switch (reason)
             {
                 case ClrOnlyReason.Ilasm:
-                    return "Mono ilasm doesn't suupport all of the features we need";
+                    return "Mono ilasm doesn't support all of the features we need";
                 case ClrOnlyReason.MemberOrder:
                     return "Mono returns certain symbols in different order than we are expecting";
                 case ClrOnlyReason.Pdb:

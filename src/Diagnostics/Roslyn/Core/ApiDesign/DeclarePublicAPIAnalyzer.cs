@@ -89,7 +89,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             MethodKind.EventRemove
         };
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType);
 
         public override void Initialize(AnalysisContext context)
         {

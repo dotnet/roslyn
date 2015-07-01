@@ -178,7 +178,7 @@
     <value>Do not directly invoke the property '{0}', instead use '{0}NoUseSiteDiagnostics'.</value>
   </data>
   <data name="UseProperCrefTagsDescription" xml:space="preserve">
-    <value>Use of cref tags with prefixes should be avoided, since it prevents the compiler from verifying references and the IDE from updating references during refactorings. It is permissible to suppress this error at a single documentation site if the cref must use a prefix because the type being mentioned is not findable by the compiler. For example, if a cref is mentioning a special attribute in the full framework but you’re in a file that compiles against the portable framework, or if you want to reference a type at higher layer of Roslyn, you should suppress the error. You should not suppress the error just because you want to take a shortcut and avoid using the full syntax.</value>
+    <value>Use of cref tags with prefixes should be avoided, since it prevents the compiler from verifying references and the IDE from updating references during refactorings. It is permissible to suppress this error at a single documentation site if the cref must use a prefix because the type being mentioned is not findable by the compiler. For example, if a cref is mentioning a special attribute in the full framework but you're in a file that compiles against the portable framework, or if you want to reference a type at higher layer of Roslyn, you should suppress the error. You should not suppress the error just because you want to take a shortcut and avoid using the full syntax.</value>
   </data>
   <data name="UseProperCrefTagsMessage" xml:space="preserve">
     <value>cref tag has prefix '{0}', which should be removed unless the type or member cannot be accessed.</value>

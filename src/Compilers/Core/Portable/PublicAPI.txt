@@ -242,6 +242,7 @@ Microsoft.CodeAnalysis.DiagnosticDescriptor.Description.get -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.DiagnosticDescriptor.DiagnosticDescriptor(string id, Microsoft.CodeAnalysis.LocalizableString title, Microsoft.CodeAnalysis.LocalizableString messageFormat, string category, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, Microsoft.CodeAnalysis.LocalizableString description = null, string helpLinkUri = null, params string[] customTags) -> void
 Microsoft.CodeAnalysis.DiagnosticDescriptor.DiagnosticDescriptor(string id, string title, string messageFormat, string category, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, string description = null, string helpLinkUri = null, params string[] customTags) -> void
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Equals(Microsoft.CodeAnalysis.DiagnosticDescriptor other) -> bool
+Microsoft.CodeAnalysis.DiagnosticDescriptor.GetEffectiveSeverity(Microsoft.CodeAnalysis.CompilationOptions compilationOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
 Microsoft.CodeAnalysis.DiagnosticDescriptor.HelpLinkUri.get -> string
 Microsoft.CodeAnalysis.DiagnosticDescriptor.Id.get -> string
 Microsoft.CodeAnalysis.DiagnosticDescriptor.IsEnabledByDefault.get -> bool

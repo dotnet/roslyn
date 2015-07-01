@@ -219,8 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // script class is synthetized, never used as a constraint
 
                 default:
-                    Debug.Assert(false, "Unexpected type kind: " + type.TypeKind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
 
             if (type.ContainsDynamic())

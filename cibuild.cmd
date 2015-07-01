@@ -15,12 +15,13 @@ call :Usage && exit /b 1
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
 REM Build the compiler so we can self host it for the full build
-src\.nuget\NuGet.exe restore %RoslynRoot%/src/Toolset.sln -packagesdirectory packages
-msbuild /nologo /v:m /m %RoslynRoot%/src/Toolset.sln /p:Configuration=%BuildConfiguration%
+.nuget\NuGet.exe restore .nuget/packages.config -packagesdirectory packages
+.nuget\NuGet.exe restore %RoslynRoot%/build/Toolset.sln -packagesdirectory packages
+msbuild /nologo /v:m /m %RoslynRoot%/build/Toolset.sln /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%\Binaries\Bootstrap
 move Binaries\%BuildConfiguration%\* %RoslynRoot%\Binaries\Bootstrap
-msbuild /v:m /t:Clean src/Toolset.sln /p:Configuration=%BuildConfiguration%
+msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
 msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%\Binaries\Bootstrap BuildAndTest.proj /p:CIBuild=true /p:Configuration=%BuildConfiguration%
