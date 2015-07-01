@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (CanChangeValueBetweenReads(loweredReceiver))
             {
                 // NOTE: dynamic operations historically do not propagate mutations
-                // to the receiver if that hapens to be a value type
+                // to the receiver if that happens to be a value type
                 // so we can capture receiver by value in dynamic case regardless of 
                 // the type of receiver
                 // Nullable receivers are immutable so should be captured by value as well.

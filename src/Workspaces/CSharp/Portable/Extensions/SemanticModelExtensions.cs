@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Otherwise, figure out the type of the expression and generate a name from that
-            // isntead.
+            // instead.
             var info = semanticModel.GetTypeInfo(expression);
 
             // If we can't determine the type, then fallback to some placeholders.

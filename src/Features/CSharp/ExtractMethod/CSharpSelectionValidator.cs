@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            // alright, for these construcuts, it must be okay to be extracted
+            // alright, for these constructs, it must be okay to be extracted
             switch (container.Kind())
             {
                 case SyntaxKind.AnonymousMethodExpression:

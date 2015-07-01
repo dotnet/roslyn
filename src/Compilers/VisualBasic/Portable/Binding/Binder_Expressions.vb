@@ -405,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
-            ' Suppress diagnostocs if argument has syntax errors
+            ' Suppress diagnostics if argument has syntax errors
             If node.Argument.HasErrors Then
                 diagnostics = New DiagnosticBag()
             End If
@@ -3195,7 +3195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckMemberTypeAccessibility(diagnostics As DiagnosticBag, node As VisualBasicSyntaxNode, member As Symbol)
             ' We are not doing this check during lookup due to a performance impact it has on IDE scenarios.
-            ' In any case, an accessible member with inaccassible type is beyond language spec, so we have
+            ' In any case, an accessible member with inaccessible type is beyond language spec, so we have
             ' some freedom how to deal with it.
 
             Dim memberType As TypeSymbol

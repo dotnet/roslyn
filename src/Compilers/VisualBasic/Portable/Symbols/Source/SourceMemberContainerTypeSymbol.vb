@@ -900,7 +900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                     ' The general code below will catch the case of nullables "T?" or "Nullable(Of T)", which require T to
-                    ' be inviarant. But we want more specific error reporting for this case, so we check for it first.
+                    ' be invariant. But we want more specific error reporting for this case, so we check for it first.
                     If namedType.IsNullableType() Then
                         Debug.Assert(namedType.TypeParameters(0).Variance = VarianceKind.None, "unexpected: a nullable type should have one generic parameter with no variance")
                         If namedType.TypeArgumentsNoUseSiteDiagnostics(0).IsValueType Then
@@ -3060,7 +3060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Else
                     ' If both symbols are implicitly defined (say an overloaded property P where each
                     ' overload implicitly defines get_P), no error is reported. 
-                    ' If there are any errors in cases if definitng members have same names.
+                    ' If there are any errors in cases if defining members have same names.
                     ' In such cases, the errors should be reported on the defining symbols.
 
                     If Not CaseInsensitiveComparison.Equals(firstAssociatedSymbol.Name,

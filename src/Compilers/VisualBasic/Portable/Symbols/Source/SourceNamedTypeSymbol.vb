@@ -1565,7 +1565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If diag Is Nothing Then
                 Dim declaredBase As NamedTypeSymbol = GetDeclaredBase(basesBeingResolved)
 
-                ' If we ditected the cycle while calculating the declared base, return Nothing
+                ' If we detected the cycle while calculating the declared base, return Nothing
                 Return If(m_baseCycleDiagnosticInfo Is Nothing, declaredBase, Nothing)
             End If
 
@@ -1590,7 +1590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If diag Is Nothing Then
                 Dim declaredBases As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
-                ' If we ditected the cycle while calculating the declared base, return Nothing
+                ' If we detected the cycle while calculating the declared base, return Nothing
                 Return If(m_baseCycleDiagnosticInfo Is Nothing, declaredBases, ImmutableArray(Of NamedTypeSymbol).Empty)
             End If
 

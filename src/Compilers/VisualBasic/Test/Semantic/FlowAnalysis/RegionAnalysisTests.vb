@@ -2738,9 +2738,9 @@ end class
         End Sub
 
         <Fact()>
-        Public Sub TestAssinmentExpressionAsBranchOfTernaryOperator()
+        Public Sub TestAssignmentExpressionAsBranchOfTernaryOperator()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestAssinmentExpressionAsBranchOfTernaryOperator">
+      <compilation>
           <file name="a.b">
 class C
     shared sub Main()
@@ -7129,9 +7129,9 @@ End Module
     <file name="a.vb">
 Module Program
     Sub Main(ByVal args As String())
-        [|GoTo Lable1
+        [|GoTo Label1
         For i = 1 To 5
-Lable1:
+Label1:
             Dim q = i
         Next|]
     End Sub

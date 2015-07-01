@@ -1556,7 +1556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 '           VariableDeclarator
                 '          |                  |
-                '  ModifiedIdenitfier     EqualsValue
+                '  ModifiedIdentifier     EqualsValue
                 '          |
                 '  ArgumentList
                 '      |...|...|

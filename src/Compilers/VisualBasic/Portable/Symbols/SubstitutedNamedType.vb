@@ -850,7 +850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim newContainer = DirectCast(_container.InternalSubstituteTypeParameters(additionalSubstitution), NamedTypeSymbol)
 
                 If newContainer IsNot _container Then
-                    ' The constainer is affected.
+                    ' The container is affected.
 
                     Dim definition = Me.OriginalDefinition
 

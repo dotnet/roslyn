@@ -2480,7 +2480,7 @@ class Base<T>
     public virtual int Property
     {
         get { return 0; }
-        // Note: Repro for bug 7990 requires a missing close brace token i.e. misisng } below
+        // Note: Repro for bug 7990 requires a missing close brace token i.e. missing } below
         set { 
     }
     public virtual void Method()

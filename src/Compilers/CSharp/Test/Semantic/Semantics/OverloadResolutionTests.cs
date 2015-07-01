@@ -47,7 +47,7 @@ class Program
             // When doing overload resolution, we must find the best applicable method.
             //
             // When tiebreaking between two applicable candidate methods, we examine each conversion from the
-            // argument to the corresponding parameter type to detemine which method is better *in that parameter*.
+            // argument to the corresponding parameter type to determine which method is better *in that parameter*.
             // If a method is *not worse* in every parameter and better in at least one, then that method
             // wins. Under what circumstances is one conversion better than another?
             //
@@ -5803,7 +5803,7 @@ public class Q
             // converted to the parameter type of the user-defined implicit conversion. Unfortunately, the
             // specification does not say that null literal conversions, constant numeric conversions,
             // method group conversions, or lambda conversions are "standard" conversions. It seems reasonable
-            // that these be allowed; we will probably emend the specification to allow them.
+            // that these be allowed; we will probably amend the specification to allow them.
             //
             // Now we get to the unusual part. The native compiler allows null literal and constant numeric
             // conversions to be counted as standard conversions; this is contrary to the exact wording of 

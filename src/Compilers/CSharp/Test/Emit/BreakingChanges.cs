@@ -698,7 +698,7 @@ class Program
         {
             string source = @"using System;
 
-class NullCoallescingTest
+class NullCoalescingTest
 {
     public static void Main()
     {

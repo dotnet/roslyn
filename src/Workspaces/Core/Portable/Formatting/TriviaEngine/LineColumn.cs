@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // absolute line number from first token
         public int Line { get; private set; }
 
-        // absolute column from begining of a line
+        // absolute column from beginning of a line
         public int Column { get; private set; }
 
         // there is only whitespace on this line

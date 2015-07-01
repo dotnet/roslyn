@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (typedConstantKind != TypedConstantKind.Error && type.ContainsTypeParameter())
                 {
-                    // Devdig Bug #12636: Constant values of open types should not be allowed in attributes
+                    // Devdiv Bug #12636: Constant values of open types should not be allowed in attributes
 
                     // SPEC ERROR:  C# language specification does not explicitly disallow constant values of open types. For e.g.
 

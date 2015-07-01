@@ -1804,7 +1804,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Helper method for enqueueing a type token in the right queue.
+        /// Helper method for enqueuing a type token in the right queue.
         /// Def -> typeDefsToSearch
         /// Ref -> typeSymbolsToSearch
         /// null -> neither

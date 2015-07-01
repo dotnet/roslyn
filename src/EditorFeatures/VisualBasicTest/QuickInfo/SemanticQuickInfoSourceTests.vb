@@ -793,7 +793,7 @@ End Module]]></Text>.NormalizedValue,
 
         <WorkItem(541960)>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Sub DontRemoveAttributeSuffixAndProduceInvaliIdentifier1()
+        Public Sub DontRemoveAttributeSuffixAndProduceInvalidIdentifier1()
             Test(<Text><![CDATA[
 Imports System
 Class _Attribute
@@ -806,7 +806,7 @@ End Class]]></Text>.NormalizedValue,
 
         <WorkItem(541960)>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Sub DontRemoveAttributeSuffixAndProduceInvaliIdentifier2()
+        Public Sub DontRemoveAttributeSuffixAndProduceInvalidIdentifier2()
             Test(<Text><![CDATA[
 Imports System
 Class ClassAttribute

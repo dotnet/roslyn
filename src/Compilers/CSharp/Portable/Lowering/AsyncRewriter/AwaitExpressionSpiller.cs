@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly int _receiverId;
 
 #if DEBUG
-            // we must replace exatly one node
+            // we must replace exactly one node
             private int _replaced;
 #endif
                        

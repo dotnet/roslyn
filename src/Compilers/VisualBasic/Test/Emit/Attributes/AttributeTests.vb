@@ -3222,7 +3222,7 @@ Class A
 End Class
 
 Class MyAttr
-    ' Does not intherit attribute
+    ' Does not inherit attribute
 End Class    
 ]]>
     </file>

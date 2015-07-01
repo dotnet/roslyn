@@ -85,7 +85,7 @@ index: 0);
 
         [WorkItem(529841), WorkItem(714632)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void DisambiguiteCallSiteIfNecessary1()
+        public void DisambiguateCallSiteIfNecessary1()
         {
             Test(
 @"using System;
@@ -126,7 +126,7 @@ compareTokens: false);
 
         [WorkItem(529841), WorkItem(714632)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public void DisambiguiteCallSiteIfNecessary2()
+        public void DisambiguateCallSiteIfNecessary2()
         {
             Test(
 @"using System;

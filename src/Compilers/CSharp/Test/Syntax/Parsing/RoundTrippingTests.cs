@@ -472,7 +472,7 @@ public static class Extensions
         public void Bug877313()
         {
             var text = @"
-partial class ConstaintsDef
+partial class ConstraintsDef
 {
     partial void PM<T1, T2>(T1 v1, ref T2 v2, params T2[] v3)
         where T2 : new()

@@ -630,7 +630,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref()
             ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
-            ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiller allows this while
+            ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiler allows this while
             ' C# doesn't allow similar case. If this Nullable(Of Integer) becomes illegal in VB in the below case then the simplification
             ' from Nullable(Of Integer) -> Integer will also stop working and the baseline for this test will have to be updated.
             Test(
@@ -655,7 +655,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Sub TestNullableSimplificationInsideCref2()
             ' NOTE: This will probably stop working if issues 2196 / 2197 related to VB compiler and semantic model are fixed.
-            ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiller allows this while
+            ' It is unclear whether Nullable(Of Integer) is legal in the below case. Currently the VB compiler allows this while
             ' C# doesn't allow similar case. If this Nullable(Of Integer) becomes illegal in VB in the below case then the simplification
             ' from Nullable(Of Integer) -> Integer will also stop working and the baseline for this test will have to be updated.
             Test(

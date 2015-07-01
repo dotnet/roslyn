@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
 
                 // strong reference to declaration only compilation. 
                 // this doesn't make any expensive information such as symbols or references alive. just
-                // things like decleration table alive.
+                // things like declaration table alive.
                 public Compilation DeclarationOnlyCompilation { get; }
 
                 // The compilation available.  May be an InProgress, Full Declaration, or Final compilation

@@ -3609,7 +3609,7 @@ End Module
 
         <WorkItem(543084, "DevDiv")>
         <Fact()>
-        Public Sub MissingIdentifierNameSyntaxInIncompletLetClause()
+        Public Sub MissingIdentifierNameSyntaxInIncompleteLetClause()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[

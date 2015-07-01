@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                     // statement and we don't want to keep offering the refactoring.  Note: this
                     // solution is overly aggressive.  Technically if 'y' weren't referenced in
                     // Console.Writeline, then it might be a good idea to move the 'x'.  But this
-                    // gives good enugh behavior most of the time.
+                    // gives good enough behavior most of the time.
                     if (InDeclarationStatementGroup(originalIndexInBlock, firstStatementIndexAffectedInBlock))
                     {
                         return false;

@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     {
                         // TODO: 
                         // #1, all de -duplication should move to HostAnalyzerManager
-                        // #2, not sure whether de-duplicatoin of analyzer itself makes sense. this can only happen
-                        //     if user delibrately put same analyzer twice.
+                        // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
+                        //     if user deliberately put same analyzer twice.
                         if (builder.ContainsKey(analyzer))
                         {
                             continue;

@@ -169,7 +169,7 @@ class T : B
         }
 
         [Fact]
-        public void NoDiagnosticOnImplicitInterfaceImplentation()
+        public void NoDiagnosticOnImplicitInterfaceImplementation()
         {
             var test = @"
 using System.Threading;

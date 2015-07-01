@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// to System.Uri
         /// </summary>
         [Fact]
-        public void TypeFowardingRenaming()
+        public void TypeForwardingRenaming()
         {
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);

@@ -745,7 +745,7 @@ LessThanSlashTokenCase:
                 ' Not match was found
                 ' Just close the current xml element
 
-                'TODO - Consider whether the current element should be closed or create a missing start tag to match this daggling endd tag.
+                'TODO - Consider whether the current element should be closed or create a missing start tag to match this dangling end tag.
 
                 Dim prefix = ""
                 Dim colon = ""
@@ -1184,7 +1184,7 @@ lFailed:
 
             Dim result As CrefReferenceSyntax = SyntaxFactory.CrefReference(name, signature, asClause)
 
-            ' Even if there are diagnostcis in name we don't report them, they will be 
+            ' Even if there are diagnostics in name we don't report them, they will be 
             ' reported later in Documentation comment binding
             If result.ContainsDiagnostics Then
                 result.ClearFlags(GreenNode.NodeFlags.ContainsDiagnostics)

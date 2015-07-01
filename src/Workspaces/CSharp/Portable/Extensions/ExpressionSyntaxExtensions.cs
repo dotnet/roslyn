@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
-            // If the Symbol is a contrcutor get its containing type
+            // If the Symbol is a constructor get its containing type
             if (symbol.IsConstructor())
             {
                 symbol = symbol.ContainingType;

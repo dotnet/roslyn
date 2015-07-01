@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TNode ParseWithStackGuard<TNode>(Func<TNode> parseFunc, Func<TNode> createEmptyNodeFunc) where TNode : CSharpSyntaxNode
         {
             // If this value is non-zero then we are nesting calls to ParseWithStackGuard which should not be 
-            // happenning.  It's not a bug but it's inefficient and should be changed.
+            // happening.  It's not a bug but it's inefficient and should be changed.
             Debug.Assert(_recursionDepth == 0);
 
             try
@@ -6896,7 +6896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // If we have a single statement, it might be small, like "return null", or large,
                 // like a loop or if or switch with many statements inside. Use the width as a proxy for
-                // how big it is. If it's small, its better to forgoe a many children list anyway, since the
+                // how big it is. If it's small, its better to forgo a many children list anyway, since the
                 // weak reference would consume as much memory as is saved.
                 return statements[0].Width > 60;
             }

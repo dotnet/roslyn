@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, ProjectId projectId, DocumentId documentId)
         {
             return new DiagnosticData(
-                                "test1", "Test", "test1 message", "test1 messsage format",
+                                "test1", "Test", "test1 message", "test1 message format",
                                 DiagnosticSeverity.Info, false, 1,
                                 workspace, projectId, documentId,
                                 null, "originalFile1", 10, 10, 20, 20);

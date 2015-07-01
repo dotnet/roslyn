@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -290,7 +291,9 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
+            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            
+            c.VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -305,7 +308,7 @@ this is a string constant that is too long to fit into the PDB"";
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>", DebugInformationFormat.Pdb);
         }
 
         [Fact]

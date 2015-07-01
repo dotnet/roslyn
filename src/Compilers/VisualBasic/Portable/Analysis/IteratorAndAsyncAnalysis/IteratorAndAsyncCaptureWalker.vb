@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub EnterParameter(parameter As ParameterSymbol)
-            ' parameters are NOT intitially assigned here - if that is a problem, then
+            ' parameters are NOT intially assigned here - if that is a problem, then
             ' the parameters must be captured.
             MakeSlot(parameter)
 

@@ -2531,7 +2531,7 @@ class Program
             // with this bug.
             // 
             // Additionally, it also treats "new X()", where X is an enum type, as a
-            // constant expression with default value 0, we maintaing compatibility with it.
+            // constant expression with default value 0, we maintaining compatibility with it.
 
             var source =
 @"using System;
