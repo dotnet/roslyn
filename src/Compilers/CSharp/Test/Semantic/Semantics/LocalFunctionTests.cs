@@ -2833,6 +2833,120 @@ class Program
         }
 
         [Fact]
+        public void NoOperator()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Program operator +(Program left, Program right)
+        {
+            return left;
+        }
+    }
+}
+";
+            VerifyDiagnostics(source,
+                    // (6,17): error CS1002: ; expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
+    // (6,17): error CS1513: } expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_RbraceExpected, "operator").WithLocation(6, 17),
+    // (6,36): error CS1026: ) expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "left").WithLocation(6, 36),
+    // (6,36): error CS1002: ; expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "left").WithLocation(6, 36),
+    // (6,40): error CS1002: ; expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(6, 40),
+    // (6,40): error CS1513: } expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(6, 40),
+    // (6,55): error CS1002: ; expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 55),
+    // (6,55): error CS1513: } expected
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 55),
+    // (6,9): error CS0119: 'Program' is a type, which is not valid in the given context
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 9),
+    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
+    // (6,28): error CS0119: 'Program' is a type, which is not valid in the given context
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_BadSKunknown, "Program").WithArguments("Program", "type").WithLocation(6, 28),
+    // (6,36): error CS0103: The name 'left' does not exist in the current context
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(6, 36),
+    // (8,20): error CS0103: The name 'left' does not exist in the current context
+    //             return left;
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "left").WithArguments("left").WithLocation(8, 20),
+    // (6,50): warning CS0168: The variable 'right' is declared but never used
+    //         Program operator +(Program left, Program right)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "right").WithArguments("right").WithLocation(6, 50)
+    );
+        }
+
+        [Fact]
+        public void NoProperty()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int Foo
+        {
+            get
+            {
+                return 2;
+            }
+        }
+        int Bar => 2;
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (6,16): error CS1002: ; expected
+    //         int Foo
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 16),
+    // (8,16): error CS1002: ; expected
+    //             get
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 16),
+    // (13,17): error CS1003: Syntax error, ',' expected
+    //         int Bar => 2;
+    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 17),
+    // (13,20): error CS1002: ; expected
+    //         int Bar => 2;
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "2").WithLocation(13, 20),
+    // (8,13): error CS0103: The name 'get' does not exist in the current context
+    //             get
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "get").WithArguments("get").WithLocation(8, 13),
+    // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
+    //                 return 2;
+    Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
+    // (13,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         int Bar => 2;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
+    // (13,9): warning CS0162: Unreachable code detected
+    //         int Bar => 2;
+    Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(13, 9),
+    // (6,13): warning CS0168: The variable 'Foo' is declared but never used
+    //         int Foo
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Foo").WithArguments("Foo").WithLocation(6, 13),
+    // (13,13): warning CS0168: The variable 'Bar' is declared but never used
+    //         int Bar => 2;
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(13, 13)
+    );
+        }
+
+        [Fact]
         public void NoFeatureSwitch()
         {
             var source = @"

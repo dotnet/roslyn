@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // force lazy init
             ComputeParameters();
-            ComputeReturnType(null, true, false);
+            ComputeReturnType(body: null, forceNotNull: true, isIterator: false);
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
             if (!diags.IsDefault)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(null, true, false);
+                ComputeReturnType(body: null, forceNotNull: true, isIterator: false);
                 return _returnType;
             }
         }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(null, false, false);
+                ComputeReturnType(body: null, forceNotNull: false, isIterator: false);
                 return _returnType;
             }
         }
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(null, true, true);
+                ComputeReturnType(body: null, forceNotNull: true, isIterator: true);
                 return _returnType;
             }
         }

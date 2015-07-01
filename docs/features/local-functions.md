@@ -28,3 +28,10 @@
 - [ ] Editor
 	- [x] Basic features (variable highlight, rename, etc.)
 	- [ ] Advanced features (refactorings, analyzers)
+
+TODO:
+
+- Update error messages.
+	- `LocalScopeBinder.ReportConflictWithLocal()` (twice)
+- `LocalScopeBinder.EnsureSingleDefinition()`, handle case where 'name' exists in both `localsMap` and `localFunctionsMap`. Might be related to `LocalFunctionTests.NameConflictLocalVarLast()`
+- `LambdaRewriter.RewriteLambdaOrLocalFunction()`, check `_analysis.methodsConvertedToDelegates.Contains(node.Symbol)` and don't use a static frame if true (just emit a static method)

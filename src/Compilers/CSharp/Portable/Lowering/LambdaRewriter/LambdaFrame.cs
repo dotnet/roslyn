@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, TypeKind typeKind, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, bool isStruct, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
-            _typeKind = typeKind;
+            _typeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             _topLevelMethod = topLevelMethod;
             _containingMethod = containingMethod;
-            _constructor = typeKind == TypeKind.Class ? new LambdaFrameConstructor(this) : null;
+            _constructor = isStruct ? null : new LambdaFrameConstructor(this);
             this.ClosureOrdinal = closureId.Ordinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(localOrParameter is LocalSymbol || localOrParameter is ParameterSymbol ||
                 (localOrParameter as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
-            return _analysis.capturedVariables.ContainsKey(localOrParameter);
+            return _analysis.CapturedVariables.ContainsKey(localOrParameter);
         }
 
         /// <summary>
@@ -288,12 +288,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol containingType = this.ContainingType;
 
-            foreach (var kvp in _analysis.capturedVariables)
+            foreach (var kvp in _analysis.CapturedVariables)
             {
                 var captured = kvp.Key;
 
                 BoundNode scope;
-                if (!_analysis.variableScope.TryGetValue(captured, out scope))
+                if (!_analysis.VariableScope.TryGetValue(captured, out scope))
                 {
                     continue;
                 }
@@ -329,14 +329,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DebugId methodId = GetTopLevelMethodId();
                 DebugId closureId = GetClosureId(syntax, closureDebugInfo);
 
-                var canBeStruct = !_analysis.scopesThatCantBeStructs.Contains(scope);
+                var canBeStruct = !_analysis.ScopesThatCantBeStructs.Contains(scope);
 
-                var containingMethod = _analysis.scopeOwner[scope];
+                var containingMethod = _analysis.ScopeOwner[scope];
                 if (_substitutedSourceMethod != null && containingMethod == _topLevelMethod)
                 {
                     containingMethod = _substitutedSourceMethod;
                 }
-                frame = new LambdaFrame(_topLevelMethod, containingMethod, canBeStruct ? TypeKind.Struct : TypeKind.Class, syntax, methodId, closureId);
+                frame = new LambdaFrame(_topLevelMethod, containingMethod, canBeStruct, syntax, methodId, closureId);
                 _frames.Add(scope, frame);
 
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DebugId closureId = default(DebugId);
                     // using _topLevelMethod as containing member because the static frame does not have generic parameters, except for the top level method's
                     var containingMethod = isNonGeneric ? null : (_substitutedSourceMethod ?? _topLevelMethod);
-                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, containingMethod, TypeKind.Class, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
+                    _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, containingMethod, isStruct: false, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
                     // nongeneric static lambdas can share the frame
                     if (isNonGeneric)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)_innermostFramePointer != null)
             {
                 proxies.TryGetValue(_innermostFramePointer, out oldInnermostFrameProxy);
-                if (_analysis.needsParentFrame.Contains(node))
+                if (_analysis.NeedsParentFrame.Contains(node))
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
@@ -553,10 +553,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Capture any parameters of this block.  This would typically occur
             // at the top level of a method or lambda with captured parameters.
             // TODO: speed up the following by computing it in analysis.
-            foreach (var variable in _analysis.capturedVariables.Keys)
+            foreach (var variable in _analysis.CapturedVariables.Keys)
             {
                 BoundNode varNode;
-                if (!_analysis.variableScope.TryGetValue(variable, out varNode) || varNode != node)
+                if (!_analysis.VariableScope.TryGetValue(variable, out varNode) || varNode != node)
                 {
                     continue;
                 }
@@ -1161,13 +1161,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             out DebugId lambdaId)
         {
             int closureOrdinal;
-            if (_analysis.lambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
+            if (_analysis.LambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
             {
                 translatedLambdaContainer = containerAsFrame = _frames[lambdaScope];
                 closureKind = ClosureKind.General;
                 closureOrdinal = containerAsFrame.ClosureOrdinal;
             }
-            else if (_analysis.capturedVariablesByLambda[node.Symbol].Count == 0)
+            else if (_analysis.CapturedVariablesByLambda[node.Symbol].Count == 0)
             {
                 // TODO: Check the following and don't use a static frame if true (just emit a static method)
                 // _analysis.methodsConvertedToDelegates.Contains(node.Symbol)
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: We require "lambdaScope != null". 
             //       We do not want to introduce a field into an actual user's class (not a synthetic frame).
             var shouldCacheInLoop = lambdaScope != null &&
-                lambdaScope != _analysis.scopeParent[node.Body] &&
+                lambdaScope != _analysis.ScopeParent[node.Body] &&
                 InLoopOrLambda(node.Syntax, lambdaScope.Syntax);
 
             if (shouldCacheForStaticMethod || shouldCacheInLoop)

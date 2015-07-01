@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (block != null)
                 {
-                    localSymbol.ComputeReturnType(block, true, false);
+                    localSymbol.ComputeReturnType(block, forceNotNull: true, isIterator: false);
 
                     // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
                     // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
