@@ -18,19 +18,19 @@
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.dll</HintPath>
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic">
-      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces">
-      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop">
-      <HintPath>..\..\..\..\Binaries\Debug\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
+      <HintPath>$(VSLOutDir)\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
     </Reference>
     <Reference Include="Moq">
       <HintPath>..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll</HintPath>
