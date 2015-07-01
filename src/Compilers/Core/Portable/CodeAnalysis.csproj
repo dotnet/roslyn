@@ -390,7 +390,7 @@
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
-    <Compile Include="PEWriter\BinaryWriter.cs" />
+    <Compile Include="PEWriter\BlobWriter2.cs" />
     <Compile Include="PEWriter\ClrHeader.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
@@ -412,7 +412,7 @@
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
-    <Compile Include="PEWriter\MemoryStream.cs" />
+    <Compile Include="PEWriter\BlobWriter.cs" />
     <Compile Include="PEWriter\MetadataSizes.cs" />
     <Compile Include="PEWriter\MetadataVisitor.cs" />
     <Compile Include="PEWriter\MethodSpecComparer.cs" />

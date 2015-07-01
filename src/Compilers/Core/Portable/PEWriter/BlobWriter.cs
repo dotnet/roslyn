@@ -6,23 +6,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal sealed class MemoryStream
+    internal sealed partial class BlobWriter
     {
         internal byte[] Buffer;
         internal uint Length;
         private uint _position;
 
-        internal MemoryStream()
+        internal BlobWriter()
         {
             this.Buffer = new byte[64];
         }
 
-        internal MemoryStream(uint initialSize)
+        internal BlobWriter(uint initialSize)
         {
             this.Buffer = new byte[initialSize];
         }
 
-        internal MemoryStream(ObjectPool<MemoryStream> pool)
+        internal BlobWriter(ObjectPool<BlobWriter> pool)
             : this()
         {
             _pool = pool;
@@ -116,7 +116,7 @@ namespace Microsoft.Cci
             buffer.CopyTo(index, this.Buffer, position, length);
         }
 
-        internal void WriteTo(MemoryStream stream)
+        internal void WriteTo(BlobWriter stream)
         {
             stream.Write(this.Buffer, 0, (int)this.Length);
         }
@@ -135,7 +135,7 @@ namespace Microsoft.Cci
 
         #region Poolable
 
-        private readonly ObjectPool<MemoryStream> _pool;
+        private readonly ObjectPool<BlobWriter> _pool;
 
         //
         // To implement Poolable, you need two things:
@@ -158,23 +158,23 @@ namespace Microsoft.Cci
         }
 
         //2) Expose  the way to get an instance.
-        private static readonly ObjectPool<MemoryStream> s_poolInstance = CreatePool();
+        private static readonly ObjectPool<BlobWriter> s_poolInstance = CreatePool();
 
-        public static MemoryStream GetInstance()
+        public static BlobWriter GetInstance()
         {
             var stream = s_poolInstance.Allocate();
             return stream;
         }
 
-        public static ObjectPool<MemoryStream> CreatePool()
+        public static ObjectPool<BlobWriter> CreatePool()
         {
             return CreatePool(32);
         }
 
-        public static ObjectPool<MemoryStream> CreatePool(int size)
+        public static ObjectPool<BlobWriter> CreatePool(int size)
         {
-            ObjectPool<MemoryStream> pool = null;
-            pool = new ObjectPool<MemoryStream>(() => new MemoryStream(pool), size);
+            ObjectPool<BlobWriter> pool = null;
+            pool = new ObjectPool<BlobWriter>(() => new BlobWriter(pool), size);
             return pool;
         }
         #endregion

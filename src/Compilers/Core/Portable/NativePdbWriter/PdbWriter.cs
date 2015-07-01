@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly BinaryWriter _logData;
+        private readonly BlobWriter _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,38 +57,38 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = new BinaryWriter(MemoryStream.GetInstance());
+                _logData = BlobWriter.GetInstance();
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
             else
             {
-                _logData = default(BinaryWriter);
+                _logData = null;
                 _hashAlgorithm = null;
             }
         }
 
         private void MaybeFlush()
         {
-            if (_logData.BaseStream.Length >= bufferFlushLimit)
+            if (_logData.Length >= bufferFlushLimit)
             {
-                _hashAlgorithm.TransformBlock(_logData.BaseStream.Buffer, (int)_logData.BaseStream.Position);
-                _logData.BaseStream.Position = 0;
+                _hashAlgorithm.TransformBlock(_logData.Buffer, (int)_logData.Position);
+                _logData.Position = 0;
             }
         }
 
         internal ContentId ContentIdFromLog()
         {
-            Debug.Assert(_logData.BaseStream != null);
-            _hashAlgorithm.TransformFinalBlock(_logData.BaseStream.Buffer, (int)_logData.BaseStream.Position);
-            _logData.BaseStream.Position = 0;
+            Debug.Assert(_logData != null);
+            _hashAlgorithm.TransformFinalBlock(_logData.Buffer, (int)_logData.Position);
+            _logData.Position = 0;
             return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
         }
 
         internal void Close()
         {
             _hashAlgorithm?.Dispose();
-            _logData.BaseStream?.Free();
+            _logData?.Free();
         }
 
         internal enum PdbWriterOperation : byte
