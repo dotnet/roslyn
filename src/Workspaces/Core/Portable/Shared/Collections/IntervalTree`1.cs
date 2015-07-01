@@ -218,12 +218,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
-        public IntervalTree<T> AddInterval(T value, IIntervalIntrospector<T> introspector)
-        {
-            var newNode = new Node(introspector, value);
-            return new IntervalTree<T>(Insert(root, newNode, introspector, inPlace: false));
-        }
-
         public bool IsEmpty()
         {
             return this.root == null;

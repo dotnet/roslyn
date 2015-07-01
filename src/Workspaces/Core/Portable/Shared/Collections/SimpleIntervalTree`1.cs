@@ -62,12 +62,6 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return GetIntersectingIntervals(position, 0).Any();
         }
 
-        public SimpleIntervalTree<T> AddInterval(T value)
-        {
-            var newNode = new Node(_introspector, value);
-            return new SimpleIntervalTree<T>(_introspector, Insert(root, newNode, _introspector, inPlace: false));
-        }
-
         protected int MaxEndValue(Node node)
         {
             return GetEnd(node.MaxEndNode.Value, _introspector);
