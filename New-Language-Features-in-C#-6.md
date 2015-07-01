@@ -8,7 +8,7 @@ Auto-property enhancements
 Initializers for auto-properties
 --------------------------------
 
-You can now add an initializer to an auto-property, just as you can a field:
+You can now add an initializer to an auto-property, just as you can in a field:
 
 ``` c#
 public class Customer
