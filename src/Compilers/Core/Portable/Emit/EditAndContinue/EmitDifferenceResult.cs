@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EmitBaseline _baseline;
 
         internal EmitDifferenceResult(bool success, ImmutableArray<Diagnostic> diagnostics, EmitBaseline baseline) :
-            base(success, diagnostics)
+            base(success, diagnostics, entryPointOpt: null)
         {
             _baseline = baseline;
         }

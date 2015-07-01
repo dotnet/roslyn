@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
@@ -279,6 +280,24 @@ namespace Microsoft.Cci
                 buffer[i + 6] = (byte)(hi >> 16);
                 buffer[i + 7] = (byte)(hi >> 24);
             }
+        }
+
+        internal void WriteDecimal(decimal value)
+        {
+            bool isNegative;
+            byte scale;
+            uint low, mid, high;
+            value.GetBits(out isNegative, out scale, out low, out mid, out high);
+
+            WriteByte((byte)(scale | (isNegative ? 0x80 : 0x00)));
+            WriteUint(low);
+            WriteUint(mid);
+            WriteUint(high);
+        }
+
+        internal void WriteDateTime(DateTime value)
+        {
+            WriteLong(value.Ticks);
         }
 
         /// <summary>

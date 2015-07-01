@@ -295,8 +295,7 @@ namespace Microsoft.Cci
 
             var localScopes = methodBody.LocalScopes;
 
-            // Open the outer-most language defined scope, the namespace scopes will be emitted to it.
-            // Note that the root scope has already been open, but native compilers leave it empty.
+            // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);
@@ -413,7 +412,7 @@ namespace Microsoft.Cci
             {
                 string defaultNamespace = module.DefaultNamespace;
 
-                if (defaultNamespace != null)
+                if (!string.IsNullOrEmpty(defaultNamespace))
                 {
                     // VB marks the default/root namespace with an asterisk
                     UsingNamespace("*" + defaultNamespace, module);
@@ -697,7 +696,7 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                uint token = _metadataWriter.SerializeLocalConstantSignature(scopeConstant);
+                uint token = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
                     DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), token);
@@ -968,7 +967,7 @@ namespace Microsoft.Cci
                     _callLogger.LogArgument(method.Name);
                 }
 
-                // open root scope:
+                // open outermost scope:
                 _symWriter.OpenScope(startOffset: 0);
                 if (_callLogger.LogOperation(OP.OpenScope))
                 {

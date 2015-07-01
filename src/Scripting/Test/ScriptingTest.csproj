@@ -16,7 +16,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -66,9 +66,10 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyLoader.cs" />
     <Compile Include="GlobalAssemblyCacheTests.cs" />
     <Compile Include="MetadataShadowCopyProviderTests.cs" />
+    <Compile Include="ObjectFormatterTestBase.cs" />
+    <Compile Include="ObjectFormatterTests.Fixtures.cs" />
     <Compile Include="ScriptEngine.cs" />
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="Session.cs" />

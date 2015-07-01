@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Scripting;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Services.UnitTests
 {
@@ -16,9 +19,15 @@ namespace Roslyn.Services.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
+                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+
         public MetadataShadowCopyProviderTests()
         {
-            _provider = new MetadataShadowCopyProvider(TempRoot.Root);
+            _provider = new MetadataShadowCopyProvider(TempRoot.Root, s_systemNoShadowCopyDirectories);
         }
 
         public override void Dispose()

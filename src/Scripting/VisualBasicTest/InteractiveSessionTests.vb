@@ -13,14 +13,10 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.Test
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
     Public Class InteractiveSessionTests
         Inherits BasicTestBase
-
-        Shared Sub New()
-            ScriptBuilder.DisableJitOptimizations = True
-        End Sub
 
 #Region "Chaining"
         <Fact()>
