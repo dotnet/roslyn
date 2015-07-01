@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         End Function
 
         Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
-            Dim rewriter = New Rewriter(spans, cancellationToken)
+            Dim rewriter = New Rewriter(spans.ToArray(), cancellationToken)
             Dim newRoot = rewriter.Visit(root)
 
             Return If(root Is newRoot, root, newRoot)
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
             Private ReadOnly _cancellationToken As CancellationToken
 
-            Public Sub New(spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Public Sub New(spans As TextSpan(), cancellationToken As CancellationToken)
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
                 _spans = New SimpleIntervalTree(Of TextSpan)(TextSpanIntervalIntrospector.Instance, spans)

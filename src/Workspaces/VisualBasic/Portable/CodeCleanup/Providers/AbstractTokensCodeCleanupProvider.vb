@@ -16,18 +16,18 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Public MustOverride ReadOnly Property Name As String Implements ICodeCleanupProvider.Name
 
         Protected MustOverride Function GetRewriter(
-            document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Rewriter
+            document As Document, root As SyntaxNode, spans As TextSpan(), workspace As Workspace, cancellationToken As CancellationToken) As Rewriter
 
         Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim rewriter As Rewriter = GetRewriter(document, root, spans, document.Project.Solution.Workspace, cancellationToken)
+            Dim rewriter As Rewriter = GetRewriter(document, root, spans.ToArray(), document.Project.Solution.Workspace, cancellationToken)
             Dim newRoot = rewriter.Visit(root)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
         Public Function Cleanup(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As SyntaxNode Implements ICodeCleanupProvider.Cleanup
-            Dim rewriter As Rewriter = GetRewriter(Nothing, root, spans, workspace, cancellationToken)
+            Dim rewriter As Rewriter = GetRewriter(Nothing, root, spans.ToArray(), workspace, cancellationToken)
             Return rewriter.Visit(root)
         End Function
 
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             ' a global state indicating whether the visitor is visiting structured trivia or not
             Protected _underStructuredTrivia As Boolean
 
-            Public Sub New(spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Public Sub New(spans As TextSpan(), cancellationToken As CancellationToken)
                 ' need to visit structured trivia for cases such as "Region"
                 MyBase.New(visitIntoStructuredTrivia:=True)
 

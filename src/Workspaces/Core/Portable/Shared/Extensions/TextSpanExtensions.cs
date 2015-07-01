@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <summary>
         /// merge provided spans to each distinct group of spans in ascending order
         /// </summary>
-        public static IEnumerable<TextSpan> ToNormalizedSpans(this IEnumerable<TextSpan> spans)
+        public static NormalizedTextSpanCollection ToNormalizedSpans(this IEnumerable<TextSpan> spans)
         {
             return new NormalizedTextSpanCollection(spans);
         }
