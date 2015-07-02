@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             Binder.ProcessedFieldInitializers processedInitializers =
-                                (method.MethodKind == MethodKind.Constructor || method.IsScriptInitializer)? processedInstanceInitializers :
+                                (method.MethodKind == MethodKind.Constructor || method.IsScriptInitializer) ? processedInstanceInitializers :
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
                                 default(Binder.ProcessedFieldInitializers);
 
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = methodWithBody.Method;
 
                 var lambda = method as SynthesizedLambdaMethod;
-                var variableSlotAllocatorOpt = ((object)lambda != null) ? 
+                var variableSlotAllocatorOpt = ((object)lambda != null) ?
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
 

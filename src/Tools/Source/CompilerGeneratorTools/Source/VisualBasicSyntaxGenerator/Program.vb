@@ -19,7 +19,7 @@ Friend Module Program
             Dim outputKind As String = Nothing
             Dim paths As New List(Of String)()
 
-            For Each arg in args 
+            For Each arg in args
                 Dim c = arg.ToLowerInvariant()
                 If c = "/test" OrElse c = "/source" OrElse c = "/gettext" Then
                     If outputKind IsNot Nothing Then

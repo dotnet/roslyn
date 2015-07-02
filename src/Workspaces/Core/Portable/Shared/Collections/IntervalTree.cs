@@ -8,15 +8,10 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 {
     internal static class IntervalTree
     {
-        public static IntervalTree<T> Create<T>(IIntervalIntrospector<T> introspector, params T[] values)
-        {
-            return Create(introspector, (IEnumerable<T>)values);
-        }
-
-        public static IntervalTree<T> Create<T>(IIntervalIntrospector<T> introspector, IEnumerable<T> values = null)
+        public static IntervalTree<T> Create<T>(IIntervalIntrospector<T> introspector, T[] values = null)
         {
             Contract.ThrowIfNull(introspector);
-            return new IntervalTree<T>(introspector, values ?? SpecializedCollections.EmptyEnumerable<T>());
+            return new IntervalTree<T>(introspector, values);
         }
     }
 }

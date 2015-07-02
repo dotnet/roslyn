@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="token">The token to normalize.</param>
         /// <param name="indentation">A sequence of whitespace characters that defines a single level of indentation.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
-        public static SyntaxToken NormalizeWhitespace(this SyntaxToken token,  string indentation, bool elasticTrivia) {
+        public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, string indentation, bool elasticTrivia)
+        {
             return SyntaxNormalizer.Normalize(token, indentation, Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL, elasticTrivia);
         }
 
@@ -73,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// single level of indentation.</param>
         /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
-        public static SyntaxToken NormalizeWhitespace(this SyntaxToken token, 
-            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, 
+        public static SyntaxToken NormalizeWhitespace(this SyntaxToken token,
+            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
             string eol = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
             bool elasticTrivia = false)
         {
@@ -102,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// single level of indentation.</param>
         /// <param name="eol">An optional sequence of whitespace characters used for end of line.</param>
         /// <param name="elasticTrivia">If true the replaced trivia is elastic trivia.</param>
-        public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list, 
-            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation, 
+        public static SyntaxTriviaList NormalizeWhitespace(this SyntaxTriviaList list,
+            string indentation = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultIndentation,
             string eol = Microsoft.CodeAnalysis.SyntaxNodeExtensions.DefaultEOL,
             bool elasticTrivia = false)
         {

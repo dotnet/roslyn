@@ -19,20 +19,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         internal static void GetAllScopes(
-            this ISymUnmanagedMethod method, 
-            ArrayBuilder<ISymUnmanagedScope> allScopes, 
-            ArrayBuilder<ISymUnmanagedScope> containingScopes, 
-            int offset, 
+            this ISymUnmanagedMethod method,
+            ArrayBuilder<ISymUnmanagedScope> allScopes,
+            ArrayBuilder<ISymUnmanagedScope> containingScopes,
+            int offset,
             bool isScopeEndInclusive)
         {
             GetAllScopes(method.GetRootScope(), allScopes, containingScopes, offset, isScopeEndInclusive);
         }
 
         private static void GetAllScopes(
-            ISymUnmanagedScope root, 
-            ArrayBuilder<ISymUnmanagedScope> allScopes, 
-            ArrayBuilder<ISymUnmanagedScope> containingScopes, 
-            int offset, 
+            ISymUnmanagedScope root,
+            ArrayBuilder<ISymUnmanagedScope> allScopes,
+            ArrayBuilder<ISymUnmanagedScope> containingScopes,
+            int offset,
             bool isScopeEndInclusive)
         {
             var stack = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         public static ConstantValue GetConstantValue(ITypeSymbol type, object symValue)
         {
             Debug.Assert(type.TypeKind != TypeKind.Enum);
-            
+
             short shortValue;
             switch (type.SpecialType)
             {

@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
 
             public StateMachine(
-                ITextBuffer buffer, 
-                IInlineRenameService inlineRenameService, 
-                IAsynchronousOperationListener asyncListener, 
+                ITextBuffer buffer,
+                IInlineRenameService inlineRenameService,
+                IAsynchronousOperationListener asyncListener,
                 IDiagnosticAnalyzerService diagnosticAnalyzerService)
             {
                 _buffer = buffer;
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         // manually.
 
                         _diagnosticAnalyzerService?.Reanalyze(
-                            document.Project.Solution.Workspace, 
+                            document.Project.Solution.Workspace,
                             documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
                     }
 

@@ -27,7 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         Protected Overrides Function Rewriter(changeMap As Dictionary(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData), cancellationToken As CancellationToken) As SyntaxNode
-            Dim triviaRewriter = New TriviaDataFactory.TriviaRewriter(Me.TreeInfo.Root, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, Me.FormattedSpan), changeMap, cancellationToken)
+            Dim tree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, {Me.FormattedSpan})
+            Dim triviaRewriter = New TriviaDataFactory.TriviaRewriter(TreeInfo.Root, tree, changeMap, cancellationToken)
             Return triviaRewriter.Transform()
         End Function
     End Class

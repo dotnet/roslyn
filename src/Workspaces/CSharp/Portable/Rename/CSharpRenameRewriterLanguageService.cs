@@ -324,8 +324,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace, _cancellationToken);
 
                     string suffix = null;
-                    string prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor 
-                        ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1) 
+                    string prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor
+                        ? newToken.ValueText.Substring(0, newToken.ValueText.IndexOf('_') + 1)
                         : null;
 
                     if (symbols.Count() == 1)
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     if (!string.IsNullOrEmpty(suffix))
                     {
                         currentNewIdentifier = currentNewIdentifier + suffix;
-                    }                    
+                    }
                 }
 
                 // determine the canonical identifier name (unescaped, no unicode escaping, ...)

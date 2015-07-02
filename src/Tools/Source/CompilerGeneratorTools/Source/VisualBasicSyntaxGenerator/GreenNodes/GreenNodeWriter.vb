@@ -477,7 +477,7 @@ Friend Class GreenNodeWriter
 
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
 
-         _writer.Write("        Friend Sub New(")
+        _writer.Write("        Friend Sub New(")
 
         ' Generate each of the field parameters
         _writer.Write("ByVal kind As {0}", NodeKindType())

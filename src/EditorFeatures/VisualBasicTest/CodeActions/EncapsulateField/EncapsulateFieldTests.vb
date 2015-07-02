@@ -392,7 +392,7 @@ End Class
         End Sub
 
         <WorkItem(694241)>
-<Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub NewPropertyNameIsUnique()
             Dim text = <File>
 Class AA

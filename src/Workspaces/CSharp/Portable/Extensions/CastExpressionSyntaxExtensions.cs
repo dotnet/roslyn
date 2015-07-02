@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             do
             {
-                switch(currentNode.Kind())
+                switch (currentNode.Kind())
                 {
                     case SyntaxKind.UncheckedExpression:
                     case SyntaxKind.UncheckedStatement:

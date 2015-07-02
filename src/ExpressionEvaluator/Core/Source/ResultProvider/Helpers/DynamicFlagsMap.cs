@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal sealed class DynamicFlagsMap
     {
-        private static readonly DynamicFlagsMap Empty = new DynamicFlagsMap();
+        private static readonly DynamicFlagsMap s_empty = new DynamicFlagsMap();
 
         private readonly Type _typeDefinition;
         private readonly DynamicFlagsCustomTypeInfo _dynamicFlags;
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(type != null);
             if (!type.IsGenericType)
             {
-                return Empty;
+                return s_empty;
             }
 
             var dynamicFlags = DynamicFlagsCustomTypeInfo.Create(typeAndInfo.Info);
             if (!dynamicFlags.Any())
             {
-                return Empty;
+                return s_empty;
             }
 
             var typeDefinition = type.GetGenericTypeDefinition();

@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
         }
 
-        IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        private IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
             IReadOnlyDictionary<string, string> set = null;
 
@@ -1651,10 +1651,10 @@ namespace Microsoft.CodeAnalysis
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
-			
-			// Portable PDBs not supported yet:
+
+            // Portable PDBs not supported yet:
             bool emitPortablePdb = false;
-			
+
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             try

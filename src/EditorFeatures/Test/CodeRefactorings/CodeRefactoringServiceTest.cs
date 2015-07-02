@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> GetMetadata(params CodeRefactoringProvider[] providers)
         {
-            foreach(var provider in providers)
+            foreach (var provider in providers)
             {
                 var providerCopy = provider;
                 yield return new Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>(() => providerCopy, new CodeChangeProviderMetadata("Test", languages: LanguageNames.CSharp));

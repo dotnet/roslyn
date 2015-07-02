@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var nodeValues = values == null
                 ? null
-                : values.Select(ts => new TagNode(ts, trackingMode));
+                : values.Select(ts => new TagNode(ts, trackingMode)).ToArray();
 
             var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
             _tree = IntervalTree.Create(introspector, nodeValues);

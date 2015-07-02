@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return null;
         }
 
-#region Test hooks
+        #region Test hooks
 
         // for testing only
         internal int CacheSize
@@ -657,6 +657,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _shadowCopies.Count; }
         }
 
-#endregion
+        #endregion
     }
 }

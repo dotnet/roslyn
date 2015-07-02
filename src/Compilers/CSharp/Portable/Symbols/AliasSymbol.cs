@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetAliasTarget(basesBeingResolved: null);
             }
         }
-        
+
         public override ImmutableArray<Location> Locations
         {
             get

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [WorkItem(2824, "https://github.com/dotnet/roslyn/issues/2824")]
-        [Fact(Skip ="Needs target file update. Activate when we move to new base drop.")]
+        [Fact(Skip = "Needs target file update. Activate when we move to new base drop.")]
         public void Test_OpenProjectReferencingPortableProject()
         {
             var files = new FileSet(new Dictionary<string, object>
@@ -87,8 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 { @"CSharpProject\Program.cs", GetResourceText("CSharpProject_CSharpClass.cs") },
                 { @"CSharpProject\PortableProject.csproj", GetResourceText("CSharpProject_PortableProject.csproj") },
                 { @"CSharpProject\CSharpClass.cs", GetResourceText("CSharpProject_CSharpClass.cs") }
-
-            });
+});
 
             CreateFiles(files);
 
@@ -125,7 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static MetadataReference GetMetadataReferenceByAlias(Project project, string aliasName)
         {
-            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr => 
+            return project.MetadataReferences.OfType<PortableExecutableReference>().SingleOrDefault(mr =>
             !mr.Properties.Aliases.IsDefault && mr.Properties.Aliases.Contains(aliasName));
         }
 
@@ -1218,7 +1217,7 @@ class C1
             var ws = MSBuildWorkspace.Create();
 
             var diags = new List<WorkspaceDiagnostic>();
-            ws.WorkspaceFailed += (s, args) =>            
+            ws.WorkspaceFailed += (s, args) =>
             {
                 diags.Add(args.Diagnostic);
             };
@@ -2701,7 +2700,7 @@ class C { }";
             var root = document.GetSyntaxRootAsync().Result;
             var noEncodingDoc = document.WithText(SourceText.From(text.ToString(), encoding: null));
             Assert.Null(noEncodingDoc.GetTextAsync().Result.Encoding);
-            
+
             // apply changes (this writes the changed document)
             var noEncodingSolution = noEncodingDoc.Project.Solution;
             Assert.True(noEncodingSolution.Workspace.TryApplyChanges(noEncodingSolution));

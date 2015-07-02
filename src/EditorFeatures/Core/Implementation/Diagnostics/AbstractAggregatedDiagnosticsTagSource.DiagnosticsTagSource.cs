@@ -155,10 +155,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 _owner.RaiseTagsChanged(snapshot.TextBuffer, spans);
             }
 
-            private IEnumerable<Data> GetAugmentedDiagnostics(ImmutableArray<DiagnosticData> diagnostics, SourceText text, ITextSnapshot snapshot)
+            private Data[] GetAugmentedDiagnostics(ImmutableArray<DiagnosticData> diagnostics, SourceText text, ITextSnapshot snapshot)
             {
                 return diagnostics.Where(_owner.ShouldInclude)
-                                  .Select(d => new Data(d, snapshot.CreateTrackingSpan(AdjustSpanRange(text, d.GetExistingOrCalculatedTextSpan(text)), SpanTrackingMode.EdgeExclusive)));
+                                  .Select(d => new Data(d, snapshot.CreateTrackingSpan(AdjustSpanRange(text, d.GetExistingOrCalculatedTextSpan(text)), SpanTrackingMode.EdgeExclusive)))
+                                  .ToArray();
             }
 
             private static Span AdjustSpanRange(SourceText text, TextSpan span)

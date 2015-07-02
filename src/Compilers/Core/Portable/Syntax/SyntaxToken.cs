@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis
                 return new SyntaxToken(
                     parent: null,
                     token: Node.WithAdditionalAnnotationsGreen(annotations),
-                    position: 0, 
+                    position: 0,
                     index: 0);
             }
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                 return new SyntaxToken(
                     parent: null,
                     token: Node.WithoutAnnotationsGreen(annotations),
-                    position: 0, 
+                    position: 0,
                     index: 0);
             }
 
@@ -381,7 +381,6 @@ namespace Microsoft.CodeAnalysis
                     token: token.Node.WithAdditionalAnnotationsGreen(annotations),
                     position: 0,
                     index: 0);
-                
             }
 
             return token;

@@ -57,7 +57,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
                     commandsDict[name] = command;
                 }
-                if (length == 0) {
+                if (length == 0)
+                {
                     throw new InvalidOperationException(string.Format(InteractiveWindowResources.MissingCommandName, command.GetType().Name));
                 }
                 _maxCommandNameLength = Math.Max(_maxCommandNameLength, length);

@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
             {
-                var spanList = spans?.ToList() ?? new List<TextSpan>();
+                var spanList = spans?.ToArray() ?? SpecializedCollections.EmptyArray<TextSpan>();
 
                 // we have no span
-                if (!spanList.Any())
+                if (spanList.Length == 0)
                 {
                     return document;
                 }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         private async Task<Document> ReduceAsyncInternal(
             Document document,
-            List<TextSpan> spans,
+            TextSpan[] spans,
             OptionSet optionSet,
             IEnumerable<AbstractReducer> reducers,
             CancellationToken cancellationToken)
@@ -266,8 +266,8 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             var gen = SyntaxGenerator.GetGenerator(document);
 
-            var importsToSimplify = root.DescendantNodes().Where(n => 
-                !isNodeOrTokenOutsideSimplifySpan(n) 
+            var importsToSimplify = root.DescendantNodes().Where(n =>
+                !isNodeOrTokenOutsideSimplifySpan(n)
                 && gen.GetDeclarationKind(n) == DeclarationKind.NamespaceImport
                 && n.HasAnnotation(Simplifier.Annotation));
 

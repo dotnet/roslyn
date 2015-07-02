@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             CancellationToken cancellationToken)
         {
             var compilation = script.GetCompilation();
-            
+
             using (var peStream = new MemoryStream())
             {
                 var emitResult = compilation.Emit(

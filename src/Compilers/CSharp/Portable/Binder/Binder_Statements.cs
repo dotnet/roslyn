@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
         {
-            return  (member as MethodSymbol)?.MethodKind == (isStatic ?
+            return (member as MethodSymbol)?.MethodKind == (isStatic ?
                                                                 MethodKind.StaticConstructor :
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;

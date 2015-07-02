@@ -1929,7 +1929,7 @@ namespace Microsoft.Cci
             writer.WriteUint(0x424A5342);
 
             // major version
-            writer.WriteUshort(1); 
+            writer.WriteUshort(1);
 
             // minor version
             writer.WriteUshort(1);
@@ -1938,7 +1938,7 @@ namespace Microsoft.Cci
             writer.WriteUint(0);
 
             // metadata version length
-            writer.WriteUint(MetadataSizes.MetadataVersionPaddedLength); 
+            writer.WriteUint(MetadataSizes.MetadataVersionPaddedLength);
 
             string targetRuntimeVersion = module.TargetRuntimeVersion;
 
@@ -2113,9 +2113,9 @@ namespace Microsoft.Cci
         }
 
         private void SerializeMetadata(
-            BinaryWriter metadataWriter, 
-            MetadataSizes metadataSizes, 
-            int methodBodyStreamRva, 
+            BinaryWriter metadataWriter,
+            MetadataSizes metadataSizes,
+            int methodBodyStreamRva,
             int mappedFieldDataStreamRva,
             uint entryPointToken,
             out uint guidHeapStartOffset)
@@ -2965,8 +2965,8 @@ namespace Microsoft.Cci
 
                 var marshallingInformation = fieldDef.MarshallingInformation;
 
-                r.NativeType = marshallingInformation != null 
-                    ? this.GetMarshallingDescriptorIndex(marshallingInformation) 
+                r.NativeType = marshallingInformation != null
+                    ? this.GetMarshallingDescriptorIndex(marshallingInformation)
                     : this.GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
 
                 uint fieldDefIndex = this.GetFieldDefIndex(fieldDef);
@@ -2986,8 +2986,8 @@ namespace Microsoft.Cci
 
                 var marshallingInformation = parDef.MarshallingInformation;
 
-                r.NativeType = marshallingInformation != null 
-                    ? this.GetMarshallingDescriptorIndex(marshallingInformation) 
+                r.NativeType = marshallingInformation != null
+                    ? this.GetMarshallingDescriptorIndex(marshallingInformation)
                     : this.GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
 
                 uint parameterDefIndex = this.GetParameterDefIndex(parDef);
@@ -3166,8 +3166,8 @@ namespace Microsoft.Cci
                 r.MemberForwarded = (methodDefIndex << 1) | 1;
 
                 string entryPointName = data.EntryPointName;
-                r.ImportName = entryPointName != null 
-                    ? this.GetStringIndexForNameAndCheckLength(entryPointName, methodDef) 
+                r.ImportName = entryPointName != null
+                    ? this.GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
                     : heaps.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
 
                 r.ImportScope = this.GetModuleRefIndex(data.ModuleName);

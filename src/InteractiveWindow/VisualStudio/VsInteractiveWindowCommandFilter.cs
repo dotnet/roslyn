@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
             _window = window;
             _oleCommandTargetProviders = oleCommandTargetProviders;
             _contentTypeRegistry = contentTypeRegistry;
-            
+
             this.textViewAdapter = textViewAdapter;
 
             // make us a code window so we'll have the same colors as a normal code window.
@@ -276,7 +276,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case CommandIds.HistoryPrevious:
                     case CommandIds.SearchHistoryNext:
                     case CommandIds.SearchHistoryPrevious:
-                    case CommandIds.SmartExecute: 
+                    case CommandIds.SmartExecute:
                         // TODO: Submit?
                         prgCmds[0].cmdf = _window.CurrentLanguageBuffer != null ? CommandEnabled : CommandDisabled;
                         prgCmds[0].cmdf |= (uint)OLECMDF.OLECMDF_DEFHIDEONCTXTMENU;

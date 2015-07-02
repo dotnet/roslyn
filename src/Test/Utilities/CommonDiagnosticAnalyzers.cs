@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 helpLinkUri: "HelpLink2",
                 customTags: new[] { "2_CustomTag1", "2_CustomTag2" });
 
-            private static readonly ImmutableDictionary<string, string> _properties =
+            private static readonly ImmutableDictionary<string, string> s_properties =
                 new Dictionary<string, string> { { "Key1", "Value1" }, { "Key2", "Value2" } }.ToImmutableDictionary();
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     // With location diagnostic.
                     var location = compilationContext.Compilation.SyntaxTrees.First().GetRoot().GetLocation();
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, _properties));
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
 
                     // No location diagnostic.
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, _properties));
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties));
                 });
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
                 var expectedText = @",
         ""customProperties"": {";
 
-                foreach (var kvp in _properties.OrderBy(kvp => kvp.Key))
+                foreach (var kvp in s_properties.OrderBy(kvp => kvp.Key))
                 {
                     if (!isFirst)
                     {
