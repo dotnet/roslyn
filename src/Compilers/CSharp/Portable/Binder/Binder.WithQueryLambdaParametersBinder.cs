@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)receiverType == null || !receiverType.IsAnonymousType)
                 {
                     // We only construct transparent query variables using anonymous types, so if we're trying to navigate through
-                    // some other type, we must have some hinky query API where the types don't match up as expected.
+                    // some other type, we must have some query API where the types don't match up as expected.
                     // We should report this as an error of some sort.
                     // TODO: DevDiv #737822 - reword error message and add test.
                     var info = new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedTransparentIdentifierAccess, name, receiver.ExpressionSymbol ?? receiverType);

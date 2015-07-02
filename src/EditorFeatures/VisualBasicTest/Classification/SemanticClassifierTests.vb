@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <WorkItem(542685)>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub OptimisticallyColorFromInAssignement()
+        Public Sub OptimisticallyColorFromInAssignment()
             TestInMethod(<text><![CDATA[
                             Dim q = 3
                             q = From 
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         <WorkItem(542685)>
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
-        Public Sub DontColorThingsOtherThanFromInAssignement()
+        Public Sub DontColorThingsOtherThanFromInAssignment()
             TestInMethod(<text><![CDATA[
                             Dim q = 3
                             q = Fro 

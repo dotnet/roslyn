@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             Binder.ProcessedFieldInitializers processedInitializers =
-                                (method.MethodKind == MethodKind.Constructor || method.IsScriptInitializer)? processedInstanceInitializers :
+                                (method.MethodKind == MethodKind.Constructor || method.IsScriptInitializer) ? processedInstanceInitializers :
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
                                 default(Binder.ProcessedFieldInitializers);
 
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = methodWithBody.Method;
 
                 var lambda = method as SynthesizedLambdaMethod;
-                var variableSlotAllocatorOpt = ((object)lambda != null) ? 
+                var variableSlotAllocatorOpt = ((object)lambda != null) ?
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
 
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 closureDebugInfoBuilder,
                                 out ctorStateMachineTypeOpt);
 
-                            // construcot can't produce state machine
+                            // constructor can't produce state machine
                             Debug.Assert((object)ctorStateMachineTypeOpt == null);
 
                             boundStatements = boundStatements.Insert(0, chain);
@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: can we skip this if we have as many initializers as instance fields?
             //       there could be an observable difference if initializer crashes 
             //       and constructor is invoked in-place and the partially initialized 
-            //       instance escapes. (impossible in C#, I beleive)
+            //       instance escapes. (impossible in C#, I believe)
             //
             // add "this = default(T)" at the beginning of implicit struct ctor
             return new BoundExpressionStatement(syntax,

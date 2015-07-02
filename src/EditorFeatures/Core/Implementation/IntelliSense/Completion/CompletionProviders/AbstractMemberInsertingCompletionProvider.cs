@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
                 // character enter the buffer. That means we can get ambiguity.
                 // partial class C { partial void foo() }
                 // partial class C { partial foo($$
-                // Commiting with the open paren will create a second, ambiguous foo.
+                // Committing with the open paren will create a second, ambiguous foo.
                 // We'll try to prefer the symbol whose declaration doesn't intersect our position
                 var nonIntersectingMember = resolution.CandidateSymbols.First(s => s.DeclaringSyntaxReferences.Any(d => !d.Span.IntersectsWith(span)));
                 if (nonIntersectingMember != null)
@@ -236,11 +236,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 
             root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepUnbalancedDirectives);
 
-            var disMemberedDocument = document.WithSyntaxRoot(root);
+            var dismemberedDocument = document.WithSyntaxRoot(root);
 
-            disMemberedDocument = Simplifier.ReduceAsync(disMemberedDocument, Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
-            disMemberedDocument = Formatter.FormatAsync(disMemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
-            return disMemberedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            dismemberedDocument = Simplifier.ReduceAsync(dismemberedDocument, Simplifier.Annotation, null, cancellationToken).WaitAndGetResult(cancellationToken);
+            dismemberedDocument = Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+            return dismemberedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
         }
     }
 }

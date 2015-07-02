@@ -85,5 +85,4 @@ namespace Microsoft.AnalyzerPowerPack.CSharp.Design
             return constructor.ParameterList.Parameters.Count == 0;
         }
     }
-
 }

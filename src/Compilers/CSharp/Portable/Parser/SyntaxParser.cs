@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetStart;
 
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
-        
+
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // PreLex is not cancellable. 
-            //      If we may cancell why would we aggressively lex ahead?
+            //      If we may cancel why would we aggressively lex ahead?
             //      Cancellations in a constructor make disposing complicated
             //
             // So, if we have a real cancellation token, do not do prelexing.

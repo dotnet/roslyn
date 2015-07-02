@@ -557,15 +557,15 @@ class Test
 class Complex
 {
     int real;
-    int imaginery;
-    public Complex(int real, int imaginery)
+    int imaginary;
+    public Complex(int real, int imaginary)
     {
         this.real = real;
-        this.imaginery = imaginery;
+        this.imaginary = imaginary;
     }
     public static dynamic operator +(Complex c1, Complex c2)
     {
-        dynamic d = new Complex(c1.real + c2.real, c1.imaginery + c2.imaginery);
+        dynamic d = new Complex(c1.real + c2.real, c1.imaginary + c2.imaginary);
         return d;
     }
 }
@@ -580,7 +580,7 @@ class Test
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Complex"" name="".ctor"" parameterNames=""real, imaginery"">
+    <method containingType=""Complex"" name="".ctor"" parameterNames=""real, imaginary"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
@@ -596,7 +596,7 @@ class Test
     </method>
     <method containingType=""Complex"" name=""op_Addition"" parameterNames=""c1, c2"">
       <customDebugInfo>
-        <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginery"" />
+        <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginary"" />
         <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
@@ -617,7 +617,7 @@ class Test
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
       <customDebugInfo>
-        <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginery"" />
+        <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginary"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
@@ -1548,7 +1548,7 @@ class Foo<T,V>
 
         [WorkItem(17390, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void EmitPDBForDynamicLocals_5_Just_Long()           //Dynamic local with dynamic attirbute of length 63 above which the flag is emitted empty
+        public void EmitPDBForDynamicLocals_5_Just_Long()           //Dynamic local with dynamic attribute of length 63 above which the flag is emitted empty
         {
             string source = @"
 using System;

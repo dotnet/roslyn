@@ -139,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
             readOnlyDocumentTracker.SetReadOnly(project.DocumentIds.First(), False)
             Assert.Equal(Of UInteger)(0, mockVsBuffer._oldFlags) ' Editable
 
-            ' invlid documentId
+            ' invalid documentId
             readOnlyDocumentTracker.SetReadOnly(Nothing, False) ' Check no NRE
         End Sub
 

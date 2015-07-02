@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundBlock CreateBlockDeclaringIterationVariable(
-            LocalSymbol iterationVariable, 
+            LocalSymbol iterationVariable,
             BoundStatement iteratorVariableInitialization,
             BoundStatement rewrittenBody,
             ForEachStatementSyntax forEachSyntax)
@@ -605,8 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // { V v = (V)a[p]; /* node.Body */ }
 
-            BoundStatement loopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVariableDecl, rewrittenBody, forEachSyntax); 
-           
+            BoundStatement loopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVariableDecl, rewrittenBody, forEachSyntax);
+
             // for (A[] a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
             //     V v = (V)a[p];
             //     /*node.Body*/

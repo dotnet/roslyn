@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var constraints = new MethodContextReuseConstraints(
                 moduleVersionId,
-                methodToken, 
-                methodVersion, 
-                startOffset, 
+                methodToken,
+                methodVersion,
+                startOffset,
                 endOffsetExclusive);
 
             Assert.True(constraints.AreSatisfied(moduleVersionId, methodToken, methodVersion, (int)startOffset));

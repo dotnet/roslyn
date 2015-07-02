@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestLabeledtatement()
+        public void TestLabeledStatement()
         {
             var text = "label: ;";
             var statement = this.ParseStatement(text);

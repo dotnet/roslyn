@@ -2211,7 +2211,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub LiftningMeOrParams()
+        Public Sub LiftingMeOrParams()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

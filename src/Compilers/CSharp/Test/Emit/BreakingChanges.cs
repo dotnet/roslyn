@@ -698,7 +698,7 @@ class Program
         {
             string source = @"using System;
 
-class NullCoallescingTest
+class NullCoalescingTest
 {
     public static void Main()
     {
@@ -1254,7 +1254,7 @@ static int Main()
         }
 
         [Fact, WorkItem(530696, "DevDiv")]
-        public void CS0121Err_AmbigiousMethodCall()
+        public void CS0121Err_AmbiguousMethodCall()
         {
             string source = @"
     class G<T> { }

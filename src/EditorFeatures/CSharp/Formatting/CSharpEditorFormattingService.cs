@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
 
             // don't auto format after these keys if smart indenting is not on.
-            if  ((ch == '#' || ch == 'n') && !smartIndentOn)
+            if ((ch == '#' || ch == 'n') && !smartIndentOn)
             {
                 return false;
             }

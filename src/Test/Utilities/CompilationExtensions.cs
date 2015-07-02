@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this Compilation compilation,
             EmitOptions options = null,
             CompilationTestData testData = null,
-            DiagnosticDescription[] expectedWarnings = null)
+            DiagnosticDescription[] expectedWarnings = null,
+            Stream pdbStream = null)
         {
             var stream = new MemoryStream();
-            MemoryStream pdbStream = 
-                (compilation.Options.OptimizationLevel == OptimizationLevel.Debug) && !CLRHelpers.IsRunningOnMono() 
-                ? new MemoryStream() 
-                : null;
+
+            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug && !CLRHelpers.IsRunningOnMono())
+            {
+                pdbStream = new MemoryStream();
+            }
 
             var emitResult = compilation.Emit(
                 peStream: stream,

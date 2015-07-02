@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
             // nodes on the search path from rotation candidate downwards will change balances because of the node added
             // unbalanced node itself will become balanced or will be rotated
             // either way nodes above unbalanced do not change their balance
-            for (; ;)
+            for (;;)
             {
                 // schedule hk read 
                 var hc = currentNode.HashCode;

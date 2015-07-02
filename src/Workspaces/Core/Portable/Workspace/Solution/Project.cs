@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this is a submission project.
         /// </summary>
-        internal bool IsSubmission
+        public bool IsSubmission
         {
             get
             {

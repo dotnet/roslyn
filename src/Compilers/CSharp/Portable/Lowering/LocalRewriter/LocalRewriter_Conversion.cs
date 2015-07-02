@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    ... the value might be retained in the internal representation
                 //   for future use, if it is reloaded from the storage location without having been modified ...
                 //
-                // Unfortunately, the above means that precision is not guranteed even when loading from storage.
+                // Unfortunately, the above means that precision is not guaranteed even when loading from storage.
                 //
                 //case BoundKind.FieldAccess:
                 //case BoundKind.ArrayAccess:

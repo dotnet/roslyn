@@ -1261,7 +1261,7 @@ class C : B<string>
                 Assert.Equal(accessor.AssociatedSymbol, property);
                 if (isFromSource)
                 {
-                    Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be fakse for auto property accessors");
+                    Assert.False(accessor.IsImplicitlyDeclared, "MethodSymbol.IsImplicitlyDeclared should be false for auto property accessors");
                 }
             }
         }

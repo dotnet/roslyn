@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                   symbol.ContainingType.AssociatedSymbol != null))
             {
                 // We enable the parameter in Raisevent, if the Event is declared with a signature. If the Event is declared as a 
-                // delegate type, we do not have a connection beween the delegate type and the event.
+                // delegate type, we do not have a connection between the delegate type and the event.
                 // this prevents a rename in this case :(.
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
             }

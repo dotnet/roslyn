@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var docText = doc.GetTextAsync().Result;
 
             Assert.NotNull(docText);
-            Assert.Equal(text, docText.ToString());            
+            Assert.Equal(text, docText.ToString());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

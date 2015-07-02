@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             _emptyProject = _ws.AddProject(
                 ProjectInfo.Create(
-                    ProjectId.CreateNewId(), 
-                    VersionStamp.Default, 
-                    "test", 
-                    "test.dll", 
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Default,
+                    "test",
+                    "test.dll",
                     LanguageNames.CSharp,
                     metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
         }

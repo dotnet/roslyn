@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Rules
         /// Called by completion engine when a completion item is committed.  Completion rules can
         /// use this information to affect future calls to MatchesFilterText or IsBetterFilterMatch.
         /// </summary>
-        void CompletionItemComitted(CompletionItem item);
+        void CompletionItemCommitted(CompletionItem item);
 
         /// <summary>
         /// Returns true if item1 and item2 are similar enough that only one should be shown in the completion list.

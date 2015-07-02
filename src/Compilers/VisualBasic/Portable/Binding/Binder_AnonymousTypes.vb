@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             fieldIsKey = False
 
                         Else
-                            ' field name successfully infered
+                            ' field name successfully inferred
                             fieldName = fieldNameToken.ValueText
                             fieldNode = DirectCast(fieldNameToken.Parent, VisualBasicSyntaxNode)
                             fieldIsKey = inferredFieldInitializer.KeyKeyword.Kind = SyntaxKind.KeyKeyword
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' WARNING: Note that SemanticModel.GetDeclaredSymbol for field initializer node relies on 
                 '          the fact that the order of properties in anonymous type template corresponds 
                 '          1-to-1 to the appropriate filed initializer syntax nodes; This means such 
-                '          correspondence must be preserved all the time including erroneos scenarios
+                '          correspondence must be preserved all the time including erroneous scenarios
 
                 ' NOTE: if one field initializer references another, the binder creates an 
                 '       BoundAnonymousTypePropertyAccess node to represent the value of the field, 
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasErrors = True
                     End If
 
-                    ' check if the field referenced is already processed, and is 'good', e.g. has type asigned
+                    ' check if the field referenced is already processed, and is 'good', e.g. has type assigned
                     If fieldIndex >= _initializerOrdinal Then
 
                         ' referencing a field which is not processed yet or has an error

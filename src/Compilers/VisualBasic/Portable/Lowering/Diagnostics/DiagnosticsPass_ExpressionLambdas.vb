@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitAnonymousTypePropertyAccess(node As BoundAnonymousTypePropertyAccess) As BoundNode
             If Me.IsInExpressionLambda Then
-                ' we do not allow anonymous objects which use one field to initalize another one
+                ' we do not allow anonymous objects which use one field to initialize another one
                 GenerateDiagnostic(ERRID.ERR_BadAnonymousTypeForExprTree, node)
             End If
 

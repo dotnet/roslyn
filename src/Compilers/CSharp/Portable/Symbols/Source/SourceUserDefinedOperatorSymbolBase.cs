@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // no inheritance relationship with other types, and any constraints on
             // those type parameters are ignored.
 
-            // A counter-intuative consequence of this rule is that:
+            // A counter-intuitive consequence of this rule is that:
             //
             // class X<U> where U : X<U>
             // {
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
-        
+
         public sealed override ImmutableArray<Location> Locations
         {
             get

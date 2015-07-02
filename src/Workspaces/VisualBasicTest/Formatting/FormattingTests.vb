@@ -3381,7 +3381,7 @@ End Module</Code>
         <Fact>
         <WorkItem(544459, "DevDiv")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub DictionaryAcessOperator()
+        Public Sub DictionaryAccessOperator()
             Dim code = <Code>Class S
     Default Property Def(s As String) As String
         Get

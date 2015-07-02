@@ -6352,7 +6352,7 @@ class Program
                 // whenever an unrecognized warning code was supplied in a #pragma directive
                 // (or via /nowarn /warnaserror flags on the command line).
                 // Going forward, we won't generate any warning in such cases. This will make
-                // maintainance of backwards compatibility easier (we no longer need to worry
+                // maintenance of backwards compatibility easier (we no longer need to worry
                 // about breaking existing projects / command lines if we deprecate / remove
                 // an old warning code).
                 Test(source, startErrorCode, endErrorCode);

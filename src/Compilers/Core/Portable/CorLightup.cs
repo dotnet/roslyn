@@ -144,7 +144,7 @@ namespace Roslyn.Utilities
             private sealed class AssemblyResolveWrapper
             {
                 private readonly Func<string, Assembly, Assembly> _handler;
-                private static readonly MethodInfo _stubInfo = typeof(AssemblyResolveWrapper).GetTypeInfo().GetDeclaredMethod("Stub");
+                private static readonly MethodInfo s_stubInfo = typeof(AssemblyResolveWrapper).GetTypeInfo().GetDeclaredMethod("Stub");
 
                 public AssemblyResolveWrapper(Func<string, Assembly, Assembly> handler)
                 {
@@ -161,7 +161,7 @@ namespace Roslyn.Utilities
 
                 public object GetHandler()
                 {
-                    return _stubInfo.CreateDelegate(_AppDomain.ResolveEventHandlerType, this);
+                    return s_stubInfo.CreateDelegate(_AppDomain.ResolveEventHandlerType, this);
                 }
             }
 

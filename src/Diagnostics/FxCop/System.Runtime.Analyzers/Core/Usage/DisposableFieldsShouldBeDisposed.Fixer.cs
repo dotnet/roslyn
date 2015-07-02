@@ -58,7 +58,7 @@ namespace System.Runtime.Analyzers
         private async Task<Document> AddDisposeCall(Document document, SyntaxNode declaration, IFieldSymbol fieldSymbol, IMethodSymbol disposeMethod, ITypeSymbol iDisposableType, ISymbol iDisposable_Dispose, CancellationToken cancellationToken)
         {
             SymbolEditor editor = SymbolEditor.Create(document);
-            await editor.EditOneDeclarationAsync(disposeMethod, (docEditor, disposeMethodNode) => 
+            await editor.EditOneDeclarationAsync(disposeMethod, (docEditor, disposeMethodNode) =>
             {
                 var generator = docEditor.Generator;
                 // handle the case where a local in the Dispose method exists with the same name by generating this (or ClassName) and simplifying it
@@ -87,7 +87,7 @@ namespace System.Runtime.Analyzers
                         generator.ExpressionStatement(
                             generator.InvocationExpression(
                                 generator.MemberAccessExpression(
-                                    generator.CastExpression(iDisposableType, 
+                                    generator.CastExpression(iDisposableType,
                                         generator.MemberAccessExpression(path, generator.IdentifierName(fieldSymbol.Name)).WithAdditionalAnnotations(Simplifier.Annotation)),
                                             generator.IdentifierName(DisposableFieldsShouldBeDisposedAnalyzer.Dispose))));
                 }

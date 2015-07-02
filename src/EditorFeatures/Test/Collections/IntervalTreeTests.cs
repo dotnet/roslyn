@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             Assert.Equal(1, tree.Count());
         }
 
-        private class Int32Introspector: IIntervalIntrospector<int>
+        private class Int32Introspector : IIntervalIntrospector<int>
         {
             public static Int32Introspector Instance = new Int32Introspector();
 

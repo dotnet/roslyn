@@ -56,7 +56,7 @@ Namespace System.Runtime.Analyzers
                         End If
 
                     Case SyntaxKind.UsingStatement
-                            Dim usingStatementExpression = RemoveParentheses(DirectCast(context.Node, UsingStatementSyntax).Expression)
+                        Dim usingStatementExpression = RemoveParentheses(DirectCast(context.Node, UsingStatementSyntax).Expression)
                         If usingStatementExpression IsNot Nothing Then
                             Dim fieldSymbol = TryCast(context.SemanticModel.GetSymbolInfo(usingStatementExpression).Symbol, IFieldSymbol)
                             If fieldSymbol IsNot Nothing Then

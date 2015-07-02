@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return block;
             }
 
-            public ExceptionHandlerLeaderBlock LeaderBlock => (ExceptionHandlerLeaderBlock) Blocks?[0];
+            public ExceptionHandlerLeaderBlock LeaderBlock => (ExceptionHandlerLeaderBlock)Blocks?[0];
 
             private BlockType GetLeaderBlockType()
             {

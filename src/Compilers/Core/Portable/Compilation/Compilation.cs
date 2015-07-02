@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
         }
 
-        IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        private IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
             IReadOnlyDictionary<string, string> set = null;
 
@@ -377,32 +377,32 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="hasValue"/> is false in the former case and true
         /// in the latter.
         /// </remarks>
-        internal ITypeSymbol GetSubmissionResultType(out bool hasValue)
+        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
         {
             return CommonGetSubmissionResultType(out hasValue);
         }
 
-        internal abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
+        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
 
         /// <summary>
         /// The previous submission compilation, or null if either this
         /// compilation doesn't represent a submission or the submission is the
         /// first submission in a submission chain.
         /// </summary>
-        internal Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
+        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
 
-        internal abstract Compilation CommonPreviousSubmission { get; }
+        protected abstract Compilation CommonPreviousSubmission { get; }
 
         /// <summary>
         /// Returns a new compilation with the given compilation set as the
         /// previous submission.
         /// </summary>
-        internal Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
+        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return CommonWithPreviousSubmission(newPreviousSubmission);
         }
 
-        internal abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
 
         #endregion
 
@@ -839,8 +839,8 @@ namespace Microsoft.CodeAnalysis
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        internal INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
-        internal abstract INamedTypeSymbol CommonScriptClass { get; }
+        public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
+        protected abstract INamedTypeSymbol CommonScriptClass { get; }
 
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
@@ -1646,21 +1646,60 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
+            Stream portablePdbStream = null;
+            Stream portablePdbTempStream = null;
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+
+            // Portable PDBs not supported yet:
+            bool emitPortablePdb = false;
+
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             try
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
-                if (pdbStreamProvider != null)
+                if (!emitPortablePdb && pdbStreamProvider != null)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
                     nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory, deterministic);
+                }
+
+                Func<Stream> getPortablePdbStream;
+                if (emitPortablePdb && pdbStreamProvider != null)
+                {
+                    getPortablePdbStream = () =>
+                    {
+                        if (metadataDiagnostics.HasAnyErrors())
+                        {
+                            return null;
+                        }
+
+                        portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                        if (portablePdbStream == null)
+                        {
+                            Debug.Assert(metadataDiagnostics.HasAnyErrors());
+                            return null;
+                        }
+
+                        // When in deterministic mode, we need to seek and read the stream to compute a deterministic PDB ID.
+                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                        var retStream = portablePdbStream;
+                        if (!retStream.CanSeek || deterministic && !retStream.CanRead)
+                        {
+                            retStream = portablePdbTempStream = new MemoryStream();
+                        }
+
+                        return retStream;
+                    };
+                }
+                else
+                {
+                    getPortablePdbStream = null;
                 }
 
                 Func<Stream> getPeStream = () =>
@@ -1704,7 +1743,7 @@ namespace Microsoft.CodeAnalysis
                         retStream = peStream;
                     }
 
-                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                    // When in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
                     // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                     if (!retStream.CanSeek || deterministic && !retStream.CanRead)
                     {
@@ -1721,6 +1760,7 @@ namespace Microsoft.CodeAnalysis
                         new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
+                        getPortablePdbStream,
                         nativePdbWriter,
                         pdbPath,
                         metadataOnly,
@@ -1733,14 +1773,20 @@ namespace Microsoft.CodeAnalysis
                             peTempStream.CopyTo(peStream);
                         }
 
+                        if (portablePdbTempStream != null)
+                        {
+                            portablePdbTempStream.Position = 0;
+                            portablePdbTempStream.CopyTo(portablePdbStream);
+                        }
+
                         if (nativePdbWriter != null)
                         {
-                            var pdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                            Debug.Assert(pdbStream != null || metadataDiagnostics.HasAnyErrors());
+                            var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            Debug.Assert(nativePdbStream != null || metadataDiagnostics.HasAnyErrors());
 
-                            if (pdbStream != null)
+                            if (nativePdbStream != null)
                             {
-                                nativePdbWriter.WriteTo(pdbStream);
+                                nativePdbWriter.WriteTo(nativePdbStream);
                             }
                         }
                     }
@@ -1792,6 +1838,7 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
+                portablePdbTempStream?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();

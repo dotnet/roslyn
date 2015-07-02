@@ -2530,8 +2530,8 @@ class Program
             // by the specification but they are by the native compiler; we maintain compatibility
             // with this bug.
             // 
-            // Additionaly, it also treats "new X()", where X is an enum type, as a
-            // constant expression with default value 0, we maintaing compatibility with it.
+            // Additionally, it also treats "new X()", where X is an enum type, as a
+            // constant expression with default value 0, we maintaining compatibility with it.
 
             var source =
 @"using System;
@@ -7298,7 +7298,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll" );
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
             Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
             compilation2.VerifyDiagnostics();
 

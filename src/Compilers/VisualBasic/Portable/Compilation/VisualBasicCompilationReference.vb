@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Only enable this code if this retargeting functionality is required to be tested.    
 #If Retargeting Then
             retargetingreferenceCount += 1
-            Console.WriteLine("Created Comnpilation Reference :" & retargetingreferenceCount .ToString)
+            Console.WriteLine("Created Compilation Reference :" & retargetingreferenceCount .ToString)
 
             Dim OldReference As MetadataReference = Nothing
             Dim OldVBReference As MetadataReference = Nothing

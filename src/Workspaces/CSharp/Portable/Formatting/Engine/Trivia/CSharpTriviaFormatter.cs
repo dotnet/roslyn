@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);
                 }
 
-                // comments after existing commet
+                // comments after existing comment
                 if (existingWhitespaceBetween.Lines == 0)
                 {
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: 0);

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             bool sawInvalidIdentifier;
             var result = CSharpFormatter.Instance.GetTypeName(new TypeAndCustomInfo((TypeImpl)type, typeInfo), escapeKeywordIdentifiers, out sawInvalidIdentifier);
             Assert.False(sawInvalidIdentifier);
-            return result;            
+            return result;
         }
     }
 }

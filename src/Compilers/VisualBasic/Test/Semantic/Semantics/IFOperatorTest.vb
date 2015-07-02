@@ -397,7 +397,7 @@ End Module
             '1
             Dim semanticInfos = GetSemanticInfos(compilation1, 1)
             SemanticInfoTypeTest(semanticInfos, "Boolean", "System.Func(Of Integer, Integer)", "Integer")
-            'SemanticInfoConvetedTypeTest(semanticInfos, "Boolean", "Object", "Integer")
+            'SemanticInfoConvertedTypeTest(semanticInfos, "Boolean", "Object", "Integer")
             Assert.Equal(ConversionKind.Identity, semanticInfos(0).ImplicitConversion.Kind)
             Assert.Equal(ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, semanticInfos(1).ImplicitConversion.Kind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfos(2).ImplicitConversion.Kind)

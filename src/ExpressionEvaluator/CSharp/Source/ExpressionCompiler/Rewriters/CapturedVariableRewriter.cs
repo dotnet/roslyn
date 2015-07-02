@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (variable == null)
             {
                 var typeNameKind = GeneratedNames.GetKind(symbol.Type.Name);
-                if (typeNameKind != GeneratedNameKind.None && 
+                if (typeNameKind != GeneratedNameKind.None &&
                     typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     // The state machine case is for async lambdas.  The state machine

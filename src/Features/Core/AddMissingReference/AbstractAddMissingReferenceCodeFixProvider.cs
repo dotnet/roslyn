@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.AddMissingReference
 {
     internal abstract class AbstractAddMissingReferenceCodeFixProvider<TIdentifierNameSyntax> : CodeFixProvider
-        where TIdentifierNameSyntax  : SyntaxNode
+        where TIdentifierNameSyntax : SyntaxNode
     {
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

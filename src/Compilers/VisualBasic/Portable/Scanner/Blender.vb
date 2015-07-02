@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Parser requires look ahead of some number of tokens
             ' beyond EOL and some number of characters back.
-            ' Expand the change range to accomodate look ahead/behind.
+            ' Expand the change range to accommodate look ahead/behind.
             Dim span = ExpandToNearestStatements(
                 _baseTreeRoot,
                 ExpandByLookAheadAndBehind(_baseTreeRoot, _change.Span))
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' As of 2013/03/14, the compiler never attempts to incrementally parse a tree containing
             ' annotations.  Our goal in instituting this restriction is to prevent API clients from
-            ' taking a depedency on the survival of annotations.
+            ' taking a dependency on the survival of annotations.
             If node.ContainsAnnotations Then
                 Return False
             End If

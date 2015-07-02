@@ -33,7 +33,7 @@ namespace System.Runtime.Analyzers
                                                                          description: s_localizableDescriptionCA1014,
                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182156.aspx",
                                                                          customTags: WellKnownDiagnosticTags.Telemetry);
-        
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(CA1016Rule, CA1014Rule);
 
         public override void Initialize(AnalysisContext analysisContext)
