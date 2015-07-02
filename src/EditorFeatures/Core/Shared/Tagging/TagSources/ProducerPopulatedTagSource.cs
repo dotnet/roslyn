@@ -297,11 +297,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return;
             }
 
-            var allTags = treeForBuffer.GetSpans(e.After).ToList();
+            var allTags = treeForBuffer.GetSpans(e.After);
             var newTreeForBuffer = new TagSpanIntervalTree<TTag>(
                 buffer,
                 treeForBuffer.SpanTrackingMode,
-                allTags.Except(tagsToRemove, this.TagSpanComparer));
+                allTags.Except(tagsToRemove, this.TagSpanComparer).ToList());
 
             UpdateCachedTagsForBuffer(e.After, newTreeForBuffer);
         }
@@ -401,19 +401,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     return;
                 }
 
-                var spansToTag = GetSpansAndDocumentsToTag();
+                var spansToTag = this.GetSpansAndDocumentsToTag();
 
                 var caretPosition = this.GetCaretPoint();
                 var textChangeRange = _accumulatedTextChanges;
 
                 // If there's a region that's high priority, then compute that portion first.
-                var prioritySpans = _tagProducer.GetPrioritySpans(spansToTag);
-                if (prioritySpans != null && prioritySpans != spansToTag)
+                var prioritySpansToTag = _tagProducer.GetPrioritySpans(spansToTag);
+                if (prioritySpansToTag != null && prioritySpansToTag != spansToTag)
                 {
-                    if (!prioritySpans.IsEmpty())
+                    if (!prioritySpansToTag.IsEmpty())
                     {
                         this.WorkQueue.EnqueueBackgroundTask(
-                            ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, prioritySpans, ct),
+                            ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, prioritySpansToTag, ct),
                             GetType().Name + ".RecomputeTags-priority", cancellationToken);
                     }
                 }
@@ -462,40 +462,40 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         protected ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
-            IEnumerable<ITagSpan<TTag>> tagSpans, IEnumerable<DocumentSnapshotSpan> spansToCompute = null)
+            IEnumerable<ITagSpan<TTag>> newTagSpans,
+            IEnumerable<DocumentSnapshotSpan> spansToInvalidate)
         {
             // NOTE: we assume that the following list is already realized and is _not_ lazily
             // computed. It's not clear what the contract is of this API.
 
             // common case where there is only one buffer 
-            if (spansToCompute != null && spansToCompute.IsSingle())
+            if (spansToInvalidate != null && spansToInvalidate.IsSingle())
             {
-                return ConvertToTagTree(tagSpans, spansToCompute.Single().SnapshotSpan);
+                return ConvertToTagTree(newTagSpans, spansToInvalidate.Single().SnapshotSpan);
             }
 
             // heavy generic case 
-            var tagsByBuffer = tagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
-            var tagsToKeepByBuffer = GetTagsToKeepByBuffer(spansToCompute);
+            var newTagsByBuffer = newTagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
+            var tagsToKeepByBuffer = GetTagsToKeepByBuffer(spansToInvalidate);
 
             var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-            foreach (var tagsInBuffer in tagsByBuffer)
+            var allTags = new List<ITagSpan<TTag>>();
+            foreach (var newTagsForBuffer in newTagsByBuffer)
             {
-                IEnumerable<ITagSpan<TTag>> tags;
-                if (tagsToKeepByBuffer.TryGetValue(tagsInBuffer.Key, out tags))
+                allTags.AddRange(newTagsForBuffer);
+
+                List<ITagSpan<TTag>> tagsToKeep;
+                if (tagsToKeepByBuffer.TryGetValue(newTagsForBuffer.Key, out tagsToKeep))
                 {
-                    tags = tagsInBuffer.Concat(tags);
-                }
-                else
-                {
-                    tags = tagsInBuffer;
+                    allTags.AddRange(tagsToKeep);
                 }
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
+                map = map.Add(newTagsForBuffer.Key, new TagSpanIntervalTree<TTag>(newTagsForBuffer.Key, _spanTrackingMode, allTags));
             }
 
             foreach (var kv in tagsToKeepByBuffer)
             {
-                if (!map.ContainsKey(kv.Key) && kv.Value.Any())
+                if (!map.ContainsKey(kv.Key) && kv.Value.Count > 0)
                 {
                     map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _spanTrackingMode, kv.Value));
                 }
@@ -504,74 +504,81 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return map;
         }
 
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(IEnumerable<ITagSpan<TTag>> tagSpans, SnapshotSpan spanToInvalidate)
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
+            IEnumerable<ITagSpan<TTag>> newTags, SnapshotSpan spanToInvalidate)
         {
-            var tagsByBuffer = tagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
+            var newTagsByBuffer = newTags.GroupBy(t => t.Span.Snapshot.TextBuffer);
+            var bufferToUpdateTagsFor = spanToInvalidate.Snapshot.TextBuffer;
+            var tagsToKeep = this.GetTagsToKeep(spanToInvalidate);
 
             var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
-            var invalidBuffer = spanToInvalidate.Snapshot.TextBuffer;
-            var tagsToKeep = GetTagsToKeep(spanToInvalidate);
-
-            foreach (var tagsInBuffer in tagsByBuffer)
+            foreach (var newTagsForBuffer in newTagsByBuffer)
             {
-                var tags = tagsInBuffer.Key == invalidBuffer ? tagsInBuffer.Concat(tagsToKeep) : tagsInBuffer;
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
+                var tags = newTagsForBuffer.ToList();
+                if (newTagsForBuffer.Key == bufferToUpdateTagsFor)
+                {
+                    tags.AddRange(tagsToKeep);
+                }
+
+                map = map.Add(newTagsForBuffer.Key, new TagSpanIntervalTree<TTag>(newTagsForBuffer.Key, _spanTrackingMode, tags));
             }
 
-            if (!map.ContainsKey(invalidBuffer) && tagsToKeep.Any())
+            if (!map.ContainsKey(bufferToUpdateTagsFor) && tagsToKeep.Count > 0)
             {
-                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, _spanTrackingMode, tagsToKeep));
+                map = map.Add(bufferToUpdateTagsFor, new TagSpanIntervalTree<TTag>(bufferToUpdateTagsFor, _spanTrackingMode, tagsToKeep));
             }
 
             return map;
         }
 
-        private ImmutableDictionary<ITextBuffer, IEnumerable<ITagSpan<TTag>>> GetTagsToKeepByBuffer(IEnumerable<DocumentSnapshotSpan> spansToCompute)
+        private ImmutableDictionary<ITextBuffer, List<ITagSpan<TTag>>> GetTagsToKeepByBuffer(IEnumerable<DocumentSnapshotSpan> spansToInvalidate)
         {
-            var map = ImmutableDictionary.Create<ITextBuffer, IEnumerable<ITagSpan<TTag>>>();
+            var map = ImmutableDictionary.Create<ITextBuffer, List<ITagSpan<TTag>>>();
 
-            if (spansToCompute == null)
+            if (spansToInvalidate == null)
             {
                 return map;
             }
 
-            var invalidSpansByBuffer = ImmutableDictionary.CreateRange<ITextBuffer, IEnumerable<SnapshotSpan>>(
-                                           spansToCompute.Select(t => t.SnapshotSpan).GroupBy(s => s.Snapshot.TextBuffer).Select(g => KeyValuePair.Create(g.Key, g.AsEnumerable())));
+            var documentSnapshotsSpansByBuffer = spansToInvalidate.GroupBy(t => t.SnapshotSpan.Snapshot.TextBuffer);
 
-            foreach (var kv in invalidSpansByBuffer)
+            foreach (var group in documentSnapshotsSpansByBuffer)
             {
+                var textBuffer = group.Key;
+
                 TagSpanIntervalTree<TTag> treeForBuffer;
-                if (!_cachedTags.TryGetValue(kv.Key, out treeForBuffer))
+                if (!_cachedTags.TryGetValue(textBuffer, out treeForBuffer))
                 {
                     continue;
                 }
 
-                var invalidSpans = new List<ITagSpan<TTag>>();
-                foreach (var spanToInvalidate in kv.Value)
+                var spansToExclude = group.SelectMany(docSpan => treeForBuffer.GetIntersectingSpans(docSpan.SnapshotSpan));
+                var firstSpan = spansToExclude.FirstOrDefault();
+                if (firstSpan == null)
                 {
-                    invalidSpans.AddRange(treeForBuffer.GetIntersectingSpans(spanToInvalidate));
+                    continue;
                 }
-
-                map = map.Add(kv.Key, treeForBuffer.GetSpans(kv.Key.CurrentSnapshot).Except(invalidSpans, this.TagSpanComparer));
+                
+                map = map.Add(textBuffer, treeForBuffer.GetSpans(firstSpan.Span.Snapshot).Except(spansToExclude, this.TagSpanComparer).ToList());
             }
 
             return map;
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetTagsToKeep(SnapshotSpan spanToInvalidate)
+        private List<ITagSpan<TTag>> GetTagsToKeep(SnapshotSpan spanToInvalidate)
         {
             var fullRefresh = spanToInvalidate.Length == spanToInvalidate.Snapshot.Length;
             if (fullRefresh)
             {
-                return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                return new List<ITagSpan<TTag>>();
             }
 
             // we actually have span to invalidate from old tree
             TagSpanIntervalTree<TTag> treeForBuffer;
             if (!_cachedTags.TryGetValue(spanToInvalidate.Snapshot.TextBuffer, out treeForBuffer))
             {
-                return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                return new List<ITagSpan<TTag>>();
             }
 
             return treeForBuffer.GetNonIntersectingSpans(spanToInvalidate);
@@ -690,7 +697,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
                     // We shall synchronously compute tags.
                     var producedTags = ConvertToTagTree(
-                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), CancellationToken.None).WaitAndGetResult(CancellationToken.None));
+                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), CancellationToken.None).WaitAndGetResult(CancellationToken.None),
+                        spansToCompute);
 
                     ProcessNewTags(spansToCompute, null, producedTags);
 

@@ -24,17 +24,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public TagSpanIntervalTree(ITextBuffer textBuffer,
             SpanTrackingMode trackingMode,
-            IEnumerable<ITagSpan<TTag>> values = null)
+            List<ITagSpan<TTag>> values = null)
         {
             _textBuffer = textBuffer;
             _spanTrackingMode = trackingMode;
 
-            var nodeValues = values == null
-                ? null
-                : values.Select(ts => new TagNode(ts, trackingMode)).ToArray();
+            _tree = IntervalTree.Create(
+                new IntervalIntrospector(textBuffer.CurrentSnapshot),
+                CreateTagNodes(trackingMode, values));
+        }
 
-            var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
-            _tree = IntervalTree.Create(introspector, nodeValues);
+        private static TagNode[] CreateTagNodes(SpanTrackingMode trackingMode, List<ITagSpan<TTag>> values)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            var length = values.Count;
+            var tagNodes = new TagNode[length];
+            for (var i = 0; i < length; i++)
+            {
+                tagNodes[i] = new TagNode(values[i], trackingMode);
+            }
+
+            return tagNodes;
         }
 
         public ITextBuffer Buffer
@@ -74,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return result;
         }
 
-        public IList<ITagSpan<TTag>> GetNonIntersectingSpans(SnapshotSpan snapshotSpan)
+        public List<ITagSpan<TTag>> GetNonIntersectingSpans(SnapshotSpan snapshotSpan)
         {
             var snapshot = snapshotSpan.Snapshot;
             Contract.Requires(snapshot.TextBuffer == _textBuffer);
@@ -89,14 +103,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var after = _tree.GetIntersectingIntervals(afterSpan.Start, afterSpan.Length, introspector)
                              .Where(n => afterSpan.Contains(n.Span.GetSpan(snapshot)));
 
-            List<ITagSpan<TTag>> result = null;
+            var result = new List<ITagSpan<TTag>>();
             foreach (var tagNode in before.Concat(after))
             {
-                result = result ?? new List<ITagSpan<TTag>>();
                 result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 
-            return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
+            return result;
         }
 
         public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)

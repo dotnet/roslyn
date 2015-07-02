@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Tagging
         private TagSpanIntervalTree<ITextMarkerTag> CreateTree(string text, params Span[] spans)
         {
             var buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, text);
-            var tags = spans.Select(s => new TagSpan<ITextMarkerTag>(new SnapshotSpan(buffer.CurrentSnapshot, s), new TextMarkerTag(string.Empty)));
+            var tags = spans.Select(s => new TagSpan<ITextMarkerTag>(new SnapshotSpan(buffer.CurrentSnapshot, s), new TextMarkerTag(string.Empty))).ToList<ITagSpan<ITextMarkerTag>>();
             return new TagSpanIntervalTree<ITextMarkerTag>(buffer, SpanTrackingMode.EdgeInclusive, tags);
         }
 
