@@ -864,8 +864,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var realizedIlBitStream = Cci.MemoryStream.GetInstance();
-            var writer = new Cci.BinaryWriter(realizedIlBitStream);
+            var writer = Cci.BlobWriter.GetInstance();
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {
@@ -878,12 +877,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
                         int blockOffset = _allocatedILMarkers[i].BlockOffset;
-                        int absoluteOffset = (int)realizedIlBitStream.Position + blockOffset;
+                        int absoluteOffset = (int)writer.Position + blockOffset;
                         _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
                     }
                 }
 
-                block.RegularInstructions?.WriteTo(realizedIlBitStream);
+                block.RegularInstructions?.WriteTo(writer);
 
                 switch (block.BranchCode)
                 {
@@ -938,8 +937,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            this.RealizedIL = realizedIlBitStream.ToArray();
-            realizedIlBitStream.Free();
+            this.RealizedIL = writer.ToArray();
+            writer.Free();
 
             RealizeSequencePoints();
 

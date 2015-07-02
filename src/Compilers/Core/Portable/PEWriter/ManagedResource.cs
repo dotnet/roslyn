@@ -32,7 +32,7 @@ namespace Microsoft.Cci
             _isPublic = isPublic;
         }
 
-        public void WriteData(BinaryWriter resourceWriter)
+        public void WriteData(BlobWriter resourceWriter)
         {
             if (_fileReference == null)
             {
@@ -48,12 +48,11 @@ namespace Microsoft.Cci
                         var count = (int)(stream.Length - stream.Position);
                         resourceWriter.WriteInt(count);
 
-                        var to = resourceWriter.BaseStream;
-                        var position = (int)to.Position;
-                        to.Position = (uint)(position + count);
+                        var position = (int)resourceWriter.Position;
+                        resourceWriter.Position = (uint)(position + count);
                         resourceWriter.Align(8);
 
-                        var buffer = to.Buffer;
+                        var buffer = resourceWriter.Buffer;
                         stream.Read(buffer, position, count);
                     }
                 }

@@ -608,8 +608,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (localVariables.Length > 0)
             {
-                MemoryStream stream = MemoryStream.GetInstance();
-                BinaryWriter writer = new BinaryWriter(stream);
+                var writer = BlobWriter.GetInstance();
                 writer.WriteByte(0x07);
                 writer.WriteCompressedUInt((uint)localVariables.Length);
 
@@ -618,13 +617,13 @@ namespace Microsoft.CodeAnalysis.Emit
                     var signature = local.Signature;
                     if (signature == null)
                     {
-                        uint start = stream.Position;
+                        uint start = writer.Position;
                         this.SerializeLocalVariableSignature(writer, local);
-                        uint length = stream.Position - start;
+                        uint length = writer.Position - start;
                         signature = new byte[length];
                         for (int i = 0; i < length; i++)
                         {
-                            signature[i] = stream.Buffer[start + i];
+                            signature[i] = writer.Buffer[start + i];
                         }
                     }
                     else
@@ -635,9 +634,9 @@ namespace Microsoft.CodeAnalysis.Emit
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
 
-                uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
+                uint blobIndex = heaps.GetBlobIndex(writer);
                 localSignatureRowId = (int)this.GetOrAddStandAloneSignatureIndex(blobIndex);
-                stream.Free();
+                writer.Free();
             }
             else
             {

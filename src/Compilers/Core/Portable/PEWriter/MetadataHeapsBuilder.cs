@@ -33,23 +33,23 @@ namespace Microsoft.Cci
 
         // #US heap
         private readonly Dictionary<string, uint> _userStringIndex = new Dictionary<string, uint>();
-        private readonly BinaryWriter _userStringWriter = new BinaryWriter(new MemoryStream(1024), true);
+        private readonly BlobWriter _userStringWriter = new BlobWriter(1024);
         private readonly int _userStringIndexStartOffset;
 
         // #String heap
         private Dictionary<string, StringIdx> _stringIndex = new Dictionary<string, StringIdx>(128);
         private uint[] _stringIndexMap;
-        private readonly BinaryWriter _stringWriter = new BinaryWriter(new MemoryStream(1024));
+        private readonly BlobWriter _stringWriter = new BlobWriter(1024);
         private readonly int _stringIndexStartOffset;
 
         // #Blob heap
         private readonly Dictionary<ImmutableArray<byte>, uint> _blobIndex = new Dictionary<ImmutableArray<byte>, uint>(ByteSequenceComparer.Instance);
-        private readonly BinaryWriter _blobWriter = new BinaryWriter(new MemoryStream(1024));
+        private readonly BlobWriter _blobWriter = new BlobWriter(1024);
         private readonly int _blobIndexStartOffset;
 
         // #GUID heap
         private readonly Dictionary<Guid, uint> _guidIndex = new Dictionary<Guid, uint>();
-        private readonly BinaryWriter _guidWriter = new BinaryWriter(new MemoryStream(16)); // full metadata has just a single guid
+        private readonly BlobWriter _guidWriter = new BlobWriter(16); // full metadata has just a single guid
 
         private bool _streamsAreComplete;
 
@@ -78,7 +78,7 @@ namespace Microsoft.Cci
             _guidWriter.Pad(guidIndexStartOffset);
         }
 
-        internal uint GetBlobIndex(MemoryStream stream)
+        internal uint GetBlobIndex(BlobWriter stream)
         {
             // TODO: avoid making a copy if the blob exists in the index
             return GetBlobIndex(stream.ToImmutableArray());
@@ -93,7 +93,7 @@ namespace Microsoft.Cci
             }
 
             Debug.Assert(!_streamsAreComplete);
-            result = _blobWriter.BaseStream.Position + (uint)_blobIndexStartOffset;
+            result = _blobWriter.Position + (uint)_blobIndexStartOffset;
             _blobIndex.Add(blob, result);
             _blobWriter.WriteCompressedUInt((uint)blob.Length);
             _blobWriter.WriteBytes(blob);
@@ -108,10 +108,9 @@ namespace Microsoft.Cci
                 return this.GetBlobIndex(str);
             }
 
-            MemoryStream sig = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(sig, true);
-            writer.WriteConstantValueBlob(value);
-            return this.GetBlobIndex(sig);
+            var writer = new BlobWriter();
+            writer.WriteConstant(value);
+            return this.GetBlobIndex(writer);
         }
 
         public uint GetBlobIndex(string str)
@@ -157,7 +156,7 @@ namespace Microsoft.Cci
             // Metadata Spec: 
             // The Guid heap is an array of GUIDs, each 16 bytes wide. 
             // Its first element is numbered 1, its second 2, and so on.
-            uint result = (_guidWriter.BaseStream.Length >> 4) + 1;
+            uint result = (_guidWriter.Length >> 4) + 1;
 
             _guidIndex.Add(guid, result);
             _guidWriter.WriteBytes(guid.ToByteArray());
@@ -167,9 +166,9 @@ namespace Microsoft.Cci
 
         public unsafe byte[] GetExistingBlob(int signatureOffset)
         {
-            fixed (byte* ptr = _blobWriter.BaseStream.Buffer)
+            fixed (byte* ptr = _blobWriter.Buffer)
             {
-                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.BaseStream.Length + (int)_blobIndexStartOffset - signatureOffset);
+                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.Length + _blobIndexStartOffset - signatureOffset);
                 int size;
                 bool isValid = reader.TryReadCompressedInteger(out size);
                 Debug.Assert(isValid);
@@ -205,10 +204,10 @@ namespace Microsoft.Cci
             if (!_userStringIndex.TryGetValue(str, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
-                index = _userStringWriter.BaseStream.Position + (uint)_userStringIndexStartOffset;
+                index = _userStringWriter.Position + (uint)_userStringIndexStartOffset;
                 _userStringIndex.Add(str, index);
                 _userStringWriter.WriteCompressedUInt((uint)str.Length * 2 + 1);
-                _userStringWriter.WriteStringUtf16LE(str);
+                _userStringWriter.WriteUTF16(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple
                 byte stringKind = 0;
@@ -277,10 +276,10 @@ namespace Microsoft.Cci
         {
             var heapSizes = new int[MetadataTokens.HeapCount];
 
-            heapSizes[(int)HeapIndex.UserString] = (int)_userStringWriter.BaseStream.Length;
-            heapSizes[(int)HeapIndex.String] = (int)_stringWriter.BaseStream.Length;
-            heapSizes[(int)HeapIndex.Blob] = (int)_blobWriter.BaseStream.Length;
-            heapSizes[(int)HeapIndex.Guid] = (int)_guidWriter.BaseStream.Length;
+            heapSizes[(int)HeapIndex.UserString] = (int)_userStringWriter.Length;
+            heapSizes[(int)HeapIndex.String] = (int)_stringWriter.Length;
+            heapSizes[(int)HeapIndex.Blob] = (int)_blobWriter.Length;
+            heapSizes[(int)HeapIndex.Guid] = (int)_guidWriter.Length;
 
             return ImmutableArray.CreateRange(heapSizes);
         }
@@ -301,10 +300,10 @@ namespace Microsoft.Cci
             _stringIndexMap[0] = 0;
 
             // Find strings that can be folded
-            string prev = String.Empty;
+            string prev = string.Empty;
             foreach (KeyValuePair<string, StringIdx> cur in sorted)
             {
-                uint position = _stringWriter.BaseStream.Position + (uint)_stringIndexStartOffset;
+                uint position = _stringWriter.Position + (uint)_stringIndexStartOffset;
 
                 // It is important to use ordinal comparison otherwise we'll use the current culture!
                 if (prev.EndsWith(cur.Key, StringComparison.Ordinal))
@@ -351,18 +350,18 @@ namespace Microsoft.Cci
             }
         }
 
-        public void WriteTo(MemoryStream stream, out uint guidHeapStartOffset)
+        public void WriteTo(BlobWriter stream, out uint guidHeapStartOffset)
         {
-            WriteAligned(_stringWriter.BaseStream, stream);
-            WriteAligned(_userStringWriter.BaseStream, stream);
+            WriteAligned(_stringWriter, stream);
+            WriteAligned(_userStringWriter, stream);
 
             guidHeapStartOffset = stream.Position;
 
-            WriteAligned(_guidWriter.BaseStream, stream);
-            WriteAligned(_blobWriter.BaseStream, stream);
+            WriteAligned(_guidWriter, stream);
+            WriteAligned(_blobWriter, stream);
         }
 
-        private static void WriteAligned(MemoryStream source, MemoryStream target)
+        private static void WriteAligned(BlobWriter source, BlobWriter target)
         {
             int length = (int)source.Length;
             source.WriteTo(target);
