@@ -402,6 +402,27 @@ End Function")
             'Assert.False(symbols.Any(Function(s) s.Name = "Roslyn"))
         End Sub
 
+        <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
+        <Fact>
+        Public Sub ErrorInUsing()
+            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
+
+            Dim expectedErrors = <errors><![CDATA[
+BC40056: Namespace or type specified in the Imports 'Unknown' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports Unknown
+        ~~~~~~~
+]]></errors>
+
+            ' Emit produces the same diagnostics as GetDiagnostics (below).
+            Using stream As New MemoryStream()
+                Dim emitResult = submission.Emit(stream)
+                Assert.False(emitResult.Success)
+                emitResult.Diagnostics.AssertTheseDiagnostics(expectedErrors)
+            End Using
+
+            submission.GetDiagnostics().AssertTheseDiagnostics(expectedErrors)
+        End Sub
+
 #End Region
 
 #Region "Anonymous types"
