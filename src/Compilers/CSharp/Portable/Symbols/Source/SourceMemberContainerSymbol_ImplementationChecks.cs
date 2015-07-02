@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
         {
-            // We ideally want to identify the interface location in the baselist with an exact match but
+            // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
-            // this is the similar logic as the VB Implementation.
+            // this is the similar logic as the VB implementation.
             Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface));
             HashSet<DiagnosticInfo> unuseddiagnostics = null;
 

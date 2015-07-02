@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // a simple check for common nonsideeffecting expressions
+        // a simple check for common non-side-effecting expressions
         internal static bool ReadIsSideeffecting(
             BoundExpression expression)
         {

@@ -2955,7 +2955,7 @@ class Program
     {
         string str = null;
         bool isEmpty = string.IsNullOrEmpty(str);
-        // isEmpty is always true here, so it should never go thru this if statement.
+        // isEmpty is always true here, so it should never go through this if statement.
         if (!isEmpty)
         {
             throw new Exception();

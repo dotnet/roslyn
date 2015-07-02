@@ -1429,9 +1429,9 @@ Public Module Async_Overload_Change_3
             End Try
 
             '**********************************************************************************************
-            apInitScenario("Type Inference  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify in async function ")
+            apInitScenario("Type Inference  Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify in async function ")
 
-            'This is really a validation of the same behaviour on Delegates
+            'This is really a validation of the same behavior on Delegates
             Try
                 Dim Obj As New DelegateClass
                 Dim Del1 As DelegateClass.Del1(Of Short) = AddressOf Obj.DelFuction1
@@ -1447,8 +1447,8 @@ Public Module Async_Overload_Change_3
 
 
             '**********************************************************************************************
-            apInitScenario("Type Inference Scenarios  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify in normal function")
-            'This is really a validation of the same behaviour on Delegates
+            apInitScenario("Type Inference Scenarios  Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify in normal function")
+            'This is really a validation of the same behavior on Delegates
             Try
                 Dim Obj As New DelegateClass
                 Dim Del1 As DelegateClass.Del2(Of Double) = AddressOf Obj.DelFunction2
@@ -3236,9 +3236,9 @@ Module AllScenariosInSub
             End Try
 
             '**********************************************************************************************
-            apInitScenario("Type Inference in sub Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify ")
+            apInitScenario("Type Inference in sub Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify ")
 
-            'This is really a validation of the same behaviour on Delegates
+            'This is really a validation of the same behavior on Delegates
             Try
                 ResultField = ""
                 Dim Obj As New DelegateClass
@@ -3255,8 +3255,8 @@ Module AllScenariosInSub
 
 
             '**********************************************************************************************
-            apInitScenario("Type Inference Scenarios in sub  Implement as Delegates and ensure same type inference behaviour on delegate Invocation - Resolved by specify")
-            'This is really a validation of the same behaviour on Delegates
+            apInitScenario("Type Inference Scenarios in sub  Implement as Delegates and ensure same type inference behavior on delegate Invocation - Resolved by specify")
+            'This is really a validation of the same behavior on Delegates
             Try
                 ResultField = ""
                 Dim Obj As New DelegateClass

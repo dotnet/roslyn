@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //   a strong-named Smith that names a weak-named Jones as its friend.
             //
             // * If the answer to q1 is "no" and the answer to q3 is "yes" then we are in a situation where
-            //   strong-named Jones is referencing weak-named Smith, which is illegal. In the dev 10 compiler
+            //   strong-named Jones is referencing weak-named Smith, which is illegal. In the dev10 compiler
             //   we do not give an error about this until emit time. In Roslyn we have a new error, CS7029,
             //   which we give before emit time when we detect that weak-named Smith has given friend access
             //   to strong-named Jones, which then references Smith. However, we still want to give friend

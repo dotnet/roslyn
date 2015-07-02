@@ -334,8 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true when conversion itself (not the operand) may have sideeffects
-        /// A typical sideeffect of a conversion is an exception when conversion is unsuccessful.
+        /// Returns true when conversion itself (not the operand) may have side-effects
+        /// A typical side-effect of a conversion is an exception when conversion is unsuccessful.
         /// </summary>
         /// <returns></returns>
         internal bool ConversionHasSideEffects()

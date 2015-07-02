@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // reference type, type parameter type, and so on.
             // We should consider simply allowing this in the spec.
             //
-            // Also when valuetype S has a parameterless constructor, 
+            // Also when value type S has a parameterless constructor, 
             // new S() is clearly not a constant expression and should produce an error
 
             bool isValidDefaultValue = (defaultExpression.ConstantValue != null) ||
