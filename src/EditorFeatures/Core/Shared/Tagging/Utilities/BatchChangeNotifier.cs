@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener listener,
             IForegroundNotificationService notificationService,
             Action<SnapshotSpan> reportChangedSpan,
-            TaggerDelay throttleDelay = TaggerDelay.Short)
+            TaggerDelay throttleDelay)
         {
             Contract.ThrowIfNull(reportChangedSpan);
             _subjectBuffer = subjectBuffer;
