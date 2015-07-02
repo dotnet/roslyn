@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -10,20 +11,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal sealed partial class BlobWriter
+    internal sealed class BlobWriter
     {
-        internal byte[] Buffer;
-        internal uint Length;
-        private uint _position;
+        private byte[] _buffer;
+        private int _length;
+        private int _position;
 
-        internal BlobWriter()
+        internal BlobWriter(uint initialSize = 64)
         {
-            this.Buffer = new byte[64];
-        }
-
-        internal BlobWriter(uint initialSize)
-        {
-            this.Buffer = new byte[initialSize];
+            _buffer = new byte[initialSize];
         }
 
         internal BlobWriter(ObjectPool<BlobWriter> pool)
@@ -32,26 +28,15 @@ namespace Microsoft.Cci
             _pool = pool;
         }
 
-        // Grows to at least m
-        private void Grow(uint m)
-        {
-            var n2 = Math.Min(this.Length, uint.MaxValue / 2) * 2;
-            n2 = Math.Max(n2, m);
-            var newBuffer = new byte[n2];
+        public byte[] Buffer => _buffer;
+        public int Length => _length;
 
-            Array.Copy(this.Buffer, 0, newBuffer, 0, (int)this.Length);
-            this.Buffer = newBuffer;
+        private void Resize(int capacity)
+        {
+            Array.Resize(ref _buffer, Math.Max(Math.Min(_length, int.MaxValue / 2) * 2, capacity));
         }
 
-        private uint Capacity
-        {
-            get
-            {
-                return (uint)Buffer.Length;
-            }
-        }
-
-        internal uint Position
+        internal int Position
         {
             get
             {
@@ -60,105 +45,120 @@ namespace Microsoft.Cci
 
             set
             {
-                if (value > this.Capacity)
+                if (value > _buffer.Length)
                 {
-                    this.Grow(value);
+                    Resize(value);
                 }
 
-                this.Length = Math.Max(this.Length, value);
+                _length = Math.Max(_length, value);
                 _position = value;
             }
         }
 
         internal byte[] ToArray()
         {
-            if (this.Length == 0)
+            return ToArray(0, _length);
+        }
+
+        internal byte[] ToArray(int start, int length)
+        {
+            if (_length == 0)
             {
                 return SpecializedCollections.EmptyArray<byte>();
             }
 
-            byte[] result = new byte[this.Length];
-            Array.Copy(this.Buffer, result, result.Length);
+            byte[] result = new byte[length];
+            Array.Copy(_buffer, start, result, 0, result.Length);
             return result;
         }
 
         internal ImmutableArray<byte> ToImmutableArray()
         {
-            return ImmutableArray.Create(this.Buffer, 0, (int)this.Length);
+            return ToImmutableArray(0, (int)_length);
+        }
+
+        internal ImmutableArray<byte> ToImmutableArray(int start, int length)
+        {
+            return ImmutableArray.Create(_buffer, start, length);
         }
 
         internal void WriteBool(bool value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 1;
-            Buffer[i] = (byte)(value ? 1 : 0);
+            _buffer[i] = (byte)(value ? 1 : 0);
         }
 
         internal void WriteByte(byte value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 1;
-            Buffer[i] = value;
+            _buffer[i] = value;
         }
 
         internal void Write(byte value, int count)
         {
-            int position = (int)_position;
+            int start = _position;
 
             // resize, if needed
-            this.Position += (uint)count;
+            Position += count;
 
             for (int i = 0; i < count; i++)
             {
-                this.Buffer[position + i] = value;
+                _buffer[start + i] = value;
             }
         }
 
         internal void Write(byte[] buffer, int index, int length)
         {
-            int position = (int)_position;
+            int start = _position;
 
             // resize, if needed
-            this.Position += (uint)length;
+            Position += length;
 
-            System.Buffer.BlockCopy(buffer, index, this.Buffer, position, length);
+            System.Buffer.BlockCopy(buffer, index, _buffer, start, length);
         }
 
         internal void Write(ImmutableArray<byte> buffer, int index, int length)
         {
-            int position = (int)_position;
+            int start = _position;
 
             // resize, if needed
-            this.Position += (uint)length;
+            Position += length;
 
-            buffer.CopyTo(index, this.Buffer, position, length);
+            buffer.CopyTo(index, _buffer, start, length);
+        }
+
+        internal void Write(Stream stream, int length)
+        {
+            int start = Position;
+            Position = start + length;
+            int bytesRead = stream.Read(_buffer, start, length);
+            Position = start + bytesRead;
         }
 
         internal void Pad(int byteCount)
         {
-            Position += (uint)byteCount;
+            Position += byteCount;
         }
 
         internal void Align(uint alignment)
         {
-            uint i = Position;
+            int i = Position;
             while (i % alignment > 0)
             {
                 Position = i + 1;
-                Buffer[i] = 0;
+                _buffer[i] = 0;
                 i++;
             }
         }
 
         internal void WriteSbyte(sbyte value)
         {
-            uint i = Position;
-            Position = i + 1;
+            int start = Position;
+            Position = start + 1;
 
-            unchecked
-            {
-                Buffer[i] = (byte)value;
-            }
+            _buffer[start] = unchecked((byte)value);
         }
 
         internal void WriteBytes(byte[] buffer)
@@ -195,21 +195,21 @@ namespace Microsoft.Cci
         {
             Debug.Assert(count > -1);
 
-            uint i = Position;
-            uint end = i + (uint)count;
+            int i = Position;
+            int end = i + count;
             Position = end;
 
             while (i < end)
             {
-                Buffer[i++] = value;
+                _buffer[i++] = value;
             }
         }
 
         internal unsafe void WriteDouble(double value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 8;
-            fixed (byte* b = Buffer)
+            fixed (byte* b = _buffer)
             {
                 *((double*)(b + i)) = value;
             }
@@ -217,9 +217,9 @@ namespace Microsoft.Cci
 
         internal void WriteShort(short value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 2;
-            byte[] buffer = Buffer;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -230,9 +230,9 @@ namespace Microsoft.Cci
 
         internal unsafe void WriteUshort(ushort value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 2;
-            byte[] buffer = Buffer;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -243,9 +243,9 @@ namespace Microsoft.Cci
 
         internal void WriteInt(int value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 4;
-            byte[] buffer = Buffer;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -258,9 +258,9 @@ namespace Microsoft.Cci
 
         internal void WriteUint(uint value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 4;
-            byte[] buffer = Buffer;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -273,9 +273,9 @@ namespace Microsoft.Cci
 
         internal void WriteLong(long value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 8;
-            byte[] buffer = Buffer;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -294,9 +294,9 @@ namespace Microsoft.Cci
 
         internal unsafe void WriteUlong(ulong value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 8;
-            byte[] buffer = Buffer;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -354,9 +354,9 @@ namespace Microsoft.Cci
 
         internal unsafe void WriteFloat(float value)
         {
-            uint i = Position;
+            int i = Position;
             Position = i + 4;
-            fixed (byte* b = Buffer)
+            fixed (byte* b = _buffer)
             {
                 *((float*)(b + i)) = value;
             }
@@ -375,9 +375,9 @@ namespace Microsoft.Cci
             }
 
             int size = value.Length * sizeof(char);
-            uint i = Position;
-            Position = i + (uint)size;
-            System.Buffer.BlockCopy(value, 0, Buffer, (int)i, size);
+            int i = Position;
+            Position = i + size;
+            System.Buffer.BlockCopy(value, 0, _buffer, i, size);
         }
 
         /// <summary>
@@ -393,12 +393,12 @@ namespace Microsoft.Cci
             }
 
             int size = value.Length * sizeof(char);
-            uint i = Position;
-            Position = i + (uint)size;
+            int start = Position;
+            Position = start + size;
 
             fixed (char* ptr = value)
             {
-                Marshal.Copy((IntPtr)ptr, Buffer, (int)i, size);
+                Marshal.Copy((IntPtr)ptr, _buffer, start, size);
             }
         }
 
@@ -422,9 +422,9 @@ namespace Microsoft.Cci
 
         internal void WriteString(string str, Encoding encoding)
         {
-            uint i = Position;
-            Position = i + (uint)encoding.GetByteCount(str);
-            encoding.GetBytes(str, 0, str.Length, Buffer, (int)i);
+            int start = Position;
+            Position = start + encoding.GetByteCount(str);
+            encoding.GetBytes(str, 0, str.Length, _buffer, start);
         }
 
         /// <summary>
@@ -440,9 +440,9 @@ namespace Microsoft.Cci
         {
             Debug.Assert(byteCount >= str.Length);
 
-            int i = (int)Position;
-            Position = (uint)(i + byteCount);
-            byte[] buffer = Buffer;
+            int i = Position;
+            Position = i + byteCount;
+            byte[] buffer = _buffer;
 
             if (byteCount == str.Length)
             {
@@ -609,21 +609,21 @@ namespace Microsoft.Cci
             {
                 if (val <= 0x7f)
                 {
-                    this.WriteByte((byte)val);
+                    WriteByte((byte)val);
                 }
                 else if (val <= 0x3fff)
                 {
-                    this.WriteByte((byte)(0x80 | (val >> 8)));
-                    this.WriteByte((byte)val);
+                    WriteByte((byte)(0x80 | (val >> 8)));
+                    WriteByte((byte)val);
                 }
                 else
                 {
                     Debug.Assert(val <= 0x1fffffff);
 
-                    this.WriteByte((byte)(0xc0 | (val >> 24)));
-                    this.WriteByte((byte)(val >> 16));
-                    this.WriteByte((byte)(val >> 8));
-                    this.WriteByte((byte)val);
+                    WriteByte((byte)(0xc0 | (val >> 24)));
+                    WriteByte((byte)(val >> 16));
+                    WriteByte((byte)(val >> 8));
+                    WriteByte((byte)val);
                 }
             }
         }
@@ -706,19 +706,19 @@ namespace Microsoft.Cci
 
         internal void WriteTo(BlobWriter stream)
         {
-            stream.Write(this.Buffer, 0, (int)this.Length);
+            stream.Write(_buffer, 0, _length);
         }
 
-        internal void WriteTo(System.IO.Stream stream)
+        internal void WriteTo(Stream stream)
         {
-            stream.Write(this.Buffer, 0, (int)this.Length);
+            stream.Write(_buffer, 0, _length);
         }
 
         // Reset to zero-length, but don't reduce or free the array.
         internal void Clear()
         {
             _position = 0;
-            this.Length = 0;
+            _length = 0;
         }
 
         #region Poolable
@@ -731,10 +731,10 @@ namespace Microsoft.Cci
         public void Free()
         {
             // Note that poolables are not finalizable. If one gets collected - no big deal.
-            this.Clear();
+            Clear();
             if (_pool != null)
             {
-                if (this.Capacity < 1024)
+                if (_buffer.Length < 1024)
                 {
                     _pool.Free(this);
                 }
@@ -765,6 +765,7 @@ namespace Microsoft.Cci
             pool = new ObjectPool<BlobWriter>(() => new BlobWriter(pool), size);
             return pool;
         }
+
         #endregion
     }
 }
