@@ -2147,12 +2147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
-
-            ' Do not waste a slot in the submission chain for submissions that contain no executable code
-            ' (they may only contain #r directives, usings, etc.)
-            If IsSubmission AndAlso Not HasCodeToEmit() Then
-                Return Nothing
-            End If
+            Debug.Assert(Not IsSubmission OrElse HasCodeToEmit())
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
             Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()
