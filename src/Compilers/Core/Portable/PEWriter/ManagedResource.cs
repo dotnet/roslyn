@@ -48,12 +48,8 @@ namespace Microsoft.Cci
                         var count = (int)(stream.Length - stream.Position);
                         resourceWriter.WriteInt(count);
 
-                        var position = (int)resourceWriter.Position;
-                        resourceWriter.Position = (uint)(position + count);
+                        resourceWriter.Write(stream, count);
                         resourceWriter.Align(8);
-
-                        var buffer = resourceWriter.Buffer;
-                        stream.Read(buffer, position, count);
                     }
                 }
                 catch (Exception e)

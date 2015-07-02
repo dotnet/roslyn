@@ -101,14 +101,14 @@ namespace Microsoft.Cci
             // based on the contents of the generated stream.
             Debug.Assert(_module.PersistentIdentifier == default(Guid));
 
-            uint moduleVersionIdOffsetInMetadataStream;
+            int moduleVersionIdOffsetInMetadataStream;
             var calculateMethodBodyStreamRva = new Func<MetadataSizes, int>(mdSizes =>
             {
                 FillInTextSectionHeader(mdSizes);
                 return (int)_textSection.RelativeVirtualAddress + _sizeOfImportAddressTable + 72;
             });
 
-            uint entryPointToken;
+            int entryPointToken;
             MetadataSizes metadataSizes;
             mdWriter.SerializeMetadataAndIL(
                 metadataWriter,
@@ -128,7 +128,7 @@ namespace Microsoft.Cci
             {
                 if (entryPointToken != 0)
                 {
-                    nativePdbWriterOpt.SetEntryPoint(entryPointToken);
+                    nativePdbWriterOpt.SetEntryPoint((uint)entryPointToken);
                 }
 
                 var assembly = _module.AsAssembly;
@@ -373,18 +373,18 @@ namespace Microsoft.Cci
             uint result = 0;
             if (_win32ResourceWriter.Length > 0)
             {
-                result += BitArithmeticUtilities.Align(_win32ResourceWriter.Length, 4);
+                result += BitArithmeticUtilities.Align((uint)_win32ResourceWriter.Length, 4);
             }            // result += Align(this.win32ResourceWriter.Length+1, 8);
 
             return result;
         }
 
-        private CorHeader CreateCorHeader(MetadataSizes metadataSizes, uint entryPointToken)
+        private CorHeader CreateCorHeader(MetadataSizes metadataSizes, int entryPointToken)
         {
             CorHeader corHeader = new CorHeader();
             corHeader.CodeManagerTable.RelativeVirtualAddress = 0;
             corHeader.CodeManagerTable.Size = 0;
-            corHeader.EntryPointToken = entryPointToken;
+            corHeader.EntryPointToken = (uint)entryPointToken;
             corHeader.ExportAddressTableJumps.RelativeVirtualAddress = 0;
             corHeader.ExportAddressTableJumps.Size = 0;
             corHeader.Flags = this.GetCorHeaderFlags();
@@ -503,8 +503,8 @@ namespace Microsoft.Cci
                 PointerToRawData = _textSection.PointerToRawData + _textSection.SizeOfRawData,
                 PointerToRelocations = 0,
                 RelativeVirtualAddress = BitArithmeticUtilities.Align(_textSection.RelativeVirtualAddress + _textSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(_rdataWriter.Length, _module.FileAlignment),
-                VirtualSize = _rdataWriter.Length,
+                SizeOfRawData = BitArithmeticUtilities.Align((uint)_rdataWriter.Length, _module.FileAlignment),
+                VirtualSize = (uint)_rdataWriter.Length,
             };
 
             _sdataSection = new SectionHeader
@@ -517,8 +517,8 @@ namespace Microsoft.Cci
                 PointerToRawData = _rdataSection.PointerToRawData + _rdataSection.SizeOfRawData,
                 PointerToRelocations = 0,
                 RelativeVirtualAddress = BitArithmeticUtilities.Align(_rdataSection.RelativeVirtualAddress + _rdataSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(_sdataWriter.Length, _module.FileAlignment),
-                VirtualSize = _sdataWriter.Length,
+                SizeOfRawData = BitArithmeticUtilities.Align((uint)_sdataWriter.Length, _module.FileAlignment),
+                VirtualSize = (uint)_sdataWriter.Length,
             };
 
             _coverSection = new SectionHeader
@@ -531,8 +531,8 @@ namespace Microsoft.Cci
                 PointerToRawData = _sdataSection.PointerToRawData + _sdataSection.SizeOfRawData,
                 PointerToRelocations = 0,
                 RelativeVirtualAddress = BitArithmeticUtilities.Align(_sdataSection.RelativeVirtualAddress + _sdataSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(_coverageDataWriter.Length, _module.FileAlignment),
-                VirtualSize = _coverageDataWriter.Length,
+                SizeOfRawData = BitArithmeticUtilities.Align((uint)_coverageDataWriter.Length, _module.FileAlignment),
+                VirtualSize = (uint)_coverageDataWriter.Length,
             };
 
             _tlsSection = new SectionHeader
@@ -545,12 +545,12 @@ namespace Microsoft.Cci
                 PointerToRawData = _coverSection.PointerToRawData + _coverSection.SizeOfRawData,
                 PointerToRelocations = 0,
                 RelativeVirtualAddress = BitArithmeticUtilities.Align(_coverSection.RelativeVirtualAddress + _coverSection.VirtualSize, 0x2000),
-                SizeOfRawData = BitArithmeticUtilities.Align(_tlsDataWriter.Length, _module.FileAlignment),
-                VirtualSize = _tlsDataWriter.Length,
+                SizeOfRawData = BitArithmeticUtilities.Align((uint)_tlsDataWriter.Length, _module.FileAlignment),
+                VirtualSize = (uint)_tlsDataWriter.Length,
             };
 
             uint resourcesRva = BitArithmeticUtilities.Align(_tlsSection.RelativeVirtualAddress + _tlsSection.VirtualSize, 0x2000);
-            uint sizeOfWin32Resources = this.ComputeSizeOfWin32Resources(resourcesRva);
+            uint sizeOfWin32Resources = (uint)this.ComputeSizeOfWin32Resources(resourcesRva);
 
             _resourceSection = new SectionHeader
             {
@@ -879,7 +879,7 @@ namespace Microsoft.Cci
             {
                 int id;
                 string name;
-                uint nameOffset = dataWriter.Position + sizeOfDirectoryTree;
+                uint nameOffset = (uint)dataWriter.Position + sizeOfDirectoryTree;
                 uint directoryOffset = k;
                 Directory subDir = directory.Entries[i] as Directory;
                 if (subDir != null)
@@ -907,7 +907,7 @@ namespace Microsoft.Cci
                     IWin32Resource r = (IWin32Resource)directory.Entries[i];
                     id = level == 0 ? r.TypeId : level == 1 ? r.Id : (int)r.LanguageId;
                     name = level == 0 ? r.TypeName : level == 1 ? r.Name : null;
-                    dataWriter.WriteUint(virtualAddressBase + sizeOfDirectoryTree + 16 + dataWriter.Position);
+                    dataWriter.WriteUint(virtualAddressBase + sizeOfDirectoryTree + 16 + (uint)dataWriter.Position);
                     byte[] data = new List<byte>(r.Data).ToArray();
                     dataWriter.WriteUint((uint)data.Length);
                     dataWriter.WriteUint(r.CodePage);
@@ -986,12 +986,12 @@ namespace Microsoft.Cci
 
             var savedPosition = _win32ResourceWriter.Position;
 
-            var readStream = new System.IO.MemoryStream(resourceSections.SectionBytes);
+            var readStream = new MemoryStream(resourceSections.SectionBytes);
             var reader = new BinaryReader(readStream);
 
             foreach (int addressToFixup in resourceSections.Relocations)
             {
-                _win32ResourceWriter.Position = (uint)addressToFixup;
+                _win32ResourceWriter.Position = addressToFixup;
                 reader.BaseStream.Position = addressToFixup;
                 _win32ResourceWriter.WriteUint(reader.ReadUInt32() + resourcesRva);
             }
@@ -1543,7 +1543,7 @@ namespace Microsoft.Cci
             }
 
             writer.WriteUshort(0); // next chunk's RVA
-            writer.Position = _module.FileAlignment;
+            writer.Position = (int)_module.FileAlignment;
             writer.WriteTo(peStream);
         }
 

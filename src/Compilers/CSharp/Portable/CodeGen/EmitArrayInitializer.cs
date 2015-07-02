@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             SerializeArrayRecursive(writer, initializers);
 
-            return ImmutableArray.Create(writer.Buffer, 0, (int)writer.Position);
+            return writer.ToImmutableArray();
         }
 
         private void SerializeArrayRecursive(Cci.BlobWriter bw, ImmutableArray<BoundExpression> inits)

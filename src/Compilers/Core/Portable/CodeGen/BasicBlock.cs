@@ -248,15 +248,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Microsoft.Cci.BlobWriter RegularInstructions => _lazyRegularInstructions;
+            public Cci.BlobWriter RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
             /// </summary>
             public bool HasNoRegularInstructions => _lazyRegularInstructions == null;
 
-            public uint RegularInstructionsLength
-                => _lazyRegularInstructions?.Length ?? 0;
+            public int RegularInstructionsLength => _lazyRegularInstructions?.Length ?? 0;
 
             /// <summary>
             /// Updates position of the current block to account for shorter sizes of previous blocks.

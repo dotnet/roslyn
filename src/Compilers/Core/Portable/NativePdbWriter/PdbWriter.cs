@@ -72,7 +72,7 @@ namespace Microsoft.Cci
         {
             if (_logData.Length >= bufferFlushLimit)
             {
-                _hashAlgorithm.TransformBlock(_logData.Buffer, (int)_logData.Position);
+                _hashAlgorithm.TransformBlock(_logData.Buffer, _logData.Position);
                 _logData.Position = 0;
             }
         }
@@ -80,7 +80,7 @@ namespace Microsoft.Cci
         internal ContentId ContentIdFromLog()
         {
             Debug.Assert(_logData != null);
-            _hashAlgorithm.TransformFinalBlock(_logData.Buffer, (int)_logData.Position);
+            _hashAlgorithm.TransformFinalBlock(_logData.Buffer, _logData.Position);
             _logData.Position = 0;
             return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
         }
@@ -295,9 +295,9 @@ namespace Microsoft.Cci
                 return;
             }
 
-            uint methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
+            int methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
 
-            OpenMethod(methodToken, methodBody.MethodDefinition);
+            OpenMethod((uint)methodToken, methodBody.MethodDefinition);
 
             var localScopes = methodBody.LocalScopes;
 
@@ -702,10 +702,10 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                uint token = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
+                int token = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), token);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), (uint)token);
                 }
             }
 
@@ -1284,8 +1284,8 @@ namespace Microsoft.Cci
         }
 
         private void SetAsyncInfo(
-            uint thisMethodToken,
-            uint kickoffMethodToken,
+            int thisMethodToken,
+            int kickoffMethodToken,
             int catchHandlerOffset,
             ImmutableArray<int> yieldOffsets,
             ImmutableArray<int> resumeOffsets)
@@ -1306,7 +1306,7 @@ namespace Microsoft.Cci
                     {
                         yields[i] = (uint)yieldOffsets[i];
                         resumes[i] = (uint)resumeOffsets[i];
-                        methods[i] = thisMethodToken;
+                        methods[i] = (uint)thisMethodToken;
                     }
 
                     try
@@ -1336,7 +1336,9 @@ namespace Microsoft.Cci
                             _callLogger.LogArgument((uint)catchHandlerOffset);
                         }
                     }
-                    asyncMethodPropertyWriter.DefineKickoffMethod(kickoffMethodToken);
+
+                    asyncMethodPropertyWriter.DefineKickoffMethod((uint)kickoffMethodToken);
+
                     if (_callLogger.LogOperation(OP.DefineKickoffMethod))
                     {
                         _callLogger.LogArgument(kickoffMethodToken);
@@ -1358,7 +1360,7 @@ namespace Microsoft.Cci
             {
                 foreach (var definition in kvp.Value)
                 {
-                    uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                    int token = _metadataWriter.GetTokenForDefinition(definition.Definition);
                     Debug.Assert(token != 0);
                 }
             }
@@ -1395,7 +1397,7 @@ namespace Microsoft.Cci
                             open = true;
                         }
 
-                        uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                        uint token = (uint)_metadataWriter.GetTokenForDefinition(definition.Definition);
                         Debug.Assert(token != 0);
 
                         try

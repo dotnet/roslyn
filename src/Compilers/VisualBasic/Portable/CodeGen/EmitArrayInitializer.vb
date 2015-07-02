@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             SerializeArrayRecursive(writer, initializers)
 
-            Return ImmutableArray.Create(writer.Buffer, 0, CInt(writer.Position))
+            Return writer.ToImmutableArray()
         End Function
 
         Private Sub SerializeArrayRecursive(bw As Cci.BlobWriter, inits As ImmutableArray(Of BoundExpression))

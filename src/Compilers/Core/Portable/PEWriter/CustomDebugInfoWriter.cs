@@ -13,10 +13,10 @@ namespace Microsoft.Cci
 {
     internal sealed class CustomDebugInfoWriter
     {
-        private uint _methodTokenWithModuleInfo;
+        private int _methodTokenWithModuleInfo;
         private IMethodBody _methodBodyWithModuleInfo;
 
-        private uint _previousMethodTokenWithUsingInfo;
+        private int _previousMethodTokenWithUsingInfo;
         private IMethodBody _previousMethodBodyWithUsingInfo;
 
         private readonly PdbWriter _pdbWriter;
@@ -32,7 +32,7 @@ namespace Microsoft.Cci
         /// Returns non-null <paramref name="forwardToMethod"/> if the forwarding should be done directly via UsingNamespace,
         /// null if the forwarding is done via custom debug info.
         /// </summary>
-        public bool ShouldForwardNamespaceScopes(EmitContext context, IMethodBody methodBody, uint methodToken, out IMethodDefinition forwardToMethod)
+        public bool ShouldForwardNamespaceScopes(EmitContext context, IMethodBody methodBody, int methodToken, out IMethodDefinition forwardToMethod)
         {
             if (ShouldForwardToPreviousMethodWithUsingInfo(context, methodBody))
             {
@@ -56,7 +56,7 @@ namespace Microsoft.Cci
             return false;
         }
 
-        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, uint methodToken, bool isEncDelta, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
+        public byte[] SerializeMethodDebugInfo(EmitContext context, IMethodBody methodBody, int methodToken, bool isEncDelta, bool suppressNewCustomDebugInfo, out bool emitExternNamespaces)
         {
             emitExternNamespaces = false;
 
@@ -135,7 +135,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(0);
 
             // alignment size (will be patched)
-            uint alignmentSizeAndLengthPosition = cmw.Position;
+            int alignmentSizeAndLengthPosition = cmw.Position;
             cmw.WriteByte(0);
 
             // length (will be patched)
@@ -143,8 +143,8 @@ namespace Microsoft.Cci
 
             data(cmw);
 
-            uint length = cmw.Position;
-            uint alignedLength = 4 * ((length + 3) / 4);
+            int length = cmw.Position;
+            int alignedLength = 4 * ((length + 3) / 4);
             byte alignmentSize = (byte)(alignedLength - length);
 
             for (int i = 0; i < alignmentSize; i++)
@@ -154,7 +154,7 @@ namespace Microsoft.Cci
 
             cmw.Position = alignmentSizeAndLengthPosition;
             cmw.WriteByte(alignmentSize);
-            cmw.WriteUint(alignedLength);
+            cmw.WriteUint((uint)alignedLength);
 
             cmw.Position = length;
             return cmw;
@@ -428,7 +428,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiKindForwardToModuleInfo);
             cmw.Align(4);
             cmw.WriteUint(12);
-            cmw.WriteUint(_methodTokenWithModuleInfo);
+            cmw.WriteUint((uint)_methodTokenWithModuleInfo);
             customDebugInfo.Add(cmw);
         }
 
@@ -439,7 +439,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiKindForwardInfo);
             cmw.Align(4);
             cmw.WriteUint(12);
-            cmw.WriteUint(_previousMethodTokenWithUsingInfo);
+            cmw.WriteUint((uint)_previousMethodTokenWithUsingInfo);
             customDebugInfo.Add(cmw);
         }
     }
