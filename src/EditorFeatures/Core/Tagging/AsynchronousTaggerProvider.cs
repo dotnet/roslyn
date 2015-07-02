@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             protected override SpanTrackingMode SpanTrackingMode => _dataSource.SpanTrackingMode;
 
+            protected override TaggerDelay UIUpdateDelay => _dataSource.UIUpdateDelay;
+
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {
                 return _dataSource.CreateEventSource(textViewOpt, subjectBuffer);

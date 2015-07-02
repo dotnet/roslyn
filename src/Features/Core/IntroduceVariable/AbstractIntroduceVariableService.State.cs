@@ -75,9 +75,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     .OfType<INamedTypeSymbol>()
                     .FirstOrDefault();
 
-#if SCRIPTING
                 containingType = containingType ?? this.Document.SemanticModel.Compilation.ScriptClass;
-#endif
+
                 if (containingType == null || containingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
@@ -242,12 +241,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool CanGenerateInto<TSyntax>(CancellationToken cancellationToken)
                 where TSyntax : SyntaxNode
             {
-#if SCRIPTING
                 if (this.Document.SemanticModel.Compilation.ScriptClass != null)
                 {
                     return true;
                 }
-#endif
 
                 var syntax = this.Expression.GetAncestor<TSyntax>();
                 return syntax != null && !syntax.OverlapsHiddenPosition(cancellationToken);
@@ -260,13 +257,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return true;
                 }
 
-#if SCRIPTING
                 // If we're interactive/script, we can generate into the compilation unit.
                 if (this.Document.Document.SourceCodeKind != SourceCodeKind.Regular)
                 {
                     return true;
                 }
-#endif
+
                 return false;
             }
         }

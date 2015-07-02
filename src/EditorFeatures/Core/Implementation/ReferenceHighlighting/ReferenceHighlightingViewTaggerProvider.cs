@@ -48,13 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
         }
 
-        protected override TimeSpan UIUpdateDelay
-        {
-            get
-            {
-                return TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay);
-            }
-        }
+        protected override TaggerDelay UIUpdateDelay => TaggerDelay.NearImmediate;
 
         protected override ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
         {

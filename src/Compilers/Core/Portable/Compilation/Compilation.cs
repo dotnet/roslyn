@@ -377,32 +377,32 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="hasValue"/> is false in the former case and true
         /// in the latter.
         /// </remarks>
-        internal ITypeSymbol GetSubmissionResultType(out bool hasValue)
+        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
         {
             return CommonGetSubmissionResultType(out hasValue);
         }
 
-        internal abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
+        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
 
         /// <summary>
         /// The previous submission compilation, or null if either this
         /// compilation doesn't represent a submission or the submission is the
         /// first submission in a submission chain.
         /// </summary>
-        internal Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
+        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
 
-        internal abstract Compilation CommonPreviousSubmission { get; }
+        protected abstract Compilation CommonPreviousSubmission { get; }
 
         /// <summary>
         /// Returns a new compilation with the given compilation set as the
         /// previous submission.
         /// </summary>
-        internal Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
+        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return CommonWithPreviousSubmission(newPreviousSubmission);
         }
 
-        internal abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
 
         #endregion
 
@@ -839,8 +839,8 @@ namespace Microsoft.CodeAnalysis
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        internal INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
-        internal abstract INamedTypeSymbol CommonScriptClass { get; }
+        public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
+        protected abstract INamedTypeSymbol CommonScriptClass { get; }
 
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the

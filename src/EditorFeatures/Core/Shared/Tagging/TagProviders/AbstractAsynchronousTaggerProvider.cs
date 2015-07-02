@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -69,10 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             get { return SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>(); }
         }
 
-        protected virtual TimeSpan UIUpdateDelay
-        {
-            get { return TimeSpan.FromMilliseconds(TaggerConstants.MediumDelay); }
-        }
+        protected virtual TaggerDelay UIUpdateDelay => TaggerDelay.Medium;
 
         internal abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TTagSource tagSource);
         protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TTagSource tagSource);
