@@ -3,14 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Ref = System.Reflection;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -93,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             _options = _options.AddReferences(assemblyDisplayNameOrPath);
         }
 
-        public void AddReference(Ref.Assembly assembly)
+        public void AddReference(System.Reflection.Assembly assembly)
         {
             if (assembly == null)
             {
@@ -147,18 +141,31 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public T Execute<T>(string code)
         {
+            var value = this.ExecuteAsync<T>(code);
+            if (value == null)
+            {
+                // ReturnValue will be null if there are errors or
+                // if there is no executable code in submission.
+                return default(T);
+            }
+
+            return value.Result;
+        }
+
+        public Task<T> ExecuteAsync<T>(string code)
+        {
             if (code == null)
             {
                 throw new ArgumentNullException(nameof(code));
             }
 
-            var script = _engine.Create(code, _options, _globalsType, typeof(T)).WithPrevious(_previousScript);
-            var endState = script.Run(_nextInputState.Value);
+            var script = _engine.Create<T>(code, _options, _globalsType).WithPrevious(_previousScript);
+            var endState = (ScriptState<T>)script.Run(_nextInputState.Value);
 
             _previousScript = endState.Script;
             _nextInputState = new Lazy<object>(() => endState);
 
-            return (T)endState.ReturnValue;
+            return endState.ReturnValue;
         }
 
         public Submission<T> CompileSubmission<T>(string code, string path = null, bool isInteractive = true)
@@ -168,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 throw new ArgumentNullException(nameof(code));
             }
 
-            var script = _engine.Create(code, _options.WithIsInteractive(isInteractive), _globalsType, typeof(T))
+            var script = (Script<T>)_engine.Create<T>(code, _options.WithIsInteractive(isInteractive), _globalsType)
                 .WithPath(path)
                 .WithPrevious(_previousScript);
 

@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Builds a delegate that will execute just this scripts code.
         /// </summary>
-        public Func<object[], object> Build(
+        public Func<object[], Task<T>> Build<T>(
             Script script,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 // var entryPoint = compilation.GetEntryPoint(cancellationToken);
                 var entryPointMethod = GetEntryPointRuntimeMethod(emitResult.EntryPointOpt, assembly, cancellationToken);
 
-                return entryPointMethod.CreateDelegate<Func<object[], object>>();
+                return entryPointMethod.CreateDelegate<Func<object[], Task<T>>>();
             }
         }
 

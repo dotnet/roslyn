@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         [Fact]
         public void TestCreateScript()
         {
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create<int>("1 + 2");
             Assert.Equal("1 + 2", script.Code);
         }
 
         [Fact]
         public void TestGetCompilation()
         {
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create<int>("1 + 2");
             var compilation = script.GetCompilation();
             Assert.Equal(script.Code, compilation.SyntaxTrees.First().GetText().ToString());
         }
@@ -32,53 +32,53 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         public void TestCreateScriptDelegate()
         {
             // create a delegate for the entire script
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create<int>("1 + 2");
             var fn = script.CreateDelegate();
             var value = fn();
-            Assert.Equal(3, value);
+            Assert.Equal(3, value.Result);
         }
 
         [Fact]
         public void TestRunScript()
         {
-            var result = CSharpScript.Run("1 + 2");
-            Assert.Equal(3, result.ReturnValue);
+            var result = CSharpScript.Run<object>("1 + 2");
+            Assert.Equal(3, result.ReturnValue.Result);
         }
 
         [Fact]
         public void TestCreateAndRunScript()
         {
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create<int>("1 + 2");
             var result = script.Run();
             Assert.Same(script, result.Script);
-            Assert.Equal(3, result.ReturnValue);
+            Assert.Equal(3, result.ReturnValue.Result);
         }
 
         [Fact]
         public void TestEvalScript()
         {
-            var value = CSharpScript.Eval("1 + 2");
-            Assert.Equal(3, value);
+            var value = CSharpScript.Eval<int>("1 + 2");
+            Assert.Equal(3, value.Result);
         }
 
         [Fact]
         public void TestRunScriptWithSpecifiedReturnType()
         {
-            var result = CSharpScript.Create("1 + 2").WithReturnType(typeof(int)).Run();
-            Assert.Equal(3, result.ReturnValue);
+            var result = CSharpScript.Run<int>("1 + 2");
+            Assert.Equal(3, result.ReturnValue.Result);
         }
 
         [Fact]
         public void TestRunVoidScript()
         {
-            var result = CSharpScript.Run("Console.WriteLine(0);");
+            var result = CSharpScript.Run<object>("Console.WriteLine(0);");
         }
 
         [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
 
-            var result = CSharpScript.Run(@"
+            var result = CSharpScript.Run<object>(@"
 class SomeClass
 {
     public void Do()
@@ -95,7 +95,7 @@ d.Do();"
         public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
 
-            var result = CSharpScript.Run(@"
+            var result = CSharpScript.Run<object>(@"
 class SomeClass
 {
     public void Do()
@@ -117,25 +117,25 @@ d.Do()"
         [Fact]
         public void TestRunScriptWithGlobals()
         {
-            var result = CSharpScript.Run("X + Y", new Globals { X = 1, Y = 2 });
-            Assert.Equal(3, result.ReturnValue);
+            var result = CSharpScript.Run<int>("X + Y", new Globals { X = 1, Y = 2 });
+            Assert.Equal(3, result.ReturnValue.Result);
         }
 
         [Fact]
         public void TestRunCreatedScriptWithExpectedGlobals()
         {
-            var script = CSharpScript.Create("X + Y").WithGlobalsType(typeof(Globals));
+            var script = (Script<int>)CSharpScript.Create<int>("X + Y").WithGlobalsType(typeof(Globals));
             var result = script.Run(new Globals { X = 1, Y = 2 });
-            Assert.Equal(3, result.ReturnValue);
+            Assert.Equal(3, result.ReturnValue.Result);
             Assert.Same(script, result.Script);
         }
 
         [Fact]
         public void TestRunCreatedScriptWithUnexpectedGlobals()
         {
-            var script = CSharpScript.Create("X + Y");
+            var script = CSharpScript.Create<int>("X + Y");
             var result = script.Run(new Globals { X = 1, Y = 2 });
-            Assert.Equal(3, result.ReturnValue);
+            Assert.Equal(3, result.ReturnValue.Result);
 
             // the end state of running the script should be based on a different script instance because of the globals
             // not matching the original script definition.
@@ -146,9 +146,9 @@ d.Do()"
         public void TestRunScriptWithScriptState()
         {
             // run a script using another scripts end state as the starting state (globals)
-            var result = CSharpScript.Run("int X = 100;");
-            var result2 = CSharpScript.Run("X + X", result);
-            Assert.Equal(200, result2.ReturnValue);
+            var result = CSharpScript.Run<int>("int X = 100;");
+            var result2 = CSharpScript.Run<int>("X + X", result);
+            Assert.Equal(200, result2.ReturnValue.Result);
         }
 
         [Fact]
@@ -162,14 +162,14 @@ d.Do()"
             };
 
             object input = null;
-            ScriptState result = null;
+            ScriptState<int> result = null;
             foreach (var submission in submissions)
             {
-                result = CSharpScript.Run(submission, input);
+                result = CSharpScript.Run<int>(submission, input);
                 input = result;
             }
 
-            Assert.Equal(10100, result.ReturnValue);
+            Assert.Equal(10100, result.ReturnValue.Result);
         }
 
 #if TODO // https://github.com/dotnet/roslyn/issues/3720
@@ -187,7 +187,7 @@ d.Do()"
         [Fact]
         public void TestGetScriptVariableAfterRunningScript()
         {
-            var result = CSharpScript.Run("int x = 100;");
+            var result = CSharpScript.Run<object>("int x = 100;");
             var globals = result.Variables.Names.ToList();
             Assert.Equal(1, globals.Count);
             Assert.Equal(true, globals.Contains("x"));
@@ -199,17 +199,17 @@ d.Do()"
         public void TestBranchingSubscripts()
         {
             // run script to create declaration of M
-            var result1 = CSharpScript.Run("int M(int x) { return x + x; }");
+            var result1 = CSharpScript.Run<int>("int M(int x) { return x + x; }");
 
             // run second script starting from first script's end state
             // this script's new declaration should hide the old declaration
-            var result2 = CSharpScript.Run("int M(int x) { return x * x; } M(5)", result1);
-            Assert.Equal(25, result2.ReturnValue);
+            var result2 = CSharpScript.Run<int>("int M(int x) { return x * x; } M(5)", result1);
+            Assert.Equal(25, result2.ReturnValue.Result);
 
             // run third script also starting from first script's end state
             // it should not see any declarations made by the second script.
-            var result3 = CSharpScript.Run("M(5)", result1);
-            Assert.Equal(10, result3.ReturnValue);
+            var result3 = CSharpScript.Run<int>("M(5)", result1);
+            Assert.Equal(10, result3.ReturnValue.Result);
         }
     }
 }

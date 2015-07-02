@@ -3,45 +3,33 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Text;
-using Microsoft.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
     /// <summary>
     /// A factory for creating and running csharp scripts.
     /// </summary>
-    public sealed class CSharpScript : Script
+    public static class CSharpScript
     {
-        private CSharpScript(string code, string path, ScriptOptions options, Type globalsType, Type returnType, ScriptBuilder builder, Script previous)
-            : base(code, path, options, globalsType, returnType, builder, previous)
-        {
-        }
-
-        internal override Script Make(string code, string path, ScriptOptions options, Type globalsType, Type returnType, ScriptBuilder builder, Script previous)
-        {
-            return new CSharpScript(code, path, options, globalsType, returnType, builder, previous);
-        }
-
         /// <summary>
         /// Create a new C# script.
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// </summary>
-        public static Script Create(string code, ScriptOptions options)
+        public static Script<T> Create<T>(string code, ScriptOptions options)
         {
-            return new CSharpScript(code, null, options, null, typeof(object), null, null);
+            return new CSharpScript<T>(code, null, options, null, null, null);
         }
 
         /// <summary>
         /// Create a new C# script.
         /// <param name="code">The source code of the script.</param>
         /// </summary>
-        public static Script Create(string code)
+        public static Script<T> Create<T>(string code)
         {
-            return Create(code, null);
+            return Create<T>(code, null);
         }
 
         /// <summary>
@@ -50,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
-        public static ScriptState Run(string code, ScriptOptions options, object globals)
+        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
+        public static ScriptState<T> Run<T>(string code, ScriptOptions options, object globals)
         {
-            return Create(code, options).Run(globals);
+            return Create<T>(code, options).Run(globals);
         }
 
         /// <summary>
@@ -61,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
-        public static ScriptState Run(string code, ScriptOptions options)
+        public static ScriptState<T> Run<T>(string code, ScriptOptions options)
         {
-            return Run(code, options, globals: null);
+            return Run<T>(code, options, globals: null);
         }
 
         /// <summary>
@@ -71,19 +59,19 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
-        public static ScriptState Run(string code, object globals)
+        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
+        public static ScriptState<T> Run<T>(string code, object globals)
         {
-            return Run(code, options: null, globals: globals);
+            return Run<T>(code, options: null, globals: globals);
         }
 
         /// <summary>
         /// Run a C# script.
         /// </summary>
         /// <param name="code">The source code of the script.</param>
-        public static ScriptState Run(string code)
+        public static ScriptState<T> Run<T>(string code)
         {
-            return Run(code, null, null);
+            return Run<T>(code, null, null);
         }
 
         /// <summary>
@@ -92,11 +80,11 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static object Eval(string code, ScriptOptions options, object globals)
+        public static Task<T> Eval<T>(string code, ScriptOptions options, object globals)
         {
-            return Run(code, options, globals).ReturnValue;
+            return Run<T>(code, options, globals).ReturnValue;
         }
 
         /// <summary>
@@ -105,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static object Eval(string code, ScriptOptions options)
+        public static Task<T> Eval<T>(string code, ScriptOptions options)
         {
-            return Run(code, options).ReturnValue;
+            return Run<T>(code, options).ReturnValue;
         }
 
         /// <summary>
@@ -115,11 +103,11 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static object Eval(string code, object globals)
+        public static Task<T> Eval<T>(string code, object globals)
         {
-            return Run(code, globals).ReturnValue;
+            return Run<T>(code, globals).ReturnValue;
         }
 
         /// <summary>
@@ -127,9 +115,22 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static object Eval(string code)
+        public static Task<T> Eval<T>(string code)
         {
-            return Run(code).ReturnValue;
+            return Run<T>(code).ReturnValue;
+        }
+    }
+
+    internal sealed class CSharpScript<T> : Script<T>
+    {
+        internal CSharpScript(string code, string path, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
+            : base(code, path, options, globalsType, builder, previous)
+        {
+        }
+
+        internal override Script Make(string code, string path, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
+        {
+            return new CSharpScript<T>(code, path, options, globalsType, builder, previous);
         }
 
         #region Compilation

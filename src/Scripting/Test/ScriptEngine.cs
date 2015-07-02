@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        internal abstract Script Create(string code, ScriptOptions options, Type globalsType, Type returnType);
+        internal abstract Script<T> Create<T>(string code, ScriptOptions options, Type globalsType);
 
         #region Session
 

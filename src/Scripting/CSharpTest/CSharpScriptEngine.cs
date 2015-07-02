@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
@@ -16,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         {
         }
 
-        internal override Script Create(string code, ScriptOptions options, Type globalsType, Type returnType)
+        internal override Script<T> Create<T>(string code, ScriptOptions options, Type globalsType)
         {
-            return CSharpScript.Create(code, options).WithGlobalsType(globalsType).WithReturnType(returnType).WithBuilder(this.Builder);
+            return (Script<T>)CSharpScript.Create<T>(code, options).WithGlobalsType(globalsType).WithBuilder(this.Builder);
         }
     }
 }

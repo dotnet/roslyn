@@ -57,9 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (submissionResult == null)
                 {
-                    // Return null if submission does not have a trailing expression.
-                    Debug.Assert(submissionResultTypeOpt.IsReferenceType);
-                    submissionResult = new BoundLiteral(syntax, ConstantValue.Null, submissionResultTypeOpt);
+                    // Return default(T) if submission does not have a trailing expression.
+                    submissionResult = new BoundDefaultOperator(syntax, submissionResultTypeOpt);
                 }
 
                 Debug.Assert((object)submissionResult.Type != null);
