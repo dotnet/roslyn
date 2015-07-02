@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Creates a new compilation that can be used in scripting. 
         ''' </summary>
-        Friend Shared Function CreateSubmission(
+        Public Shared Function CreateSubmission(
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -2474,7 +2474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithAssemblyName(assemblyName)
         End Function
 
-        Friend Overrides Function CommonGetSubmissionResultType(ByRef hasValue As Boolean) As ITypeSymbol
+        Protected Overrides Function CommonGetSubmissionResultType(ByRef hasValue As Boolean) As ITypeSymbol
             Return GetSubmissionResultType(hasValue)
         End Function
 
@@ -2496,7 +2496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CommonPreviousSubmission As Compilation
+        Protected Overrides ReadOnly Property CommonPreviousSubmission As Compilation
             Get
                 Return PreviousSubmission
             End Get
@@ -2550,7 +2550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithOptions(DirectCast(options, VisualBasicCompilationOptions))
         End Function
 
-        Friend Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
+        Protected Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
             Return Me.WithPreviousSubmission(DirectCast(newPreviousSubmission, VisualBasicCompilation))
         End Function
 
@@ -2584,7 +2584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetTypeByMetadataName(metadataName)
         End Function
 
-        Friend Overrides ReadOnly Property CommonScriptClass As INamedTypeSymbol
+        Protected Overrides ReadOnly Property CommonScriptClass As INamedTypeSymbol
             Get
                 Return Me.ScriptClass
             End Get
