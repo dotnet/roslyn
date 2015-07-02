@@ -2023,6 +2023,17 @@ class D
             submission.GetDiagnostics().Verify(expectedDiagnostics);
         }
 
+        [WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")]
+        [Fact]
+        public void LabelLookup()
+        {
+            const string source = "using System; 1";
+            var tree = Parse(source, options: TestOptions.Script);
+            var submission = CSharpCompilation.CreateSubmission("sub1", tree, new[] { MscorlibRef });
+            var model = submission.GetSemanticModel(tree);
+            Assert.Empty(model.LookupLabels(source.Length - 1)); // Used to assert.
+        }
+
         private CSharpCompilation CreateSubmission(string code, CSharpParseOptions options, int expectedErrorCount = 0)
         {
             var submission = CSharpCompilation.CreateSubmission("sub",
