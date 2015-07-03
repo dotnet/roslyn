@@ -2920,7 +2920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestGenericClassMethodWithTypeConstaintBound()
+        public void TestGenericClassMethodWithTypeConstraintBound()
         {
             var text = "class a { b X<c>() where b : d { } }";
             var file = this.ParseFile(text);

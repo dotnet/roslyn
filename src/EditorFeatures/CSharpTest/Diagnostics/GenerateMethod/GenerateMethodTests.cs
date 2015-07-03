@@ -2662,7 +2662,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestGenerateMethodInDictionaryInitilizer()
+        public void TestGenerateMethodInDictionaryInitializer()
         {
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ [|key|] ( ) ] = 0 } ; } } ",
@@ -2670,7 +2670,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestGenerateMethodInDictionaryInitilizer2()
+        public void TestGenerateMethodInDictionaryInitializer2()
         {
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = 0 , [ [|One|] ( ) ] = 1 , [ ""Two"" ] = 2 } ; } } ",
@@ -2678,7 +2678,7 @@ namespace ConsoleApplication1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public void TestGenerateMethodInDictionaryInitilizer3()
+        public void TestGenerateMethodInDictionaryInitializer3()
         {
             Test(
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { var x = new Dictionary < string , int > { [ ""Zero"" ] = [|i|] ( ) } ; } } ",

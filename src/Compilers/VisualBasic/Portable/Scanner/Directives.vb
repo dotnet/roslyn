@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Function
 
             Friend Function IsEquivalentTo(other As PreprocessorState) As Boolean
-                ' for now, we will only consider two are equivalents when there are only regions but no other directvies
+                ' for now, we will only consider two are equivalents when there are only regions but no other directives
                 If Me._conditionals.Count > 0 OrElse
                    Me._symbols.Count > 0 OrElse
                    Me._externalSourceDirective IsNot Nothing OrElse

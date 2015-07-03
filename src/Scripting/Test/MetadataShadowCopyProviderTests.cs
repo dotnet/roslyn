@@ -177,7 +177,7 @@ namespace Roslyn.Services.UnitTests
             var modifiedMetadata3 = reference2.GetMetadata() as AssemblyMetadata;
             Assert.NotSame(modifiedMetadata3, metadata2);
 
-            // a new reference is created, again we get the modified image (which is copied to the shadow copy driectory):
+            // a new reference is created, again we get the modified image (which is copied to the shadow copy directory):
             var reference4 = _provider.GetReference(path0);
             Assert.NotNull(reference4);
             Assert.Equal(path0, reference4.FilePath);

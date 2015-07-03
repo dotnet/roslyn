@@ -2834,7 +2834,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(545106, "DevDiv")>
-        Public Sub GetDeclaedSymbolForDeclaredControlVariable()
+        Public Sub GetDeclaredSymbolForDeclaredControlVariable()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

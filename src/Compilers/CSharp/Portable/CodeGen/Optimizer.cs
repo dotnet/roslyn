@@ -1125,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLabel(BoundLabel node)
         {
-            Debug.Assert(true, "we should not have label expressons at this stage");
+            Debug.Assert(true, "we should not have label expressions at this stage");
 
             return node;
         }
@@ -1244,18 +1244,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EnsureOnlyEvalStack();
 
-            var origStack = this._evalStack;
+            var origStack = _evalStack;
 
-            this._evalStack += 1;
+            _evalStack += 1;
 
             var cookie = GetStackStateCookie(); // implicit goto here 
 
-            this._evalStack = origStack; // consequence is evaluated with original stack 
+            _evalStack = origStack; // consequence is evaluated with original stack 
             var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
 
-            this._evalStack = origStack; // alternative is evaluated with original stack 
+            _evalStack = origStack; // alternative is evaluated with original stack 
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 

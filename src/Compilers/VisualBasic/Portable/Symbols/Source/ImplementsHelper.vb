@@ -511,7 +511,7 @@ DoneWithErrorReporting:
                 ' (not a derived interface), since this is the metadata rule from Partition II, section 12.2.
                 '
                 ' Consider:
-                '     Interface IFoo ' from metadta
+                '     Interface IFoo ' from metadata
                 '         Sub Foo()
                 '     Class A ' from metadata
                 '         Public Sub Foo()

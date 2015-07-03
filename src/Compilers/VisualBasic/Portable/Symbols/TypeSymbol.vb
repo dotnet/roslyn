@@ -429,7 +429,7 @@ Done:
             End Get
         End Property
 
-        Private ReadOnly Property IypeSymbol_BaseType As INamedTypeSymbol Implements ITypeSymbol.BaseType
+        Private ReadOnly Property ITypeSymbol_BaseType As INamedTypeSymbol Implements ITypeSymbol.BaseType
             Get
                 Return Me.BaseTypeNoUseSiteDiagnostics
             End Get

@@ -962,7 +962,7 @@ mylabel:
         
         Goto &HA 'BIND1:"&HA"
 10:     'BIND2:"10:"
-        Console.WriteLine("Goodby")
+        Console.WriteLine("Goodbye")
     End Sub
 End Class
     ]]></file>
@@ -1006,7 +1006,7 @@ mylabel:    'BIND:"mylabel:"
         Console.WriteLine("Hello Goto")
 
 MYLABEL:        
-        Console.WriteLine("Goodby")
+        Console.WriteLine("Goodbye")
     End Sub
 End Class
     ]]></file>
@@ -3596,7 +3596,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub LateBoundAdressOf()
+        Public Sub LateBoundAddressOf()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4582,7 +4582,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub TypeParameterSymbolMethod_IsreferencOrValueType()
+        Public Sub TypeParameterSymbolMethod_IsReferenceOrValueType()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

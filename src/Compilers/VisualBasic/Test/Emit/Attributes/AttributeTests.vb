@@ -1327,11 +1327,11 @@ End Class
 
         <WorkItem(541687, "DevDiv")>
         <Fact>
-        Public Sub Bug_8524_NullAttributeArrayArument()
+        Public Sub Bug_8524_NullAttributeArrayArgument()
 
             Dim source =
     <compilation>
-        <file name="Bug_8524_NullAttributeArrayArument.vb"><![CDATA[
+        <file><![CDATA[
 Imports System
 
 Class A
@@ -3222,7 +3222,7 @@ Class A
 End Class
 
 Class MyAttr
-    ' Does not intherit attribute
+    ' Does not inherit attribute
 End Class    
 ]]>
     </file>

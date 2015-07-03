@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (diagnostics != null && _value.IsBad)
             {
-                diagnostics.Add(ErrorCode.ERR_BadPdbData, Location.None, Name); 
+                diagnostics.Add(ErrorCode.ERR_BadPdbData, Location.None, Name);
             }
-            
+
             return _value;
         }
 

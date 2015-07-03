@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         return true;
                     }
 
-                    // TODO: improve the comparision mechanism for generic types.
+                    // TODO: improve the comparison mechanism for generic types.
                     if (typeSym.Kind == SymbolKind.NamedType &&
                         ((NamedTypeSymbol)typeSym).IsGenericType)
                     {

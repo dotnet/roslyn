@@ -266,8 +266,8 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             var gen = SyntaxGenerator.GetGenerator(document);
 
-            var importsToSimplify = root.DescendantNodes().Where(n => 
-                !isNodeOrTokenOutsideSimplifySpan(n) 
+            var importsToSimplify = root.DescendantNodes().Where(n =>
+                !isNodeOrTokenOutsideSimplifySpan(n)
                 && gen.GetDeclarationKind(n) == DeclarationKind.NamespaceImport
                 && n.HasAnnotation(Simplifier.Annotation));
 

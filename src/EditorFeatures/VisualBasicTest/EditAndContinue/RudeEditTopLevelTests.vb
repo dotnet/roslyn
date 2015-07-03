@@ -5469,7 +5469,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda1()
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
             Dim src1 = "
 Imports System
 
@@ -5517,7 +5517,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda_Trivia1()
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
             Dim src1 = "
 Imports System
 
@@ -5565,7 +5565,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithoutLambda1()
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
             Dim src1 = "
 Imports System
 
@@ -5613,7 +5613,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_EditContructorNotIncludingInitializers()
+        Public Sub FieldInitializerUpdate_Lambdas_EditConstructorNotIncludingInitializers()
             Dim src1 = "
 Imports System
 

@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
 
             // The bool indicates if this is the first time we are seeing the node.
-            var candidates = new Stack<ValueTuple<Node,bool>>();
+            var candidates = new Stack<ValueTuple<Node, bool>>();
             candidates.Push(ValueTuple.Create(root, true));
             while (candidates.Count != 0)
             {

@@ -2619,7 +2619,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock G(Function(a) a)", "SyncLock statement"))
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock G(Function(a) a)", VBFeaturesResources.SyncLockStatement))
         End Sub
 
 #End Region
@@ -2907,7 +2907,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "For Each a In G(Function(a) a)", "For Each statement"))
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "For Each a In G(Function(a) a)", VBFeaturesResources.ForEachStatement))
         End Sub
 
 #End Region

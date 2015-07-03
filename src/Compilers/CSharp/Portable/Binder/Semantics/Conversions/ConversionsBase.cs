@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // System.ValueType, and to any interface type variance-compatible with one implemented
             // by the non-nullable value type.  
 
-            // Futhermore, an enum type can be converted to the type System.Enum.
+            // Furthermore, an enum type can be converted to the type System.Enum.
 
             // We set the base class of the structs to System.ValueType, System.Enum, etc, so we can
             // just check here.

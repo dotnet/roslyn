@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
         End Sub
 
         <Fact>
-<Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EachNotAfterTouchingFor()
             VerifyRecommendationsMissing(<MethodBody>For|</MethodBody>, "Each")
         End Sub

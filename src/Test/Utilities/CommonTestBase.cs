@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ParseOptions parseOptions);
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
-                
+
         internal CompilationVerifier CompileAndVerify(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,

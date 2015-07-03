@@ -3633,7 +3633,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehhod_VerifyXMLBracketName()
+        Public Sub SyntaxWalkerMethod_VerifyXMLBracketName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
@@ -3658,7 +3658,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMethod_VerifyImcompleteSyntaxClause()
+        Public Sub SyntaxWalkerMethod_VerifyIncompleteSyntaxClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">

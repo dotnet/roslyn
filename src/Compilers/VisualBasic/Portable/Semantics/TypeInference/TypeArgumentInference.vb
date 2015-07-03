@@ -724,7 +724,7 @@ HandleAsAGeneralExpression:
 
                 ' Build a graph describing the flow of type inference data.
                 ' This creates edges from "regular" arguments to type parameters and from type parameters to lambda arguments. 
-                ' In the rest of this function that graph is then processed (see below for more details).  Essentally, for each
+                ' In the rest of this function that graph is then processed (see below for more details).  Essentially, for each
                 ' "type parameter" node a list of "type hints" (possible candidates for type inference) is collected. The dominant
                 ' type algorithm is then performed over the list of hints associated with each node.
                 ' 

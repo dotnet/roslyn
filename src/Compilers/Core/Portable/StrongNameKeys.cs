@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                return new StrongNameKeys(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue, Location.None, 
+                return new StrongNameKeys(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue, Location.None,
                     nameof(CompilationOptions.CryptoPublicKey), BitConverter.ToString(publicKey.ToArray())));
             }
         }

@@ -145,12 +145,12 @@ public class C
             var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
             var outputDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
-            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");            
+            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
                 "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
                analyzer: new AnalyzerForErrorLogTest());
-            
+
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);

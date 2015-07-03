@@ -73,17 +73,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //parent builder
             internal ILBuilder builder;
 
-            private Microsoft.Cci.MemoryStream _lazyRegularInstructions;
-            public Microsoft.Cci.BinaryWriter Writer
+            private Cci.BlobWriter _lazyRegularInstructions;
+            public Cci.BlobWriter Writer
             {
                 get
                 {
                     if (_lazyRegularInstructions == null)
                     {
-                        _lazyRegularInstructions = Microsoft.Cci.MemoryStream.GetInstance();
+                        _lazyRegularInstructions = Cci.BlobWriter.GetInstance();
                     }
 
-                    return new Microsoft.Cci.BinaryWriter(_lazyRegularInstructions);
+                    return _lazyRegularInstructions;
                 }
             }
 
@@ -248,15 +248,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Microsoft.Cci.MemoryStream RegularInstructions => _lazyRegularInstructions;
+            public Cci.BlobWriter RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
             /// </summary>
             public bool HasNoRegularInstructions => _lazyRegularInstructions == null;
 
-            public uint RegularInstructionsLength
-                => _lazyRegularInstructions?.Length ?? 0;
+            public int RegularInstructionsLength => _lazyRegularInstructions?.Length ?? 0;
 
             /// <summary>
             /// Updates position of the current block to account for shorter sizes of previous blocks.

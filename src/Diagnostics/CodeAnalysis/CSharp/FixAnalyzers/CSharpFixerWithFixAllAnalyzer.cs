@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.FixAnalyzers
                 INamedTypeSymbol codeActionSymbol,
                 ImmutableHashSet<IMethodSymbol> createMethods,
                 IPropertySymbol equivalenceKeyProperty)
-                : base (codeFixProviderSymbol, getFixAllProvider, codeActionSymbol, createMethods, equivalenceKeyProperty)
+                : base(codeFixProviderSymbol, getFixAllProvider, codeActionSymbol, createMethods, equivalenceKeyProperty)
             {
             }
 

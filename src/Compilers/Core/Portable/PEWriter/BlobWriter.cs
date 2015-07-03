@@ -3,75 +3,162 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal struct BinaryWriter
+    internal sealed class BlobWriter
     {
-        internal readonly MemoryStream BaseStream;
-        private readonly bool _utf8;
+        private byte[] _buffer;
+        private int _length;
+        private int _position;
 
-        internal BinaryWriter(MemoryStream output)
+        internal BlobWriter(uint initialSize = 64)
         {
-            this.BaseStream = output;
-            _utf8 = true;
+            _buffer = new byte[initialSize];
         }
 
-        internal BinaryWriter(MemoryStream output, bool unicode)
+        internal BlobWriter(ObjectPool<BlobWriter> pool)
+            : this()
         {
-            this.BaseStream = output;
-            _utf8 = !unicode;
+            _pool = pool;
         }
 
-        public bool IsDefault => BaseStream == null;
+        public byte[] Buffer => _buffer;
+        public int Length => _length;
 
-        internal void Align(uint alignment)
+        private void Resize(int capacity)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            while (i % alignment > 0)
+            Array.Resize(ref _buffer, Math.Max(Math.Min(_length, int.MaxValue / 2) * 2, capacity));
+        }
+
+        internal int Position
+        {
+            get
             {
-                m.Position = i + 1;
-                m.Buffer[i] = 0;
-                i++;
+                return _position;
             }
+
+            set
+            {
+                if (value > _buffer.Length)
+                {
+                    Resize(value);
+                }
+
+                _length = Math.Max(_length, value);
+                _position = value;
+            }
+        }
+
+        internal byte[] ToArray()
+        {
+            return ToArray(0, _length);
+        }
+
+        internal byte[] ToArray(int start, int length)
+        {
+            if (_length == 0)
+            {
+                return SpecializedCollections.EmptyArray<byte>();
+            }
+
+            byte[] result = new byte[length];
+            Array.Copy(_buffer, start, result, 0, result.Length);
+            return result;
+        }
+
+        internal ImmutableArray<byte> ToImmutableArray()
+        {
+            return ToImmutableArray(0, (int)_length);
+        }
+
+        internal ImmutableArray<byte> ToImmutableArray(int start, int length)
+        {
+            return ImmutableArray.Create(_buffer, start, length);
         }
 
         internal void WriteBool(bool value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 1;
-            m.Buffer[i] = (byte)(value ? 1 : 0);
+            int i = Position;
+            Position = i + 1;
+            _buffer[i] = (byte)(value ? 1 : 0);
         }
 
         internal void WriteByte(byte value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 1;
-            m.Buffer[i] = value;
+            int i = Position;
+            Position = i + 1;
+            _buffer[i] = value;
+        }
+
+        internal void Write(byte value, int count)
+        {
+            int start = _position;
+
+            // resize, if needed
+            Position += count;
+
+            for (int i = 0; i < count; i++)
+            {
+                _buffer[start + i] = value;
+            }
+        }
+
+        internal void Write(byte[] buffer, int index, int length)
+        {
+            int start = _position;
+
+            // resize, if needed
+            Position += length;
+
+            System.Buffer.BlockCopy(buffer, index, _buffer, start, length);
+        }
+
+        internal void Write(ImmutableArray<byte> buffer, int index, int length)
+        {
+            int start = _position;
+
+            // resize, if needed
+            Position += length;
+
+            buffer.CopyTo(index, _buffer, start, length);
+        }
+
+        internal void Write(Stream stream, int length)
+        {
+            int start = Position;
+            Position = start + length;
+            int bytesRead = stream.Read(_buffer, start, length);
+            Position = start + bytesRead;
         }
 
         internal void Pad(int byteCount)
         {
-            MemoryStream m = this.BaseStream;
-            m.Position += (uint)byteCount;
+            Position += byteCount;
+        }
+
+        internal void Align(uint alignment)
+        {
+            int i = Position;
+            while (i % alignment > 0)
+            {
+                Position = i + 1;
+                _buffer[i] = 0;
+                i++;
+            }
         }
 
         internal void WriteSbyte(sbyte value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 1;
+            int start = Position;
+            Position = start + 1;
 
-            unchecked
-            {
-                m.Buffer[i] = (byte)value;
-            }
+            _buffer[start] = unchecked((byte)value);
         }
 
         internal void WriteBytes(byte[] buffer)
@@ -86,7 +173,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            this.BaseStream.Write(buffer, offset, count);
+            Write(buffer, offset, count);
         }
 
         internal void WriteBytes(ImmutableArray<byte> buffer)
@@ -96,7 +183,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            this.BaseStream.Write(buffer, 0, buffer.Length);
+            Write(buffer, 0, buffer.Length);
         }
 
         /// <summary>
@@ -107,72 +194,22 @@ namespace Microsoft.Cci
         internal void WriteBytes(byte value, int count)
         {
             Debug.Assert(count > -1);
-            MemoryStream m = this.BaseStream;
 
-            uint i = m.Position;
-            uint end = i + (uint)count;
-            m.Position = end;
+            int i = Position;
+            int end = i + count;
+            Position = end;
 
             while (i < end)
             {
-                m.Buffer[i++] = value;
-            }
-        }
-
-        internal void WriteChars(char[] chars)
-        {
-            if (chars == null)
-            {
-                return;
-            }
-
-            Debug.Assert(!_utf8, "WriteChars has a problem with unmatched surrogate pairs and does not support writing utf8");
-
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-
-            m.Position = i + (uint)chars.Length * 2;
-            byte[] buffer = m.Buffer;
-            for (int j = 0; j < chars.Length; j++, i += 2)
-            {
-                char ch = chars[j];
-                unchecked
-                {
-                    buffer[i] = (byte)ch;
-                    buffer[i + 1] = (byte)(ch >> 8);
-                }
-            }
-        }
-
-        internal void WriteStringUtf16LE(string str)
-        {
-            if (str == null)
-            {
-                return;
-            }
-
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-
-            m.Position = i + (uint)str.Length * 2;
-            byte[] buffer = m.Buffer;
-            for (int j = 0; j < str.Length; j++, i += 2)
-            {
-                char ch = str[j];
-                unchecked
-                {
-                    buffer[i] = (byte)ch;
-                    buffer[i + 1] = (byte)(ch >> 8);
-                }
+                _buffer[i++] = value;
             }
         }
 
         internal unsafe void WriteDouble(double value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 8;
-            fixed (byte* b = m.Buffer)
+            int i = Position;
+            Position = i + 8;
+            fixed (byte* b = _buffer)
             {
                 *((double*)(b + i)) = value;
             }
@@ -180,10 +217,9 @@ namespace Microsoft.Cci
 
         internal void WriteShort(short value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 2;
-            byte[] buffer = m.Buffer;
+            int i = Position;
+            Position = i + 2;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -194,10 +230,9 @@ namespace Microsoft.Cci
 
         internal unsafe void WriteUshort(ushort value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 2;
-            byte[] buffer = m.Buffer;
+            int i = Position;
+            Position = i + 2;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -208,10 +243,9 @@ namespace Microsoft.Cci
 
         internal void WriteInt(int value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 4;
-            byte[] buffer = m.Buffer;
+            int i = Position;
+            Position = i + 4;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -224,10 +258,9 @@ namespace Microsoft.Cci
 
         internal void WriteUint(uint value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 4;
-            byte[] buffer = m.Buffer;
+            int i = Position;
+            Position = i + 4;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -240,10 +273,9 @@ namespace Microsoft.Cci
 
         internal void WriteLong(long value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 8;
-            byte[] buffer = m.Buffer;
+            int i = Position;
+            Position = i + 8;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -262,10 +294,9 @@ namespace Microsoft.Cci
 
         internal unsafe void WriteUlong(ulong value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 8;
-            byte[] buffer = m.Buffer;
+            int i = Position;
+            Position = i + 8;
+            byte[] buffer = _buffer;
 
             unchecked
             {
@@ -323,67 +354,107 @@ namespace Microsoft.Cci
 
         internal unsafe void WriteFloat(float value)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + 4;
-            fixed (byte* b = m.Buffer)
+            int i = Position;
+            Position = i + 4;
+            fixed (byte* b = _buffer)
             {
                 *((float*)(b + i)) = value;
             }
         }
 
-        internal void WriteString(string str)
+        /// <summary>
+        /// Writes UTF16 (little-endian) encoded string at the current position.
+        /// </summary>
+        public void WriteUTF16(char[] value)
         {
-            this.WriteString(str, false);
+            Debug.Assert(BitConverter.IsLittleEndian);
+
+            if (value == null)
+            {
+                return;
+            }
+
+            int size = value.Length * sizeof(char);
+            int i = Position;
+            Position = i + size;
+            System.Buffer.BlockCopy(value, 0, _buffer, i, size);
         }
 
-        internal void WriteString(string str, bool emitNullTerminator)
+        /// <summary>
+        /// Writes UTF16 (little-endian) encoded string at the current position.
+        /// </summary>
+        public unsafe void WriteUTF16(string value)
+        {
+            Debug.Assert(BitConverter.IsLittleEndian);
+
+            if (value == null)
+            {
+                return;
+            }
+
+            int size = value.Length * sizeof(char);
+            int start = Position;
+            Position = start + size;
+
+            fixed (char* ptr = value)
+            {
+                Marshal.Copy((IntPtr)ptr, _buffer, start, size);
+            }
+        }
+
+        /// <summary>
+        /// Writes string in SerString format (see ECMA-335-II 23.3 Custom attributes): 
+        /// The string is UTF8 encoded and prefixed by the its size in bytes. 
+        /// Null string is represented as a single byte 0xFF.
+        /// </summary>
+        public void WriteSerializedString(string str)
         {
             if (str == null)
             {
-                this.WriteByte(0xff);
+                WriteByte(0xff);
                 return;
             }
 
-            int n = str.Length;
-            uint size = _utf8 ? GetUTF8ByteCount(str) : (uint)n * 2;
-            if (emitNullTerminator)
+            int byteCount = GetUTF8ByteCount(str);
+            WriteCompressedUInt((uint)byteCount);
+            WriteUTF8(str, byteCount);
+        }
+
+        internal void WriteString(string str, Encoding encoding)
+        {
+            int start = Position;
+            Position = start + encoding.GetByteCount(str);
+            encoding.GetBytes(str, 0, str.Length, _buffer, start);
+        }
+
+        /// <summary>
+        /// Writes UTF8 encoded string at the current position.
+        /// </summary>
+        public void WriteUTF8(string str)
+        {
+            WriteUTF8(str, GetUTF8ByteCount(str));
+        }
+
+        // TODO: Use UTF8Encoding https://github.com/dotnet/corefx/issues/2217
+        public void WriteUTF8(string str, int byteCount)
+        {
+            Debug.Assert(byteCount >= str.Length);
+
+            int i = Position;
+            Position = i + byteCount;
+            byte[] buffer = _buffer;
+
+            if (byteCount == str.Length)
             {
-                // No size recorded for null-terminated strings.
-                //this.WriteUint(size);
+                for (int j = 0; j < str.Length; j++)
+                {
+                    Debug.Assert(str[j] <= 0x7f);
+                    buffer[i++] = unchecked((byte)str[j]);
+                }
             }
             else
             {
-                this.WriteCompressedUInt(size);
-            }
-
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            if (_utf8)
-            {
-                m.Position = i + (uint)n;
-                byte[] buffer = m.Buffer;
-                for (int j = 0; j < n; j++)
-                {
-                    char ch = str[j];
-                    if (ch >= 0x80)
-                    {
-                        goto writeUTF8;
-                    }
-
-                    buffer[i++] = unchecked((byte)ch);
-                }
-
-                if (emitNullTerminator)
-                {
-                    m.Position = i + 1;
-                    buffer = m.Buffer;
-                    buffer[i] = 0;
-                }
-
-                return;
-            writeUTF8:
-                for (int j = n - (int)(m.Position - i); j < n; j++)
+                for (int j = 0; j < str.Length; j++)
                 {
                     if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, j))
                     {
@@ -391,8 +462,6 @@ namespace Microsoft.Cci
                         int highSurrogate = str[j++];
                         int lowSurrogate = str[j];
                         int codepoint = (((highSurrogate - 0xd800) << 10) + lowSurrogate - 0xdc00) + 0x10000;
-                        m.Position = i + 4;
-                        buffer = m.Buffer;
                         buffer[i++] = (byte)(((codepoint >> 18) & 0x7) | 0xF0);
                         buffer[i++] = (byte)(((codepoint >> 12) & 0x3F) | 0x80);
                         buffer[i++] = (byte)(((codepoint >> 6) & 0x3F) | 0x80);
@@ -403,154 +472,28 @@ namespace Microsoft.Cci
                         char ch = str[j];
                         if (ch < 0x80)
                         {
-                            m.Position = i + 1;
-                            buffer = m.Buffer;
                             buffer[i++] = (byte)ch;
                         }
                         else if (ch < 0x800)
                         {
-                            m.Position = i + 2;
-                            buffer = m.Buffer;
                             buffer[i++] = (byte)(((ch >> 6) & 0x1F) | 0xC0);
                             buffer[i++] = (byte)((ch & 0x3F) | 0x80);
                         }
                         else
                         {
-                            m.Position = i + 3;
-                            buffer = m.Buffer;
                             buffer[i++] = (byte)(((ch >> 12) & 0xF) | 0xE0);
                             buffer[i++] = (byte)(((ch >> 6) & 0x3F) | 0x80);
                             buffer[i++] = (byte)((ch & 0x3F) | 0x80);
                         }
                     }
                 }
-
-                if (emitNullTerminator)
-                {
-                    m.Position = i + 1;
-                    buffer = m.Buffer;
-                    buffer[i] = 0;
-                }
-            }
-            else
-            {
-                m.Position = i + (uint)n * 2;
-                byte[] buffer = m.Buffer;
-                for (int j = 0; j < n; j++)
-                {
-                    char ch = str[j];
-                    buffer[i++] = (byte)ch;
-                    buffer[i++] = (byte)(ch >> 8);
-                }
-
-                if (emitNullTerminator)
-                {
-                    m.Position = i + 2;
-                    buffer = m.Buffer;
-                    buffer[i++] = 0;
-                    buffer[i] = 0;
-                }
             }
         }
 
-        internal void WriteString(string str, Encoding encoding)
+        internal static int GetUTF8ByteCount(string str)
         {
-            MemoryStream m = this.BaseStream;
-            uint i = m.Position;
-            m.Position = i + (uint)encoding.GetByteCount(str);
-            encoding.GetBytes(str, 0, str.Length, m.Buffer, (int)i);
-        }
-
-        /// <summary>
-        /// Implements compressed signed integer encoding as defined by ECMA-335-II chapter 23.2: Blobs and signatures.
-        /// </summary>
-        /// <remarks>
-        /// If the value lies between -64 (0xFFFFFFC0) and 63 (0x3F), inclusive, encode as a one-byte integer: 
-        /// bit 7 clear, value bits 5 through 0 held in bits 6 through 1, sign bit (value bit 31) in bit 0.
-        /// 
-        /// If the value lies between -8192 (0xFFFFE000) and 8191 (0x1FFF), inclusive, encode as a two-byte integer: 
-        /// 15 set, bit 14 clear, value bits 12 through 0 held in bits 13 through 1, sign bit(value bit 31) in bit 0.
-        /// 
-        /// If the value lies between -268435456 (0xF000000) and 268435455 (0x0FFFFFFF), inclusive, encode as a four-byte integer: 
-        /// 31 set, 30 set, bit 29 clear, value bits 27 through 0 held in bits 28 through 1, sign bit(value bit 31) in bit 0.
-        /// </remarks>
-        internal void WriteCompressedSignedInteger(int value)
-        {
-            unchecked
-            {
-                const int b6 = (1 << 6) - 1;
-                const int b13 = (1 << 13) - 1;
-                const int b28 = (1 << 28) - 1;
-
-                // 0xffffffff for negative value
-                // 0x00000000 for non-negative
-                int signMask = value >> 31;
-
-                if ((value & ~b6) == (signMask & ~b6))
-                {
-                    int n = ((value & b6) << 1) | (signMask & 1);
-                    this.WriteByte((byte)n);
-                }
-                else if ((value & ~b13) == (signMask & ~b13))
-                {
-                    int n = ((value & b13) << 1) | (signMask & 1);
-                    this.WriteByte((byte)(0x80 | (n >> 8)));
-                    this.WriteByte((byte)n);
-                }
-                else
-                {
-                    Debug.Assert((value & ~b28) == (signMask & ~b28));
-
-                    int n = ((value & b28) << 1) | (signMask & 1);
-                    this.WriteByte((byte)(0xc0 | (n >> 24)));
-                    this.WriteByte((byte)(n >> 16));
-                    this.WriteByte((byte)(n >> 8));
-                    this.WriteByte((byte)n);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Implements compressed unsigned integer encoding as defined by ECMA-335-II chapter 23.2: Blobs and signatures.
-        /// </summary>
-        /// <remarks>
-        /// If the value lies between 0 (0x00) and 127 (0x7F), inclusive, 
-        /// encode as a one-byte integer (bit 7 is clear, value held in bits 6 through 0).
-        /// 
-        /// If the value lies between 28 (0x80) and 214 – 1 (0x3FFF), inclusive, 
-        /// encode as a 2-byte integer with bit 15 set, bit 14 clear(value held in bits 13 through 0).
-        /// 
-        /// Otherwise, encode as a 4-byte integer, with bit 31 set, bit 30 set, bit 29 clear (value held in bits 28 through 0).
-        /// </remarks>
-        internal void WriteCompressedUInt(uint val)
-        {
-            unchecked
-            {
-                if (val <= 0x7f)
-                {
-                    this.WriteByte((byte)val);
-                }
-                else if (val <= 0x3fff)
-                {
-                    this.WriteByte((byte)(0x80 | (val >> 8)));
-                    this.WriteByte((byte)val);
-                }
-                else
-                {
-                    Debug.Assert(val <= 0x1fffffff);
-
-                    this.WriteByte((byte)(0xc0 | (val >> 24)));
-                    this.WriteByte((byte)(val >> 16));
-                    this.WriteByte((byte)(val >> 8));
-                    this.WriteByte((byte)val);
-                }
-            }
-        }
-
-        internal static uint GetUTF8ByteCount(string str)
-        {
-            uint count = 0;
-            for (int i = 0, n = str.Length; i < n; i++)
+            int count = 0;
+            for (int i = 0; i < str.Length; i++)
             {
                 if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, i))
                 {
@@ -599,7 +542,96 @@ namespace Microsoft.Cci
             return 0xDC00 <= ch && ch <= 0xDFFF;
         }
 
-        public void WriteConstantValueBlob(object value)
+        /// <summary>
+        /// Implements compressed signed integer encoding as defined by ECMA-335-II chapter 23.2: Blobs and signatures.
+        /// </summary>
+        /// <remarks>
+        /// If the value lies between -64 (0xFFFFFFC0) and 63 (0x3F), inclusive, encode as a one-byte integer: 
+        /// bit 7 clear, value bits 5 through 0 held in bits 6 through 1, sign bit (value bit 31) in bit 0.
+        /// 
+        /// If the value lies between -8192 (0xFFFFE000) and 8191 (0x1FFF), inclusive, encode as a two-byte integer: 
+        /// 15 set, bit 14 clear, value bits 12 through 0 held in bits 13 through 1, sign bit(value bit 31) in bit 0.
+        /// 
+        /// If the value lies between -268435456 (0xF000000) and 268435455 (0x0FFFFFFF), inclusive, encode as a four-byte integer: 
+        /// 31 set, 30 set, bit 29 clear, value bits 27 through 0 held in bits 28 through 1, sign bit(value bit 31) in bit 0.
+        /// </remarks>
+        internal void WriteCompressedSignedInteger(int value)
+        {
+            unchecked
+            {
+                const int b6 = (1 << 6) - 1;
+                const int b13 = (1 << 13) - 1;
+                const int b28 = (1 << 28) - 1;
+
+                // 0xffffffff for negative value
+                // 0x00000000 for non-negative
+                int signMask = value >> 31;
+
+                if ((value & ~b6) == (signMask & ~b6))
+                {
+                    int n = ((value & b6) << 1) | (signMask & 1);
+                    WriteByte((byte)n);
+                }
+                else if ((value & ~b13) == (signMask & ~b13))
+                {
+                    int n = ((value & b13) << 1) | (signMask & 1);
+                    WriteByte((byte)(0x80 | (n >> 8)));
+                    WriteByte((byte)n);
+                }
+                else
+                {
+                    Debug.Assert((value & ~b28) == (signMask & ~b28));
+
+                    int n = ((value & b28) << 1) | (signMask & 1);
+                    WriteByte((byte)(0xc0 | (n >> 24)));
+                    WriteByte((byte)(n >> 16));
+                    WriteByte((byte)(n >> 8));
+                    WriteByte((byte)n);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Implements compressed unsigned integer encoding as defined by ECMA-335-II chapter 23.2: Blobs and signatures.
+        /// </summary>
+        /// <remarks>
+        /// If the value lies between 0 (0x00) and 127 (0x7F), inclusive, 
+        /// encode as a one-byte integer (bit 7 is clear, value held in bits 6 through 0).
+        /// 
+        /// If the value lies between 28 (0x80) and 214 – 1 (0x3FFF), inclusive, 
+        /// encode as a 2-byte integer with bit 15 set, bit 14 clear(value held in bits 13 through 0).
+        /// 
+        /// Otherwise, encode as a 4-byte integer, with bit 31 set, bit 30 set, bit 29 clear (value held in bits 28 through 0).
+        /// </remarks>
+        internal void WriteCompressedUInt(uint val)
+        {
+            unchecked
+            {
+                if (val <= 0x7f)
+                {
+                    WriteByte((byte)val);
+                }
+                else if (val <= 0x3fff)
+                {
+                    WriteByte((byte)(0x80 | (val >> 8)));
+                    WriteByte((byte)val);
+                }
+                else
+                {
+                    Debug.Assert(val <= 0x1fffffff);
+
+                    WriteByte((byte)(0xc0 | (val >> 24)));
+                    WriteByte((byte)(val >> 16));
+                    WriteByte((byte)(val >> 8));
+                    WriteByte((byte)val);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Writes a constant value (see ECMA-335 Partition II section 22.9) at the current position.
+        /// </summary>
+        public void WriteConstant(object value)
         {
             if (value == null)
             {
@@ -624,7 +656,7 @@ namespace Microsoft.Cci
             }
             else if (type == typeof(string))
             {
-                WriteString((string)value);
+                WriteUTF16((string)value);
             }
             else if (type == typeof(byte))
             {
@@ -671,5 +703,69 @@ namespace Microsoft.Cci
                 throw new NotImplementedException();
             }
         }
+
+        internal void WriteTo(BlobWriter stream)
+        {
+            stream.Write(_buffer, 0, _length);
+        }
+
+        internal void WriteTo(Stream stream)
+        {
+            stream.Write(_buffer, 0, _length);
+        }
+
+        // Reset to zero-length, but don't reduce or free the array.
+        internal void Clear()
+        {
+            _position = 0;
+            _length = 0;
+        }
+
+        #region Poolable
+
+        private readonly ObjectPool<BlobWriter> _pool;
+
+        //
+        // To implement Poolable, you need two things:
+        // 1) Expose Freeing primitive. 
+        public void Free()
+        {
+            // Note that poolables are not finalizable. If one gets collected - no big deal.
+            Clear();
+            if (_pool != null)
+            {
+                if (_buffer.Length < 1024)
+                {
+                    _pool.Free(this);
+                }
+                else
+                {
+                    _pool.ForgetTrackedObject(this);
+                }
+            }
+        }
+
+        //2) Expose  the way to get an instance.
+        private static readonly ObjectPool<BlobWriter> s_poolInstance = CreatePool();
+
+        public static BlobWriter GetInstance()
+        {
+            var stream = s_poolInstance.Allocate();
+            return stream;
+        }
+
+        public static ObjectPool<BlobWriter> CreatePool()
+        {
+            return CreatePool(32);
+        }
+
+        public static ObjectPool<BlobWriter> CreatePool(int size)
+        {
+            ObjectPool<BlobWriter> pool = null;
+            pool = new ObjectPool<BlobWriter>(() => new BlobWriter(pool), size);
+            return pool;
+        }
+
+        #endregion
     }
 }

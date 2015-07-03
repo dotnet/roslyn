@@ -89,9 +89,9 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub DecalreVarInSyncLock()
+        Public Sub DeclareVarInSyncLock()
             CreateCompilationWithMscorlibAndVBRuntime(
-<compilation name="DecalreVarInSyncLock">
+<compilation>
     <file name="a.vb">
 Class Program
     Public Shared Sub Main(args As String())

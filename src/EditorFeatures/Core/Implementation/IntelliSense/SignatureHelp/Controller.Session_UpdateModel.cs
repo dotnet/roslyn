@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         return result;
                     }
 
-                    // if we couldn't find a best item, and htey provided a name, then try again without
+                    // if we couldn't find a best item, and they provided a name, then try again without
                     // a name.
                     if (name != null)
                     {

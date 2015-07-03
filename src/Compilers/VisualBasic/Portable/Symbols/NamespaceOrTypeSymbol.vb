@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get all the members of this symbol that have a particular name.
         ''' </summary>
         ''' <returns>An ImmutableArray containing all the members of this symbol with the given name. If there are
-        ''' no members with this name, returns an empty ImmutableArray. The result is deteministic (i.e. the same
+        ''' no members with this name, returns an empty ImmutableArray. The result is deterministic (i.e. the same
         ''' from call to call and from compilation to compilation). Members of the same kind appear in the result
         ''' in the same order in which they appeared at their origin (metadata or source).
         ''' Never returns Nothing.</returns>

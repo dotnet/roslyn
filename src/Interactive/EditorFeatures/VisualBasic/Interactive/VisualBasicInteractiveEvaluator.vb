@@ -51,11 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property CommandLineParser As CommandLineParser
             Get
-#If SCRIPTING Then
                 Return VisualBasicCommandLineParser.Interactive
-#Else
-                Return VisualBasicCommandLineParser.Default
-#End If
             End Get
         End Property
 

@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             set
             {
-                // Stroke of luck: both C# and VB legacty code model implementations throw E_NOTIMPL
+                // Stroke of luck: both C# and VB legacy code model implementations throw E_NOTIMPL
                 throw Exceptions.ThrowENotImpl();
             }
         }
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             set
             {
-                // Stroke of luck: both C# and VB legacty code model implementations throw E_NOTIMPL
+                // Stroke of luck: both C# and VB legacy code model implementations throw E_NOTIMPL
                 throw Exceptions.ThrowENotImpl();
             }
         }

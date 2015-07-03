@@ -146,7 +146,7 @@ NewLines("Class A \n Sub Main(args As String()) \n Color.Green \n End Sub \n End
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
         Public Sub TestGenerateWithImplicitValues()
-            ' Red is implicitely assigned to 0, Green is implicitely Red + 1, So Blue must be 2.
+            ' Red is implicitly assigned to 0, Green is implicitely Red + 1, So Blue must be 2.
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n [|Color.Blue|] \n End Sub \n End Module \n Enum Color \n Red \n Green \n Yellow = -1 \n End Enum"),
 NewLines("Module Program \n Sub Main(args As String()) \n Color.Blue \n End Sub \n End Module \n Enum Color \n Red \n Green \n Yellow = -1 \n Blue = 2 \n End Enum"))

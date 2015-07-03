@@ -32,8 +32,8 @@ class C
 
     ImmutableArray<U> GetGeneric<U>() { return ImmutableArray<U>.Empty; }
     ImmutableArray<int> GetConcrete() { return ImmutableArray<int>.Empty; }
-    IEnumerable<T> GetEnmuerableGeneric<T>() { return null; } 
-    IEnumerable<T> GetEnmuerableConcrete<T>() { return null; } 
+    IEnumerable<T> GetEnumerableGeneric<T>() { return null; } 
+    IEnumerable<T> GetEnumerableConcrete<T>() { return null; } 
 
     void Test() 
     {

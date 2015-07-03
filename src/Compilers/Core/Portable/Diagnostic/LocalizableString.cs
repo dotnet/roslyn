@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns></returns>
         protected abstract bool AreEqual(object other);
-        
+
         private void RaiseOnException(Exception ex)
         {
             if (ex is OperationCanceledException)

@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        ' Should we stop looking further for a better result? Stop for kind EmptyAndStopLookup, WrongArityAndStopLookup, Ambigiuous, or Good.
+        ' Should we stop looking further for a better result? Stop for kind EmptyAndStopLookup, WrongArityAndStopLookup, Ambiguous, or Good.
         Public ReadOnly Property StopFurtherLookup As Boolean
             Get
                 Return _kind >= LookupResultKind.EmptyAndStopLookup

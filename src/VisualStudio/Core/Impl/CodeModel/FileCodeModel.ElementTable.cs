@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
 
                 Debug.Assert(!_elementWeakComHandles.ContainsKey(key),
-                             "All right, we got it wrong. We should ahve a free entry in the table!");
+                             "All right, we got it wrong. We should have a free entry in the table!");
 
                 _elementWeakComHandles.Add(key, new CodeElementWeakComAggregateHandle(element));
             }
