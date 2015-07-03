@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly CancellationTokenRegistration _queueRegistration;
         protected readonly AnalyzerManager analyzerManager;
-
+        
         // Lazy fields initialized in Initialize() API
         private Compilation _compilation;
         protected AnalyzerExecutor analyzerExecutor;
@@ -40,10 +40,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationActionsMap;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationAnalyzerAction>> _compilationEndActionsMap;
 
+        private HashSet<SyntaxTree> _individuallyAnalyzedSyntaxTrees = new HashSet<SyntaxTree>();
+
         /// <summary>
         /// Primary driver task which processes all <see cref="CompilationEventQueue"/> events, runs analyzer actions and signals completion of <see cref="DiagnosticQueue"/> at the end.
         /// </summary>
         private Task _primaryTask;
+
+        /// <summary>
+        /// Driver task which initializes all analyzers.
+        /// </summary>
+        private Task _initializeTask;
+
+        private bool _initializeTaskStarted = false;
 
         /// <summary>
         /// Number of worker tasks processing compilation events and executing analyzer actions.
@@ -55,6 +64,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public AsyncQueue<CompilationEvent> CompilationEventQueue { get; }
 
+        private bool _analysisCancelled = false;
+
         /// <summary>
         /// An async queue that is fed the diagnostics as they are computed.
         /// </summary>
@@ -63,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Initializes the compilation for the analyzer driver.
         /// It also computes and initializes <see cref="analyzerActions"/> and <see cref="_symbolActionsByKind"/>.
-        /// Finally, it initializes and starts the <see cref="_primaryTask"/> for the driver.
+        /// Finally, it initializes and starts the <see cref="_initializeTask"/> for the driver.
         /// </summary>
         /// <remarks>
-        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Diagnostic}, Boolean, out Compilation, CancellationToken)"/>.
+        /// NOTE: This method must only be invoked from <see cref="AnalyzerDriver.Create(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions, AnalyzerManager, Action{Exception, DiagnosticAnalyzer, Diagnostic}, bool, bool, out Compilation, CancellationToken)"/>.
         /// </remarks>
         private void Initialize(Compilation comp, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
@@ -78,9 +89,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _compilation = comp;
                 this.analyzerExecutor = analyzerExecutor;
 
-                // Compute the set of effective actions based on suppression, and running the initial analyzers
-                var analyzerActionsTask = GetAnalyzerActionsAsync(_analyzers, analyzerManager, analyzerExecutor);
-                var initializeTask = analyzerActionsTask.ContinueWith(t =>
+                // Compute the set of effective actions based on suppression, and running the initial analyzers.
+                _initializeTask = GetAnalyzerActionsAsync(_analyzers, analyzerManager, analyzerExecutor).ContinueWith(t =>
                 {
                     this.analyzerActions = t.Result;
                     _symbolActionsByKind = MakeSymbolActionsByKind();
@@ -89,22 +99,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
                 }, cancellationToken, TaskContinuationOptions.None, TaskScheduler.Default);
 
-                // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
-                _primaryTask = Task.Run(async () =>
-                    {
-                        await initializeTask.ConfigureAwait(false);
 
-                        await ProcessCompilationEventsAsync(cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken)
-                    .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                _initializeTaskStarted = true;
             }
             finally
             {
-                if (_primaryTask == null)
+                if (_initializeTask == null)
                 {
-                    // Set primaryTask to be a cancelled task.
+                    // Set initializeTask to be a cancelled task.
                     var tcs = new TaskCompletionSource<int>();
+                    tcs.SetCanceled();
+                    _initializeTask = tcs.Task;
+
+                    // Set primaryTask to be a cancelled task.
+                    tcs = new TaskCompletionSource<int>();
                     tcs.SetCanceled();
                     _primaryTask = tcs.Task;
 
@@ -114,11 +123,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private Task ExecuteSyntaxTreeActions(CancellationToken cancellationToken)
+        /// <summary>
+        /// Begin analysis of all compilation units that have not already been analyzed.
+        /// A caller must guarantee that, for a given <see cref="AnalyzerDriver"/> instance, an invocation of <see cref="StartCompleteAnalysis"/> is not concurrent with
+        /// an invocation of <see cref="GetPartialDiagnosticsAsync"/> or another invocation of <see cref="StartCompleteAnalysis"/>.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        public void StartCompleteAnalysis(CancellationToken cancellationToken)
+        {
+            if (_initializeTaskStarted && _primaryTask == null)
+            {
+                _primaryTask = Task.Run(async () =>
+                {
+                    await _initializeTask.ConfigureAwait(false);
+                    // Compilation start actions execute as part of the initialize task, not as part of the compilation events task,
+                    // so executing the syntax tree actions here puts them between compilation start actions and other actions.
+                    await ExecuteSyntaxTreeActions(_compilation.SyntaxTrees.Where((tree) => !_individuallyAnalyzedSyntaxTrees.Contains(tree)), cancellationToken).ConfigureAwait(false);
+                    await ProcessCompilationEventsAsync(runToCompletion: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                }, cancellationToken)
+                .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
+        }
+
+        private Task ExecuteSyntaxTreeActions(IEnumerable<SyntaxTree> syntaxTrees, CancellationToken cancellationToken)
         {
             // Execute syntax tree analyzers in parallel.
             var tasks = ArrayBuilder<Task>.GetInstance();
-            foreach (var tree in _compilation.SyntaxTrees)
+            foreach (var tree in syntaxTrees)
             {
                 var actionsByAnalyzers = this.analyzerActions.SyntaxTreeActions.GroupBy(action => action.Analyzer);
                 foreach (var analyzerAndActions in actionsByAnalyzers)
@@ -143,6 +174,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in the analysis.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="analyzerManager">AnalyzerManager to manage analyzers for the lifetime of analyzer host.</param>
+        /// <param name="onAnalyzerException">Action to invoke for exceptions thrown by third party analyzers.</param>
+        /// <param name="startCompleteAnalysis">Flag to control whether or not a full analysis begins at creation.</param>
         /// <param name="addExceptionDiagnostic">Delegate to add diagnostics generated for exceptions from third party analyzers.</param>
         /// <param name="reportAnalyzer">Report additional information related to analyzers, such as analyzer execution time.</param>
         /// <param name="newCompilation">The new compilation with the analyzer driver attached.</param>
@@ -153,19 +186,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// a new compilation. Any further actions on the compilation should use the new compilation.
         /// </remarks>
         public static AnalyzerDriver Create(
-            Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalyzerOptions options,
-            AnalyzerManager analyzerManager,
+            Compilation compilation, 
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            AnalyzerOptions options, 
+            AnalyzerManager analyzerManager, 
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException, 
+            bool startCompleteAnalysis,
             Action<Diagnostic> addExceptionDiagnostic,
             bool reportAnalyzer,
-            out Compilation newCompilation,
+            out Compilation newCompilation, 
             CancellationToken cancellationToken)
         {
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException =
-                (ex, analyzer, diagnostic) => addExceptionDiagnostic?.Invoke(diagnostic);
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
 
-            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, reportAnalyzer, out newCompilation, cancellationToken: cancellationToken);
+            if (analyzers.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(analyzers));
+            }
+
+            if (analyzers.Any(a => a == null))
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentElementCannotBeNull, nameof(analyzers));
+            }
+
+            return Create(compilation, analyzers, options, analyzerManager, onAnalyzerException, startCompleteAnalysis, reportAnalyzer, out newCompilation, cancellationToken: cancellationToken);
         }
 
         // internal for testing purposes
@@ -175,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerOptions options,
             AnalyzerManager analyzerManager,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            bool startCompleteAnalysis,
             bool reportAnalyzer,
             out Compilation newCompilation,
             CancellationToken cancellationToken)
@@ -190,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Wrap onAnalyzerException to pass in filtered diagnostic.
                 var comp = newCompilation;
-                newOnAnalyzerException = (ex, analyzer, diagnostic) =>
+                newOnAnalyzerException = (ex, analyzer, diagnostic) => 
                     onAnalyzerException(ex, analyzer, GetFilteredDiagnostic(diagnostic, comp));
             }
             else
@@ -208,11 +256,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // This API seems to cause a severe hit for the first analyzer invoking it and hence introduces lot of noise in the computed analyzer execution times.
                 var unused = newCompilation.GetTypeByMetadataName("System.Object");
             }
-
+            
             Func<DiagnosticAnalyzer, object> getAnalyzerGate = analyzer => singleThreadedAnalyzerToGateMap[analyzer];
             var analyzerExecutor = AnalyzerExecutor.Create(newCompilation, options, addDiagnostic, newOnAnalyzerException, IsCompilerAnalyzer, analyzerManager, getAnalyzerGate, reportAnalyzer, cancellationToken);
 
             analyzerDriver.Initialize(newCompilation, analyzerExecutor, cancellationToken);
+            if (startCompleteAnalysis)
+            {
+                analyzerDriver.StartCompleteAnalysis(cancellationToken);
+            }
 
             return analyzerDriver;
         }
@@ -232,8 +284,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
             _queueRegistration = cancellationToken.Register(() =>
             {
-                this.CompilationEventQueue.TryComplete();
-                this.DiagnosticQueue.TryComplete();
+                _analysisCancelled = true;
             });
         }
 
@@ -244,12 +295,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync()
         {
-            var allDiagnostics = DiagnosticBag.GetInstance();
             if (CompilationEventQueue.IsCompleted)
             {
                 await this.WhenCompletedTask.ConfigureAwait(false);
             }
 
+            return GetDiagnostics();
+        }
+
+        /// <summary>
+        /// Returns all diagnostics produced by a partial analysis of a single syntax tree.
+        /// A caller must guarantee that, for a given <see cref="AnalyzerDriver"/> instance, an invocation of <see cref="GetPartialDiagnosticsAsync"/> is not concurrent with
+        /// an invocation of <see cref="StartCompleteAnalysis"/> or another invocation of <see cref="GetPartialDiagnosticsAsync"/>.
+        /// </summary>
+        public async Task<ImmutableArray<Diagnostic>> GetPartialDiagnosticsAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        {
+            if (_initializeTaskStarted && _primaryTask == null)
+            {
+                _individuallyAnalyzedSyntaxTrees.Add(syntaxTree);
+
+                await _initializeTask.ConfigureAwait(false);
+                await ExecuteSyntaxTreeActions(ImmutableArray.Create(syntaxTree), cancellationToken).ConfigureAwait(false);
+                await ProcessCompilationEventsAsync(runToCompletion: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                return GetDiagnostics();
+            }
+
+            return ImmutableArray<Diagnostic>.Empty;
+        }
+
+        private ImmutableArray<Diagnostic> GetDiagnostics()
+        {
+            var allDiagnostics = DiagnosticBag.GetInstance();
             Diagnostic d;
             while (DiagnosticQueue.TryDequeue(out d))
             {
@@ -325,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private async Task ProcessCompilationEventsAsync(CancellationToken cancellationToken)
+        private async Task ProcessCompilationEventsAsync(bool runToCompletion, CancellationToken cancellationToken)
         {
             CompilationCompletedEvent completedEvent = null;
 
@@ -336,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 workerTasks[i] = Task.Run(async () =>
                     {
-                        var result = await ProcessCompilationEventsCoreAsync(cancellationToken).ConfigureAwait(false);
+                        var result = await ProcessCompilationEventsCoreAsync(runToCompletion, cancellationToken).ConfigureAwait(false);
                         if (result != null)
                         {
                             completedEvent = result;
@@ -344,11 +421,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }, cancellationToken);
             }
 
-            // Kick off tasks to execute syntax tree actions.
-            var syntaxTreeActionsTask = ExecuteSyntaxTreeActions(cancellationToken);
-
             // Wait for all worker threads to complete processing events.
-            await Task.WhenAll(workerTasks.Concat(syntaxTreeActionsTask)).ConfigureAwait(false);
+            await Task.WhenAll(workerTasks).ConfigureAwait(false);
 
             // Finally process the compilation completed event, if any.
             if (completedEvent != null)
@@ -357,14 +431,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private async Task<CompilationCompletedEvent> ProcessCompilationEventsCoreAsync(CancellationToken cancellationToken)
+        private async Task<CompilationCompletedEvent> ProcessCompilationEventsCoreAsync(bool runToCompletion, CancellationToken cancellationToken)
         {
-            while (!CompilationEventQueue.IsCompleted || CompilationEventQueue.Count > 0)
+            while ((runToCompletion && !CompilationEventQueue.IsCompleted && !_analysisCancelled) || CompilationEventQueue.Count > 0)
             {
                 CompilationEvent e;
                 try
                 {
+                    if (runToCompletion)
+                    {
                     e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+                }
+                    else
+                    {
+                        // For a partial (single-document) analysis, the queue is not guaranteed to complete
+                        // and so waiting for a dequeue may not terminate.
+                        if (!CompilationEventQueue.TryDequeue(out e))
+                        {
+                            break;
+                        }
+                    }
                 }
                 catch (TaskCanceledException)
                 {
@@ -447,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Collect all the analyzer action executors grouped by analyzer.
             // NOTE: Right now we execute all the actions sequentially, but there is scope to fine tune this to execute certain actions in parallel.
             var actionsMap = PooledDictionary<DiagnosticAnalyzer, ArrayBuilder<Action>>.GetInstance();
-
+            
             try
             {
                 var symbol = symbolEvent.Symbol;
@@ -552,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzerExecutor.ExecuteSemanticModelActions(analyzerAndActions.Value, semanticModel);
                     }, cancellationToken);
 
-                    tasks.Add(task);
+                    tasks.Add(task); 
                 }
 
                 await Task.WhenAll(tasks.ToArrayAndFree()).ConfigureAwait(false);
@@ -636,9 +722,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
                         if (analyzerActions != null)
                         {
-                            allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
-                        }
+                        allAnalyzerActions = allAnalyzerActions.Append(analyzerActions);
                     }
+                }
                 }
 
                 return allAnalyzerActions;
@@ -916,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
                 }
-
+                
                 yield return
                     new CodeBlockAnalyzerActions
                     {
@@ -939,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
                     }
-
+                    
                     yield return
                         new CodeBlockAnalyzerActions
                         {

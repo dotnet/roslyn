@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         #region IIncrementalAnalyzer
+
+        // These methods are not invoked concurrently.
+
         /// <summary>
         /// Analyze a single document such that local diagnostics for that document become available,
         /// prioritizing analyzing this document over analyzing the rest of the project.
@@ -101,6 +104,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         #endregion
 
         #region delegating methods from diagnostic analyzer service to each implementation of the engine
+        
+        // These methods can be invoked concurrently.
+
         /// <summary>
         /// Get previously-computed (and potentially stale) diagnostics associated with a particular combination of
         /// analysis classification (syntax/semantics/project), document/project, and analyzer.

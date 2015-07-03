@@ -135,6 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
                                                                     document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
                                                                     CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                ' This fails in V2 -- maybe some sort of deduplication of analyzers is being done by the analyzer driver?
                 Assert.Equal(2, diagnostics.Count())
             End Using
         End Sub
@@ -707,10 +708,16 @@ class AnonymousFunctions
                 Assert.Equal(2, projectDiagnostics.Count())
 
                 Dim noLocationDiagnostic = projectDiagnostics.First()
+                Dim withDocumentLocationDiagnostic = projectDiagnostics.Last()
+                If (noLocationDiagnostic.HasTextSpan) Then
+                    ' No order is guaranteed for the diagnostics.
+                    noLocationDiagnostic = projectDiagnostics.Last()
+                    withDocumentLocationDiagnostic = projectDiagnostics.First()
+                End If
+
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
                 Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
 
-                Dim withDocumentLocationDiagnostic = projectDiagnostics.Last()
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
                 Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
                 Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
