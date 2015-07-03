@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
     internal sealed class CSharpScriptEngine : ScriptEngine
     {
         public CSharpScriptEngine(MetadataFileReferenceProvider metadataReferenceProvider = null)
-            : base(metadataReferenceProvider)
+            : base(ScriptOptions.Default, metadataReferenceProvider)
         {
         }
 
         internal override Script<T> Create<T>(string code, ScriptOptions options, Type globalsType)
         {
-            return (Script<T>)CSharpScript.Create<T>(code, options).WithGlobalsType(globalsType).WithBuilder(this.Builder);
+            return CSharpScript.Create<T>(code, options).WithGlobalsType(globalsType).WithBuilder(this.Builder);
         }
     }
 }

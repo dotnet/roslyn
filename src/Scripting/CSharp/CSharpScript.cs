@@ -1,23 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
     /// <summary>
-    /// A factory for creating and running csharp scripts.
+    /// A factory for creating and running C# scripts.
     /// </summary>
     public static class CSharpScript
     {
         /// <summary>
         /// Create a new C# script.
+        /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
-        /// </summary>
+        /// <typeparam name="T">The return type of the script</typeparam>
         public static Script<T> Create<T>(string code, ScriptOptions options)
         {
             return new CSharpScript<T>(code, null, options, null, null, null);
@@ -25,11 +26,21 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
 
         /// <summary>
         /// Create a new C# script.
-        /// <param name="code">The source code of the script.</param>
         /// </summary>
-        public static Script<T> Create<T>(string code)
+        /// <param name="code">The source code of the script.</param>
+        /// <param name="options">The script options.</param>
+        public static Script<object> Create(string code, ScriptOptions options)
         {
-            return Create<T>(code, null);
+            return Create<object>(code, options);
+        }
+
+        /// <summary>
+        /// Create a new C# script.
+        /// </summary>
+        /// <param name="code">The source code of the script.</param>
+        public static Script<object> Create(string code)
+        {
+            return Create<object>(code, null);
         }
 
         /// <summary>
@@ -38,10 +49,12 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
-        public static ScriptState<T> Run<T>(string code, ScriptOptions options, object globals)
+        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <typeparam name="T">The return type of the submission</typeparam>
+        public static ScriptState<T> RunAsync<T>(string code, ScriptOptions options, object globals, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Create<T>(code, options).Run(globals);
+            return Create<T>(code, options).RunAsync(globals, cancellationToken);
         }
 
         /// <summary>
@@ -49,9 +62,23 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
-        public static ScriptState<T> Run<T>(string code, ScriptOptions options)
+        /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
+        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public static ScriptState<object> RunAsync(string code, ScriptOptions options, object globals, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code, options, globals: null);
+            return RunAsync<object>(code, options, globals, cancellationToken);
+        }
+
+        /// <summary>
+        /// Run a C# script.
+        /// </summary>
+        /// <param name="code">The source code of the script.</param>
+        /// <param name="options">The script options.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public static ScriptState<object> RunAsync(string code, ScriptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return RunAsync<object>(code, options, null, cancellationToken);
         }
 
         /// <summary>
@@ -59,19 +86,21 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
-        public static ScriptState<T> Run<T>(string code, object globals)
+        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public static ScriptState<object> RunAsync(string code, object globals, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code, options: null, globals: globals);
+            return RunAsync<object>(code, null, globals, cancellationToken);
         }
 
         /// <summary>
         /// Run a C# script.
         /// </summary>
         /// <param name="code">The source code of the script.</param>
-        public static ScriptState<T> Run<T>(string code)
+        /// <param name="cancellationToken">Cancellation token.</param>
+        public static ScriptState<object> RunAsync(string code, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code, null, null);
+            return RunAsync<object>(code, null, null, cancellationToken);
         }
 
         /// <summary>
@@ -80,11 +109,13 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
+        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <typeparam name="T">The return type of the submission</typeparam>
         /// <return>Returns the value returned by running the script.</return>
-        public static Task<T> Eval<T>(string code, ScriptOptions options, object globals)
+        public static Task<T> EvaluateAsync<T>(string code, ScriptOptions options, object globals, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code, options, globals).ReturnValue;
+            return RunAsync<T>(code, options, globals, cancellationToken).ReturnValue;
         }
 
         /// <summary>
@@ -92,10 +123,25 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
+        /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
+        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static Task<T> Eval<T>(string code, ScriptOptions options)
+        public static Task<object> EvaluateAsync(string code, ScriptOptions options, object globals, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code, options).ReturnValue;
+            return EvaluateAsync<object>(code, options, globals, cancellationToken);
+        }
+
+        /// <summary>
+        /// Run a C# script and return its resulting value.
+        /// </summary>
+        /// <param name="code">The source code of the script.</param>
+        /// <param name="options">The script options.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <return>Returns the value returned by running the script.</return>
+        public static Task<object> EvaluateAsync(string code, ScriptOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return EvaluateAsync<object>(code, options, null, cancellationToken);
         }
 
         /// <summary>
@@ -103,21 +149,23 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// </summary>
         /// <param name="code">The source code of the script.</param>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
-        /// or a <see cref="ScriptState{T}"/> instance that was the output from a previously run script.</param>
+        /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static Task<T> Eval<T>(string code, object globals)
+        public static Task<object> EvaluateAsync(string code, object globals, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code, globals).ReturnValue;
+            return EvaluateAsync<object>(code, null, globals, cancellationToken);
         }
 
         /// <summary>
         /// Run a C# script and return its resulting value.
         /// </summary>
         /// <param name="code">The source code of the script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <return>Returns the value returned by running the script.</return>
-        public static Task<T> Eval<T>(string code)
+        public static Task<object> EvaluateAsync(string code, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Run<T>(code).ReturnValue;
+            return EvaluateAsync<object>(code, null, null, cancellationToken);
         }
     }
 
@@ -128,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         {
         }
 
-        internal override Script Make(string code, string path, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
+        internal override Script<T> Make(string code, string path, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous)
         {
             return new CSharpScript<T>(code, path, options, globalsType, builder, previous);
         }

@@ -436,6 +436,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (SynthesizedInteractiveInitializerMethod)GetMembers(SynthesizedInteractiveInitializerMethod.InitializerName).Single();
         }
 
+        internal SynthesizedEntryPointSymbol GetScriptEntryPoint()
+        {
+            Debug.Assert(IsScriptClass);
+            var name = (TypeKind == TypeKind.Submission) ? SynthesizedEntryPointSymbol.FactoryName : SynthesizedEntryPointSymbol.MainName;
+            return (SynthesizedEntryPointSymbol)GetMembers(name).Single();
+        }
+
         /// <summary>
         /// Returns true if the type is the implicit class that holds onto invalid global members (like methods or
         /// statements in a non script file).

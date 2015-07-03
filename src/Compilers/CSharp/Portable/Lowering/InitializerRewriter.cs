@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -10,58 +11,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class InitializerRewriter
     {
-        internal static BoundTypeOrInstanceInitializers Rewrite(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol method, TypeSymbol submissionResultTypeOpt)
+        internal static BoundTypeOrInstanceInitializers RewriteConstructor(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol method)
         {
             Debug.Assert(!boundInitializers.IsDefault);
-            Debug.Assert(method.IsSubmissionInitializer == ((object)submissionResultTypeOpt != null));
-
-            var boundStatements = ArrayBuilder<BoundStatement>.GetInstance(boundInitializers.Length);
-            BoundExpression submissionResult = null;
-
-            for (int i = 0; i < boundInitializers.Length; i++)
-            {
-                var init = boundInitializers[i];
-
-                switch (init.Kind)
-                {
-                    case BoundKind.FieldInitializer:
-                        boundStatements.Add(RewriteFieldInitializer((BoundFieldInitializer)init));
-                        break;
-
-                    case BoundKind.GlobalStatementInitializer:
-                        var statement = ((BoundGlobalStatementInitializer)init).Statement;
-                        // The value of the last expression statement (if any) is returned from the submission initializer.
-                        if ((object)submissionResultTypeOpt != null &&
-                            i == boundInitializers.Length - 1 &&
-                            statement.Kind == BoundKind.ExpressionStatement)
-                        {
-                            var expr = ((BoundExpressionStatement)statement).Expression;
-                            if ((object)expr.Type != null && expr.Type.SpecialType != SpecialType.System_Void)
-                            {
-                                submissionResult = expr;
-                                break;
-                            }
-                        }
-                        boundStatements.Add(statement);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(init.Kind);
-                }
-            }
+            Debug.Assert((method.MethodKind == MethodKind.Constructor) || (method.MethodKind == MethodKind.StaticConstructor));
 
             var sourceMethod = method as SourceMethodSymbol;
             var syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
+            return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
+        }
 
-            if ((object)submissionResultTypeOpt != null)
+        internal static BoundTypeOrInstanceInitializers RewriteScriptInitializer(ImmutableArray<BoundInitializer> boundInitializers, SynthesizedInteractiveInitializerMethod method)
+        {
+            Debug.Assert(!boundInitializers.IsDefault);
+
+            var boundStatements = ArrayBuilder<BoundStatement>.GetInstance(boundInitializers.Length);
+            var submissionResultType = method.ResultType;
+            BoundExpression submissionResult = null;
+
+            foreach (var initializer in boundInitializers)
+            {
+                // The value of the last expression statement (if any) is returned from the submission initializer.
+                if (((object)submissionResultType != null) &&
+                    (initializer == boundInitializers.Last()) &&
+                    (initializer.Kind == BoundKind.GlobalStatementInitializer))
+                {
+                    var statement = ((BoundGlobalStatementInitializer)initializer).Statement;
+                    if (statement.Kind == BoundKind.ExpressionStatement)
+                    {
+                        var expr = ((BoundExpressionStatement)statement).Expression;
+                        if ((object)expr.Type != null && expr.Type.SpecialType != SpecialType.System_Void)
+                        {
+                            submissionResult = expr;
+                            continue;
+                        }
+                    }
+                }
+                boundStatements.Add(RewriteInitializersAsStatements(initializer));
+            }
+
+            var syntax = method.GetNonNullSyntaxNode();
+            if ((object)submissionResultType != null)
             {
                 if (submissionResult == null)
                 {
                     // Return default(T) if submission does not have a trailing expression.
-                    submissionResult = new BoundDefaultOperator(syntax, submissionResultTypeOpt);
+                    submissionResult = new BoundDefaultOperator(syntax, submissionResultType);
                 }
-
-                Debug.Assert((object)submissionResult.Type != null);
                 Debug.Assert(submissionResult.Type.SpecialType != SpecialType.System_Void);
 
                 // The expression is converted to the submission result type when the initializer is bound.
@@ -109,6 +105,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return boundStatement;
+        }
+
+        private static BoundStatement RewriteInitializersAsStatements(BoundInitializer initializer)
+        {
+            switch (initializer.Kind)
+            {
+                case BoundKind.FieldInitializer:
+                    return RewriteFieldInitializer((BoundFieldInitializer)initializer);
+                case BoundKind.GlobalStatementInitializer:
+                    return ((BoundGlobalStatementInitializer)initializer).Statement;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
+            }
         }
     }
 }

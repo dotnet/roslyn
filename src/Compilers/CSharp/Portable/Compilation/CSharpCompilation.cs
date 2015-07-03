@@ -1360,12 +1360,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal EntryPoint GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
         {
-            if (!this.Options.OutputKind.IsApplication())
+            if (!this.Options.OutputKind.IsApplication() && ((object)this.ScriptClass == null))
             {
                 return null;
             }
-
-            Debug.Assert(!this.IsSubmission);
 
             if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
             {
@@ -1375,25 +1373,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_lazyEntryPoint == null)
             {
-                MethodSymbol entryPoint;
                 ImmutableArray<Diagnostic> diagnostics;
-                FindEntryPoint(cancellationToken, out entryPoint, out diagnostics);
-
+                var entryPoint = FindEntryPoint(cancellationToken, out diagnostics);
                 Interlocked.CompareExchange(ref _lazyEntryPoint, new EntryPoint(entryPoint, diagnostics), null);
             }
 
             return _lazyEntryPoint;
         }
 
-        private void FindEntryPoint(CancellationToken cancellationToken, out MethodSymbol entryPoint, out ImmutableArray<Diagnostic> sealedDiagnostics)
+        private MethodSymbol FindEntryPoint(CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
         {
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = DiagnosticBag.GetInstance();
+            var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
 
             try
             {
-                entryPoint = null;
-
-                ArrayBuilder<MethodSymbol> entryPointCandidates;
                 NamedTypeSymbol mainType;
 
                 string mainTypeName = this.Options.MainTypeName;
@@ -1402,52 +1396,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (mainTypeName != null)
                 {
                     // Global code is the entry point, ignore all other Mains.
-                    // TODO: don't special case scripts (DevDiv #13119).
-                    if ((object)this.ScriptClass != null)
+                    var scriptClass = this.ScriptClass;
+                    if (scriptClass != null)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
                         diagnostics.Add(ErrorCode.WRN_MainIgnored, NoLocation.Singleton, mainTypeName);
-                        return;
+                        return scriptClass.GetScriptEntryPoint();
                     }
 
                     var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split('.')).OfMinimalArity();
                     if ((object)mainTypeOrNamespace == null)
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotFound, NoLocation.Singleton, mainTypeName);
-                        return;
+                        return null;
                     }
 
                     mainType = mainTypeOrNamespace as NamedTypeSymbol;
                     if ((object)mainType == null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct))
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.Locations.First(), mainTypeOrNamespace);
-                        return;
+                        return null;
                     }
 
-                    entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
                     EntryPointCandidateFinder.FindCandidatesInSingleType(mainType, entryPointCandidates, cancellationToken);
-
-                    // NOTE: Any return after this point must free entryPointCandidates.
                 }
                 else
                 {
                     mainType = null;
 
-                    entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
                     EntryPointCandidateFinder.FindCandidatesInNamespace(globalNamespace, entryPointCandidates, cancellationToken);
 
-                    // NOTE: Any return after this point must free entryPointCandidates.
-
-                    // global code is the entry point, ignore all other Mains:
-                    if ((object)this.ScriptClass != null)
+                    // Global code is the entry point, ignore all other Mains.
+                    var scriptClass = this.ScriptClass;
+                    if (scriptClass != null)
                     {
                         foreach (var main in entryPointCandidates)
                         {
                             diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
                         }
-
-                        entryPointCandidates.Free();
-                        return;
+                        return scriptClass.GetScriptEntryPoint();
                     }
                 }
 
@@ -1484,6 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 warnings.Free();
 
+                MethodSymbol entryPoint = null;
                 if (viableEntryPoints.Count == 0)
                 {
                     if ((object)mainType == null)
@@ -1512,10 +1500,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 viableEntryPoints.Free();
-                entryPointCandidates.Free();
+                return entryPoint;
             }
             finally
             {
+                entryPointCandidates.Free();
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
             }
         }

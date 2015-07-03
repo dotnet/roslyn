@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Scripting
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public T Execute<T>(string code)
         {
-            var value = this.ExecuteAsync<T>(code);
+            var value = this.ExecuteAsync<T>(code, CancellationToken.None);
             if (value == null)
             {
                 // ReturnValue will be null if there are errors or
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return value.Result;
         }
 
-        public Task<T> ExecuteAsync<T>(string code)
+        public Task<T> ExecuteAsync<T>(string code, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (code == null)
             {
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
 
             var script = _engine.Create<T>(code, _options, _globalsType).WithPrevious(_previousScript);
-            var endState = (ScriptState<T>)script.Run(_nextInputState.Value);
+            var endState = (ScriptState<T>)script.RunAsync(_nextInputState.Value, cancellationToken);
 
             _previousScript = endState.Script;
             _nextInputState = new Lazy<object>(() => endState);
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 throw new ArgumentNullException(nameof(code));
             }
 
-            var script = (Script<T>)_engine.Create<T>(code, _options.WithIsInteractive(isInteractive), _globalsType)
+            var script = _engine.Create<T>(code, _options.WithIsInteractive(isInteractive), _globalsType)
                 .WithPath(path)
                 .WithPrevious(_previousScript);
 

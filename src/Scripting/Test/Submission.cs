@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal Submission(Script<T> script, Lazy<object> input)
         {
             _script = script;
-            _lazyResult = new Lazy<ScriptState<T>>(() => script.Run(input.Value));
+            _lazyResult = new Lazy<ScriptState<T>>(() => script.RunAsync(input.Value, CancellationToken.None));
         }
 
         internal ScriptState<T> Run()

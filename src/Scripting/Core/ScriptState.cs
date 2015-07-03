@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// The final value produced by running the script.
         /// </summary>
-        public object ReturnValue
+        public Task ReturnValue
         {
             get { return GetReturnValue(); }
         }
 
-        internal abstract object GetReturnValue();
+        internal abstract Task GetReturnValue();
 
         /// <summary>
         /// The global variables accessible to or declared by the script.
@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal ScriptState(ScriptExecutionState executionState, Task<T> value, Script script) :
             base(executionState, script)
         {
+            Debug.Assert(value != null);
             _value = value;
         }
 
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return _value; }
         }
 
-        internal override object GetReturnValue()
+        internal override Task GetReturnValue()
         {
             return ReturnValue;
         }

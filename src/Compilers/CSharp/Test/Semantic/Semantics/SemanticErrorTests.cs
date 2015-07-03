@@ -11038,29 +11038,28 @@ class Test
         var v = M(); // CS0815
     }
     static void M() {}
-}", parseOptions: TestOptions.Script).VerifyDiagnostics(
-    // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-    //         var m = Main; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-    // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-    //         var d = s => -1; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-    // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-    //         var e = (string s) => 0; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
-    // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
-    //         var p = null;//CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-    // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-    //         var del = delegate(string a) { return -1; };// CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
-    // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
-    //         var v = M(); // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-    // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-    //         var p = null;//CS0815
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
-                );
+}").VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+                //         var m = Main; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
+                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var d = s => -1; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
+                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var e = (string s) => 0; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
+                //         var p = null;//CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
+                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
+                //         var del = delegate(string a) { return -1; };// CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
+                //         var v = M(); // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
+                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
+                //         var p = null;//CS0815
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p"));
         }
 
         [Fact]

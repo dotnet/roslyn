@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Object").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Object' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Threading.Tasks.Task`1' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task`1").WithLocation(1, 1),
                 // error CS0400: The type or namespace name 'System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' could not be found in the global namespace (are you missing an assembly reference?)
                 Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound).WithArguments("System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1),
                 // (1,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
@@ -170,7 +172,7 @@ G();
                 if (cls.IsScriptClass)
                 {
                     Assert.False(cls.IsImplicitClass);
-                    AssertEx.SetEqual(new[] { "<Initialize>", "G", ".ctor" }, methods.Select(m => m.Name));
+                    AssertEx.SetEqual(new[] { "<Initialize>", "G", ".ctor", "<Main>" }, methods.Select(m => m.Name));
                 }
                 else
                 {

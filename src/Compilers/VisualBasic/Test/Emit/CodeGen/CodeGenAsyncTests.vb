@@ -35,7 +35,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences)
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences)
             Dim options As VisualBasicCompilationOptions
 
             options = TestOptions.ReleaseExe
@@ -2169,7 +2169,7 @@ Class CLAZZ
     End Function
 End Class
     </file>
-</compilation>, references:=Me.LatestReferences).VerifyDiagnostics()
+</compilation>, references:=LatestReferences).VerifyDiagnostics()
 
             Using stream As New MemoryStream()
                 Dim emitResult = compilation.Emit(stream, options:=New EmitOptions(metadataOnly:=True))
@@ -8404,7 +8404,7 @@ End Class
             Dim expectedOutput = <![CDATA[Before 12
 After 12]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)

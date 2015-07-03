@@ -655,7 +655,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub StaticLocalFields()
-            'As we cant easily get at fields wich are non callable by user code such as
+            'As we can't easily get at fields which are non callable by user code such as
             'the $STATIC$Foo$001$a  we can simply determine that the count of items which
             'we expect is present
             Dim source = <compilation name="StaticLocals">
@@ -1527,7 +1527,7 @@ String
 
         Private Shared Sub CheckBoundInitializers(expectedInitializers As IEnumerable(Of ExpectedInitializer), syntaxTree As SyntaxTree, boundInitializers As ImmutableArray(Of BoundInitializer), isStatic As Boolean)
             If expectedInitializers Is Nothing Then
-                Assert.[True](boundInitializers.IsDefault)
+                Assert.[True](boundInitializers.IsEmpty)
             Else
                 Assert.[True](Not boundInitializers.IsDefault)
                 Dim numInitializers As Integer = expectedInitializers.Count()

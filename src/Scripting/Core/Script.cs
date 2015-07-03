@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -126,12 +126,17 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
+        internal ScriptBuilder LazyBuilder
+        {
+            get { return _lazyBuilder; }
+        }
+
         /// <summary>
         /// Creates a new version of this script with the specified options.
         /// </summary>
         public Script WithOptions(ScriptOptions options)
         {
-            return this.With(options: options);
+            return this.WithOptionsInternal(options);
         }
 
         /// <summary>
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <param name="code">The source code of the script.</param>
         public Script WithCode(string code)
         {
-            return this.With(code: code ?? "");
+            return this.WithCodeInternal(code);
         }
 
         /// <summary>
@@ -149,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public Script WithPath(string path)
         {
-            return this.With(path: path ?? "");
+            return this.WithPathInternal(path);
         }
 
         /// <summary>
@@ -159,62 +164,22 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <param name="globalsType">The type that defines members that can be accessed by the script.</param>
         public Script WithGlobalsType(Type globalsType)
         {
-            return this.With(globalsType: globalsType);
+            return this.WithGlobalsTypeInternal(globalsType);
         }
 
         /// <summary>
         /// Creates a new version of this script with the previous script specified.
         /// </summary>
-        public Script WithPrevious(Script script)
+        public Script WithPrevious(Script previous)
         {
-            if (script != null)
-            {
-                return this.With(previous: script, globalsType: script.GlobalsType);
-            }
-            else
-            {
-                return this.With(previous: script);
-            }
+            return this.WithPreviousInternal(previous);
         }
 
-        /// <summary>
-        /// Creates a new version of this script with the <see cref="ScriptBuilder"/> specified.
-        /// </summary>
-        internal Script WithBuilder(ScriptBuilder builder)
-        {
-            return this.With(builder: builder);
-        }
-
-        private Script With(
-            Optional<string> code = default(Optional<string>),
-            Optional<string> path = default(Optional<string>),
-            Optional<ScriptOptions> options = default(Optional<ScriptOptions>),
-            Optional<Type> globalsType = default(Optional<Type>),
-            Optional<Type> returnType = default(Optional<Type>),
-            Optional<ScriptBuilder> builder = default(Optional<ScriptBuilder>),
-            Optional<Script> previous = default(Optional<Script>))
-        {
-            var newCode = code.HasValue ? code.Value : _code;
-            var newPath = path.HasValue ? path.Value : _path;
-            var newOptions = options.HasValue ? options.Value : _options;
-            var newGlobalsType = globalsType.HasValue ? globalsType.Value : _globalsType;
-            var newBuilder = builder.HasValue ? builder.Value : _lazyBuilder;
-            var newPrevious = previous.HasValue ? previous.Value : _previous;
-
-            if (ReferenceEquals(newCode, _code) &&
-                ReferenceEquals(newPath, _path) &&
-                newOptions == _options &&
-                newGlobalsType == _globalsType &&
-                newBuilder == _lazyBuilder &&
-                newPrevious == this.Previous)
-            {
-                return this;
-            }
-            else
-            {
-                return this.Make(newCode, newPath, newOptions, newGlobalsType, newBuilder, newPrevious);
-            }
-        }
+        internal abstract Script WithOptionsInternal(ScriptOptions options);
+        internal abstract Script WithCodeInternal(string code);
+        internal abstract Script WithPathInternal(string path);
+        internal abstract Script WithGlobalsTypeInternal(Type globalsType);
+        internal abstract Script WithPreviousInternal(Script previous);
 
         /// <summary>
         /// Get's the <see cref="Compilation"/> that represents the semantics of the script.
@@ -231,11 +196,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <summary>
-        /// Creates a new instance of a script of this type.
-        /// </summary>
-        internal abstract Script Make(string code, string path, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous);
-
-        /// <summary>
         /// Creates a <see cref="Compilation"/> instances based on script members.
         /// </summary>
         protected abstract Compilation CreateCompilation();
@@ -245,13 +205,14 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables, 
         /// or a <see cref="ScriptState"/> instance that was the output from a previously run script.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public ScriptState Run(object globals = null)
+        public ScriptState RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return RunInternal(globals);
+            return RunInternalAsync(globals, cancellationToken);
         }
 
-        protected abstract ScriptState RunInternal(object globals);
+        protected abstract ScriptState RunInternalAsync(object globals, CancellationToken cancellationToken);
 
         /// <summary>
         /// Forces the script through the build step.
@@ -262,9 +223,9 @@ namespace Microsoft.CodeAnalysis.Scripting
             this.GetExecutorInternal(CancellationToken.None);
         }
 
-        internal abstract Func<object[], object> GetExecutorInternal(CancellationToken cancellationToken);
+        internal abstract Func<object[], Task> GetExecutorInternal(CancellationToken cancellationToken);
 
-        internal void GatherSubmissionExecutors(ArrayBuilder<Func<object[], object>> executors, CancellationToken cancellationToken)
+        internal void GatherSubmissionExecutors(ArrayBuilder<Func<object[], Task>> executors, CancellationToken cancellationToken)
         {
             var previous = this.Previous;
             if (previous != null)
@@ -319,12 +280,12 @@ namespace Microsoft.CodeAnalysis.Scripting
             get { return typeof(T); }
         }
 
-        protected sealed override ScriptState RunInternal(object globals)
+        protected sealed override ScriptState RunInternalAsync(object globals, CancellationToken cancellationToken)
         {
-            return Run(globals);
+            return RunAsync(globals, cancellationToken);
         }
 
-        public new ScriptState<T> Run(object globals = null)
+        public new ScriptState<T> RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var state = globals as ScriptState;
             if (state != null)
@@ -337,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 else if (this.Previous == null)
                 {
                     // if this script is unbound (no previous script) then run this script bound to the state's script
-                    return (ScriptState<T>)this.WithPrevious(state.Script).Run(state);
+                    return (ScriptState<T>)this.WithPrevious(state.Script).RunAsync(state, cancellationToken);
                 }
                 else
                 {
@@ -377,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 else if (globals != null)
                 {
                     // make sure we are running from a script with matching globals type
-                    return (ScriptState<T>)this.WithGlobalsType(globals.GetType()).Run(globals);
+                    return (ScriptState<T>)this.WithGlobalsType(globals.GetType()).RunAsync(globals, cancellationToken);
                 }
 
                 // run this script from the start with the specified globals
@@ -404,6 +365,90 @@ namespace Microsoft.CodeAnalysis.Scripting
             var executor = this.GetExecutor(CancellationToken.None);
             return executionState.RunSubmission(executor);
         }
+
+        public new Script<T> WithOptions(ScriptOptions options)
+        {
+            return (options == this.Options) ?
+                this :
+                this.Make(this.Code, this.Path, options, this.GlobalsType, this.LazyBuilder, this.Previous);
+        }
+
+        public new Script<T> WithCode(string code)
+        {
+            if (code == null)
+            {
+                code = "";
+            }
+            return (code == this.Code) ?
+                this :
+                this.Make(code, this.Path, this.Options, this.GlobalsType, this.LazyBuilder, this.Previous);
+        }
+
+        public new Script<T> WithPath(string path)
+        {
+            if (path == null)
+            {
+                path = "";
+            }
+            return (path == this.Path) ?
+                this :
+                this.Make(this.Code, path, this.Options, this.GlobalsType, this.LazyBuilder, this.Previous);
+        }
+
+        public new Script<T> WithGlobalsType(Type globalsType)
+        {
+            return (globalsType == this.GlobalsType) ?
+                this :
+                this.Make(this.Code, this.Path, this.Options, globalsType, this.LazyBuilder, this.Previous);
+        }
+
+        public new Script<T> WithPrevious(Script previous)
+        {
+            var globalsType = (previous == null) ? this.GlobalsType : previous.GlobalsType;
+            return (globalsType == this.GlobalsType) && (previous == this.Previous) ?
+                this :
+                this.Make(this.Code, this.Path, this.Options, globalsType, this.LazyBuilder, previous);
+        }
+
+        internal sealed override Script WithOptionsInternal(ScriptOptions options)
+        {
+            return this.WithOptions(options);
+        }
+
+        internal sealed override Script WithCodeInternal(string code)
+        {
+            return this.WithCode(code);
+        }
+
+        internal sealed override Script WithPathInternal(string path)
+        {
+            return this.WithPath(path);
+        }
+
+        internal sealed override Script WithGlobalsTypeInternal(Type globalsType)
+        {
+            return this.WithGlobalsType(globalsType);
+        }
+
+        internal sealed override Script WithPreviousInternal(Script previous)
+        {
+            return this.WithPrevious(previous);
+        }
+
+        /// <summary>
+        /// Creates a new version of this script with the <see cref="ScriptBuilder"/> specified.
+        /// </summary>
+        internal Script<T> WithBuilder(ScriptBuilder builder)
+        {
+            return (builder == this.LazyBuilder) ?
+                this :
+                this.Make(this.Code, this.Path, this.Options, this.GlobalsType, builder, this.Previous);
+        }
+
+        /// <summary>
+        /// Creates a new instance of a script of this type.
+        /// </summary>
+        internal abstract Script<T> Make(string code, string path, ScriptOptions options, Type globalsType, ScriptBuilder builder, Script previous);
 
         /// <summary>
         /// Gets the references that need to be assigned to the compilation.
@@ -467,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                     if (executor == null)
                     {
-                        executor = (s) => null;
+                        executor = (s) => Task.FromResult(default(T));
                     }
 
                     Interlocked.CompareExchange(ref _lazyExecutor, executor, null);
@@ -481,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             return _lazyExecutor;
         }
 
-        internal sealed override Func<object[], object> GetExecutorInternal(CancellationToken cancellationToken)
+        internal sealed override Func<object[], Task> GetExecutorInternal(CancellationToken cancellationToken)
         {
             return this.GetExecutor(cancellationToken);
         }
@@ -515,17 +560,19 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (_lazyAggrateScriptExecutor == null)
             {
-                var builder = ArrayBuilder<Func<object[], object>>.GetInstance();
+                var builder = ArrayBuilder<Func<object[], Task>>.GetInstance();
                 this.GatherSubmissionExecutors(builder, cancellationToken);
                 var executors = builder.ToImmutableAndFree();
+                Debug.Assert(executors.Length > 0);
 
                 // make a function to run through all submissions in order.
                 Func<ScriptExecutionState, Task<T>> aggregateExecutor = state =>
                 {
-                    object result = null;
+                    Task result = null;
                     foreach (var executor in executors)
                     {
                         result = state.RunSubmission(executor);
+                        Debug.Assert(result != null);
                     }
                     return (Task<T>)result;
                 };
