@@ -69,9 +69,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public event EventHandler Resumed;
 
         /// <summary>
-        /// implemented by derived types to return interval tree associated with the buffer
+        /// Implemented by derived types to return interval tree associated with the buffer.
+        /// This method may return incomplete or partial results.
         /// </summary>
         public abstract ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer);
+
+        /// <summary>
+        /// Implemented by derived types to return interval tree associated with the buffer.
+        /// This method must return complete results for the buffer because it is called from <see cref="IAccurateTagger{T}.GetAllTags(NormalizedSnapshotSpanCollection, CancellationToken)"/>.
+        /// </summary>
+        public abstract ITagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken);
 
         /// <summary>
         /// Implemented by derived types to start recalculate tags

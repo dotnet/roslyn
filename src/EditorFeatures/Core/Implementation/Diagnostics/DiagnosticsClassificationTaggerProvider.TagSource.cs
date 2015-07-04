@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return new TagSpan<ClassificationTag>(span, s_tag);
             }
 
-            public override ITagSpanIntervalTree<ClassificationTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            public override ITagSpanIntervalTree<ClassificationTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
             {
                 // when contrast changed, tagger will refresh itself if host support high contrast mode. (VS does)
                 if (HighContrastChecker.IsHighContrast)
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return null;
                 }
 
-                return base.GetTagIntervalTreeForBuffer(buffer);
+                return base.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken);
             }
         }
     }
