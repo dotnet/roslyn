@@ -59,19 +59,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             Contract.Requires(snapshot.TextBuffer == _textBuffer);
 
             var introspector = new IntervalIntrospector(snapshot);
-            var intersectingIntervals = _tree.GetIntersectingInOrderIntervals(snapshotSpan.Start, snapshotSpan.Length, introspector);
-            if (intersectingIntervals.Count == 0)
-            {
-                return SpecializedCollections.EmptyList<ITagSpan<TTag>>();
-            }
+            var intersectingIntervals = _tree.GetIntersectingIntervals(snapshotSpan.Start, snapshotSpan.Length, introspector);
 
-            var result = new List<ITagSpan<TTag>>();
+            List<ITagSpan<TTag>> result = null;
             foreach (var tagNode in intersectingIntervals)
             {
+                result = result ?? new List<ITagSpan<TTag>>();
                 result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
             }
 
-            return result;
+            return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
         }
 
         public IList<ITagSpan<TTag>> GetNonIntersectingSpans(SnapshotSpan snapshotSpan)
