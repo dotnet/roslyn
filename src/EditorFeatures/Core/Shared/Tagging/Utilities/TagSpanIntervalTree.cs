@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
         }
 
-        public IList<ITagSpan<TTag>> GetNonIntersectingSpans(SnapshotSpan snapshotSpan)
+        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, ref IEnumerable<ITagSpan<TTag>> beforeSpans, ref IEnumerable<ITagSpan<TTag>> afterSpans)
         {
             var snapshot = snapshotSpan.Snapshot;
             Contract.Requires(snapshot.TextBuffer == _textBuffer);
@@ -79,21 +79,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var introspector = new IntervalIntrospector(snapshot);
 
             var beforeSpan = new SnapshotSpan(snapshot, 0, snapshotSpan.Start);
-            var before = _tree.GetIntersectingIntervals(beforeSpan.Start, beforeSpan.Length, introspector)
-                             .Where(n => beforeSpan.Contains(n.Span.GetSpan(snapshot)));
+            beforeSpans = _tree.GetIntersectingIntervals(beforeSpan.Start, beforeSpan.Length, introspector)
+                               .Where(n => beforeSpan.Contains(n.Span.GetSpan(snapshot)))
+                               .Select(tn => new TagSpan<TTag>(tn.Span.GetSpan(snapshot), tn.Tag));
 
             var afterSpan = new SnapshotSpan(snapshot, snapshotSpan.End, snapshot.Length - snapshotSpan.End);
-            var after = _tree.GetIntersectingIntervals(afterSpan.Start, afterSpan.Length, introspector)
-                             .Where(n => afterSpan.Contains(n.Span.GetSpan(snapshot)));
-
-            List<ITagSpan<TTag>> result = null;
-            foreach (var tagNode in before.Concat(after))
-            {
-                result = result ?? new List<ITagSpan<TTag>>();
-                result.Add(new TagSpan<TTag>(tagNode.Span.GetSpan(snapshot), tagNode.Tag));
-            }
-
-            return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
+            afterSpans = _tree.GetIntersectingIntervals(afterSpan.Start, afterSpan.Length, introspector)
+                              .Where(n => afterSpan.Contains(n.Span.GetSpan(snapshot)))
+                              .Select(tn => new TagSpan<TTag>(tn.Span.GetSpan(snapshot), tn.Tag));
         }
 
         public IEnumerable<ITagSpan<TTag>> GetSpans(ITextSnapshot snapshot)
