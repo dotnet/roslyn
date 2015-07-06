@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
         }
 
-        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, ref IEnumerable<ITagSpan<TTag>> beforeSpans, ref IEnumerable<ITagSpan<TTag>> afterSpans)
+        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, out IEnumerable<ITagSpan<TTag>> beforeSpans, out IEnumerable<ITagSpan<TTag>> afterSpans)
         {
             var snapshot = snapshotSpan.Snapshot;
             Contract.Requires(snapshot.TextBuffer == _textBuffer);

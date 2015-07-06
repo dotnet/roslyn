@@ -496,9 +496,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
             var invalidBuffer = spanToInvalidate.Snapshot.TextBuffer;
-            var beforeTagsToKeep = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-            var afterTagsToKeep = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-            GetTagsToKeep(spanToInvalidate, ref beforeTagsToKeep, ref afterTagsToKeep);
+            IEnumerable<ITagSpan<TTag>> beforeTagsToKeep;
+            IEnumerable<ITagSpan<TTag>> afterTagsToKeep;
+            GetTagsToKeep(spanToInvalidate, out beforeTagsToKeep, out afterTagsToKeep);
 
             foreach (var tagsInBuffer in tagsByBuffer)
             {
@@ -550,9 +550,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         private void GetTagsToKeep(SnapshotSpan spanToInvalidate,
-                                   ref IEnumerable<ITagSpan<TTag>> beforeTags,
-                                   ref IEnumerable<ITagSpan<TTag>> afterTags)
+                                   out IEnumerable<ITagSpan<TTag>> beforeTags,
+                                   out IEnumerable<ITagSpan<TTag>> afterTags)
         {
+            beforeTags = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+            afterTags = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+
             var fullRefresh = spanToInvalidate.Length == spanToInvalidate.Snapshot.Length;
             if (fullRefresh)
             {
@@ -566,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return;
             }
 
-            treeForBuffer.GetNonIntersectingSpans(spanToInvalidate, ref beforeTags, ref afterTags);
+            treeForBuffer.GetNonIntersectingSpans(spanToInvalidate, out beforeTags, out afterTags);
         }
 
         protected virtual async Task RecomputeTagsAsync(
