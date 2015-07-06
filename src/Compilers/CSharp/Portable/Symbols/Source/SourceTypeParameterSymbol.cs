@@ -496,14 +496,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
-            // TODO: Change these to be non-empty when local functions support type parameter constraints (see SourceMethodTypeParameterSymbol above)
-            var constraintTypes = ImmutableArray<TypeSymbol>.Empty;
+            var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints()
         {
-            return TypeParameterConstraintKind.None;
+            return _owner.GetTypeParameterConstraints(this.Ordinal);
         }
     }
 

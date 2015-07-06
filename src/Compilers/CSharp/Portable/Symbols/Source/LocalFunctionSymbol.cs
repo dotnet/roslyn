@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
+        private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeSymbol _returnType;
         private bool _isVar;
         private bool _isVararg;
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // force lazy init
             ComputeParameters();
-            ComputeReturnType(null, true);
+            ComputeReturnType(body: null, forceNotNull: true, isIterator: false);
 
             var diags = ImmutableInterlocked.InterlockedExchange(ref _diagnostics, default(ImmutableArray<Diagnostic>));
             if (!diags.IsDefault)
@@ -134,21 +135,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                ComputeReturnType(null, true);
+                ComputeReturnType(body: null, forceNotNull: true, isIterator: false);
                 return _returnType;
             }
         }
 
+        // Reason for ReturnTypeNoForce and ReturnTypeIterator:
+        // When computing the return type, sometimes we want to return null (ReturnTypeNoForce) instead of reporting a diagnostic
+        // or sometimes we want to disallow var and report an error about iterators (ReturnTypeIterator)
         public TypeSymbol ReturnTypeNoForce
         {
             get
             {
-                ComputeReturnType(null, false);
+                ComputeReturnType(body: null, forceNotNull: false, isIterator: false);
                 return _returnType;
             }
         }
 
-        internal void ComputeReturnType(BoundBlock body, bool forceNotNull)
+        public TypeSymbol ReturnTypeIterator
+        {
+            get
+            {
+                ComputeReturnType(body: null, forceNotNull: true, isIterator: true);
+                return _returnType;
+            }
+        }
+
+        internal void ComputeReturnType(BoundBlock body, bool forceNotNull, bool isIterator)
         {
             if (_returnType != null)
             {
@@ -165,12 +178,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             if (_isVar)
             {
-                if (body == null)
+                if (isIterator) // cannot use IsIterator (the property) because that gets computed after the body is bound, which hasn't happened yet.
+                {
+                    // Completely disallow use of var inferred in an iterator context.
+                    // This is because we may have IAsyncEnumerable and similar types, which determine the type of state machine to emit.
+                    // If we infer the return type, we won't know which state machine to generate.
+                    returnType = _binder.CreateErrorType("var");
+                    // InMethodBinder reports ERR_BadIteratorReturn, so no need to report a diagnostic here.
+                }
+                else if (body == null)
                 {
                     if (forceNotNull)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                         returnType = _binder.CreateErrorType("var");
+                        diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                     }
                     else
                     {
@@ -182,6 +203,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool inferredFromSingleType;
                     returnType = BoundLambda.InferReturnType(body, _binder, IsAsync, ref useSiteDiagnostics, out inferredFromSingleType);
+                    if (returnType == null)
+                    {
+                        if (IsAsync)
+                        {
+                            returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                        }
+                        else
+                        {
+                            returnType = _binder.Compilation.GetSpecialType(SpecialType.System_Void);
+                        }
+                    }
+                    diagnostics.Add(Locations[0], useSiteDiagnostics);
                 }
             }
             if (Interlocked.CompareExchange(ref _returnType, returnType, null) != null)
@@ -355,6 +388,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        {
+            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
+        }
+
+        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        {
+            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+        }
+
+        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
+        {
+            if (_lazyTypeParameterConstraints.IsDefault)
+            {
+                var diagnostics = DiagnosticBag.GetInstance();
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                {
+                    AddDiagnostics(diagnostics.ToReadOnly());
+                }
+                diagnostics.Free();
+            }
+
+            var clauses = _lazyTypeParameterConstraints;
+            return (clauses.Length > 0) ? clauses[ordinal] : null;
+        }
+
+        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
+        {
+            var typeParameters = this.TypeParameters;
+            if (typeParameters.Length == 0)
+            {
+                return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            var constraintClauses = _syntax.ConstraintClauses;
+            if (constraintClauses.Count == 0)
+            {
+                return ImmutableArray<TypeParameterConstraintClause>.Empty;
+            }
+
+            var syntaxTree = _syntax.SyntaxTree;
+
+            // Wrap binder from factory in a generic constraints specific binder
+            // to avoid checking constraints when binding type names.
+            Debug.Assert(!_binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            var binder = _binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+
+            var result = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
+            this.CheckConstraintTypesVisibility(new SourceLocation(_syntax.Identifier), result, diagnostics);
+            return result;
         }
 
         public override int GetHashCode()

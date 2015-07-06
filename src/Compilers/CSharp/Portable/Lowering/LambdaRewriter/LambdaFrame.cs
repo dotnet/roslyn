@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaFrame : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
+        private readonly TypeKind _typeKind;
         private readonly MethodSymbol _topLevelMethod;
         private readonly MethodSymbol _containingMethod;
         private readonly MethodSymbol _constructor;
@@ -23,12 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, bool isStruct, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
             : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
+            _typeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             _topLevelMethod = topLevelMethod;
             _containingMethod = containingMethod;
-            _constructor = new LambdaFrameConstructor(this);
+            _constructor = isStruct ? null : new LambdaFrameConstructor(this);
             this.ClosureOrdinal = closureId.Ordinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override TypeKind TypeKind
         {
-            get { return TypeKind.Class; }
+            get { return _typeKind; }
         }
 
         internal override MethodSymbol Constructor
