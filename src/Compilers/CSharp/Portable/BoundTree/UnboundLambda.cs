@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _inferredReturnType;
         }
 
-        internal static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool inferredFromSingleType)
+        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out bool inferredFromSingleType)
         {
             int numberOfDistinctReturns;
             var resultTypes = BlockReturns.GetReturnTypes(block, out numberOfDistinctReturns);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
         }
 
-        private sealed class BlockReturns : BoundTreeWalker
+        internal sealed class BlockReturns : BoundTreeWalker
         {
             private readonly ArrayBuilder<TypeSymbol> _types;
             private bool _hasReturnWithoutArgument;

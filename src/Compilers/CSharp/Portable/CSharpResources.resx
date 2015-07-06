@@ -4641,4 +4641,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
+    <value>An expression tree may not contain a local function or a reference to a local function</value>
+  </data>
+  <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
+    <value>Cannot infer the return type of {0} due to differing return types.</value>
+  </data>
 </root>

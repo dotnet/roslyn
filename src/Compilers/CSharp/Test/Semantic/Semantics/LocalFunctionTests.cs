@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = usingBlock + @"
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
 " + methodBody + @"
     }
@@ -2011,21 +2011,66 @@ Console.Write(Local(x => x));
             VerifyOutputInMain(source, "x => x", "System", "System.Linq.Expressions");
         }
 
-        [Fact(Skip = "Local functions aren't supported by expression trees yet")]
+        [Fact]
         public void ExpressionTreeLocfuncUsage()
         {
             var source = @"
-T Id<T>(T x)
+using System;
+using System.Linq.Expressions;
+class Program
 {
-    return x;
+    static void Main()
+    {
+        T Id<T>(T x)
+        {
+            return x;
+        }
+        Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+        {
+            return f;
+        }
+        Console.Write(Local(x => Id(x)));
+    }
 }
-Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
-{
-    return f;
-}
-Console.Write(Local(x => Id(x)));
 ";
-            VerifyOutputInMain(source, "x => Id(x)", "System", "System.Linq.Expressions");
+            VerifyDiagnostics(source,
+    // (16,34): error CS8096: An expression tree may not contain a local function or a reference to a local function
+    //         Console.Write(Local(x => Id(x)));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(x)").WithLocation(16, 34)
+    );
+        }
+
+        [Fact]
+        public void ExpressionTreeLocfuncInside()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int, int>> f = x =>
+        {
+            int Local(int y) => y;
+            return Local(x);
+        };
+        Console.Write(f);
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (8,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
+    //         Expression<Func<int, int>> f = x =>
+    Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, @"x =>
+        {
+            int Local(int y) => y;
+            return Local(x);
+        }").WithLocation(8, 40),
+    // (11,20): error CS8096: An expression tree may not contain a local function or a reference to a local function
+    //             return Local(x);
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Local(x)").WithLocation(11, 20)
+    );
         }
 
         [Fact]
@@ -2222,6 +2267,32 @@ class Program
 }
 ";
             VerifyOutput(source, "2");
+        }
+
+        [Fact]
+        public void ExtensionMethodClosure()
+        {
+            var source = @"
+using System;
+
+static class Program
+{
+    public static void Ext(this int x)
+    {
+        void Local()
+        {
+            Console.Write(x);
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        2.Ext();
+    }
+}
+";
+            // warning level 0 because extension method generates CS1685 (predefined type multiple definition) for ExtensionAttribute in System.Core and mscorlib
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithWarningLevel(0));
         }
 
         [Fact]
@@ -3140,7 +3211,27 @@ class Program
     );
         }
 
-        [Fact(Skip = "No detection at the moment")]
+        [Fact]
+        public void InferredReturnMultipleReturn()
+        {
+            var source = @"
+var Local(bool x)
+{
+    if (x)
+    {
+        return 2;
+    }
+    else
+    {
+        return 3;
+    }
+}
+Console.Write(Local(true));
+";
+            VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
         public void BadInferredReturnDifferentTypes()
         {
             var source = @"
@@ -3156,13 +3247,17 @@ class Program
             }
             else
             {
-                return ""2"";
+                return new object();
             }
         }
+        Local(true);
     }
 }
 ";
-            VerifyDiagnostics(source
+            VerifyDiagnostics(source,
+    // (6,13): error CS8097: Cannot infer the return type of Local(bool) due to differing return types.
+    //         var Local(bool x)
+    Diagnostic(ErrorCode.ERR_ReturnTypesDontMatch, "Local").WithArguments("Local(bool)").WithLocation(6, 13)
     );
         }
 
