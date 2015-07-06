@@ -423,6 +423,16 @@ Imports Unknown
             submission.GetDiagnostics().AssertTheseDiagnostics(expectedErrors)
         End Sub
 
+        <WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")>
+        <Fact>
+        Public Sub LabelLookup()
+            Const source = "Imports System : 1"
+            Dim tree = Parse(source, options:=TestOptions.Script)
+            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef})
+            Dim model = submission.GetSemanticModel(tree)
+            Assert.Empty(model.LookupLabels(source.Length - 1))
+        End Sub
+
 #End Region
 
 #Region "Anonymous types"
