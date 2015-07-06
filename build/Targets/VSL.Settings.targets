@@ -19,7 +19,8 @@
 
     <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
 
-    <NuGetPackagesPath Condition="'$(NuGetPackagesPath)' == ''">$(MSBuildThisFileDirectory)..\..\packages</NuGetPackagesPath>
+    <NuGetPackagesPath Condition="'$(NuGetPackagesPath)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\packages'))</NuGetPackagesPath>
+
     <UseRoslynAnalyzers Condition="'$(UseRoslynAnalyzers)' == ''">true</UseRoslynAnalyzers>
 
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.1.0</RoslynSemanticVersion>
