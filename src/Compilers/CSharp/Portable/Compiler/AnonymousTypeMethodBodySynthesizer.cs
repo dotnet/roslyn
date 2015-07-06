@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 BoundStatement retStatement = F.Return(retExpression);
 
                 // Create a bound block 
-                F.CloseMethod(F.Block(ImmutableArray.Create<LocalSymbol>(boundLocal.LocalSymbol), assignment, retStatement));
+                F.CloseMethod(F.Block(ImmutableArray.Create<LocalSymbol>(boundLocal.LocalSymbol), ImmutableArray<LocalFunctionSymbol>.Empty, assignment, retStatement));
             }
 
             internal override bool HasSpecialName

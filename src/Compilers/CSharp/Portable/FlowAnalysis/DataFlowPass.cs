@@ -27,6 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
         /// <summary>
+        /// Variables that were used anywhere, in the sense required to suppress warnings about
+        /// unused variables.
+        /// </summary>
+        private readonly PooledHashSet<LocalFunctionSymbol> _usedLocalFunctions = PooledHashSet<LocalFunctionSymbol>.GetInstance();
+
+        /// <summary>
         /// Variables that were initialized or written anywhere.
         /// </summary>
         private readonly PooledHashSet<Symbol> _writtenVariables = PooledHashSet<Symbol>.GetInstance();
@@ -102,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Free()
         {
             _usedVariables.Free();
+            _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
             _unsafeAddressTakenVariables.Free();
@@ -393,6 +400,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 _usedVariables.Add(local);
+            }
+            var localFunction = variable as LocalFunctionSymbol;
+            if ((object)localFunction != null)
+            {
+                _usedLocalFunctions.Add(localFunction);
             }
 
             if ((object)variable != null)
@@ -1281,6 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.Locals);
             var result = base.VisitBlock(node);
             ReportUnusedVariables(node.Locals);
+            ReportUnusedVariables(node.LocalFunctions);
             return result;
         }
 
@@ -1455,6 +1468,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void ReportUnusedVariables(ImmutableArray<LocalFunctionSymbol> locals)
+        {
+            foreach (var symbol in locals)
+            {
+                ReportIfUnused(symbol, assigned: true);
+            }
+        }
+
+        private void ReportIfUnused(LocalFunctionSymbol symbol, bool assigned)
+        {
+            if (!_usedLocalFunctions.Contains(symbol))
+            {
+                if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
+                {
+                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations[0], symbol.Name);
+                }
+            }
+        }
+
         public override BoundNode VisitLocal(BoundLocal node)
         {
             // Note: the caller should avoid allowing this to be called for the left-hand-side of
@@ -1494,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
-                CheckAssigned(node.Method, node.Syntax);
+                CheckAssigned(node.Method.OriginalDefinition, node.Syntax);
             }
             return base.VisitCall(node);
         }
@@ -1503,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ConversionKind == ConversionKind.MethodGroup && node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                CheckAssigned(node.SymbolOpt, node.Syntax);
+                CheckAssigned(node.SymbolOpt.OriginalDefinition, node.Syntax);
             }
             return base.VisitConversion(node);
         }
@@ -1512,9 +1544,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                CheckAssigned(node.MethodOpt, node.Syntax);
+                CheckAssigned(node.MethodOpt.OriginalDefinition, node.Syntax);
             }
             return base.VisitDelegateCreationExpression(node);
+        }
+
+        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
+        {
+            foreach (var method in node.Methods)
+            {
+                if (method.MethodKind == MethodKind.LocalFunction)
+                {
+                    CheckAssigned(method, node.Syntax);
+                }
+            }
+            return base.VisitMethodGroup(node);
         }
 
         public override BoundNode VisitLambda(BoundLambda node)

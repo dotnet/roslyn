@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (methodSymbol.IsScriptConstructor)
                 {
-                    body = new BoundBlock(methodSymbol.GetNonNullSyntaxNode(), ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty) { WasCompilerGenerated = true };
+                    body = BoundBlock.SynthesizedNoLocals(methodSymbol.GetNonNullSyntaxNode(), ImmutableArray<BoundStatement>.Empty);
                     includeInitializersInBody = false;
                     importChain = null;
                 }
@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundTypeOrInstanceInitializers initializerStatements = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol, submissionResultType);
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
-                    body = new BoundBlock(initializerStatements.Syntax, ImmutableArray<LocalSymbol>.Empty, initializerStatements.Statements) { WasCompilerGenerated = true };
+                    body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
                     includeInitializersInBody = false;
 
                     importChain = null;
@@ -883,7 +883,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (body != null && methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor)
                         {
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
-                            body = body.Update(body.Locals, body.Statements.Insert(0, analyzedInitializers));
+                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
                             includeInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -1592,7 +1592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements = ImmutableArray.Create(constructorInitializer, body);
             }
 
-            return new BoundBlock(method.GetNonNullSyntaxNode(), ImmutableArray<LocalSymbol>.Empty, statements) { WasCompilerGenerated = true };
+            return BoundBlock.SynthesizedNoLocals(method.GetNonNullSyntaxNode(), statements);
         }
 
         /// <summary>

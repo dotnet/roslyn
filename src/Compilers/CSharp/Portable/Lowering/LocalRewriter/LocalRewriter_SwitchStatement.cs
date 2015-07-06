@@ -172,7 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statementBuilder.Add(rewrittenSwitchStatement);
 
-            return new BoundBlock(syntax, locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal), statements: statementBuilder.ToImmutableAndFree());
+            return new BoundBlock(
+                syntax,
+                locals: (object)tempLocal == null ? ImmutableArray<LocalSymbol>.Empty : ImmutableArray.Create<LocalSymbol>(tempLocal),
+                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
+                statements: statementBuilder.ToImmutableAndFree());
         }
 
         private static LabelSymbol GetNullValueTargetSwitchLabel(ImmutableArray<BoundSwitchSection> sections, GeneratedLabelSymbol breakLabel)

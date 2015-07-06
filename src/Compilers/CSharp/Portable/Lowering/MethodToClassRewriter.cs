@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var newLocals = RewriteLocals(node.Locals);
+            var newLocalFunctions = node.LocalFunctions;
             var newStatements = VisitList(node.Statements);
-            return node.Update(newLocals, newStatements);
+            return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)

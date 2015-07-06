@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _factory.Block(
                     localBuilder.ToImmutableAndFree(),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     new BoundTryStatement(
                         _factory.Syntax,
                         _factory.Block(statementBuilder.ToImmutableAndFree()),
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 statementBuilder.AddRange(cleanup);
-                return _factory.Block(localBuilder.ToImmutableAndFree(), statementBuilder.ToImmutableAndFree());
+                return _factory.Block(localBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementBuilder.ToImmutableAndFree());
             }
         }
 

@@ -168,6 +168,7 @@ class Program
         {
             Console.WriteLine(x);
         }
+        Params(2);
     }
 }
 ";
@@ -190,6 +191,8 @@ class Program
         {
             x++;
         }
+        int y = 2;
+        RefOut(ref y);
     }
 }
 ";
@@ -214,6 +217,7 @@ class Program
         {
             Console.WriteLine(x);
         }
+        NamedOptional(""2"");
     }
 }
 ";
@@ -239,6 +243,7 @@ class Program
         {
             Console.WriteLine(s);
         }
+        CallerMemberName();
     }
 }
 ";
@@ -2184,11 +2189,13 @@ class Program
             var source = @"
 void Main()
 {
-    Console.Write(""bad"");
+    Console.Write(4);
 }
 Console.Write(2);
+Console.Write(' ');
+Main();
 ";
-            VerifyOutputInMain(source, "2", "System");
+            VerifyOutputInMain(source, "2 4", "System");
         }
 
         [Fact]
@@ -2249,6 +2256,7 @@ class Program
             {
                 Console.WriteLine(2);
             }
+            Local();
         }
         Local();
 
@@ -2261,12 +2269,13 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (15,9): error CS0103: The name 'Local' does not exist in the current context
+    // (16,9): error CS0103: The name 'Local' does not exist in the current context
     //         Local();
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9),
-    // (17,9): error CS0841: Cannot use local variable 'Local2' before it is declared
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(16, 9),
+    // (18,9): error CS0841: Cannot use local variable 'Local2' before it is declared
     //         Local2();
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(17, 9));
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(18, 9)
+    );
         }
 
         [Fact]
@@ -2279,13 +2288,17 @@ class Program
     {
         void Duplicate() { }
         void Duplicate() { }
+        Duplicate();
     }
 }
 ";
             VerifyDiagnostics(source,
     // (7,14): error CS0128: A local variable named 'Duplicate' is already defined in this scope
     //         void Duplicate() { }
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14),
+    // (7,14): warning CS0168: The variable 'Duplicate' is declared but never used
+    //         void Duplicate() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14)
     );
         }
 
@@ -2297,18 +2310,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        int x;
+        int x = 2;
         void Param(int x) { }
+        Param(x);
     }
 }
 ";
             VerifyDiagnostics(source,
     // (7,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         void Param(int x) { }
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 24),
-    // (6,13): warning CS0168: The variable 'x' is declared but never used
-    //         int x;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 24)
     );
         }
 
@@ -2322,6 +2333,7 @@ class Program
     {
         int T;
         void Generic<T>() { }
+        Generic<int>();
     }
 }
 ";
@@ -2354,7 +2366,10 @@ class Program
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "Conflict").WithArguments("Conflict").WithLocation(7, 14),
     // (6,13): warning CS0168: The variable 'Conflict' is declared but never used
     //         int Conflict;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(6, 13)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(6, 13),
+    // (7,14): warning CS0168: The variable 'Conflict' is declared but never used
+    //         void Conflict() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(7, 14)
     );
         }
 
@@ -2378,7 +2393,10 @@ class Program
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "Conflict").WithArguments("Conflict").WithLocation(6, 14),
     // (7,13): warning CS0168: The variable 'Conflict' is declared but never used
     //         int Conflict;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(7, 13)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(7, 13),
+    // (6,14): warning CS0168: The variable 'Conflict' is declared but never used
+    //         void Conflict() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(6, 14)
     );
         }
 
@@ -2676,7 +2694,7 @@ class Program
     );
         }
 
-        [Fact(Skip = "No usage detection at the moment")]
+        [Fact]
         public void BadNotUsed()
         {
             var source = @"
@@ -2693,7 +2711,11 @@ class Program
         A();
     }
 }";
-            VerifyDiagnostics(source /*, ... diagnostics ... */);
+            VerifyDiagnostics(source,
+    // (6,14): warning CS0168: The variable 'Local' is declared but never used
+    //         void Local()
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(6, 14)
+    );
         }
 
         [Fact]
@@ -2710,6 +2732,7 @@ class Program
         {
             Console.WriteLine(x);
         }
+        Local();
     }
     static void Main()
     {
@@ -2736,6 +2759,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local();
     }
     static void B(__arglist)
     {
@@ -2743,6 +2767,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local();
     }
     static void C() // C and D produce different errors
     {
@@ -2750,6 +2775,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local(__arglist());
     }
     static void D(__arglist)
     {
@@ -2757,6 +2783,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local(__arglist());
     }
     static void Main()
     {
@@ -2767,15 +2794,15 @@ class Program
     // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
     //             Console.WriteLine(__arglist);
     Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-    // (17,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(17, 31),
-    // (24,31): error CS0190: The __arglist construct is valid only within a variable argument method
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
+    // (26,31): error CS0190: The __arglist construct is valid only within a variable argument method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(24, 31),
-    // (31,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(26, 31),
+    // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(31, 31)
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );
         }
 
@@ -2794,6 +2821,7 @@ class Program
         {
             Console.WriteLine(_a);
         }
+        Local();
     }
     static void Main()
     {
@@ -2821,6 +2849,8 @@ class Program
         {
             yield return x;
         }
+        int y = 0;
+        RefEnumerable(ref y);
     }
 }
 ";
@@ -2835,6 +2865,7 @@ class Program
         public void BadRefAsync()
         {
             var source = @"
+using System;
 using System.Threading.Tasks;
 
 class Program
@@ -2845,13 +2876,15 @@ class Program
         {
             return await Task.FromResult(x);
         }
+        int y = 2;
+        Console.Write(RefAsync(ref y).Result);
     }
 }
 ";
             VerifyDiagnostics(source,
-    // (8,42): error CS1988: Async methods cannot have ref or out parameters
+    // (9,42): error CS1988: Async methods cannot have ref or out parameters
     //         async Task<int> RefAsync(ref int x)
-    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(8, 42)
+    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(9, 42)
     );
         }
 
@@ -2900,6 +2933,10 @@ class Program
         volatile void LocalVolatile()
         {
         }
+        LocalConst();
+        LocalStatic();
+        LocalReadonly();
+        LocalVolatile();
     }
 }
 ";
@@ -3069,6 +3106,7 @@ class Program
         {
             yield return 2;
         }
+        Local();
     }
 }
 ";
@@ -3091,6 +3129,7 @@ class Program
         {
             yield break;
         }
+        Local();
     }
 }
 ";
@@ -3300,6 +3339,7 @@ class Program
         void Local()
         {
         }
+        Local();
     }
 }
 ";

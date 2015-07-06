@@ -56,5 +56,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
+        {
+            if (node.Kind() == SyntaxKind.Block)
+            {
+                if (((BlockSyntax)node).Statements == _statements)
+                {
+                    return this.LocalFunctions;
+                }
+            }
+            else if (_statements.Count == 1 && _statements.First() == node)
+            {
+                return this.LocalFunctions;
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

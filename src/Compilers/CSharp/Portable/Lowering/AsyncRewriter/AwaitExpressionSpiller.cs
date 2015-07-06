@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var substituterOpt = (substituteTemps && _tempSubstitution.Count > 0) ? new LocalSubstituter(_tempSubstitution) : null;
-            var result = _F.Block(builder.GetLocals(), builder.GetStatements(substituterOpt));
+            var result = _F.Block(builder.GetLocals(), ImmutableArray<LocalFunctionSymbol>.Empty, builder.GetStatements(substituterOpt));
 
             builder.Free();
             return result;
