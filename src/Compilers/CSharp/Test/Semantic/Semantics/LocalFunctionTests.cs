@@ -854,6 +854,30 @@ Foo();
         }
 
         [Fact]
+        public void RecursiveStructClosure()
+        {
+            var source = @"
+int x = 0;
+void Foo()
+{
+    if (x != 2)
+    {
+        x++;
+        Foo();
+    }
+    else
+    {
+        Console.Write(x);
+        Console.Write(' ');
+        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+    }
+}
+Foo();
+";
+            VerifyOutputInMain(source, "2 System.ValueType", "System");
+        }
+
+        [Fact]
         public void Recursion()
         {
             var source = @"
@@ -1874,6 +1898,49 @@ System.Object
             VerifyOutput(source, output);
         }
 
+        [Fact]
+        public void CompoundOperatorExecutesOnce()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    int _x = 2;
+    public static void Main()
+    {
+        var prog = new Program();
+        Program SideEffect()
+        {
+            Console.Write(prog._x);
+            return prog;
+        }
+        SideEffect()._x += 2;
+        Console.Write(' ');
+        SideEffect();
+    }
+}
+";
+            VerifyOutput(source, "2 4");
+        }
+
+        [Fact]
+        public void ConstValueDoesntMakeClosure()
+        {
+            var source = @"
+const int x = 2;
+void Local()
+{
+    Console.Write(x);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+}
+Local();
+";
+            // a closure class that captures looks like "Program+<>c__DisplayClass0_0", not "Program+<>c"
+            VerifyOutputInMain(source, "2 Program+<>c", "System");
+        }
+
         [Fact(Skip = "Dynamic local function arguments not supported yet")]
         public void DynamicArgument()
         {
@@ -1924,6 +1991,204 @@ void Local()
 Console.Write(nameof(Local));
 ";
             VerifyOutputInMain(source, "Local", "System");
+        }
+
+        [Fact]
+        public void ExpressionTreeParameter()
+        {
+            var source = @"
+Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+{
+    return f;
+}
+Console.Write(Local(x => x));
+";
+            VerifyOutputInMain(source, "x => x", "System", "System.Linq.Expressions");
+        }
+
+        [Fact(Skip = "Local functions aren't supported by expression trees yet")]
+        public void ExpressionTreeLocfuncUsage()
+        {
+            var source = @"
+T Id<T>(T x)
+{
+    return x;
+}
+Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+{
+    return f;
+}
+Console.Write(Local(x => Id(x)));
+";
+            VerifyOutputInMain(source, "x => Id(x)", "System", "System.Linq.Expressions");
+        }
+
+        [Fact]
+        public void LinqInLocalFunction()
+        {
+            var source = @"
+IEnumerable<int> Query(IEnumerable<int> values)
+{
+    return from x in values where x < 5 select x * x;
+}
+Console.Write(string.Join("","", Query(Enumerable.Range(0, 10))));
+";
+            VerifyOutputInMain(source, "0,1,4,9,16", "System", "System.Linq", "System.Collections.Generic");
+        }
+
+        [Fact]
+        public void ConstructorWithoutArg()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public int x;
+    public Base(int x)
+    {
+        this.x = x;
+    }
+}
+
+class Program : Base
+{
+    Program() : base(2)
+    {
+        void Local()
+        {
+            Console.Write(x);
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        new Program();
+    }
+}
+";
+            VerifyOutput(source, "2");
+        }
+
+        [Fact]
+        public void ConstructorWithArg()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public int x;
+    public Base(int x)
+    {
+        this.x = x;
+    }
+}
+
+class Program : Base
+{
+    Program(int x) : base(x + 2)
+    {
+        void Local()
+        {
+            Console.Write(x);
+            Console.Write(' ');
+            Console.Write(base.x);
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        new Program(2);
+    }
+}
+";
+            VerifyOutput(source, "2 4");
+        }
+
+        [Fact]
+        public void IfDef()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        #if LocalFunc
+        void Local()
+        {
+            Console.Write(2);
+            Console.Write(' ');
+        #endif
+            Console.Write(4);
+        #if LocalFunc
+        }
+        Local();
+        #endif
+    }
+}
+";
+            VerifyOutput(source, "4");
+            source = "#define LocalFunc" + source;
+            VerifyOutput(source, "2 4");
+        }
+
+        [Fact]
+        public void PragmaWarningDisableEntersLocfunc()
+        {
+            var source = @"
+#pragma warning disable CS0168
+void Local()
+{
+    int x; // unused
+    Console.Write(2);
+}
+#pragma warning restore CS0168
+Local();
+";
+            // No diagnostics is asserted in VerifyOutput, so if the warning happens, then we'll catch it
+            VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
+        public void ObsoleteAttributeRecursion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    [Obsolete]
+    public void Obs()
+    {
+        void Local()
+        {
+            Obs(); // shouldn't emit warning
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        Console.Write(2);
+    }
+}
+";
+            VerifyOutput(source, "2");
+        }
+
+        [Fact]
+        public void MainLocfuncIsntEntry()
+        {
+            var source = @"
+void Main()
+{
+    Console.Write(""bad"");
+}
+Console.Write(2);
+";
+            VerifyOutputInMain(source, "2", "System");
         }
 
         [Fact]
@@ -2257,6 +2522,59 @@ class Program
         }
 
         [Fact]
+        public void BadGotoInto()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        goto A;
+        void Local()
+        {
+        A:  Console.Write(2);
+        }
+        Local();
+    }
+}";
+            VerifyDiagnostics(source,
+    // (8,14): error CS0159: No such label 'A' within the scope of the goto statement
+    //         goto A;
+    Diagnostic(ErrorCode.ERR_LabelNotFound, "A").WithArguments("A").WithLocation(8, 14),
+    // (11,9): warning CS0164: This label has not been referenced
+    //         A:  Console.Write(2);
+    Diagnostic(ErrorCode.WRN_UnreferencedLabel, "A").WithLocation(11, 9)
+    );
+        }
+
+        [Fact]
+        public void BadGotoOutOf()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+            goto A;
+        }
+    A:  Local();
+    }
+}";
+            VerifyDiagnostics(source,
+    // (8,13): error CS0159: No such label 'A' within the scope of the goto statement
+    //             goto A;
+    Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("A").WithLocation(8, 13),
+    // (10,5): warning CS0164: This label has not been referenced
+    //     A:  Local();
+    Diagnostic(ErrorCode.WRN_UnreferencedLabel, "A").WithLocation(10, 5)
+    );
+        }
+
+        [Fact]
         public void BadDefiniteAssignmentCall()
         {
             var source = @"
@@ -2358,7 +2676,7 @@ class Program
     );
         }
 
-        [Fact]
+        [Fact(Skip = "No usage detection at the moment")]
         public void BadNotUsed()
         {
             var source = @"
@@ -2375,8 +2693,7 @@ class Program
         A();
     }
 }";
-            // TODO: No detection at the moment.
-            VerifyDiagnostics(source);
+            VerifyDiagnostics(source /*, ... diagnostics ... */);
         }
 
         [Fact]
@@ -2784,6 +3101,32 @@ class Program
     );
         }
 
+        [Fact(Skip = "No detection at the moment")]
+        public void BadInferredReturnDifferentTypes()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var Local(bool x)
+        {
+            if (x)
+            {
+                return 2;
+            }
+            else
+            {
+                return ""2"";
+            }
+        }
+    }
+}
+";
+            VerifyDiagnostics(source
+    );
+        }
+
         [Fact]
         public void ArglistIterator()
         {
@@ -2848,7 +3191,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-                    // (6,17): error CS1002: ; expected
+    // (6,17): error CS1002: ; expected
     //         Program operator +(Program left, Program right)
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
     // (6,17): error CS1513: } expected
