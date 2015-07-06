@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -84,51 +85,45 @@ namespace Microsoft.CodeAnalysis.Emit
                 : subsystemVersion;
         }
 
-        internal ushort DllCharacteristics
+        internal DllCharacteristics DllCharacteristics
         {
             get
             {
-                //values copied from winnt.h
-                const ushort IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA = 0x0020;
-                const ushort IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE = 0x0040;     // DLL can move.
-                //const ushort IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY = 0x0080;     // Code Integrity Image
-                const ushort IMAGE_DLLCHARACTERISTICS_NX_COMPAT = 0x0100;     // Image is NX compatible
-                //const ushort IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 0x0200;     // Image understands isolation and doesn't want it
-                const ushort IMAGE_DLLCHARACTERISTICS_NO_SEH = 0x0400;     // Image does not use SEH.  No SE handler may reside in this image
-                //const ushort IMAGE_DLLCHARACTERISTICS_NO_BIND = 0x0800;     // Do not bind this image.
-                const ushort IMAGE_DLLCHARACTERISTICS_APPCONTAINER = 0x1000;     // Image should execute in an AppContainer
-                //const ushort IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = 0x2000;     // Driver uses WDM model
-                //const ushort                                       0x4000     // Reserved.
-                const ushort IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000;
+                var result =
+                    DllCharacteristics.DynamicBase |
+                    DllCharacteristics.NxCompatible |
+                    DllCharacteristics.NoSeh |
+                    DllCharacteristics.TerminalServerAware;
 
-                //this is what the native PE writer would output.
+                if (EnableHighEntropyVA)
+                {
+                    // IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
+                    result |= (DllCharacteristics)0x0020;
+                }
 
-                ushort result =
-                    IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE |
-                    IMAGE_DLLCHARACTERISTICS_NX_COMPAT |
-                    IMAGE_DLLCHARACTERISTICS_NO_SEH |
-                    IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE;
+                if (ConfigureToExecuteInAppContainer)
+                {
+                    result |= DllCharacteristics.AppContainer;
+                }
 
-                result = (EnableHighEntropyVA) ? (ushort)(result | IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA) : result;
-                result = (ConfigureToExecuteInAppContainer) ? (ushort)(result | IMAGE_DLLCHARACTERISTICS_APPCONTAINER) : result;
                 return result;
             }
         }
 
-        internal Cci.Machine Machine
+        internal Machine Machine
         {
             get
             {
                 switch (Platform)
                 {
                     case Platform.Arm:
-                        return Microsoft.Cci.Machine.ARMThumb2;
+                        return Machine.ArmThumb2;
                     case Platform.X64:
-                        return Microsoft.Cci.Machine.AMD64;
+                        return Machine.Amd64;
                     case Platform.Itanium:
-                        return Microsoft.Cci.Machine.IA64;
+                        return Machine.IA64;
                     default:
-                        return Microsoft.Cci.Machine.I386;
+                        return Machine.I386;
                 }
             }
         }
