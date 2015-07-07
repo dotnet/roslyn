@@ -7,11 +7,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Completion.Rules
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -30,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New SuggestionModeCompletionProvider(),
             New ImplementsClauseCompletionProvider(),
             New HandlesClauseCompletionProvider(),
-            New ImplementsInheritsStatementCompletionProvider(),
             New PartialTypeCompletionProvider(),
             New CrefCompletionProvider(),
             New CompletionListTagCompletionProvider
