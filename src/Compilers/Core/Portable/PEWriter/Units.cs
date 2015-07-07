@@ -7,74 +7,11 @@ using System.Diagnostics;
 using System.Reflection;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.Cci
 {
-    /// <summary>
-    /// Target CPU types.
-    /// </summary>
-    internal enum Machine : ushort
-    {
-        // TODO: Should consider unifying this enum with MetadataReader.PEFileFlags.Machine !!!
-
-        /// <summary>
-        /// The target CPU is unknown or not specified.
-        /// </summary>
-        Unknown = 0x0000,
-        /// <summary>
-        /// Intel 386.
-        /// </summary>
-        I386 = 0x014C,
-        /// <summary>
-        /// ARM Thumb-2 little-endian.
-        /// </summary>
-        ARMThumb2 = 0x01c4,
-        /// <summary>
-        /// Intel 64
-        /// </summary>
-        IA64 = 0x0200,
-        /// <summary>
-        /// AMD64 (K8)
-        /// </summary>
-        AMD64 = 0x8664,
-    }
-
-    /// <summary>
-    /// The kind of metadata stored in the module. For example whether the module is an executable or a manifest resource file.
-    /// </summary>
-    internal enum ModuleKind
-    {
-        /// <summary>
-        /// The module is an executable with an entry point and has a console.
-        /// </summary>
-        ConsoleApplication,
-
-        /// <summary>
-        /// The module is an executable with an entry point and does not have a console.
-        /// </summary>
-        WindowsApplication,
-
-        /// <summary>
-        /// The module is a library of executable code that is dynamically linked into an application and called via the application.
-        /// </summary>
-        DynamicallyLinkedLibrary,
-
-        /// <summary>
-        /// The module is a .winmdobj file.
-        /// </summary>
-        WindowsRuntimeMetadata,
-
-        /// <summary>
-        /// The module contains no executable code. Its contents is a resource stream for the modules that reference it.
-        /// </summary>
-        ManifestResourceFile,
-
-        /// <summary>
-        /// The module is a library of executable code but contains no .NET metadata and is specific to a processor instruction set.
-        /// </summary>
-        UnmanagedDynamicallyLinkedLibrary
-    }
-
     /// <summary>
     /// Represents a .NET assembly.
     /// </summary>
@@ -211,7 +148,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Flags that control the behavior of the target operating system. CLI implementations are supposed to ignore this, but some operating system pay attention.
         /// </summary>
-        ushort DllCharacteristics { get; }
+        DllCharacteristics DllCharacteristics { get; }
 
         /// <summary>
         /// The method that will be called to start execution of this executable module. 
@@ -225,7 +162,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The alignment of sections in the module's image file.
         /// </summary>
-        uint FileAlignment { get; }
+        int FileAlignment { get; }
 
         /// <summary>
         /// Returns zero or more strings used in the module. If the module is produced by reading in a CLR PE file, then this will be the contents
@@ -248,7 +185,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The kind of metadata stored in this module. For example whether this module is an executable or a manifest resource file.
         /// </summary>
-        ModuleKind Kind { get; }
+        OutputKind Kind { get; }
 
         /// <summary>
         /// The first part of a two part version number indicating the version of the linker that produced this module. For example, the 8 in 8.0.
