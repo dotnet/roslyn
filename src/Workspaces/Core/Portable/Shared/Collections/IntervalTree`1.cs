@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                 yield break;
             }
 
-            var span = new TextSpan(start, length);
+            var end = start + length;
 
             // The bool indicates if this is the first time we are seeing the node.
             var candidates = new Stack<ValueTuple<Node, bool>>();
@@ -148,35 +148,29 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
                     // time we mark the current node with 'false' to indicate that it's the
                     // second time we're seeing it the next time it comes around.
 
-                    // Only bother descending down the left or right side if that side at least 
-                    // intersects with the span we're curious about.  If it doens't intersect then
-                    // it can't intersect/overlap/contain the span in question.
-                    if (MaxSpanIntersectsWith(currentNode.Right, span, introspector))
+                    // right children's starts will never be to the left of the parent's start
+                    // so we should consider right subtree only if root's start overlaps with
+                    // interval's End, 
+                    if (introspector.GetStart(currentNode.Value) <= end)
                     {
-                        candidates.Push(ValueTuple.Create(currentNode.Right, true));
+                        var right = currentNode.Right;
+                        if (right != null && GetEnd(right.MaxEndNode.Value, introspector) >= start)
+                        {
+                            candidates.Push(ValueTuple.Create(right, true));
+                        }
                     }
 
                     candidates.Push(ValueTuple.Create(currentNode, false));
 
-                    if (MaxSpanIntersectsWith(currentNode.Left, span, introspector))
+                    // only if left's maxVal overlaps with interval's start, we should consider 
+                    // left subtree
+                    var left = currentNode.Left;
+                    if (left != null && GetEnd(left.MaxEndNode.Value, introspector) >= start)
                     {
-                        candidates.Push(ValueTuple.Create(currentNode.Left, true));
+                        candidates.Push(ValueTuple.Create(left, true));
                     }
                 }
             }
-        }
-
-        private static bool MaxSpanIntersectsWith(Node node, TextSpan span, IIntervalIntrospector<T> introspector)
-        {
-            if (node == null)
-            {
-                return false;
-            }
-
-            var start = introspector.GetStart(node.Value);
-            var end = GetEnd(node.MaxEndNode.Value, introspector);
-
-            return span.IntersectsWith(new TextSpan(start, end));
         }
 
         public IntervalTree<T> AddInterval(T value, IIntervalIntrospector<T> introspector)
