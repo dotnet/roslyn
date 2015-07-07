@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private class CancellableContentControl : ContentControl
         {
-            private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
-            private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            private readonly ToolTipProvider toolTipProvider;
+            private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
+            private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+            private readonly ToolTipProvider _toolTipProvider;
 
             public CancellableContentControl(ToolTipProvider toolTipProvider, CompletionItem completionItem)
             {
-                Debug.Assert(foregroundObject.IsForeground());
-                this.toolTipProvider = toolTipProvider;
+                Debug.Assert(_foregroundObject.IsForeground());
+                _toolTipProvider = toolTipProvider;
 
                 // Set our content to be "..." initially.
                 this.Content = toolTipProvider._defaultTextBlock;
@@ -66,29 +66,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // Kick off the task to produce the new content.  When it completes, call back on 
                 // the UI thread to update the display.
                 var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                completionItem.GetDescriptionAsync(cancellationTokenSource.Token)
-                              .ContinueWith(ProcessDescription, cancellationTokenSource.Token,
+                completionItem.GetDescriptionAsync(_cancellationTokenSource.Token)
+                              .ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
                                             TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
 
                 // If we get unloaded (i.e. the user scrolls down in the completion list and VS 
                 // dismisses the existing tooltip), then cancel the work we're doing
-                this.Unloaded += (s, e) => this.cancellationTokenSource.Cancel();
+                this.Unloaded += (s, e) => _cancellationTokenSource.Cancel();
             }
 
             private void ProcessDescription(Task<ImmutableArray<SymbolDisplayPart>> obj)
             {
-                Debug.Assert(foregroundObject.IsForeground());
+                Debug.Assert(_foregroundObject.IsForeground());
 
                 // If we were canceled, or didn't run all the way to completion, then don't bother
                 // updating the UI.
-                if (cancellationTokenSource.IsCancellationRequested ||
+                if (_cancellationTokenSource.IsCancellationRequested ||
                     obj.Status != TaskStatus.RanToCompletion)
                 {
                     return;
                 }
 
                 var descriptionParts = obj.Result;
-                this.Content = descriptionParts.ToTextBlock(toolTipProvider._typeMap);
+                this.Content = descriptionParts.ToTextBlock(_toolTipProvider._typeMap);
             }
         }
     }

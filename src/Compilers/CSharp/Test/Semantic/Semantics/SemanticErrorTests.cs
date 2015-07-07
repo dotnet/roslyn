@@ -20957,10 +20957,10 @@ class C
 }
 ";
             CompileAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
-    // Do not report the following warning:
-    // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
-    //         System.Console.WriteLine(default(string).IsNull());
-    // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
+                // Do not report the following warning:
+                // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
+                //         System.Console.WriteLine(default(string).IsNull());
+                // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
         }
 

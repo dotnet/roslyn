@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // This *could* be an issue because it means that a PartialTypeCollection will not necessarily reflect the
             // current state of the user's code. However, because a new PartialTypeCollection is created everytime the Parts
             // property is accessed on CodeClass, CodeStruct or CodeInterface, consumers would hit this behavior rarely.
-            if (this._parts == null)
+            if (_parts == null)
             {
                 var partsBuilder = ImmutableArray.CreateBuilder<EnvDTE.CodeElement>();
 
@@ -67,10 +67,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     }
                 }
 
-                this._parts = partsBuilder.ToImmutable();
+                _parts = partsBuilder.ToImmutable();
             }
 
-            return this._parts;
+            return _parts;
         }
 
         internal override Snapshot CreateSnapshot() => new CodeElementSnapshot(GetParts());

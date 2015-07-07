@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
-                    mappedBaseline, 
+                    mappedBaseline,
                     definitionMap,
                     changes,
                     metadataStream,

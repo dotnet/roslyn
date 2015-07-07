@@ -1295,6 +1295,5 @@ class Program
 
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
-
     }
 }

@@ -217,11 +217,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private bool TryGetNavigationAPIRequiredArguments(
-            ISymbol symbol, 
-            Solution solution, 
-            out IVsHierarchy hierarchy, 
-            out uint itemID, 
-            out IVsSymbolicNavigationNotify navigationNotify, 
+            ISymbol symbol,
+            Solution solution,
+            out IVsHierarchy hierarchy,
+            out uint itemID,
+            out IVsSymbolicNavigationNotify navigationNotify,
             out string rqname)
         {
             AssertIsForeground();

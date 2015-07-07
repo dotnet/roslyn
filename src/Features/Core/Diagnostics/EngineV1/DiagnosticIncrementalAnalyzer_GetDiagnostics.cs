@@ -164,11 +164,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 if (!ConcurrentDocumentComputation)
                 {
-                foreach (var document in project.Documents)
-                {
-                    await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                    foreach (var document in project.Documents)
+                    {
+                        await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+                    }
                 }
-            }
                 else
                 {
                     var documents = project.Documents.ToImmutableArray();
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 foreach (var item in items)
-            {
+                {
                     _concurrentBag.Add(item);
                 }
             }
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             protected override ImmutableArray<DiagnosticData> GetDiagnosticData()
             {
                 if (!ConcurrentDocumentComputation)
-            {
+                {
                     return base.GetDiagnosticData();
                 }
 

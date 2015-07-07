@@ -1960,7 +1960,7 @@ index: 1);
 @"class A { public B b = new [|B|](); }",
 @"public class B { public B() { } }",
 index: 0,
-isAddedDocument:true);
+isAddedDocument: true);
         }
 
         [WorkItem(1107929)]

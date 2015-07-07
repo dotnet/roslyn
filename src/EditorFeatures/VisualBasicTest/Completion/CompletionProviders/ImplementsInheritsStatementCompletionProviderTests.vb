@@ -225,7 +225,7 @@ Class C
         End Sub
 
         <WorkItem(546802)>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordIdentifiersCommitEscaped()
             Dim text = <text>Public Class [Inherits]
 End Class
@@ -423,7 +423,7 @@ End Class</text>.Value
         End Sub
 
         <WorkItem(622563)>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitNonGenericOnParen()
             Dim text =
 <code>

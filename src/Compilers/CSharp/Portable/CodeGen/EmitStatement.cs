@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var complexCase = !receiverType.IsReferenceType ||
                                           LocalRewriter.CanChangeValueBetweenReads(receiver, localsMayBeAssignedOrCaptured: false) ||
                                           (receiver.Kind == BoundKind.Local && IsStackLocal(((BoundLocal)receiver).LocalSymbol)) ||
-                                          (ca.WhenNullOpt?.IsDefaultValue() == false) ;
+                                          (ca.WhenNullOpt?.IsDefaultValue() == false);
 
                         if (complexCase)
                         {
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //   ret
             //
             // Do not emit this pattern if the method doesn't include user code or doesn't have a block body.
-            return _optimizations == OptimizationLevel.Debug && _method.GenerateDebugInfo && _methodBodySyntaxOpt?.IsKind(SyntaxKind.Block) == true || 
+            return _optimizations == OptimizationLevel.Debug && _method.GenerateDebugInfo && _methodBodySyntaxOpt?.IsKind(SyntaxKind.Block) == true ||
                    _builder.InExceptionHandler;
         }
 

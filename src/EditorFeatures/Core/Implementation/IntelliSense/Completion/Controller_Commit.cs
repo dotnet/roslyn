@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService != null && 
+            if (formattingService != null &&
                 (item.ShouldFormatOnCommit || (commitChar != null && formattingService.SupportsFormattingOnTypedCharacter(document, commitChar.GetValueOrDefault()))))
             {
                 // Formatting the completion item affected span is done as a separate transaction because this gives the user

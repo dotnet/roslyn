@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
             var receiverRefKind = ReceiverSpillRefKind(node.Receiver);
-            
+
             BoundSpillSequenceBuilder receiverBuilder = null;
             var receiver = VisitExpression(ref receiverBuilder, node.Receiver);
 
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder();
             if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder();
             if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder();
-            
+
 
             BoundExpression condition;
             if (receiver.Type.IsReferenceType || receiver.Type.IsValueType || receiverRefKind == RefKind.None)
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var isNotClass = _F.ObjectNotEqual(
                                 _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Default(receiver.Type)),
                                 _F.Null(_F.SpecialType(SpecialType.System_Object)));
-                
+
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
                                     isNotClass,
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));
             }
-            
+
             if (node.Type.SpecialType == SpecialType.System_Void)
             {
                 var whenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull), substituteTemps: false);
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class ConditionalReceiverReplacer: BoundTreeRewriter
+        private class ConditionalReceiverReplacer : BoundTreeRewriter
         {
             private readonly BoundExpression _receiver;
             private readonly int _receiverId;
@@ -992,11 +992,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we must replace exactly one node
             private int _replaced;
 #endif
-                       
+
             private ConditionalReceiverReplacer(BoundExpression receiver, int receiverId)
             {
-                this._receiver = receiver;
-                this._receiverId = receiverId;
+                _receiver = receiver;
+                _receiverId = receiverId;
             }
 
             public static BoundStatement Replace(BoundNode node, BoundExpression receiver, int receiverID)
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
             {
-                if (node.Id == this._receiverId)
+                if (node.Id == _receiverId)
                 {
 #if DEBUG
                     _replaced++;

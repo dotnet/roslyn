@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool IsWindowsAssemblyIdentity(this AssemblyIdentity assemblyIdentity)
         {
-            return IsWindowsAssemblyName(assemblyIdentity.Name) && 
+            return IsWindowsAssemblyName(assemblyIdentity.Name) &&
                 assemblyIdentity.ContentType == System.Reflection.AssemblyContentType.WindowsRuntime;
         }
 
@@ -396,10 +396,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// IL offset from outermost scope to innermost.
         /// </summary>
         internal static void GetScopes(
-            this ISymUnmanagedReader symReader, 
-            int methodToken, 
-            int methodVersion, 
-            int ilOffset, 
+            this ISymUnmanagedReader symReader,
+            int methodToken,
+            int methodVersion,
+            int ilOffset,
             bool isScopeEndInclusive,
             ArrayBuilder<ISymUnmanagedScope> allScopes,
             ArrayBuilder<ISymUnmanagedScope> containingScopes)

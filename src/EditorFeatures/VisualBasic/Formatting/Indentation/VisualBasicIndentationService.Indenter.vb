@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 If containingToken.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse
                    containingToken.IsKind(SyntaxKind.InterpolatedStringText) OrElse
                     (containingToken.IsKind(SyntaxKind.CloseBraceToken) AndAlso token.Parent.IsKind(SyntaxKind.Interpolation)) Then
-                     Return IndentFromStartOfLine(0)
+                    Return IndentFromStartOfLine(0)
                 End If
                 If containingToken.Kind = SyntaxKind.StringLiteralToken AndAlso containingToken.FullSpan.Contains(position) Then
                     Return IndentFromStartOfLine(0)

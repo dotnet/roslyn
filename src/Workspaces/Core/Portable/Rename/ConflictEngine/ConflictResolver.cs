@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (renamedSymbol.ContainingSymbol.IsKind(SymbolKind.NamedType))
             {
                 var otherThingsNamedTheSame = renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name)
-                                                       .Where(s => !s.Equals(renamedSymbol) && 
+                                                       .Where(s => !s.Equals(renamedSymbol) &&
                                                                    string.Equals(s.MetadataName, renamedSymbol.MetadataName, StringComparison.Ordinal) &&
                                                                    (s.Kind != SymbolKind.Method || renamedSymbol.Kind != SymbolKind.Method));
 

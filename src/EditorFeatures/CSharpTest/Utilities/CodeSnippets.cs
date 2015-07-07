@@ -1,4 +1,5 @@
-﻿namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
+﻿
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
 {
     internal static class CodeSnippets
     {

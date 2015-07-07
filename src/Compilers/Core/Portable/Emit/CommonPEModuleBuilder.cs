@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly EmitOptions _emitOptions;
         private readonly ModulePropertiesForSerialization _serializationProperties;
         private readonly ConcurrentCache<ValueTuple<string, string>, string> _normalizedPathsCache = new ConcurrentCache<ValueTuple<string, string>, string>(16);
-        
+
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly StringTokenMap _stringsInILMap = new StringTokenMap();
         private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
@@ -846,12 +847,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.OutputKind.IsNetModule() ? null : (Cci.IAssemblyReference)this;
         }
 
-        ushort Cci.IModule.DllCharacteristics
+        DllCharacteristics Cci.IModule.DllCharacteristics
         {
             get { return _serializationProperties.DllCharacteristics; }
         }
 
-        uint Cci.IModule.FileAlignment
+        int Cci.IModule.FileAlignment
         {
             get { return _serializationProperties.FileAlignment; }
         }
@@ -866,31 +867,7 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return _serializationProperties.ILOnly; }
         }
 
-        Cci.ModuleKind Cci.IModule.Kind
-        {
-            get
-            {
-                switch (_outputKind)
-                {
-                    case OutputKind.ConsoleApplication:
-                        return Cci.ModuleKind.ConsoleApplication;
-
-                    case OutputKind.WindowsRuntimeApplication: // TODO: separate ModuleKind?
-                    case OutputKind.WindowsApplication:
-                        return Cci.ModuleKind.WindowsApplication;
-
-                    case OutputKind.WindowsRuntimeMetadata:
-                        return Cci.ModuleKind.WindowsRuntimeMetadata;
-
-                    case OutputKind.DynamicallyLinkedLibrary:
-                    case OutputKind.NetModule:
-                        return Cci.ModuleKind.DynamicallyLinkedLibrary;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(_outputKind);
-                }
-            }
-        }
+        OutputKind Cci.IModule.Kind => _outputKind;
 
         byte Cci.IModule.MetadataFormatMajorVersion
         {
@@ -927,7 +904,7 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return _serializationProperties.StrongNameSigned; }
         }
 
-        Cci.Machine Cci.IModule.Machine
+        Machine Cci.IModule.Machine
         {
             get { return _serializationProperties.Machine; }
         }

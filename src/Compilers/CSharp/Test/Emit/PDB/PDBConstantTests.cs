@@ -292,7 +292,7 @@ this is a string constant that is too long to fit into the PDB"";
 }
 ";
             var c = CompileAndVerify(text, options: TestOptions.DebugDll);
-            
+
             c.VerifyPdb("C.M", @"
 <symbols>
   <methods>

@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             builder.AddRange(_previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
         }
-        
+
         private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
         {
             if (_syntaxMapOpt == null)

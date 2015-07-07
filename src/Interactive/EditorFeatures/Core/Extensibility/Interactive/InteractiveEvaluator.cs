@@ -2,6 +2,7 @@
 
 extern alias WORKSPACES;
 
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -89,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _interactiveHost.ProcessStarting += ProcessStarting;
         }
 
-        public IContentType ContentType 
+        public IContentType ContentType
         {
-            get 
+            get
             {
                 return _contentType;
             }

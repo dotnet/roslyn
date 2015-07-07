@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <returns>The formatted tree's root node.</returns>
         public static SyntaxNode Format(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Format(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules:null, cancellationToken: cancellationToken);
+            return Format(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules: null, cancellationToken: cancellationToken);
         }
 
         /// <summary>

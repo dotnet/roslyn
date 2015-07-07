@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
-        
+
         public sealed override ImmutableArray<Location> Locations
         {
             get

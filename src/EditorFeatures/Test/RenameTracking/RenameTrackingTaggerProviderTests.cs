@@ -920,7 +920,7 @@ End Enum";
         [Trait(Traits.Feature, Traits.Features.RenameTracking)]
         public void RenameTrackingDoesNotProvideDiagnosticAfterCancellation()
         {
-           var code = @"
+            var code = @"
 class C$$
 {
 }";

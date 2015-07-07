@@ -180,7 +180,7 @@ public class DP20<T>
             var workspaceXml = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
-            
+
             for (int i = 0; i <= 4; i++)
             {
                 workspaceXml += $@"

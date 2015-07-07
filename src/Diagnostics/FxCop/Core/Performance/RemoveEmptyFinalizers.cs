@@ -40,7 +40,7 @@ namespace Microsoft.AnalyzerPowerPack.Performance
                     {
                         return;
                     }
-                    
+
                     context.RegisterCodeBlockEndAction(codeBlockContext =>
                     {
                         if (IsEmptyFinalizer(codeBlockContext.CodeBlock, context.SemanticModel))
@@ -51,7 +51,7 @@ namespace Microsoft.AnalyzerPowerPack.Performance
                 });
         }
 
-        
+
         private static bool IsFinalizer(IMethodSymbol method)
         {
             if (method.MethodKind == MethodKind.Destructor)

@@ -696,7 +696,7 @@ End Class
         End Sub
 
         <Fact>
-        Sub AsyncAndClosure()
+        Public Sub AsyncAndClosure()
             Dim source =
 <compilation>
     <file>

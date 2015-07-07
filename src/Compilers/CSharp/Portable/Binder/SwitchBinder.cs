@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Skipping the first label symbol ensures that the errors (if any),
                         // are reported on all but the first duplicate case label.
                         diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location,
-                            label.SwitchCaseLabelConstant == null ? label.Name : label.SwitchCaseLabelConstant.Value);
+                            label.SwitchCaseLabelConstant?.Value ?? label.Name);
                         hasDuplicateErrors = true;
                     }
                     break;

@@ -307,6 +307,6 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal(3, newList.Count);
             Assert.Equal(2, newList.SeparatorCount);
             Assert.Equal(1, newList.GetSeparator(1).GetLeadingTrivia().Count);
+        }
     }
-}
 }

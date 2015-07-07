@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methodId = GetTopLevelMethodId();
                     }
 
-                    DebugId closureId = default(DebugId); 
+                    DebugId closureId = default(DebugId);
                     _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
                     // nongeneric static lambdas can share the frame
@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-#endregion
+        #endregion
 
 #if CHECK_LOCALS
         /// <summary>

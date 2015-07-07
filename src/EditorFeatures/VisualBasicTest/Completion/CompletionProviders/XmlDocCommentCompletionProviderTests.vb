@@ -360,7 +360,7 @@ End Module]]></File>.Value
     End Sub
 
     <WorkItem(638653)>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AllowTypingDoubleQuote()
         Dim text = <File>
 Class C(Of T)

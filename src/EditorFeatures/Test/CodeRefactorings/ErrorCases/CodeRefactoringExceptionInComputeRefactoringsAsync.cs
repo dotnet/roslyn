@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService.ErrorCases
 {
-    class ExceptionInComputeRefactoringsAsync : CodeRefactoringProvider
+    internal class ExceptionInComputeRefactoringsAsync : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {

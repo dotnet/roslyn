@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         //   (i.e. both MethodDeclaration and TypeDeclaration must precede TypeParameter label).
         internal enum Label
         {
-            ConstructorDeclaration, 
+            ConstructorDeclaration,
             Block,
             CheckedStatement,
             UnsafeStatement,
@@ -230,16 +230,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
                 case Label.YieldStatement:
-                case Label.FromClauseLambda:        
-                case Label.LetClauseLambda:                 
+                case Label.FromClauseLambda:
+                case Label.LetClauseLambda:
                 case Label.WhereClauseLambda:
                 case Label.OrderByClause:
-                case Label.OrderingLambda:                  
-                case Label.SelectClauseLambda:              
-                case Label.JoinClauseLambda:                
-                case Label.JoinIntoClause:                  
-                case Label.GroupClauseLambda:               
-                case Label.QueryContinuation:               
+                case Label.OrderingLambda:
+                case Label.SelectClauseLambda:
+                case Label.JoinClauseLambda:
+                case Label.JoinIntoClause:
+                case Label.GroupClauseLambda:
+                case Label.QueryContinuation:
                     return 1;
 
                 default:
@@ -723,8 +723,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // No block can be matched with the root block.
             // Note that in constructors the root is the constructor declaration, since we need to include 
             // the constructor initializer in the match.
-            if (leftBlock.Parent == null || 
-                rightBlock.Parent == null || 
+            if (leftBlock.Parent == null ||
+                rightBlock.Parent == null ||
                 leftBlock.Parent.IsKind(SyntaxKind.ConstructorDeclaration) ||
                 rightBlock.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
             {
