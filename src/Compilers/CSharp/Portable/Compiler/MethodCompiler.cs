@@ -1530,6 +1530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Binder binder = factory.GetBinder(arrowExpression);
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
+                    importChain = binder.ImportChain;
                     // Add locals
                     return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
