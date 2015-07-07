@@ -1472,17 +1472,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var symbol in locals)
             {
-                ReportIfUnused(symbol, assigned: true);
+                ReportIfUnused(symbol);
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol, bool assigned)
+        private void ReportIfUnused(LocalFunctionSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
                 if (!string.IsNullOrEmpty(symbol.Name)) // avoid diagnostics for parser-inserted names
                 {
-                    Diagnostics.Add(assigned && _writtenVariables.Contains(symbol) ? ErrorCode.WRN_UnreferencedVarAssg : ErrorCode.WRN_UnreferencedVar, symbol.Locations[0], symbol.Name);
+                    Diagnostics.Add(ErrorCode.WRN_UnreferencedVar, symbol.Locations[0], symbol.Name);
                 }
             }
         }

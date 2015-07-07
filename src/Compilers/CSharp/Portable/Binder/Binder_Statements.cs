@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundBody = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundFixedStatement(node,
-                                           GetDeclaredLocalsForScope(node),
+                                           GetDeclaredLocalsForScope(),
                                            boundMultipleDeclarations,
                                            boundBody);
         }
@@ -2134,8 +2134,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBlock(
                 node,
-                blockBinder.GetDeclaredLocalsForScope(node),
-                blockBinder.GetDeclaredLocalFunctionsForScope(node),
+                blockBinder.GetDeclaredLocalsForScope(),
+                blockBinder.GetDeclaredLocalFunctionsForScope(),
                 boundStatements.ToImmutableAndFree());
         }
 
