@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Sequence:
                         // We don't need promote short-lived variables defined by the sequence to long-lived,
-                        // since neith the side-effects nor the value of the sequence contains await 
+                        // since neither the side-effects nor the value of the sequence contains await 
                         // (otherwise it would be converted to a SpillSequenceBuilder).
                         var sequence = (BoundSequence)expression;
                         builder.AddLocals(sequence.Locals);
@@ -955,12 +955,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Type.SpecialType == SpecialType.System_Void)
             {
-                var wnenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull), substituteTemps: false);
-                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.Id);
+                var whenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.ExpressionStatement(whenNotNull), substituteTemps: false);
+                whenNotNullStatement = ConditionalReceiverReplacer.Replace(whenNotNullStatement, receiver, node.Id);
 
                 Debug.Assert(whenNullOpt == null || !LocalRewriter.ReadIsSideeffecting(whenNullOpt));
 
-                receiverBuilder.AddStatement(_F.If(condition, wnenNotNullStatement));
+                receiverBuilder.AddStatement(_F.If(condition, whenNotNullStatement));
 
                 return receiverBuilder.Update(_F.Default(node.Type));
             }
@@ -968,15 +968,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(_F.Syntax.IsKind(SyntaxKind.AwaitExpression));
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.AwaitSpill, syntax: _F.Syntax);
-                var wnenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.Assignment(_F.Local(tmp), whenNotNull), substituteTemps: false);
-                wnenNotNullStatement = ConditionalReceiverReplacer.Replace(wnenNotNullStatement, receiver, node.Id);
+                var whenNotNullStatement = UpdateStatement(whenNotNullBuilder, _F.Assignment(_F.Local(tmp), whenNotNull), substituteTemps: false);
+                whenNotNullStatement = ConditionalReceiverReplacer.Replace(whenNotNullStatement, receiver, node.Id);
 
                 whenNullOpt = whenNullOpt ?? _F.Default(node.Type);
 
                 receiverBuilder.AddLocal(tmp, _F.Diagnostics);
                 receiverBuilder.AddStatement(
                     _F.If(condition,
-                        wnenNotNullStatement,
+                        whenNotNullStatement,
                         UpdateStatement(whenNullBuilder, _F.Assignment(_F.Local(tmp), whenNullOpt), substituteTemps: false)));
 
                 return receiverBuilder.Update(_F.Local(tmp));

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return null;
             }
 
-            // member sigature has changed
+            // member signature has changed
             if (!oldMember.IsEquivalentTo(newMember, topLevel: true))
             {
                 return null;

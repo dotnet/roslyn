@@ -2110,7 +2110,7 @@ namespace N");
 
         [WorkItem(537054, "DevDiv")]
         [Fact]
-        public void RemoveReturnTypeOnGenericMethodWithTyeParamConstraint()
+        public void RemoveReturnTypeOnGenericMethodWithTypeParamConstraint()
         {
             SourceText oldText = SourceText.From(
 @"class Test

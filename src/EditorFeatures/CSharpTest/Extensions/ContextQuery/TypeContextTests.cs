@@ -435,7 +435,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void YieldReturenStatement()
+        public void YieldReturnStatement()
         {
             VerifyTrue(AddInsideMethod(@"yield return $$"));
         }

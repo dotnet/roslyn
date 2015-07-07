@@ -3353,7 +3353,7 @@ checkNullable:
                 ' While there is a ParseTypeName function, the old parser called ParseName.  For now
                 ' call ParseName and then break up the name to make a ImplementsClauseItem. The
                 ' parameters passed to ParseName guarantee that the name is qualified. The first
-                ' parameter ensures qualfication.  The last parameter ensures that it is not generic.
+                ' parameter ensures qualification.  The last parameter ensures that it is not generic.
 
                 ' AllowGlobalNameSpace
                 ' Allow generic arguments

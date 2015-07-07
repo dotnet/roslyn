@@ -1898,7 +1898,7 @@ End Class
 
 #End Region
 
-#Region "RemoveParamter tests"
+#Region "RemoveParameter tests"
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub RemoveParameter1()

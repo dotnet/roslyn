@@ -1421,7 +1421,7 @@ End Module
 
         <WorkItem(531479)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub EscapeNextStatementIfNeedded()
+        Public Sub EscapeNextStatementIfNeeded()
             Dim markup =
 <File>
 Imports System.Collections.Generic
@@ -2488,7 +2488,7 @@ End Class
         <WorkItem(844482)>
         <WorkItem(1031406)>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)>
-        Public Sub DoNotRemoveCastFromDerivedToBaseWithImplicitRefernce()
+        Public Sub DoNotRemoveCastFromDerivedToBaseWithImplicitReference()
             ' Cast removal changes the runtime behavior of the program.
             Dim markup =
 <File>

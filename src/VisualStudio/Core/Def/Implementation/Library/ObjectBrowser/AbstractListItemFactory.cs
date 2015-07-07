@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return new TypeListItem(projectId, namedTypeSymbol, displayText, fullNameText, searchText, hidden);
         }
 
-        protected TypeListItem CreateFullyQualifedTypeListItem(INamedTypeSymbol namedTypeSymbol, ProjectId projectId, bool hidden)
+        protected TypeListItem CreateFullyQualifiedTypeListItem(INamedTypeSymbol namedTypeSymbol, ProjectId projectId, bool hidden)
         {
             var displayText = namedTypeSymbol.SpecialType.ToPredefinedType() != PredefinedType.None
                 ? namedTypeSymbol.ToDisplayString(s_predefinedTypeDisplay)
@@ -719,7 +719,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var types = GetAccessibleTypes(namespaceSymbol, compilation);
 
             var listItems = fullyQualified
-                ? CreateListItemsFromSymbols(types, compilation, projectId, CreateFullyQualifedTypeListItem)
+                ? CreateListItemsFromSymbols(types, compilation, projectId, CreateFullyQualifiedTypeListItem)
                 : CreateListItemsFromSymbols(types, compilation, projectId, CreateSimpleTypeListItem);
 
             if (searchString == null)

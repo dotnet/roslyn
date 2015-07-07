@@ -1939,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // The old source symbol has the same identity as the new one.
                 // Two distinct assembly symbols that are referenced by the compilations have to have distinct identities.
                 // If the compilation has two metadata references whose identities unify the compiler de-dups them and only creates
-                // a single PE symbol. Thus comparing assemblies by identity paritions them so that each partition
+                // a single PE symbol. Thus comparing assemblies by identity partitions them so that each partition
                 // contains assemblies that originated from the same Gen0 assembly.
 
                 return x.Identity.Equals(y.Identity);
@@ -2774,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // field and property initializers in update.ChangedDeclarations and we only need 
                     // the current top match to map nodes from all unchanged initializers.
                     //
-                    // We will create an aggregate syntax map even in cases when we don't neccessarily need it,
+                    // We will create an aggregate syntax map even in cases when we don't necessarily need it,
                     // for example if none of the edited declarations are active. It's ok to have a map that we don't need.
                     var aggregateSyntaxMap = (oldCtor != null && update.ChangedDeclarations.Count > 0) ?
                         CreateAggregateSyntaxMap(topMatch.ReverseMatches, update.ChangedDeclarations) : null;

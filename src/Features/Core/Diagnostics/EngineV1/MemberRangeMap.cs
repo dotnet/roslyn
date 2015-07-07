@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var versionsInTrackingMap = data.VersionTrackingMap.Keys;
                 var versionsInRangeMap = data.MemberRangeMap.Keys;
 
-                // there shoudn't be any version that is not in the versin map
+                // there shoudn't be any version that is not in the version map
                 foreach (var version in versionsInRangeMap)
                 {
                     Contract.Requires(versionsInVersionMap.Contains(version));

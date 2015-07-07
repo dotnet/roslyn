@@ -1273,7 +1273,7 @@ class C { }
             var related2 = related[1].GetRelatedDirectives();
             Assert.True(related.SequenceEqual(related2));
 
-            // get directives realted to else
+            // get directives related to else
             var related3 = related[3].GetRelatedDirectives();
             Assert.True(related.SequenceEqual(related3));
         }

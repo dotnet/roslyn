@@ -1071,7 +1071,7 @@ public class Test
     {
         var b1 = new Derived(); // Both Warning CS0219
         var b2 = (Base)new Derived(); // Both NO Warn (reference type)
-        var b3 = (Derived)((Base)new Derived()); // Rolsyn Warning CS0219
+        var b3 = (Derived)((Base)new Derived()); // Roslyn Warning CS0219
     }
 }
 ";
@@ -1081,7 +1081,7 @@ public class Test
     //         var b1 = new Derived(); // Both Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
     // (10,13): warning CS0219: The variable 'b3' is assigned but its value is never used
-    //         var b3 = (Derived)((Base)new Derived()); // Rolsyn Warning CS0219
+    //         var b3 = (Derived)((Base)new Derived()); // Roslyn Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
         }
 

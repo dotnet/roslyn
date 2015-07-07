@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     Debug.Assert(typeParameter.TypeParameterKind == TypeParameterKind.Method);
 
                     // The method symbol we are building will be using IndexedTypeParameterSymbols as 
-                    // its type parametes, therefore, we should return them here as well.
+                    // its type parameters, therefore, we should return them here as well.
                     return IndexedTypeParameterSymbol.GetTypeParameter(typeParameter.Ordinal);
                 }
             }

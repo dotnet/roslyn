@@ -127,9 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly Workspace _workspace;
             private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
-            public BuildTableDataSource(Workspace workspce, ExternalErrorDiagnosticUpdateSource errorSource)
+            public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource)
             {
-                _workspace = workspce;
+                _workspace = workspace;
                 _buildErrorSource = errorSource;
 
                 ConnectToBuildUpdateSource(errorSource);
