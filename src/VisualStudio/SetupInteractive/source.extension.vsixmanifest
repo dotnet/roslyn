@@ -13,7 +13,7 @@
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-    <Dependency Version="|VisualStudioComponents;GetBuildVersion|" DisplayName="Roslyn Components" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
+    <Dependency Version="|VisualStudioSetup;GetBuildVersion|" DisplayName="Roslyn Components" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
     <Dependency Version="|VisualStudioInteractiveComponents;GetBuildVersion|" DisplayName="Roslyn Interactive Components" Id="500fff63-afcf-4195-8db4-3fa8a5180e79" />
   </Dependencies>
   <Assets>

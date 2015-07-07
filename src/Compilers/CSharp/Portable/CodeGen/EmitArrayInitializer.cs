@@ -310,15 +310,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // the initial size is a guess.
             // there is no point to be precise here as MemoryStream always has N + 1 storage 
             // and will need to be trimmed regardless
-            var stream = new Cci.MemoryStream((uint)(initializers.Length * 4));
-            var writer = new Cci.BinaryWriter(stream);
+            var writer = new Cci.BlobWriter((uint)(initializers.Length * 4));
 
             SerializeArrayRecursive(writer, initializers);
 
-            return ImmutableArray.Create(stream.Buffer, 0, (int)stream.Position);
+            return writer.ToImmutableArray();
         }
 
-        private void SerializeArrayRecursive(Microsoft.Cci.BinaryWriter bw, ImmutableArray<BoundExpression> inits)
+        private void SerializeArrayRecursive(Cci.BlobWriter bw, ImmutableArray<BoundExpression> inits)
         {
             if (inits.Length != 0)
             {

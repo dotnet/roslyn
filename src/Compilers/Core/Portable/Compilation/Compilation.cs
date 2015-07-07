@@ -1579,6 +1579,15 @@ namespace Microsoft.CodeAnalysis
                 return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
+            // Do not waste a slot in the submission chain for submissions that contain no executable code
+            // (they may only contain #r directives, usings, etc.)
+            if (IsSubmission && !HasCodeToEmit())
+            {
+                // Still report diagnostics since downstream submissions will assume there are no errors.
+                diagnostics.AddRange(this.GetDiagnostics());
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+            }
+
             var moduleBeingBuilt = this.CreateModuleBuilder(
                 options,
                 manifestResources,

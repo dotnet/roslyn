@@ -2250,12 +2250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            // Do not waste a slot in the submission chain for submissions that contain no executable code
-            // (they may only contain #r directives, usings, etc.)
-            if (IsSubmission && !HasCodeToEmit())
-            {
-                return null;
-            }
+            Debug.Assert(!IsSubmission || HasCodeToEmit());
 
             string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)
