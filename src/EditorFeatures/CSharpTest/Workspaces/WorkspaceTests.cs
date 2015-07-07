@@ -761,7 +761,7 @@ class D { }
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
                     WaitForWorkspaceOperationsToComplete(workspace);
 
-                    // Wait to recieve signal that events have fired.
+                    // Wait to receive signal that events have fired.
                     Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
                                             string.Format("event 'DocumentOpened' was not fired within {0} minutes.",
                                             longEventTimeout.Minutes));
@@ -779,7 +779,7 @@ class D { }
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
                     WaitForWorkspaceOperationsToComplete(workspace);
 
-                    // Verifiying that an event has not been called is difficult to prove.  
+                    // Verifying that an event has not been called is difficult to prove.  
                     // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
                     Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
                                             string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was removed from the list.",

@@ -1617,7 +1617,7 @@ End Sub</x>.Value)
 <x>Sub m(Of a)()
 End Sub</x>.Value)
 
-            ' multipe type parameters with constraints
+            ' multiple type parameters with constraints
             VerifySyntax(Of MethodStatementSyntax)(
                 _g.WithTypeConstraint(
                     _g.WithTypeConstraint(

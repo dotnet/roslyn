@@ -4775,7 +4775,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PeopertyUpdate_InstanceCtorInsertExplicit()
+        Public Sub PropertyUpdate_InstanceCtorInsertExplicit()
             Dim src1 = "Class C : Private Property a As Integer : End Class"
             Dim src2 = "Class C : Private Property a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -4865,7 +4865,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4875,7 +4875,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4885,7 +4885,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4895,7 +4895,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4905,7 +4905,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4915,7 +4915,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>

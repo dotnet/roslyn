@@ -11396,7 +11396,7 @@ public class Program
 
         [WorkItem(10616, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void EnumAsOptinalParameter()
+        public void EnumAsOptionalParameter()
         {
             string source = @"
 using System;

@@ -276,7 +276,7 @@
   <data name="SelectionMustBePartOfExec" xml:space="preserve">
     <value>Selection must be part of executable statements</value>
   </data>
-  <data name="NextStatementControlVariabl" xml:space="preserve">
+  <data name="NextStatementControlVariable" xml:space="preserve">
     <value>next statement control variable doesn't have matching declaration statement</value>
   </data>
   <data name="SelectionDoesntContainAny" xml:space="preserve">

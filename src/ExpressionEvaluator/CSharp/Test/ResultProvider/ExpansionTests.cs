@@ -2136,7 +2136,7 @@ class C : B, I
         }
 
         [Fact]
-        public void NameConflictsWithVirualPropertiesAcrossDeclaredType()
+        public void NameConflictsWithVirtualPropertiesAcrossDeclaredType()
         {
             var source = @"
 class A 

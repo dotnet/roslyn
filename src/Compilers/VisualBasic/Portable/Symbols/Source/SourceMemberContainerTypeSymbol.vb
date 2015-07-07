@@ -3604,7 +3604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim opInfo As OverloadResolution.OperatorInfo = OverloadResolution.GetOperatorInfo(method.Name)
 
             If Not OverloadResolution.ValidateOverloadedOperator(method, opInfo, diagnostics) Then
-                ' Mulformed operator, but still an operator.
+                ' Malformed operator, but still an operator.
                 Return True
             End If
 

@@ -513,7 +513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim leadingTrivia = node.GetLeadingTrivia()
 
             ' Rules for stripping trivia: 
-            ' 1) If there is a pp directive, then it (and all precedign trivia) *must* be stripped.
+            ' 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
             '    This rule supercedes all other rules.
             ' 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
             '    followed by 5 new lines, then the doc comment still must stay with the node.  This

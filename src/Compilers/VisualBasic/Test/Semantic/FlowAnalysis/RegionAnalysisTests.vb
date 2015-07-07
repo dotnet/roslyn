@@ -3463,10 +3463,10 @@ End Class
 
         <WorkItem(539286, "DevDiv")>
         <Fact()>
-        Public Sub RegionAnalysisInPtopertyInitializers_Simple()
+        Public Sub RegionAnalysisInPropertyInitializers_Simple()
 
             Dim dataResults1 = CompileAndAnalyzeDataFlow(
-<compilation name="RegionAnalysisInPtopertyInitializers_Simple">
+<compilation>
     <file name="a.b">
 Class Class1
     Public Shared A As Integer = 10

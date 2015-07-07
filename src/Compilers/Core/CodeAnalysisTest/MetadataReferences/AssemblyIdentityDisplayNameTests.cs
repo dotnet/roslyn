@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Test limitation:
             // When constructing INameObject with CANOF.PARSE_DISPLAY_NAME option,
             // the Version=* is treated as unspecified version. That's also done by TryParseDisplayName,
-            // but outside of TryPartseVersion, which we are testing here.
+            // but outside of TryParseVersion, which we are testing here.
             if (value == "*")
             {
                 Assert.Equal((AssemblyIdentityParts)0, fusionParts);

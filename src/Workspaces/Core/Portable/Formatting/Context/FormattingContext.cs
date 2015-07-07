@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // our anchor operation is very flexible so it not only let one anchor to contain others, it also
             // let anchors to overlap each other for whatever reasons
-            // below, we will try to flat the overlaped anchor span, and find the last position (token) of that span
+            // below, we will try to flat the overlapped anchor span, and find the last position (token) of that span
 
             // find other anchors overlapping with current anchor span
             var anchorData = _anchorTree.GetOverlappingIntervals(baseAnchorData.TextSpan.Start, baseAnchorData.TextSpan.Length);

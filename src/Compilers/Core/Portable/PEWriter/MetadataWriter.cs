@@ -440,6 +440,8 @@ namespace Microsoft.Cci
 
         internal const int MappedFieldDataAlignment = 8;
 
+        internal IModule Module => module;
+
         private ImmutableArray<int> GetRowCounts()
         {
             var rowCounts = new int[MetadataTokens.TableCount];
@@ -1931,7 +1933,7 @@ namespace Microsoft.Cci
             // metadata version length
             writer.WriteUint(MetadataSizes.MetadataVersionPaddedLength);
 
-            string targetRuntimeVersion = module.TargetRuntimeVersion;
+            string targetRuntimeVersion = module.Properties.TargetRuntimeVersion;
 
             int n = Math.Min(MetadataSizes.MetadataVersionPaddedLength, targetRuntimeVersion.Length);
             for (int i = 0; i < n; i++)
@@ -2011,7 +2013,7 @@ namespace Microsoft.Cci
             // version ID that is imposed by the caller (the same as the previous module version ID).
             // Therefore we do not have to fill in a new module version ID in the generated metadata
             // stream.
-            Debug.Assert(this.module.PersistentIdentifier != default(Guid));
+            Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
 
             int moduleVersionIdOffsetInMetadataStream;
             int entryPointToken;
@@ -2089,6 +2091,7 @@ namespace Microsoft.Cci
                 ilStreamSize: ilWriter.Length,
                 mappedFieldDataSize: mappedFieldDataWriter.Length,
                 resourceDataSize: managedResourceDataWriter.Length,
+                strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
                 isMinimalDelta: IsMinimalDelta);
 
             int methodBodyStreamRva = calculateMethodBodyStreamRva(metadataSizes);
@@ -2097,6 +2100,30 @@ namespace Microsoft.Cci
             int guidHeapStartOffset;
             SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, entryPointToken, out guidHeapStartOffset);
             moduleVersionIdOffsetInMetadataStream = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
+        }
+
+        private static int CalculateStrongNameSignatureSize(IModule module)
+        {
+            IAssembly assembly = module.AsAssembly;
+            if (assembly == null)
+            {
+                return 0;
+            }
+
+            // EDMAURER the count of characters divided by two because the each pair of characters will turn in to one byte.
+            int keySize = (assembly.SignatureKey == null) ? 0 : assembly.SignatureKey.Length / 2;
+
+            if (keySize == 0)
+            {
+                keySize = assembly.PublicKey.Length;
+            }
+
+            if (keySize == 0)
+            {
+                return 0;
+            }
+
+            return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
 
         private void SerializeMetadata(
@@ -3407,7 +3434,7 @@ namespace Microsoft.Cci
             CheckPathLength(this.module.ModuleName);
 
             // MVID is specified upfront when emitting EnC delta:
-            Guid mvid = this.module.PersistentIdentifier;
+            Guid mvid = this.module.Properties.PersistentIdentifier;
 
             if (mvid == default(Guid) && !_deterministic)
             {
@@ -3624,8 +3651,8 @@ namespace Microsoft.Cci
             const ulong sortedTables = 0x16003301fa00;
 
             writer.WriteUint(0); // reserved
-            writer.WriteByte(module.MetadataFormatMajorVersion);
-            writer.WriteByte(module.MetadataFormatMinorVersion);
+            writer.WriteByte(module.Properties.MetadataFormatMajorVersion);
+            writer.WriteByte(module.Properties.MetadataFormatMinorVersion);
             writer.WriteByte((byte)heapSizes);
             writer.WriteByte(1); // reserved
             writer.WriteUlong(metadataSizes.PresentTablesMask);

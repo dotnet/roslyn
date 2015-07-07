@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 // Bail out early because we have already simplified an ancestor of this node (except in the QualifiedCref case).
                 // We need to keep going in case this node is under a QualifiedCref because it is possible to have multiple simplifications within the same QualifiedCref.
                 // For example, consider <see cref="A.M(Nullable{int})"/>. The 'A.M(Nullable{int})' here is represented by a single QualifiedCref node in the syntax tree.
-                // It is possible to have a simplification to remove the 'A.' qualification for the QualifiedCref itself as well as another simplfication to change 'Nullable{int}'
+                // It is possible to have a simplification to remove the 'A.' qualification for the QualifiedCref itself as well as another simplification to change 'Nullable{int}'
                 // to 'int?' in the GenericName for the 'Nullable{T}' that is nested inside this QualifiedCref. We need to keep going so that the latter simplification can be
                 // made available.
                 return;

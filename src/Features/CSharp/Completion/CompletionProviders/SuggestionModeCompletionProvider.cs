@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
-            // We might be in the arguments to a parenthsized lambda
+            // We might be in the arguments to a parenthesized lambda
             if (token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken)
             {
                 if (token.Parent != null && token.Parent is ParameterListSyntax)

@@ -674,7 +674,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 if (_editCount == 1)
                 {
-                    List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>> elementAndPathes = null;
+                    List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>> elementAndPaths = null;
                     if (_batchElements.Count > 0)
                     {
                         foreach (var element in _batchElements)
@@ -682,8 +682,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPathes = elementAndPathes ?? new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
-                                elementAndPathes.Add(ValueTuple.Create(element, new SyntaxPath(node)));
+                                elementAndPaths = elementAndPaths ?? new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }
                     }
@@ -701,9 +701,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     // Ensure the file is prettylisted, even if we didn't make any edits
                     CodeModelService.EnsureBufferFormatted(_invisibleEditor.TextBuffer);
 
-                    if (elementAndPathes != null)
+                    if (elementAndPaths != null)
                     {
-                        foreach (var elementAndPath in elementAndPathes)
+                        foreach (var elementAndPath in elementAndPaths)
                         {
                             // make sure the element is there.
                             var existingElement = _elementTable.TryGetValue(elementAndPath.Item1.NodeKey);

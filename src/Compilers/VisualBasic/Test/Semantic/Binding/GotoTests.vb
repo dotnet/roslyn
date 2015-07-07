@@ -230,7 +230,7 @@ End Module
 
         <WorkItem(543364, "DevDiv")>
         <Fact()>
-        Public Sub LabelAfterElse_NotNumberic()
+        Public Sub LabelAfterElse_NotNumeric()
             CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="LabelAfterElse">
     <file name="a.vb">

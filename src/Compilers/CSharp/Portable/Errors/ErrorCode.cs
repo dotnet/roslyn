@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_FatalError = 10,
         //ERR_CantImportBase = 11,
         ERR_NoTypeDef = 12,
-        //FTL_MetadataEmitFailure = 13,     Roslyn does not catch stream writing exceptions. Those are proprogated to the caller.
+        //FTL_MetadataEmitFailure = 13,     Roslyn does not catch stream writing exceptions. Those are propagated to the caller.
         //FTL_RequiredFileNotFound = 14,
         //ERR_ClassNameTooLong = 15,    Deprecated in favor of ERR_MetadataNameTooLong.
         ERR_OutputWriteFailed = 16,

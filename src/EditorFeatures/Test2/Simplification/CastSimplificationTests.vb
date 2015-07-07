@@ -964,7 +964,7 @@ static class A
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529843)>
-        Public Sub CSharp_Remove_CastToObjectTypeInRefenceComparison()
+        Public Sub CSharp_Remove_CastToObjectTypeInReferenceComparison()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

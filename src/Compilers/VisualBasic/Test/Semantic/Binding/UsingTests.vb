@@ -1260,9 +1260,9 @@ End Structure
 
         <WorkItem(543059, "DevDiv")>
         <Fact()>
-        Public Sub MultileResource()
+        Public Sub MultipleResource()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Imports System
@@ -1305,9 +1305,9 @@ BC30203: Identifier expected.
 
         <WorkItem(543059, "DevDiv")>
         <Fact()>
-        Public Sub MultileResource_1()
+        Public Sub MultipleResource_2()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Option Strict On
@@ -1572,9 +1572,9 @@ End Class
 
         <WorkItem(543059, "DevDiv")>
         <Fact()>
-        Public Sub MultipleResource()
+        Public Sub MultipleResource_3()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Class Program
@@ -1607,9 +1607,9 @@ End Class
 
         <WorkItem(543059, "DevDiv")>
         <Fact()>
-        Public Sub MultipleResource_1()
+        Public Sub MultipleResource_4()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-    <compilation name="MultileResource">
+    <compilation>
         <file name="a.vb">
 Option Infer On
 Option Strict On

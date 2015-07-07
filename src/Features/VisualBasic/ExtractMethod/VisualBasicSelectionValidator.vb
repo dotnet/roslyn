@@ -280,7 +280,7 @@ result.ReadOutside().Any(Function(s) s Is local) Then
                Not symbol.Locations.First().IsInSource OrElse
                symbol.Locations.First().SourceTree IsNot semanticModel.SyntaxTree Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.None, VBFeaturesResources.NextStatementControlVariabl)
+                    .Status = .Status.With(OperationStatusFlag.None, VBFeaturesResources.NextStatementControlVariable)
                 End With
                 Return clone
             End If
@@ -290,7 +290,7 @@ result.ReadOutside().Any(Function(s) s Is local) Then
             Dim forBlock = root.FindToken(startPosition).GetAncestor(Of ForOrForEachBlockSyntax)()
             If forBlock Is Nothing Then
                 With clone
-                    .Status = .Status.With(OperationStatusFlag.None, VBFeaturesResources.NextStatementControlVariabl)
+                    .Status = .Status.With(OperationStatusFlag.None, VBFeaturesResources.NextStatementControlVariable)
                 End With
                 Return clone
             End If

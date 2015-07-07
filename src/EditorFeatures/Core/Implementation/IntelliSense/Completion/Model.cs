@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         // The CompletionItem the model will use to represent selecting
         // and interacting with the builder. This CompletionItem includes
         // the language specific default tracking span for completion
-        // as determined by CompletionUtilites for that language.
+        // as determined by CompletionUtilities for that language.
         // All models always have a DefaultBuilder set.
         public CompletionItem DefaultBuilder { get; }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // all of the provided CompletionItems to DisplayCompletionItems which will proxy
                 // requests to the original completion items and add the snippet expansion note to
                 // the description if necessary. We won't do this if the list was triggered to show
-                // snippet shorcuts.
+                // snippet shortcuts.
 
                 updatedTotalItems = new List<CompletionItem>();
                 updatedSelectedItem = null;

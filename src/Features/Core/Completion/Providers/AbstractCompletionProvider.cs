@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return null;
             }
 
-            // If we were triggered by typign a character, then do a semantic check to make sure
+            // If we were triggered by typing a character, then do a semantic check to make sure
             // we're still applicable.  If not, then return immediately.
             if (triggerInfo.TriggerReason == CompletionTriggerReason.TypeCharCommand)
             {

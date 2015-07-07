@@ -81,12 +81,18 @@ namespace Microsoft.Cci
         /// </summary>
         public readonly int ResourceDataSize;
 
+        /// <summary>
+        /// Size of strong name hash.
+        /// </summary>
+        public readonly int StrongNameSignatureSize;
+
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
             ImmutableArray<int> heapSizes,
             int ilStreamSize,
             int mappedFieldDataSize,
             int resourceDataSize,
+            int strongNameSignatureSize,
             bool isMinimalDelta)
         {
             Debug.Assert(rowCounts.Length == MetadataTokens.TableCount);
@@ -100,6 +106,7 @@ namespace Microsoft.Cci
             this.ResourceDataSize = resourceDataSize;
             this.ILStreamSize = ilStreamSize;
             this.MappedFieldDataSize = mappedFieldDataSize;
+            this.StrongNameSignatureSize = strongNameSignatureSize;
             this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;

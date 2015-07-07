@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                     // Have to create an invisible member if we have constraints we can't express
                     // with a visible member.
-                    if (HasUnexpressableConstraint(member))
+                    if (HasUnexpressibleConstraint(member))
                     {
                         return true;
                     }
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 return false;
             }
 
-            private bool HasUnexpressableConstraint(ISymbol member)
+            private bool HasUnexpressibleConstraint(ISymbol member)
             {
                 // interface IFoo<T> { void Bar<U>() where U : T; }
                 //
@@ -343,13 +343,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var method = member as IMethodSymbol;
 
-                return method.TypeParameters.Any(IsUnexpressableTypeParameter);
+                return method.TypeParameters.Any(IsUnexpressibleTypeParameter);
             }
 
-            private static bool IsUnexpressableTypeParameter(ITypeParameterSymbol typeParameter)
+            private static bool IsUnexpressibleTypeParameter(ITypeParameterSymbol typeParameter)
             {
                 var condition1 = typeParameter.ConstraintTypes.Count(t => t.TypeKind == TypeKind.Class) >= 2;
-                var condition2 = typeParameter.ConstraintTypes.Any(ts => ts.IsUnexpressableTypeParameterConstraint());
+                var condition2 = typeParameter.ConstraintTypes.Any(ts => ts.IsUnexpressibleTypeParameterConstraint());
                 var condition3 = typeParameter.HasReferenceTypeConstraint && typeParameter.ConstraintTypes.Any(ts => ts.IsReferenceType && ts.SpecialType != SpecialType.System_Object);
 
                 return condition1 || condition2 || condition3;
