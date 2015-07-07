@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public IEnumerable<T> GetOverlappingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
         {
-            return this.GetPreOrderIntervals(start, length, s_overlapsWithTest, introspector);
+            return this.GetInOrderIntervals(start, length, s_overlapsWithTest, introspector);
         }
 
         public IEnumerable<T> GetIntersectingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         public IEnumerable<T> GetContainingIntervals(int start, int length, IIntervalIntrospector<T> introspector)
         {
-            return this.GetPreOrderIntervals(start, length, s_containsTest, introspector);
+            return this.GetInOrderIntervals(start, length, s_containsTest, introspector);
         }
 
         public bool IntersectsWith(int position, IIntervalIntrospector<T> introspector)
@@ -112,104 +113,70 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
 
         private IEnumerable<T> GetInOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
         {
-            if (root != null && GetEnd(root.MaxEndNode.Value, introspector) >= start)
+            if (root == null)
             {
-                int end = start + length;
+                yield break;
+            }
 
-                // The bool indicates if this is the first time we are seeing the node.
-                var candidates = new Stack<ValueTuple<Node, bool>>();
-                candidates.Push(ValueTuple.Create(root, true));
+            var span = new TextSpan(start, length);
 
-                while (candidates.Count > 0)
+            // The bool indicates if this is the first time we are seeing the node.
+            var candidates = new Stack<ValueTuple<Node, bool>>();
+            candidates.Push(ValueTuple.Create(root, true));
+
+            while (candidates.Count > 0)
+            {
+                var currentTuple = candidates.Pop();
+                var currentNode = currentTuple.Item1;
+                Debug.Assert(currentNode != null);
+
+                var firstTime = currentTuple.Item2;
+
+                if (!firstTime)
                 {
-                    var currentTuple = candidates.Pop();
-                    var currentNode = currentTuple.Item1;
-                    Debug.Assert(currentNode != null);
-
-                    var firstTime = currentTuple.Item2;
-
-                    if (!firstTime)
+                    // We're seeing this node for the second time (as we walk back up the left
+                    // side of it).  Now see if it matches our test, and if so return it out.
+                    if (testInterval(currentNode.Value, start, length, introspector))
                     {
-                        // We're seeing this node for the second time (as we walk back up the left
-                        // side of it).  Now see if it matches our test, and if so return it out.
-                        if (testInterval(currentNode.Value, start, length, introspector))
-                        {
-                            yield return currentNode.Value;
-                        }
+                        yield return currentNode.Value;
                     }
-                    else
+                }
+                else
+                {
+                    // First time we're seeing this node.  In order to see the node 'in-order',
+                    // we push the right side, then the node again, then the left side.  This 
+                    // time we mark the current node with 'false' to indicate that it's the
+                    // second time we're seeing it the next time it comes around.
+
+                    // Only bother descending down the left or right side if that side at least 
+                    // intersects with the span we're curious about.  If it doens't intersect then
+                    // it can't intersect/overlap/contain the span in question.
+                    if (MaxSpanIntersectsWith(currentNode.Right, span, introspector))
                     {
-                        // First time we're seeing this node.  In order to see the node 'in-order',
-                        // we push the right side, then the node again, then the left side.  This 
-                        // time we mark the current node with 'false' to indicate that it's the
-                        // second time we're seeing it the next time it comes around.
+                        candidates.Push(ValueTuple.Create(currentNode.Right, true));
+                    }
 
-                        // right children's starts will never be to the left of the parent's start
-                        // so we should consider right subtree only if root's start overlaps with
-                        // interval's End, 
-                        if (introspector.GetStart(currentNode.Value) <= end)
-                        {
-                            var right = currentNode.Right;
-                            if (right != null && GetEnd(right.MaxEndNode.Value, introspector) >= start)
-                            {
-                                candidates.Push(ValueTuple.Create(right, true));
-                            }
-                        }
+                    candidates.Push(ValueTuple.Create(currentNode, false));
 
-                        candidates.Push(ValueTuple.Create(currentNode, false));
-
-                        // only if left's maxVal overlaps with interval's start, we should consider 
-                        // left subtree
-                        var left = currentNode.Left;
-                        if (left != null && GetEnd(left.MaxEndNode.Value, introspector) >= start)
-                        {
-                            candidates.Push(ValueTuple.Create(left, true));
-                        }
+                    if (MaxSpanIntersectsWith(currentNode.Left, span, introspector))
+                    {
+                        candidates.Push(ValueTuple.Create(currentNode.Left, true));
                     }
                 }
             }
         }
 
-        private IEnumerable<T> GetPreOrderIntervals(int start, int length, TestInterval testInterval, IIntervalIntrospector<T> introspector)
+        private static bool MaxSpanIntersectsWith(Node node, TextSpan span, IIntervalIntrospector<T> introspector)
         {
-            if (root == null || GetEnd(root.MaxEndNode.Value, introspector) < start)
+            if (node == null)
             {
-                yield break;
+                return false;
             }
 
-            int end = start + length;
-            var candidates = new Stack<Node>();
+            var start = introspector.GetStart(node.Value);
+            var end = GetEnd(node.MaxEndNode.Value, introspector);
 
-            candidates.Push(root);
-            while (candidates.Count != 0)
-            {
-                var currentNode = candidates.Pop();
-
-                // right children's starts will never be to the left of the parent's start
-                // so we should consider right subtree 
-                // only if root's start overlaps with interval's End, 
-                if (introspector.GetStart(currentNode.Value) <= end)
-                {
-                    var right = currentNode.Right;
-                    if (right != null && GetEnd(right.MaxEndNode.Value, introspector) >= start)
-                    {
-                        candidates.Push(right);
-                    }
-                }
-
-                // only if left's maxVal overlaps with interval's start, 
-                // we should consider left subtree
-                var left = currentNode.Left;
-                if (left != null && GetEnd(left.MaxEndNode.Value, introspector) >= start)
-                {
-                    candidates.Push(left);
-                }
-
-                if (testInterval(currentNode.Value, start, length, introspector))
-                {
-                    yield return currentNode.Value;
-                }
-            }
+            return span.IntersectsWith(new TextSpan(start, end));
         }
 
         public IntervalTree<T> AddInterval(T value, IIntervalIntrospector<T> introspector)
