@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -1141,80 +1142,122 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        #region Emit
+
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
         /// </summary>
-        internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(
+        internal Cci.ModulePropertiesForSerialization ConstructModuleSerializationProperties(
             EmitOptions emitOptions,
             string targetRuntimeVersion,
             Guid moduleVersionId = default(Guid))
         {
             CompilationOptions compilationOptions = this.Options;
             Platform platform = compilationOptions.Platform;
+            OutputKind outputKind = compilationOptions.OutputKind;
 
             if (!platform.IsValid())
             {
                 platform = Platform.AnyCpu;
             }
 
-            bool requires64bits = platform.Requires64Bit();
+            if (!outputKind.IsValid())
+            {
+                outputKind = OutputKind.DynamicallyLinkedLibrary;
+            }
+
+            bool requires64Bit = platform.Requires64Bit();
+            bool requires32Bit = platform.Requires32Bit();
 
             ushort fileAlignment;
             if (emitOptions.FileAlignment == 0 || !CompilationOptions.IsValidFileAlignment(emitOptions.FileAlignment))
             {
-                fileAlignment = requires64bits
-                    ? ModulePropertiesForSerialization.DefaultFileAlignment64Bit
-                    : ModulePropertiesForSerialization.DefaultFileAlignment32Bit;
+                fileAlignment = requires64Bit
+                    ? Cci.ModulePropertiesForSerialization.DefaultFileAlignment64Bit
+                    : Cci.ModulePropertiesForSerialization.DefaultFileAlignment32Bit;
             }
             else
             {
                 fileAlignment = (ushort)emitOptions.FileAlignment;
             }
 
-            ulong baseAddress = unchecked(emitOptions.BaseAddress + 0x8000) & (requires64bits ? 0xffffffffffff0000 : 0x00000000ffff0000);
+            ulong baseAddress = unchecked(emitOptions.BaseAddress + 0x8000) & (requires64Bit ? 0xffffffffffff0000 : 0x00000000ffff0000);
 
             // cover values smaller than 0x8000, overflow and default value 0):
             if (baseAddress == 0)
             {
-                OutputKind outputKind = compilationOptions.OutputKind;
-
                 if (outputKind == OutputKind.ConsoleApplication ||
                     outputKind == OutputKind.WindowsApplication ||
                     outputKind == OutputKind.WindowsRuntimeApplication)
                 {
-                    baseAddress = (requires64bits) ? ModulePropertiesForSerialization.DefaultExeBaseAddress64Bit : ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit;
+                    baseAddress = (requires64Bit) ? Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress64Bit : Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit;
                 }
                 else
                 {
-                    baseAddress = (requires64bits) ? ModulePropertiesForSerialization.DefaultDllBaseAddress64Bit : ModulePropertiesForSerialization.DefaultDllBaseAddress32Bit;
+                    baseAddress = (requires64Bit) ? Cci.ModulePropertiesForSerialization.DefaultDllBaseAddress64Bit : Cci.ModulePropertiesForSerialization.DefaultDllBaseAddress32Bit;
                 }
             }
 
-            ulong sizeOfHeapCommit = requires64bits
-                ? ModulePropertiesForSerialization.DefaultSizeOfHeapCommit64Bit
-                : ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit;
+            ulong sizeOfHeapCommit = requires64Bit
+                ? Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit64Bit
+                : Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit;
 
             // Dev10 always uses the default value for 32bit for sizeOfHeapReserve.
             // check with link -dump -headers <filename>
-            const ulong sizeOfHeapReserve = ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit;
+            const ulong sizeOfHeapReserve = Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit;
 
-            ulong sizeOfStackReserve = requires64bits
-                ? ModulePropertiesForSerialization.DefaultSizeOfStackReserve64Bit
-                : ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit;
+            ulong sizeOfStackReserve = requires64Bit
+                ? Cci.ModulePropertiesForSerialization.DefaultSizeOfStackReserve64Bit
+                : Cci.ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit;
 
-            ulong sizeOfStackCommit = requires64bits
-                ? ModulePropertiesForSerialization.DefaultSizeOfStackCommit64Bit
-                : ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit;
+            ulong sizeOfStackCommit = requires64Bit
+                ? Cci.ModulePropertiesForSerialization.DefaultSizeOfStackCommit64Bit
+                : Cci.ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit;
 
-            SubsystemVersion subsystemVer = (emitOptions.SubsystemVersion.Equals(SubsystemVersion.None) || !emitOptions.SubsystemVersion.IsValid)
-                ? SubsystemVersion.Default(compilationOptions.OutputKind.IsValid() ? compilationOptions.OutputKind : OutputKind.DynamicallyLinkedLibrary, platform)
-                : emitOptions.SubsystemVersion;
+            SubsystemVersion subsystemVersion;
+            if (emitOptions.SubsystemVersion.Equals(SubsystemVersion.None) || !emitOptions.SubsystemVersion.IsValid)
+            {
+                subsystemVersion = SubsystemVersion.Default(outputKind, platform);
+            }
+            else
+            {
+                subsystemVersion = emitOptions.SubsystemVersion;
+            }
 
-            return new ModulePropertiesForSerialization(
+            Machine machine;
+            switch (platform)
+            {
+                case Platform.Arm:
+                    machine = Machine.ArmThumb2;
+                    break;
+
+                case Platform.X64:
+                    machine = Machine.Amd64;
+                    break;
+
+                case Platform.Itanium:
+                    machine = Machine.IA64;
+                    break;
+
+                case Platform.X86:
+                    machine = Machine.I386;
+                    break;
+
+                case Platform.AnyCpu:
+                case Platform.AnyCpu32BitPreferred:
+                    machine = Machine.Unknown;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(platform);
+            }
+
+            return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: moduleVersionId,
                 fileAlignment: fileAlignment,
                 targetRuntimeVersion: targetRuntimeVersion,
-                platform: platform,
+                machine: machine,
+                prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
                 trackDebugData: false,
                 baseAddress: baseAddress,
                 sizeOfHeapReserve: sizeOfHeapReserve,
@@ -1223,11 +1266,80 @@ namespace Microsoft.CodeAnalysis
                 sizeOfStackCommit: sizeOfStackCommit,
                 enableHighEntropyVA: emitOptions.HighEntropyVirtualAddressSpace,
                 strongNameSigned: HasStrongName,
+                imageCharacteristics: GetCharacteristics(outputKind, requires32Bit),
                 configureToExecuteInAppContainer: compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication,
-                subsystemVersion: subsystemVer);
+                subsystem: GetSubsystem(outputKind),
+                majorSubsystemVersion: (ushort)subsystemVersion.Major,
+                minorSubsystemVersion: (ushort)subsystemVersion.Minor,
+                linkerMajorVersion: this.LinkerMajorVersion,
+                linkerMinorVersion: 0);
         }
 
-        #region Emit
+        private static Characteristics GetCharacteristics(OutputKind outputKind, bool requires32Bit)
+        {
+            var characteristics = Characteristics.ExecutableImage;
+
+            if (requires32Bit)
+            {
+                // 32 bit machine (The standard says to always set this, the linker team says otherwise)
+                // The loader team says that this is not used for anything in the OS. 
+                characteristics |= Characteristics.Bit32Machine;
+            }
+            else
+            {
+                // Large address aware (the standard says never to set this, the linker team says otherwise).
+                // The loader team says that this is not overridden for managed binaries and will be respected if set.
+                characteristics |= Characteristics.LargeAddressAware;
+            }
+
+            switch (outputKind)
+            {
+                case OutputKind.WindowsRuntimeMetadata:
+                case OutputKind.DynamicallyLinkedLibrary:
+                case OutputKind.NetModule:
+                    characteristics |= Characteristics.Dll;
+                    break;
+
+                case OutputKind.ConsoleApplication:
+                case OutputKind.WindowsRuntimeApplication:
+                case OutputKind.WindowsApplication:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(outputKind);
+            }
+
+            return characteristics;
+        }
+
+        private static Subsystem GetSubsystem(OutputKind outputKind)
+        {
+            switch (outputKind)
+            {
+                case OutputKind.ConsoleApplication:
+                case OutputKind.DynamicallyLinkedLibrary:
+                case OutputKind.NetModule:
+                case OutputKind.WindowsRuntimeMetadata:
+                    return Subsystem.WindowsCui;
+
+                case OutputKind.WindowsRuntimeApplication:
+                case OutputKind.WindowsApplication:
+                    return Subsystem.WindowsGui;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(outputKind);
+            }
+        }
+
+        /// <summary>
+        /// The value is not used by Windows loader, but the OS appcompat infrastructure uses it to identify apps. 
+        /// It is useful for us to have a mechanism to identify the compiler that produced the binary. 
+        /// This is the appropriate value to use for that. That is what it was invented for. 
+        /// We don't want to have the high bit set for this in case some users perform a signed comparison to 
+        /// determine if the value is less than some version. The C++ linker is at 0x0B. 
+        /// We'll start our numbering at 0x30 for C#, 0x50 for VB.
+        /// </summary>
+        internal abstract byte LinkerMajorVersion { get; }
 
         internal bool HasStrongName
         {

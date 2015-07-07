@@ -2110,6 +2110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Emit"
 
+        Friend Overrides ReadOnly Property LinkerMajorVersion As Byte
+            Get
+                Return &H50
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsDelaySigned As Boolean
             Get
                 Return SourceAssembly.IsDelaySigned
