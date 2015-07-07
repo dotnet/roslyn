@@ -2638,7 +2638,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (!isConstructor)
                 {
                     // rude edit: Editing a field/property initializer of a partial type.
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.PartialTypeInitializerUpdate, newDeclaration.Span));
+                    diagnostics.Add(new RudeEditDiagnostic(
+                                        RudeEditKind.PartialTypeInitializerUpdate, 
+                                        newDeclaration.Span,
+                                        newDeclaration,
+                                        new[] { GetTopLevelDisplayName(newDeclaration, EditKind.Update)}));
                     return false;
                 }
 
