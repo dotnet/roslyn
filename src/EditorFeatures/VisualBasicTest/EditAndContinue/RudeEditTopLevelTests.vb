@@ -4069,9 +4069,22 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PropertyRename()
+        Public Sub PropertyRename1()
             Dim src1 = "Class C : ReadOnly Property P As Integer" & vbLf & "Get : End Get : End Property : End Class"
             Dim src2 = "Class C : ReadOnly Property Q As Integer" & vbLf & "Get : End Get : End Property : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.Property))
+        End Sub
+
+        <Fact>
+        Public Sub PropertyRename2()
+            Dim src1 = "Class C : ReadOnly Property P As Integer : End Class"
+            Dim src2 = "Class C : ReadOnly Property Q As Integer : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
