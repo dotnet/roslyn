@@ -1540,10 +1540,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return FeaturesResources.Constructor
 
                 Case SyntaxKind.PropertyBlock
+
                     Return FeaturesResources.Property
 
                 Case SyntaxKind.PropertyStatement
-                    Return FeaturesResources.AutoProperty
+                    Return If(node.IsParentKind(SyntaxKind.PropertyBlock),
+                        FeaturesResources.Property,
+                        FeaturesResources.AutoProperty)
 
                 Case SyntaxKind.EventBlock,
                      SyntaxKind.EventStatement
