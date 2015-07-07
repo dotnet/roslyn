@@ -43,19 +43,11 @@ namespace Microsoft.Cci
         private NtHeader _ntHeader;
         private CoffHeader _coffHeader;
 
-        private readonly BlobWriter _rdataWriter = new BlobWriter();
-        private readonly BlobWriter _sdataWriter = new BlobWriter();
-        private readonly BlobWriter _tlsDataWriter = new BlobWriter();
         private readonly BlobWriter _win32ResourceWriter = new BlobWriter(1024);
-        private readonly BlobWriter _coverageDataWriter = new BlobWriter();
 
-        private SectionHeader _coverSection;
         private SectionHeader _relocSection;
         private SectionHeader _resourceSection;
-        private SectionHeader _rdataSection;
-        private SectionHeader _sdataSection;
         private SectionHeader _textSection;
-        private SectionHeader _tlsSection;
 
         private PeWriter(
             ModulePropertiesForSerialization properties,
@@ -198,10 +190,6 @@ namespace Microsoft.Cci
                 nativePdbContentId,
                 out metadataPosition);
 
-            WriteRdataSection(peStream);
-            WriteSdataSection(peStream);
-            WriteCoverSection(peStream);
-            WriteTlsSection(peStream);
             WriteResourceSection(peStream);
             WriteRelocSection(peStream);
 
@@ -320,10 +308,6 @@ namespace Microsoft.Cci
         {
             short sectionCount = 1; // .text 
             if (_properties.RequiresStartupStub) sectionCount++; //.reloc
-            if (_tlsDataWriter.Length > 0) sectionCount++; //.tls
-            if (_rdataWriter.Length > 0) sectionCount++; //.rdata
-            if (_sdataWriter.Length > 0) sectionCount++; //.sdata
-            if (_coverageDataWriter.Length > 0) sectionCount++; //.cover
             if (!IteratorHelper.EnumerableIsEmpty(_nativeResourcesOpt) || _nativeResourceSectionOpt != null) sectionCount++; //.rsrc;
 
             return sectionCount;
@@ -407,7 +391,7 @@ namespace Microsoft.Cci
             ntHeader.MinorLinkerVersion = _properties.LinkerMinorVersion;
             ntHeader.AddressOfEntryPoint = _properties.RequiresStartupStub ? mappedFieldDataStreamRva - (_is32bit ? 6 : 10) : 0; // TODO: constants
             ntHeader.BaseOfCode = textSectionRva;
-            ntHeader.BaseOfData = _rdataSection.RelativeVirtualAddress;
+            ntHeader.BaseOfData = _resourceSection.RelativeVirtualAddress; // TODO: first section containing initialized data?
             ntHeader.ImageBase = _properties.BaseAddress;
             ntHeader.FileAlignment = _properties.FileAlignment;
             ntHeader.MajorSubsystemVersion = _properties.MajorSubsystemVersion;
@@ -422,8 +406,13 @@ namespace Microsoft.Cci
             ntHeader.SizeOfHeapCommit = _properties.SizeOfHeapCommit;
 
             ntHeader.SizeOfCode = _textSection.SizeOfRawData;
-            ntHeader.SizeOfInitializedData = _rdataSection.SizeOfRawData + _coverSection.SizeOfRawData + _sdataSection.SizeOfRawData + _tlsSection.SizeOfRawData + _resourceSection.SizeOfRawData + _relocSection.SizeOfRawData;
+
+            // TODO: total size of all sections containing initialized data
+            ntHeader.SizeOfInitializedData = _resourceSection.SizeOfRawData + _relocSection.SizeOfRawData;
+
             ntHeader.SizeOfHeaders = BitArithmeticUtilities.Align(ComputeSizeOfPeHeaders(), _properties.FileAlignment);
+
+            // TODO: last section:
             ntHeader.SizeOfImage = BitArithmeticUtilities.Align(_relocSection.RelativeVirtualAddress + _relocSection.VirtualSize, 0x2000);
             ntHeader.SizeOfUninitializedData = 0;
 
@@ -460,13 +449,6 @@ namespace Microsoft.Cci
                     _resourceSection.RelativeVirtualAddress,
                     _resourceSection.VirtualSize);
             }
-
-            if (_tlsSection.SizeOfRawData > 0)
-            {
-                ntHeader.ThreadLocalStorageTable = new DirectoryEntry(
-                   _tlsSection.RelativeVirtualAddress,
-                   _tlsSection.SizeOfRawData);
-            }
         }
 
         private void FillInTextSectionHeader(MetadataSizes metadataSizes)
@@ -495,67 +477,7 @@ namespace Microsoft.Cci
 
         private void FillInSectionHeaders()
         {
-            _rdataSection = new SectionHeader(
-                characteristics: SectionCharacteristics.MemRead | 
-                                 SectionCharacteristics.ContainsInitializedData,
-                name: ".rdata",
-                numberOfLinenumbers: 0,
-                numberOfRelocations: 0,
-                pointerToLinenumbers: 0,
-                pointerToRawData: _textSection.PointerToRawData + _textSection.SizeOfRawData,
-                pointerToRelocations: 0,
-                relativeVirtualAddress: BitArithmeticUtilities.Align(_textSection.RelativeVirtualAddress + _textSection.VirtualSize, 0x2000),
-                sizeOfRawData: BitArithmeticUtilities.Align(_rdataWriter.Length, _properties.FileAlignment),
-                virtualSize: _rdataWriter.Length
-            );
-
-            _sdataSection = new SectionHeader(
-                characteristics: SectionCharacteristics.MemRead | 
-                                 SectionCharacteristics.MemWrite | 
-                                 SectionCharacteristics.ContainsInitializedData,
-                name: ".sdata",
-                numberOfLinenumbers: 0,
-                numberOfRelocations: 0,
-                pointerToLinenumbers: 0,
-                pointerToRawData: _rdataSection.PointerToRawData + _rdataSection.SizeOfRawData,
-                pointerToRelocations: 0,
-                relativeVirtualAddress: BitArithmeticUtilities.Align(_rdataSection.RelativeVirtualAddress + _rdataSection.VirtualSize, 0x2000),
-                sizeOfRawData: BitArithmeticUtilities.Align(_sdataWriter.Length, _properties.FileAlignment),
-                virtualSize: _sdataWriter.Length
-            );
-
-            _coverSection = new SectionHeader(
-                characteristics: SectionCharacteristics.MemRead | 
-                                 SectionCharacteristics.MemWrite | 
-                                 SectionCharacteristics.MemNotPaged |
-                                 SectionCharacteristics.ContainsInitializedData,
-                name: ".cover",
-                numberOfLinenumbers: 0,
-                numberOfRelocations: 0,
-                pointerToLinenumbers: 0,
-                pointerToRawData: _sdataSection.PointerToRawData + _sdataSection.SizeOfRawData,
-                pointerToRelocations: 0,
-                relativeVirtualAddress: BitArithmeticUtilities.Align(_sdataSection.RelativeVirtualAddress + _sdataSection.VirtualSize, 0x2000),
-                sizeOfRawData: BitArithmeticUtilities.Align(_coverageDataWriter.Length, _properties.FileAlignment),
-                virtualSize: _coverageDataWriter.Length
-            );
-
-            _tlsSection = new SectionHeader(
-                characteristics: SectionCharacteristics.MemRead |
-                                 SectionCharacteristics.MemWrite |
-                                 SectionCharacteristics.ContainsInitializedData,
-                name: ".tls",
-                numberOfLinenumbers: 0,
-                numberOfRelocations: 0,
-                pointerToLinenumbers: 0,
-                pointerToRawData: _coverSection.PointerToRawData + _coverSection.SizeOfRawData,
-                pointerToRelocations: 0,
-                relativeVirtualAddress: BitArithmeticUtilities.Align(_coverSection.RelativeVirtualAddress + _coverSection.VirtualSize, 0x2000),
-                sizeOfRawData: BitArithmeticUtilities.Align(_tlsDataWriter.Length, _properties.FileAlignment),
-                virtualSize: _tlsDataWriter.Length
-            );
-
-            int resourcesRva = BitArithmeticUtilities.Align(_tlsSection.RelativeVirtualAddress + _tlsSection.VirtualSize, 0x2000);
+            int resourcesRva = BitArithmeticUtilities.Align(_textSection.RelativeVirtualAddress + _textSection.VirtualSize, 0x2000);
             int sizeOfWin32Resources = this.ComputeSizeOfWin32Resources(resourcesRva);
 
             _resourceSection = new SectionHeader(
@@ -565,7 +487,7 @@ namespace Microsoft.Cci
                 numberOfLinenumbers: 0,
                 numberOfRelocations: 0,
                 pointerToLinenumbers: 0,
-                pointerToRawData: _tlsSection.PointerToRawData + _tlsSection.SizeOfRawData,
+                pointerToRawData: _textSection.PointerToRawData + _textSection.SizeOfRawData,
                 pointerToRelocations: 0,
                 relativeVirtualAddress: resourcesRva,
                 sizeOfRawData: BitArithmeticUtilities.Align(sizeOfWin32Resources, _properties.FileAlignment),
@@ -1125,12 +1047,8 @@ namespace Microsoft.Cci
 
             // Section Headers
             WriteSectionHeader(_textSection, writer);
-            WriteSectionHeader(_rdataSection, writer);
-            WriteSectionHeader(_sdataSection, writer);
-            WriteSectionHeader(_coverSection, writer);
             WriteSectionHeader(_resourceSection, writer);
             WriteSectionHeader(_relocSection, writer);
-            WriteSectionHeader(_tlsSection, writer);
 
             writer.WriteTo(peStream);
             _headerWriter = _emptyStream;
@@ -1436,24 +1354,6 @@ namespace Microsoft.Cci
             writer.WriteTo(peStream);
         }
 
-        private void WriteCoverSection(Stream peStream)
-        {
-            peStream.Position = _coverSection.PointerToRawData;
-            _coverageDataWriter.WriteTo(peStream);
-        }
-
-        private void WriteRdataSection(Stream peStream)
-        {
-            peStream.Position = _rdataSection.PointerToRawData;
-            _rdataWriter.WriteTo(peStream);
-        }
-
-        private void WriteSdataSection(Stream peStream)
-        {
-            peStream.Position = _sdataSection.PointerToRawData;
-            _sdataWriter.WriteTo(peStream);
-        }
-
         private void WriteRelocSection(Stream peStream)
         {
             if (!_properties.RequiresStartupStub)
@@ -1499,12 +1399,6 @@ namespace Microsoft.Cci
             {
                 peStream.WriteByte(0);
             }
-        }
-
-        private void WriteTlsSection(Stream peStream)
-        {
-            peStream.Position = _tlsSection.PointerToRawData;
-            _tlsDataWriter.WriteTo(peStream);
         }
     }
 }
