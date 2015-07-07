@@ -859,6 +859,41 @@ Foo();
         }
 
         [Fact]
+        public void ClosureOfStructClosure()
+        {
+            var source = @"
+void Outer()
+{
+    int a = 0;
+    void Middle()
+    {
+        int b = 0;
+        void Inner()
+        {
+            a++;
+            b++;
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+            Console.Write(' ');
+        }
+
+        a++;
+        Inner();
+        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+        Console.Write(' ');
+    }
+
+    Middle();
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+    Console.Write(' ');
+    Console.WriteLine(a);
+}
+
+Outer();
+";
+            VerifyOutputInMain(source, "System.ValueType System.Object System.Object 2", "System");
+        }
+
+        [Fact]
         public void RecursiveStructClosure()
         {
             var source = @"
@@ -880,6 +915,43 @@ void Foo()
 Foo();
 ";
             VerifyOutputInMain(source, "2 System.ValueType", "System");
+        }
+
+        [Fact]
+        public void MutuallyRecursiveStructClosure()
+        {
+            var source = @"
+int x = 0;
+void Foo(int depth)
+{
+    int dummy = 0;
+    void Bar(int depth2)
+    {
+        dummy++;
+        if (depth2 == 2)
+        {
+            // should be struct
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+            Console.Write(' ');
+        }
+        Foo(depth2);
+    }
+    if (depth != 2)
+    {
+        x++;
+        Bar(depth + 1);
+    }
+    else
+    {
+        Console.Write(x);
+        Console.Write(' ');
+        // should be class (due to by-value passing). See bottom of LambdaRewriter.Analysis.ComputeLambdaScopesAndFrameCaptures
+        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+    }
+}
+Foo(0);
+";
+            VerifyOutputInMain(source, "System.ValueType 2 System.Object", "System");
         }
 
         [Fact]
