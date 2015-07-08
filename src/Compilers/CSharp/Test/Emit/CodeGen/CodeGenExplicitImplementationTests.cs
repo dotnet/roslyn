@@ -379,7 +379,7 @@ class Test
         }
 
         [Fact]
-        public void TestExplicitImplSigntureMismatches_ParamsAndOptionals()
+        public void TestExplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
             // Replace params with non-params in signature of implemented member (and vice-versa)

@@ -296,7 +296,7 @@ End Namespace
             Assert.Contains(Of String)("mscorlib", ListNames)
             Assert.Contains(Of String)("System", ListNames)
 
-            'RemoveAllReferebces
+            'RemoveAllReferences
             c2 = c2.RemoveAllReferences
             Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(c2.References))
 

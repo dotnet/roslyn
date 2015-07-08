@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 If documentBeforePreviousEdit IsNot Nothing Then
                     _documentBeforePreviousEdit = documentBeforePreviousEdit
                     ' Kick off a task to eagerly force compute InternalsVisibleTo semantics for all the references.
-                    ' This provides a noticable perf improvement when code cleanup is subsequently invoked on this document.
+                    ' This provides a noticeable perf improvement when code cleanup is subsequently invoked on this document.
                     Task.Run(Async Function()
                                  Await ForceComputeInternalsVisibleToAsync(documentBeforePreviousEdit, CancellationToken.None).ConfigureAwait(False)
                              End Function)

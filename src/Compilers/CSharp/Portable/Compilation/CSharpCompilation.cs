@@ -2233,6 +2233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Emit
 
+        internal override byte LinkerMajorVersion => 0x30;
+        
         internal override bool IsDelaySigned
         {
             get { return SourceAssembly.IsDelaySigned; }

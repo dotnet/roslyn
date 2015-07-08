@@ -730,10 +730,10 @@ HandleAsAGeneralExpression:
                 ' 
                 ' The process of populating the graph also seeds type hints for type parameters referenced by explicitly typed
                 ' lambda parameters. Also, hints sometimes have restrictions placed on them that limit what conversions the dominant type
-                ' algorithm can consider when it processes them. The restrictions are generally driven by the context in whcih type
+                ' algorithm can consider when it processes them. The restrictions are generally driven by the context in which type
                 ' parameters are used. For example if a type parameter is used as a type parameter of another type (something like IFoo(of T)),
                 ' then the dominant type algorithm is not allowed to consider any conversions. There are similar restrictions for
-                ' Array co-varaince.
+                ' Array co-variance.
 
                 graph.PopulateGraph()
 
@@ -752,7 +752,7 @@ HandleAsAGeneralExpression:
                     ' type hints as appropriate. 
                     '
                     ' When we find a node for an argument (or an ArgumentNode as it's referred to in the code), we infer
-                    ' types for all type parameters referenced by that argument and then propogate those types as hints
+                    ' types for all type parameters referenced by that argument and then propagate those types as hints
                     ' to the referenced type parameters. If there are incoming edges into the argument node, they correspond
                     ' to parameters of lambda arguments that get their value from the delegate type that contains type
                     ' parameters that would have been inferred during a previous iteration of the loop. Those types are
@@ -792,7 +792,7 @@ HandleAsAGeneralExpression:
                                 '               don't want to silently mask the bug. At a minimum we should either assert or generate a compiler error.
                                 '               
                                 '               An argument could be made that it is good to have this because
-                                '               InferTypeandPropagateHints is virtual, and should some new node type be
+                                '               InferTypeAndPropagateHints is virtual, and should some new node type be
                                 '               added it's implementation may return true, and so this would follow that
                                 '               path. That argument does make some tiny amount of sense, and so we
                                 '               should keep this code here to make it easier to make any such
@@ -2017,7 +2017,7 @@ HandleAsAGeneralExpression:
                                 ' if that doesn't happen it will report an error.
 
                                 ' TODO: Why does it make sense to continue here? It looks like we can infer something from
-                                '       lambda's return type based on incomplete information. Also, this 'if' is redundand,
+                                '       lambda's return type based on incomplete information. Also, this 'if' is redundant,
                                 '       there is nothing left to do in this loop anyway, and "continue" doesn't change anything. 
                                 Continue For
                             End If

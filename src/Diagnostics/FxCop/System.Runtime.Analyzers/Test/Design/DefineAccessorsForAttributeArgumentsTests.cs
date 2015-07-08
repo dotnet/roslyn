@@ -2406,7 +2406,7 @@ End Class
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void CSharp_CA1019_RemvoeSetter_InheritanceTest()
+        public void CSharp_CA1019_RemoveSetter_InheritanceTest()
         {
             VerifyCSharp(@"
 using System;
@@ -2579,7 +2579,7 @@ public sealed class GenericContravariantParameterAttribute : Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void VisualBasic_CA1019_RemvoeSetter_InheritanceTest()
+        public void VisualBasic_CA1019_RemoveSetter_InheritanceTest()
         {
             VerifyBasic(@"
 Imports System

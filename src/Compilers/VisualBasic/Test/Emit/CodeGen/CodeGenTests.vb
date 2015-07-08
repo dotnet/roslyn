@@ -1611,7 +1611,7 @@ End Module
 
         <WorkItem(546853, "DevDiv")>
         <Fact()>
-        Public Sub CallingVistualFinalMethod()
+        Public Sub CallingVirtualFinalMethod()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object

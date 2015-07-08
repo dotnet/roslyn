@@ -88,7 +88,7 @@ parseOptions: Options.Regular);
         #region Lambdas
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromParanthesizedLambdaExpressionsParameter()
+        public void TestGenerateClassFromParenthesizedLambdaExpressionsParameter()
         {
             Test(
 @"class Class { Func<Employee, int, bool> l = ([|Employee|] e, int age) => e.Age > age; }",
@@ -97,7 +97,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public void TestGenerateClassFromParanthesizedLambdaExpressionsBody()
+        public void TestGenerateClassFromParenthesizedLambdaExpressionsBody()
         {
             Test(
 @"class Class { System.Action<Class, int> l = (Class e, int age) => { [|Wage|] w; }; }",

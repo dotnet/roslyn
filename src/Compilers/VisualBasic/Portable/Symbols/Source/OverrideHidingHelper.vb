@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        ' If this member overriddes another member, return that overridden member, else return Nothing.
+        ' If this member overrides another member, return that overridden member, else return Nothing.
         Protected Shared Function GetOverriddenMember(sym As Symbol) As Symbol
             Select Case sym.Kind
                 Case SymbolKind.Method

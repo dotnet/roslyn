@@ -445,11 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  instead of 
             //    Seq{.... temp = operand + 1, operand = temp, ...}              
             //
-            // Such rewrite will nest reads of boundTemp realtive to reads of operand so both 
+            // Such rewrite will nest reads of boundTemp relative to reads of operand so both 
             // operand and boundTemp could be optimizable (subject to all other conditions of course).
             //
             // In a case of the non-byref operand we use a single-sequence strategy as it results in shorter 
-            // overal life time of temps and as such more appropriate. (problem of crossed reads does not affect that case)
+            // overall life time of temps and as such more appropriate. (problem of crossed reads does not affect that case)
             //
             if (IsIndirectOrInstanceField(transformedLHS))
             {

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // max. TODO: 1 token lookahead seems a bit too optimistic. Increase if needed. 
             const int maxLookahead = 1;
 
-            // check if change is not after the end. TODO: there should be an assert somwhere about
+            // check if change is not after the end. TODO: there should be an assert somewhere about
             // changes starting at least at the End of old tree
             var lastCharIndex = oldTree.FullWidth - 1;
 

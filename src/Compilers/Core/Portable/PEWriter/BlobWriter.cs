@@ -17,7 +17,7 @@ namespace Microsoft.Cci
         private int _length;
         private int _position;
 
-        internal BlobWriter(uint initialSize = 64)
+        internal BlobWriter(int initialSize = 64)
         {
             _buffer = new byte[initialSize];
         }

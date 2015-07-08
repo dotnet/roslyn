@@ -1998,7 +1998,7 @@ End Namespace
     End Sub
 
     <Fact>
-    Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespacNamespaceBlock()
+    Public Sub IncrementalParsing_DeclarationContextBlock_TryLinkSyntaxNamespaceNamespaceBlock()
         Dim source = ToText(<![CDATA[
 
 Namespace NS1

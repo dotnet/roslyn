@@ -785,7 +785,7 @@ Done:
             Else
                 Dim indexedTypeArguments = StaticCast(Of TypeSymbol).From(IndexedTypeParameterSymbol.Take(method.Arity))
 
-                ' Checking method.IsDefinition instead of [containingSubsitution Is Nothing]
+                ' Checking method.IsDefinition instead of [containingSubstitution Is Nothing]
                 ' because this condition works better for SignatureOnlyMethodSymbol, which 
                 ' always reports itself as a definition, even when attached to a constructed/specialized
                 ' type.

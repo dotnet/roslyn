@@ -2534,7 +2534,7 @@ class C : Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void LeaveTrailingTrviaAlone()
+        public void LeaveTrailingTriviaAlone()
         {
             var text = @"
 namespace ConsoleApplication46
