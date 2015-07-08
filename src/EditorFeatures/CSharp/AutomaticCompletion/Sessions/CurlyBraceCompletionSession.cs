@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
         public override void AfterStart(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
-            FormatTrackingSpan(session);
+            FormatTrackingSpan(session, true);
 
             session.TextView.TryMoveCaretToAndEnsureVisible(session.ClosingPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).Subtract(1));
         }
@@ -65,12 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    // first add one line in between, and format braces 
-                    if (session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
-                    {
-                        document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
-                        FormatTrackingSpan(session, GetFormattingRules(document));
-                    }
+                    document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
+                    FormatTrackingSpan(session, false, GetFormattingRules(document));
 
                     // put caret at right indentation
                     PutCaretOnLine(session, session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).GetContainingLineNumber() + 1);
@@ -114,9 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.Instance).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        private void FormatTrackingSpan(IBraceCompletionSession session, IEnumerable<IFormattingRule> rules = null)
+        private void FormatTrackingSpan(IBraceCompletionSession session, bool isAfterSessionStart, IEnumerable<IFormattingRule> rules = null)
         {
-            if (!session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
+            if (!session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && isAfterSessionStart)
             {
                 return;
             }
