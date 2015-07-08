@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Sub New(
                sourceModule As SourceModuleSymbol,
                emitOptions As EmitOptions,
-               serializationProperties As ModulePropertiesForSerialization,
+               serializationProperties As Cci.ModulePropertiesForSerialization,
                manifestResources As IEnumerable(Of ResourceDescription))
 
             MyBase.New(sourceModule, emitOptions, OutputKind.NetModule, serializationProperties, manifestResources)

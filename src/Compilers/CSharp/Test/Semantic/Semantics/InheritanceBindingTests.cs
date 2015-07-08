@@ -5833,7 +5833,7 @@ class Class2 : I2 // Implicit implementation
         }
 
         [Fact]
-        public void TestExplicitImplSigntureMismatches()
+        public void TestExplicitImplSignatureMismatches()
         {
             // Tests: 
             // Mismatching ref / out in signature of implemented member

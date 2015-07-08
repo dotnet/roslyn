@@ -192,7 +192,7 @@ Imports System.Runtime.CompilerServices
                     Imports System.Runtime.CompilerServices
                     Imports System.Runtime.InteropServices
 
-                    ' These are not pseduo attributes, but encoded as bits in metadata
+                    ' These are not pseudo attributes, but encoded as bits in metadata
                     <assembly: AssemblyAlgorithmId(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)>
                     <assembly: AssemblyCultureAttribute("")>
                     <assembly: AssemblyDelaySign(true)>

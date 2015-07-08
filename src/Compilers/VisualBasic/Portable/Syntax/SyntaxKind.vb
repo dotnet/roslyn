@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         NamedFieldInitializer = 128               ' NamedFieldInitializerSyntax : FieldInitializerSyntax
         ''' <summary>
         ''' Represents an "= initializer" clause in a declaration for a variable,
-        ''' pararameter or automatic property.
+        ''' parameter or automatic property.
         ''' </summary>
         EqualsValue = 129                         ' EqualsValueSyntax
         ''' <summary>

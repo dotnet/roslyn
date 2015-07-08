@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(variablesToHoist.Count = 0)
 
                 ' In debug build we hoist all locals and parameters, except ByRef locals in iterator methods.
-                ' Lifetime of ByRef locals in iterator methods never crosses stament boundaries, thus 
+                ' Lifetime of ByRef locals in iterator methods never crosses statement boundaries, thus 
                 ' there is no reason to hoist them and the pipeline doesn't handle this.
                 Dim skipByRefLocals As Boolean = DirectCast(info.Symbol, MethodSymbol).IsIterator
                 For Each v In allVariables

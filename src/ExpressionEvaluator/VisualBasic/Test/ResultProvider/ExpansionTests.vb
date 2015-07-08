@@ -673,7 +673,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NameConflictsWithVirualPropertiesAcrossDeclaredType()
+        Public Sub NameConflictsWithVirtualPropertiesAcrossDeclaredType()
             Dim source = "
 Class A 
     Public Overridable Property P As Integer = 1

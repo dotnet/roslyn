@@ -688,7 +688,7 @@ new D().Y
         }
 
         [Fact(Skip = "987032")]
-        public void AddReference_MutlipleReferencesWithSameWeakIdentity()
+        public void AddReference_MultipleReferencesWithSameWeakIdentity()
         {
             var dir = Temp.CreateDirectory();
 

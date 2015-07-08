@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Public Overrides Function VisitAttribute(node As AttributeSyntax) As SyntaxNode
-                ' we decide not to auto insert parenthese for attribute
+                ' we decide not to auto insert parentheses for attribute
                 Return MyBase.VisitAttribute(node)
             End Function
 

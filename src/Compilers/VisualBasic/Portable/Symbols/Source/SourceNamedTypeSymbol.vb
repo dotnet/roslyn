@@ -1516,7 +1516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' 'Safe' version of GetDeclaredBase takes into account bases being resolved to make sure 
         ''' we avoid infinite loops in some scenarios. Note that the cycle is being broken not when
         ''' we detect it, but when we detect it on the 'smallest' type of the cycle, this brings stability 
-        ''' in multithreaded scenarios while still ensures that we don't loop more than twices.
+        ''' in multithreaded scenarios while still ensures that we don't loop more than twice.
         ''' </summary>
         Private Function GetDeclaredBaseSafe(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
             If m_baseCycleDiagnosticInfo IsNot Nothing Then

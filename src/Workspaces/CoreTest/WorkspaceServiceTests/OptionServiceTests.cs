@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class OptionServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        public void OptionWithNullOrWhitepace()
+        public void OptionWithNullOrWhitespace()
         {
             var optionService = TestOptionService.GetService();
             var optionSet = optionService.GetOptions();

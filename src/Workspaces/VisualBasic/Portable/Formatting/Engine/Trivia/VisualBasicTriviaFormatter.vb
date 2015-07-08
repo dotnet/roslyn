@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If trivia2.Kind = SyntaxKind.CommentTrivia OrElse
                trivia2.Kind = SyntaxKind.DocumentationCommentTrivia Then
 
-                ' [token] [whitepsace] [trivia] case
+                ' [token] [whitespace] [trivia] case
                 If Me.Token1.IsLastTokenOfStatementWithEndOfLine() AndAlso trivia1.Kind = SyntaxKind.None Then
                     Return LineColumnRule.PreserveSpacesOrUseDefaultIndentation(spaces:=1)
                 End If

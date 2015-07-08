@@ -2161,7 +2161,7 @@ End Class
 Imports System
 Imports System.Collections.Generic
 
-Public Module Moduel1
+Public Module Module1
     Public Sub Main()
         Dim y As New Dictionary(Of Byte, Integer())() From {{1, {23, 42}}, {2, {42, 23}}} 'BIND:"{23, 42}"'BIND:"{23, 42}"
     End Sub
