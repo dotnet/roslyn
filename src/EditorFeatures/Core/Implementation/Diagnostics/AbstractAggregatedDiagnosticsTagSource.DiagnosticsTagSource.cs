@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
-                var result = _lastDiagnostics.GetIntersectingInOrderIntervals(start, length, introspector);
-                if (result.Count == 0)
-                {
-                    return;
-                }
+                var result = _lastDiagnostics.GetIntersectingIntervals(start, length, introspector);
 
                 // only follow minimum length for live diagnostic. otherwise, let it be zero length.
                 var minimumLength = _id is ISupportLiveUpdate ? _owner.MinimumLength : 0;

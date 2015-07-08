@@ -509,24 +509,38 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             var newTagsByBuffer = newTags.GroupBy(t => t.Span.Snapshot.TextBuffer);
             var bufferToUpdateTagsFor = spanToInvalidate.Snapshot.TextBuffer;
-            var tagsToKeep = this.GetTagsToKeep(spanToInvalidate);
+
+            // These lists only live as long as this method.  So we are free to mutate them as we
+            // like within this body.
+            var beforeTagsToKeep = new List<ITagSpan<TTag>>();
+            var afterTagsToKeep = new List<ITagSpan<TTag>>();
+            this.AddTagsToKeep(spanToInvalidate, beforeTagsToKeep, afterTagsToKeep);
 
             var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
             foreach (var newTagsForBuffer in newTagsByBuffer)
             {
-                var tags = newTagsForBuffer.ToList();
+                List<ITagSpan<TTag>> tags;
                 if (newTagsForBuffer.Key == bufferToUpdateTagsFor)
                 {
-                    tags.AddRange(tagsToKeep);
+                    tags = beforeTagsToKeep;
+                    tags.AddRange(newTagsForBuffer);
+                    tags.AddRange(afterTagsToKeep);
+                }
+                else
+                {
+                    tags = new List<ITagSpan<TTag>>(newTagsForBuffer);
                 }
 
                 map = map.Add(newTagsForBuffer.Key, new TagSpanIntervalTree<TTag>(newTagsForBuffer.Key, _spanTrackingMode, tags));
             }
 
-            if (!map.ContainsKey(bufferToUpdateTagsFor) && tagsToKeep.Count > 0)
+            if (!map.ContainsKey(bufferToUpdateTagsFor) && (beforeTagsToKeep.Count + afterTagsToKeep.Count > 0))
             {
-                map = map.Add(bufferToUpdateTagsFor, new TagSpanIntervalTree<TTag>(bufferToUpdateTagsFor, _spanTrackingMode, tagsToKeep));
+                var tags = beforeTagsToKeep;
+                tags.AddRange(afterTagsToKeep);
+
+                map = map.Add(bufferToUpdateTagsFor, new TagSpanIntervalTree<TTag>(bufferToUpdateTagsFor, _spanTrackingMode, tags));
             }
 
             return map;
@@ -566,22 +580,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return map;
         }
 
-        private List<ITagSpan<TTag>> GetTagsToKeep(SnapshotSpan spanToInvalidate)
+        private void AddTagsToKeep(SnapshotSpan spanToInvalidate,
+                                   List<ITagSpan<TTag>> beforeTags,
+                                   List<ITagSpan<TTag>> afterTags)
         {
             var fullRefresh = spanToInvalidate.Length == spanToInvalidate.Snapshot.Length;
             if (fullRefresh)
             {
-                return new List<ITagSpan<TTag>>();
+                return;
             }
 
             // we actually have span to invalidate from old tree
             TagSpanIntervalTree<TTag> treeForBuffer;
             if (!_cachedTags.TryGetValue(spanToInvalidate.Snapshot.TextBuffer, out treeForBuffer))
             {
-                return new List<ITagSpan<TTag>>();
+                return;
             }
 
-            return treeForBuffer.GetNonIntersectingSpans(spanToInvalidate);
+            treeForBuffer.AddNonIntersectingSpans(spanToInvalidate, beforeTags, afterTags);
         }
 
         protected virtual async Task RecomputeTagsAsync(
