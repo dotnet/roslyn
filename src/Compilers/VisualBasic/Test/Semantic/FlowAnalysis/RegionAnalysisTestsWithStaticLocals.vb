@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         'flow analysis despite the fact that the implementation for static locals is different because of the implementation
         'required to preserve state across multiple invocations.
         '
-        'Mulitple calls are NOT required to verify the flow analysis for static locals.
+        'Multiple calls are NOT required to verify the flow analysis for static locals.
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>

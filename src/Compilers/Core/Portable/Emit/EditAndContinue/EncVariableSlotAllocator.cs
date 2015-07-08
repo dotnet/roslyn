@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             // Note that syntax offset of a syntax node contained in a lambda body is calculated by the containing top-level method,
             // not by the lambda method. The offset is thus relative to the top-level method body start. We can thus avoid mapping 
-            // the current lambda symbol or body to the corresponding previous lambda symbol or body, whcih is non-trivial. 
+            // the current lambda symbol or body to the corresponding previous lambda symbol or body, which is non-trivial. 
             return _previousTopLevelMethod.CalculateLocalSyntaxOffset(position, tree);
         }
 

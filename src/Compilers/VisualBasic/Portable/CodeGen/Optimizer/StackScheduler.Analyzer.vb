@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return prevAsLocal.LocalSymbol Is curAsLocal.LocalSymbol
                 End If
 
-                ' prameters
+                ' parameters
                 Dim prevAsParam = TryCast(prevNode, BoundParameter)
                 Dim curAsParam = TryCast(curNode, BoundParameter)
                 If prevAsParam IsNot Nothing AndAlso curAsParam IsNot Nothing Then

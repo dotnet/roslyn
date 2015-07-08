@@ -434,7 +434,7 @@ class Program
 
     static float Test2(float arg)
     {
-        var temp = (float)Mul2(arg); // conv.r4 here. We want result of Mull2 to have float precision.
+        var temp = (float)Mul2(arg); // conv.r4 here. We want result of Mul2 to have float precision.
         return temp / 2;
     }
 
@@ -482,7 +482,7 @@ class Program
 
     static float Test2(float arg)
     {
-        var temp = (float)(float?)Mul2(arg); // conv.r4 here. We want result of Mull2 to have float precision.
+        var temp = (float)(float?)Mul2(arg); // conv.r4 here. We want result of Mul2 to have float precision.
         return temp / 2;
     }
 

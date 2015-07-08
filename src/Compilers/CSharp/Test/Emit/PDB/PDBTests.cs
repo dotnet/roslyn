@@ -3869,7 +3869,7 @@ public class T
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
-            //        unparied surrogates.
+            //        unpaired surrogates.
             c.VerifyPdb(@"
 <symbols>
   <methods>
@@ -3911,7 +3911,7 @@ public class T
 
             // Note:  U+FFFD is the Unicode 'replacement character' point and is used to replace an incoming character
             //        whose value is unknown or unrepresentable in Unicode.  This is what our pdb writer does with
-            //        unparied surrogates.
+            //        unpaired surrogates.
             c.VerifyPdb(@"
 <symbols>
   <methods>

@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         if (TryGetLoaderFromProjectPath(projectAbsolutePath, reportMode, out loader))
                         {
                             // projects get added to 'loadedProjects' as side-effect
-                            // never perfer metadata when loading solution, all projects get loaded if they can.
+                            // never prefer metadata when loading solution, all projects get loaded if they can.
                             var tmp = await GetOrLoadProjectAsync(projectAbsolutePath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
                         }
                     }
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (TryGetLoaderFromProjectPath(absoluteProjectPath, reportMode, out loader))
                     { 
                         // projects get added to 'loadedProjects' as side-effect
-                        // never perfer metadata when loading solution, all projects get loaded if they can.
+                        // never prefer metadata when loading solution, all projects get loaded if they can.
                         var tmp = await GetOrLoadProjectAsync(absoluteProjectPath, loader, preferMetadata: false, loadedProjects: loadedProjects, cancellationToken: cancellationToken).ConfigureAwait(false);
                     }
                 }

@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     If Not receiverType.IsReferenceType Then
                         ' unconstrained case needs to handle case where T Is actually a struct.
                         ' such values are never nulls
-                        ' we will emit a check for such case, but the check Is realy a JIT-time 
+                        ' we will emit a check for such case, but the check Is really a JIT-time 
                         ' constant since JIT will know if T Is a struct Or Not.
                         '
                         ' if ((object)default(T) != null) 
@@ -987,7 +987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 method.ContainingModule Is Me._method.ContainingModule Then
 
                 ' NOTE: we check that we call method in same module just to be sure
-                ' that it cannot be recompiled as not final and make our call not verfiable. 
+                ' that it cannot be recompiled as not final and make our call not verifiable. 
                 ' such change by adversarial user would arguably be a compat break, but better be safe...
                 ' In reality we would typically have one method calling another method in the same class (one GetEnumerator calling another).
                 ' Other scenarios are uncommon since base class cannot be sealed and 
@@ -1376,7 +1376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Debug.Assert(toType.IsVerifierReference())
 
             ' From ILGENREC::GenQMark
-            ' See VSWhideby Bugs #49619 and 108643. If the destination type is an interface we need
+            ' See VSWhidbey Bugs #49619 and 108643. If the destination type is an interface we need
             ' to force a static cast to be generated for any cast result expressions. The static cast
             ' should be done before the unifying jump so the code is verifiable and to allow the JIT to
             ' optimize it away. NOTE: Since there is no staticcast instruction, we implement static cast
@@ -1494,7 +1494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                          (target.Kind = BoundKind.Local AndAlso DirectCast(target, BoundLocal).LocalSymbol.IsReadOnly))
 
             If target.Kind = BoundKind.Local AndAlso IsStackLocal(DirectCast(target, BoundLocal).LocalSymbol) Then
-                ' A newobj for a struct will create a new object on the stack for stak locals
+                ' A newobj for a struct will create a new object on the stack for stack locals
                 EmitNewObj(constructor, arguments, True, syntaxNode)
                 Return
             End If

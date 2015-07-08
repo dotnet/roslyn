@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var self = document.Project.Id;
 
                     // if there is no hint (this can happen for cases such as solution/project load and etc), 
-                    // we can postpond it even further
+                    // we can postpone it even further
                     if (internalVisibleToAssembly == null)
                     {
                         _processor.Enqueue(self, needDependencyTracking: true);

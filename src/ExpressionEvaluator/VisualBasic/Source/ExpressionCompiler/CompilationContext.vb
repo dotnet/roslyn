@@ -547,7 +547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End While
 
             ' PERF: we used to call compilation.GetCompilationNamespace on every iteration,
-            ' but that involved walking up to the global namesapce, which we have to do
+            ' but that involved walking up to the global namespace, which we have to do
             ' anyway.  Instead, we'll inline the functionality into our own walk of the
             ' namespace chain.
             [namespace] = compilation.GlobalNamespace

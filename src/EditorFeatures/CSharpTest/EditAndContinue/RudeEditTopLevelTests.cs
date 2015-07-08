@@ -4875,7 +4875,7 @@ partial class C
                 "Update [a = 1]@22 -> [a = 2]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
         }
 
         [Fact]
@@ -4887,7 +4887,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;"));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.AutoProperty));
         }
 
         [Fact]
@@ -4902,7 +4902,7 @@ partial class C
                 "Update [a = 1]@22 -> [a = 2]@22");
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field));
         }
 
         [Fact]
@@ -4914,7 +4914,7 @@ partial class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;"));
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "int a { get; } = 2;", FeaturesResources.AutoProperty));
         }
 
         [Fact]
@@ -6968,7 +6968,7 @@ class SampleCollection<T>
         }
 
         [Fact]
-        public void EventAccessorReoder3()
+        public void EventAccessorReorder3()
         {
             var src1 = "class C { event int E1 { add { } remove { } }    event int E2 { add { } remove { } } }";
             var src2 = "class C { event int E2 { remove { } add { } }    event int E1 { remove { } add { } } }";

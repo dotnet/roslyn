@@ -32,7 +32,7 @@ End Module");
 
             [WorkItem(530526)]
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-            public void BracketedIdentifierSimplicationTest()
+            public void BracketedIdentifierSimplificationTest()
             {
                 var expected = $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
 ' mscorlib.v4_0_30319_17626.dll

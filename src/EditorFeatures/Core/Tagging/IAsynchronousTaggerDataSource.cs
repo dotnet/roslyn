@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Whether or not the <see cref="AsynchronousTaggerProvider{TTag}"/> should remove a tag
         /// from the user interface if the user makes an edit that intersects with the span of the
         /// tag.  Removing may be appropriate if it is undesirable for stale tag data to be 
-        /// presented to the user.  However, removal may also lead to a more noticible tagging 
+        /// presented to the user.  However, removal may also lead to a more noticeable tagging 
         /// experience for the user if tags quickly get removed and re-added.
         /// </summary>
         bool RemoveTagsThatIntersectEdits { get; }

@@ -45,6 +45,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Type
                 Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
             End If
 
+            ' Are we after Inherits or Implements? Type keywords aren't allowed here.
+            If targetToken.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) OrElse
+               targetToken.IsChildToken(Of ImplementsStatementSyntax)(Function(n) n.ImplementsKeyword) Then
+                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+            End If
+
             If context.IsTypeContext Then
                 Return GetIntrinsicTypeKeywords(context)
             End If

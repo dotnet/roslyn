@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
-            //                 native compiler includes types of optinal parameters. We partially duplicate this behavior
+            //                 native compiler includes types of optional parameters. We partially duplicate this behavior
             //                 here by comparing the number of parameters used taking params expansion and 
             //                 optional parameters into account.
             if (!allSame || m1ParametersUsedIncludingExpansionAndOptional != m2ParametersUsedIncludingExpansionAndOptional)

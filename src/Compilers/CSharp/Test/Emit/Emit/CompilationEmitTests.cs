@@ -1765,7 +1765,7 @@ public sealed class ContentType
 {       
 	public void M(System.Collections.Generic.Dictionary<object, object> p)
 	{   
-		foreach (object paramterKey in p.Keys)
+		foreach (object parameterKey in p.Keys)
 		{
 		}
 	}

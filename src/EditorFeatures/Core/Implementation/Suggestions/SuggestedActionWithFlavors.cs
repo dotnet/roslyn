@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // HasActionSets is called synchronously on the UI thread. In order to avoid blocking the UI thread,
                 // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
-                // answer is expensive (because we will need to call CodeAction.GetPreivewOperationsAsync() (to
+                // answer is expensive (because we will need to call CodeAction.GetPreviewOperationsAsync() (to
                 // compute whether or not we should display the flavored action for 'Preview Changes') which in turn
                 // will involve computing the changed solution for the ApplyChangesOperation for the fix / refactoring
                 // So we always return 'true' here (so that platform will call GetActionSetsAsync() below). Platform

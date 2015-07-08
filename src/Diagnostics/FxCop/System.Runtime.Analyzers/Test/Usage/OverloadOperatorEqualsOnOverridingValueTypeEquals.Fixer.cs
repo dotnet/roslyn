@@ -25,7 +25,7 @@ namespace System.Runtime.Analyzers.UnitTests
             VerifyCSharpFix(@"
 using System;
 
-// value type without overridding Equals
+// value type without overriding Equals
 public struct A
 {    
     public override bool Equals(Object obj)
@@ -37,7 +37,7 @@ public struct A
 @"
 using System;
 
-// value type without overridding Equals
+// value type without overriding Equals
 public struct A
 {    
     public override bool Equals(Object obj)

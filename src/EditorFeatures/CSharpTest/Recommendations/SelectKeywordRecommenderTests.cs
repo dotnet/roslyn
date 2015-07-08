@@ -90,7 +90,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterOrderyByExpr()
+        public void AfterOrderByExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y
@@ -99,7 +99,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterOrderyByAscendingExpr()
+        public void AfterOrderByAscendingExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y
@@ -108,7 +108,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterOrderyByDescendingExpr()
+        public void AfterOrderByDescendingExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y

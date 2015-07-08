@@ -8308,7 +8308,7 @@ using System;
 unsafe struct s
     {
         private fixed ushort _e_res[4]; 
-        void Error_UsingFixedBuffersWiththis()
+        void Error_UsingFixedBuffersWithThis()
         {
             fixed (ushort* abc = this._e_res)
             {
