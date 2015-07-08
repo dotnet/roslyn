@@ -2766,7 +2766,10 @@ class Program
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
     // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
     //         void f() { if () const int i = 0; }
-    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(6, 26)
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(6, 26),
+    // (6,14): warning CS0168: The variable 'f' is declared but never used
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
                 );
         }
 

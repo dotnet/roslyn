@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ComRefCallInExpressionTree, node);
                 }
+                else if (method.MethodKind == MethodKind.LocalFunction)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                }
             }
         }
 

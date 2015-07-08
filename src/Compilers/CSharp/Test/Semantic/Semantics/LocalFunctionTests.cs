@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source = usingBlock + @"
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
 " + methodBody + @"
     }
@@ -168,6 +168,7 @@ class Program
         {
             Console.WriteLine(x);
         }
+        Params(2);
     }
 }
 ";
@@ -190,6 +191,8 @@ class Program
         {
             x++;
         }
+        int y = 2;
+        RefOut(ref y);
     }
 }
 ";
@@ -214,6 +217,7 @@ class Program
         {
             Console.WriteLine(x);
         }
+        NamedOptional(""2"");
     }
 }
 ";
@@ -239,6 +243,7 @@ class Program
         {
             Console.WriteLine(s);
         }
+        CallerMemberName();
     }
 }
 ";
@@ -847,6 +852,30 @@ void Foo()
     Console.Write(x);
     Console.Write(' ');
     Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+}
+Foo();
+";
+            VerifyOutputInMain(source, "2 System.ValueType", "System");
+        }
+
+        [Fact]
+        public void RecursiveStructClosure()
+        {
+            var source = @"
+int x = 0;
+void Foo()
+{
+    if (x != 2)
+    {
+        x++;
+        Foo();
+    }
+    else
+    {
+        Console.Write(x);
+        Console.Write(' ');
+        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+    }
 }
 Foo();
 ";
@@ -1874,6 +1903,49 @@ System.Object
             VerifyOutput(source, output);
         }
 
+        [Fact]
+        public void CompoundOperatorExecutesOnce()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    int _x = 2;
+    public static void Main()
+    {
+        var prog = new Program();
+        Program SideEffect()
+        {
+            Console.Write(prog._x);
+            return prog;
+        }
+        SideEffect()._x += 2;
+        Console.Write(' ');
+        SideEffect();
+    }
+}
+";
+            VerifyOutput(source, "2 4");
+        }
+
+        [Fact]
+        public void ConstValueDoesntMakeClosure()
+        {
+            var source = @"
+const int x = 2;
+void Local()
+{
+    Console.Write(x);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+}
+Local();
+";
+            // a closure class that captures looks like "Program+<>c__DisplayClass0_0", not "Program+<>c"
+            VerifyOutputInMain(source, "2 Program+<>c", "System");
+        }
+
         [Fact(Skip = "Dynamic local function arguments not supported yet")]
         public void DynamicArgument()
         {
@@ -1927,6 +1999,251 @@ Console.Write(nameof(Local));
         }
 
         [Fact]
+        public void ExpressionTreeParameter()
+        {
+            var source = @"
+Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+{
+    return f;
+}
+Console.Write(Local(x => x));
+";
+            VerifyOutputInMain(source, "x => x", "System", "System.Linq.Expressions");
+        }
+
+        [Fact]
+        public void ExpressionTreeLocfuncUsage()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        T Id<T>(T x)
+        {
+            return x;
+        }
+        Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+        {
+            return f;
+        }
+        Console.Write(Local(x => Id(x)));
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (16,34): error CS8096: An expression tree may not contain a local function or a reference to a local function
+    //         Console.Write(Local(x => Id(x)));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(x)").WithLocation(16, 34)
+    );
+        }
+
+        [Fact]
+        public void ExpressionTreeLocfuncInside()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int, int>> f = x =>
+        {
+            int Local(int y) => y;
+            return Local(x);
+        };
+        Console.Write(f);
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (8,40): error CS0834: A lambda expression with a statement body cannot be converted to an expression tree
+    //         Expression<Func<int, int>> f = x =>
+    Diagnostic(ErrorCode.ERR_StatementLambdaToExpressionTree, @"x =>
+        {
+            int Local(int y) => y;
+            return Local(x);
+        }").WithLocation(8, 40),
+    // (11,20): error CS8096: An expression tree may not contain a local function or a reference to a local function
+    //             return Local(x);
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Local(x)").WithLocation(11, 20)
+    );
+        }
+
+        [Fact]
+        public void LinqInLocalFunction()
+        {
+            var source = @"
+IEnumerable<int> Query(IEnumerable<int> values)
+{
+    return from x in values where x < 5 select x * x;
+}
+Console.Write(string.Join("","", Query(Enumerable.Range(0, 10))));
+";
+            VerifyOutputInMain(source, "0,1,4,9,16", "System", "System.Linq", "System.Collections.Generic");
+        }
+
+        [Fact]
+        public void ConstructorWithoutArg()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public int x;
+    public Base(int x)
+    {
+        this.x = x;
+    }
+}
+
+class Program : Base
+{
+    Program() : base(2)
+    {
+        void Local()
+        {
+            Console.Write(x);
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        new Program();
+    }
+}
+";
+            VerifyOutput(source, "2");
+        }
+
+        [Fact]
+        public void ConstructorWithArg()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public int x;
+    public Base(int x)
+    {
+        this.x = x;
+    }
+}
+
+class Program : Base
+{
+    Program(int x) : base(x + 2)
+    {
+        void Local()
+        {
+            Console.Write(x);
+            Console.Write(' ');
+            Console.Write(base.x);
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        new Program(2);
+    }
+}
+";
+            VerifyOutput(source, "2 4");
+        }
+
+        [Fact]
+        public void IfDef()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    public static void Main()
+    {
+        #if LocalFunc
+        void Local()
+        {
+            Console.Write(2);
+            Console.Write(' ');
+        #endif
+            Console.Write(4);
+        #if LocalFunc
+        }
+        Local();
+        #endif
+    }
+}
+";
+            VerifyOutput(source, "4");
+            source = "#define LocalFunc" + source;
+            VerifyOutput(source, "2 4");
+        }
+
+        [Fact]
+        public void PragmaWarningDisableEntersLocfunc()
+        {
+            var source = @"
+#pragma warning disable CS0168
+void Local()
+{
+    int x; // unused
+    Console.Write(2);
+}
+#pragma warning restore CS0168
+Local();
+";
+            // No diagnostics is asserted in VerifyOutput, so if the warning happens, then we'll catch it
+            VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
+        public void ObsoleteAttributeRecursion()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    [Obsolete]
+    public void Obs()
+    {
+        void Local()
+        {
+            Obs(); // shouldn't emit warning
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        Console.Write(2);
+    }
+}
+";
+            VerifyOutput(source, "2");
+        }
+
+        [Fact]
+        public void MainLocfuncIsntEntry()
+        {
+            var source = @"
+void Main()
+{
+    Console.Write(4);
+}
+Console.Write(2);
+Console.Write(' ');
+Main();
+";
+            VerifyOutputInMain(source, "2 4", "System");
+        }
+
+        [Fact]
         public void Shadows()
         {
             var source = @"
@@ -1950,6 +2267,32 @@ class Program
 }
 ";
             VerifyOutput(source, "2");
+        }
+
+        [Fact]
+        public void ExtensionMethodClosure()
+        {
+            var source = @"
+using System;
+
+static class Program
+{
+    public static void Ext(this int x)
+    {
+        void Local()
+        {
+            Console.Write(x);
+        }
+        Local();
+    }
+    public static void Main()
+    {
+        2.Ext();
+    }
+}
+";
+            // warning level 0 because extension method generates CS1685 (predefined type multiple definition) for ExtensionAttribute in System.Core and mscorlib
+            VerifyOutput(source, "2", TestOptions.ReleaseExe.WithWarningLevel(0));
         }
 
         [Fact]
@@ -1984,6 +2327,7 @@ class Program
             {
                 Console.WriteLine(2);
             }
+            Local();
         }
         Local();
 
@@ -1996,12 +2340,13 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (15,9): error CS0103: The name 'Local' does not exist in the current context
+    // (16,9): error CS0103: The name 'Local' does not exist in the current context
     //         Local();
-    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(15, 9),
-    // (17,9): error CS0841: Cannot use local variable 'Local2' before it is declared
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "Local").WithArguments("Local").WithLocation(16, 9),
+    // (18,9): error CS0841: Cannot use local variable 'Local2' before it is declared
     //         Local2();
-    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(17, 9));
+    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local2").WithArguments("Local2").WithLocation(18, 9)
+    );
         }
 
         [Fact]
@@ -2014,13 +2359,17 @@ class Program
     {
         void Duplicate() { }
         void Duplicate() { }
+        Duplicate();
     }
 }
 ";
             VerifyDiagnostics(source,
     // (7,14): error CS0128: A local variable named 'Duplicate' is already defined in this scope
     //         void Duplicate() { }
-    Diagnostic(ErrorCode.ERR_LocalDuplicate, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14)
+    Diagnostic(ErrorCode.ERR_LocalDuplicate, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14),
+    // (7,14): warning CS0168: The variable 'Duplicate' is declared but never used
+    //         void Duplicate() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Duplicate").WithArguments("Duplicate").WithLocation(7, 14)
     );
         }
 
@@ -2032,18 +2381,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        int x;
+        int x = 2;
         void Param(int x) { }
+        Param(x);
     }
 }
 ";
             VerifyDiagnostics(source,
     // (7,24): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
     //         void Param(int x) { }
-    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 24),
-    // (6,13): warning CS0168: The variable 'x' is declared but never used
-    //         int x;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(7, 24)
     );
         }
 
@@ -2057,6 +2404,7 @@ class Program
     {
         int T;
         void Generic<T>() { }
+        Generic<int>();
     }
 }
 ";
@@ -2089,7 +2437,10 @@ class Program
     Diagnostic(ErrorCode.ERR_LocalDuplicate, "Conflict").WithArguments("Conflict").WithLocation(7, 14),
     // (6,13): warning CS0168: The variable 'Conflict' is declared but never used
     //         int Conflict;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(6, 13)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(6, 13),
+    // (7,14): warning CS0168: The variable 'Conflict' is declared but never used
+    //         void Conflict() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(7, 14)
     );
         }
 
@@ -2113,7 +2464,10 @@ class Program
     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "Conflict").WithArguments("Conflict").WithLocation(6, 14),
     // (7,13): warning CS0168: The variable 'Conflict' is declared but never used
     //         int Conflict;
-    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(7, 13)
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(7, 13),
+    // (6,14): warning CS0168: The variable 'Conflict' is declared but never used
+    //         void Conflict() { }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Conflict").WithArguments("Conflict").WithLocation(6, 14)
     );
         }
 
@@ -2257,6 +2611,59 @@ class Program
         }
 
         [Fact]
+        public void BadGotoInto()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        goto A;
+        void Local()
+        {
+        A:  Console.Write(2);
+        }
+        Local();
+    }
+}";
+            VerifyDiagnostics(source,
+    // (8,14): error CS0159: No such label 'A' within the scope of the goto statement
+    //         goto A;
+    Diagnostic(ErrorCode.ERR_LabelNotFound, "A").WithArguments("A").WithLocation(8, 14),
+    // (11,9): warning CS0164: This label has not been referenced
+    //         A:  Console.Write(2);
+    Diagnostic(ErrorCode.WRN_UnreferencedLabel, "A").WithLocation(11, 9)
+    );
+        }
+
+        [Fact]
+        public void BadGotoOutOf()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local()
+        {
+            goto A;
+        }
+    A:  Local();
+    }
+}";
+            VerifyDiagnostics(source,
+    // (8,13): error CS0159: No such label 'A' within the scope of the goto statement
+    //             goto A;
+    Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("A").WithLocation(8, 13),
+    // (10,5): warning CS0164: This label has not been referenced
+    //     A:  Local();
+    Diagnostic(ErrorCode.WRN_UnreferencedLabel, "A").WithLocation(10, 5)
+    );
+        }
+
+        [Fact]
         public void BadDefiniteAssignmentCall()
         {
             var source = @"
@@ -2375,8 +2782,11 @@ class Program
         A();
     }
 }";
-            // TODO: No detection at the moment.
-            VerifyDiagnostics(source);
+            VerifyDiagnostics(source,
+    // (6,14): warning CS0168: The variable 'Local' is declared but never used
+    //         void Local()
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(6, 14)
+    );
         }
 
         [Fact]
@@ -2393,6 +2803,7 @@ class Program
         {
             Console.WriteLine(x);
         }
+        Local();
     }
     static void Main()
     {
@@ -2419,6 +2830,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local();
     }
     static void B(__arglist)
     {
@@ -2426,6 +2838,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local();
     }
     static void C() // C and D produce different errors
     {
@@ -2433,6 +2846,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local(__arglist());
     }
     static void D(__arglist)
     {
@@ -2440,6 +2854,7 @@ class Program
         {
             Console.WriteLine(__arglist);
         }
+        Local(__arglist());
     }
     static void Main()
     {
@@ -2450,15 +2865,15 @@ class Program
     // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
     //             Console.WriteLine(__arglist);
     Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-    // (17,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(17, 31),
-    // (24,31): error CS0190: The __arglist construct is valid only within a variable argument method
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
+    // (26,31): error CS0190: The __arglist construct is valid only within a variable argument method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(24, 31),
-    // (31,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+    Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(26, 31),
+    // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
     //             Console.WriteLine(__arglist);
-    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(31, 31)
+    Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );
         }
 
@@ -2477,6 +2892,7 @@ class Program
         {
             Console.WriteLine(_a);
         }
+        Local();
     }
     static void Main()
     {
@@ -2504,6 +2920,8 @@ class Program
         {
             yield return x;
         }
+        int y = 0;
+        RefEnumerable(ref y);
     }
 }
 ";
@@ -2518,6 +2936,7 @@ class Program
         public void BadRefAsync()
         {
             var source = @"
+using System;
 using System.Threading.Tasks;
 
 class Program
@@ -2528,13 +2947,15 @@ class Program
         {
             return await Task.FromResult(x);
         }
+        int y = 2;
+        Console.Write(RefAsync(ref y).Result);
     }
 }
 ";
             VerifyDiagnostics(source,
-    // (8,42): error CS1988: Async methods cannot have ref or out parameters
+    // (9,42): error CS1988: Async methods cannot have ref or out parameters
     //         async Task<int> RefAsync(ref int x)
-    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(8, 42)
+    Diagnostic(ErrorCode.ERR_BadAsyncArgType, "x").WithLocation(9, 42)
     );
         }
 
@@ -2583,6 +3004,10 @@ class Program
         volatile void LocalVolatile()
         {
         }
+        LocalConst();
+        LocalStatic();
+        LocalReadonly();
+        LocalVolatile();
     }
 }
 ";
@@ -2752,6 +3177,7 @@ class Program
         {
             yield return 2;
         }
+        Local();
     }
 }
 ";
@@ -2774,6 +3200,7 @@ class Program
         {
             yield break;
         }
+        Local();
     }
 }
 ";
@@ -2781,6 +3208,56 @@ class Program
     // (6,13): error CS1624: The body of 'Local()' cannot be an iterator block because 'var' is not an iterator interface type
     //         var Local()
     Diagnostic(ErrorCode.ERR_BadIteratorReturn, "Local").WithArguments("Local()", "var").WithLocation(6, 13)
+    );
+        }
+
+        [Fact]
+        public void InferredReturnMultipleReturn()
+        {
+            var source = @"
+var Local(bool x)
+{
+    if (x)
+    {
+        return 2;
+    }
+    else
+    {
+        return 3;
+    }
+}
+Console.Write(Local(true));
+";
+            VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
+        public void BadInferredReturnDifferentTypes()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var Local(bool x)
+        {
+            if (x)
+            {
+                return 2;
+            }
+            else
+            {
+                return new object();
+            }
+        }
+        Local(true);
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (6,13): error CS8097: Cannot infer the return type of Local(bool) due to differing return types.
+    //         var Local(bool x)
+    Diagnostic(ErrorCode.ERR_ReturnTypesDontMatch, "Local").WithArguments("Local(bool)").WithLocation(6, 13)
     );
         }
 
@@ -2848,7 +3325,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-                    // (6,17): error CS1002: ; expected
+    // (6,17): error CS1002: ; expected
     //         Program operator +(Program left, Program right)
     Diagnostic(ErrorCode.ERR_SemicolonExpected, "operator").WithLocation(6, 17),
     // (6,17): error CS1513: } expected
@@ -2957,6 +3434,7 @@ class Program
         void Local()
         {
         }
+        Local();
     }
 }
 ";

@@ -40,21 +40,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
         {
-            if (node.Kind() == SyntaxKind.Block)
-            {
-                if (((BlockSyntax)node).Statements == _statements)
-                {
-                    return this.Locals;
-                }
-            }
-            else if (_statements.Count == 1 && _statements.First() == node)
-            {
-                return this.Locals;
-            }
+            return this.Locals;
+        }
 
-            throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        {
+            return this.LocalFunctions;
         }
     }
 }

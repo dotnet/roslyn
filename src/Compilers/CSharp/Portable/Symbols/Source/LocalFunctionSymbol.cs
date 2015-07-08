@@ -200,21 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool inferredFromSingleType;
-                    returnType = BoundLambda.InferReturnType(body, _binder, IsAsync, ref useSiteDiagnostics, out inferredFromSingleType);
-                    if (returnType == null)
-                    {
-                        if (IsAsync)
-                        {
-                            returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-                        }
-                        else
-                        {
-                            returnType = _binder.Compilation.GetSpecialType(SpecialType.System_Void);
-                        }
-                    }
-                    diagnostics.Add(Locations[0], useSiteDiagnostics);
+                    returnType = InferReturnType(body, diagnostics);
                 }
             }
             if (Interlocked.CompareExchange(ref _returnType, returnType, null) != null)
@@ -227,6 +213,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
             }
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
+        }
+
+        private TypeSymbol InferReturnType(BoundBlock body, DiagnosticBag diagnostics)
+        {
+            int numberOfDistinctReturns;
+            var resultTypes = BoundLambda.BlockReturns.GetReturnTypes(body, out numberOfDistinctReturns);
+
+            TypeSymbol returnType;
+            if (resultTypes.IsDefaultOrEmpty)
+            {
+                returnType = _binder.Compilation.GetSpecialType(SpecialType.System_Void);
+            }
+            else if (resultTypes.Length == 1)
+            {
+                returnType = resultTypes[0];
+            }
+            else
+            {
+                // Make sure every return type is exactly the same (not even a subclass of each other)
+                returnType = null;
+                foreach (var resultType in resultTypes)
+                {
+                    if ((object)returnType == null)
+                    {
+                        returnType = resultType;
+                    }
+                    else if ((object)returnType != (object)resultType)
+                    {
+                        returnType = null;
+                        break;
+                    }
+                }
+                if (returnType == null)
+                {
+                    returnType = _binder.CreateErrorType("var");
+                    diagnostics.Add(ErrorCode.ERR_ReturnTypesDontMatch, Locations[0], this);
+                    return returnType;
+                }
+            }
+
+            if (IsAsync)
+            {
+                if (returnType.SpecialType == SpecialType.System_Void)
+                {
+                    returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                }
+                else
+                {
+                    returnType = _binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(returnType);
+                }
+            }
+            // cannot be iterator
+
+            return returnType;
         }
 
         public override bool ReturnsVoid => ReturnType?.SpecialType == SpecialType.System_Void;

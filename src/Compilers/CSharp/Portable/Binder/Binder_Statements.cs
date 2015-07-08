@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundBody = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundFixedStatement(node,
-                                           GetDeclaredLocalsForScope(node),
+                                           GetDeclaredLocalsForScope(),
                                            boundMultipleDeclarations,
                                            boundBody);
         }
@@ -2132,7 +2132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBlock(node, blockBinder.GetDeclaredLocalsForScope(node), boundStatements.ToImmutableAndFree());
+            return new BoundBlock(
+                node,
+                blockBinder.GetDeclaredLocalsForScope(),
+                blockBinder.GetDeclaredLocalFunctionsForScope(),
+                boundStatements.ToImmutableAndFree());
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false)
@@ -3271,7 +3275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
+            return new BoundBlock(node, locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
         }
 
         /// <summary>

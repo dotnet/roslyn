@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
+                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposeStmt));
                 }
                 else
@@ -259,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (d != null) d.Dispose();
                     finallyBlockOpt = new BoundBlock(forEachSyntax,
                         locals: ImmutableArray.Create<LocalSymbol>(disposableVar),
+                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(disposableVarDecl, ifStmt));
                 }
 
@@ -274,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement tryFinally = new BoundTryStatement(forEachSyntax,
                     tryBlock: new BoundBlock(forEachSyntax,
                         locals: ImmutableArray<LocalSymbol>.Empty,
+                        localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                         statements: ImmutableArray.Create<BoundStatement>(whileLoop)),
                     catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
                     finallyBlockOpt: finallyBlockOpt);
@@ -284,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = new BoundBlock(
                     syntax: forEachSyntax,
                     locals: ImmutableArray.Create(enumeratorVar),
+                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, tryFinally));
             }
             else
@@ -296,6 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = new BoundBlock(
                     syntax: forEachSyntax,
                     locals: ImmutableArray.Create(enumeratorVar),
+                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(enumeratorVarDecl, whileLoop));
             }
 
@@ -485,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static BoundBlock CreateBlockDeclaringIterationVariable(
-            LocalSymbol iterationVariable, 
+            LocalSymbol iterationVariable,
             BoundStatement iteratorVariableInitialization,
             BoundStatement rewrittenBody,
             ForEachStatementSyntax forEachSyntax)
@@ -502,6 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 forEachSyntax,
                 locals: ImmutableArray.Create(iterationVariable),
+                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create(iteratorVariableInitialization, rewrittenBody));
         }
 
@@ -605,8 +611,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // { V v = (V)a[p]; /* node.Body */ }
 
-            BoundStatement loopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVariableDecl, rewrittenBody, forEachSyntax); 
-           
+            BoundStatement loopBody = CreateBlockDeclaringIterationVariable(iterationVar, iterationVariableDecl, rewrittenBody, forEachSyntax);
+
             // for (A[] a = /*node.Expression*/, int p = 0; p < a.Length; p = p + 1) {
             //     V v = (V)a[p];
             //     /*node.Body*/
@@ -808,6 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement result = new BoundBlock(
                 forEachSyntax,
                 ImmutableArray.Create(arrayVar).Concat(upperVar.AsImmutableOrNull()),
+                ImmutableArray<LocalFunctionSymbol>.Empty,
                 ImmutableArray.Create(arrayVarDecl).Concat(upperVarDecl.AsImmutableOrNull()).Add(forLoop));
 
             AddForEachKeywordSequencePoint(forEachSyntax, ref result);

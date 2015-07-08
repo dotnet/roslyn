@@ -525,21 +525,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, BoundStatement statement)
         {
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty,
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty,
                 ImmutableArray.Create(statement))
             { WasCompilerGenerated = true };
         }
 
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, ImmutableArray<BoundStatement> statements)
         {
-            Debug.Assert(statements.Length > 0);
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, statements) { WasCompilerGenerated = true };
         }
 
         public static BoundBlock SynthesizedNoLocals(CSharpSyntaxNode syntax, params BoundStatement[] statements)
         {
-            Debug.Assert(statements.Length > 0);
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.AsImmutableOrNull()) { WasCompilerGenerated = true };
+            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, statements.AsImmutableOrNull()) { WasCompilerGenerated = true };
         }
     }
 
