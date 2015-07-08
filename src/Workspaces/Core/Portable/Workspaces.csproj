@@ -72,6 +72,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ArrayExtensions.cs">
       <Link>InternalUtilities\ArrayExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
+      <Link>InternalUtilities\CompilerOptionParseUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentSet.cs">
       <Link>InternalUtilities\ConcurrentSet.cs</Link>
     </Compile>

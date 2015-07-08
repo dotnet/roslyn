@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.SetCodePage(base.ReadPropertyInt(executedProject, "CodePage"));
                 compilerInputs.SetDebugType(base.ReadPropertyBool(executedProject, "DebugSymbols"), base.ReadPropertyString(executedProject, "DebugType"));
                 compilerInputs.SetDefineConstants(base.ReadPropertyString(executedProject, "FinalDefineConstants", "DefineConstants"));
+                compilerInputs.SetFeatures(base.ReadPropertyString(executedProject, "Features"));
                 compilerInputs.SetDelaySign(base.ReadPropertyBool(executedProject, "DelaySign"));
                 compilerInputs.SetDisabledWarnings(base.ReadPropertyString(executedProject, "NoWarn"));
                 compilerInputs.SetDocumentationFile(base.GetItemString(executedProject, "DocFileItem"));
@@ -132,6 +133,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.SetFileAlignment(base.ReadPropertyInt(executedProject, "FileAlignment"));
                 compilerInputs.SetGenerateDocumentation(base.ReadPropertyBool(executedProject, "GenerateDocumentation"));
                 compilerInputs.SetHighEntropyVA(base.ReadPropertyBool(executedProject, "HighEntropyVA"));
+                compilerInputs.SetFeatures(base.ReadPropertyString(executedProject, "Features"));
 
                 var _imports = this.GetTaskItems(executedProject, "Import");
                 if (_imports != null)
@@ -416,6 +418,16 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     if (!string.IsNullOrWhiteSpace(defineConstants))
                     {
                         _commandLineArgs.Add("/define:" + defineConstants);
+                    }
+
+                    return true;
+                }
+
+                public bool SetFeatures(string features)
+                {
+                    foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
+                    {
+                        this.CommandLineArgs.Add($"/features:{feature}");
                     }
 
                     return true;

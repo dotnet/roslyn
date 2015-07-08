@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetCodePage(this.ReadPropertyInt(executedProject, "CodePage"));
                 compilerInputs.SetDebugType(this.ReadPropertyString(executedProject, "DebugType"));
                 compilerInputs.SetDefineConstants(this.ReadPropertyString(executedProject, "DefineConstants"));
+                compilerInputs.SetFeatures(this.ReadPropertyString(executedProject, "Features"));
 
                 var delaySignProperty = this.GetProperty("DelaySign");
                 compilerInputs.SetDelaySign(delaySignProperty != null && !string.IsNullOrEmpty(delaySignProperty.EvaluatedValue), this.ReadPropertyBool(executedProject, "DelaySign"));
@@ -386,6 +387,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!string.IsNullOrWhiteSpace(defineConstants))
                     {
                         this.CommandLineArgs.Add("/define:" + defineConstants);
+                    }
+
+                    return true;
+                }
+
+                private static readonly char[] s_preprocessorSymbolSeparators = new char[] { ';', ',' };
+
+                public bool SetFeatures(string features)
+                {
+                    foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
+                    {
+                        this.CommandLineArgs.Add($"/features:{feature}");
                     }
 
                     return true;
