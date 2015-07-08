@@ -504,6 +504,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: default(Guid),
                 fileAlignment: Cci.ModulePropertiesForSerialization.DefaultFileAlignment32Bit,
+                sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: "v4.0.30319",
                 machine: 0,
                 prefer32Bit: false,
