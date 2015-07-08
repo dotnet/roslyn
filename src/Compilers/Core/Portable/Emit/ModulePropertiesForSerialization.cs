@@ -11,9 +11,17 @@ namespace Microsoft.Cci
     internal sealed class ModulePropertiesForSerialization
     {
         /// <summary>
-        /// The alignment of sections in the module's image file.
+        /// The alignment factor (in bytes) that is used to align the raw data of sections in the image file.
+       ///  The value should be a power of 2 between 512 and 64K, inclusive. The default is 512.
         /// </summary>
-        public readonly ushort FileAlignment;
+        public readonly int FileAlignment;
+
+        /// <summary>
+        /// The alignment (in bytes) of sections when they are loaded into memory. 
+        /// It must be greater than or equal to <see cref="FileAlignment"/>. 
+        /// The default is the page size for the architecture.
+        /// </summary>
+        public readonly int SectionAlignment;
 
         /// <summary>
         /// Identifies the version of the CLR that is required to load this module or assembly.
@@ -122,12 +130,15 @@ namespace Microsoft.Cci
         public const ulong DefaultSizeOfStackCommit32Bit = 0x1000;
         public const ulong DefaultSizeOfStackCommit64Bit = 0x4000;
 
-        public const ushort DefaultFileAlignment32Bit = 0x00000200;
-        public const ushort DefaultFileAlignment64Bit = 0x00000200; //both 32 and 64 bit binaries used this value in the native stack.
-        
+        public const ushort DefaultFileAlignment32Bit = 0x200;
+        public const ushort DefaultFileAlignment64Bit = 0x200; //both 32 and 64 bit binaries used this value in the native stack.
+
+        public const ushort DefaultSectionAlignment = 0x2000;
+
         internal ModulePropertiesForSerialization(
             Guid persistentIdentifier,
-            ushort fileAlignment,
+            int fileAlignment,
+            int sectionAlignment,
             string targetRuntimeVersion,
             Machine machine,
             bool prefer32Bit,
@@ -149,6 +160,7 @@ namespace Microsoft.Cci
         {
             this.PersistentIdentifier = persistentIdentifier;
             this.FileAlignment = fileAlignment;
+            this.SectionAlignment = sectionAlignment;
             this.TargetRuntimeVersion = targetRuntimeVersion;
             this.Machine = machine;
             this.Prefers32Bit = prefer32Bit;
