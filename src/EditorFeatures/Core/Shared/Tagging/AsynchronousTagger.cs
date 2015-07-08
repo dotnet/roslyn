@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             // Otherwise, batching for a quarter second is a nice way to space change notifications 
-            // out, while still appearing too visible to the user.
+            // out, while still appearing quickly to the user.
             return TaggerDelay.Short;
         }
 
