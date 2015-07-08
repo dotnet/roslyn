@@ -576,7 +576,7 @@ class a
 
         private void CheckResults(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a', isAugment: true);
+            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
             var provider = CreateCompletionProvider();
 
             if (isBuilder)
