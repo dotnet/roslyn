@@ -11,21 +11,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
-        void VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
-            var verify = CompileAndVerify(comp, expectedOutput: output);
-            verify.VerifyDiagnostics(); // no diagnostics
+            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        void VerifyOutput(string source, string output)
+        CompilationVerifier VerifyOutput(string source, string output)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
-            var verify = CompileAndVerify(comp, expectedOutput: output);
-            verify.VerifyDiagnostics(); // no diagnostics
+            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        void VerifyOutputInMain(string methodBody, string output, params string[] usings)
+        CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
         {
             for (var i = 0; i < usings.Length; i++)
             {
@@ -40,7 +38,7 @@ class Program
 " + methodBody + @"
     }
 }";
-            VerifyOutput(source, output);
+            return VerifyOutput(source, output);
         }
 
         void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
@@ -360,6 +358,18 @@ local();
 Console.Write(' ');
 local = (Action)Local;
 local();
+";
+            VerifyOutputInMain(source, "2 2", "System");
+        }
+
+        [Fact]
+        public void InterpolatedString()
+        {
+            var source = @"
+int x = 1;
+int Bar() => ++x;
+var str = $@""{((Func<int>)(() => { int Foo() => Bar(); return Foo(); }))()}"";
+Console.Write(str + ' ' + x);
 ";
             VerifyOutputInMain(source, "2 2", "System");
         }
@@ -894,6 +904,40 @@ Outer();
         }
 
         [Fact]
+        public void ThisClosureCallingOtherClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    int _x;
+    int Test()
+    {
+        int First()
+        {
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            Console.Write(' ');
+            return ++_x;
+        }
+        int Second()
+        {
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            Console.Write(' ');
+            return First();
+        }
+        return Second();
+    }
+    static void Main()
+    {
+        Console.Write(new Program() { _x = 1 }.Test());
+    }
+}
+";
+            VerifyOutput(source, "Program Program 2");
+        }
+
+        [Fact]
         public void RecursiveStructClosure()
         {
             var source = @"
@@ -1027,6 +1071,36 @@ class Program
 }
 ";
             VerifyOutput(source, "2 Program");
+        }
+
+        [Fact]
+        public void RecursionFrameCaptureTest()
+        {
+            // ensures that referring to a local function in an otherwise noncapturing Inner captures the frame of Outer.
+            var source = @"
+int x = 0;
+int Outer(bool isRecursive)
+{
+    if (isRecursive)
+    {
+        return x;
+    }
+    x++;
+    int Middle()
+    {
+        int Inner()
+        {
+            return Outer(true);
+        }
+        return Inner();
+    }
+    return Middle();
+}
+Console.Write(Outer(false));
+Console.Write(' ');
+Console.Write(x);
+";
+            VerifyOutputInMain(source, "1 1", "System");
         }
 
         [Fact]
