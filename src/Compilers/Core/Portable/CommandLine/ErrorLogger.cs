@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolFileVersion, GetToolFileVersionSubStr(toolFileVersion)));
             return Value.Create(builder.ToImmutableAndFree(), this);
         }
-        
+
         private string GetToolFileVersionSubStr(string toolFileVersion)
         {
             // Our log format specifies that fileVersion can have at most 3 fields.

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
-                    mappedBaseline, 
+                    mappedBaseline,
                     definitionMap,
                     changes,
                     metadataStream,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
 
-            // TODO: can we reuse some data from the previos matcher?
+            // TODO: can we reuse some data from the previous matcher?
             var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
                 anonymousTypeMap,
                 sourceAssembly,

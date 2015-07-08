@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ex
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub NoneInStructuryMethodBody()
+        Public Sub NoneInStructureMethodBody()
             VerifyRecommendationsMissing(<StructureMethodBody>|</StructureMethodBody>, "MyBase")
         End Sub
 

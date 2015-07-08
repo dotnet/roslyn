@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
     internal sealed class CSharpUnboundIdentifiersDiagnosticAnalyzer : UnboundIdentifiersDiagnosticAnalyzerBase<SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax, LambdaExpressionSyntax>
     {
         private const string NameNotInContext = "CS0103";
-        private readonly LocalizableString NameNotInContextMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.ERR_NameNotInContext), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private readonly LocalizableString _nameNotInContextMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.ERR_NameNotInContext), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private const string ConstructorOverloadResolutionFailure = "CS1729";
-        private readonly LocalizableString ConstructorOverloadResolutionFailureMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.ERR_BadCtorArgCount), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private readonly LocalizableString _constructorOverloadResolutionFailureMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.ERR_BadCtorArgCount), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression);
 
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
             }
         }
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, NameNotInContextMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, _nameNotInContextMessageFormat);
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(ConstructorOverloadResolutionFailure, ConstructorOverloadResolutionFailureMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(ConstructorOverloadResolutionFailure, _constructorOverloadResolutionFailureMessageFormat);
 
         protected override bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel model)
         {

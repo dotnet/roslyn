@@ -1369,7 +1369,7 @@ End Namespace
         <Fact>
         Public Sub Retarget_Scoping()
             'Retargeting symbols occurs for types even if inaccessible 
-            'Diagnostics are checked to verify Semnatic behaviour
+            'Diagnostics are checked to verify semantic behaviour
 
             Dim source =
                <compilation name="App1">
@@ -1548,7 +1548,7 @@ End Namespace
             CheckMethods(sourceType.GetMember("Sub_In_Interface"), retargetingType.GetMember("Sub_In_Interface"))
             CheckMethods(sourceType.GetMember("Function_In_Interface"), retargetingType.GetMember("Function_In_Interface"))
 
-            'Diagnostics shouyld be the same in Retargeting or Non-Retargeting scenarios as they are these are handled in
+            'Diagnostics should be the same in Retargeting or Non-Retargeting scenarios as they are these are handled in
             'semantic behaviour and symbols need to be available for this to occur irrespective of scope.
             'Expect same diagnostic errors with retargeting
             main_NoRetarget.VerifyDiagnostics(Diagnostic(ERRID.ERR_InaccessibleSymbol2, "TestInterface").WithArguments("TestInterface", "Friend"),

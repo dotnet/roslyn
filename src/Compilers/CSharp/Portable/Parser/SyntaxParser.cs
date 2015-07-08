@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetStart;
 
         private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
-        
+
         private BlendedNode[] _blendedTokens;
 
         protected SyntaxParser(
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // the error in we'll attach to the node
             SyntaxDiagnosticInfo diagnostic = null;
 
-            // the position of the error within the skipedSyntax node full tree
+            // the position of the error within the skippedSyntax node full tree
             int diagnosticOffset = 0;
 
             int currentOffset = 0;

@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Dim query = DirectCast(fromClause.Parent, QueryExpressionSyntax)
 
                 ' We can break on this expression if we're not the first clause in a
-                ' query, or if the range variabel it not the first range variable in the
+                ' query, or if the range variable it not the first range variable in the
                 ' list.
                 If query.Clauses.First() IsNot fromClause OrElse fromClause.Variables.IndexOf(collectionRangeVariable) <> 0 Then
                     Return CreateSpan(collectionRangeVariable.Expression)

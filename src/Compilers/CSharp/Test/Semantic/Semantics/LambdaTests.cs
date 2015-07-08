@@ -987,7 +987,7 @@ class TestDataPointBase
                 CSharpExtensions.GetSymbolInfo(model, name);
             }
 
-            // We shoudl get a bunch of errors, but no asserts.
+            // We should get a bunch of errors, but no asserts.
             compilation.VerifyDiagnostics(
     // (6,22): error CS0246: The type or namespace name 'IVisualStudioIntegrationService' could not be found (are you missing a using directive or an assembly reference?)
     //     private readonly IVisualStudioIntegrationService integrationService;
@@ -1295,6 +1295,5 @@ class Program
 
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
         }
-
     }
 }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 extern alias PDB;
+
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             return methodData;
         }
-        
+
         internal static void VerifyIL(
             this CompilationTestData.MethodData method,
             string expectedIL,
@@ -96,11 +98,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var expectedPdbXml = XElement.Parse(string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb);
 
             VerifyPdbImpl(
-                compilation, 
+                compilation,
                 qualifiedMethodName,
                 expectedPdbXml,
                 format,
-                expectedValueSourceLine, 
+                expectedValueSourceLine,
                 expectedValueSourcePath,
                 expectedIsXmlLiteral: false);
         }
@@ -124,12 +126,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerFilePath]string expectedValueSourcePath = null)
         {
             VerifyPdbImpl(
-                compilation, 
+                compilation,
                 qualifiedMethodName,
                 expectedPdb,
                 format,
-                expectedValueSourceLine, 
-                expectedValueSourcePath, 
+                expectedValueSourceLine,
+                expectedValueSourcePath,
                 expectedIsXmlLiteral: true);
         }
 
@@ -162,8 +164,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 using (var pdbbits = new MemoryStream())
                 {
                     compilation.Emit(
-                        exebits, 
-                        pdbbits, 
+                        exebits,
+                        pdbbits,
                         options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb));
 
                     pdbbits.Position = 0;

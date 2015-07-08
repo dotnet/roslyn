@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // the parent is a conditional access expression. This case is already covered before the parent kind switch
                 case SyntaxKind.ConditionalAccessExpression:
                     var parentConditionalAccessExpression = (ConditionalAccessExpressionSyntax)expression.Parent;
-                    return expression != parentConditionalAccessExpression.WhenNotNull && 
+                    return expression != parentConditionalAccessExpression.WhenNotNull &&
                             !parentConditionalAccessExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression);
 
                 case SyntaxKind.IsExpression:
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             else if (expression is TypeSyntax)
             {
                 var typeName = (TypeSyntax)expression;
-                return typeName.IsReplacableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                return typeName.IsReplaceableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
 
             return false;
@@ -1340,7 +1340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     var aliasInfo = semanticModel.GetAliasInfo(name, cancellationToken);
                     if (nameHasNoAlias && aliasInfo == null)
                     {
-                        if (IsReplacableByVar(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken))
+                        if (IsReplaceableByVar(name, semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken))
                         {
                             return true;
                         }
@@ -1932,10 +1932,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var invalidTransformation2 = WillConflictWithExistingLocal(name, reducedName);
             var invalidTransformation3 = IsAmbiguousCast(name, reducedName);
             var invalidTransformation4 = IsNullableTypeInPointerExpression(name, reducedName);
-            var isNotNullableReplacable = name.IsNotNullableReplacable(reducedName);
+            var isNotNullableReplaceable = name.IsNotNullableReplaceable(reducedName);
 
             if (invalidTransformation1 || invalidTransformation2 || invalidTransformation3 || invalidTransformation4
-                || isNotNullableReplacable)
+                || isNotNullableReplaceable)
             {
                 return false;
             }
@@ -1943,9 +1943,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return true;
         }
 
-        private static bool IsNotNullableReplacable(this NameSyntax name, TypeSyntax reducedName)
+        private static bool IsNotNullableReplaceable(this NameSyntax name, TypeSyntax reducedName)
         {
-            var isNotNullableReplacable = false;
+            var isNotNullableReplaceable = false;
             var isLeftSideOfDot = name.IsLeftSideOfDot();
             var isRightSideOfDot = name.IsRightSideOfDot();
 
@@ -1953,15 +1953,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (((NullableTypeSyntax)reducedName).ElementType.Kind() == SyntaxKind.OmittedTypeArgument)
                 {
-                    isNotNullableReplacable = true;
+                    isNotNullableReplaceable = true;
                 }
                 else
                 {
-                    isNotNullableReplacable = name.IsLeftSideOfDot() || name.IsRightSideOfDot();
+                    isNotNullableReplaceable = name.IsLeftSideOfDot() || name.IsRightSideOfDot();
                 }
             }
 
-            return isNotNullableReplacable;
+            return isNotNullableReplaceable;
         }
 
         private static bool IsThisOrTypeOrNamespace(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
@@ -2001,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool IsReplacableByVar(
+        private static bool IsReplaceableByVar(
             this TypeSyntax simpleName,
             SemanticModel semanticModel,
             out TypeSyntax replacementNode,

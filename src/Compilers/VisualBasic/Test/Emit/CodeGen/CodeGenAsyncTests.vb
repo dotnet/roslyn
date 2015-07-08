@@ -5202,7 +5202,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Imported_NextedExpressionInArrayInitializer()
+        Public Sub Imported_NestedExpressionInArrayInitializer()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">

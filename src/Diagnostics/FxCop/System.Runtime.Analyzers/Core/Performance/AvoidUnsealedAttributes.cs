@@ -58,6 +58,5 @@ namespace System.Runtime.Analyzers
             // Non-sealed non-abstract attribute type.
             addDiagnostic(namedType.CreateDiagnostic(Rule));
         }
-
     }
 }

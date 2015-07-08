@@ -805,7 +805,7 @@ LessThanSlashTokenCase:
                     Return SyntaxFactory.XmlElementStartTag(lessThan, Name, attributes, greaterThan)
 
                 Case Else
-                    ' Try to avoid spurios missing '>' error message. Only report error if no skipped text
+                    ' Try to avoid spurious missing '>' error message. Only report error if no skipped text
                     ' and attributes are error free.
                     greaterThan = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.GreaterThanToken)
 

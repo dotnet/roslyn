@@ -450,7 +450,7 @@ public class Test
     public void Testing(int x, Test obj02)
     {
         uint y = 5678;
-        // ExplicitNumberic - CS0266
+        // ExplicitNumeric - CS0266
         y = x;
 
         // Boxing

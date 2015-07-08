@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         }
 
         public override object VoidDisplayString => "<void>";
-        public override string NullLiteral => ObjectDisplay.NullLiteral; 
+        public override string NullLiteral => ObjectDisplay.NullLiteral;
         public override string GenericParameterOpening => "<";
         public override string GenericParameterClosing => ">";
 

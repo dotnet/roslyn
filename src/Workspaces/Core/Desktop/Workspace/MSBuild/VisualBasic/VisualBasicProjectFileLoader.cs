@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
         internal HostLanguageServices LanguageServices
         {
-            get { return this._workspaceServices.GetLanguageServices(LanguageNames.VisualBasic); }
+            get { return _workspaceServices.GetLanguageServices(LanguageNames.VisualBasic); }
         }
 
         public override string Language
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
         internal VisualBasicProjectFileLoader(HostWorkspaceServices workspaceServices)
         {
-            this._workspaceServices = workspaceServices;
+            _workspaceServices = workspaceServices;
         }
 
         protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project loadedProject)
         {
-            return new VisualBasicProjectFile(this, loadedProject, this._workspaceServices.GetService<IMetadataService>(), this._workspaceServices.GetService<IAnalyzerService>());
+            return new VisualBasicProjectFile(this, loadedProject, _workspaceServices.GetService<IMetadataService>(), _workspaceServices.GetService<IAnalyzerService>());
         }
 
         internal class VisualBasicProjectFile : ProjectFile
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
             public VisualBasicProjectFile(VisualBasicProjectFileLoader loader, MSB.Evaluation.Project loadedProject, IMetadataService metadataService, IAnalyzerService analyzerService) : base(loader, loadedProject)
             {
-                this._metadataService = metadataService;
-                this._analyzerService = analyzerService;
-                this._hostBuildDataFactory = loader.LanguageServices.GetService<IHostBuildDataFactory>();
-                this._commandLineArgumentsFactory = loader.LanguageServices.GetService<ICommandLineArgumentsFactoryService>();
+                _metadataService = metadataService;
+                _analyzerService = analyzerService;
+                _hostBuildDataFactory = loader.LanguageServices.GetService<IHostBuildDataFactory>();
+                _commandLineArgumentsFactory = loader.LanguageServices.GetService<ICommandLineArgumentsFactoryService>();
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 this.GetReferences(compilerInputs, executedProject, ref metadataReferences, ref analyzerReferences);
                 string outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 string assemblyName = this.GetAssemblyName();
-                HostBuildData hostBuildData = this._hostBuildDataFactory.Create(compilerInputs.HostBuildOptions);
+                HostBuildData hostBuildData = _hostBuildDataFactory.Create(compilerInputs.HostBuildOptions);
                 return new ProjectFileInfo(outputPath, assemblyName, hostBuildData.CompilationOptions, hostBuildData.ParseOptions, compilerInputs.CodePage, this.GetDocuments(compilerInputs.Sources, executedProject), this.GetDocuments(compilerInputs.AdditionalFiles, executedProject), base.GetProjectReferences(executedProject), metadataReferences, analyzerReferences);
             }
 
@@ -169,11 +169,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     list.Add("/sdkpath:" + compilerInputs.SdkPath);
                 }
 
-                CommandLineArguments commandLineArguments = this._commandLineArgumentsFactory.CreateCommandLineArguments(list, executedProject.Directory, false, RuntimeEnvironment.GetRuntimeDirectory());
+                CommandLineArguments commandLineArguments = _commandLineArgumentsFactory.CreateCommandLineArguments(list, executedProject.Directory, false, RuntimeEnvironment.GetRuntimeDirectory());
                 MetadataFileReferenceResolver pathResolver = new MetadataFileReferenceResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-                metadataReferences = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(pathResolver, this._metadataService.GetProvider()));
+                metadataReferences = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(pathResolver, _metadataService.GetProvider()));
 
-                IAnalyzerAssemblyLoader loader = this._analyzerService.GetLoader();
+                IAnalyzerAssemblyLoader loader = _analyzerService.GetLoader();
                 foreach (var path in commandLineArguments.AnalyzerReferences.Select((r) => r.FilePath))
                 {
                     loader.AddDependencyLocation(path);
@@ -280,11 +280,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.EndInitialization();
             }
 
-            private class VisualBasicCompilerInputs : 
-                MSB.Tasks.Hosting.IVbcHostObject5, 
+            private class VisualBasicCompilerInputs :
+                MSB.Tasks.Hosting.IVbcHostObject5,
                 MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
 #if !MSBUILD12
-                ,IAnalyzerHostObject 
+                , IAnalyzerHostObject
 #endif
             {
                 private readonly VisualBasicProjectFile _projectFile;
@@ -305,80 +305,80 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 private string _outputFileName;
                 public VisualBasicCompilerInputs(VisualBasicProjectFile projectFile)
                 {
-                    this._projectFile = projectFile;
-                    this._options = new HostBuildOptions();
-                    this._sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this._references = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this._analyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this._warnings = new Dictionary<string, ReportDiagnostic>();
+                    _projectFile = projectFile;
+                    _options = new HostBuildOptions();
+                    _sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _references = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _analyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _warnings = new Dictionary<string, ReportDiagnostic>();
 
-                    this._options.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
-                    this._options.OutputDirectory = projectFile.GetOutputDirectory();
+                    _options.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
+                    _options.OutputDirectory = projectFile.GetOutputDirectory();
                 }
 
                 public bool Initialized
                 {
-                    get { return this._initialized; }
+                    get { return _initialized; }
                 }
 
                 public HostBuildOptions HostBuildOptions
                 {
-                    get { return this._options; }
+                    get { return _options; }
                 }
 
                 public int CodePage
                 {
-                    get { return this._codePage; }
+                    get { return _codePage; }
                 }
 
                 public IEnumerable<MSB.Framework.ITaskItem> References
                 {
-                    get { return this._references; }
+                    get { return _references; }
                 }
 
                 public IEnumerable<MSB.Framework.ITaskItem> AnalyzerReferences
                 {
-                    get { return this._analyzerReferences; }
+                    get { return _analyzerReferences; }
                 }
 
                 public IEnumerable<MSB.Framework.ITaskItem> Sources
                 {
-                    get { return this._sources; }
+                    get { return _sources; }
                 }
 
                 public IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles
                 {
-                    get { return this._additionalFiles; }
+                    get { return _additionalFiles; }
                 }
 
                 public bool NoStandardLib
                 {
-                    get { return this._noStandardLib; }
+                    get { return _noStandardLib; }
                 }
 
                 public string VbRuntime
                 {
-                    get { return this._vbRuntime; }
+                    get { return _vbRuntime; }
                 }
 
                 public string SdkPath
                 {
-                    get { return this._sdkPath; }
+                    get { return _sdkPath; }
                 }
 
                 public bool TargetCompactFramework
                 {
-                    get { return this._targetCompactFramework; }
+                    get { return _targetCompactFramework; }
                 }
 
                 public IEnumerable<string> LibPaths
                 {
-                    get { return this._libPaths; }
+                    get { return _libPaths; }
                 }
 
                 public string OutputFileName
                 {
-                    get { return this._outputFileName; }
+                    get { return _outputFileName; }
                 }
 
                 public void BeginInitialization()
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public void EndInitialization()
                 {
-                    this._initialized = true;
+                    _initialized = true;
                 }
 
                 public bool IsDesignTime()
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetAdditionalLibPaths(string[] additionalLibPaths)
                 {
-                    this._libPaths = additionalLibPaths;
+                    _libPaths = additionalLibPaths;
                     return true;
                 }
 
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetCodePage(int codePage)
                 {
-                    this._codePage = codePage;
+                    _codePage = codePage;
                     return true;
                 }
 
@@ -436,13 +436,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetDefineConstants(string defineConstants)
                 {
-                    this._options.DefineConstants = defineConstants;
+                    _options.DefineConstants = defineConstants;
                     return true;
                 }
 
                 public bool SetDelaySign(bool delaySign)
                 {
-                    this._options.DelaySign = Tuple.Create(delaySign, false);
+                    _options.DelaySign = Tuple.Create(delaySign, false);
                     return true;
                 }
 
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetDocumentationFile(string documentationFile)
                 {
-                    this._options.DocumentationFile = documentationFile;
+                    _options.DocumentationFile = documentationFile;
                     return true;
                 }
 
@@ -486,13 +486,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetKeyContainer(string keyContainer)
                 {
-                    this._options.KeyContainer = keyContainer;
+                    _options.KeyContainer = keyContainer;
                     return true;
                 }
 
                 public bool SetKeyFile(string keyFile)
                 {
-                    this._options.KeyFile = keyFile;
+                    _options.KeyFile = keyFile;
                     return true;
                 }
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetMainEntryPoint(string mainEntryPoint)
                 {
-                    this._options.MainEntryPoint = mainEntryPoint;
+                    _options.MainEntryPoint = mainEntryPoint;
                     return true;
                 }
 
@@ -515,37 +515,37 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetNoStandardLib(bool noStandardLib)
                 {
-                    this._noStandardLib = noStandardLib;
+                    _noStandardLib = noStandardLib;
                     return true;
                 }
 
                 public bool SetNoWarnings(bool noWarnings)
                 {
-                    this._options.NoWarnings = noWarnings;
+                    _options.NoWarnings = noWarnings;
                     return true;
                 }
 
                 public bool SetOptimize(bool optimize)
                 {
-                    this._options.Optimize = optimize;
+                    _options.Optimize = optimize;
                     return true;
                 }
 
                 public bool SetOptionCompare(string optionCompare)
                 {
-                    this._options.OptionCompare = optionCompare;
+                    _options.OptionCompare = optionCompare;
                     return true;
                 }
 
                 public bool SetOptionExplicit(bool optionExplicit)
                 {
-                    this._options.OptionExplicit = optionExplicit;
+                    _options.OptionExplicit = optionExplicit;
                     return true;
                 }
 
                 public bool SetOptionStrict(bool _optionStrict)
                 {
-                    this._options.OptionStrict = _optionStrict ? "On" : "Custom";
+                    _options.OptionStrict = _optionStrict ? "On" : "Custom";
                     return true;
                 }
 
@@ -553,50 +553,50 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 {
                     if (!string.IsNullOrEmpty(optionStrictType))
                     {
-                        this._options.OptionStrict = optionStrictType;
+                        _options.OptionStrict = optionStrictType;
                     }
                     return true;
                 }
 
                 public bool SetOutputAssembly(string outputAssembly)
                 {
-                    this._outputFileName = Path.GetFileName(outputAssembly);
+                    _outputFileName = Path.GetFileName(outputAssembly);
                     return true;
                 }
 
                 public bool SetPlatform(string _platform)
                 {
-                    this._options.Platform = _platform;
+                    _options.Platform = _platform;
                     return true;
                 }
 
                 public bool SetPlatformWith32BitPreference(string _platform)
                 {
-                    this._options.PlatformWith32BitPreference = _platform;
+                    _options.PlatformWith32BitPreference = _platform;
                     return true;
                 }
 
                 public bool SetReferences(Microsoft.Build.Framework.ITaskItem[] references)
                 {
-                    this._references = references ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _references = references ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     return true;
                 }
 
                 public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
                 {
-                    this._analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     return true;
                 }
 
                 public bool SetAdditionalFiles(MSB.Framework.ITaskItem[] additionalFiles)
                 {
-                    this._additionalFiles = additionalFiles ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _additionalFiles = additionalFiles ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     return true;
                 }
 
                 public bool SetRemoveIntegerChecks(bool removeIntegerChecks)
                 {
-                    this._options.CheckForOverflowUnderflow = !removeIntegerChecks;
+                    _options.CheckForOverflowUnderflow = !removeIntegerChecks;
                     return true;
                 }
 
@@ -612,25 +612,25 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetRootNamespace(string rootNamespace)
                 {
-                    this._options.RootNamespace = rootNamespace;
+                    _options.RootNamespace = rootNamespace;
                     return true;
                 }
 
                 public bool SetSdkPath(string sdkPath)
                 {
-                    this._sdkPath = sdkPath;
+                    _sdkPath = sdkPath;
                     return true;
                 }
 
                 public bool SetSources(Microsoft.Build.Framework.ITaskItem[] sources)
                 {
-                    this._sources = sources ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    _sources = sources ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
                     return true;
                 }
 
                 public bool SetTargetCompactFramework(bool targetCompactFramework)
                 {
-                    this._targetCompactFramework = targetCompactFramework;
+                    _targetCompactFramework = targetCompactFramework;
                     return true;
                 }
 
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                         OutputKind outputKind;
                         if (VisualBasicProjectFile.TryGetOutputKind(targetType, out outputKind))
                         {
-                            this._options.OutputKind = outputKind;
+                            _options.OutputKind = outputKind;
                         }
                     }
                     return true;
@@ -649,13 +649,13 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetRuleSet(string ruleSetFile)
                 {
-                    this._options.RuleSetFile = ruleSetFile;
+                    _options.RuleSetFile = ruleSetFile;
                     return true;
                 }
 
                 public bool SetTreatWarningsAsErrors(bool treatWarningsAsErrors)
                 {
-                    this._options.WarningsAsErrors = treatWarningsAsErrors;
+                    _options.WarningsAsErrors = treatWarningsAsErrors;
                     return true;
                 }
 
@@ -676,11 +676,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                             int warningId = 0;
                             if (Int32.TryParse(warning, out warningId))
                             {
-                                this._warnings["BC" + warningId.ToString("0000")] = reportStyle;
+                                _warnings["BC" + warningId.ToString("0000")] = reportStyle;
                             }
                             else
                             {
-                                this._warnings[warning] = reportStyle;
+                                _warnings[warning] = reportStyle;
                             }
                         }
                     }
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetOptionInfer(bool optionInfer)
                 {
-                    this._options.OptionInfer = optionInfer;
+                    _options.OptionInfer = optionInfer;
                     return true;
                 }
 
@@ -720,14 +720,14 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetLanguageVersion(string _languageVersion)
                 {
-                    this._options.LanguageVersion = _languageVersion;
+                    _options.LanguageVersion = _languageVersion;
                     return true;
                 }
 
                 public bool SetVBRuntime(string VBRuntime)
                 {
-                    this._vbRuntime = VBRuntime;
-                    this._options.VBRuntime = VBRuntime;
+                    _vbRuntime = VBRuntime;
+                    _options.VBRuntime = VBRuntime;
                     return true;
                 }
 
@@ -769,8 +769,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return Compile1();
                 }
             }
-
-
         }
     }
 }

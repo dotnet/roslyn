@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return prevAsLocal.LocalSymbol == curAsLocal.LocalSymbol;
             }
 
-            // prameters
+            // parameters
             var prevAsParam = prevNode as BoundParameter;
             var curAsParam = curNode as BoundParameter;
 
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert(
                     node.Left.Type.Equals(node.Right.Type, ignoreCustomModifiers: true, ignoreDynamic: true),
                     @"type of the assignment value is not the same as the type of assignment target. 
-                This is not expected by the optimizer and is typically a result of a bug somwhere else.");
+                This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 
                 Debug.Assert(!isIndirectAssignment, "indirect assignment is a read, not a write");
 
@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var whenNull = node.WhenNullOpt;
             if (whenNull != null)
             {
-                _evalStack = origStack;  // whennull is evaluated with original stack
+                _evalStack = origStack;  // whenNull is evaluated with original stack
                 whenNull = (BoundExpression)this.Visit(whenNull);
                 EnsureStackState(cookie);   // implicit label here
             }
@@ -1244,18 +1244,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EnsureOnlyEvalStack();
 
-            var origStack = this._evalStack;
+            var origStack = _evalStack;
 
-            this._evalStack += 1;
+            _evalStack += 1;
 
             var cookie = GetStackStateCookie(); // implicit goto here 
 
-            this._evalStack = origStack; // consequence is evaluated with original stack 
+            _evalStack = origStack; // consequence is evaluated with original stack 
             var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
 
-            this._evalStack = origStack; // alternative is evaluated with original stack 
+            _evalStack = origStack; // alternative is evaluated with original stack 
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 

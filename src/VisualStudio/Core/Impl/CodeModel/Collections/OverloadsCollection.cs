@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // This *could* be an issue because it means that an OverloadsCollection will not necessarily reflect the
             // current state of the user's code. However, because a new OverloadsCollection is created everytime the Overloads
             // property is accessed on CodeFunction, consumers would hit this behavior rarely.
-            if (this._overloads == null)
+            if (_overloads == null)
             {
                 var symbol = (IMethodSymbol)ParentElement.LookupSymbol();
 
@@ -84,10 +84,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     }
                 }
 
-                this._overloads = overloadsBuilder.ToImmutable();
+                _overloads = overloadsBuilder.ToImmutable();
             }
 
-            return this._overloads;
+            return _overloads;
         }
 
         internal override Snapshot CreateSnapshot() => new CodeElementSnapshot(GetOverloads());

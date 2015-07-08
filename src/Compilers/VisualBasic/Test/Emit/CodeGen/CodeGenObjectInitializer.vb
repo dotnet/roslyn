@@ -856,7 +856,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub ObjectInitializerAsNewTypeParameterStuctureConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterStructureConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">

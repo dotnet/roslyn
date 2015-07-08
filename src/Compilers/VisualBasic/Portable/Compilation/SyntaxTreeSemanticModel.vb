@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 <Out> ByRef typeParameters As ImmutableArray(Of Symbol)) As ImmutableArray(Of Symbol)
             typeParameters = ImmutableArray(Of Symbol).Empty
 
-            ' We only allow a sertain list of node kinds to be processed here
+            ' We only allow a certain list of node kinds to be processed here
             If node.Kind = SyntaxKind.XmlString Then
                 Return Nothing
             End If

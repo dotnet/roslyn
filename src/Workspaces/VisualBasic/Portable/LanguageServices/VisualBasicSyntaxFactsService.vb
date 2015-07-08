@@ -852,7 +852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetDisplayName(node, DisplayNameOptions.IncludeNamespaces)
         End Function
 
-        Private Const dotToken As String = "."
+        Private Const s_dotToken As String = "."
 
         Public Function GetDisplayName(node As SyntaxNode, options As DisplayNameOptions, Optional rootNamespace As String = Nothing) As String Implements ISyntaxFactsService.GetDisplayName
             If node Is Nothing Then
@@ -889,14 +889,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' root namespace (if any)
                 If Not containsGlobalKeyword AndAlso Not String.IsNullOrEmpty(rootNamespace) Then
                     builder.Append(rootNamespace)
-                    builder.Append(dotToken)
+                    builder.Append(s_dotToken)
                 End If
             End If
             While Not names.IsEmpty()
                 Dim name = names.Pop()
                 If name IsNot Nothing Then
                     builder.Append(name)
-                    builder.Append(dotToken)
+                    builder.Append(s_dotToken)
                 End If
             End While
             names.Free()
@@ -944,7 +944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         containsGlobalKeyword = True
                         Return GetName(qualified.Right, options, containsGlobalKeyword) ' don't use the Global prefix if specified
                     Else
-                        Return GetName(qualified.Left, options, containsGlobalKeyword) + dotToken + GetName(qualified.Right, options, containsGlobalKeyword)
+                        Return GetName(qualified.Left, options, containsGlobalKeyword) + s_dotToken + GetName(qualified.Right, options, containsGlobalKeyword)
                     End If
             End Select
 

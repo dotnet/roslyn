@@ -549,7 +549,7 @@ class Program
             {
                 foreach (var charSet in new[] { CharSet.Ansi, CharSet.Auto, CharSet.None, CharSet.Unicode })
                 {
-                    var text = 
+                    var text =
 @"
 using System;
 using System.Runtime.InteropServices;
@@ -557,7 +557,7 @@ using System.Runtime.InteropServices;
 [StructLayout( LayoutKind." + layout.ToString() + ", CharSet = CharSet." + charSet.ToString() + @")]
 public unsafe struct Test
 {
-    " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") +  @"public fixed UInt32 Field[ 16 ];
+    " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
                     CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll,

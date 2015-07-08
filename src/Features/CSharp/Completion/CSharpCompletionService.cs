@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new ObjectCreationCompletionProvider(),
                 new ObjectInitializerCompletionProvider(),
                 new SpeculativeTCompletionProvider(),
-                new SuggestionModeCompletionProvider(),
+                new CSharpSuggestionModeCompletionProvider(),
                 new EnumAndCompletionListTagCompletionProvider(),
                 new CrefCompletionProvider(),
                 new SnippetCompletionProvider(),

@@ -118,7 +118,7 @@ namespace System.Runtime.Analyzers
 
             bool first = true;
             ulong previous = 0;
-            foreach (var element in list.OrderBy(t =>t))
+            foreach (var element in list.OrderBy(t => t))
             {
                 if (first)
                 {

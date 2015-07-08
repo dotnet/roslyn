@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
-            Debug.Assert(!receiverType.IsValueType || 
+            Debug.Assert(!receiverType.IsValueType ||
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     // unconstrained case needs to handle case where T is actually a struct.
                     // such values are never nulls
-                    // we will emit a check for such case, but the check is realy a JIT-time 
+                    // we will emit a check for such case, but the check is really a JIT-time 
                     // constant since JIT will know if T is a struct or not.
 
                     // if ((object)default(T) != null) 
@@ -1364,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (callKind == CallKind.CallVirt)
             {
                 // NOTE: we check that we call method in same module just to be sure
-                // that it cannot be recompiled as not final and make our call not verfiable. 
+                // that it cannot be recompiled as not final and make our call not verifiable. 
                 // such change by adversarial user would arguably be a compat break, but better be safe...
                 // In reality we would typically have one method calling another method in the same class (one GetEnumerator calling another).
                 // Other scenarios are uncommon since base class cannot be sealed and 
@@ -2828,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(to.IsVerifierReference());
 
             // From ILGENREC::GenQMark
-            // See VSWhideby Bugs #49619 and 108643. If the destination type is an interface we need
+            // See VSWhidbey Bugs #49619 and 108643. If the destination type is an interface we need
             // to force a static cast to be generated for any cast result expressions. The static cast
             // should be done before the unifying jump so the code is verifiable and to allow the JIT to
             // optimize it away. NOTE: Since there is no staticcast instruction, we implement static cast

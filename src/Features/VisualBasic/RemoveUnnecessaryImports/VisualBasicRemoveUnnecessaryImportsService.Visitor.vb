@@ -49,7 +49,7 @@ Namespace Roslyn.Services.VisualBasic.RemoveUnnecessaryImports
             ' quickly ask "should we bother even binding this identifier" as there is no point if
             ' there are no usings that would have even pulled in that identifier. The dictionary
             ' maps from type names to the using directives that pulled those type names in.  In
-            ' practive these will usually be 1:1.  However, occasionally you will have things like {
+            ' practice these will usually be 1:1.  However, occasionally you will have things like {
             ' Timer -> [ System.Timers; System.Windows.Forms; System.Threading ] }.  
             '
             ' When we bind something like "Timer" and we get a symbol back, we will then see what

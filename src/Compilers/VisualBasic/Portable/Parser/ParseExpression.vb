@@ -1603,7 +1603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim asKeyword As KeywordSyntax = Nothing
 
             ' Check the return type.
-            ' Parse the as clause if one exists even if this is a sub. This aids in error reocovery situations. Otherwise,
+            ' Parse the as clause if one exists even if this is a sub. This aids in error recovery situations. Otherwise,
             ' Sub () as integer 
             ' becomes a single line sub lambda.
             If CurrentToken.Kind = SyntaxKind.AsKeyword Then
