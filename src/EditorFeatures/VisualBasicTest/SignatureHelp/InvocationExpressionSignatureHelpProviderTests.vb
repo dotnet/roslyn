@@ -975,6 +975,30 @@ End Class
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TriggerCharacterInComment01()
+            Dim markup = "
+Class C
+    Sub M(p As String)
+        M(',$$
+    End Sub
+End Class
+"
+            Test(markup, usePreviousCharAsTrigger:=True, expectFailure:=True)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TriggerCharacterInString01()
+            Dim markup = "
+Class C
+    Sub M(p As String)
+        M("",$$""
+    End Sub
+End Class
+"
+            Test(markup, usePreviousCharAsTrigger:=True, expectFailure:=True)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestTriggerCharacters()
             Dim expectedTriggerCharacters() As Char = {","c, "("c}
             Dim unexpectedTriggerCharacters() As Char = {" "c, "["c, "<"c}

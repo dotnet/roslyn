@@ -908,6 +908,49 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacterInComment01()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a)
+    {
+        Foo(/*,$$*/);
+    }
+}";
+            Test(markup, usePreviousCharAsTrigger: true, expectFailure: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacterInComment02()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a)
+    {
+        Foo(//,$$
+            );
+    }
+}";
+            Test(markup, usePreviousCharAsTrigger: true, expectFailure: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public void TestTriggerCharacterInString01()
+        {
+            var markup = @"
+class C
+{
+    void Foo(int a)
+    {
+        Foo("",$$"");
+    }
+}";
+            Test(markup, usePreviousCharAsTrigger: true, expectFailure: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public void TestTriggerCharacters()
         {
             char[] expectedCharacters = { ',', '(' };

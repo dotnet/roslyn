@@ -41,16 +41,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         /// <param name="usePreviousCharAsTrigger">If true, uses the last character before $$ to trigger sighelp.
         /// If false, invokes sighelp explicitly at the cursor location.</param>
         /// <param name="sourceCodeKind">The sourcecodekind to run this test on. If null, runs on both regular and script sources.</param>
-        protected virtual void Test(string markup, IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null, bool usePreviousCharAsTrigger = false, SourceCodeKind? sourceCodeKind = null, bool experimental = false)
+        protected virtual void Test(
+            string markup,
+            IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
+            bool usePreviousCharAsTrigger = false,
+            SourceCodeKind? sourceCodeKind = null,
+            bool experimental = false,
+            bool expectFailure = false)
         {
             if (sourceCodeKind.HasValue)
             {
-                TestSignatureHelpWorker(markup, sourceCodeKind.Value, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+                TestSignatureHelpWorker(markup, sourceCodeKind.Value, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, expectFailure);
             }
             else
             {
-                TestSignatureHelpWorker(markup, SourceCodeKind.Regular, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
-                TestSignatureHelpWorker(markup, SourceCodeKind.Script, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+                TestSignatureHelpWorker(markup, SourceCodeKind.Regular, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, expectFailure);
+                TestSignatureHelpWorker(markup, SourceCodeKind.Script, experimental, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, expectFailure);
             }
         }
 
@@ -59,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             SourceCodeKind sourceCodeKind,
             bool experimental,
             IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
-            bool usePreviousCharAsTrigger = false)
+            bool usePreviousCharAsTrigger = false,
+            bool expectFailure = false)
         {
             markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
@@ -87,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                 document1 = document1.Project.WithParseOptions(parseOptions).GetDocument(document1.Id);
             }
 
-            TestSignatureHelpWorkerShared(code, cursorPosition, sourceCodeKind, document1, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+            TestSignatureHelpWorkerShared(code, cursorPosition, sourceCodeKind, document1, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, expectFailure);
 
             // speculative semantic model
             if (CanUseSpeculativeSemanticModel(document1, cursorPosition))
@@ -98,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
                     document2 = document2.Project.WithParseOptions(parseOptions).GetDocument(document2.Id);
                 }
 
-                TestSignatureHelpWorkerShared(code, cursorPosition, sourceCodeKind, document2, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger);
+                TestSignatureHelpWorkerShared(code, cursorPosition, sourceCodeKind, document2, textSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, expectFailure);
             }
         }
 
@@ -374,7 +381,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             Document document,
             TextSpan? textSpan,
             IEnumerable<SignatureHelpTestItem> expectedOrderedItemsOrNull = null,
-            bool usePreviousCharAsTrigger = false)
+            bool usePreviousCharAsTrigger = false,
+            bool expectFailure = false)
         {
             var signatureHelpProvider = CreateSignatureHelpProvider();
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
@@ -392,6 +400,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
             }
 
             var items = signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, CancellationToken.None).Result;
+
+            if (expectFailure)
+            {
+                AssertEx.Null(items);
+                return;
+            }
 
             // If we're expecting 0 items, then there's no need to compare them
             if ((expectedOrderedItemsOrNull == null || !expectedOrderedItemsOrNull.Any()) && items == null)
