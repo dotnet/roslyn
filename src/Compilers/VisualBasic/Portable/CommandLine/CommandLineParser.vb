@@ -1138,7 +1138,7 @@ lVbRuntimePlus:
                     documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
                     kind:=SourceCodeKind.Regular,
                     preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
-                    features:=ParseFeatures(features))
+                    features:=CompilerOptionParseUtilities.ParseFeatures(features))
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 

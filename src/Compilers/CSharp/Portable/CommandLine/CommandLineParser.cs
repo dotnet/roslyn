@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
                 kind: SourceCodeKind.Regular,
-                features: ParseFeatures(features)
+                features: CompilerOptionParseUtilities.ParseFeatures(features)
             );
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CompilerServer;
@@ -99,6 +100,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ErrorLog)] = value; }
             get { return (string)_store[nameof(ErrorLog)]; }
+        }
+
+        public string Features
+        {
+            set { _store["Features"] = value; }
+            get { return (string)_store["Features"]; }
         }
 
         public int FileAlignment
@@ -599,14 +606,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/win32icon:", this.Win32Icon);
             commandLine.AppendSwitchIfNotNull("/win32manifest:", this.Win32Manifest);
 
-            // Append the analyzers.
+            this.AddFeatures(commandLine);
             this.AddAnalyzersToCommandLine(commandLine);
-
-            // Append additional files.
             this.AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
             commandLine.AppendFileNamesIfNotNull(Sources, " ");
+        }
+
+        /// <summary>
+        /// Adds a "/features:" switch to the command line for each provided feature.
+        /// </summary>
+        /// <param name="commandLine"></param>
+        private void AddFeatures(CommandLineBuilderExtension commandLine)
+        {
+            var features = Features;
+            if (string.IsNullOrEmpty(features))
+            {
+                return;
+            }
+
+            foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
+            { 
+                commandLine.AppendSwitchIfNotNull("/features:", feature.Trim());
+            }
         }
 
         /// <summary>

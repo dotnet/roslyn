@@ -70,6 +70,7 @@
           EnvironmentVariables="$(VbcEnvironment)"
           ErrorLog="$(ErrorLog)"
           ErrorReport="$(ErrorReport)"
+          Features="$(Features)"
           FileAlignment="$(FileAlignment)"
           GenerateDocumentation="$(GenerateDocumentation)"
           HighEntropyVA="$(HighEntropyVA)"

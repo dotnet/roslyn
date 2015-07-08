@@ -102,6 +102,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="VisualBasicCommandLineArgumentsFactoryServiceTests.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
