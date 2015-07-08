@@ -983,7 +983,7 @@ Class C
     End Sub
 End Class
 "
-            Test(markup, usePreviousCharAsTrigger:=True, expectFailure:=True)
+            Test(markup, usePreviousCharAsTrigger:=True, expectSuccess:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
@@ -995,7 +995,7 @@ Class C
     End Sub
 End Class
 "
-            Test(markup, usePreviousCharAsTrigger:=True, expectFailure:=True)
+            Test(markup, usePreviousCharAsTrigger:=True, expectSuccess:=False)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>

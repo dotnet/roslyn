@@ -918,7 +918,7 @@ class C
         Foo(/*,$$*/);
     }
 }";
-            Test(markup, usePreviousCharAsTrigger: true, expectFailure: true);
+            Test(markup, usePreviousCharAsTrigger: true, expectSuccess: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -933,7 +933,7 @@ class C
             );
     }
 }";
-            Test(markup, usePreviousCharAsTrigger: true, expectFailure: true);
+            Test(markup, usePreviousCharAsTrigger: true, expectSuccess: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -947,7 +947,7 @@ class C
         Foo("",$$"");
     }
 }";
-            Test(markup, usePreviousCharAsTrigger: true, expectFailure: true);
+            Test(markup, usePreviousCharAsTrigger: true, expectSuccess: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]

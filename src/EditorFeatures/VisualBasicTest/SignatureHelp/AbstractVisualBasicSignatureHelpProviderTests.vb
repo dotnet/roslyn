@@ -11,11 +11,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
         ' We want to skip script testing in all VB stuff for now.
 
-        Protected Overrides Sub Test(markupWithPositionAndOptSpan As String, Optional expectedOrderedItemsOrNull As IEnumerable(Of SignatureHelpTestItem) = Nothing, Optional usePreviousCharAsTrigger As Boolean = False, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing, Optional experimental As Boolean = False, Optional expectFailure As Boolean = False)
+        Protected Overrides Sub Test(markupWithPositionAndOptSpan As String, Optional expectedOrderedItemsOrNull As IEnumerable(Of SignatureHelpTestItem) = Nothing, Optional usePreviousCharAsTrigger As Boolean = False, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing, Optional experimental As Boolean = False, Optional expectSuccess As Boolean = True)
             If (sourceCodeKind.HasValue) Then
-                MyBase.Test(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, sourceCodeKind, experimental, expectFailure)
+                MyBase.Test(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, sourceCodeKind, experimental, expectSuccess)
             Else
-                MyBase.Test(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, Microsoft.CodeAnalysis.SourceCodeKind.Regular, experimental, expectFailure)
+                MyBase.Test(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, Microsoft.CodeAnalysis.SourceCodeKind.Regular, experimental, expectSuccess)
             End If
         End Sub
 
