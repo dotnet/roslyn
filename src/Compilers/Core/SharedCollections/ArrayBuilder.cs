@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool()
         {
-            return CreatePool(128); // we rarily need more than 10
+            return CreatePool(128); // we rarely need more than 10
         }
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)

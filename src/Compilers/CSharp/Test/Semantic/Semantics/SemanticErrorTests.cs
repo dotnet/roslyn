@@ -22476,7 +22476,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
-            // queriied via an API (command line compile would exit after parse errors were reported). 
+            // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();

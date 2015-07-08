@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   Foo : base( |
             //   Foo : base(bar: |
             //   Foo : this( |
-            //   Foo : ths(bar: |
+            //   Foo : this(bar: |
 
             // Foo(bar: |
             if (targetToken.Kind() == SyntaxKind.ColonToken &&

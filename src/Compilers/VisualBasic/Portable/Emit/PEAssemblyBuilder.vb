@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
-                       serializationProperties As ModulePropertiesForSerialization,
+                       serializationProperties As Cci.ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        additionalTypes As ImmutableArray(Of NamedTypeSymbol))
 
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
-                       serializationProperties As ModulePropertiesForSerialization,
+                       serializationProperties As Cci.ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        Optional additionalTypes As ImmutableArray(Of NamedTypeSymbol) = Nothing)
 

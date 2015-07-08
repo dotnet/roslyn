@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function ChildInCache(child As GreenNode) As Boolean
             ' for the purpose of this function consider that 
-            ' null nodes, tokens and trivias are cached somwhere else.
+            ' null nodes, tokens and trivias are cached somewhere else.
             If (child Is Nothing OrElse child.SlotCount = 0) Then
                 Return True
             End If

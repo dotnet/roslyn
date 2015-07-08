@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             //    is called.
             // 2) during the closing of the dialog via Cancel/close when options don't need to be
             //    saved. The intent here is the settings get reloaded so the next time you open the
-            //    page they are properly poulated.
+            //    page they are properly populated.
             //
             // This second one is tricky, because we don't actually want to update our controls
             // right then, because they'd be wrong the next time the page opens -- it's possible

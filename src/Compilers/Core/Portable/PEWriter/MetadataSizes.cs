@@ -58,11 +58,13 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Overall size of metadata stream storage (stream headers, streams: heaps + tables).
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataStreamStorageSize;
 
         /// <summary>
         /// The size of metadata stream (#- or #~). Aligned.
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataTableStreamSize;
 
@@ -73,13 +75,20 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The size of mapped field data stream.
+        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
         /// </summary>
         public readonly int MappedFieldDataSize;
 
         /// <summary>
         /// The size of managed resource data stream.
+        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
         /// </summary>
         public readonly int ResourceDataSize;
+
+        /// <summary>
+        /// Size of strong name hash.
+        /// </summary>
+        public readonly int StrongNameSignatureSize;
 
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
@@ -87,6 +96,7 @@ namespace Microsoft.Cci
             int ilStreamSize,
             int mappedFieldDataSize,
             int resourceDataSize,
+            int strongNameSignatureSize,
             bool isMinimalDelta)
         {
             Debug.Assert(rowCounts.Length == MetadataTokens.TableCount);
@@ -100,6 +110,7 @@ namespace Microsoft.Cci
             this.ResourceDataSize = resourceDataSize;
             this.ILStreamSize = ilStreamSize;
             this.MappedFieldDataSize = mappedFieldDataSize;
+            this.StrongNameSignatureSize = strongNameSignatureSize;
             this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;

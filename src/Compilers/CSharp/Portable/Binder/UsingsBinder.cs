@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if ((options & LookupOptions.NamespaceAliasesOnly) != 0)
+            if (!ShouldLookInUsings(options))
             {
                 return;
             }
@@ -57,14 +57,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             tmp.Free();
         }
-
         protected override void AddLookupSymbolsInfoInSingleBinder(
             LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
+
+            if (!ShouldLookInUsings(options))
+            {
+                return;
+            }
+
             // Add types within namespaces imported through usings, but don't add nested namespaces.
             LookupOptions usingOptions = (options & ~(LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) | LookupOptions.MustNotBeNamespace;
 
             Imports.AddLookupSymbolsInfoInUsings(ConsolidatedUsings, this, result, usingOptions);
+        }
+
+        private static bool ShouldLookInUsings(LookupOptions options)
+        {
+            return (options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.LabelsOnly)) == 0;
         }
 
         internal override bool SupportsExtensionMethods

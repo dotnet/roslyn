@@ -3001,7 +3001,6 @@ End While
         ParseAndVerify(code)
     End Sub
 
-    ' old name - ParseEventMissignEndEvent
     <WorkItem(887848, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC31122ERR_CustomEventRequiresAs()

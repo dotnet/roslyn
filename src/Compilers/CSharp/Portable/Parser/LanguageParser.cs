@@ -9137,7 +9137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // Adapted from CParser::ScanAsyncLambda
 
-            // Precendence must not exceed that of lambdas
+            // Precedence must not exceed that of lambdas
             if (precedence > LambdaPrecedence)
             {
                 return false;

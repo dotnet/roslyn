@@ -34,7 +34,7 @@ namespace System.Runtime.Analyzers.UnitTests
         }
     }
 
-    // value type without overridding Equals
+    // value type without overriding Equals
     public struct B
     {    
         public new bool Equals(Object obj)
@@ -76,7 +76,7 @@ namespace System.Runtime.Analyzers.UnitTests
         }
     }
 
-    [|// value type without overridding Equals
+    [|// value type without overriding Equals
     public struct B
     {    
         public new bool Equals(Object obj)

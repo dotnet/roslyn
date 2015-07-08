@@ -78,7 +78,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             {
                 ppHier = _hierarchy;
 
-                // Each item should have it's own ItemID, but for simplicitly we'll just hard-code a value of
+                // Each item should have it's own ItemID, but for simplicity we'll just hard-code a value of
                 // no particular significance.
                 pItemID = 42;
 

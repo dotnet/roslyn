@@ -584,7 +584,7 @@ public struct X
         }
 
         [Fact]
-        public void StructParameterlssCtorNotPublic()
+        public void StructParameterlessCtorNotPublic()
         {
             string source = @"
 public struct X

@@ -8536,7 +8536,7 @@ End Module
         End Sub
         <WorkItem(10607, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub GetSymbolForOptionalParamMethodCallWithOutParanthesis()
+        Public Sub GetSymbolForOptionalParamMethodCallWithOutParenthesis()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[

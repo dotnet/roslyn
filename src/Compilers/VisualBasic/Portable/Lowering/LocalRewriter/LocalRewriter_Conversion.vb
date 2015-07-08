@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The structure of the nullable BoundUserDefinedConversion looks like this:
             '    [OPERAND] -> [IN-CONVERSION] -> [CALL] -> [OUT-CONVERSION]
             '
-            '   In-conversion also does unrapping.
+            '   In-conversion also does unwrapping.
             '   Out-conversion also does wrapping.
             '
             ' operand

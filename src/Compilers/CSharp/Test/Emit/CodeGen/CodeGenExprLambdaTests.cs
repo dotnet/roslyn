@@ -4188,7 +4188,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
 
         [WorkItem(531382, "DevDiv")]
         [Fact]
-        public void IndexerIsIndexedPropoperty()
+        public void IndexerIsIndexedProperty()
         {
             var source1 =
 @"<System.Runtime.InteropServices.ComImport>

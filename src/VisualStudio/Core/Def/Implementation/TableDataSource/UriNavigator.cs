@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private static UriNavigator s_instance;
 
-        public static void AttachRequestNaviateEventHandler(Hyperlink hyperLink, IServiceProvider serviceProvider)
+        public static void AttachRequestNavigateEventHandler(Hyperlink hyperLink, IServiceProvider serviceProvider)
         {
             if (s_instance == null)
             {

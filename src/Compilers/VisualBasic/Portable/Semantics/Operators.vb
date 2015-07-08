@@ -1938,7 +1938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             ' !!! Dev10 implementation doesn't match the spec here (the behavior is duplicated):
             ' !!! 1) If there were applicable Widening CType operators applicable according to the
-            ' !!!    "Most Specific Widening Conversion" section, Narrowing CType opeartors are not considered at all.
+            ' !!!    "Most Specific Widening Conversion" section, Narrowing CType operators are not considered at all.
             ' !!!    Nullable lifting isn't considered too.
             ' !!! 2) With "Most Specific Narrowing Conversion" behavior is slightly different. If there is a conversion
             ' !!!    operator that converts from the most specific source type to the most specific target type, then
@@ -1988,7 +1988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not (sourceUnderlying.IsErrorType() OrElse destinationUnderlying.IsErrorType()) Then
                     ' All candidates applicable to the underlying types should be applicable to the original types, no reason to 
-                    ' do viability checks for the secont time.
+                    ' do viability checks for the second time.
 
                     If DetermineMostSpecificWideningConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteDiagnostics:=useSiteDiagnostics) Then
                         If bestMatch IsNot Nothing Then
@@ -2338,7 +2338,7 @@ Done:
             End If
 
             ' Ignore user defined conversions between types that already have intrinsic conversions.
-            ' This could happen for generics after generic param substituion.
+            ' This could happen for generics after generic param substitution.
             If Not method.ContainingType.IsDefinition Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnostics)) OrElse

@@ -227,7 +227,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub TestArrayLiteralDimensionMistach()
+        Public Sub TestArrayLiteralDimensionMismatch()
             Dim source =
 <compilation name="TestArrayLiteralWithTargetType">
     <file name="a.vb">
@@ -1247,9 +1247,9 @@ Function Foo2Params(of m+C)(x as m+C, y as m+C)
 
         ' Tests dominant type when array is converted to c via user defined function
         <Fact()>
-        Public Sub TestArrayLiteralDominantTyperAndUserDefinedConversion()
+        Public Sub TestArrayLiteralDominantTypeAndUserDefinedConversion()
             Dim source =
-<compilation name="TestArrayLiteralDominantTyperAndUserDefinedConversion">
+<compilation>
     <file name="a.vb">
         <![CDATA[
 Imports System

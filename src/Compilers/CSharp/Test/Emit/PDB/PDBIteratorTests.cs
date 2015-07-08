@@ -847,9 +847,7 @@ class C
   <methods>
     <method containingType=""C+&lt;F&gt;d__1"" name=""MoveNext"">
       <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
+        <forward declaringType=""C"" methodName=""B"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
           <slot kind=""1"" offset=""11"" />
@@ -866,9 +864,6 @@ class C
         <entry offset=""0x41"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""10"" document=""0"" />
         <entry offset=""0x42"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x44"">
-        <namespace name=""System.Collections.Generic"" />
-      </scope>
     </method>
   </methods>
 </symbols>");

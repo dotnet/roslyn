@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
             OutputKind outputKind,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             EmitBaseline previousGeneration,
             IEnumerable<SemanticEdit> edits,

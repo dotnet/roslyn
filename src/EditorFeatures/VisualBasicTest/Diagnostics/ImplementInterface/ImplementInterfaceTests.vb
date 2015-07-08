@@ -113,7 +113,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Interface IInt
         End Sub
 
         <Fact, WorkItem(6623, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Sub TestImplementGenericTypeWithGenericMethodWithUnexpressableConstraint()
+        Public Sub TestImplementGenericTypeWithGenericMethodWithUnexpressibleConstraint()
             Test(
 NewLines("Interface IInterface1(Of T) \n Sub Method1(Of U As T)(arg As T, arg1 As U) \n End Interface \n Class [Class] \n Implements [|IInterface1(Of Integer)|] \n End Class "),
 NewLines("Imports System \n Interface IInterface1(Of T) \n Sub Method1(Of U As T)(arg As T, arg1 As U) \n End Interface \n Class [Class] \n Implements IInterface1(Of Integer) \n Public Sub Method1(Of U As Integer)(arg As Integer, arg1 As U) Implements IInterface1(Of Integer).Method1 \n Throw New NotImplementedException() \n End Sub \n End Class "))

@@ -2095,7 +2095,7 @@ BC40042: Type of optional value for optional parameter 'x07' is not CLS-complian
         End Sub
 
         <Fact>
-        Public Sub WRN_OptionalValueNotCLSCompliant1_ParamterTypeNonCompliant()
+        Public Sub WRN_OptionalValueNotCLSCompliant1_ParameterTypeNonCompliant()
             Dim source =
                 <compilation>
                     <file name="a.vb">

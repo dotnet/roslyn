@@ -2110,6 +2110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Emit"
 
+        Friend Overrides ReadOnly Property LinkerMajorVersion As Byte
+            Get
+                Return &H50
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsDelaySigned As Boolean
             Get
                 Return SourceAssembly.IsDelaySigned
@@ -2203,7 +2209,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(Me)
 
-            moduleBeingBuilt.TranslateImports(diagnostics)
+            ' The translation of global imports assumes absence of error symbols.
+            ' We don't need to translate them if there are any declaration errors since 
+            ' we are not going to emit the metadata.
+            If Not hasDeclarationErrors Then
+                moduleBeingBuilt.TranslateImports(diagnostics)
+            End If
 
             If moduleBeingBuilt.EmitOptions.EmitMetadataOnly Then
                 If hasDeclarationErrors Then

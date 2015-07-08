@@ -220,7 +220,7 @@ class C
 
         // With multidimensional arrays, you can use one loop to iterate through the elements
         [Fact]
-        public void TestMultimensionArray()
+        public void TestMultiDimensionalArray()
         {
             var text =
 @"class T

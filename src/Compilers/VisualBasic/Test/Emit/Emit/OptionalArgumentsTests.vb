@@ -1308,7 +1308,7 @@ End Module
 
         <WorkItem(543227, "DevDiv")>
         <Fact()>
-        Public Sub TestMultpleEnumDefaultValuesFromMetadata()
+        Public Sub TestMultipleEnumDefaultValuesFromMetadata()
             Dim source =
 <compilation>
     <file name="a.vb">

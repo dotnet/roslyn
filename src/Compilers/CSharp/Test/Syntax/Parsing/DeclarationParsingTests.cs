@@ -2557,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestClassMethodWithMulipleParameters()
+        public void TestClassMethodWithMultipleParameters()
         {
             var text = "class a { b X(c d, e f) { } }";
             var file = this.ParseFile(text);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         internal override ICompletionProvider CreateCompletionProvider()
         {
-            return new SuggestionModeCompletionProvider();
+            return new CSharpSuggestionModeCompletionProvider();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
