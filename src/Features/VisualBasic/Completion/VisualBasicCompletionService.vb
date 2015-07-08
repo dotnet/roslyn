@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New ObjectCreationCompletionProvider(),
             New EnumCompletionProvider(),
             New NamedParameterCompletionProvider(),
-            New SuggestionModeCompletionProvider(),
+            New VisualBasicSuggestionModeCompletionProvider(),
             New ImplementsClauseCompletionProvider(),
             New HandlesClauseCompletionProvider(),
             New PartialTypeCompletionProvider(),

@@ -77,13 +77,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />    
+    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />    
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
@@ -147,7 +147,7 @@
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProvider.cs" />
+    <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
     <Compile Include="Completion\CSharpCompletionItem.cs" />
     <Compile Include="Completion\CSharpCompletionOptions.cs" />

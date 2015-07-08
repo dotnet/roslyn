@@ -188,7 +188,7 @@
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.vb" />
-    <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProvider.vb" />
+    <Compile Include="Completion\SuggestionMode\VisualBasicSuggestionModeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.vb" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.vb" />
     <Compile Include="Completion\KeywordRecommenders\ArrayStatements\EraseKeywordRecommender.vb" />
