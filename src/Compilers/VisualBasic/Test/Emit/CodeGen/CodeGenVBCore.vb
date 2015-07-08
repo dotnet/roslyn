@@ -2887,7 +2887,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")> <Fact>
         Public Sub VbCoreWithStaticLocals_UsingEmbedVBCore()
             'Static Locals use types contained within VB Runtime so verify with VBCore option to ensure the feature works
-            'usign VBCore which would be the case with platforms such as Phone.
+            'using VBCore which would be the case with platforms such as Phone.
             Dim compilation As VisualBasicCompilation = CompilationUtils.CreateCompilationWithReferences(
       <compilation>
           <file name="a.vb">

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             // in current design/implementation, there are 4 possible ways for a version to be created.
             //
             // 1. created from a file stamp (most likely by starting a new session). "increment" will have 0 as value
-            // 2. created by modifing existing item (text changes, project changes etc).
+            // 2. created by modifying existing item (text changes, project changes etc).
             //    "increment" will have either 0 or previous increment + 1 if there was a collision.
             // 3. created from deserialization (probably by using persistent service).
             // 4. created by accumulating versions of multiple items.
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis
             // or we could use Int64 which will give more than a million years turn around even on 1ms interval.
 
             // this will let versions to be compared safely between multiple items
-            // without worring about collision within same session
+            // without worrying about collision within same session
             var globalVersion = Interlocked.Increment(ref VersionStamp.s_globalVersion);
 
             return globalVersion;

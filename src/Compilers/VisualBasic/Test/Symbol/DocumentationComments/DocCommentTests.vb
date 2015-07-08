@@ -12305,7 +12305,7 @@ End Module
                 options:=TestOptions.ReleaseExe,
                 parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
 
-            ' Compilation should succeeed with warnings
+            ' Compilation should succeed with warnings
             AssertTheseDiagnostics(CompileAndVerify(compilation, expectedOutput:="Here").Diagnostics, <![CDATA[
 BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
     '''<summary>

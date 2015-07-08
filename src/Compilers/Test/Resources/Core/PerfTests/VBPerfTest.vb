@@ -2728,7 +2728,7 @@ Namespace ns1
 
                 ' Delegate Binding
                 'TODO: Below lines are commented because of what seems like a bug in Dev10 that
-                'reuslts in bad (unverifiable) code generation. Investigate whether we can
+                'results in bad (unverifiable) code generation. Investigate whether we can
                 'work around this somehow.
                 'Dim d2 As Del2(Of TT, UU, VV) = AddressOf foo(Of TT, UU, VV) : d2 = AddressOf foo(Of TT, UU, VV)
                 'Dim d3 As Del3(Of TT, VV, UU) = AddressOf foo : d3 = AddressOf foo(Of TT, VV, UU)
@@ -2740,7 +2740,7 @@ Namespace ns1
 
                 ' Delegate Binding
                 'TODO: Below lines are commented because of what seems like a bug in Dev10 that
-                'reuslts in bad (unverifiable) code generation. Investigate whether we can
+                'results in bad (unverifiable) code generation. Investigate whether we can
                 'work around this somehow.
                 'Dim d22 As Del2(Of Integer, Del, VV) = AddressOf foo(Of Integer, Del, VV) : d22 = AddressOf foo(Of Integer, Del, VV)
                 'Dim d32 As Del3(Of Long, Integer, Exception) = AddressOf foo : d32 = AddressOf foo(Of Long, Integer, Exception)

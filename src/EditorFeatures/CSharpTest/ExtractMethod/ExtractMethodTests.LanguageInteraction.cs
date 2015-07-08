@@ -1211,7 +1211,7 @@ void NewMethod(string query, string[,] labelKeys)
 
             [WorkItem(544920)]
             [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-            public void NoSimplicationForStackAlloc()
+            public void NoSimplificationForStackAlloc()
             {
                 var code = @"using System;
  

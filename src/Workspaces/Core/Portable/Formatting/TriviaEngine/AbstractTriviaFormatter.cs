@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             LineColumn lineColumnBeforeTrivia1, SyntaxTrivia trivia1, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2, LineColumnRule rule)
         {
             // we do not touch spaces adjacent to missing token
-            // [missing token] [whitespace] [trivia] or [trivia] [whitepsace] [missing token] case
+            // [missing token] [whitespace] [trivia] or [trivia] [whitespace] [missing token] case
             if ((this.Token1.IsMissing && trivia1.RawKind == 0) ||
                 (trivia2.RawKind == 0 && this.Token2.IsMissing))
             {

@@ -5863,7 +5863,7 @@ End Module
             Assert.Equal(1, exitCode)
             Assert.Contains("error BC2017: could not find library '..\con.dll'", output.ToString(), StringComparison.Ordinal)
 
-            ' Native VB compiler also ignore invalid lib pathes
+            ' Native VB compiler also ignore invalid lib paths
             vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/LibPath:lpt1,Lpt2,LPT9", source})
             output = New StringWriter()
             exitCode = vbc.Run(output, Nothing)
@@ -6223,7 +6223,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         <Fact>
         Public Sub NoWarnAndWarnAsError_HiddenDiagnostic()
             ' This assembly has a HiddenDiagnosticAnalyzer type which should produce custom hidden
-            ' diagnostics for #ExternalSouce directives present in the compilations created in this test.
+            ' diagnostics for #ExternalSource directives present in the compilations created in this test.
             Dim source = "Imports System
 #ExternalSource (""file"", 123)
 #End ExternalSource"
@@ -6293,10 +6293,10 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             ' TEST: Verify /nowarn and /warnaserror-: have no impact  on custom hidden diagnostic Hidden01.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror-:Hidden01"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/nowarn:Hidden01"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Hidden01", "/nowarn"})
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
@@ -6412,10 +6412,10 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             ' TEST: Verify /nowarn overrides /warnaserror-:.
             output = GetOutput(name, source, additionalFlags:={"/warnaserror-:Info01", "/nowarn"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn", "/nowarn:Info01"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = GetOutput(name, source, additionalFlags:={"/nowarn:Info01", "/nowarn"})
 
             ' TEST: Verify that last /warnaserror[+/-]: flag on command line wins.
@@ -6609,10 +6609,10 @@ End Module"
             ' TEST: Verify that /nowarn overrides /warnaserror-:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/warnaserror-:Something,042024,Warning01,Warning03,42376"})
 
-            ' TEST: Santiy test for /nowarn and /nowarn:.
+            ' TEST: Sanity test for /nowarn and /nowarn:.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn", "/nowarn:Something,042024,Warning01,Warning03,42376"})
 
-            ' TEST: Santiy test for /nowarn: and /nowarn.
+            ' TEST: Sanity test for /nowarn: and /nowarn.
             output = VerifyOutput(dir, file, additionalFlags:={"/nowarn:Something,042024,Warning01,Warning03,42376", "/nowarn"})
 
             ' TEST: Verify that last /warnaserror[+/-] flag on command line wins.
@@ -6620,7 +6620,7 @@ End Module"
             Assert.Contains("error BC42376", output, StringComparison.Ordinal)
 
             ' Note: Old native compiler behaved strangely for the below case.
-            ' When /warnaserror+ and /warnaserror- appeared on the same command line, natvie compiler would allow /warnaserror+ to win always
+            ' When /warnaserror+ and /warnaserror- appeared on the same command line, native compiler would allow /warnaserror+ to win always
             ' regardless of order. However when /warnaserror+:xyz and /warnaserror-:xyz appeared on the same command line, native compiler
             ' would allow the flag that appeared last on the command line to win. Roslyn compiler allows the last flag that appears on the
             ' command line to win in both cases. This is not a breaking change since at worst this only makes a case that used to be an error

@@ -1251,7 +1251,7 @@ Skip 2
 
     <WorkItem(880474, "DevDiv/Personal")>
     <Fact>
-    Public Sub ParseBadRelationalOeprators()
+    Public Sub ParseBadRelationalOperators()
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()

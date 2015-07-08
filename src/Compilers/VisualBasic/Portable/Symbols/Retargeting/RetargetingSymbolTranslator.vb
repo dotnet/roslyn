@@ -755,7 +755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         If underlyingSymbol.Kind = SymbolKind.Method Then
                             ' Also compute the return type attributes here because GetAttributes 
                             ' is called during ForceComplete on the symbol.
-                            Dim ununsed = DirectCast(underlyingSymbol, MethodSymbol).GetReturnTypeAttributes()
+                            Dim unused = DirectCast(underlyingSymbol, MethodSymbol).GetReturnTypeAttributes()
                         End If
                     Else
                         Debug.Assert(underlyingSymbol.Kind = SymbolKind.Method)
@@ -937,7 +937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Debug.Assert(typeParameter.TypeParameterKind = TypeParameterKind.Method)
 
                     ' The method symbol we are building will be using IndexedTypeParameterSymbols as 
-                    ' its type parametes, therefore, we should return them here as well.
+                    ' its type parameters, therefore, we should return them here as well.
                     Return IndexedTypeParameterSymbol.GetTypeParameter(typeParameter.Ordinal)
                 End Function
             End Class

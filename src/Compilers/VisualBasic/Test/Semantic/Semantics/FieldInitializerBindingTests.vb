@@ -586,7 +586,7 @@ End Class
             Dim secondMeSymbol = model.GetSemanticInfoSummary(CType(secondMe.AsNode(), ExpressionSyntax)).Symbol
             Dim thirdMeSymbol = model.GetSemanticInfoSummary(CType(thirdMe.AsNode(), ExpressionSyntax)).Symbol
 
-            'Assert.Equal(1, firstMeSymbols.Count)   returnd 0 symbols
+            'Assert.Equal(1, firstMeSymbols.Count)   returned 0 symbols
             'Assert.Equal(1, secondMeSymbols.Count)
             'Assert.Equal(1, thirdMeSymbols.Count)
         End Sub
@@ -655,7 +655,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub StaticLocalFields()
-            'As we cant easily get at fields wich are non callable by user code such as
+            'As we can't easily get at fields which are non callable by user code such as
             'the $STATIC$Foo$001$a  we can simply determine that the count of items which
             'we expect is present
             Dim source = <compilation name="StaticLocals">

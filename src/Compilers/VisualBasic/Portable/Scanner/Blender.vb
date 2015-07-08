@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _lineBufferOffset = _lineBufferOffset + _curNodeLength
 
             ' this will just verify that we do not have any prefetched tokens, including current. 
-            ' otherwise advancing linebuffer offeset could go out of sync with token stream.
+            ' otherwise advancing linebuffer offset could go out of sync with token stream.
             MyBase.MoveToNextSyntaxNodeInTrivia()
 
             TryPopNode()

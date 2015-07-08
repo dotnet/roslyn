@@ -2376,7 +2376,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub Parenthese()
+        Public Sub Parentheses()
             Dim code = <Code>Class GenericMethod
     Sub Method(Of T)(t1 As T)
         NewMethod(Of T)(t1)
@@ -2954,7 +2954,7 @@ End Module
         <WorkItem(541628, "DevDiv")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Sub MutilpleControlVariables()
+        Public Sub MultipleControlVariables()
             Dim code = <Code>Module Program
     Sub Main(args As String())
         Dim i, j As Integer

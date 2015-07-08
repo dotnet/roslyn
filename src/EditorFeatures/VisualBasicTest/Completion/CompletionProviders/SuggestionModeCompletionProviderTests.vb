@@ -344,7 +344,7 @@ End Class
         End Sub
 
         Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
-            Return New SuggestionModeCompletionProvider()
+            Return New VisualBasicSuggestionModeCompletionProvider()
         End Function
     End Class
 End Namespace

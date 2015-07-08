@@ -1127,7 +1127,7 @@ NewLines("Imports System.Runtime.CompilerServices \n Imports X \n Imports Y \n M
 
             <WorkItem(829970)>
             <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
-            Public Sub TestUnkownAttributeInModule()
+            Public Sub TestUnknownAttributeInModule()
                 Test(
     NewLines("Module Foo \n <[|Extension|]> \n End Module"),
     NewLines("Imports System.Runtime.CompilerServices \n Module Foo \n <Extension> \n End Module"))

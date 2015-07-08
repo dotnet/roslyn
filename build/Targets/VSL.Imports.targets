@@ -1,4 +1,4 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
   <!-- This file is imported by all projects at the end of the project files -->
@@ -7,9 +7,6 @@
     <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
     <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
   </PropertyGroup>
-
-  <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(BuildVersion)" />
 
   <!-- Update common properties -->
   <PropertyGroup>
@@ -20,7 +17,7 @@
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(VSLToolsPath)\Rulesets\NonShippingProjectRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(VSLToolsPath)\Rulesets\AnalyzerProjectRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(VSLToolsPath)\Rulesets\Roslyn.ruleset</CodeAnalysisRuleSet>
-    
+
     <RoslynInternalKey>002400000480000094000000060200000024000052534131000400000100010055e0217eb635f69281051f9a823e0c7edd90f28063eb6c7a742a19b4f6139778ee0af438f47aed3b6e9f99838aa8dba689c7a71ddb860c96d923830b57bbd5cd6119406ddb9b002cf1c723bf272d6acbb7129e9d6dd5a5309c94e0ff4b2c884d45a55f475cd7dba59198086f61f5a8c8b5e601c0edbf269733f6f578fc8579c2</RoslynInternalKey>
   </PropertyGroup>
 
@@ -85,7 +82,7 @@
   </Target>
 
   <!-- ====================================================================================
-        Deploy binary to 14.0 Package folders 
+        Deploy binary to 14.0 Package folders
   ===================================================================================== -->
   <PropertyGroup>
     <RoslynOssComponentPath>$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(VisualStudioVersion)$(DeployVSHive)\Extensions\MSOpenTech\OpenSourceDebug\0.7</RoslynOssComponentPath>
@@ -105,7 +102,7 @@
   </Target>
 
   <!-- ====================================================================================
-  
+
          Support for a IncludeInVSIXLocalOnly Content metadata
 
        ==================================================================================== -->
@@ -129,35 +126,185 @@
   </Target>
 
   <!-- ====================================================================================
-       
+
          Generation of AssemblyVersion attributes from the BuildVersion property
-       
+
        ==================================================================================== -->
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateVersionInfoResourceFile.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
   <!-- ====================================================================================
-       
+
          Generation of InternalsVisibleTo attributes from the project
-       
+
        ==================================================================================== -->
 
   <Import Project="GenerateInternalsVisibleTo.targets" />
 
   <!-- ====================================================================================
-       
+
          Generation of syntax models, syntax model tests, and bound trees from xml files
-       
+
        ==================================================================================== -->
 
   <Import Project="GenerateCompilerInternals.targets" />
 
   <!-- ====================================================================================
-       
+
          VSSDK
-       
+
        ==================================================================================== -->
 
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true' AND '$(CIBuild)' == ''" />
-</Project>
+
+  <!-- ====================================================================================
+
+         Support for in-place modification of the compiled binary.
+         Since there may be more than one post compile modification, we must take care not
+         to break incremental builds. A timestemp file is written out when all modification
+         targets have completed.
+         Note that the targets participating in post compile modification must list the
+         sentinel file as one of their outputs, but they should not modify it.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
+  </PropertyGroup>
+
+  <Target Name="PostCompileBinaryModification"
+          AfterTargets="CoreCompile"
+          DependsOnTargets="ApplyOptimizations;FakeSign"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+
+    <!-- Write out a sentinel timestamp file to prevent unnecessary work in incremental builds. -->
+    <Touch AlwaysCreate="true" Files="$(PostCompileBinaryModificationSentinelFile)" />
+
+    <ItemGroup>
+      <FileWrites Include="$(PostCompileBinaryModificationSentinelFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ====================================================================================
+
+         Support for rolling optimization data into assemblies.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <OptimizationDataFolderPath>$(MSBuildThisFileDirectory)..\..\..\Closed\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
+    <IbcMergePath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\..\Closed\Tools\ibcmerge\ibcmerge.exe'))</IbcMergePath>
+  </PropertyGroup>
+
+  <Target Name="ApplyOptimizations"
+          Condition="'$(Configuration)' == 'Release' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+
+    <Message Text="Adding optimization data to @(IntermediateAssembly)"/>
+    <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
+
+    <Message Text="Re-signing after merging optimization data" Condition="'$(DelaySign)' != 'true' AND '$(SignAssembly)' == 'true'" />
+    <Exec Command="&quot;$(SnToolPath)&quot; -q -R &quot;@(IntermediateAssembly)&quot; &quot;$(AssemblyOriginatorKeyFile)&quot;" Condition="'$(DelaySign)' != 'true' AND '$(SignAssembly)' == 'true'" />
+
+  </Target>
+
+  <!-- ====================================================================================
+
+         Support for signing files that are in VSIXes.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <RunningInMicroBuild Condition="Exists('$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll')">true</RunningInMicroBuild>
+    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR ('$(RunningInMicroBuild)' == 'true' AND '$(SignType)' == 'real')">true</ShouldSignBuild>
+  </PropertyGroup>
+
+  <Target Name="FakeSign"
+          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+
+    <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
+
+  </Target>
+
+  <!-- ====================================================================================
+
+         Support for signing VSIXes
+
+       ==================================================================================== -->
+
+  <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
+
+  <PropertyGroup>
+    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);SignVsixInputs</CreateVsixContainerDependsOn>
+    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);SignVsix</PrepareForRunDependsOn>
+    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+  </PropertyGroup>
+
+  <!-- GetTargetPath returns the path under $(OutDir) for each project.
+       This target adds the $(AuthenticodeCertificateName) as metadata. -->
+  <Target Name="GetTargetPathWithAuthenticodeCertificateName" DependsOnTargets="GetTargetPath" Returns="@(TargetPathWithAuthenticodeCertificateName)">
+    <ItemGroup>
+      <TargetPathWithAuthenticodeCertificateName Include="$(TargetPath)">
+        <AuthenticodeCertificateName>$(AuthenticodeCertificateName)</AuthenticodeCertificateName>
+      </TargetPathWithAuthenticodeCertificateName>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="AfterCompile">
+    <!-- Ensure the build tasks project is already built -->
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\..\Closed\Setup\BuildTasks\BuildTasks.vbproj" Condition="!Exists('$(OutDir)\Roslyn.Setup.BuildTasks.dll') AND '$(RunningInMicroBuild)' != 'true'" />
+
+    <!-- Collect the paths of all dependent projects. GetTargetPath returns the path under $(OutDir) for each project. -->
+    <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
+             Targets="GetTargetPathWithAuthenticodeCertificateName"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)">
+
+      <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
+    </MSBuild>
+
+    <!-- Include the assembly we just built if we're also including it in the VSIX-->
+    <ItemGroup>
+      <VsixInputAssembliesToSign Include="@(IntermediateAssembly)" Condition="'$(IncludeAssemblyInVSIXContainer)' == 'true'">
+        <AuthenticodeCertificateName>$(AuthenticodeCertificateName)</AuthenticodeCertificateName>
+      </VsixInputAssembliesToSign>
+    </ItemGroup>
+
+    <Message Text="Signing VSIX inputs: using authenticode certificate '%(VsixInputAssembliesToSign.AuthenticodeCertificateName)' for @(VsixInputAssembliesToSign)"/>
+
+    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
+        <VsixInputAssembliesToSign>
+            <Authenticode>%(VsixInputAssembliesToSign.AuthenticodeCertificateName)</Authenticode>
+            <StrongName>72</StrongName>
+        </VsixInputAssembliesToSign>
+    </ItemGroup>
+
+    <SignFiles Condition="'$(RunningInMicroBuild)' == 'true'"
+               Files="@(VsixInputAssembliesToSign)"
+               BinariesDirectory="$(OutDir)"
+               IntermediatesDirectory="$(IntermediateOutputPath)"
+               Type="$(SignType)" />
+  </Target>
+
+  <Target Name="SignVsix"  Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="CreateVsixContainer">
+    <Message Text="Signing VSIX: $(TargetVsixContainer)"/>
+
+    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
+        <VsixToSign Include="$(TargetVsixContainer)">
+            <Authenticode>VsixSHA2</Authenticode>
+        </VsixToSign>
+    </ItemGroup>
+
+    <SignFiles Condition="'$(RunningInMicroBuild)' == 'true'"
+               Files="@(VsixToSign)"
+               BinariesDirectory="$(OutDir)"
+               IntermediatesDirectory="$(IntermediateOutputPath)"
+               Type="$(SignType)" />
+  </Target>
+ </Project>

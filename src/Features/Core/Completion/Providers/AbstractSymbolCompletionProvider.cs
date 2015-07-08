@@ -210,14 +210,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);
 
-            Dictionary<ISymbol, AbstractSyntaxContext> orignatingContextMap = null;
-            var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out orignatingContextMap);
+            Dictionary<ISymbol, AbstractSyntaxContext> originatingContextMap = null;
+            var unionedSymbolsList = UnionSymbols(contextAndSymbolLists, out originatingContextMap);
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
 
             var textChangeSpan = await GetTextChangeSpanAsync(position, context, cancellationToken).ConfigureAwait(false);
 
-            return CreateItems(position, unionedSymbolsList, textChangeSpan, orignatingContextMap, missingSymbolsMap, totalProjects, preselect: preselect, cancellationToken: cancellationToken);
+            return CreateItems(position, unionedSymbolsList, textChangeSpan, originatingContextMap, missingSymbolsMap, totalProjects, preselect: preselect, cancellationToken: cancellationToken);
         }
 
         private async Task<TextSpan> GetTextChangeSpanAsync(int position, AbstractSyntaxContext context, CancellationToken cancellationToken)

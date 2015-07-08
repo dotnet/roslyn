@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                     ' here we have our exception on the stack in a form of a reference type (O)
                     ' it means that we have to "unbox" it before storing to the local 
-                    ' if exception's type is a generic type prameter.
+                    ' if exception's type is a generic type parameter.
                     If exceptionSource.Type.IsTypeParameter Then
                         _builder.EmitOpCode(ILOpCode.Unbox_any)
                         EmitSymbolToken(exceptionSource.Type, exceptionSource.Syntax)

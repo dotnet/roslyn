@@ -524,7 +524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(expressionRangeVariable.IsKind(SyntaxKind.ExpressionRangeVariable))
 
             ' Let clause:
-            '   Each ERV in Let clause is translated to a seprate lambda.
+            '   Each ERV in Let clause is translated to a separate lambda.
             '   The lambda is represented by the ERV and its body by the RHS expression.
             '
             ' Select clause:

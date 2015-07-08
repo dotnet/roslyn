@@ -502,7 +502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             '     // UNDONE:harishk - spec. issue
             '     // how to deal with CLS Compliant attributes present on both Modules and Assemblies ?
-            '     // Also this might be a issue for other weel known attributes too ?
+            '     // Also this might be a issue for other well known attributes too ?
             '     //
             '     // For CLSCompliance - Ignore Module attributes for Assemblies and viceversa
 

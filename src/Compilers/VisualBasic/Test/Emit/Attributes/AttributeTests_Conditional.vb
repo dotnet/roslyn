@@ -469,13 +469,13 @@ End Class
             System.Console.WriteLine("Z.OmittedCalls_AppliedConditional_Method")
         End Sub
 
-        ' Conditional symbols are not inherited by overridding methods in VB
+        ' Conditional symbols are not inherited by overriding methods in VB
         <Conditional("cond3")> _
         Public Overrides Sub PreservedCalls_InheritedConditional_Method()
             System.Console.WriteLine("Z.PreservedCalls_InheritedConditional_Method")
         End Sub
 
-    #Const cond4_base = "Conditional symbols are not inherited by overridding methods in VB"
+    #Const cond4_base = "Conditional symbols are not inherited by overriding methods in VB"
         <Conditional("cond4")> _
         Public Overrides Sub OmittedCalls_InheritedConditional_Method()
             System.Console.WriteLine("Z.OmittedCalls_InheritedConditional_Method")
