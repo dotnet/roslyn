@@ -1033,25 +1033,39 @@ class C
   }
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
+            // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (5,11): error CS1001: Identifier expected
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int"),
-                // (5,11): error CS1003: Syntax error, '>' expected
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int"),
-                // (5,11): error CS1003: Syntax error, '(' expected
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int"),
-                // (5,14): error CS1001: Identifier expected
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ">"),
-                // (5,14): error CS1003: Syntax error, ',' expected
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">"),
-                // (5,9): error CS0161: 'NS.C.F<>(int)': not all code paths return a value
-                //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int)"));
+    // (5,11): error CS1001: Identifier expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
+    // (5,11): error CS1003: Syntax error, '>' expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(">", "int").WithLocation(5, 11),
+    // (5,11): error CS1003: Syntax error, '(' expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(", "int").WithLocation(5, 11),
+    // (5,14): error CS1001: Identifier expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(5, 14),
+    // (5,14): error CS1003: Syntax error, ',' expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments(",", ">").WithLocation(5, 14),
+    // (5,15): error CS1003: Syntax error, ',' expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",", "(").WithLocation(5, 15),
+    // (5,15): error CS8096: Tuple must contain at least two elements.
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
+    // (5,18): error CS1001: Identifier expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 18),
+    // (5,18): error CS1026: ) expected
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(5, 18),
+    // (5,9): error CS0161: 'C.F<>(int, ())': not all code paths return a value
+    //     int F<int>() { }  // CS0081
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, ())").WithLocation(5, 9)
+    );
         }
 
         [Fact]
