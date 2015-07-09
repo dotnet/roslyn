@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             _shadowCopyProvider = shadowCopyProvider;
 
             Assembly mscorlib = typeof(object).GetTypeInfo().Assembly;
-            
+
             _assembliesLoadedFromLocationByFullPath = new Dictionary<string, AssemblyAndLocation>();
             _assembliesLoadedFromLocation = new Dictionary<Assembly, LoadedAssembly>();
             _loadedAssembliesBySimpleName = new Dictionary<string, List<Assembly>>(AssemblyIdentityComparer.SimpleNameComparer);
