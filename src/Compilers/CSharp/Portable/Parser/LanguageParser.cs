@@ -445,6 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
 
+            if (IsScript || IsInteractive)
+            {
+                namespaceToken = this.AddError(namespaceToken, ErrorCode.ERR_NamespaceNotAllowedInScript);
+            }
+
             var name = this.ParseQualifiedName();
             if (ContainsGeneric(name))
             {

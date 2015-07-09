@@ -2108,8 +2108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Assembly.ForceComplete(location, cancellationToken);
 
-            var result = this.FreezeDeclarationDiagnostics().Concat(
-                ((SourceModuleSymbol)this.SourceModule).Diagnostics);
+            var result = this.FreezeDeclarationDiagnostics();
 
             if (locationFilterOpt != null)
             {

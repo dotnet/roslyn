@@ -50,9 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _namespaceNames As Lazy(Of ICollection(Of String))
         Private ReadOnly _referenceDirectives As Lazy(Of ICollection(Of ReferenceDirective))
 
-        ' Stores diagnostics related to #r directives
-        Private ReadOnly _referenceDirectiveDiagnostics As Lazy(Of ICollection(Of Diagnostic))
-
         Private _lazyAllRootDeclarations As ImmutableArray(Of RootSingleNamespaceDeclaration)
 
         Private Sub New(allOlderRootDeclarations As ImmutableHashSet(Of DeclarationTableEntry),
@@ -65,7 +62,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Me._typeNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedTypeNames)
             Me._namespaceNames = New Lazy(Of ICollection(Of String))(AddressOf GetMergedNamespaceNames)
             Me._referenceDirectives = New Lazy(Of ICollection(Of ReferenceDirective))(AddressOf GetMergedReferenceDirectives)
-            Me._referenceDirectiveDiagnostics = New Lazy(Of ICollection(Of Diagnostic))(AddressOf GetMergedDiagnostics)
         End Sub
 
         Public Function AddRootDeclaration(lazyRootDeclaration As DeclarationTableEntry) As DeclarationTable
@@ -186,16 +182,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private Function GetMergedDiagnostics() As ICollection(Of Diagnostic)
-            Dim cachedDiagnostics = _cache.ReferenceDirectiveDiagnostics.Value
-            Dim latestRoot = GetLatestRootDeclarationIfAny(includeEmbedded:=False)
-            If latestRoot Is Nothing Then
-                Return cachedDiagnostics
-            Else
-                Return UnionCollection(Of Diagnostic).Create(cachedDiagnostics, latestRoot.ReferenceDirectiveDiagnostics)
-            End If
-        End Function
-
         Private Function GetLatestRootDeclarationIfAny(includeEmbedded As Boolean) As RootSingleNamespaceDeclaration
             Return If((_latestLazyRootDeclaration IsNot Nothing) AndAlso (includeEmbedded OrElse Not _latestLazyRootDeclaration.IsEmbedded),
                       _latestLazyRootDeclaration.Root.Value,
@@ -257,12 +243,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Property ReferenceDirectives As ICollection(Of ReferenceDirective)
             Get
                 Return _referenceDirectives.Value
-            End Get
-        End Property
-
-        Public ReadOnly Property ReferenceDirectiveDiagnostics As ICollection(Of Diagnostic)
-            Get
-                Return _referenceDirectiveDiagnostics.Value
             End Get
         End Property
 

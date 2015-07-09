@@ -347,10 +347,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseReferenceDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)
         {
-            if (isActive && isFollowingToken)
+            if (isActive)
             {
-                keyword = this.AddError(keyword, ErrorCode.ERR_PPReferenceFollowsToken);
+                if (Options.Kind == SourceCodeKind.Regular)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts);
+                }
+                else if (isFollowingToken)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_PPReferenceFollowsToken);
+                }
             }
+
 
             SyntaxToken file = this.EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_ExpectedPPFile, reportError: isActive);
 
