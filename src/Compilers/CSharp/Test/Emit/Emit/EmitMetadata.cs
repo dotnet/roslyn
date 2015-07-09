@@ -2298,8 +2298,7 @@ public class Methods
             var sections = peHeaders.SectionHeaders;
             Assert.Equal(2, sections.Length);
 
-            // TODO: bug in the reader, should return ".text". Fixed in vNext. https://github.com/dotnet/corefx/issues/1805
-            Assert.Equal(".text\0\0\0", sections[0].Name);
+            Assert.Equal(".text", sections[0].Name);
             Assert.Equal(0, sections[0].NumberOfLineNumbers);
             Assert.Equal(0, sections[0].NumberOfRelocations);
             Assert.Equal(0, sections[0].PointerToLineNumbers);
@@ -2310,8 +2309,7 @@ public class Methods
             Assert.Equal(0x2000, sections[0].VirtualAddress);
             Assert.Equal(872, sections[0].VirtualSize);
 
-            // TODO: bug in the reader, should return ".reloc". Fixed in vNext. https://github.com/dotnet/corefx/issues/1805
-            Assert.Equal(".reloc\0\0", sections[1].Name);
+            Assert.Equal(".reloc", sections[1].Name);
             Assert.Equal(0, sections[1].NumberOfLineNumbers);
             Assert.Equal(0, sections[1].NumberOfRelocations);
             Assert.Equal(0, sections[1].PointerToLineNumbers);
@@ -2438,8 +2436,7 @@ public class Methods
             var sections = peHeaders.SectionHeaders;
             Assert.Equal(1, sections.Length);
 
-            // TODO: bug in the reader, should return ".text". Fixed in vNext. https://github.com/dotnet/corefx/issues/1805
-            Assert.Equal(".text\0\0\0", sections[0].Name);
+            Assert.Equal(".text", sections[0].Name);
             Assert.Equal(0, sections[0].NumberOfLineNumbers);
             Assert.Equal(0, sections[0].NumberOfRelocations);
             Assert.Equal(0, sections[0].PointerToLineNumbers);

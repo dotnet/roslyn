@@ -172,15 +172,6 @@ namespace Microsoft.Cci
             this.GenericParamIndexSize = this.GetReferenceByteSize(0, TableIndex.GenericParam);
             this.HasConstantCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.Field, TableIndex.Param, TableIndex.Property);
 
-            PresentTablesMask = ComputeNonEmptyTableMask(rowCounts);
-
-            this.CustomAttributeTypeCodedIndexSize = this.GetReferenceByteSize(3, TableIndex.MethodDef, TableIndex.MemberRef);
-            this.DeclSecurityCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.MethodDef, TableIndex.TypeDef);
-            this.EventDefIndexSize = this.GetReferenceByteSize(0, TableIndex.Event);
-            this.FieldDefIndexSize = this.GetReferenceByteSize(0, TableIndex.Field);
-            this.GenericParamIndexSize = this.GetReferenceByteSize(0, TableIndex.GenericParam);
-            this.HasConstantCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.Field, TableIndex.Param, TableIndex.Property);
-
             this.HasCustomAttributeCodedIndexSize = this.GetReferenceByteSize(5,
                 TableIndex.MethodDef,
                 TableIndex.Field,
