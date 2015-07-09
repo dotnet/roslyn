@@ -58,11 +58,13 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Overall size of metadata stream storage (stream headers, streams: heaps + tables).
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataStreamStorageSize;
 
         /// <summary>
         /// The size of metadata stream (#- or #~). Aligned.
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataTableStreamSize;
 
@@ -73,11 +75,13 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The size of mapped field data stream.
+        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
         /// </summary>
         public readonly int MappedFieldDataSize;
 
         /// <summary>
         /// The size of managed resource data stream.
+        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
         /// </summary>
         public readonly int ResourceDataSize;
 

@@ -479,6 +479,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         internal abstract void LogMessages(string output, MessageImportance messageImportance);
 
+        public string GenerateResponseFileContents()
+        {
+            return GenerateResponseFileCommands();
+        }
+
         /// <summary>
         /// Get the command line arguments to pass to the compiler.
         /// </summary>

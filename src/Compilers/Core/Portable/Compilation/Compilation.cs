@@ -1255,6 +1255,7 @@ namespace Microsoft.CodeAnalysis
             return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: moduleVersionId,
                 fileAlignment: fileAlignment,
+                sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: targetRuntimeVersion,
                 machine: machine,
                 prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
