@@ -8576,6 +8576,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple must contain at least two elements..
+        /// </summary>
+        internal static string ERR_TupleTooFewElements {
+            get {
+                return ResourceManager.GetString("ERR_TupleTooFewElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {1} &apos;{0}&apos; cannot be used with type arguments.
         /// </summary>
         internal static string ERR_TypeArgsNotAllowed {
