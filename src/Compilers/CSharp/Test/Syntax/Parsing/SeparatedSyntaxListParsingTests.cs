@@ -233,6 +233,14 @@ class M<,> { }
                     }
                     N(SyntaxKind.IncompleteMember);
                     {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
                         N(SyntaxKind.NewKeyword);
                         N(SyntaxKind.GenericName);
                         {
@@ -251,6 +259,14 @@ class M<,> { }
                                 }
                                 N(SyntaxKind.GreaterThanToken);
                             }
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.TupleType);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                     N(SyntaxKind.FieldDeclaration);

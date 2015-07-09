@@ -240,6 +240,8 @@ namespace My
             ulong @ulong;
             ushort @ushort;
             
+            (int a, int b) t1 = (x: 123, y: 456);
+            
             dynamic dynamic = local5;
             var add = 0;
             var ascending = 0;

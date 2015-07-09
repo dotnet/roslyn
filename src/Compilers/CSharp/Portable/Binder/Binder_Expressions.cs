@@ -578,6 +578,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedStringExpression:
                     return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.TupleExpression:
+                    {
+                        var tuple = (TupleExpressionSyntax)node;
+
+                        if (tuple.Arguments.Count == 0)
+                        {
+                            // this should be a parse error already.
+                            return BadExpression(node);
+                        }
+
+                        // UNDONE: bind the value of the first element for now.
+                        //         just to not crash in tests.
+                        //         Actual binding implementation is coming.
+                        return BindExpression(((TupleExpressionSyntax)node).Arguments[0].Expression, diagnostics);
+                    }
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected

@@ -701,8 +701,8 @@ compareTokens: false);
         public void BugFix5538()
         {
             Test(
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { new ( [|foo|] ) ( ) ; } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { public static object foo { get ; private set ; } static void Main ( string [ ] args ) { new ( foo ) ( ) ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { ( [|foo|] ).ToString() ; } } ",
+@"using System ; using System . Collections . Generic ; using System . Linq ; class Program { public static object foo { get ; private set ; } static void Main ( string [ ] args ) { ( foo ).ToString() ; } } ",
 index: 2);
         }
 

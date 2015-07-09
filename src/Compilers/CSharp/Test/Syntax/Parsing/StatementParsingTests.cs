@@ -200,6 +200,81 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLocalDeclarationStatementWithTuple()
+        {
+            var text = "(int, int) a;";
+            var statement = this.ParseStatement(text);
+
+            (text).ToString();
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var ds = (LocalDeclarationStatementSyntax)statement;
+            Assert.Equal(0, ds.Modifiers.Count);
+            Assert.NotNull(ds.Declaration.Type);
+            Assert.Equal("(int, int)", ds.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.TupleType, ds.Declaration.Type.Kind());
+
+            var tt = (TupleTypeSyntax)ds.Declaration.Type;
+
+            Assert.Equal(SyntaxKind.PredefinedType, tt.Elements[0].Type.Kind());
+            Assert.Null(tt.Elements[1].Name);
+            Assert.Equal(2, tt.Elements.Count);
+
+            Assert.NotNull(ds.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(ds.Declaration.Variables[0].ArgumentList);
+            Assert.Null(ds.Declaration.Variables[0].Initializer);
+
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
+        public void TestLocalDeclarationStatementWithNamedTuple()
+        {
+            var text = "(T x, (U k, V l, W m) y) a;";
+            var statement = this.ParseStatement(text);
+
+            (text).ToString();
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var ds = (LocalDeclarationStatementSyntax)statement;
+            Assert.Equal(0, ds.Modifiers.Count);
+            Assert.NotNull(ds.Declaration.Type);
+            Assert.Equal("(T x, (U k, V l, W m) y)", ds.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.TupleType, ds.Declaration.Type.Kind());
+
+            var tt = (TupleTypeSyntax)ds.Declaration.Type;
+
+            Assert.Equal(SyntaxKind.IdentifierName, tt.Elements[0].Type.Kind());
+            Assert.Equal("y", tt.Elements[1].Name.ToString());
+            Assert.Equal(2, tt.Elements.Count);
+
+
+            tt = (TupleTypeSyntax)tt.Elements[1].Type;
+
+            Assert.Equal("(U k, V l, W m)", tt.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, tt.Elements[0].Type.Kind());
+            Assert.Equal("l", tt.Elements[1].Name.ToString());
+            Assert.Equal(3, tt.Elements.Count);
+
+            Assert.NotNull(ds.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(ds.Declaration.Variables[0].ArgumentList);
+            Assert.Null(ds.Declaration.Variables[0].Initializer);
+
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
+        [Fact]
         public void TestLocalDeclarationStatementWithDynamic()
         {
             // note: semantically this would require an initializer, but we don't know 
@@ -2358,6 +2433,40 @@ class C
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
             Assert.True(filterClause.WhenKeyword.HasStructuredTrivia);
+        }
+
+        [Fact]
+        public void Tuple001()
+        {
+            var source = @"
+class C1
+{
+static void Test(int arg1, (byte, byte) arg2)
+    {
+        (int, int) t1 = new(int, int)();
+        (int, int)? t2 = default((int a, int b));
+
+        (int, int) t3 = (a: (int)arg1, b: (int)arg1);
+
+        (int, int) t4 = ((int a, int b))(arg1, arg1);
+        (int, int) t5 = ((int, int))arg2;
+
+        List<(int, int)> l = new List<(int, int)>() { (a: arg1, b: arg1), (arg1, arg1) };
+
+        Func<(int a, int b), (int a, int b)> f = ((int a, int b) t) => t;
+        
+        var x = from i in ""qq""
+                from j in ""ee""
+                select (i, j);
+
+            foreach ((int, int) e in new (int, int)[10])
+            {
+            }
+        }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker
