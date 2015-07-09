@@ -30,6 +30,7 @@ namespace Microsoft.Cci
         /// True if we should attempt to generate a deterministic output (no timestamps or random data).
         /// </summary>
         private readonly bool _deterministic;
+        private readonly int _timeStamp;
 
         private readonly string _pdbPathOpt;
         private readonly bool _is32bit;
@@ -54,6 +55,11 @@ namespace Microsoft.Cci
             _nativeResourcesOpt = nativeResourcesOpt;
             _nativeResourceSectionOpt = nativeResourceSectionOpt;
             _is32bit = !_properties.Requires64bits;
+
+            // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
+            // the file was created in seconds since January 1st 1970 00:00:00 or 0"
+            // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
+            _timeStamp = _deterministic ? 0 : (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
         }
 
         private bool EmitPdb => _pdbPathOpt != null;
@@ -495,17 +501,12 @@ namespace Microsoft.Cci
             out CoffHeader coffHeader,
             out NtHeader ntHeader)
         {
-            // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
-            // the file was created in seconds since January 1st 1970 00:00:00 or 0"
-            // However, when we want to make it deterministic we fill it in (later) with bits from the hash of the full PE file.
-            int timeStamp = _deterministic ? 0 : (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-
             short sectionCount = (short)sectionHeaders.Count;
 
             coffHeader = new CoffHeader(
                 machine: (_properties.Machine == 0) ? Machine.I386 : _properties.Machine,
                 numberOfSections: sectionCount,
-                timeDateStamp: timeStamp,
+                timeDateStamp: _timeStamp,
                 pointerToSymbolTable: 0,
                 numberOfSymbols: 0,
                 sizeOfOptionalHeader: (short)(_is32bit ? 224 : 240), // TODO: constants
