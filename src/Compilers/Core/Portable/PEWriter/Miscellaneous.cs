@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
@@ -89,23 +90,13 @@ namespace Microsoft.Cci
     /// </summary>
     internal struct SecurityAttribute
     {
-        private readonly SecurityAction _action;
-        private readonly ICustomAttribute _attribute;
+        public DeclarativeSecurityAction Action { get; }
+        public ICustomAttribute Attribute { get; }
 
-        public SecurityAttribute(SecurityAction action, ICustomAttribute attribute)
+        public SecurityAttribute(DeclarativeSecurityAction action, ICustomAttribute attribute)
         {
-            _attribute = attribute;
-            _action = action;
-        }
-
-        public SecurityAction Action
-        {
-            get { return _action; }
-        }
-
-        public ICustomAttribute Attribute
-        {
-            get { return _attribute; }
+            Action = action;
+            Attribute = attribute;
         }
     }
 

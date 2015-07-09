@@ -427,6 +427,15 @@ namespace Roslyn.Test.MetadataUtilities
             return string.Join(", ", handles.Select(h => Token(h, displayTable)));
         }
 
+        public void VisualizeHeaders()
+        {
+            _reader = _readers[0];
+
+            _writer.WriteLine("MetadataVersion: {0}", _reader.MetadataVersion);
+
+            _writer.WriteLine();
+        }
+
         private void WriteModule()
         {
             var def = _reader.GetModuleDefinition();
@@ -860,30 +869,32 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteAssembly()
         {
-            if (_reader.IsAssembly)
+            if (!_reader.IsAssembly)
             {
-                AddHeader(
-                    "Name",
-                    "Version",
-                    "Culture",
-                    "PublicKey",
-                    "Flags",
-                    "HashAlgorithm"
-                );
-
-                var entry = _reader.GetAssemblyDefinition();
-
-                AddRow(
-                    Literal(entry.Name),
-                    entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
-                    Literal(entry.Culture),
-                    Literal(entry.PublicKey, BlobKind.Key),
-                    EnumValue<int>(entry.Flags),
-                    EnumValue<int>(entry.HashAlgorithm)
-                );
-
-                WriteRows("Assembly (0x20):");
+                return;
             }
+
+            AddHeader(
+                "Name",
+                "Version",
+                "Culture",
+                "PublicKey",
+                "Flags",
+                "HashAlgorithm"
+            );
+
+            var entry = _reader.GetAssemblyDefinition();
+
+            AddRow(
+                Literal(entry.Name),
+                entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
+                Literal(entry.Culture),
+                Literal(entry.PublicKey, BlobKind.Key),
+                EnumValue<int>(entry.Flags),
+                EnumValue<int>(entry.HashAlgorithm)
+            );
+
+            WriteRows("Assembly (0x20):");
         }
 
         private void WriteAssemblyRef()

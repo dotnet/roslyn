@@ -164,6 +164,8 @@ internal class Program : IDisposable
             var generation = generations[generationIndex];
             var mdReader = generation.MetadataReader;
 
+            visualizer.VisualizeHeaders();
+
             _writer.WriteLine(">>>");
             _writer.WriteLine(string.Format(">>> Generation {0}:", generationIndex));
             _writer.WriteLine(">>>");
