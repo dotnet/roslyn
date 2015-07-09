@@ -79,6 +79,5 @@ namespace System.Runtime.Analyzers
                    symbol.IsOperatorImplemented(WellKnownMemberNames.LessThanOperatorName) &&
                    symbol.IsOperatorImplemented(WellKnownMemberNames.GreaterThanOperatorName);
         }
-
     }
 }

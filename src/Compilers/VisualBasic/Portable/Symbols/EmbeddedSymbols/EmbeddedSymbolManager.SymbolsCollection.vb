@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Case Else
                         ' No other symbol kinds are allowed
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(member.Kind)
 
                 End Select
 

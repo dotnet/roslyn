@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -19,9 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Test;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -53,7 +52,7 @@ namespace InteractiveFixtures
 
 #endregion
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
+namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 {
     public class HostModel
     {
@@ -62,13 +61,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
 
     public class InteractiveSessionTests : CSharpTestBase
     {
-        // TODO (tomat): to be merged with Microsoft.CSharp.dll?
-
-        static InteractiveSessionTests()
-        {
-            ScriptBuilder.DisableJitOptimizations = true;
-        }
-
         #region Namespaces, Types
 
         [Fact]
@@ -150,9 +142,9 @@ namespace Foo
         public void NamespaceWithBothInteractiveAndNoninteractiveImplicitTypes()
         {
             string test = @"
-namespace Foo { void foo() { } }
-void bar() { }
-bar();
+namespace Foo { void F() { } }
+void G() { }
+G();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
@@ -178,20 +170,15 @@ bar();
                 if (cls.IsScriptClass)
                 {
                     Assert.False(cls.IsImplicitClass);
-                    Assert.Equal(2, methods.Length);
-                    Assert.Equal("bar", methods[0].Name);
-                    Assert.Equal(WellKnownMemberNames.InstanceConstructorName, methods[1].Name);
+                    AssertEx.SetEqual(new[] { "<Initialize>", "G", ".ctor" }, methods.Select(m => m.Name));
                 }
                 else
                 {
                     Assert.False(cls.IsScriptClass);
                     Assert.Equal(TypeSymbol.ImplicitTypeName, member.Name);
-                    Assert.Equal(2, methods.Length);
-                    Assert.Equal("foo", methods[0].Name);
-                    Assert.Equal(".ctor", methods[1].Name);
-                    Assert.IsAssignableFrom(typeof(MethodSymbol), methods[0]);
-                    Assert.IsAssignableFrom(typeof(MethodSymbol), methods[1]);
+                    AssertEx.SetEqual(new[] { "F", ".ctor" }, methods.Select(m => m.Name));
                 }
+                Assert.True(methods.All(m => m is MethodSymbol));
             }
         }
 
@@ -2009,6 +1996,44 @@ class D
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
         }
 
+        [WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")]
+        [Fact]
+        public void ErrorInUsing()
+        {
+            var submission = CSharpCompilation.CreateSubmission("sub1", Parse("using Unknown;", options: TestOptions.Script), new[] { MscorlibRef });
+
+            var expectedDiagnostics = new[]
+            {
+                    // (1,7): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                    // using Unknown;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(1, 7),
+                    // (1,1): hidden CS8019: Unnecessary using directive.
+                    // using Unknown;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Unknown;").WithLocation(1, 1),
+            };
+
+            // Emit produces the same diagnostics as GetDiagnostics (below).
+            using (var stream = new MemoryStream())
+            {
+                var emitResult = submission.Emit(stream);
+                Assert.False(emitResult.Success);
+                emitResult.Diagnostics.Verify(expectedDiagnostics);
+            }
+
+            submission.GetDiagnostics().Verify(expectedDiagnostics);
+        }
+
+        [WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")]
+        [Fact]
+        public void LabelLookup()
+        {
+            const string source = "using System; 1";
+            var tree = Parse(source, options: TestOptions.Script);
+            var submission = CSharpCompilation.CreateSubmission("sub1", tree, new[] { MscorlibRef });
+            var model = submission.GetSemanticModel(tree);
+            Assert.Empty(model.LookupLabels(source.Length - 1)); // Used to assert.
+        }
+
         private CSharpCompilation CreateSubmission(string code, CSharpParseOptions options, int expectedErrorCount = 0)
         {
             var submission = CSharpCompilation.CreateSubmission("sub",
@@ -2688,6 +2713,65 @@ this[1]
             Assert.Equal(0, summary.MethodGroup.Length);
         }
 
+        [Fact]
+        public void NoAwait()
+        {
+            var engine = new CSharpScriptEngine();
+            var session = engine.CreateSession();
+            // No await. The return value is Task<int> rather than Task<object>.
+            var result = (Task<int>)session.Execute("System.Threading.Tasks.Task.FromResult(1)");
+            Assert.Equal(1, result.Result);
+        }
+
+        /// <summary>
+        /// 'await' expression at top-level.
+        /// </summary>
+        [Fact]
+        public void Await()
+        {
+            var engine = new CSharpScriptEngine();
+            var session = engine.CreateSession();
+            var result = (Task<object>)session.Execute("await System.Threading.Tasks.Task.FromResult(2)");
+            Assert.Equal(2, result.Result);
+        }
+
+        /// <summary>
+        /// 'await' in sub-expression.
+        /// </summary>
+        [Fact]
+        public void AwaitSubExpression()
+        {
+            var engine = new CSharpScriptEngine();
+            var session = engine.CreateSession();
+            var result = (Task<object>)session.Execute("0 + await System.Threading.Tasks.Task.FromResult(3)");
+            Assert.Equal(3, result.Result);
+        }
+
+        /// <summary>
+        /// 'await' in lambda should be ignored.
+        /// </summary>
+        [Fact]
+        public void AwaitInLambda()
+        {
+            var engine = new CSharpScriptEngine();
+            var session = engine.CreateSession();
+            session.Execute(
+@"using System;
+using System.Threading.Tasks;
+static T F<T>(Func<Task<T>> f)
+{
+    return f().Result;
+}
+static T G<T>(T t, Func<T, Task<T>> f)
+{
+    return f(t).Result;
+}");
+            var result = session.Execute("F(async () => await Task.FromResult(4))");
+            Assert.Equal(4, result);
+            result = session.Execute("G(5, async x => await Task.FromResult(x))");
+            Assert.Equal(5, result);
+        }
+
         #endregion
 
         #region References
@@ -2705,14 +2789,13 @@ this[1]
             //Assert.Equal(2, i);
         }
 
-        /// <summary>
-        /// By default Framework directory is included in search paths.
-        /// </summary>
         [Fact]
-        public void SearchPaths_DefaultWithSession()
+        public void SearchPaths1()
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
+
+            session.SetReferenceSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
 
             object result = session.Execute(@"
 #r ""System.Data.dll""
@@ -2846,6 +2929,9 @@ new System.Windows.Forms.Form();
         public void References2()
         {
             var engine = new CSharpScriptEngine();
+
+            engine.SetReferenceSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
+
             engine.AddReference("System.Core");
             engine.AddReference("System.dll");
             engine.AddReference(typeof(System.Data.DataSet).Assembly);

@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
-        Public Sub IsValidId_Puncuation()
+        Public Sub IsValidId_Punctuation()
             AssertNotValidId("abc.abc")
         End Sub
 

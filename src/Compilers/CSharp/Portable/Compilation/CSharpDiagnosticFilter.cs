@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Take a warning and return the final deposition of the given warning,
         // based on both command line options and pragmas.
-        // If you update this method, also update DiagnosticItemSource.GetEffectiveSeverity. 
         internal static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, bool isEnabledByDefault, string id, int diagnosticWarningLevel, Location location, string category, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
             // Read options (e.g., /nowarn or /warnaserror)

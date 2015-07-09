@@ -2,13 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
@@ -19,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             private readonly DiagnosticIncrementalAnalyzer _owner;
 
             private readonly Document _document;
+            private readonly DiagnosticAnalyzer _compilerAnalyzer;
+
             private readonly TextSpan _range;
             private readonly bool _blockForData;
             private readonly CancellationToken _cancellationToken;
@@ -39,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _owner = owner;
 
                 _document = document;
+                _compilerAnalyzer = _owner.HostAnalyzerManager.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
+
                 _range = range;
                 _blockForData = blockForData;
                 _cancellationToken = cancellationToken;
@@ -67,11 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var containsFullResult = true;
                     foreach (var stateSet in _owner._stateManager.GetOrCreateStateSets(_document.Project))
                     {
-                        containsFullResult &= await TryGetDocumentDiagnosticsAsync(
-                            stateSet, StateType.Syntax, (t, d) => t.Equals(textVersion) && d.Equals(syntaxVersion), GetSyntaxDiagnosticsAsync).ConfigureAwait(false);
-
-                        containsFullResult &= await TryGetDocumentDiagnosticsAsync(
-                            stateSet, StateType.Document, (t, d) => t.Equals(textVersion) && d.Equals(semanticVersion), GetSemanticDiagnosticsAsync).ConfigureAwait(false);
+                        containsFullResult &= await TryGetSyntaxAndSemanticDiagnosticsAsync(stateSet, textVersion, syntaxVersion, semanticVersion).ConfigureAwait(false);
 
                         // check whether compilation end code fix is enabled
                         if (!_document.Project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CompilationEndCodeFix))
@@ -107,18 +109,137 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
             }
 
+            private async Task<bool> TryGetSyntaxAndSemanticDiagnosticsAsync(StateSet stateSet, VersionStamp textVersion, VersionStamp syntaxVersion, VersionStamp semanticVersion)
+            {
+                // unfortunately, we need to special case compiler diagnostic analyzer so that 
+                // we can do span based analysis even though we implemented it as semantic model analysis
+                if (stateSet.Analyzer == _compilerAnalyzer)
+                {
+                    return await TryGetSyntaxAndSemanticCompilerDiagnostics(stateSet, textVersion, syntaxVersion, semanticVersion).ConfigureAwait(false);
+                }
+
+                var containsFullResult = await TryGetDocumentDiagnosticsAsync(
+                                            stateSet, StateType.Syntax, (t, d) => t.Equals(textVersion) && d.Equals(syntaxVersion), GetSyntaxDiagnosticsAsync).ConfigureAwait(false);
+
+                containsFullResult &= await TryGetDocumentDiagnosticsAsync(
+                    stateSet, StateType.Document, (t, d) => t.Equals(textVersion) && d.Equals(semanticVersion), GetSemanticDiagnosticsAsync).ConfigureAwait(false);
+
+                return containsFullResult;
+            }
+
+            private async Task<bool> TryGetSyntaxAndSemanticCompilerDiagnostics(StateSet stateSet, VersionStamp textVersion, VersionStamp syntaxVersion, VersionStamp semanticVersion)
+            {
+                // First, get syntax errors
+                var containsFullResult = await TryGetDocumentDiagnosticsAsync(
+                                            stateSet, StateType.Syntax, true,
+                                            (t, d) => t.Equals(textVersion) && d.Equals(syntaxVersion),
+                                            async (_1, _2) =>
+                                            {
+                                                var root = await _document.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+                                                var diagnostics = root.GetDiagnostics();
+
+                                                return GetDiagnosticData(_document, root.SyntaxTree, _range, diagnostics);
+                                            }).ConfigureAwait(false);
+
+                // second get semantic errors
+                containsFullResult &= await TryGetDocumentDiagnosticsAsync(
+                    stateSet, StateType.Document, true,
+                    (t, d) => t.Equals(textVersion) && d.Equals(semanticVersion),
+                    async (_1, _2) =>
+                    {
+                        var model = await _document.GetSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                        VerifyDiagnostics(model);
+
+                        var root = await _document.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+                        var adjustedSpan = AdjustSpan(_document, root, _range);
+                        var diagnostics = model.GetDeclarationDiagnostics(adjustedSpan, _cancellationToken).Concat(model.GetMethodBodyDiagnostics(adjustedSpan, _cancellationToken));
+
+                        return GetDiagnosticData(_document, model.SyntaxTree, _range, diagnostics);
+                    }).ConfigureAwait(false);
+
+                return containsFullResult;
+            }
+
+            [Conditional("DEBUG")]
+            private void VerifyDiagnostics(SemanticModel model)
+            {
+                Func<Diagnostic, bool> shouldInclude = d => _range.IntersectsWith(d.Location.SourceSpan);
+
+                // make sure what we got from range is same as what we got from whole diagnostics
+                var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(_range).ToArray();
+                var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(_range).ToArray();
+                var rangeDiagnostics = rangeDeclaractionDiagnostics.Concat(rangeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
+
+                var set = new HashSet<Diagnostic>(rangeDiagnostics);
+
+                var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics().ToArray();
+                var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics().ToArray();
+                var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
+
+                if (!set.SetEquals(wholeDiagnostics))
+                {
+                    // otherwise, report non-fatal watson so that we can fix those cases
+                    FatalError.ReportWithoutCrash(new Exception("Bug in GetDiagnostics"));
+
+                    // make sure we hold onto these even in ret build for debugging.
+                    GC.KeepAlive(set);
+                    GC.KeepAlive(rangeDeclaractionDiagnostics);
+                    GC.KeepAlive(rangeMethodBodyDiagnostics);
+                    GC.KeepAlive(rangeDiagnostics);
+                    GC.KeepAlive(wholeDeclarationDiagnostics);
+                    GC.KeepAlive(wholeMethodBodyDiagnostics);
+                    GC.KeepAlive(wholeDiagnostics);
+                }
+            }
+
+            private static TextSpan AdjustSpan(Document document, SyntaxNode root, TextSpan span)
+            {
+                // this is to workaround a bug (https://github.com/dotnet/roslyn/issues/1557)
+                // once that bug is fixed, we should be able to use given span as it is.
+
+                var service = document.GetLanguageService<ISyntaxFactsService>();
+                var startNode = service.GetContainingMemberDeclaration(root, span.Start);
+                var endNode = service.GetContainingMemberDeclaration(root, span.End);
+
+                if (startNode == endNode)
+                {
+                    // use full member span
+                    if (service.IsMethodLevelMember(startNode))
+                    {
+                        return startNode.FullSpan;
+                    }
+
+                    // use span as it is
+                    return span;
+                }
+
+                var startSpan = service.IsMethodLevelMember(startNode) ? startNode.FullSpan : span;
+                var endSpan = service.IsMethodLevelMember(endNode) ? endNode.FullSpan : span;
+
+                return TextSpan.FromBounds(Math.Min(startSpan.Start, endSpan.Start), Math.Max(startSpan.End, endSpan.End));
+            }
+
             private async Task<bool> TryGetDocumentDiagnosticsAsync(
                 StateSet stateSet, StateType stateType, Func<VersionStamp, VersionStamp, bool> versionCheck,
                 Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics)
             {
-                if (_spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer) ||
-                    !(await ShouldRunAnalyzerForStateTypeAsync(stateSet, stateType).ConfigureAwait(false)))
+                if (_spanBasedDriver.IsAnalyzerSuppressed(stateSet.Analyzer) || !(await ShouldRunAnalyzerForStateTypeAsync(stateSet, stateType).ConfigureAwait(false)))
                 {
                     return true;
                 }
 
                 bool supportsSemanticInSpan = await stateSet.Analyzer.SupportsSpanBasedSemanticDiagnosticAnalysisAsync(_spanBasedDriver).ConfigureAwait(false);
                 var analyzerDriver = GetAnalyzerDriverBasedOnStateType(stateType, supportsSemanticInSpan);
+
+                return await TryGetDocumentDiagnosticsAsync(stateSet, stateType, supportsSemanticInSpan, versionCheck, getDiagnostics, analyzerDriver).ConfigureAwait(false);
+            }
+
+            private async Task<bool> TryGetDocumentDiagnosticsAsync(
+                StateSet stateSet, StateType stateType, bool supportsSemanticInSpan,
+                Func<VersionStamp, VersionStamp, bool> versionCheck,
+                Func<DiagnosticAnalyzerDriver, DiagnosticAnalyzer, Task<IEnumerable<DiagnosticData>>> getDiagnostics,
+                DiagnosticAnalyzerDriver analyzerDriverOpt = null)
+            {
                 Func<DiagnosticData, bool> shouldInclude = d => d.DocumentId == _document.Id && _range.IntersectsWith(d.TextSpan);
 
                 // make sure we get state even when none of our analyzer has ran yet. 
@@ -144,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return false;
                 }
 
-                var dx = await getDiagnostics(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
+                var dx = await getDiagnostics(analyzerDriverOpt, stateSet.Analyzer).ConfigureAwait(false);
                 if (dx != null)
                 {
                     // no state yet

@@ -962,7 +962,7 @@ mylabel:
         
         Goto &HA 'BIND1:"&HA"
 10:     'BIND2:"10:"
-        Console.WriteLine("Goodby")
+        Console.WriteLine("Goodbye")
     End Sub
 End Class
     ]]></file>
@@ -1006,7 +1006,7 @@ mylabel:    'BIND:"mylabel:"
         Console.WriteLine("Hello Goto")
 
 MYLABEL:        
-        Console.WriteLine("Goodby")
+        Console.WriteLine("Goodbye")
     End Sub
 End Class
     ]]></file>
@@ -2161,7 +2161,7 @@ End Class
 Imports System
 Imports System.Collections.Generic
 
-Public Module Moduel1
+Public Module Module1
     Public Sub Main()
         Dim y As New Dictionary(Of Byte, Integer())() From {{1, {23, 42}}, {2, {42, 23}}} 'BIND:"{23, 42}"'BIND:"{23, 42}"
     End Sub
@@ -3596,7 +3596,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub LateBoundAdressOf()
+        Public Sub LateBoundAddressOf()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -4582,7 +4582,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub TypeParameterSymbolMethod_IsreferencOrValueType()
+        Public Sub TypeParameterSymbolMethod_IsReferenceOrValueType()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

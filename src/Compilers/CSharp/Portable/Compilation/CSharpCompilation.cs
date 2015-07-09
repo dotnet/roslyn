@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation that can be used in scripting.
         /// </summary>
-        internal static CSharpCompilation CreateSubmission(
+        public static CSharpCompilation CreateSubmission(
             string assemblyName,
             SyntaxTree syntaxTree = null,
             IEnumerable<MetadataReference> references = null,
@@ -1305,17 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyHostObjectTypeSymbol;
         }
 
-        internal TypeSymbol GetSubmissionReturnType()
+        internal SynthesizedInteractiveInitializerMethod GetSubmissionInitializer()
         {
-            if (IsSubmission && (object)ScriptClass != null)
-            {
-                // the second parameter of Script class instance constructor is the submission return value:
-                return ((MethodSymbol)ScriptClass.GetMembers(WellKnownMemberNames.InstanceConstructorName)[0]).Parameters[1].Type;
-            }
-            else
-            {
-                return null;
-            }
+            return (IsSubmission && (object)ScriptClass != null) ?
+                ScriptClass.GetScriptInitializer() :
+                null;
         }
 
         /// <summary>
@@ -2070,16 +2064,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override Diagnostic FilterDiagnostic(Diagnostic d)
-        {
-            return FilterDiagnostic(d, _options);
-        }
-
-        private static Diagnostic FilterDiagnostic(Diagnostic d, CSharpCompilationOptions options)
-        {
-            return CSharpDiagnosticFilter.Filter(d, options.WarningLevel, options.GeneralDiagnosticOption, options.SpecificDiagnosticOptions);
-        }
-
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
@@ -2090,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (Diagnostic d in incoming)
             {
-                var filtered = FilterDiagnostic(d, _options);
+                var filtered = _options.FilterDiagnostic(d);
                 if (filtered == null)
                 {
                     continue;
@@ -2249,6 +2233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Emit
 
+        internal override byte LinkerMajorVersion => 0x30;
+        
         internal override bool IsDelaySigned
         {
             get { return SourceAssembly.IsDelaySigned; }
@@ -2266,12 +2252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            // Do not waste a slot in the submission chain for submissions that contain no executable code
-            // (they may only contain #r directives, usings, etc.)
-            if (IsSubmission && !HasCodeToEmit())
-            {
-                return null;
-            }
+            Debug.Assert(!IsSubmission || HasCodeToEmit());
 
             string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)
@@ -2689,7 +2670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithAssemblyName(assemblyName);
         }
 
-        internal override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
+        protected override ITypeSymbol CommonGetSubmissionResultType(out bool hasValue)
         {
             return GetSubmissionResultType(out hasValue);
         }
@@ -2709,7 +2690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _options; }
         }
 
-        internal override Compilation CommonPreviousSubmission
+        protected override Compilation CommonPreviousSubmission
         {
             get { return _previousSubmission; }
         }
@@ -2774,7 +2755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        internal override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
+        protected override Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return this.WithPreviousSubmission((CSharpCompilation)newPreviousSubmission);
         }
@@ -2814,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetTypeByMetadataName(metadataName);
         }
 
-        internal override INamedTypeSymbol CommonScriptClass
+        protected override INamedTypeSymbol CommonScriptClass
         {
             get { return this.ScriptClass; }
         }

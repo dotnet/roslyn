@@ -1786,7 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (highestBoundExpr != null && highestBoundExpr.Kind == BoundKind.Lambda) // the enclosing conversion is expicit
+                if (highestBoundExpr != null && highestBoundExpr.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
                     var lambda = (BoundLambda)highestBoundExpr;
                     convertedType = lambda.Type;
@@ -3366,8 +3366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(boundNodeForSyntacticParent.Kind);
                 }
 
                 AdjustSymbolsForObjectCreation(boundNode, typeSymbol, constructor, binderOpt, ref resultKind, ref symbols, ref memberGroup);

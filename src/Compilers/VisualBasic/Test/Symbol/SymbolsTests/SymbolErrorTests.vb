@@ -3921,7 +3921,7 @@ End Class
             CompilationUtils.AssertNoErrors(other)
 
             Dim comp As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
-<compilation name="AccessCheckCrossAssemblyDeiver2">
+<compilation name="AccessCheckCrossAssemblyDerived2">
     <file name="a.vb"><![CDATA[
 Public Class A
     Inherits C
@@ -11881,11 +11881,11 @@ Module Module1
 End Module
 
 Public Class Cls
-    Public VauleOfProperty1 As IEnumerable(Of String)
+    Public ValueOfProperty1 As IEnumerable(Of String)
     'COMPILEERROR: BC31408, "Iterator"
     Public WriteOnly Iterator Property WriteOnlyPro1() As IEnumerable(Of String)
         Set(value As IEnumerable(Of String))
-            VauleOfProperty1 = value
+            ValueOfProperty1 = value
         End Set
     End Property
 End Class
@@ -11913,7 +11913,7 @@ Imports System.Collections.Generic
 Imports System.Threading
 Imports System.Threading.Tasks
 ' Bug51817: Incorrect Iterator Modifier in Source Code Causes VBC to exit incorrectly when Msbuild Project
-Public Class Sceanario2
+Public Class Scenario2
     Implements IEnumerator(Of Integer)
     Public Function MoveNext() As Boolean Implements System.Collections.IEnumerator.MoveNext
         Return True
@@ -20792,7 +20792,7 @@ BC30926: 'MustInherit' cannot be specified for partial type 'A' because it canno
 
         End Sub
 
-        ' Checks for mising partial on classes
+        ' Checks for missing partial on classes
         <Fact>
         Public Sub ModifierWarningsAcrossPartialTypes()
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(

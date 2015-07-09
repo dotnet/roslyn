@@ -3878,7 +3878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             selectors = New BoundExpression(fieldsToReserveForAggregationVariables + 1 - 1) {}
                             fields = New AnonymousTypeField(selectors.Length - 1) {}
 
-                            ' Using syntax of the first range variable in the source, this shouln't create any problems.
+                            ' Using syntax of the first range variable in the source, this shouldn't create any problems.
                             fields(0) = New AnonymousTypeField(GetQueryLambdaParameterName(keysRangeVariablesPart1),
                                                                compoundKeyReferencePart1.Type,
                                                                keysRangeVariables(0).Syntax.GetLocation(), isKeyOrByRef:=True)

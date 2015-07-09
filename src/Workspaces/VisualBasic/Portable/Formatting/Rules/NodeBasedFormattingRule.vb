@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return
             End If
 
-            ' if base token is first token of the conent of the parent element, don't do anything
+            ' if base token is first token of the content of the parent element, don't do anything
             If element.Content.First().GetFirstToken(includeZeroWidth:=True) = baseToken Then
                 Return
             End If

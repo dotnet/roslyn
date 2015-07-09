@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Private Function SingleLineStatement(token As SyntaxToken) As Boolean
-                ' check whether given token is the last token of a singline line statement
+                ' check whether given token is the last token of a single line statement
                 Dim singleLineIf = token.Parent.GetAncestor(Of SingleLineIfStatementSyntax)()
                 If singleLineIf IsNot Nothing Then
                     Return True

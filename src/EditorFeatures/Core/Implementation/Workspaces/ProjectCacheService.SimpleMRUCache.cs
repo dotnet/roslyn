@@ -16,15 +16,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         {
             private const int CacheSize = 3;
 
-            private readonly Node[] nodes = new Node[CacheSize];
+            private readonly Node[] _nodes = new Node[CacheSize];
 
             public bool Empty
             {
                 get
                 {
-                    for (var i = 0; i < nodes.Length; i++)
+                    for (var i = 0; i < _nodes.Length; i++)
                     {
-                        if (nodes[i].Data != null)
+                        if (_nodes[i].Data != null)
                         {
                             return false;
                         }
@@ -39,39 +39,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
                 var oldIndex = -1;
                 var oldTime = DateTime.UtcNow;
 
-                for (var i = 0; i < nodes.Length; i++)
+                for (var i = 0; i < _nodes.Length; i++)
                 {
-                    if (instance == nodes[i].Data)
+                    if (instance == _nodes[i].Data)
                     {
-                        nodes[i].LastTouched = DateTime.UtcNow;
+                        _nodes[i].LastTouched = DateTime.UtcNow;
                         return;
                     }
 
-                    if (oldTime >= nodes[i].LastTouched)
+                    if (oldTime >= _nodes[i].LastTouched)
                     {
-                        oldTime = nodes[i].LastTouched;
+                        oldTime = _nodes[i].LastTouched;
                         oldIndex = i;
                     }
                 }
 
                 Contract.Requires(oldIndex >= 0);
-                nodes[oldIndex] = new Node(instance, DateTime.UtcNow);
+                _nodes[oldIndex] = new Node(instance, DateTime.UtcNow);
             }
 
             public void ClearExpiredItems(DateTime expirationTime)
             {
-                for (var i = 0; i < nodes.Length; i++)
+                for (var i = 0; i < _nodes.Length; i++)
                 {
-                    if (nodes[i].Data != null && nodes[i].LastTouched < expirationTime)
+                    if (_nodes[i].Data != null && _nodes[i].LastTouched < expirationTime)
                     {
-                        nodes[i] = default(Node);
+                        _nodes[i] = default(Node);
                     }
                 }
             }
 
             public void Clear()
             {
-                Array.Clear(nodes, 0, nodes.Length);
+                Array.Clear(_nodes, 0, _nodes.Length);
             }
 
             private struct Node

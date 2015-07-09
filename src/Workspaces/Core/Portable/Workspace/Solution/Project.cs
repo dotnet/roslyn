@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns true if this is a submission project.
         /// </summary>
-        internal bool IsSubmission
+        public bool IsSubmission
         {
             get
             {
@@ -579,9 +579,9 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this project updated to replace existing analyzer references 
         /// with the specified ones.
         /// </summary>
-        public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
+        public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            return this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetProject(this.Id);
+            return this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferences).GetProject(this.Id);
         }
 
         /// <summary>

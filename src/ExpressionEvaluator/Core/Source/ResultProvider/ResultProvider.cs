@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 (kind != ExpansionKind.PointerDereference) &&
                 (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
             return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) : 
+                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) :
                 declaredTypeName;
         }
 
@@ -460,12 +460,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private void GetRootResultAndContinue(
-            DkmClrValue value, 
-            WorkList workList, 
+            DkmClrValue value,
+            WorkList workList,
             DkmClrType declaredType,
             DkmClrCustomTypeInfo declaredTypeInfo,
-            DkmInspectionContext inspectionContext, 
-            string name, 
+            DkmInspectionContext inspectionContext,
+            string name,
             CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var type = value.Type.GetLmrType();
@@ -586,12 +586,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private void GetResultAndContinue(
-            EvalResultDataItem dataItem, 
-            WorkList workList, 
+            EvalResultDataItem dataItem,
+            WorkList workList,
             DkmClrType declaredType,
             DkmClrCustomTypeInfo declaredTypeInfo,
-            DkmInspectionContext inspectionContext, 
-            EvalResultDataItem parent, 
+            DkmInspectionContext inspectionContext,
+            EvalResultDataItem parent,
             CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var value = dataItem.Value; // Value may have been replaced (specifically, for Nullable<T>).
@@ -653,13 +653,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private DkmEvaluationResult GetResult(
-            DkmInspectionContext inspectionContext, 
-            EvalResultDataItem dataItem, 
+            DkmInspectionContext inspectionContext,
+            EvalResultDataItem dataItem,
             DkmClrType declaredType,
             DkmClrCustomTypeInfo declaredTypeInfo,
-            string displayName, 
-            string displayValue, 
-            string displayType, 
+            string displayName,
+            string displayValue,
+            string displayType,
             EvalResultDataItem parent)
         {
             var name = dataItem.Name;
@@ -678,9 +678,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else if (typeDeclaringMemberAndInfo.Type != null)
             {
+                bool unused;
                 if (typeDeclaringMemberAndInfo.Type.IsInterface)
                 {
-                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true);
+                    var interfaceTypeName = this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused);
                     name = string.Format("{0}.{1}", interfaceTypeName, name);
                 }
                 else
@@ -689,7 +690,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var builder = pooled.Builder;
                     builder.Append(name);
                     builder.Append(" (");
-                    builder.Append(this.Formatter.GetTypeName(typeDeclaringMemberAndInfo));
+                    builder.Append(this.Formatter.GetTypeName(typeDeclaringMemberAndInfo, escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused));
                     builder.Append(')');
                     name = pooled.ToStringAndFree();
                 }
@@ -699,7 +700,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string display;
             if (value.HasExceptionThrown())
             {
-                display = dataItem.DisplayValue ?? value.GetExceptionMessage(dataItem.FullNameWithoutFormatSpecifiers, this.Formatter);
+                display = dataItem.DisplayValue ?? value.GetExceptionMessage(dataItem.FullNameWithoutFormatSpecifiers ?? dataItem.Name, this.Formatter);
             }
             else if (displayValue != null)
             {
@@ -783,9 +784,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         internal Expansion GetTypeExpansion(
-            DkmInspectionContext inspectionContext, 
+            DkmInspectionContext inspectionContext,
             TypeAndCustomInfo declaredTypeAndInfo,
-            DkmClrValue value, 
+            DkmClrValue value,
             ExpansionFlags flags)
         {
             var declaredType = declaredTypeAndInfo.Type;

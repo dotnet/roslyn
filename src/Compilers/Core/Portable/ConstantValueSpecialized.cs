@@ -745,8 +745,8 @@ namespace Microsoft.CodeAnalysis
 
         private sealed class ConstantValueSingle : ConstantValueDiscriminated
         {
-            // C# performs constant folding on floating point values in full precesion
-            // so this class stores values in double precesion
+            // C# performs constant folding on floating point values in full precision
+            // so this class stores values in double precision
             // DoubleValue can be used to get unclipped value
             private readonly double _value;
 

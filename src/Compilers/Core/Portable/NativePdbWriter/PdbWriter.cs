@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly BinaryWriter _logData;
+        private readonly BlobWriter _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,38 +57,38 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = new BinaryWriter(MemoryStream.GetInstance());
+                _logData = BlobWriter.GetInstance();
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
             else
             {
-                _logData = default(BinaryWriter);
+                _logData = null;
                 _hashAlgorithm = null;
             }
         }
 
         private void MaybeFlush()
         {
-            if (_logData.BaseStream.Length >= bufferFlushLimit)
+            if (_logData.Length >= bufferFlushLimit)
             {
-                _hashAlgorithm.TransformBlock(_logData.BaseStream.Buffer, (int)_logData.BaseStream.Position);
-                _logData.BaseStream.Position = 0;
+                _hashAlgorithm.TransformBlock(_logData.Buffer, _logData.Position);
+                _logData.Position = 0;
             }
         }
 
         internal ContentId ContentIdFromLog()
         {
-            Debug.Assert(_logData.BaseStream != null);
-            _hashAlgorithm.TransformFinalBlock(_logData.BaseStream.Buffer, (int)_logData.BaseStream.Position);
-            _logData.BaseStream.Position = 0;
+            Debug.Assert(_logData != null);
+            _hashAlgorithm.TransformFinalBlock(_logData.Buffer, _logData.Position);
+            _logData.Position = 0;
             return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
         }
 
         internal void Close()
         {
             _hashAlgorithm?.Dispose();
-            _logData.BaseStream?.Free();
+            _logData?.Free();
         }
 
         internal enum PdbWriterOperation : byte
@@ -115,7 +115,7 @@ namespace Microsoft.Cci
 
         public bool LogOperation(PdbWriterOperation op)
         {
-            var logging = this._logging;
+            var logging = _logging;
             if (logging)
             {
                 LogArgument((byte)op);
@@ -136,7 +136,7 @@ namespace Microsoft.Cci
 
         public void LogArgument(string data)
         {
-            _logData.WriteString(data);
+            _logData.WriteUTF8(data);
             MaybeFlush();
         }
 
@@ -176,18 +176,24 @@ namespace Microsoft.Cci
 
         public void LogArgument(object data)
         {
-            if (data is Decimal)
+            string str;
+            if (data is decimal)
             {
-                LogArgument(Decimal.GetBits((Decimal)data));
+                LogArgument(decimal.GetBits((decimal)data));
             }
             else if (data is DateTime)
             {
                 LogArgument(((DateTime)data).ToBinary());
             }
+            else if ((str = data as string) != null)
+            {
+                LogArgument(str);
+            }
             else
             {
-                _logData.WriteConstantValueBlob(data);
+                _logData.WriteConstant(data);
             }
+
             MaybeFlush();
         }
     }
@@ -289,14 +295,13 @@ namespace Microsoft.Cci
                 return;
             }
 
-            uint methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
+            int methodToken = _metadataWriter.GetMethodToken(methodBody.MethodDefinition);
 
-            OpenMethod(methodToken, methodBody.MethodDefinition);
+            OpenMethod((uint)methodToken, methodBody.MethodDefinition);
 
             var localScopes = methodBody.LocalScopes;
 
-            // Open the outer-most language defined scope, the namespace scopes will be emitted to it.
-            // Note that the root scope has already been open, but native compilers leave it empty.
+            // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
             if (localScopes.Length > 0)
             {
                 this.DefineScopeLocals(localScopes[0], localSignatureToken);
@@ -413,7 +418,7 @@ namespace Microsoft.Cci
             {
                 string defaultNamespace = module.DefaultNamespace;
 
-                if (defaultNamespace != null)
+                if (!string.IsNullOrEmpty(defaultNamespace))
                 {
                     // VB marks the default/root namespace with an asterisk
                     UsingNamespace("*" + defaultNamespace, module);
@@ -697,10 +702,10 @@ namespace Microsoft.Cci
         {
             foreach (ILocalDefinition scopeConstant in currentScope.Constants)
             {
-                uint token = _metadataWriter.SerializeLocalConstantSignature(scopeConstant);
+                int token = _metadataWriter.SerializeLocalConstantStandAloneSignature(scopeConstant);
                 if (!_metadataWriter.IsLocalNameTooLong(scopeConstant))
                 {
-                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), token);
+                    DefineLocalConstant(scopeConstant.Name, scopeConstant.CompileTimeValue.Value, _metadataWriter.GetConstantTypeCode(scopeConstant), (uint)token);
                 }
             }
 
@@ -716,7 +721,7 @@ namespace Microsoft.Cci
 
         #region SymWriter calls
 
-        const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
+        private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 
@@ -968,7 +973,7 @@ namespace Microsoft.Cci
                     _callLogger.LogArgument(method.Name);
                 }
 
-                // open root scope:
+                // open outermost scope:
                 _symWriter.OpenScope(startOffset: 0);
                 if (_callLogger.LogOperation(OP.OpenScope))
                 {
@@ -1144,7 +1149,7 @@ namespace Microsoft.Cci
             {
                 try
                 {
-                    // parent parameter is not used, it must be zero or the current method token passed to OpenMetod.
+                    // parent parameter is not used, it must be zero or the current method token passed to OpenMethod.
                     _symWriter.SetSymAttribute(0, name, (uint)metadata.Length, (IntPtr)pb);
                     if (_callLogger.LogOperation(OP.SetSymAttribute))
                     {
@@ -1279,8 +1284,8 @@ namespace Microsoft.Cci
         }
 
         private void SetAsyncInfo(
-            uint thisMethodToken,
-            uint kickoffMethodToken,
+            int thisMethodToken,
+            int kickoffMethodToken,
             int catchHandlerOffset,
             ImmutableArray<int> yieldOffsets,
             ImmutableArray<int> resumeOffsets)
@@ -1301,7 +1306,7 @@ namespace Microsoft.Cci
                     {
                         yields[i] = (uint)yieldOffsets[i];
                         resumes[i] = (uint)resumeOffsets[i];
-                        methods[i] = thisMethodToken;
+                        methods[i] = (uint)thisMethodToken;
                     }
 
                     try
@@ -1331,7 +1336,9 @@ namespace Microsoft.Cci
                             _callLogger.LogArgument((uint)catchHandlerOffset);
                         }
                     }
-                    asyncMethodPropertyWriter.DefineKickoffMethod(kickoffMethodToken);
+
+                    asyncMethodPropertyWriter.DefineKickoffMethod((uint)kickoffMethodToken);
+
                     if (_callLogger.LogOperation(OP.DefineKickoffMethod))
                     {
                         _callLogger.LogArgument(kickoffMethodToken);
@@ -1353,7 +1360,7 @@ namespace Microsoft.Cci
             {
                 foreach (var definition in kvp.Value)
                 {
-                    uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                    int token = _metadataWriter.GetTokenForDefinition(definition.Definition);
                     Debug.Assert(token != 0);
                 }
             }
@@ -1390,7 +1397,7 @@ namespace Microsoft.Cci
                             open = true;
                         }
 
-                        uint token = _metadataWriter.GetTokenForDefinition(definition.Definition);
+                        uint token = (uint)_metadataWriter.GetTokenForDefinition(definition.Definition);
                         Debug.Assert(token != 0);
 
                         try

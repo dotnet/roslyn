@@ -119,7 +119,7 @@ HandleMethodBase:
                             ' Mustoverride mean that the property doesn't have any implementation
                             ' This cannot be an auto property so the property may not be initialized.
 
-                            ' Check if initializer exists.  Only auto proeprties may have initialization.
+                            ' Check if initializer exists.  Only auto properties may have initialization.
                             node = PropertyBlockContext.ReportErrorIfHasInitializer(DirectCast(node, PropertyStatementSyntax))
 
                             Add(node)

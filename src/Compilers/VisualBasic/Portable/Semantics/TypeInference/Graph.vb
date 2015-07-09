@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
-                Debug.Assert(False)
+                Throw ExceptionUtilities.Unreachable
             End Sub
 
 
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim orderedList = ArrayBuilder(Of TGraphNode).GetInstance()
                 Dfs(orderedList)
 
-                ' Step 2: Reset graph algorith Data
+                ' Step 2: Reset graph algorithm Data
                 For Each current As TGraphNode In orderedList
                     current.AlgorithmData = New GraphAlgorithmData(Of TGraphNode)()
                 Next

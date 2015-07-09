@@ -648,7 +648,7 @@ class C
 
         // Inner for loop referencing the outer for loop iteration variable
         [Fact]
-        public void InnerRefOuterInteration()
+        public void InnerRefOuterIteration()
         {
             var text =
 @"

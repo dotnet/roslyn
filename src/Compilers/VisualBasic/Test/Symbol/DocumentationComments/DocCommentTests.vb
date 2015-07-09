@@ -6848,7 +6848,7 @@ docComment.Trim().Replace(vbLf, "").Replace(vbCr, ""))
 Imports System
 
 Partial Public Class TestClass
-    ''' <summary> Delaration </summary>
+    ''' <summary> Declaration </summary>
     Partial Private Sub PS()
     End Sub
 End Class
@@ -6886,7 +6886,7 @@ AssemblyName
 </assembly>
 <members>
 <member name="M:TestClass.PS">
- <summary> Delaration </summary>
+ <summary> Declaration </summary>
 </member>
 </members>
 </doc>
@@ -12305,7 +12305,7 @@ End Module
                 options:=TestOptions.ReleaseExe,
                 parseOptions:=TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose))
 
-            ' Compilation should succeeed with warnings
+            ' Compilation should succeed with warnings
             AssertTheseDiagnostics(CompileAndVerify(compilation, expectedOutput:="Here").Diagnostics, <![CDATA[
 BC42304: XML documentation parse error: Element is missing an end tag. XML comment will be ignored.
     '''<summary>

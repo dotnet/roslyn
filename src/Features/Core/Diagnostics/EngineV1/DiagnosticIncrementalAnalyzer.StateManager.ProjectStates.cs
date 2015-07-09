@@ -139,8 +139,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 private void RaiseProjectAnalyzerReferenceChangedIfNeeded(
-                    Project project, 
-                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference, 
+                    Project project,
+                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> newMapPerReference,
                     ImmutableDictionary<DiagnosticAnalyzer, StateSet> newMap)
                 {
                     Entry entry;

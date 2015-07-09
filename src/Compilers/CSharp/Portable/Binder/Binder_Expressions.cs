@@ -1399,11 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, result.Kind);
             }
 
-            if (!result.IsSingleViable)
-            {
-                Debug.Assert(false, "If this happens, we need to deal with multiple label definitions.");
-            }
-
+            Debug.Assert(result.IsSingleViable, "If this happens, we need to deal with multiple label definitions.");
             var symbol = (LabelSymbol)result.Symbols.First();
             result.Free();
             return new BoundLabel(node, symbol, null);
@@ -4598,7 +4594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (this.EnclosingNameofArgument == node)
                             {
-                                // Support selecing an extension method from a type name in nameof(.)
+                                // Support selecting an extension method from a type name in nameof(.)
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
                             }
                             else

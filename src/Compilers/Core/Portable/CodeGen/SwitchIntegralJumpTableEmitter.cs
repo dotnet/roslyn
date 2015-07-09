@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             int startLabelIndex;
 
             // Check for a label with ConstantValue.Null.
-            // Soring ensures that if we do have one, it will be
+            // Sorting ensures that if we do have one, it will be
             // the first label in the sorted list.
             if (sortedCaseLabels[0].Key != ConstantValue.Null)
             {
@@ -449,8 +449,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return ILOpCode.Ble_un;
 
                 default:
-                    Debug.Assert(false, "Unhandled branch opcode for switch emitter");
-                    return ILOpCode.Nop;
+                    throw ExceptionUtilities.UnexpectedValue(branchCode);
             }
         }
 

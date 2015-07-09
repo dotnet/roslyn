@@ -607,7 +607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim eventContainingType As TypeSymbol = Nothing
             Dim withEventsSourceProperty As PropertySymbol = Nothing
 
-            ' This is the WithEvents property that looks as avent container to the user. (it could be in a base class)
+            ' This is the WithEvents property that looks as event container to the user. (it could be in a base class)
             Dim witheventsProperty As PropertySymbol = Nothing
 
             ' This is the WithEvents property that will actually used to hookup handlers. (it could be a proxy override)
@@ -752,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Valid context
 
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(ContainingType.TypeKind)
             End Select
 
             Dim receiverOpt As BoundExpression = Nothing

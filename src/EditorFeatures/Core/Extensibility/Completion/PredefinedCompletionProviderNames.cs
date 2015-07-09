@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Completion provider for contextual keywords.
         /// </summary>
-        public const string ContextualKeyword = "Contexual Keyword Completion Provider";
+        public const string ContextualKeyword = "Contextual Keyword Completion Provider";
 
         /// <summary>
         /// Completion provider that preselects an appropriate type when creating a new object.

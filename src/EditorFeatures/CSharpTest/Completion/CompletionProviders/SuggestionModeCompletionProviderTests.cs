@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         internal override ICompletionProvider CreateCompletionProvider()
         {
-            return new SuggestionModeCompletionProvider();
+            return new CSharpSuggestionModeCompletionProvider();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -576,7 +576,7 @@ class a
 
         private void CheckResults(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a', isAugment: true);
+            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
             var provider = CreateCompletionProvider();
 
             if (isBuilder)

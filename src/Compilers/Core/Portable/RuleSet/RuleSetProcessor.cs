@@ -81,10 +81,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
 
                 // Find the top level rule set node
                 List<XElement> nodeList = ruleSetDocument.Elements(RuleSetNodeName).ToList();
-                if (nodeList.Count != 1)
-                {
-                    Debug.Assert(false, "Multiple top-level nodes!");
-                }
+                Debug.Assert(nodeList.Count == 1, "Multiple top-level nodes!");
                 Debug.Assert(nodeList[0].Name == RuleSetNodeName);
                 ruleSetNode = nodeList[0];
             }

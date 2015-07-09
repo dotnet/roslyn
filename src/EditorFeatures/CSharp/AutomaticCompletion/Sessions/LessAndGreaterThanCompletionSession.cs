@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             if (leftNode is ConditionalAccessExpressionSyntax)
             {
                 // If node on the left is a conditional access expression, get the member binding expression 
-                // from the innermost conditional acccess expression, which is the left of < operator. 
+                // from the innermost conditional access expression, which is the left of < operator. 
                 // e.g: Case a?.b?.c< : we need to get the conditional access expression .b?.c and analyze its
                 // member binding expression (the .c) to see if it is a generic type/method.
                 // Case a?.b?.c.d< : we need to analyze .c.d

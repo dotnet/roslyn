@@ -1171,7 +1171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Don't allow Overridable, etc. on NotInheritable.
             If container.IsNotInheritable Then
                 If (flags And SourceMemberFlags.InvalidInNotInheritableClass) <> 0 Then
-                    ' Somewhat strangly, the old VB compiler has different behavior depending on whether the containing type DECLARATION
+                    ' Somewhat strangely, the old VB compiler has different behavior depending on whether the containing type DECLARATION
                     ' has NotInheritable, vs. any partial has NotInheritable (although they are semantically the same). If the containing declaration
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
@@ -1457,7 +1457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' It is OK to convert Nothing literal of one reference type to another 
-            ' reference type or (only in default parameter valus context) Nothing 
+            ' reference type or (only in default parameter value context) Nothing 
             ' literal of reference type to a value type,
             ' if the conversion is not correct, errors should have been reported by now
             If operandType.IsReferenceType AndAlso

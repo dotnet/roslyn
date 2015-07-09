@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -93,19 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // A binder that contains the extern aliases but not the usings. The resolution of the target of a using directive or alias 
                 // should not make use of other peer usings.
-                InContainerBinder usingsBinder;
-                if (binder.Container.IsSubmissionClass)
-                {
+                var usingsBinder = binder.IsSubmissionClass ?
                     // Top-level usings in interactive code are resolved in the context of global namespace, w/o extern aliases:
-                    usingsBinder = new InContainerBinder(binder.Compilation.GlobalNamespace, new BuckStopsHereBinder(binder.Compilation));
-                }
-                else
-                {
-                    usingsBinder = new InContainerBinder(binder.Container, binder.Next,
+                    new InContainerBinder(binder.Compilation.GlobalNamespace, new BuckStopsHereBinder(binder.Compilation)) :
+                    new InContainerBinder(binder.Container, binder.Next,
                         new Imports(binder.Compilation, null, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externAliases, null));
-                }
 
-                var uniqueUsings = new HashSet<NamespaceOrTypeSymbol>();
+                var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
 
                 foreach (var usingDirective in usingDirectives)
                 {
@@ -208,6 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+
+                uniqueUsings.Free();
             }
 
             if (diagnostics.IsEmptyWithoutResolution)

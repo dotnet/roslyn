@@ -904,8 +904,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MixingWinRTAndNETEvents = 31202
         ERR_AddParamWrongForWinRT = 31203
         ERR_RemoveParamWrongForWinRT = 31204
-        ERR_ReImplementatingWinRTInterface5 = 31205
-        ERR_ReImplementatingWinRTInterface4 = 31206
+        ERR_ReImplementingWinRTInterface5 = 31205
+        ERR_ReImplementingWinRTInterface4 = 31206
         ERR_XmlEndElementNoMatchingStart = 31207
         ERR_UndefinedTypeOrNamespace1 = 31208
         ERR_BadInterfaceInterfaceSpecifier1 = 31209

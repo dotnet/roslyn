@@ -83,7 +83,7 @@ BC36942: To return a value from an Iterator function, use 'Yield' rather than 'R
         <Fact()>
         Public Sub BadYieldInNonIteratorMethod()
 
-            ' I cannot get the actuall BadYieldInNonIteratorMethod error since Yield keyword is conditional.
+            ' Cannot get the actual BadYieldInNonIteratorMethod error since Yield keyword is conditional.
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
                     <compilation>
                         <file name="a.vb">

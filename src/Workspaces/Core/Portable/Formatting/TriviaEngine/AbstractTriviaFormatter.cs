@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var lineColumn = FormatTrivia(Format, AddWhitespaceTrivia, changes, cancellationToken);
 
             // deal with edges
-            // insert empty linebreaks at the begining of trivia list
+            // insert empty linebreaks at the beginning of trivia list
             AddExtraLines(lineColumn.Line, changes);
 
             if (Succeeded())
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var lineColumn = FormatTrivia(Format, AddWhitespaceTextChange, changes, cancellationToken);
 
             // deal with edges
-            // insert empty linebreaks at the begining of trivia list
+            // insert empty linebreaks at the beginning of trivia list
             AddExtraLines(lineColumn.Line, changes);
 
             if (Succeeded())
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             LineColumn lineColumnBeforeTrivia1, SyntaxTrivia trivia1, LineColumn lineColumnAfterTrivia1, LineColumnDelta existingWhitespaceBetween, SyntaxTrivia trivia2, LineColumnRule rule)
         {
             // we do not touch spaces adjacent to missing token
-            // [missing token] [whitespace] [trivia] or [trivia] [whitepsace] [missing token] case
+            // [missing token] [whitespace] [trivia] or [trivia] [whitespace] [missing token] case
             if ((this.Token1.IsMissing && trivia1.RawKind == 0) ||
                 (trivia2.RawKind == 0 && this.Token2.IsMissing))
             {
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return LineColumnDelta.Default;
                 }
 
-                // if there was alrady new lines, ignore elastic
+                // if there was already new lines, ignore elastic
                 var lineColumnAfterPreviousTrivia = GetLineColumn(lineColumn, previousTrivia);
 
                 var newLineFromPreviousOperation = (whitespaceBetween.Lines > 0) ||

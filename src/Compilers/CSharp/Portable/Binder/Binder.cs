@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Method:
                         // global statements
-                        return ((MethodSymbol)containingMember).IsScriptConstructor;
+                        return ((MethodSymbol)containingMember).IsScriptInitializer;
 
                     case SymbolKind.NamedType:
                         // script variable initializers

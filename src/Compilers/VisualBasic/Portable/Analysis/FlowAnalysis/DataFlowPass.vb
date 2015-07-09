@@ -746,7 +746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' it the type is a type parameter and also type does NOT guarantee it is 
-            ' always a reference type, we igrore the field following Dev11 implementation
+            ' always a reference type, we ignore the field following Dev11 implementation
             If fieldType.IsTypeParameter() Then
                 Dim typeParam = DirectCast(fieldType, TypeParameterSymbol)
                 If Not typeParam.IsReferenceType Then
@@ -1884,7 +1884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BoundKind.EventAccess
-                    Debug.Assert(False)  ' TODO: is this reachable at all?
+                    Throw ExceptionUtilities.UnexpectedValue(expr.Kind) ' TODO: is this reachable at all?
 
                 Case BoundKind.MeReference,
                      BoundKind.MyClassReference,
@@ -1979,7 +1979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '       In this case Roslyn (following Dev10/Dev11) consecutively calls constructors 
             '       and executes initializers for all declared variables. Thus, when the first 
-            '       initialzier is being executed, all other locals are not assigned yet.
+            '       initializer is being executed, all other locals are not assigned yet.
             '
             '       This behavior is emulated below by assigning the first local and visiting
             '       the initializer before assigning all the other locals. We don't really need

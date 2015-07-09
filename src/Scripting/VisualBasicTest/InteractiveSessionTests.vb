@@ -13,14 +13,10 @@ Imports Roslyn.Test.Utilities
 Imports Xunit
 
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.Test
+Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
     Public Class InteractiveSessionTests
         Inherits BasicTestBase
-
-        Shared Sub New()
-            ScriptBuilder.DisableJitOptimizations = True
-        End Sub
 
 #Region "Chaining"
         <Fact()>
@@ -404,6 +400,37 @@ End Function")
 
             ' #1010871
             'Assert.False(symbols.Any(Function(s) s.Name = "Roslyn"))
+        End Sub
+
+        <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
+        <Fact>
+        Public Sub ErrorInUsing()
+            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
+
+            Dim expectedErrors = <errors><![CDATA[
+BC40056: Namespace or type specified in the Imports 'Unknown' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports Unknown
+        ~~~~~~~
+]]></errors>
+
+            ' Emit produces the same diagnostics as GetDiagnostics (below).
+            Using stream As New MemoryStream()
+                Dim emitResult = submission.Emit(stream)
+                Assert.False(emitResult.Success)
+                emitResult.Diagnostics.AssertTheseDiagnostics(expectedErrors)
+            End Using
+
+            submission.GetDiagnostics().AssertTheseDiagnostics(expectedErrors)
+        End Sub
+
+        <WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")>
+        <Fact>
+        Public Sub LabelLookup()
+            Const source = "Imports System : 1"
+            Dim tree = Parse(source, options:=TestOptions.Script)
+            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef})
+            Dim model = submission.GetSemanticModel(tree)
+            Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
 
 #End Region

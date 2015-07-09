@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementBreaksConditionalAccessExpression(ConditionalAccessExpressionSyntax conditionalAccessExpression, ConditionalAccessExpressionSyntax newConditionalAccessExpression)
         {
             return !SymbolsAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) ||
-                !TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) || 
+                !TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) ||
                 !SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) ||
                 !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
         }

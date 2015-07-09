@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (switchGoverningType.IsValidSwitchGoverningType())
                 {
-                    // Condition (1) satisified
+                    // Condition (1) satisfied
 
                     // Note: dev11 actually checks the stripped type, but nullable was introduced at the same
                     // time, so it doesn't really matter.
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(node, useSiteDiagnostics);
                     if (conversion.IsValid)
                     {
-                        // Condition (2) satisified
+                        // Condition (2) satisfied
                         Debug.Assert(conversion.Kind == ConversionKind.ImplicitUserDefined);
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Skipping the first label symbol ensures that the errors (if any),
                         // are reported on all but the first duplicate case label.
                         diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location,
-                            label.SwitchCaseLabelConstant == null ? label.Name : label.SwitchCaseLabelConstant.Value);
+                            label.SwitchCaseLabelConstant?.Value ?? label.Name);
                         hasDuplicateErrors = true;
                     }
                     break;

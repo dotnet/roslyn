@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // Note: if the user was in the body of the for, then we would have hit its nested
                     // statement on the way up.  If they were in the condition or the incrementors, then
                     // we would have those on the way up as well (in TryCreateBreakpointSpanForExpression or
-                    // CreateBreapointSpanForVariableDeclarator). So the user must be on the 'for'
+                    // CreateBreakpointSpanForVariableDeclarator). So the user must be on the 'for'
                     // itself. in that case, set the bp on the variable declaration or initializers
                     var forStatement = (ForStatementSyntax)statement;
                     if (forStatement.Declaration != null)

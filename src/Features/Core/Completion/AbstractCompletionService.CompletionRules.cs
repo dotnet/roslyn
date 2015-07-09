@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 return filterText.Length == 0 && !item.Preselect;
             }
 
-            public void CompletionItemComitted(CompletionItem item)
+            public void CompletionItemCommitted(CompletionItem item)
             {
-                _completionService.CompletionItemComitted(item);
+                _completionService.CompletionItemCommitted(item);
             }
 
             public virtual bool? ItemsMatch(CompletionItem item1, CompletionItem item2)

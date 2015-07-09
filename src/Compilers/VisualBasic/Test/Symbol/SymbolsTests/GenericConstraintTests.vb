@@ -3457,7 +3457,7 @@ BC32044: Type argument 'B' does not inherit from or implement the constraint typ
 </expected>)
         End Sub
 
-        ' Redudant constraints should not result in duplicate errors
+        ' Redundant constraints should not result in duplicate errors
         ' for type arguments that do not satisfy the constraints.
         <Fact()>
         Public Sub NotSatisfyingRedundantConstraints()

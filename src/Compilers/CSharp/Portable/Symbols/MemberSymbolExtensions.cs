@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return ImmutableArray<ParameterSymbol>.Empty;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return ImmutableArray<ParameterSymbol>.Empty;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return ImmutableArray<TypeSymbol>.Empty;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -71,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return false;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return false;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -90,8 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return ImmutableArray<RefKind>.Empty;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return ImmutableArray<RefKind>.Empty;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -106,8 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return 0;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 
@@ -202,8 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Property:
                     return ((PropertySymbol)m).CustomModifierCount();
                 default:
-                    Debug.Assert(false);
-                    return 0;
+                    throw ExceptionUtilities.UnexpectedValue(m.Kind);
             }
         }
 
@@ -325,8 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return ImmutableArray<TypeParameterSymbol>.Empty;
                 default:
-                    Debug.Assert(false, String.Format("{0} is not a kind of member", symbol.Kind));
-                    return ImmutableArray<TypeParameterSymbol>.Empty;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
 
@@ -344,8 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     return ImmutableArray<TypeSymbol>.Empty;
                 default:
-                    Debug.Assert(false, String.Format("{0} is not a kind of member", symbol.Kind));
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
 
@@ -518,10 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected member kind " + member.Kind);
-                    returnType = null;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
         }
 

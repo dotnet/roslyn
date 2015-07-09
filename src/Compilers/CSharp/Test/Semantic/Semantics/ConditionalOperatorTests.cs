@@ -986,24 +986,24 @@ namespace TernaryAndVarianceConversion
 
     interface ICovariantInterface<out T>
     {
-        void CovariantInterfaceMathodWithVoidReturn();
-        T CovariantInterfaceMathodWithValidReturn();
+        void CovariantInterfaceMethodWithVoidReturn();
+        T CovariantInterfaceMethodWithValidReturn();
         T CovariantInterfacePropertyWithValidGetter { get; }
         void Test();
     }
 
     interface IContravariantInterface<in T>
     {
-        void ContravariantInterfaceMathodWithVoidReturn();
-        void ContravariantInterfaceMathodWithValidInParm(T inVal);
+        void ContravariantInterfaceMethodWithVoidReturn();
+        void ContravariantInterfaceMethodWithValidInParm(T inVal);
         T ContravariantInterfacePropertyWithValidSetter { set; }
         void Test();
     }
 
     class CovariantInterfaceImpl<T> : ICovariantInterface<T>
     {
-        public void CovariantInterfaceMathodWithVoidReturn() { }
-        public T CovariantInterfaceMathodWithValidReturn()
+        public void CovariantInterfaceMethodWithVoidReturn() { }
+        public T CovariantInterfaceMethodWithValidReturn()
         {
             return default(T);
         }
@@ -1019,8 +1019,8 @@ namespace TernaryAndVarianceConversion
 
     class ContravariantInterfaceImpl<T> : IContravariantInterface<T>
     {
-        public void ContravariantInterfaceMathodWithVoidReturn() { }
-        public void ContravariantInterfaceMathodWithValidInParm(T inVal) { }
+        public void ContravariantInterfaceMethodWithVoidReturn() { }
+        public void ContravariantInterfaceMethodWithValidInParm(T inVal) { }
         public T ContravariantInterfacePropertyWithValidSetter
         {
             set { }

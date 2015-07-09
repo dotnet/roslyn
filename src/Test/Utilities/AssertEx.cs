@@ -562,6 +562,5 @@ namespace Roslyn.Test.Utilities
 
             return new List<Tuple<string, int, string>>();
         });
-
     }
 }

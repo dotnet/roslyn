@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Creates a new compilation that can be used in scripting. 
         ''' </summary>
-        Friend Shared Function CreateSubmission(
+        Public Shared Function CreateSubmission(
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
@@ -2060,20 +2060,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Overloads Shared Function FilterDiagnostic(diagnostic As Diagnostic, options As CompilationOptions) As Diagnostic
-            Return VisualBasicDiagnosticFilter.Filter(diagnostic, options.GeneralDiagnosticOption, options.SpecificDiagnosticOptions)
-        End Function
-
-        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
-            Return FilterDiagnostic(diagnostic, Options)
-        End Function
-
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
 
             For Each diagnostic As Diagnostic In incoming
-                Dim filtered = FilterDiagnostic(diagnostic, Me._options)
+                Dim filtered = Me._options.FilterDiagnostic(diagnostic)
                 If filtered Is Nothing Then
                     Continue For
                 End If
@@ -2118,6 +2110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Emit"
 
+        Friend Overrides ReadOnly Property LinkerMajorVersion As Byte
+            Get
+                Return &H50
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsDelaySigned As Boolean
             Get
                 Return SourceAssembly.IsDelaySigned
@@ -2155,12 +2153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(diagnostics.IsEmptyWithoutResolution) ' True, but not required.
-
-            ' Do not waste a slot in the submission chain for submissions that contain no executable code
-            ' (they may only contain #r directives, usings, etc.)
-            If IsSubmission AndAlso Not HasCodeToEmit() Then
-                Return Nothing
-            End If
+            Debug.Assert(Not IsSubmission OrElse HasCodeToEmit())
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
             Dim runtimeMetadataVersion = GetRuntimeMetadataVersion()
@@ -2216,7 +2209,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(Me)
 
-            moduleBeingBuilt.TranslateImports(diagnostics)
+            ' The translation of global imports assumes absence of error symbols.
+            ' We don't need to translate them if there are any declaration errors since 
+            ' we are not going to emit the metadata.
+            If Not hasDeclarationErrors Then
+                moduleBeingBuilt.TranslateImports(diagnostics)
+            End If
 
             If moduleBeingBuilt.EmitOptions.EmitMetadataOnly Then
                 If hasDeclarationErrors Then
@@ -2482,7 +2480,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithAssemblyName(assemblyName)
         End Function
 
-        Friend Overrides Function CommonGetSubmissionResultType(ByRef hasValue As Boolean) As ITypeSymbol
+        Protected Overrides Function CommonGetSubmissionResultType(ByRef hasValue As Boolean) As ITypeSymbol
             Return GetSubmissionResultType(hasValue)
         End Function
 
@@ -2504,7 +2502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property CommonPreviousSubmission As Compilation
+        Protected Overrides ReadOnly Property CommonPreviousSubmission As Compilation
             Get
                 Return PreviousSubmission
             End Get
@@ -2558,7 +2556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithOptions(DirectCast(options, VisualBasicCompilationOptions))
         End Function
 
-        Friend Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
+        Protected Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
             Return Me.WithPreviousSubmission(DirectCast(newPreviousSubmission, VisualBasicCompilation))
         End Function
 
@@ -2592,7 +2590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetTypeByMetadataName(metadataName)
         End Function
 
-        Friend Overrides ReadOnly Property CommonScriptClass As INamedTypeSymbol
+        Protected Overrides ReadOnly Property CommonScriptClass As INamedTypeSymbol
             Get
                 Return Me.ScriptClass
             End Get

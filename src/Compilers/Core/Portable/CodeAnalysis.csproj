@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -133,7 +132,7 @@
     <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
-    <Compile Include="ReflectionUtil.cs" />
+    <Compile Include="InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="CorLightup.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />
     <Compile Include="Desktop\AssemblyVersion.cs" />
@@ -162,7 +161,6 @@
     <Compile Include="Interop\IClrRuntimeInfo.cs" />
     <Compile Include="Interop\IClrStrongName.cs" />
     <Compile Include="InternalImplementationOnlyAttribute.cs" />
-    <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
     <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
     <Compile Include="DocumentationCommentId.cs" />
     <Compile Include="Emit\EditAndContinue\SymbolMatcher.cs" />
@@ -372,6 +370,7 @@
     <Compile Include="FileSystem\PathKind.cs" />
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
+    <Compile Include="PEWriter\CoffHeader.cs" />
     <Compile Include="PEWriter\ContentId.cs" />
     <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
@@ -391,8 +390,7 @@
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
-    <Compile Include="PEWriter\BinaryWriter.cs" />
-    <Compile Include="PEWriter\ClrHeader.cs" />
+    <Compile Include="PEWriter\CorHeader.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
     <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
@@ -413,7 +411,7 @@
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
-    <Compile Include="PEWriter\MemoryStream.cs" />
+    <Compile Include="PEWriter\BlobWriter.cs" />
     <Compile Include="PEWriter\MetadataSizes.cs" />
     <Compile Include="PEWriter\MetadataVisitor.cs" />
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
@@ -428,7 +426,6 @@
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
     <Compile Include="PEWriter\RootModuleType.cs" />
     <Compile Include="PEWriter\SectionHeader.cs" />
-    <Compile Include="PEWriter\SecurityAction.cs" />
     <Compile Include="PEWriter\SequencePoint.cs" />
     <Compile Include="PEWriter\TypeLibTypeFlags.cs" />
     <Compile Include="PEWriter\Types.cs" />
@@ -722,8 +719,7 @@
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

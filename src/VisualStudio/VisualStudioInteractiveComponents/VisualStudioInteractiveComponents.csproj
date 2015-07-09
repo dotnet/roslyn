@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -98,7 +97,6 @@
     <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -106,7 +104,6 @@
     <ProjectReference Include="..\InteractiveServices\VisualStudioInteractiveServices.csproj">
       <Project>{A31228BB-F05C-4D4A-B98A-0E681D876B7C}</Project>
       <Name>VisualStudioInteractiveServices</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -148,15 +145,20 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
+  <!--
+    The VsSdk specifically excludes System.Collections.Immutable and System.Reflection.Metadata from
+    the output vsix, so we'll have to mark them with ForceIncludeInVSIX=true.  This is necessary so
+    that the InteractiveHost.exe process can load these assemblies (different from other extensions,
+    which are loaded into VS and get the versions of the dlls that VS has loaded).
+  -->
   <ItemGroup>
     <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll"</HintPath>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX> <!-- REQUIRED - see comment above -->
     </Reference>
     <Reference Include="System.Reflection.Metadata">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX> <!-- REQUIRED - see comment above -->
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -177,9 +179,18 @@
       <VSIXSubPath>$(PkgdefVSIXSubPath)</VSIXSubPath>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <IncludeInVsix>true</IncludeInVsix>
+      <VSIXSubPath>.</VSIXSubPath>
+    </Content>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
+      <IncludeInVsix>true</IncludeInVsix>
+      <VSIXSubPath>.</VSIXSubPath>
+    </Content>
+  </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

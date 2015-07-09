@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                ' NOTE: All other cases fall trough to the regular conversion
+                ' NOTE: All other cases fall through to the regular conversion
             End If
 
             ' Check if we have a special conversion that uses a helper.

@@ -308,7 +308,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
         }
 
         [Fact]
-        public void TestCastOfAddExpressoin()
+        public void TestCastOfAddExpression()
         {
             TestExpression(
                 f => f.CreateCastExpression(

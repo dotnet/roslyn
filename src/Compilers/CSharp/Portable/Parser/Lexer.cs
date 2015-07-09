@@ -257,10 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.LexXmlCrefOrNameToken();
                 case LexerMode.XmlCharacter:
                     return this.LexXmlCharacter();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(ModeOf(_mode));
             }
-
-            Debug.Assert(false, "Unknown LexMode passed to Lexer.Lex");
-            return this.LexSyntaxToken();
         }
 
         private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
@@ -2011,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // NOTE: If we don't intern the string value, then we won't get a hit
                 // in the keyword dictionary!  (It searches for a key using identity.)
-                // The text does not have to be interned (and probalbly shouldn't be
+                // The text does not have to be interned (and probably shouldn't be
                 // if it contains entities (else-case).
 
                 var width = TextWindow.Width; // exact size of input characters

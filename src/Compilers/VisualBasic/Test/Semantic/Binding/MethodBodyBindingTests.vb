@@ -215,7 +215,7 @@ End Namespace
 
         <WorkItem(538870, "DevDiv")>
         <Fact>
-        Public Sub AssertInvalidArrayInitnializer()
+        Public Sub AssertInvalidArrayInitializer()
             Dim options = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication)
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

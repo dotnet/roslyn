@@ -26,6 +26,7 @@ using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -6351,7 +6352,7 @@ class Program
                 // whenever an unrecognized warning code was supplied in a #pragma directive
                 // (or via /nowarn /warnaserror flags on the command line).
                 // Going forward, we won't generate any warning in such cases. This will make
-                // maintainance of backwards compatibility easier (we no longer need to worry
+                // maintenance of backwards compatibility easier (we no longer need to worry
                 // about breaking existing projects / command lines if we deprecate / remove
                 // an old warning code).
                 Test(source, startErrorCode, endErrorCode);
@@ -6610,6 +6611,31 @@ public class C { }
             var output = outWriter.ToString();
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        [WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")]
+        public void AnalyzerDiagnosticThrowsInGetMessage()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
+               analyzer: new AnalyzerThatThrowsInGetMessage());
+
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+
+            // Verify that the diagnostic reported by AnalyzerThatThrowsInGetMessage is reported, though it doesn't have the message.
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal);
+
+            // Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal);
+            Assert.Contains(nameof(NotImplementedException), output, StringComparison.Ordinal);
+
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 

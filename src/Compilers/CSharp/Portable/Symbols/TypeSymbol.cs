@@ -921,8 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         correspondingImplementingAccessor = ((EventSymbol)implementingPropertyOrEvent).GetOwnOrInheritedRemoveMethod();
                         break;
                     default:
-                        Debug.Assert(false, "Expected property or event accessor");
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(interfaceMethod.MethodKind);
                 }
             }
 
@@ -1025,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, DiagnosticBag diagnostics)
         {
-            // Determine  a better location for diagnostic squiggles.  Squiggle the interace rather than the class.
+            // Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
             Location interfacelocation = null;
             if ((object)implementingType != null)
             {
@@ -1062,9 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
                         break;
                     default:
-                        Debug.Assert(false, "Unexpected interface member kind " + interfaceMember.Kind);
-                        interfaceMemberReturnType = null;
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
                 }
 
                 DiagnosticInfo useSiteDiagnostic;

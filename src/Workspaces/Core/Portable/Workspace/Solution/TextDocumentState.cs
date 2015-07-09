@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
                     // if load text is failed due to a cancellation, make sure we propagate it out to the caller
                     throw;
                 }
-                catch (IOException e) 
+                catch (IOException e)
                 {
                     if (++retries > MaxRetries)
                     {

@@ -1104,5 +1104,84 @@ namespace ConsoleApplication1
             // See https://github.com/dotnet/roslyn/issues/2980 for details.
             TestGenericNameCore(source, new AnalyzerWithNoActions(), new CSharpGenericNameAnalyzer());
         }
+
+        private static void TestEffectiveSeverity(
+            DiagnosticSeverity defaultSeverity,
+            ReportDiagnostic expectedEffectiveSeverity,
+            Dictionary<string, ReportDiagnostic> specificOptions = null,
+            ReportDiagnostic generalOption = ReportDiagnostic.Default,
+            bool isEnabledByDefault = true)
+        {
+            specificOptions = specificOptions ?? new Dictionary<string, ReportDiagnostic>();
+            var options = new CSharpCompilationOptions(OutputKind.ConsoleApplication, generalDiagnosticOption: generalOption, specificDiagnosticOptions: specificOptions);
+            var descriptor = new DiagnosticDescriptor(id: "Test0001", title: "Test0001", messageFormat: "Test0001", category: "Test0001", defaultSeverity: defaultSeverity, isEnabledByDefault: isEnabledByDefault);
+            var effectiveSeverity = descriptor.GetEffectiveSeverity(options);
+            Assert.Equal(expectedEffectiveSeverity, effectiveSeverity);
+        }
+
+        [Fact]
+        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        public void EffectiveSeverity_DiagnosticDefault1()
+        {
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, ReportDiagnostic.Warn);
+        }
+
+        [Fact]
+        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        public void EffectiveSeverity_DiagnosticDefault2()
+        {
+            var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", ReportDiagnostic.Default } };
+            var generalOption = ReportDiagnostic.Error;
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: ReportDiagnostic.Warn, specificOptions: specificOptions, generalOption: generalOption);
+        }
+
+        [Fact]
+        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        public void EffectiveSeverity_GeneralOption()
+        {
+            var generalOption = ReportDiagnostic.Error;
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: generalOption, generalOption: generalOption);
+        }
+
+        [Fact]
+        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        public void EffectiveSeverity_SpecificOption()
+        {
+            var specificOption = ReportDiagnostic.Suppress;
+            var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", specificOption } };
+            var generalOption = ReportDiagnostic.Error;
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: specificOption, specificOptions: specificOptions, generalOption: generalOption);
+        }
+
+        [Fact]
+        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        public void EffectiveSeverity_GeneralOptionDoesNotEnableDisabledDiagnostic()
+        {
+            var generalOption = ReportDiagnostic.Error;
+            var enabledByDefault = false;
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: ReportDiagnostic.Suppress, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
+        }
+
+
+        [Fact()]
+        [WorkItem(1107500, "DevDiv")]
+        [WorkItem(2598, "https://github.com/dotnet/roslyn/issues/2598")]
+        public void EffectiveSeverity_SpecificOptionEnablesDisabledDiagnostic()
+        {
+            var specificOption = ReportDiagnostic.Warn;
+            var specificOptions = new Dictionary<string, ReportDiagnostic>() { { "Test0001", specificOption } };
+            var generalOption = ReportDiagnostic.Error;
+            var enabledByDefault = false;
+
+            TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: specificOption, specificOptions: specificOptions, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
+        }
     }
 }

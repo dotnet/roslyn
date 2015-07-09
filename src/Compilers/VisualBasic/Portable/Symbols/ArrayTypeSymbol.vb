@@ -323,9 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overrides Function GetHashCode() As Integer
-            ' Following the C# imnplemetation to avoid recusion
+            ' Following the C# implementation to avoid recursion
             ' We don't want to blow the stack if we have a type like T[][][][][][][][]....[][],
-            ' so we do Not recurse until we have a non-array. Rather, hash all the ranks together
+            ' so we do not recurse until we have a non-array. Rather, hash all the ranks together
             ' And then hash that with the "T" type.
 
             Dim hashCode = 0

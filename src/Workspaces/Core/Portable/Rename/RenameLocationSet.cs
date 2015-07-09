@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Rename
             var overloadsToMerge = (optionSet.GetOption(RenameOptions.RenameOverloads) ? overloadsResult : null) ?? SpecializedCollections.EmptyEnumerable<SearchResult>();
             foreach (var result in overloadsToMerge.Concat(originalSymbolResult))
             {
-                mergedLocations.AddRange(renameMethodGroupReferences 
+                mergedLocations.AddRange(renameMethodGroupReferences
                     ? result.Locations
                     : result.Locations.Where(x => !x.IsMethodGroupReference));
 

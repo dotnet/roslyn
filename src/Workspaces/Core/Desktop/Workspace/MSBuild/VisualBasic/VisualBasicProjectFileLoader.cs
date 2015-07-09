@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 compilerInputs.EndInitialization();
             }
 
-            private class VisualBasicCompilerInputs : 
-                MSB.Tasks.Hosting.IVbcHostObject5, 
+            private class VisualBasicCompilerInputs :
+                MSB.Tasks.Hosting.IVbcHostObject5,
                 MSB.Tasks.Hosting.IVbcHostObjectFreeThreaded
 #if !MSBUILD12
-                ,IAnalyzerHostObject 
+                , IAnalyzerHostObject
 #endif
             {
                 private readonly VisualBasicProjectFile _projectFile;
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool Initialized
                 {
-                    get { return this._initialized; }
+                    get { return _initialized; }
                 }
 
                 public List<string> CommandLineArgs
@@ -240,17 +240,17 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public IEnumerable<ITaskItem> Sources
                 {
-                    get { return this._sources; }
+                    get { return _sources; }
                 }
 
                 public IEnumerable<ITaskItem> AdditionalFiles
                 {
-                    get { return this._additionalFiles; }
+                    get { return _additionalFiles; }
                 }
 
                 public string OutputFileName
                 {
-                    get { return this._outputFileName; }
+                    get { return _outputFileName; }
                 }
 
                 public string OutputDirectory
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public void EndInitialization()
                 {
-                    this._initialized = true;
+                    _initialized = true;
 
                     if (_emitDocComments)
                     {
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
 
                 public bool SetOutputAssembly(string outputAssembly)
                 {
-                    this._outputFileName = Path.GetFileName(outputAssembly);
+                    _outputFileName = Path.GetFileName(outputAssembly);
                     _commandLineArgs.Add("/out:\"" + outputAssembly + "\"");
                     return true;
                 }
@@ -863,35 +863,35 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                     return true;
                 }
 
-                public bool SetLanguageVersion(string _languageVersion)
+                public bool SetLanguageVersion(string languageVersion)
                 {
-                    if (!string.IsNullOrWhiteSpace(_languageVersion))
+                    if (!string.IsNullOrWhiteSpace(languageVersion))
                     {
-                        _commandLineArgs.Add("/languageversion:" + _languageVersion);
+                        _commandLineArgs.Add("/languageversion:" + languageVersion);
                     }
 
                     return true;
                 }
 
-                public bool SetVBRuntime(string VBRuntime)
+                public bool SetVBRuntime(string vbRuntime)
                 {
-                    if (!string.IsNullOrEmpty(VBRuntime))
+                    if (!string.IsNullOrEmpty(vbRuntime))
                     {
-                        if (string.Equals("Default", VBRuntime, StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals("Default", vbRuntime, StringComparison.OrdinalIgnoreCase))
                         {
                             _commandLineArgs.Add("/vbruntime+");
                         }
-                        else if (string.Equals("Embed", VBRuntime, StringComparison.OrdinalIgnoreCase))
+                        else if (string.Equals("Embed", vbRuntime, StringComparison.OrdinalIgnoreCase))
                         {
                             _commandLineArgs.Add("/vbruntime*");
                         }
-                        else if (string.Equals("None", VBRuntime, StringComparison.OrdinalIgnoreCase))
+                        else if (string.Equals("None", vbRuntime, StringComparison.OrdinalIgnoreCase))
                         {
                             _commandLineArgs.Add("/vbruntime-");
                         }
                         else
                         {
-                            _commandLineArgs.Add("/vbruntime:\"" + VBRuntime + "\"");
+                            _commandLineArgs.Add("/vbruntime:\"" + vbRuntime + "\"");
                         }
                     }
 

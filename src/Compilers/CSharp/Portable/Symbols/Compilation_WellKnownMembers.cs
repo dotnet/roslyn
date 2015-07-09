@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //      {
                         //          false,  // Type "A.B"
                         //          false,  // Type parameter "T"
-                        //          true,   // Type parmeter "dynamic"
+                        //          true,   // Type parameter "dynamic"
                         //      }
 
                         if (!isNestedNamedType)

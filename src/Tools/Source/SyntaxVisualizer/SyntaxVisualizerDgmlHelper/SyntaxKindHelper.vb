@@ -4,7 +4,7 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 
 Friend Module SyntaxKindHelper
-    'Helpers that return the language-sepcific (C# / VB) SyntaxKind of a language-agnostic
+    'Helpers that return the language-specific (C# / VB) SyntaxKind of a language-agnostic
     'SyntaxNode / SyntaxToken / SyntaxTrivia.
 
     <Extension()>

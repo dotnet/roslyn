@@ -2130,7 +2130,7 @@ class C
         }
 
         [Fact]
-        public void TestGetSpeculativeSemanticModelForInexerAccessorBody()
+        public void TestGetSpeculativeSemanticModelForIndexerAccessorBody()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 

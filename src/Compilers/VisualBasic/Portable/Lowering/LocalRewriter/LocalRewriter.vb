@@ -855,7 +855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rewritten As BoundStatement = node
 
             If break IsNot Nothing Then
-                ' Later in the codegen phase (see EmitExpression.vb), we need to insert a nop afther the call to System.Diagnostics.Debugger.Break(),
+                ' Later in the codegen phase (see EmitExpression.vb), we need to insert a nop after the call to System.Diagnostics.Debugger.Break(),
                 ' so the debugger can determine the current instruction pointer properly. In oder to do so, we do not mark this node as compiler generated.
                 Dim boundNode = New BoundCall(nodeFactory.Syntax, break, Nothing, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, True, break.ReturnType)
                 rewritten = boundNode.ToStatement()

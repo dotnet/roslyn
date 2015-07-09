@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 isBing = true;
             }
 
-            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url dislayed in the tooltip stays human readable.
+            // We make sure not to use Uri.AbsoluteUri for the url displayed in the tooltip so that the url displayed in the tooltip stays human readable.
             if (helpUri != null)
             {
                 return string.Format(ServicesVSResources.DiagnosticIdHyperlinkTooltipText, item.Id,

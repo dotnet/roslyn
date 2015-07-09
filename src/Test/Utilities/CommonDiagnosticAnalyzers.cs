@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 helpLinkUri: "HelpLink2",
                 customTags: new[] { "2_CustomTag1", "2_CustomTag2" });
 
-            private static readonly ImmutableDictionary<string, string> _properties =
+            private static readonly ImmutableDictionary<string, string> s_properties =
                 new Dictionary<string, string> { { "Key1", "Value1" }, { "Key2", "Value2" } }.ToImmutableDictionary();
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     // With location diagnostic.
                     var location = compilationContext.Compilation.SyntaxTrees.First().GetRoot().GetLocation();
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, _properties));
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor1, location, s_properties));
 
                     // No location diagnostic.
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, _properties));
+                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor2, Location.None, s_properties));
                 });
             }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
                 var expectedText = @",
         ""customProperties"": {";
 
-                foreach (var kvp in _properties.OrderBy(kvp => kvp.Key))
+                foreach (var kvp in s_properties.OrderBy(kvp => kvp.Key))
                 {
                     if (!isFirst)
                     {
@@ -289,6 +289,45 @@ namespace Microsoft.CodeAnalysis
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DummyRule);
             public override void Initialize(AnalysisContext context) { }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public sealed class AnalyzerThatThrowsInGetMessage : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                new MyLocalizableStringThatThrows(),
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(symbolContext =>
+                {
+                    symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, symbolContext.Symbol.Locations[0]));
+                }, SymbolKind.NamedType);
+            }
+
+            private sealed class MyLocalizableStringThatThrows : LocalizableString
+            {
+                protected override bool AreEqual(object other)
+                {
+                    return ReferenceEquals(this, other);
+                }
+
+                protected override int GetHash()
+                {
+                    return 0;
+                }
+
+                protected override string GetText(IFormatProvider formatProvider)
+                {
+                    throw new NotImplementedException();
+                }
+            }
         }
     }
 }

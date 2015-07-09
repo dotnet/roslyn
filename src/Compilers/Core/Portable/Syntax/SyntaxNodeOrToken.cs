@@ -785,8 +785,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            return _token != null 
-                ? this.AsToken().GetLocation() 
+            return _token != null
+                ? this.AsToken().GetLocation()
                 : _nodeOrParent?.GetLocation();
         }
 
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis
                 if (tr.IsDirective)
                 {
                     var directive = tr.GetStructure() as TDirective;
-                    if (directive == null || 
+                    if (directive == null ||
                         (filter != null && !filter(directive)))
                     {
                         continue;

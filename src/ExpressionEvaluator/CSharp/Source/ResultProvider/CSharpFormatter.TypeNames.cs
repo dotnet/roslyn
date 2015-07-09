@@ -14,8 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SyntaxFacts.GetKeywordKind(identifier) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(identifier) != SyntaxKind.None;
         }
 
-        protected override void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier)
+        protected override void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier, out bool sawInvalidIdentifier)
         {
+            sawInvalidIdentifier = !IsValidIdentifier(identifier);
             if (IsPotentialKeyword(identifier))
             {
                 builder.Append('@');
@@ -24,14 +25,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         protected override void AppendGenericTypeArgumentList(
-            StringBuilder builder, 
+            StringBuilder builder,
             Type[] typeArguments,
-            int typeArgumentOffset, 
+            int typeArgumentOffset,
             DynamicFlagsCustomTypeInfo dynamicFlags,
             ref int index,
-            int arity, 
-            bool escapeKeywordIdentifiers)
+            int arity,
+            bool escapeKeywordIdentifiers,
+            out bool sawInvalidIdentifier)
         {
+            sawInvalidIdentifier = false;
             builder.Append('<');
             for (int i = 0; i < arity; i++)
             {
@@ -41,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 Type typeArgument = typeArguments[typeArgumentOffset + i];
-                AppendQualifiedTypeName(builder, typeArgument, dynamicFlags, ref index, escapeKeywordIdentifiers);
+                bool sawSingleInvalidIdentifier;
+                AppendQualifiedTypeName(builder, typeArgument, dynamicFlags, ref index, escapeKeywordIdentifiers, out sawSingleInvalidIdentifier);
+                sawInvalidIdentifier |= sawSingleInvalidIdentifier;
             }
             builder.Append('>');
         }
@@ -55,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builder.Append(']');
         }
 
-        protected override bool AppendSpecialTypeName(StringBuilder builder, Type type, bool isDynamic, bool escapeKeywordIdentifiers)
+        protected override bool AppendSpecialTypeName(StringBuilder builder, Type type, bool isDynamic)
         {
             if (isDynamic)
             {
@@ -67,12 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (type.IsPredefinedType())
             {
                 builder.Append(type.GetPredefinedTypeName()); // Not an identifier, does not require escaping.
-                return true;
-            }
-
-            if (type.IsGenericParameter)
-            {
-                AppendIdentifier(builder, escapeKeywordIdentifiers, type.Name);
                 return true;
             }
 

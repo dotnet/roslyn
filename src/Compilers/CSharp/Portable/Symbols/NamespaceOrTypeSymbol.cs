@@ -46,14 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsSubmissionClass
-        {
-            get
-            {
-                return IsType && ((TypeSymbol)this).TypeKind == TypeKind.Submission;
-            }
-        }
-
         /// <summary>
         /// Returns true if this symbol is "virtual", has an implementation, and does not override a
         /// base class member; i.e., declared with the "virtual" modifier. Does not return true for

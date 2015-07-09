@@ -1259,14 +1259,14 @@ class C
                 EvalResult(rootExpr, "{A}", "A", rootExpr, DkmEvaluationResultFlags.Expandable));
             var children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("1<>", "null", "object", "(new A()).1<>"),
-                EvalResult("@", "null", "object", "(new A()).@"),
-                EvalResult("CS<>7__8", "null", "object", "(new A()).CS<>7__8"),
+                EvalResult("1<>", "null", "object", fullName: null),
+                EvalResult("@", "null", "object", fullName: null),
+                EvalResult("CS<>7__8", "null", "object", fullName: null),
                 EvalResult("Static members", null, "", "A", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             children = GetChildren(children[children.Length - 1]);
             Verify(children,
-                EvalResult(">", "null", "object", "A.>"),
-                EvalResult("><", "null", "object", "A.><"));
+                EvalResult(">", "null", "object", fullName: null),
+                EvalResult("><", "null", "object", fullName: null));
 
             type = assembly.GetType("B");
             rootExpr = "new B()";
@@ -1276,14 +1276,14 @@ class C
                 EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable));
             children = GetChildren(evalResult);
             Verify(children,
-                EvalResult("1<>", "null", "object", "(new B()).1<>", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("@", "null", "object", "(new B()).@", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("VB<>7__8", "null", "object", "(new B()).VB<>7__8", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("1<>", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("@", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("VB<>7__8", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("Static members", null, "", "B", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class));
             children = GetChildren(children[children.Length - 1]);
             Verify(children,
-                EvalResult(">", "null", "object", "B.>", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("><", "null", "object", "B.><", DkmEvaluationResultFlags.ReadOnly));
+                EvalResult(">", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("><", "null", "object", fullName: null, flags: DkmEvaluationResultFlags.ReadOnly));
         }
 
         /// <summary>
@@ -2136,7 +2136,7 @@ class C : B, I
         }
 
         [Fact]
-        public void NameConflictsWithVirualPropertiesAcrossDeclaredType()
+        public void NameConflictsWithVirtualPropertiesAcrossDeclaredType()
         {
             var source = @"
 class A 

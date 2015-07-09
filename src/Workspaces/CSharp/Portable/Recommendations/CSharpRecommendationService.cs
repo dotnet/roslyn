@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -392,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             CancellationToken cancellationToken)
         {
             // Given ((T?)t)?.|, the '.' will behave as if the expression was actually ((T)t).|. More plainly,
-            // a member access off of a conitional receiver of nullable type binds to the unwrapped nullable
+            // a member access off of a conditional receiver of nullable type binds to the unwrapped nullable
             // type. This is not exposed via the binding information for the LHS, so repeat this work here.
 
             var expression = originalExpression.WalkDownParentheses();

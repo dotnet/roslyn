@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public SortedSpans Spans
         {
-            get 
+            get
             {
                 return _spans;
             }

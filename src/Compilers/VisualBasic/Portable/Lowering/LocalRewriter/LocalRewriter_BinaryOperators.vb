@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             Else
-                Debug.Assert(False)
+                Throw ExceptionUtilities.Unreachable
             End If
 
             Return result
@@ -946,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' x And y is rewritten into:
             '
             ' tempX = x
-            ' [tempY = y] ' if not shorcircuiting
+            ' [tempY = y] ' if not shortcircuiting
             ' If (tempX.HasValue AndAlso Not tempX.GetValueOrDefault(),
             '   False?,                             ' result based on the left operand
             '   If ((tempY = y).HasValue,           ' if shortcircuiting, otherwise just "y.HasValue"
@@ -1172,10 +1172,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '         |                   |
             '       LEFT                RIGHT
             '
-            ' Implicit left/right unwraping conversions if present are always L? -> L and R? -> R
+            ' Implicit left/right unwrapping conversions if present are always L? -> L and R? -> R
             ' They are encoded as a disparity between CALL argument types and parameter types of the call symbol.
             '
-            ' Implicit wrapping conversion of the resilt, if present, is always T -> T?
+            ' Implicit wrapping conversion of the result, if present, is always T -> T?
             '
             ' The rewrite is:
             '   If (LEFT.HasValue And RIGHT.HasValue, CALL(LEFT, RIGHT), Null)

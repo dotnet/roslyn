@@ -1054,7 +1054,7 @@ class B
             using (var runtime = new RuntimeInstance(modulesBuilder.ToImmutableAndFree()))
             {
                 var context = CreateMethodContext(
-                    runtime, 
+                    runtime,
                     "A.M");
                 var aliases = ImmutableArray.Create(
                         ExceptionAlias("E, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C24B9, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
