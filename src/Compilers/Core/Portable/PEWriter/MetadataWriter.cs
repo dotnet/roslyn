@@ -2795,11 +2795,11 @@ namespace Microsoft.Cci
 
         private void PopulateDeclSecurityTableRowsFor(uint parent, IEnumerable<SecurityAttribute> attributes)
         {
-            OrderPreservingMultiDictionary<SecurityAction, ICustomAttribute> groupedSecurityAttributes = null;
+            OrderPreservingMultiDictionary<DeclarativeSecurityAction, ICustomAttribute> groupedSecurityAttributes = null;
 
             foreach (SecurityAttribute securityAttribute in attributes)
             {
-                groupedSecurityAttributes = groupedSecurityAttributes ?? OrderPreservingMultiDictionary<SecurityAction, ICustomAttribute>.GetInstance();
+                groupedSecurityAttributes = groupedSecurityAttributes ?? OrderPreservingMultiDictionary<DeclarativeSecurityAction, ICustomAttribute>.GetInstance();
                 groupedSecurityAttributes.Add(securityAttribute.Action, securityAttribute.Attribute);
             }
 
@@ -2811,7 +2811,7 @@ namespace Microsoft.Cci
             DeclSecurityRow r = new DeclSecurityRow();
             r.Parent = parent;
 
-            foreach (SecurityAction securityAction in groupedSecurityAttributes.Keys)
+            foreach (DeclarativeSecurityAction securityAction in groupedSecurityAttributes.Keys)
             {
                 r.Action = (ushort)securityAction;
                 r.PermissionSet = (uint)this.GetPermissionSetIndex(groupedSecurityAttributes[securityAction]);

@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23025.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -284,6 +283,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpWinRTTest", "src\Compilers\CSharp\Test\WinRT\CSharpWinRTTest.csproj", "{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTask", "src\Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{D874349C-8BB3-4BDC-8535-2D52CCCA1198}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTaskTests", "src\Compilers\Core\MSBuildTaskTests\MSBuildTaskTests.csproj", "{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BasicResultProvider", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.shproj", "{3140FE61-0856-4367-9AA3-8081B9A80E35}"
 EndProject
@@ -5576,6 +5577,22 @@ Global
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}.Release|x64.Build.0 = Release|Any CPU
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}.Release|x86.ActiveCfg = Release|Any CPU
 		{06ECCF53-B9B8-4CC2-83C0-E308BF645F7F}.Release|x86.Build.0 = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|ARM.ActiveCfg = Debug|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|ARM.Build.0 = Debug|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|x64.ActiveCfg = Debug|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|x64.Build.0 = Debug|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|ARM.ActiveCfg = Release|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|ARM.Build.0 = Release|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|x64.ActiveCfg = Release|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -5734,5 +5751,6 @@ Global
 		{2491A9B9-C0A8-49EE-9077-A32DE76E1E94} = {999FBDA2-33DA-4F74-B957-03AC72CCE5EC}
 		{5CA5F70E-0FDB-467B-B22C-3CD5994F0087} = {999FBDA2-33DA-4F74-B957-03AC72CCE5EC}
 		{81F048A1-B30A-4E74-9BD3-2655DA1DBEA6} = {999FBDA2-33DA-4F74-B957-03AC72CCE5EC}
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 EndGlobal
