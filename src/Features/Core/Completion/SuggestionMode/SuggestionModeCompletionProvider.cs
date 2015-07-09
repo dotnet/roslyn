@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 
         public async Task<CompletionItemGroup> GetGroupAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!triggerInfo.IsAugment)
-            {
-                return null;
-            }
-
             var builder = await this.GetBuilderAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
             if (builder == null)
             {
