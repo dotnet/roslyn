@@ -100,7 +100,7 @@ class Program
                         new CSharpSimplifyTypeNamesDiagnosticAnalyzer(),
                         new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()));
 
-                var spans = 
+                var spans =
                     GetErrorSpans(workspace, analyzerMap.ToImmutable())
                         .OrderBy(s => s.Span.Span.Start).ToImmutableArray();
 

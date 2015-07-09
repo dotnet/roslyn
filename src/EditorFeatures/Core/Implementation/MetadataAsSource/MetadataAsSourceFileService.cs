@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     // Mark read-only
                     new FileInfo(fileInfo.TemporaryFilePath).IsReadOnly = true;
 
-                    // Locate the target in the thing we just crated
+                    // Locate the target in the thing we just created
                     navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
                 }
 

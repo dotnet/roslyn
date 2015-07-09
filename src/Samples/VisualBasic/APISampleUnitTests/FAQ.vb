@@ -842,7 +842,7 @@ End Module
                     Results.Append(")")
 
                     If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
-                        ' Trivia for xml documentation comments have addditional 'structure'
+                        ' Trivia for xml documentation comments have additional 'structure'
                         ' available under a child DocumentationCommentSyntax.
                         Assert.IsTrue(trivia.HasStructure)
                         Dim documentationComment = CType(trivia.GetStructure(), DocumentationCommentTriviaSyntax)

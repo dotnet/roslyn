@@ -2969,9 +2969,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-#endregion
+        #endregion
 
-#region Remove, Replace, Insert
+        #region Remove, Replace, Insert
 
         public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
         {
@@ -3271,9 +3271,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return root;
         }
-#endregion
+        #endregion
 
-#region Statements and Expressions
+        #region Statements and Expressions
 
         public override SyntaxNode AwaitExpression(SyntaxNode expression)
         {
@@ -3875,6 +3875,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return list;
         }
-#endregion
+        #endregion
     }
 }

@@ -3082,7 +3082,7 @@ partial class Test
                 new string[] { text1, text2 },
                 references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
-                assemblyName: "OHI_BridgeMethodFomrBaseVB007");
+                assemblyName: "OHI_BridgeMethodFromBaseVB007");
 
             var verifier = CompileAndVerify(
                 comp,

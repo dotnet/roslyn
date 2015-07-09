@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
-        ''' Process an alias clause and any imputed mappings from it.
+        ''' Process an alias clause and any imported mappings from it.
         ''' E.g., If you have an alias Ex=Blah.Extension, add any mapping for Extension to those for Ex.
         ''' Note that although, in VB, an alias cannot reference another alias, this code doesn't not attempt
         ''' to distinguish between aliases and regular names, as that would add complexity to the data structure

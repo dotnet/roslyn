@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
                     continue;
                 }
 
-                // throw away operation that encloses overselves
+                // throw away operation that encloses ourselves
                 if (operation.TextSpan.Contains(_span))
                 {
                     list[i] = null;

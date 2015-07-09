@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' returns true when expression has no sideeffects and produces
         ' default value (null, zero, false, default(T) ...)
         ' NOTE: This method is a very shallow check.
-        '       It does not make any asumptions about what this node could become 
+        '       It does not make any assumptions about what this node could become 
         '       after some folding/propagation/algebraic transformations.
         <Extension>
         Public Function IsDefaultValue(node As BoundExpression) As Boolean

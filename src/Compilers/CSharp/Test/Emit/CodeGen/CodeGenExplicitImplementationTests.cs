@@ -379,7 +379,7 @@ class Test
         }
 
         [Fact]
-        public void TestExplicitImplSigntureMismatches_ParamsAndOptionals()
+        public void TestExplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
             // Replace params with non-params in signature of implemented member (and vice-versa)
@@ -758,7 +758,7 @@ Derived`2.Method()");
         public void TestExplicitImplementationInBaseGenericType2()
         {
             // Tests:
-            // Variation of TestExplciitImplementationInBaseGenericType with re-implementation
+            // Variation of TestExplicitImplementationInBaseGenericType with re-implementation
 
             var source = @"
 using System;
@@ -936,7 +936,7 @@ I1.P").VerifyDiagnostics(); // No errors
         public void TestExplicitlyImplementInterfaceNestedInGenericType()
         {
             // Tests:
-            // Variation of TestExplciitImplementationInBaseGenericType with re-implementation
+            // Variation of TestExplicitImplementationInBaseGenericType with re-implementation
 
             var source = @"
 class Outer<T>

@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            ' uncommon case - WithEvents property do not overload. Thye behave like fields when OHI is concerned.
+            ' uncommon case - WithEvents property do not overload. They behave like fields when OHI is concerned.
             Return DirectCast(symbol, PropertySymbol).IsOverloadable
         End Function
 

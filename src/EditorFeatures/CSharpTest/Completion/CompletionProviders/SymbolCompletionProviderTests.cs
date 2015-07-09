@@ -1401,7 +1401,7 @@ class B : A
 
         [WorkItem(539812)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void InheritedInstanceAndStatcMembers()
+        public void InheritedInstanceAndStaticMembers()
         {
             var markup = @"
 class A

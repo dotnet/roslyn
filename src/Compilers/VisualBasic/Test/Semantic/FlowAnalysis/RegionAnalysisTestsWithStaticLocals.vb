@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         'flow analysis despite the fact that the implementation for static locals is different because of the implementation
         'required to preserve state across multiple invocations.
         '
-        'Mulitple calls are NOT required to verify the flow analysis for static locals.
+        'Multiple calls are NOT required to verify the flow analysis for static locals.
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
@@ -1933,9 +1933,9 @@ end class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection01()
+        Public Sub TestCompoundAssignmentTargetSelection01()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection01">
+      <compilation name="TestCompoundAssignmentTargetSelection01">
           <file name="a.b">
 class C
      Sub Main()
@@ -1958,9 +1958,9 @@ end class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection02()
+        Public Sub TestCompoundAssignmentTargetSelection02()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection02">
+      <compilation name="TestCompoundAssignmentTargetSelection02">
           <file name="a.b">
 class C
      Sub Main()
@@ -1983,9 +1983,9 @@ end class
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub TestCompoundAsseignmentTargetSelection03()
+        Public Sub TestCompoundAssignmentTargetSelection03()
             Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-      <compilation name="TestCompoundAsseignmentTargetSelection03">
+      <compilation name="TestCompoundAssignmentTargetSelection03">
           <file name="a.b">
 Imports System
 Module M1

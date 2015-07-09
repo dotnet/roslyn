@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _property.ContainingType;
             }
         }
-        
+
         public override ImmutableArray<Location> Locations
         {
             get

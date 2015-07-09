@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private readonly IAsynchronousOperationListener _listener;
 
-            // use event map and event queue so that we can guarantee snapshot and sequencial ordering of events from
+            // use event map and event queue so that we can guarantee snapshot and sequential ordering of events from
             // multiple consumer from possibly multiple threads
             private readonly SimpleTaskQueue _eventQueue;
             private readonly EventMap _eventMap;

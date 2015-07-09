@@ -109,14 +109,14 @@ class C
         {
             TestLambdaBody(
                 "from x in new[] { 1 } select [|x|]", isLambdaBody: true);
-                                     
-            TestLambdaBody(          
+
+            TestLambdaBody(
                 "from x in new[] { 1 } where x > 0 select [|x|]", isLambdaBody: false);
-                                     
-            TestLambdaBody(          
+
+            TestLambdaBody(
                 "from x in new[] { 1 } where x > 0 select [|@x|]", isLambdaBody: false);
-                                     
-            TestLambdaBody(          
+
+            TestLambdaBody(
                 "from x in new[] { 1 } orderby F(x), F(x) descending select [|x|]", isLambdaBody: false);
 
             TestLambdaBody(
@@ -131,10 +131,10 @@ class C
             TestLambdaBody(
                 "from x in new[] { 1 } select [|x|] into y where y > 0 select y", isLambdaBody: true);
 
-            TestLambdaBody(          
+            TestLambdaBody(
                 "from x in new[] { 1 } where x > 0 select [|x|] into y where y > 0 select y", isLambdaBody: false);
-                                     
-            TestLambdaBody(          
+
+            TestLambdaBody(
                 "from x in new[] { 1 } where x > 0 select x into y where y > 0 select [|y|]", isLambdaBody: false);
 
             TestLambdaBody(

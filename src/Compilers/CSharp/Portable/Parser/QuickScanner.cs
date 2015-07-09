@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Letter,     // letter
             Digit,      // digit 0-9
             Punct,      // some simple punctuation (parens, braces, comma, equals, question)
-            Dot,        // dot is different from other punctuation when foillowed by a digit (Ex: .9 )
+            Dot,        // dot is different from other punctuation when followed by a digit (Ex: .9 )
             CompoundPunctStart, // may be a part of compound punctuation. will be used only if followed by (not white) && (not punct)
             Slash,      // /
             Complex,    // complex - causes scanning to abort

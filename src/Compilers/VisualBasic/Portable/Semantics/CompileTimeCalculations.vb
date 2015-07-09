@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' // We need to return the even one.
                     floor = Math.Floor(temporary)
 
-                    '[AlekseyT]: Using Math.IEEERemainder as areplacement for fmod.
+                    '[AlekseyT]: Using Math.IEEERemainder as a replacement for fmod.
                     If floor <> temporary OrElse Math.IEEERemainder(temporary, 2.0) = 0 Then
                         integralValue = If(IsUnsignedLongType(targetType), ConvertFloatingToUI64(floor), UncheckedCLng(floor))
                     Else

@@ -28,7 +28,7 @@ class C
 
     static void Foo()
     {
-        // tracking span moves to another method as the user types aound it
+        // tracking span moves to another method as the user types around it
         <TS:0>Foo(1);</TS:0>
     }
 }

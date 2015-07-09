@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
 
-        internal static CSharpCommandLineParser Interactive { get; } = new CSharpCommandLineParser(isInteractive: true);
+        public static CSharpCommandLineParser Interactive { get; } = new CSharpCommandLineParser(isInteractive: true);
 
         internal CSharpCommandLineParser(bool isInteractive = false)
             : base(CSharp.MessageProvider.Instance, isInteractive)
         {
         }
 
-        internal override string RegularFileExtension { get { return ".cs"; } }
-        internal override string ScriptFileExtension { get { return ".csx"; } }
+        protected override string RegularFileExtension { get { return ".cs"; } }
+        protected override string ScriptFileExtension { get { return ".csx"; } }
 
         internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "resource":
                             if (value == null)
                             {
-                                break; // Dev11 reports inrecognized option
+                                break; // Dev11 reports unrecognized option
                             }
 
                             var embeddedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: true);
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "linkresource":
                             if (value == null)
                             {
-                                break; // Dev11 reports inrecognized option
+                                break; // Dev11 reports unrecognized option
                             }
 
                             var linkedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: false);

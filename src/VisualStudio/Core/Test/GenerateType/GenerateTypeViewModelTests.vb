@@ -20,8 +20,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
     Public Class GenerateTypeViewModelTests
         Private Shared s_assembly1_Name As String = "Assembly1"
         Private Shared s_test1_Name As String = "Test1"
-        Private Shared s_submit_failed_unexceptedly As String = "Submit failed unexceptedly."
-        Private Shared s_submit_passed_unexceptedly As String = "Submit passed unexceptedly. Submit should fail here"
+        Private Shared s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
+        Private Shared s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Sub GenerateTypeExistingFileCSharp()
@@ -120,13 +120,13 @@ namespace A
             viewModel.FileName = "Wow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Wow.cs", viewModel.FileName)
 
             viewModel.FileName = "Foo\Bar\Woow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(2, viewModel.Folders.Count)
             Assert.Equal("Foo", viewModel.Folders(0))
@@ -135,7 +135,7 @@ namespace A
             viewModel.FileName = "\    name has space \  Foo      \Bar\      Woow"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.Equal("Woow.cs", viewModel.FileName)
             Assert.Equal(3, viewModel.Folders.Count)
             Assert.Equal("name has space", viewModel.Folders(0))
@@ -145,15 +145,15 @@ namespace A
             ' Set it to invalid identifier
             viewModel.FileName = "w?d"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             viewModel.FileName = "wow\w?d"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             viewModel.FileName = "w?d\wdd"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -647,40 +647,40 @@ class Program
 
             ' Set the folder to \outer\
             viewModel.FileName = viewModel.ProjectFolders(0)
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename to \\something.cs
             viewModel.FileName = "\\ExistingFile.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename to an existing file
             viewModel.FileName = "..\..\ExistingFile.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename to empty
             viewModel.FileName = "  "
             viewModel.UpdateFileNameExtension()
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with more than permissible characters
             viewModel.FileName = "sjkygjksdfygujysdkgkufsdfrgujdfyhgjksuydfujkgysdjkfuygjkusydfjusyfkjsdfygjusydfgjkuysdkfjugyksdfjkusydfgjkusdfyjgukysdjfyjkusydfgjuysdfgjuysdfjgsdjfugjusdfygjuysdfjugyjdufgsgdfvsgdvgtsdvfgsvdfgsdgfgdsvfgsdvfgsvdfgsdfsjkygjksdfygujysdkgkufsdfrgujdfyhgjksuydfujkgysdjkfuygjkusydfjusyfkjsdfygjusydfgjkuysdkfjugyksdfjkusydfgjkusdfyjgukysdjfyjkusydfgjuysdfgjuysdfjgsdjfugjusdfygjuysdfjugyjdufgsgdfvsgdvgtsdvfgsvdfgsdgfgdsvfgsdvfgsvdfgsdf.cs"
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with keywords
             viewModel.FileName = "com1\foo.cs"
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Set the Filename with ".."
             viewModel.FileName = "..\..\foo.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
 
             ' Set the Filename with ".."
             viewModel.FileName = "..\.\..\.\foo.cs"
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
         End Sub
 
         <WorkItem(898452)>
@@ -709,19 +709,19 @@ namespace A
             viewModel.FileName = "123\456\Wow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "@@@@\######\Woow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "....a\.....b\Wow.cs"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             Dim documentContentMarkupVB = <Text><![CDATA[
@@ -746,19 +746,19 @@ namespace A
             viewModel.FileName = "123\456\Wow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "@@@@\######\Woow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
 
             viewModel.FileName = "....a\.....b\Wow.vb"
 
             viewModel.UpdateFileNameExtension()
-            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexceptedly)
+            Assert.True(viewModel.TrySubmit(), s_submit_failed_unexpectedly)
             Assert.False(viewModel.AreFoldersValidIdentifiers, foldersAreInvalid)
         End Sub
 
@@ -801,7 +801,7 @@ namespace A
             viewModel.IsNewFile = True
             viewModel.FileName = randomFileName
 
-            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexceptedly)
+            Assert.False(viewModel.TrySubmit(), s_submit_passed_unexpectedly)
 
             ' Cleanup
             File.Delete(pathString)

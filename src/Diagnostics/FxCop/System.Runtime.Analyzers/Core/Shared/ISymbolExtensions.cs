@@ -52,7 +52,6 @@ namespace System.Runtime.Analyzers
 
             return visibility;
         }
-
     }
 
     internal enum SymbolVisibility

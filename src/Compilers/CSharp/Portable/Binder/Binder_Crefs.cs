@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (see XmlDocCommentBinder::bindXmlReference).  Apparently, this was because "the params that the xml doc 
                 // comments produce never will."  This does not appear to have made sense in dev11 (skipping dropping the
                 // candidate doesn't cause anything to blow up and may cause resolution to start succeeding) and it almost
-                // certainly does not in roslyn (the signature comparer ignores the object-dynamic distiction anyway).
+                // certainly does not in roslyn (the signature comparer ignores the object-dynamic distinction anyway).
 
                 Symbol signatureMember;
                 switch (candidate.Kind)

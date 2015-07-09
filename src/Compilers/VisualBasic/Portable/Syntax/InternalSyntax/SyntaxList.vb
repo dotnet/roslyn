@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Friend Shared Function List(nodes As ArrayElement(Of VisualBasicSyntaxNode)()) As SyntaxList
-            ' "WithLotsOfChildren" list will alocate a separate array to hold
+            ' "WithLotsOfChildren" list will allocate a separate array to hold
             ' precomputed node offsets. It may not be worth it for smallish lists.
             If nodes.Length < 10 Then
                 Return New WithManyChildren(nodes)

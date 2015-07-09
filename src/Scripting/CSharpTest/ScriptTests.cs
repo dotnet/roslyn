@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
-
             var result = CSharpScript.Run(@"
 class SomeClass
 {
@@ -88,13 +87,11 @@ class SomeClass
 dynamic d = new SomeClass();
 d.Do();"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
-
         }
 
         [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
-
             var result = CSharpScript.Run(@"
 class SomeClass
 {
@@ -105,7 +102,6 @@ class SomeClass
 dynamic d = new SomeClass();
 d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
-
         }
 
         public class Globals

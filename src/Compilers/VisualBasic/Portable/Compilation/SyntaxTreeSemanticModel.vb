@@ -527,7 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 <Out> ByRef typeParameters As ImmutableArray(Of Symbol)) As ImmutableArray(Of Symbol)
             typeParameters = ImmutableArray(Of Symbol).Empty
 
-            ' We only allow a sertain list of node kinds to be processed here
+            ' We only allow a certain list of node kinds to be processed here
             If node.Kind = SyntaxKind.XmlString Then
                 Return Nothing
             End If
@@ -1548,7 +1548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
-            ' CASE 2: If the region flow analysis is performed on the argiments of field declaration of array
+            ' CASE 2: If the region flow analysis is performed on the arguments of field declaration of array
             '         data type having explicit initializer, like 'Public AnArray(2) = {0, 1}'; 
             '         VB semantics generates an error about specifying both bounds and initializer and ignores them
             If expression.Kind = SyntaxKind.NumericLiteralExpression AndAlso
@@ -1556,7 +1556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 '           VariableDeclarator
                 '          |                  |
-                '  ModifiedIdenitfier     EqualsValue
+                '  ModifiedIdentifier     EqualsValue
                 '          |
                 '  ArgumentList
                 '      |...|...|

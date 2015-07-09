@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal class VisualStudioErrorReportingService : IErrorReportingService
     {
-        private readonly static InfoBarButton EnableItem = new InfoBarButton(ServicesVSResources.Enable);
-        private readonly static InfoBarButton EnableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
+        private readonly static InfoBarButton s_enableItem = new InfoBarButton(ServicesVSResources.Enable);
+        private readonly static InfoBarButton s_enableAndIgnoreItem = new InfoBarButton(ServicesVSResources.EnableAndIgnore);
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IForegroundNotificationService _foregroundNotificationService;
@@ -63,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     textSpans,
                     new IVsInfoBarActionItem[]
                         {
-                            EnableItem,
-                            EnableAndIgnoreItem
+                            s_enableItem,
+                            s_enableAndIgnoreItem
                         },
                     KnownMonikers.StatusInformation,
                     isCloseButtonVisible: true);
@@ -99,27 +99,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private class InfoBarEvents : IVsInfoBarUIEvents
         {
-            private readonly Action onClosed;
-            private readonly Action onEnableAndIgnoreClicked;
-            private readonly Action onEnableClicked;
+            private readonly Action _onClosed;
+            private readonly Action _onEnableAndIgnoreClicked;
+            private readonly Action _onEnableClicked;
 
             public InfoBarEvents(Action onEnableClicked, Action onEnableAndIgnoreClicked, Action onClose)
             {
-                this.onEnableClicked = onEnableClicked;
-                this.onEnableAndIgnoreClicked = onEnableAndIgnoreClicked;
-                this.onClosed = onClose;
+                _onEnableClicked = onEnableClicked;
+                _onEnableAndIgnoreClicked = onEnableAndIgnoreClicked;
+                _onClosed = onClose;
             }
 
             public void OnActionItemClicked(IVsInfoBarUIElement infoBarUIElement, IVsInfoBarActionItem actionItem)
             {
-                if (actionItem.Equals(EnableItem))
+                if (actionItem.Equals(s_enableItem))
                 {
-                    onEnableClicked();
+                    _onEnableClicked();
                 }
 
-                if (actionItem.Equals(EnableAndIgnoreItem))
+                if (actionItem.Equals(s_enableAndIgnoreItem))
                 {
-                    onEnableAndIgnoreClicked();
+                    _onEnableAndIgnoreClicked();
                 }
 
                 infoBarUIElement.Close();
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public void OnClosed(IVsInfoBarUIElement infoBarUIElement)
             {
-                onClosed();
+                _onClosed();
             }
         }
     }

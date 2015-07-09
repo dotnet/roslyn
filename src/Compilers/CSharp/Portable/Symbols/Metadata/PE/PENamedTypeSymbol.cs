@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // NOTE: the default member name is frequently null (e.g. if there is not indexer in the type).
                     // Make sure we set a non-null value so that we don't recompute it repeatedly.
                     // CONSIDER: this makes it impossible to distinguish between not having the attribute and
-                    // haveing the attribute with a value of "".
+                    // having the attribute with a value of "".
                     Interlocked.CompareExchange(ref uncommon.lazyDefaultMemberName, defaultMemberName ?? "", null);
                 }
                 return uncommon.lazyDefaultMemberName;

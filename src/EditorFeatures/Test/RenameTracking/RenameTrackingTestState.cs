@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             }
             else
             {
-                throw new ArgumentException("Invalid langauge name: " + languageName, "languageName");
+                throw new ArgumentException("Invalid language name: " + languageName, "languageName");
             }
         }
 

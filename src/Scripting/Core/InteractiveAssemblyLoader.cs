@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         originalExePath = pathWithoutExtension + ".exe";
 
                         AssemblyAndLocation assembly;
-                        if (_assembliesLoadedFromLocationByFullPath.TryGetValue(originalDllPath, out assembly) || 
+                        if (_assembliesLoadedFromLocationByFullPath.TryGetValue(originalDllPath, out assembly) ||
                             _assembliesLoadedFromLocationByFullPath.TryGetValue(originalExePath, out assembly))
                         {
                             return assembly.Assembly;
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         assemblyAndLocation.GlobalAssemblyCache ? assemblyAndLocation.Location : originalPath);
 
                     _assembliesLoadedFromLocation.Add(
-                        assemblyAndLocation.Assembly, 
+                        assemblyAndLocation.Assembly,
                         new LoadedAssembly { LoadedExplicitly = explicitLoad, OriginalPath = result.OriginalPath });
                 }
 

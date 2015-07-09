@@ -471,7 +471,7 @@ End Class
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports ZBad = N.SBad"),
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports NIBad = N.IBad"))
 
-            ' Imports of embedded types are currently ommitted:
+            ' Imports of embedded types are currently omitted:
             v.VerifyPdb("C.M",
 <symbols>
     <methods>

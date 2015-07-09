@@ -1119,9 +1119,7 @@ class C
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
         <encLocalSlotMap>
           <slot kind=""30"" offset=""41"" />
           <slot kind=""30"" offset=""102"" />
@@ -1152,7 +1150,6 @@ class C
         <entry offset=""0x66"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x67"">
-        <namespace name=""System"" />
         <scope startOffset=""0x1"" endOffset=""0x66"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x66"" attributes=""0"" />
           <scope startOffset=""0x17"" endOffset=""0x39"">
@@ -1206,9 +1203,7 @@ class C
   <methods>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""86"" />
@@ -1239,7 +1234,6 @@ class C
         <entry offset=""0x72"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" document=""0"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x73"">
-        <namespace name=""System"" />
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x73"" attributes=""0"" />
         <scope startOffset=""0x21"" endOffset=""0x72"">
           <local name=""CS$&lt;&gt;8__locals1"" il_index=""1"" il_start=""0x21"" il_end=""0x72"" attributes=""0"" />
@@ -1283,15 +1277,16 @@ class C
 <symbols>
   <methods>
     <method containingType=""C"" name=""F"" parameterNames=""a, b"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
+      </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""41"" endLine=""7"" endColumn=""42"" document=""0"" />
       </sequencePoints>
     </method>
     <method containingType=""C"" name=""F"">
       <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
+        <forward declaringType=""C"" methodName=""G"" parameterNames=""f"" />
         <encLocalSlotMap>
           <slot kind=""30"" offset=""41"" />
           <slot kind=""30"" offset=""89"" />
@@ -1323,7 +1318,6 @@ class C
         <entry offset=""0x90"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x91"">
-        <namespace name=""System"" />
         <scope startOffset=""0x1"" endOffset=""0x90"">
           <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x1"" il_end=""0x90"" attributes=""0"" />
           <scope startOffset=""0x1d"" endOffset=""0x62"">

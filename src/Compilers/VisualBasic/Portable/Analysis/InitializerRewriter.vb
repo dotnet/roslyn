@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       block's statements; otherwise it would complicate this rewriting because we 
                 '       will have to insert field initializers right after constructor call
 
-                ' NOTE: If in future some rewriters break this assumption, the insersion 
+                ' NOTE: If in future some rewriters break this assumption, the insertion 
                 '       of initializers as well as the following code should be revised
 
                 If firstBoundStatement.Kind = BoundKind.ExpressionStatement Then

@@ -395,7 +395,7 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!this._alreadySeen.Add(typeReference))
+            if (!_alreadySeen.Add(typeReference))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -403,7 +403,7 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                if (!this._alreadyHasToken.Add(typeReference))
+                if (!_alreadyHasToken.Add(typeReference))
                 {
                     return false;
                 }
@@ -421,13 +421,13 @@ namespace Microsoft.Cci
                 if (specializedNestedTypeReference != null)
                 {
                     INestedTypeReference unspecializedNestedTypeReference = specializedNestedTypeReference.UnspecializedVersion;
-                    if (this._alreadyHasToken.Add(unspecializedNestedTypeReference))
+                    if (_alreadyHasToken.Add(unspecializedNestedTypeReference))
                     {
                         RecordTypeReference(unspecializedNestedTypeReference);
                     }
                 }
 
-                if (this.typeReferenceNeedsToken && this._alreadyHasToken.Add(typeReference))
+                if (this.typeReferenceNeedsToken && _alreadyHasToken.Add(typeReference))
                 {
                     RecordTypeReference(typeReference);
                 }

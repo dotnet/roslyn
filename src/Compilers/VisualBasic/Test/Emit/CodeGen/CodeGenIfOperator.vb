@@ -689,7 +689,7 @@ End Module
 
         <WorkItem(541674, "DevDiv")>
         <Fact>
-        Public Sub TypeConverstionInRuntime()
+        Public Sub TypeConversionInRuntime()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -730,7 +730,7 @@ End Class
 
         <WorkItem(541673, "DevDiv")>
         <Fact>
-        Public Sub TypeConverstionInRuntime_1()
+        Public Sub TypeConversionInRuntime_1()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -778,7 +778,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInRuntime_2()
+        Public Sub TypeConversionInRuntime_2()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -820,7 +820,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInRuntime_3()
+        Public Sub TypeConversionInRuntime_3()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -863,7 +863,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface()
+        Public Sub TypeConversionInterface()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -924,7 +924,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface_1()
+        Public Sub TypeConversionInterface_1()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -985,7 +985,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface_2()
+        Public Sub TypeConversionInterface_2()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1046,7 +1046,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface_3()
+        Public Sub TypeConversionInterface_3()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1080,7 +1080,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface_4()
+        Public Sub TypeConversionInterface_4()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1121,7 +1121,7 @@ End Structure
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface_5()
+        Public Sub TypeConversionInterface_5()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -1158,7 +1158,7 @@ End Structure
         End Sub
 
         <Fact>
-        Public Sub TypeConverstionInterface_6()
+        Public Sub TypeConversionInterface_6()
             Dim compilation1 = CompileAndVerify(
 <compilation>
     <file name="a.vb">

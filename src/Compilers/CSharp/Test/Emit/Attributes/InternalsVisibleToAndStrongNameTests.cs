@@ -425,7 +425,7 @@ public class C {}
             string source = @"public class C {}";
 
             var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.
-                WithCryptoPublicKey(ImmutableArray.Create<byte>(1,2,3)).
+                WithCryptoPublicKey(ImmutableArray.Create<byte>(1, 2, 3)).
                 WithCryptoKeyContainer("roslynTestContainer").
                 WithCryptoKeyFile("file.snk").
                 WithStrongNameProvider(s_defaultProvider));

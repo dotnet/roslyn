@@ -373,7 +373,7 @@ End Class</File>
         End Sub
 
         <WorkItem(578253)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
         Public Sub DoNotWrapCLass()
             Dim text = <File>
 Class C[||]

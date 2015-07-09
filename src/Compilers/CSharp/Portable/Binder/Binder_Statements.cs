@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(System.Linq.Enumerable.Contains(result.Syntax.AncestorsAndSelf(), node), @"Bound statement (or one of its parents) 
                                                                             should have same syntax as the given syntax node. 
-                                                                            Otherwise it may be confusung to the binder cache that uses syntax node as keys.");
+                                                                            Otherwise it may be confusing to the binder cache that uses syntax node as keys.");
 
             return result;
         }
@@ -1923,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
         {
-            return  (member as MethodSymbol)?.MethodKind == (isStatic ?
+            return (member as MethodSymbol)?.MethodKind == (isStatic ?
                                                                 MethodKind.StaticConstructor :
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
@@ -2160,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = targetType.GetDelegateType();
 
-            // The target type is a vaid delegate or expression tree type. Is there something wrong with the 
+            // The target type is a valid delegate or expression tree type. Is there something wrong with the 
             // parameter list?
 
             // First off, is there a parameter list at all?

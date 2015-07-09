@@ -1672,7 +1672,7 @@ public class C
             Assert.Equal(128, defineName.ValueText.Length);
             Assert.Equal(2335, defineName.Text.Length);
 
-            // Since support for identifiers inside #pragma warning directivess is new, 
+            // Since support for identifiers inside #pragma warning directives is new, 
             // we don't have any backwards compatibility constraints. So we can preserve the
             // identifier exactly as it appears in source.
             Assert.Equal(2335, errorCodeName.ValueText.Length);

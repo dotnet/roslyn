@@ -279,7 +279,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub ObjectInitializerAsValueTypeEqualsNewOneParameterContructor()
+        Public Sub ObjectInitializerAsValueTypeEqualsNewOneParameterConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -352,7 +352,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub ObjectInitializerAsNewValueTypeOneParameterContructor()
+        Public Sub ObjectInitializerAsNewValueTypeOneParameterConstructor()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -503,7 +503,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub ObjectInitializerAsNewValueTypeOneParameterContructorMultipleVariables()
+        Public Sub ObjectInitializerAsNewValueTypeOneParameterConstructorMultipleVariables()
             Dim source =
 <compilation>
     <file name="a.vb">
@@ -856,7 +856,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub ObjectInitializerAsNewTypeParameterStuctureConstraint()
+        Public Sub ObjectInitializerAsNewTypeParameterStructureConstraint()
             Dim source =
 <compilation>
     <file name="a.vb">

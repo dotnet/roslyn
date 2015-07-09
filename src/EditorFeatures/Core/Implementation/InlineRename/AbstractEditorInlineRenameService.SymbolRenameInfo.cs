@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public bool ForceRenameOverloads { get; }
 
             public SymbolInlineRenameInfo(
-                IEnumerable<IRefactorNotifyService> refactorNotifyServices, 
-                Document document, 
-                TextSpan triggerSpan, 
-                ISymbol renameSymbol, 
-                bool forceRenameOverloads, 
+                IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+                Document document,
+                TextSpan triggerSpan,
+                ISymbol renameSymbol,
+                bool forceRenameOverloads,
                 CancellationToken cancellationToken)
             {
                 this.CanRename = true;

@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' The array will get the type from the input type of the user defined conversion.
                 sourceType = convKind.Value.Parameters(0).Type
 
-                ' If the conversion from the inferred elrment type to the source type of the user defined conversion is a narrowing conversion then
+                ' If the conversion from the inferred element type to the source type of the user defined conversion is a narrowing conversion then
                 ' skip to the user defined conversion. Conversion errors on the individual elements will be reported when the array literal is reclassified.
                 If Not isExplicit AndAlso
                     Conversions.IsNarrowingConversion(convKind.Key) AndAlso

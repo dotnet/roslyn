@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     public abstract class RegisterActionAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TArgumentSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
         where TInvocationExpressionSyntax : SyntaxNode
-        where TArgumentSyntax: SyntaxNode
+        where TArgumentSyntax : SyntaxNode
         where TLanguageKindEnum : struct
     {
         private static readonly LocalizableString s_localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var analyzer = GetCodeBlockAnalyzer(compilation, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
                 analyzer.CodeBlockStartAction(codeBlockContext);
             });
-            
+
             // We don't want to analyze DiagnosticAnalyzer type symbols, just the code blocks.
             return null;
         }
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 {
                     return;
                 }
-                
+
                 // Check if we are bailing out on this context parameter.
                 if (_startAnalysisContextParamsToSkip != null && _startAnalysisContextParamsToSkip.Contains(contextParameter))
                 {

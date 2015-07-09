@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 var spansToTag = TryGetSpansAndDocumentsToTag(e.Kind);
                 if (spansToTag != null)
                 {
-                    // we will eagarly remove tags except for semantic change case.
+                    // we will eagerly remove tags except for semantic change case.
                     // in semantic change case, we don't actually know whether it will affect highlight we currently
                     // have, so we will wait until we get new tags before removing them.
                     if (e.Kind != PredefinedChangedEventKinds.SemanticsChanged)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
             if (kind == PredefinedChangedEventKinds.SemanticsChanged || kind == PredefinedChangedEventKinds.TextChanged)
             {
-                // check whether we already processed hightlight for this document
+                // check whether we already processed highlight for this document
                 // * this can happen if we are called twice for same document due to two different change events caused by
                 //   same root change (text edit)
                 var spanAndTag = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == this.SubjectBuffer);

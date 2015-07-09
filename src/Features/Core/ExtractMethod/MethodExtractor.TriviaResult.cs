@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             protected IEnumerable<SyntaxTrivia> RemoveBlankLines(IEnumerable<SyntaxTrivia> list)
             {
-                // remove any blank line at the beginging
+                // remove any blank line at the beginning
                 var currentLine = new List<SyntaxTrivia>();
                 var result = new List<SyntaxTrivia>();
 

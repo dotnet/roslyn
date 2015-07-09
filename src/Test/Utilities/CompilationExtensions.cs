@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return stream.ToImmutable();
         }
 
-        public static Stream EmitToStream(this Compilation compilation, EmitOptions options = null, DiagnosticDescription[] expectedWarnings = null)
+        public static MemoryStream EmitToStream(this Compilation compilation, EmitOptions options = null, DiagnosticDescription[] expectedWarnings = null)
         {
             var stream = new MemoryStream();
             var emitResult = compilation.Emit(stream, options: options);

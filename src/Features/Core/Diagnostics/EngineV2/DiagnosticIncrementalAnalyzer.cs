@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var compilationWithAnalyzer = compilation.WithAnalyzers(analyzers, project.AnalyzerOptions, cancellationToken);
 
             // REVIEW: this API is a bit strange. 
-            //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scretch again?
+            //         if getting diagnostic is cancelled, it has to create new compilation and do everything from scratch again?
             var dxs = GetDiagnosticData(project, await compilationWithAnalyzer.GetAnalyzerDiagnosticsAsync().ConfigureAwait(false)).ToImmutableArrayOrEmpty();
 
             return dxs;

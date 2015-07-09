@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend Sub New(sourceModule As SourceModuleSymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
-                       serializationProperties As ModulePropertiesForSerialization,
+                       serializationProperties As Cci.ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription))
 
             MyBase.New(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
@@ -536,24 +536,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Next
             End If
         End Sub
-
-        Friend NotOverridable Overrides ReadOnly Property LinkerMajorVersion As Byte
-            Get
-                'EDMAURER the Windows loader team says that this value is not used in loading but is used by the appcompat infrastructure.
-                'It is useful for us to have
-                'a mechanism to identify the compiler that produced the binary. This is the appropriate
-                'value to use for that. That is what it was invented for. We don't want to have the high
-                'bit set for this in case some users perform a signed comparision to determine if the value
-                'is less than some version. The C++ linker is at 0x0B. Roslyn C# will start at &H30. We'll start our numbering at &H50.
-                Return &H50
-            End Get
-        End Property
-
-        Friend NotOverridable Overrides ReadOnly Property LinkerMinorVersion As Byte
-            Get
-                Return 0
-            End Get
-        End Property
 
         Friend Iterator Function GetReferencedAssembliesUsedSoFar() As IEnumerable(Of AssemblySymbol)
             For Each assembly In SourceModule.GetReferencedAssemblySymbols()

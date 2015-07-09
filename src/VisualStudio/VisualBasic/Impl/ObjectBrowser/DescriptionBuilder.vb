@@ -384,7 +384,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
                 If current.RefKind = RefKind.Ref Then
                     ' TODO: Declare methods may implicitly make string parameters ByRef. To fix this,
-                    ' we'll need support from the compiler to expose IsExplicitByRef or something similiar
+                    ' we'll need support from the compiler to expose IsExplicitByRef or something similar
                     ' (Note: symbol display uses IsExplicitByRef to handle this case).
                     AddText("ByRef ")
                 End If

@@ -11396,7 +11396,7 @@ public class Program
 
         [WorkItem(10616, "DevDiv_Projects/Roslyn")]
         [Fact]
-        public void EnumAsOptinalParameter()
+        public void EnumAsOptionalParameter()
         {
             string source = @"
 using System;
@@ -12575,7 +12575,7 @@ expectedOutput: "-100");
                 cancellationToken: CancellationToken.None);
 
             // Add diagnostic to MethodBodyCompiler bag, as if
-            // code gen for an earlier method had generated an errror.
+            // code gen for an earlier method had generated an error.
             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_IntDivByZero), NoLocation.Singleton));
 
             // Compile all methods for type including synthesized methods.
@@ -13186,7 +13186,7 @@ class Program
         // false
         Console.WriteLine(IsZero(y[0]));
 
-        // true (I do not know how to get '-0' contant)
+        // true (I do not know how to get '-0' constant)
         Console.WriteLine(IsZero(z[0]));
 
         x = new double[] { -0.0 };
@@ -13199,7 +13199,7 @@ class Program
         // false
         Console.WriteLine(IsZero(y[0]));
 
-        // true (I do not know how to get '-0' contant)
+        // true (I do not know how to get '-0' constant)
         Console.WriteLine(IsZero(z[0]));
     }
 

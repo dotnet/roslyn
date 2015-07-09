@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             logAggregator.IncreaseCount(kind);
         }
 
-        public static void LogWorkCoordiantorShutdown(int correlationId, LogAggregator logAggregator)
+        public static void LogWorkCoordinatorShutdown(int correlationId, LogAggregator logAggregator)
         {
             Logger.Log(FunctionId.WorkCoordinator_Shutdown, KeyValueLogMessage.Create(m =>
             {

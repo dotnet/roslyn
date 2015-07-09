@@ -151,7 +151,7 @@ namespace Microsoft.AnalyzerPowerPack.UnitTests
                 Imports System
                 Imports System.Runtime.Serialization
                 Public Class CA2237SerializableWithBase
-                    Inerits Base 
+                    Inherits Base 
                     Implements ISerializable
                 
                     Protected Sub New(context As StreamingContext, info As SerializationInfo)

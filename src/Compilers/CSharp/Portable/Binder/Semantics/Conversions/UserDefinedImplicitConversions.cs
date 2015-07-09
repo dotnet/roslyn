@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // SPEC VIOLATION: 1) To int type (applicable in normal form): public static implicit operator int (Conv? C2)
                         // SPEC VIOLATION: 2) To int? type (applicable in lifted form): public static implicit operator int (Conv C)
 
-                        // SPEC VIOLATION: We maintain compability with the native compiler.
+                        // SPEC VIOLATION: We maintain compatibility with the native compiler.
 
                         int? best = MostSpecificConversionOperator(sx, tx, u);
                         if (best != null)
