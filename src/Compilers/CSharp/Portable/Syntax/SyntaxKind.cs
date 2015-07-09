@@ -537,8 +537,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
-
         // Changes after C# 6
+		// tuples
+        TupleType = 8925,
+        TupleElement = 8926,
+        TupleExpression = 8927,
+
         // patterns (for pattern-matching)
         DeclarationPattern = 9000,
         WildcardPattern = 9001,

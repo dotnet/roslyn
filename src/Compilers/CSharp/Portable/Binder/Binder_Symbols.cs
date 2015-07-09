@@ -384,6 +384,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindTypeArgument((TypeSyntax)syntax, diagnostics, basesBeingResolved);
                     }
 
+                case SyntaxKind.TupleType:
+                    {
+                        var tupleType = (TupleTypeSyntax)syntax;
+                        if (tupleType.Elements.Count == 0)
+                        {
+                            // we should already have a parse error for this.
+                            return new ExtendedErrorTypeSymbol(this.Compilation, syntax.ToString(), 0, new CSDiagnosticInfo(ErrorCode.ERR_SingleTypeNameNotFound), unreported: false);
+                        }
+
+                        // UNDONE: bind the type of the first element for now.
+                        //         just to not crash in tests.
+                        //         Actual binding implementation is coming.
+                        return BindType(((TupleTypeSyntax)syntax).Elements[0].Type, diagnostics, basesBeingResolved);
+                    }
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
