@@ -456,7 +456,7 @@ End Module
                 Diagnostic(ERRID.WRN_UnusedLocalConst, "z").WithArguments("z").WithWarningAsError(True),
                 Diagnostic(ERRID.WRN_DefAsgNoRetValFuncRef1, "End Function").WithArguments("foo").WithWarningAsError(True))
 
-            ' Suppress All with treaing 42024 as an error, which will be ignored
+            ' Suppress All with treating 42024 as an error, which will be ignored
             ' vbc a.vb /warnaserror:42024 /nowarn or
             ' vbc a.vb /nowarn /warnaserror
             warnings = New Dictionary(Of String, ReportDiagnostic)()

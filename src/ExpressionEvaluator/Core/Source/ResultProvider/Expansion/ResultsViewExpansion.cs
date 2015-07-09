@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     if (expansion != null)
                     {
                         return expansion.CreateResultsViewRow(
-                            inspectionContext, 
-                            name, 
-                            new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
-                            value, 
-                            includeResultsFormatSpecifier: true, 
+                            inspectionContext,
+                            name,
+                            new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo),
+                            value,
+                            includeResultsFormatSpecifier: true,
                             formatter: formatter);
                     }
                     errorMessage = Resources.ResultsViewNoSystemCore;
@@ -100,11 +100,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return expansion.CreateResultsViewRow(
-                inspectionContext, 
-                name, 
-                new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo), 
-                value, 
-                includeResultsFormatSpecifier: false, 
+                inspectionContext,
+                name,
+                new TypeAndCustomInfo(declaredType.GetLmrType(), declaredTypeInfo),
+                value,
+                includeResultsFormatSpecifier: false,
                 formatter: formatter);
         }
 
@@ -296,14 +296,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ref int index)
             {
                 _expansion.GetRows(
-                    resultProvider, 
-                    rows, 
-                    inspectionContext, 
-                    parent, 
-                    _proxyValue, 
-                    startIndex: startIndex, 
-                    count: count, 
-                    visitAll: visitAll, 
+                    resultProvider,
+                    rows,
+                    inspectionContext,
+                    parent,
+                    _proxyValue,
+                    startIndex: startIndex,
+                    count: count,
+                    visitAll: visitAll,
                     index: ref index);
             }
         }

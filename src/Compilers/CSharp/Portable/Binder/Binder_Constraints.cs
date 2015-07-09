@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 case TypeKind.Submission:
-                // script class is synthetized, never used as a constraint
+                // script class is synthesized, never used as a constraint
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);

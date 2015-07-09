@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis
             get { return _messageProvider; }
         }
 
-        internal bool IsInteractive
+        public bool IsInteractive
         {
             get { return _isInteractive; }
         }
 
-        internal abstract string RegularFileExtension { get; }
-        internal abstract string ScriptFileExtension { get; }
+        protected abstract string RegularFileExtension { get; }
+        protected abstract string ScriptFileExtension { get; }
 
         // internal for testing
         internal virtual TextReader CreateTextFileReader(string fullPath)

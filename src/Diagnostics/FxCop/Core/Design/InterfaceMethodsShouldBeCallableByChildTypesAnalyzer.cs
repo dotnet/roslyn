@@ -21,7 +21,7 @@ namespace Microsoft.AnalyzerPowerPack.Design
     /// This rule does not report a violation for an explicit implementation of IDisposable.Dispose when an externally visible Close() or System.IDisposable.Dispose(Boolean) method is provided.
     /// </remarks>
     public abstract class InterfaceMethodsShouldBeCallableByChildTypesAnalyzer<TInvocationExpressionSyntax> : DiagnosticAnalyzer
-        where TInvocationExpressionSyntax: SyntaxNode
+        where TInvocationExpressionSyntax : SyntaxNode
     {
         internal const string RuleId = "CA1033";
 
@@ -106,9 +106,9 @@ namespace Microsoft.AnalyzerPowerPack.Design
             // This rule does not report a violation for an explicit implementation of IDisposable.Dispose when an externally visible Close() or System.IDisposable.Dispose(Boolean) method is provided.
             return interfaceMethod.Name.Equals("Dispose") &&
                 interfaceMethod.ContainingType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat).Equals("System.IDisposable") &&
-                namedType.GetBaseTypesAndThis().Any(t => 
-                    t.GetMembers("Close").OfType<IMethodSymbol>().Any(m => 
-                        m.GetResultantVisibility() == SymbolVisibility.Public)) ;
+                namedType.GetBaseTypesAndThis().Any(t =>
+                    t.GetMembers("Close").OfType<IMethodSymbol>().Any(m =>
+                        m.GetResultantVisibility() == SymbolVisibility.Public));
         }
 
         private static void ReportDiagnostic(CodeBlockAnalysisContext context, params object[] messageArgs)

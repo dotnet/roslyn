@@ -463,7 +463,7 @@ public class C {}
 public class C {}
 ";
 
-            // different varsions
+            // different versions
             var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
             var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Assembly");
 

@@ -166,7 +166,7 @@ internal class Constants
 {
     public const string OldVersionLowerBound = "0.7.0.0";
     public const string OldVersionUpperBound = "1.1.0.0";
-    
+
 #if OFFICIAL_BUILD
     // If this is an official build we want to generate binding
     // redirects from our old versions to the release version 

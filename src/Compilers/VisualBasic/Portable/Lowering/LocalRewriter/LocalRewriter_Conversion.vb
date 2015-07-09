@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Visit(DirectCast(node.Operand, BoundUserDefinedConversion).UnderlyingExpression)
             End If
 
-            ' not all nullable conversins have Nullable flag
+            ' not all nullable conversions have Nullable flag
             ' For example   Nothing --> Boolean?  has conversionkind = WideningNothingLiteral
             If (node.Type IsNot Nothing AndAlso node.Type.IsNullableType OrElse
                 node.Operand.Type IsNot Nothing AndAlso node.Operand.Type.IsNullableType) AndAlso
@@ -479,7 +479,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The structure of the nullable BoundUserDefinedConversion looks like this:
             '    [OPERAND] -> [IN-CONVERSION] -> [CALL] -> [OUT-CONVERSION]
             '
-            '   In-conversion also does unrapping.
+            '   In-conversion also does unwrapping.
             '   Out-conversion also does wrapping.
             '
             ' operand

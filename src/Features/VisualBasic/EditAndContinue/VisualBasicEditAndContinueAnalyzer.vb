@@ -1540,10 +1540,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return FeaturesResources.Constructor
 
                 Case SyntaxKind.PropertyBlock
+
                     Return FeaturesResources.Property
 
                 Case SyntaxKind.PropertyStatement
-                    Return FeaturesResources.AutoProperty
+                    Return If(node.IsParentKind(SyntaxKind.PropertyBlock),
+                        FeaturesResources.Property,
+                        FeaturesResources.AutoProperty)
 
                 Case SyntaxKind.EventBlock,
                      SyntaxKind.EventStatement
@@ -1699,7 +1702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #End Region
 
-#Region "Top-level Syntaxtic Rude Edits"
+#Region "Top-level Syntatic Rude Edits"
         Private Structure EditClassifier
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
@@ -3019,7 +3022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Shared Function HasNoSpilledState(awaitExpression As SyntaxNode, containingStatementPart As SyntaxNode) As Boolean
             Debug.Assert(awaitExpression.IsKind(SyntaxKind.AwaitExpression))
 
-            ' There is nothing within the statement part surrouding the await expression.
+            ' There is nothing within the statement part surrounding the await expression.
             If containingStatementPart Is awaitExpression Then
                 Return True
             End If

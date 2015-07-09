@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Debug.Assert(containingAssembly is SourceAssemblySymbol); // Doesn't happen during decoding.
             return TransformTypeInternal(
-                type, 
-                containingAssembly, 
-                0, 
-                targetSymbolRefKind, 
-                dynamicTransformFlags, 
-                haveCustomModifierFlags: false, 
+                type,
+                containingAssembly,
+                0,
+                targetSymbolRefKind,
+                dynamicTransformFlags,
+                haveCustomModifierFlags: false,
                 checkLength: checkLength);
         }
 

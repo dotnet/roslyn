@@ -688,7 +688,7 @@ class MyClass<T>
     }
     public MyDel<T> myDel;
     public event MyDel<T> myEvent;
-    public async Task TrigerEvent(T p)
+    public async Task TriggerEvent(T p)
     {
         try
         {
@@ -718,7 +718,7 @@ struct TestCase
 
             tests++;
             ms.myEvent += MyClass<string>.Meth;
-            await ms.TrigerEvent(str);
+            await ms.TriggerEvent(str);
         }
         finally
         {

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 _signatureHelpItems = signatureHelpItems;
                 _selectedItem = selectedItem;
 
-                // Create all the editor sigantures for the sig help items we have.
+                // Create all the editor signatures for the sig help items we have.
                 this.CreateSignatures(triggerSpan, selectedParameter);
 
                 // It's a new list of items.  Either create the editor session if this is the
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 }
 
                 // So here's the deal.  We cannot create the editor session and give it the right
-                // signatures (even though we know what they are).  Instead, the sessino with
+                // signatures (even though we know what they are).  Instead, the session with
                 // call back into the ISignatureHelpSourceProvider (which is us) to get those
                 // values. It will pass itself along with the calls back into
                 // ISignatureHelpSourceProvider. So, in order to make that connection work, we

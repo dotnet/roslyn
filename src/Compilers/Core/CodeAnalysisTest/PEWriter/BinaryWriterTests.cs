@@ -15,18 +15,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
     {
         private static byte[] CompressUnsignedInteger(int value)
         {
-            var stream = new MemoryStream();
-            var writer = new BinaryWriter(stream);
+            var writer = new BlobWriter();
             writer.WriteCompressedUInt((uint)value);
-            return stream.ToArray();
+            return writer.ToArray();
         }
 
         private static byte[] CompressSignedInteger(int value)
         {
-            var stream = new MemoryStream();
-            var writer = new BinaryWriter(stream);
+            var writer = new BlobWriter();
             writer.WriteCompressedSignedInteger(value);
-            return stream.ToArray();
+            return writer.ToArray();
         }
 
         [Fact]

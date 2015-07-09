@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// Does not call itself (directly).
         /// </remarks>
         protected void AppendQualifiedTypeName(
-            StringBuilder builder, 
-            Type type, 
-            DynamicFlagsCustomTypeInfo dynamicFlags, 
-            ref int index, 
-            bool escapeKeywordIdentifiers, 
+            StringBuilder builder,
+            Type type,
+            DynamicFlagsCustomTypeInfo dynamicFlags,
+            ref int index,
+            bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier)
         {
             Type originalType = type;
@@ -105,11 +105,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// Does not call itself or <see cref="AppendQualifiedTypeName"/> (directly).
         /// </remarks>
         private void AppendQualifiedTypeNameInternal(
-            StringBuilder builder, 
-            Type type, 
-            DynamicFlagsCustomTypeInfo dynamicFlags, 
-            ref int index, 
-            bool escapeKeywordIdentifiers, 
+            StringBuilder builder,
+            Type type,
+            DynamicFlagsCustomTypeInfo dynamicFlags,
+            ref int index,
+            bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier)
         {
             var isDynamic = dynamicFlags[index++] && type.IsObject();
@@ -256,14 +256,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// temporary arrays.
         /// </remarks>
         private void AppendUnqualifiedTypeName(
-            StringBuilder builder, 
-            Type type, 
-            DynamicFlagsCustomTypeInfo dynamicFlags, 
-            ref int index, 
-            bool escapeKeywordIdentifiers, 
-            Type[] typeArguments, 
-            int typeArgumentOffset, 
-            int arity, 
+            StringBuilder builder,
+            Type type,
+            DynamicFlagsCustomTypeInfo dynamicFlags,
+            ref int index,
+            bool escapeKeywordIdentifiers,
+            Type[] typeArguments,
+            int typeArgumentOffset,
+            int arity,
             out bool sawInvalidIdentifier)
         {
             if (typeArguments == null || arity == 0)
@@ -308,12 +308,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         protected abstract void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier, out bool sawInvalidIdentifier);
 
         protected abstract void AppendGenericTypeArgumentList(
-            StringBuilder builder, 
-            Type[] typeArguments, 
+            StringBuilder builder,
+            Type[] typeArguments,
             int typeArgumentOffset,
             DynamicFlagsCustomTypeInfo dynamicFlags,
             ref int index,
-            int arity, 
+            int arity,
             bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier);
 

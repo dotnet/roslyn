@@ -2315,7 +2315,7 @@ public class C
                     }
 
                     // This throws if we visit one entry point name twice.
-                    // We used to incorrectly share entyr point name among event accessors.
+                    // We used to incorrectly share entry point name among event accessors.
                     visitedEntryPoints.Add(entryPointName, true);
                 }
 

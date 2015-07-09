@@ -661,7 +661,7 @@ namespace Roslyn.Test.PdbUtilities
                 WriteScope(child, isRoot: false);
             }
 
-            _writer.WriteEndElement(); 
+            _writer.WriteEndElement();
         }
 
         private void WriteNamespace(ISymUnmanagedNamespace @namespace)
@@ -977,7 +977,7 @@ namespace Roslyn.Test.PdbUtilities
                     }
 
                     var runtimeType = GetConstantRuntimeType(signature);
-                    if (runtimeType == null && 
+                    if (runtimeType == null &&
                         (value is sbyte || value is byte || value is short || value is ushort ||
                          value is int || value is uint || value is long || value is ulong))
                     {

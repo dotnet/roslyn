@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         //
                         // we need to make sure we play nice with neighbors as well.
                         //
-                        // now, we don't care where changes are coming from. if there is any change in host, we puase oursevles for a while.
+                        // now, we don't care where changes are coming from. if there is any change in host, we pause ourselves for a while.
                         this.UpdateLastAccessTime();
                     }
 

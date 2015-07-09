@@ -626,7 +626,7 @@ End Namespace
             Next
 
             ' Since we never return something other than CompilationUnit as a declaring syntax for a Global namespace,
-            ' the foolowing assert should succeed.
+            ' the following assert should succeed.
             Assert.True([global].IsImplicitlyDeclared)
         End Sub
 

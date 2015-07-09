@@ -37,7 +37,7 @@ Parameters:
 If the target path is a directory displays information for all *.dll, *.exe, *.winmd, 
 and *.netmodule files in the directory and all subdirectories.
 
-If /g is speficied the path must be baseline PE file (generation 0).
+If /g is specified the path must be baseline PE file (generation 0).
 ";
 
     public static Arguments TryParse(string[] args)

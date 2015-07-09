@@ -313,7 +313,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub KeepEscapedIdentifiersEscaped()
             Dim text = <File>
 Module Program
@@ -341,7 +341,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NoDuplicateCorrections()
             Dim text = <File>
 Module Program

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (symbol.Kind == SymbolKind.Field)
                 {
                     var fieldSymbol = (IFieldSymbol)symbol;
-                    if (fieldSymbol.IsImplicitlyDeclared && 
+                    if (fieldSymbol.IsImplicitlyDeclared &&
                         fieldSymbol.AssociatedSymbol.IsKind(SymbolKind.Property))
                     {
                         return fieldSymbol.AssociatedSymbol;
@@ -365,10 +365,10 @@ namespace Microsoft.CodeAnalysis.Rename
                     {
                         // The simple case, so just the single location and we're done
                         results.Add(new RenameLocation(
-                            location.Location, 
-                            location.Document.Id, 
-                            isCandidateLocation: location.IsCandidateLocation, 
-                            isMethodGroupReference: location.IsCandidateLocation && location.CandidateReason == CandidateReason.MemberGroup, 
+                            location.Location,
+                            location.Document.Id,
+                            isCandidateLocation: location.IsCandidateLocation,
+                            isMethodGroupReference: location.IsCandidateLocation && location.CandidateReason == CandidateReason.MemberGroup,
                             isRenamableAccessor: await IsPropertyAccessorOrAnOverride(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                     }
                 }

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ErrorLogger
 {
-    interface IErrorLoggerService : IWorkspaceService
+    internal interface IErrorLoggerService : IWorkspaceService
     {
         void LogException(object source, Exception exception);
         bool TryLogException(object source, Exception exception);

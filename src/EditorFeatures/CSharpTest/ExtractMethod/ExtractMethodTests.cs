@@ -1620,7 +1620,7 @@ class Program
     }
 }";
 
-            // current bottom-up re-writter makes re-attaching trivia half belongs to previous token
+            // current bottom-up re-writer makes re-attaching trivia half belongs to previous token
             // and half belongs to next token very hard.
             // for now, it won't be able to re-associate trivia belongs to next token.
             TestExtractMethod(code, expected);

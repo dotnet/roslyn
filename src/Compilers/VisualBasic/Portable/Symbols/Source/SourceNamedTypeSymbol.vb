@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ' Check name agains type parameters of immediate container
+            ' Check name against type parameters of immediate container
             Dim containingSourceType = TryCast(container, SourceNamedTypeSymbol)
             If containingSourceType IsNot Nothing AndAlso containingSourceType.TypeParameters.MatchesAnyName(Me.Name) Then
                 ' "'|1' has the same name as a type parameter."
@@ -1516,7 +1516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' 'Safe' version of GetDeclaredBase takes into account bases being resolved to make sure 
         ''' we avoid infinite loops in some scenarios. Note that the cycle is being broken not when
         ''' we detect it, but when we detect it on the 'smallest' type of the cycle, this brings stability 
-        ''' in multithreaded scenarios while still ensures that we don't loop more than twices.
+        ''' in multithreaded scenarios while still ensures that we don't loop more than twice.
         ''' </summary>
         Private Function GetDeclaredBaseSafe(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
             If m_baseCycleDiagnosticInfo IsNot Nothing Then
@@ -1565,7 +1565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If diag Is Nothing Then
                 Dim declaredBase As NamedTypeSymbol = GetDeclaredBase(basesBeingResolved)
 
-                ' If we ditected the cycle while calculating the declared base, return Nothing
+                ' If we detected the cycle while calculating the declared base, return Nothing
                 Return If(m_baseCycleDiagnosticInfo Is Nothing, declaredBase, Nothing)
             End If
 
@@ -1590,7 +1590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If diag Is Nothing Then
                 Dim declaredBases As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
-                ' If we ditected the cycle while calculating the declared base, return Nothing
+                ' If we detected the cycle while calculating the declared base, return Nothing
                 Return If(m_baseCycleDiagnosticInfo Is Nothing, declaredBases, ImmutableArray(Of NamedTypeSymbol).Empty)
             End If
 

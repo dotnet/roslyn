@@ -1985,7 +1985,7 @@ class C
                 "@0x123 ?? @0xa1b2c3 ?? (object)$exception ?? @0XA1B2C3.GetHashCode()",
                 DkmEvaluationFlags.TreatAsExpression,
                 ImmutableArray.Create(ExceptionAlias()),
-                out error, 
+                out error,
                 testData);
             Assert.Null(error);
             Assert.Equal(testData.Methods.Count, 1);
@@ -5957,7 +5957,7 @@ public class C
             using (MemoryStream
                 peStream1Unused = new MemoryStream(),
                 peStream2 = new MemoryStream(),
-                pdbStream1 = new MemoryStream(), 
+                pdbStream1 = new MemoryStream(),
                 pdbStream2 = new MemoryStream())
             {
                 Assert.True(comp1.Emit(peStream1Unused, pdbStream1).Success);

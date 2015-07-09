@@ -12,6 +12,8 @@
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <RoslynSolution Condition="'$(PublicBuild)' == 'true'">$(MSBuildThisFileDirectory)RoslynLight.sln</RoslynSolution>
+    <CscCoreProj>$(MSBuildThisFileDirectory)\src\Compilers\CSharp\CscCore\CscCore.csproj</CscCoreProj>
+    <VbcCoreProj>$(MSBuildThisFileDirectory)\src\Compilers\VisualBasic\VbcCore\VbcCore.csproj</VbcCoreProj>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs></RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
@@ -31,6 +33,12 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Build"/>
+    <MSBuild BuildInParallel="true"
+             Projects="$(CscCoreProj)"
+             Targets="Build" />
+    <MSBuild BuildInParallel="true"
+             Projects="$(VbcCoreProj)"
+             Targets="Build" />
   </Target>
 
   <Target Name="Clean">
@@ -38,6 +46,12 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Clean"/>
+    <MSBuild BuildInParallel="true"
+             Projects="$(CscCoreProj)"
+             Targets="Clean" />
+    <MSBuild BuildInParallel="true"
+             Projects="$(VbcCoreProj)"
+             Targets="Clean" />
   </Target>
 
   <Target Name="Rebuild">
@@ -45,19 +59,25 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Rebuild"/>
+    <MSBuild BuildInParallel="true"
+             Projects="$(CscCoreProj)"
+             Targets="Rebuild" />
+    <MSBuild BuildInParallel="true"
+             Projects="$(VbcCoreProj)"
+             Targets="Rebuild" />
   </Target>
 
   <Target Name="Test">
 
     <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+      <TestAssemblies
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
         Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+      <TestAssemblies
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
@@ -65,8 +85,8 @@
 
     <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
     <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+      <TestAssemblies
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;

@@ -920,7 +920,7 @@ end class
 
             Dim format As SymbolDisplayFormat = Nothing
 
-            ' default is show asterics for VB. IF this is changed, this test will fail
+            ' default is show asterisks for VB. If this is changed, this test will fail
             ' in this case, please rewrite the test TestNoArrayAsterisks to TestArrayAsterisks
             TestSymbolDescription(
                 text,
@@ -1313,7 +1313,7 @@ End Class
             Dim text =
 <compilation>
     <file name="a.vb">
-Interfact I
+Interface I
     sub M()
     End Sub
 end Interface
@@ -1344,7 +1344,7 @@ end class
             Dim text =
 <compilation>
     <file name="a.vb">
-Interfact I
+Interface I
     sub M()
     End Sub
 end Interface
@@ -1376,7 +1376,7 @@ end class
             Dim text =
 <compilation>
     <file name="a.vb">
-Interfact I
+Interface I
     sub M()
     End Sub
 end Interface

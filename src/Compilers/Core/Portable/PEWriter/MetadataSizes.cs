@@ -78,11 +78,13 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Overall size of metadata stream storage (stream headers, table stream, heaps, additional streams).
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataStreamStorageSize;
 
         /// <summary>
         /// The size of metadata stream (#- or #~). Aligned.
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataTableStreamSize;
 
@@ -98,13 +100,20 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The size of mapped field data stream.
+        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
         /// </summary>
         public readonly int MappedFieldDataSize;
 
         /// <summary>
         /// The size of managed resource data stream.
+        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
         /// </summary>
         public readonly int ResourceDataSize;
+
+        /// <summary>
+        /// Size of strong name hash.
+        /// </summary>
+        public readonly int StrongNameSignatureSize;
 
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
@@ -112,6 +121,7 @@ namespace Microsoft.Cci
             int ilStreamSize,
             int mappedFieldDataSize,
             int resourceDataSize,
+            int strongNameSignatureSize,
             bool isMinimalDelta,
             bool emitStandaloneDebugMetadata,
             bool isStandaloneDebugMetadata)
@@ -128,6 +138,7 @@ namespace Microsoft.Cci
             this.ResourceDataSize = resourceDataSize;
             this.ILStreamSize = ilStreamSize;
             this.MappedFieldDataSize = mappedFieldDataSize;
+            this.StrongNameSignatureSize = strongNameSignatureSize;
             this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;
@@ -325,7 +336,7 @@ namespace Microsoft.Cci
                 const int MinimalDeltaMarkerStreamSize = 16;
                 const int StandalonePdbStreamSize = 16;
 
-                Debug.Assert(RegularStreamHeaderSizes == 
+                Debug.Assert(RegularStreamHeaderSizes ==
                     GetMetadataStreamHeaderSize("#~") +
                     GetMetadataStreamHeaderSize("#Strings") +
                     GetMetadataStreamHeaderSize("#US") +

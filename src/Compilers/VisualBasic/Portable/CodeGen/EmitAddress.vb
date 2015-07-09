@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                             ' can mutate field since its parent has no home and we will be dealing with a copy
                             Return True
                         Else
-                            ' this field access is readonly due to languge reasons -
+                            ' this field access is readonly due to language reasons -
                             ' most likely topmost receiver is a readonly local or a runtime const
                             Return False
                         End If

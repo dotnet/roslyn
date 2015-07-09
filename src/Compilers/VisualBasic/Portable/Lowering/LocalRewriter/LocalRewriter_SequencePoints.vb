@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    Partial Class LocalRewriter
+    Friend Partial Class LocalRewriter
         Friend Function AddConditionSequencePoint(condition As BoundExpression, containingCatchWithFilter As BoundCatchBlock) As BoundExpression
             Debug.Assert(containingCatchWithFilter.ExceptionFilterOpt.Syntax.Parent.IsKind(SyntaxKind.CatchFilterClause))
             Dim local As LocalSymbol = Nothing

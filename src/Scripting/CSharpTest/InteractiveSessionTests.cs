@@ -1996,6 +1996,44 @@ class D
             Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
         }
 
+        [WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")]
+        [Fact]
+        public void ErrorInUsing()
+        {
+            var submission = CSharpCompilation.CreateSubmission("sub1", Parse("using Unknown;", options: TestOptions.Script), new[] { MscorlibRef });
+
+            var expectedDiagnostics = new[]
+            {
+                    // (1,7): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                    // using Unknown;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(1, 7),
+                    // (1,1): hidden CS8019: Unnecessary using directive.
+                    // using Unknown;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Unknown;").WithLocation(1, 1),
+            };
+
+            // Emit produces the same diagnostics as GetDiagnostics (below).
+            using (var stream = new MemoryStream())
+            {
+                var emitResult = submission.Emit(stream);
+                Assert.False(emitResult.Success);
+                emitResult.Diagnostics.Verify(expectedDiagnostics);
+            }
+
+            submission.GetDiagnostics().Verify(expectedDiagnostics);
+        }
+
+        [WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")]
+        [Fact]
+        public void LabelLookup()
+        {
+            const string source = "using System; 1";
+            var tree = Parse(source, options: TestOptions.Script);
+            var submission = CSharpCompilation.CreateSubmission("sub1", tree, new[] { MscorlibRef });
+            var model = submission.GetSemanticModel(tree);
+            Assert.Empty(model.LookupLabels(source.Length - 1)); // Used to assert.
+        }
+
         private CSharpCompilation CreateSubmission(string code, CSharpParseOptions options, int expectedErrorCount = 0)
         {
             var submission = CSharpCompilation.CreateSubmission("sub",

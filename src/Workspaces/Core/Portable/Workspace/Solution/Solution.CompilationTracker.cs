@@ -247,14 +247,12 @@ namespace Microsoft.CodeAnalysis
                     var referencedProject = solution.GetProject(projectReference.ProjectId);
                     if (referencedProject != null)
                     {
-#if SCRIPTING
                         if (referencedProject.IsSubmission)
                         {
                             var compilation = solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
                             inProgressCompilation = inProgressCompilation.WithPreviousSubmission(compilation);
                         }
                         else
-#endif
                         {
                             // get the latest metadata for the partial compilation of the referenced project.
                             var metadata = solution.GetPartialMetadataReference(projectReference, this.ProjectState, cancellationToken);
@@ -505,7 +503,6 @@ namespace Microsoft.CodeAnalysis
             {
                 var compilationFactory = this.ProjectState.LanguageServices.GetService<ICompilationFactoryService>();
 
-#if SCRIPTING
                 if (this.ProjectState.IsSubmission)
                 {
                     return compilationFactory.CreateSubmissionCompilation(
@@ -514,7 +511,6 @@ namespace Microsoft.CodeAnalysis
                         this.ProjectState.HostObjectType);
                 }
                 else
-#endif
                 {
                     return compilationFactory.CreateCompilation(
                         this.ProjectState.AssemblyName,
@@ -588,7 +584,6 @@ namespace Microsoft.CodeAnalysis
                         {
                             // If both projects are submissions, we'll count this as a previous submission link
                             // instead of a regular metadata reference
-#if SCRIPTING
                             if (referencedProject.IsSubmission)
                             {
                                 // if the referenced project is a submission project must be a submission as well:
@@ -599,7 +594,6 @@ namespace Microsoft.CodeAnalysis
                                 compilation = compilation.WithPreviousSubmission(previousSubmissionCompilation);
                             }
                             else
-#endif
                             {
                                 var metadataReference = await solution.GetMetadataReferenceAsync(
                                     projectReference, this.ProjectState, cancellationToken).ConfigureAwait(false);
@@ -707,7 +701,7 @@ namespace Microsoft.CodeAnalysis
                         var projectId = this.ProjectState.Id;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                        // get or build compilation up to decleration state. this compilation will be used to provide live xml doc comment
+                        // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
                         var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         MetadataReference reference;
@@ -764,7 +758,7 @@ namespace Microsoft.CodeAnalysis
                 return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
             }
 
-#region Versions
+            #region Versions
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
@@ -832,7 +826,7 @@ namespace Microsoft.CodeAnalysis
 
                 return version;
             }
-#endregion
+            #endregion
         }
     }
 }

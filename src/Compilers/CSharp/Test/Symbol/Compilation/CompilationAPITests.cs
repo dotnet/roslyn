@@ -347,7 +347,7 @@ namespace A.B {
 
             Assert.Empty(comp.GetDiagnostics());
 
-            // use exported type witl partial alias
+            // use exported type with partial alias
             comp = CSharpCompilation.Create("APP1",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
@@ -847,7 +847,7 @@ var a = new C2();
 
             // Add Module file reference
             comp = comp.AddReferences(modRef1);
-            // Not implemente code
+            // Not implemented code
             //var modSmb = comp.GetReferencedModuleSymbol(modRef1);
             //Assert.Equal("ModuleCS00.mod", modSmb.Name);
             //Assert.Equal(4, comp.References.Count);

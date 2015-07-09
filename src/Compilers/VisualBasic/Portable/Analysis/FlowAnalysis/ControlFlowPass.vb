@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             ' NOTE: VB generates error ERR_GotoIntoTryHandler in binding, but
-            '       we still want to 'nest' pendings' state for catch statemetns
+            '       we still want to 'nest' pendings' state for catch statements
 
             Me.RestorePending(oldPendings)
         End Sub

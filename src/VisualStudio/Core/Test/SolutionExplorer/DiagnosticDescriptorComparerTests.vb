@@ -65,7 +65,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub MessateFormat()
+        Public Sub MessageFormat()
             Const id As String = "TST0001"
             Const description As String = "A description"
             Const category As String = "Test"

@@ -2155,7 +2155,7 @@ End Namespace
 
             <WorkItem(603368)>
             <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-            Public Sub Bug603368_ConflictAttributeWithNamespaceCaseInsensitve()
+            Public Sub Bug603368_ConflictAttributeWithNamespaceCaseInsensitive()
                 Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -2184,7 +2184,7 @@ End Namespace
 
             <WorkItem(603367)>
             <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-            Public Sub Bug603367_ConflictAttributeWithNamespaceCaseInsensitve2()
+            Public Sub Bug603367_ConflictAttributeWithNamespaceCaseInsensitive2()
                 Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
@@ -2212,7 +2212,7 @@ End Class
 
             <WorkItem(603276)>
             <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-            Public Sub Bug603276_ConflictAttributeWithNamespaceCaseInsensitve3()
+            Public Sub Bug603276_ConflictAttributeWithNamespaceCaseInsensitive3()
                 Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">

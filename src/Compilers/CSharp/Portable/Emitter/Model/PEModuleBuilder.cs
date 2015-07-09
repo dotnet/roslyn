@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
             OutputKind outputKind,
-            ModulePropertiesForSerialization serializationProperties,
+            Cci.ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources)
             : base(sourceModule.ContainingSourceAssembly.DeclaringCompilation,
                    sourceModule,
@@ -589,25 +589,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
                 }
             }
-        }
-
-        internal sealed override byte LinkerMajorVersion
-        {
-            //I have no idea why, but this can't be zero or signtool.exe can't operate on the binary.
-
-            //EDMAURER The Windows loader team says that this value is not used by them, 
-            //but the OS appcompat infrastructure uses it to identify apps. It is useful for us to have
-            //a mechanism to identify the compiler that produced the binary. This is the appropriate
-            //value to use for that. That is what it was invented for. We don't want to have the high
-            //bit set for this in case some users perform a signed comparision to determine if the value
-            //is less than some version. The C++ linker is at 0x0B. We'll start our numbering at 0x30.
-            //Roslyn VB will start numbering at 0x50
-            get { return 0x30; }
-        }
-
-        internal sealed override byte LinkerMinorVersion
-        {
-            get { return 0; }
         }
 
         internal IEnumerable<AssemblySymbol> GetReferencedAssembliesUsedSoFar()
@@ -1271,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             // Translate the dynamic type to System.Object special type to avoid duplicate entries in TypeRef table. 
             // We don't need to recursively replace the dynamic type with Object since the DynamicTypeSymbol adapter 
-            // masquarades the TypeRef as System.Object when used to encode signatures.
+            // masquerades the TypeRef as System.Object when used to encode signatures.
             return GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics);
         }
 

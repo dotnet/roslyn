@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Emit
     // sufficient to track a pair of implementing method and index.
     internal struct MethodImplKey : IEquatable<MethodImplKey>
     {
-        internal MethodImplKey(uint implementingMethod, int index)
+        internal MethodImplKey(int implementingMethod, int index)
         {
             Debug.Assert(implementingMethod > 0);
             Debug.Assert(index > 0);
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.Index = index;
         }
 
-        internal readonly uint ImplementingMethod;
+        internal readonly int ImplementingMethod;
         internal readonly int Index;
 
         public override bool Equals(object obj)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override int GetHashCode()
         {
-            return Hash.Combine((int)this.ImplementingMethod, this.Index);
+            return Hash.Combine(this.ImplementingMethod, this.Index);
         }
     }
 
@@ -124,14 +124,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 moduleVersionId: moduleVersionId,
                 ordinal: 0,
                 encId: default(Guid),
-                typesAdded: new Dictionary<Cci.ITypeDefinition, uint>(),
-                eventsAdded: new Dictionary<Cci.IEventDefinition, uint>(),
-                fieldsAdded: new Dictionary<Cci.IFieldDefinition, uint>(),
-                methodsAdded: new Dictionary<Cci.IMethodDefinition, uint>(),
-                propertiesAdded: new Dictionary<Cci.IPropertyDefinition, uint>(),
-                eventMapAdded: new Dictionary<uint, uint>(),
-                propertyMapAdded: new Dictionary<uint, uint>(),
-                methodImplsAdded: new Dictionary<MethodImplKey, uint>(),
+                typesAdded: new Dictionary<Cci.ITypeDefinition, int>(),
+                eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
+                fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
+                methodsAdded: new Dictionary<Cci.IMethodDefinition, int>(),
+                propertiesAdded: new Dictionary<Cci.IPropertyDefinition, int>(),
+                eventMapAdded: new Dictionary<int, int>(),
+                propertyMapAdded: new Dictionary<int, int>(),
+                methodImplsAdded: new Dictionary<MethodImplKey, int>(),
                 tableEntriesAdded: s_emptyTableSizes,
                 blobStreamLengthAdded: 0,
                 stringStreamLengthAdded: 0,
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: 0,
                 anonymousTypeMap: null, // Unset for initial metadata
                 synthesizedMembers: ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Empty,
-                methodsAddedOrChanged: new Dictionary<uint, AddedOrChangedMethodInfo>(),
+                methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 typeToEventMap: CalculateTypeEventMap(reader),
                 typeToPropertyMap: CalculateTypePropertyMap(reader),
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
         internal MetadataSymbols LazyMetadataSymbols;
-        
+
         internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
@@ -172,14 +172,14 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal readonly Guid EncId;
 
-        internal readonly IReadOnlyDictionary<Cci.ITypeDefinition, uint> TypesAdded;
-        internal readonly IReadOnlyDictionary<Cci.IEventDefinition, uint> EventsAdded;
-        internal readonly IReadOnlyDictionary<Cci.IFieldDefinition, uint> FieldsAdded;
-        internal readonly IReadOnlyDictionary<Cci.IMethodDefinition, uint> MethodsAdded;
-        internal readonly IReadOnlyDictionary<Cci.IPropertyDefinition, uint> PropertiesAdded;
-        internal readonly IReadOnlyDictionary<uint, uint> EventMapAdded;
-        internal readonly IReadOnlyDictionary<uint, uint> PropertyMapAdded;
-        internal readonly IReadOnlyDictionary<MethodImplKey, uint> MethodImplsAdded;
+        internal readonly IReadOnlyDictionary<Cci.ITypeDefinition, int> TypesAdded;
+        internal readonly IReadOnlyDictionary<Cci.IEventDefinition, int> EventsAdded;
+        internal readonly IReadOnlyDictionary<Cci.IFieldDefinition, int> FieldsAdded;
+        internal readonly IReadOnlyDictionary<Cci.IMethodDefinition, int> MethodsAdded;
+        internal readonly IReadOnlyDictionary<Cci.IPropertyDefinition, int> PropertiesAdded;
+        internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
+        internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
+        internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <summary>
         /// EnC metadata for methods added or updated since the initial generation, indexed by method row id.
         /// </summary>
-        internal readonly IReadOnlyDictionary<uint, AddedOrChangedMethodInfo> AddedOrChangedMethods;
+        internal readonly IReadOnlyDictionary<int, AddedOrChangedMethodInfo> AddedOrChangedMethods;
 
         /// <summary>
         /// Local variable names for methods from metadata,
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> DebugInformationProvider;
 
         internal readonly ImmutableArray<int> TableSizes;
-        internal readonly IReadOnlyDictionary<uint, uint> TypeToEventMap;
-        internal readonly IReadOnlyDictionary<uint, uint> TypeToPropertyMap;
-        internal readonly IReadOnlyDictionary<MethodImplKey, uint> MethodImpls;
+        internal readonly IReadOnlyDictionary<int, int> TypeToEventMap;
+        internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
+        internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
         private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
         internal readonly ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> SynthesizedMembers;
 
@@ -214,14 +214,14 @@ namespace Microsoft.CodeAnalysis.Emit
             Guid moduleVersionId,
             int ordinal,
             Guid encId,
-            IReadOnlyDictionary<Cci.ITypeDefinition, uint> typesAdded,
-            IReadOnlyDictionary<Cci.IEventDefinition, uint> eventsAdded,
-            IReadOnlyDictionary<Cci.IFieldDefinition, uint> fieldsAdded,
-            IReadOnlyDictionary<Cci.IMethodDefinition, uint> methodsAdded,
-            IReadOnlyDictionary<Cci.IPropertyDefinition, uint> propertiesAdded,
-            IReadOnlyDictionary<uint, uint> eventMapAdded,
-            IReadOnlyDictionary<uint, uint> propertyMapAdded,
-            IReadOnlyDictionary<MethodImplKey, uint> methodImplsAdded,
+            IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
+            IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
+            IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
+            IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
+            IReadOnlyDictionary<int, int> eventMapAdded,
+            IReadOnlyDictionary<int, int> propertyMapAdded,
+            IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -229,11 +229,11 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
-            IReadOnlyDictionary<uint, AddedOrChangedMethodInfo> methodsAddedOrChanged,
+            IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
-            IReadOnlyDictionary<uint, uint> typeToEventMap,
-            IReadOnlyDictionary<uint, uint> typeToPropertyMap,
-            IReadOnlyDictionary<MethodImplKey, uint> methodImpls)
+            IReadOnlyDictionary<int, int> typeToEventMap,
+            IReadOnlyDictionary<int, int> typeToPropertyMap,
+            IReadOnlyDictionary<MethodImplKey, int> methodImpls)
         {
             Debug.Assert(module != null);
             Debug.Assert((ordinal == 0) == (encId == default(Guid)));
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.StringStreamLengthAdded = stringStreamLengthAdded;
             this.UserStringStreamLengthAdded = userStringStreamLengthAdded;
             this.GuidStreamLengthAdded = guidStreamLengthAdded;
-            this._anonymousTypeMap = anonymousTypeMap;
+            _anonymousTypeMap = anonymousTypeMap;
             this.SynthesizedMembers = synthesizedMembers;
             this.AddedOrChangedMethods = methodsAddedOrChanged;
 
@@ -299,14 +299,14 @@ namespace Microsoft.CodeAnalysis.Emit
             CommonPEModuleBuilder moduleBuilder,
             int ordinal,
             Guid encId,
-            IReadOnlyDictionary<Cci.ITypeDefinition, uint> typesAdded,
-            IReadOnlyDictionary<Cci.IEventDefinition, uint> eventsAdded,
-            IReadOnlyDictionary<Cci.IFieldDefinition, uint> fieldsAdded,
-            IReadOnlyDictionary<Cci.IMethodDefinition, uint> methodsAdded,
-            IReadOnlyDictionary<Cci.IPropertyDefinition, uint> propertiesAdded,
-            IReadOnlyDictionary<uint, uint> eventMapAdded,
-            IReadOnlyDictionary<uint, uint> propertyMapAdded,
-            IReadOnlyDictionary<MethodImplKey, uint> methodImplsAdded,
+            IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
+            IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
+            IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
+            IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded,
+            IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded,
+            IReadOnlyDictionary<int, int> eventMapAdded,
+            IReadOnlyDictionary<int, int> propertyMapAdded,
+            IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int guidStreamLengthAdded,
             IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> synthesizedMembers,
-            IReadOnlyDictionary<uint, AddedOrChangedMethodInfo> addedOrChangedMethods,
+            IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
         {
             Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap != null);
@@ -401,39 +401,39 @@ namespace Microsoft.CodeAnalysis.Emit
             return ImmutableArray.Create(sizes);
         }
 
-        private static Dictionary<uint, uint> CalculateTypePropertyMap(MetadataReader reader)
+        private static Dictionary<int, int> CalculateTypePropertyMap(MetadataReader reader)
         {
-            var result = new Dictionary<uint, uint>();
+            var result = new Dictionary<int, int>();
 
-            uint rowId = 1;
+            int rowId = 1;
             foreach (var parentType in reader.GetTypesWithProperties())
             {
                 Debug.Assert(!parentType.IsNil);
-                result.Add((uint)reader.GetRowNumber(parentType), rowId);
+                result.Add(reader.GetRowNumber(parentType), rowId);
                 rowId++;
             }
 
             return result;
         }
 
-        private static Dictionary<uint, uint> CalculateTypeEventMap(MetadataReader reader)
+        private static Dictionary<int, int> CalculateTypeEventMap(MetadataReader reader)
         {
-            var result = new Dictionary<uint, uint>();
+            var result = new Dictionary<int, int>();
 
-            uint rowId = 1;
+            int rowId = 1;
             foreach (var parentType in reader.GetTypesWithEvents())
             {
                 Debug.Assert(!parentType.IsNil);
-                result.Add((uint)reader.GetRowNumber(parentType), rowId);
+                result.Add(reader.GetRowNumber(parentType), rowId);
                 rowId++;
             }
 
             return result;
         }
 
-        private static Dictionary<MethodImplKey, uint> CalculateMethodImpls(MetadataReader reader)
+        private static Dictionary<MethodImplKey, int> CalculateMethodImpls(MetadataReader reader)
         {
-            var result = new Dictionary<MethodImplKey, uint>();
+            var result = new Dictionary<MethodImplKey, int>();
             int n = reader.GetTableRowCount(TableIndex.MethodImpl);
             for (int row = 1; row <= n; row++)
             {
@@ -443,14 +443,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 // member refs currently, and since we don't allow changes to
                 // the set of methods a method def implements, the actual
                 // tokens of the implemented methods are not needed.)
-                var methodDefRow = (uint)MetadataTokens.GetRowNumber(methodImpl.MethodBody);
+                int methodDefRow = MetadataTokens.GetRowNumber(methodImpl.MethodBody);
                 int index = 1;
                 while (true)
                 {
                     var key = new MethodImplKey(methodDefRow, index);
                     if (!result.ContainsKey(key))
                     {
-                        result.Add(key, (uint)row);
+                        result.Add(key, row);
                         break;
                     }
                     index++;

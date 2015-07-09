@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' There's no real need to set MethodConversionKind.Error because there are no overloads of the same method where one 
                     ' may be legal to call because it's shared and the other's not.
-                    ' However to be future proove, we set it regardless.
+                    ' However to be future proof, we set it regardless.
                     methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
                 End If
 
@@ -1127,7 +1127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="syntaxNode">Location to use for various synthetic nodes and symbols.</param>
         ''' <param name="delegateInvoke">The Invoke method to "implement".</param>
         ''' <param name="methodGroup">The method group with the only method in it.</param>
-        ''' <param name="delegateRelaxation">Delegate relaxation to store withing the new BoundLambda node.</param>
+        ''' <param name="delegateRelaxation">Delegate relaxation to store within the new BoundLambda node.</param>
         ''' <param name="diagnostics"></param>
         Private Function BuildDelegateRelaxationLambda(
             syntaxNode As VisualBasicSyntaxNode,

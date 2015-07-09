@@ -487,7 +487,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             Submit(pendingSubmissions);
             return completion.Task;
-
         }
 
         private void Submit(PendingSubmission[] pendingSubmissions)
@@ -517,7 +516,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             public readonly string Input;
             public readonly TaskCompletionSource<object> Completion; // only set on the last submission to 
-                                                                       // inform caller about completion of batch
+                                                                     // inform caller about completion of batch
 
             public PendingSubmission(string input, TaskCompletionSource<object> completion)
             {
@@ -1844,14 +1843,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private void FinishCurrentSubmissionInput() 
+        private void FinishCurrentSubmissionInput()
         {
             Debug.Assert(CheckAccess());
 
             AppendLineNoPromptInjection(_currentLanguageBuffer);
             ApplyProtection(_currentLanguageBuffer, regions: null);
 
-            if (_adornmentToMinimize) 
+            if (_adornmentToMinimize)
             {
                 // TODO (tomat): remember the index of the adornment(s) in the current output and minimize those instead of the last one 
                 InlineAdornmentProvider.MinimizeLastInlineAdornment(TextView);

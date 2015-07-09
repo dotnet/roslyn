@@ -137,7 +137,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                             break;
                         }
                     }
-
                 }
 
                 set = builder.ToImmutable();

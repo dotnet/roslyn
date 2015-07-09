@@ -142,11 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static string MakeMethodScopedSynthesizedName(
             GeneratedNameKind kind,
-            int methodOrdinal, 
-            int methodGeneration, 
+            int methodOrdinal,
+            int methodGeneration,
             string methodNameOpt = null,
-            string suffix = null, 
-            int entityOrdinal = -1, 
+            string suffix = null,
+            int entityOrdinal = -1,
             int entityGeneration = -1,
             bool isTypeName = false)
         {

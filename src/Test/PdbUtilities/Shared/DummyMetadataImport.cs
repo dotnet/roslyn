@@ -324,7 +324,7 @@ namespace Roslyn.Test.PdbUtilities
 
             var sig = _metadataReaderOpt.GetStandaloneSignature((StandaloneSignatureHandle)MetadataTokens.Handle(tkSignature));
             var signature = _metadataReaderOpt.GetBlobBytes(sig.Signature);
-            
+
             GCHandle pinnedBuffer = GCHandle.Alloc(signature, GCHandleType.Pinned);
             ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
             pcbSig = signature.Length;

@@ -1194,7 +1194,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedContectualKeywordAsIdentifierInQuery()
+        Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierInQuery()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1235,7 +1235,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedContectualKeywordAsIdentifierInNestedQuery_1()
+        Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierInNestedQuery_1()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1284,7 +1284,7 @@ End Module
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Sub CSharp_SimplifyEscapedContectualKeywordAsIdentifierOutsideQuery()
+        Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierOutsideQuery()
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">

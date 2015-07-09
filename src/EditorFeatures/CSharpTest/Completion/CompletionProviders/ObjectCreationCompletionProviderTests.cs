@@ -29,7 +29,7 @@ void foo()
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotInAnonymouTypeObjectCreation1()
+        public void NotInAnonymousTypeObjectCreation1()
         {
             var markup = @"
 class C

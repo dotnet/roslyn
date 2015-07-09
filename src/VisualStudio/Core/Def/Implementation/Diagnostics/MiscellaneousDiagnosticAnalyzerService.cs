@@ -21,12 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Shared]
     internal partial class MiscellaneousDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly IDiagnosticAnalyzerService analyzerService;
+        private readonly IDiagnosticAnalyzerService _analyzerService;
 
         [ImportingConstructor]
         public MiscellaneousDiagnosticAnalyzerService(IDiagnosticAnalyzerService analyzerService)
         {
-            this.analyzerService = analyzerService;
+            _analyzerService = analyzerService;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

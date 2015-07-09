@@ -28,7 +28,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(context.Span);
             var fieldNode = GetFieldDeclarationNode(node);
-            if(fieldNode == null)
+            if (fieldNode == null)
             {
                 return;
             }
@@ -64,7 +64,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
         private static async Task<Document> AddSerializableAttributeToType(Document document, ITypeSymbol type, CancellationToken cancellationToken)
         {
             var editor = SymbolEditor.Create(document);
-            await editor.EditOneDeclarationAsync(type, (docEditor, declaration) => 
+            await editor.EditOneDeclarationAsync(type, (docEditor, declaration) =>
             {
                 var serializableAttr = docEditor.Generator.Attribute(docEditor.Generator.TypeExpression(WellKnownTypes.SerializableAttribute(docEditor.SemanticModel.Compilation)));
                 docEditor.AddAttribute(declaration, serializableAttr);
@@ -72,7 +72,7 @@ namespace Microsoft.AnalyzerPowerPack.Usage
 
             return editor.GetChangedDocuments().First();
         }
-        
+
         private class MyCodeAction : DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :

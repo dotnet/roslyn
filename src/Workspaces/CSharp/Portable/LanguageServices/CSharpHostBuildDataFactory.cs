@@ -16,11 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public CommandLineArguments CreateCommandLineArguments(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory)
         {
-#if SCRIPTING
             var parser = isInteractive ? CSharpCommandLineParser.Interactive : CSharpCommandLineParser.Default;
-#else
-            var parser = CSharpCommandLineParser.Default;
-#endif
             return parser.Parse(arguments, baseDirectory, sdkDirectory);
         }
     }

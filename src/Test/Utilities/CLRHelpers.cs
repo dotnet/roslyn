@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static bool IsRunningOnMono()
         {
-            return Type.GetType ("Mono.Runtime") != null;
+            return Type.GetType("Mono.Runtime") != null;
         }
 
         public static object GetRuntimeInterfaceAsObject(Guid clsid, Guid riid)

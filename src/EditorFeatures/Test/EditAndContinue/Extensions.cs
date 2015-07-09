@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 firstLine: includeFirstLines ? GetLineAt(newSource, d.Span.Start) : null));
         }
 
-        const string LineSeparator = "\r\n";
+        private const string LineSeparator = "\r\n";
 
         private static string GetLineAt(string source, int position)
         {

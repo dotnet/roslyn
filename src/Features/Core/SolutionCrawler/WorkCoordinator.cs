@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _documentAndProjectWorkerProcessor.Shutdown();
 
-                SolutionCrawlerLogger.LogWorkCoordiantorShutdown(CorrelationId, _logAggregator);
+                SolutionCrawlerLogger.LogWorkCoordinatorShutdown(CorrelationId, _logAggregator);
 
                 if (blockingShutdown)
                 {

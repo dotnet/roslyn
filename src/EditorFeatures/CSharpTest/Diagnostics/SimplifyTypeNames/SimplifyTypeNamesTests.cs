@@ -439,7 +439,7 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void AliasInSibilingNamespace()
+        public void AliasInSiblingNamespace()
         {
             var content =
 @"[|namespace Root 
@@ -1339,7 +1339,7 @@ interface I<T> { }");
 
         [WorkItem(539000)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void SimplifyMissingOnUmentionableTypeParameter1()
+        public void SimplifyMissingOnUnmentionableTypeParameter1()
         {
             var content =
 @"class A<T>

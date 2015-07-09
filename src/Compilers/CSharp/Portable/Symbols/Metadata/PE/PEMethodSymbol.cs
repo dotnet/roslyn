@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private Symbol _associatedPropertyOrEventOpt;
         private PackedFlags _packedFlags;
         private readonly ushort _flags;     // MethodAttributes
-        private readonly ushort _implFlags; // MethoImplAttributes
+        private readonly ushort _implFlags; // MethodImplAttributes
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
         private SignatureData _lazySignature;
         private ImmutableArray<MethodSymbol> _lazyExplicitMethodImplementations;

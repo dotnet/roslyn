@@ -397,8 +397,8 @@ class C
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
                     var foo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Foo");
-                    AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ? 
-                                        new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } : 
+                    AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
+                                        new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
                                         new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
 
                     var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Foo>d__0");
@@ -1606,7 +1606,7 @@ public class Test
 }
 ";
 
-            foreach (var options in new [] { TestOptions.ReleaseDll, TestOptions.DebugDll })
+            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
             {
                 var reference = CreateCompilationWithMscorlib45(source, options: options).
                     EmitToImageReference(new EmitOptions(metadataOnly: true));

@@ -1209,6 +1209,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             lookupResult.Free();
             return result;
         }
-
     }
 }
