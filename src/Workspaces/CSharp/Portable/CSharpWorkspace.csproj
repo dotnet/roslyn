@@ -116,7 +116,7 @@
     <Compile Include="CodeGeneration\UsingDirectivesAdder.Rewriter.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="LanguageServices\CSharpHostBuildDataFactory.cs" />
+    <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

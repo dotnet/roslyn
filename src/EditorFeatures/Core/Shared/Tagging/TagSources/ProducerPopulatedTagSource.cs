@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var newTagsByBuffer = newTagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
             var tagsToKeepByBuffer = GetTagsToKeepByBuffer(spansToInvalidate);
 
-            var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+            var map = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
             var allTags = new List<ITagSpan<TTag>>();
             foreach (var newTagsForBuffer in newTagsByBuffer)
             {
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var afterTagsToKeep = new List<ITagSpan<TTag>>();
             this.AddTagsToKeep(spanToInvalidate, beforeTagsToKeep, afterTagsToKeep);
 
-            var map = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+            var map = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
 
             foreach (var newTagsForBuffer in newTagsByBuffer)
             {
@@ -580,6 +580,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return map;
         }
 
+        /// <summary>
+        /// Returns all that tags that fully precede 'spanToInvalidate' and all the tags that
+        /// fully follow it.  All the tag spans are normalized to the snapshot passed in through
+        /// 'spanToInvalidate'.
+        /// </summary>
         private void AddTagsToKeep(SnapshotSpan spanToInvalidate,
                                    List<ITagSpan<TTag>> beforeTags,
                                    List<ITagSpan<TTag>> afterTags)

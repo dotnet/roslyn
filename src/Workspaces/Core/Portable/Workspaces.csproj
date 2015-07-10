@@ -406,7 +406,6 @@
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Log\WorkspaceErrorLogger.cs" />
-    <Compile Include="HostBuild.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
@@ -580,7 +579,7 @@
     <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
     <Compile Include="Workspace\Host\Caching\IWorkspaceCacheService.cs" />
-    <Compile Include="Workspace\Host\CommandLineArgumentsFactory\ICommandLineArgumentsFactoryService.cs" />
+    <Compile Include="Workspace\Host\CommandLine\ICommandLineParserService.cs" />
     <Compile Include="Workspace\Host\HostContext\HostContextService.cs" />
     <Compile Include="Workspace\Host\HostContext\IHostContextService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />

@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface ICommandLineArgumentsFactoryService : ILanguageService
+    internal interface ICommandLineParserService : ILanguageService
     {
-        CommandLineArguments CreateCommandLineArguments(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory);
+        CommandLineArguments Parse(IEnumerable<string> arguments, string baseDirectory, bool isInteractive, string sdkDirectory);
     }
 }
