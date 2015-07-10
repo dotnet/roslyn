@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -31,80 +31,80 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public bool AllowUnsafeBlocks
         {
-            set { _store["AllowUnsafeBlocks"] = value; }
-            get { return _store.GetOrDefault("AllowUnsafeBlocks", false); }
+            set { _store[nameof(AllowUnsafeBlocks)] = value; }
+            get { return _store.GetOrDefault(nameof(AllowUnsafeBlocks), false); }
         }
 
         public string ApplicationConfiguration
         {
-            set { _store["ApplicationConfiguration"] = value; }
-            get { return (string)_store["ApplicationConfiguration"]; }
+            set { _store[nameof(ApplicationConfiguration)] = value; }
+            get { return (string)_store[nameof(ApplicationConfiguration)]; }
         }
 
         public string BaseAddress
         {
-            set { _store["BaseAddress"] = value; }
-            get { return (string)_store["BaseAddress"]; }
+            set { _store[nameof(BaseAddress)] = value; }
+            get { return (string)_store[nameof(BaseAddress)]; }
         }
 
         public bool CheckForOverflowUnderflow
         {
-            set { _store["CheckForOverflowUnderflow"] = value; }
-            get { return _store.GetOrDefault("CheckForOverflowUnderflow", false); }
+            set { _store[nameof(CheckForOverflowUnderflow)] = value; }
+            get { return _store.GetOrDefault(nameof(CheckForOverflowUnderflow), false); }
         }
 
         public string DocumentationFile
         {
-            set { _store["DocumentationFile"] = value; }
-            get { return (string)_store["DocumentationFile"]; }
+            set { _store[nameof(DocumentationFile)] = value; }
+            get { return (string)_store[nameof(DocumentationFile)]; }
         }
 
         public string DisabledWarnings
         {
-            set { _store["DisabledWarnings"] = value; }
-            get { return (string)_store["DisabledWarnings"]; }
+            set { _store[nameof(DisabledWarnings)] = value; }
+            get { return (string)_store[nameof(DisabledWarnings)]; }
         }
 
         public bool ErrorEndLocation
         {
-            set { _store["ErrorEndLocation"] = value; }
-            get { return _store.GetOrDefault("ErrorEndLocation", false); }
+            set { _store[nameof(ErrorEndLocation)] = value; }
+            get { return _store.GetOrDefault(nameof(ErrorEndLocation), false); }
         }
 
         public string ErrorReport
         {
-            set { _store["ErrorReport"] = value; }
-            get { return (string)_store["ErrorReport"]; }
+            set { _store[nameof(ErrorReport)] = value; }
+            get { return (string)_store[nameof(ErrorReport)]; }
         }
 
         public bool GenerateFullPaths
         {
-            set { _store["GenerateFullPaths"] = value; }
-            get { return _store.GetOrDefault("GenerateFullPaths", false); }
+            set { _store[nameof(GenerateFullPaths)] = value; }
+            get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
         }
 
         public string LangVersion
         {
-            set { _store["LangVersion"] = value; }
-            get { return (string)_store["LangVersion"]; }
+            set { _store[nameof(LangVersion)] = value; }
+            get { return (string)_store[nameof(LangVersion)]; }
         }
 
         public string ModuleAssemblyName
         {
-            set { _store["ModuleAssemblyName"] = value; }
-            get { return (string)_store["ModuleAssemblyName"]; }
+            set { _store[nameof(ModuleAssemblyName)] = value; }
+            get { return (string)_store[nameof(ModuleAssemblyName)]; }
         }
 
         public bool NoStandardLib
         {
-            set { _store["NoStandardLib"] = value; }
-            get { return _store.GetOrDefault("NoStandardLib", false); }
+            set { _store[nameof(NoStandardLib)] = value; }
+            get { return _store.GetOrDefault(nameof(NoStandardLib), false); }
         }
 
         public string PdbFile
         {
-            set { _store["PdbFile"] = value; }
-            get { return (string)_store["PdbFile"]; }
+            set { _store[nameof(PdbFile)] = value; }
+            get { return (string)_store[nameof(PdbFile)]; }
         }
 
         /// <summary>
@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         public string PreferredUILang
         {
-            set { _store["PreferredUILang"] = value; }
-            get { return (string)_store["PreferredUILang"]; }
+            set { _store[nameof(PreferredUILang)] = value; }
+            get { return (string)_store[nameof(PreferredUILang)]; }
         }
 
         public string VsSessionGuid
         {
-            set { _store["VsSessionGuid"] = value; }
-            get { return (string)_store["VsSessionGuid"]; }
+            set { _store[nameof(VsSessionGuid)] = value; }
+            get { return (string)_store[nameof(VsSessionGuid)]; }
         }
 
         public bool UseHostCompilerIfAvailable
@@ -134,20 +134,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public int WarningLevel
         {
-            set { _store["WarningLevel"] = value; }
-            get { return _store.GetOrDefault("WarningLevel", 4); }
+            set { _store[nameof(WarningLevel)] = value; }
+            get { return _store.GetOrDefault(nameof(WarningLevel), 4); }
         }
 
         public string WarningsAsErrors
         {
-            set { _store["WarningsAsErrors"] = value; }
-            get { return (string)_store["WarningsAsErrors"]; }
+            set { _store[nameof(WarningsAsErrors)] = value; }
+            get { return (string)_store[nameof(WarningsAsErrors)]; }
         }
 
         public string WarningsNotAsErrors
         {
-            set { _store["WarningsNotAsErrors"] = value; }
-            get { return (string)_store["WarningsNotAsErrors"]; }
+            set { _store[nameof(WarningsNotAsErrors)] = value; }
+            get { return (string)_store[nameof(WarningsNotAsErrors)]; }
         }
 
         #endregion
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the path to the tool to execute.
         /// </summary>
-        override protected string GenerateFullPathToTool()
+        protected override string GenerateFullPathToTool()
         {
             string pathToTool = ToolLocationHelper.GetPathToBuildToolsFile(ToolName, ToolLocationHelper.CurrentToolsVersion);
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Fills the provided CommandLineBuilderExtension with those switches and other information that can go into a response file.
         /// </summary>
-        override protected internal void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
+        protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
             commandLine.AppendSwitchIfNotNull("/lib:", this.AdditionalLibPaths, ",");
             commandLine.AppendPlusOrMinusSwitch("/unsafe", this._store, "AllowUnsafeBlocks");
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///     NoActionReturnFailure           Bad parameters were passed into the task.
         /// </summary>
         /// <owner>RGoel</owner>
-        override protected HostObjectInitializationStatus InitializeHostObject()
+        protected override HostObjectInitializationStatus InitializeHostObject()
         {
             if (this.HostObject != null)
             {
@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// task.  Returns true if the compilation succeeded, otherwise false.  
         /// </summary>
         /// <owner>RGoel</owner>
-        override protected bool CallHostObjectToExecute()
+        protected override bool CallHostObjectToExecute()
         {
             Debug.Assert(this.HostObject != null, "We should not be here if the host object has not been set.");
 
