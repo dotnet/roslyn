@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MakeName(topLevelMethod.Name, lambdaNode.Symbol.Name, topLevelMethodId, closureKind, lambdaId) :
                     MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
                    (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
+                       | (closureKind == ClosureKind.Static ? DeclarationModifiers.Static : 0)
                        | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
             _topLevelMethod = topLevelMethod;
@@ -42,11 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             lambdaFrame = this.ContainingType as LambdaFrame;
             switch (closureKind)
             {
-                case ClosureKind.Static: // all type parameters on method (except the top level method's)
+                case ClosureKind.Singleton: // all type parameters on method (except the top level method's)
                     Debug.Assert(lambdaFrame != null);
                     typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.ContainingMethod);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
+                case ClosureKind.Static:
                     Debug.Assert(lambdaFrame == null);
                     typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, null);
                     break;

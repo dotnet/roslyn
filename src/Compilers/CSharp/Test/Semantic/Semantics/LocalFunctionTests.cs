@@ -374,6 +374,43 @@ Console.Write(str + ' ' + x);
             VerifyOutputInMain(source, "2 2", "System");
         }
 
+        // StaticNoClosure*() are generic because the reference to the locfunc is constructed, and actual local function is not
+        // (i.e. testing to make sure we use MethodSymbol.OriginalDefinition in LambdaRewriter.Analysis)
+        [Fact]
+        public void StaticNoClosure()
+        {
+            var source = @"
+T Foo<T>(T x)
+{
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().IsStatic);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    Console.Write(' ');
+    return x;
+}
+Console.Write(Foo(2));
+";
+            VerifyOutputInMain(source, "True Program 2", "System");
+        }
+
+        [Fact]
+        public void StaticNoClosureDelegate()
+        {
+            var source = @"
+T Foo<T>(T x)
+{
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().IsStatic);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    Console.Write(' ');
+    return x;
+}
+Func<int, int> foo = Foo;
+Console.Write(foo(2));
+";
+            VerifyOutputInMain(source, "False Program+<>c 2", "System");
+        }
+
         [Fact]
         public void ClosureBasic()
         {
@@ -2088,8 +2125,8 @@ void Local()
 }
 Local();
 ";
-            // a closure class that captures looks like "Program+<>c__DisplayClass0_0", not "Program+<>c"
-            VerifyOutputInMain(source, "2 Program+<>c", "System");
+            // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
+            VerifyOutputInMain(source, "2 Program", "System");
         }
 
         [Fact(Skip = "Dynamic local function arguments not supported yet")]

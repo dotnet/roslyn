@@ -706,14 +706,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // for instance lambdas, receiver is the frame
             // for static lambdas, get the singleton receiver
-            if (closureKind != ClosureKind.Static)
-            {
-                receiver = FrameOfType(syntax, constructedFrame);
-            }
-            else
+            if (closureKind == ClosureKind.Singleton)
             {
                 var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
                 receiver = new BoundFieldAccess(syntax, null, field, constantValueOpt: null);
+            }
+            else if (closureKind == ClosureKind.Static)
+            {
+                receiver = null;
+            }
+            else // ThisOnly and General
+            {
+                receiver = FrameOfType(syntax, constructedFrame);
             }
 
             synthesizedMethod = synthesizedMethod.AsMember(constructedFrame);
@@ -1122,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "pair" query lambdas
                 lambdaOrLambdaBodySyntax = syntax;
                 isLambdaBody = false;
-                Debug.Assert(closureKind == ClosureKind.Static);
+                Debug.Assert(closureKind == ClosureKind.Singleton);
             }
             else
             {
@@ -1169,11 +1173,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_analysis.CapturedVariablesByLambda[node.Symbol].Count == 0)
             {
-                // TODO: Check the following and don't use a static frame if true (just emit a static method)
-                // _analysis.methodsConvertedToDelegates.Contains(node.Symbol)
-                translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
-                closureKind = ClosureKind.Static;
-                closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
+                if (_analysis.MethodsConvertedToDelegates.Contains(node.Symbol))
+                {
+                    translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
+                    closureKind = ClosureKind.Singleton;
+                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
+                }
+                else
+                {
+                    containerAsFrame = null;
+                    translatedLambdaContainer = _topLevelMethod.ContainingType;
+                    closureKind = ClosureKind.Static;
+                    closureOrdinal = LambdaDebugInfo.StaticClosureOrdinal;
+                }
             }
             else
             {
@@ -1214,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // switch to the generated method
 
             _currentMethod = synthesizedMethod;
-            if (closureKind == ClosureKind.Static)
+            if (closureKind == ClosureKind.Static || closureKind == ClosureKind.Singleton)
             {
                 // no link from a static lambda to its container
                 _innermostFramePointer = _currentFrameThis = null;
@@ -1299,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if the block containing the lambda is not the innermost block,
             // or the lambda is static, then the lambda object should be cached in its frame.
             // NOTE: we are not caching static lambdas in static ctors - cannot reuse such cache.
-            var shouldCacheForStaticMethod = closureKind == ClosureKind.Static &&
+            var shouldCacheForStaticMethod = closureKind == ClosureKind.Singleton &&
                 _currentMethod.MethodKind != MethodKind.StaticConstructor &&
                 !referencedMethod.IsGenericMethod;
 
@@ -1331,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lambdaId.Ordinal,
                             lambdaId.Generation);
 
-                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Static);
+                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, _topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Singleton);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
                         cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                     }

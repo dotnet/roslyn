@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitLambda(BoundLambda node)
             {
-                MethodsConvertedToDelegates.Add(node.Symbol);
+                MethodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
                 return VisitLambdaOrFunction(node);
             }
 
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Use OriginalDefinition to strip generic type parameters
                     ReferenceVariable(node.Syntax, node.MethodOpt.OriginalDefinition);
-                    MethodsConvertedToDelegates.Add(node.MethodOpt);
+                    MethodsConvertedToDelegates.Add(node.MethodOpt.OriginalDefinition);
                 }
                 return base.VisitDelegateCreationExpression(node);
             }
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Use OriginalDefinition to strip generic type parameters
                         ReferenceVariable(node.Syntax, node.SymbolOpt.OriginalDefinition);
-                        MethodsConvertedToDelegates.Add(node.SymbolOpt);
+                        MethodsConvertedToDelegates.Add(node.SymbolOpt.OriginalDefinition);
                     }
                     if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
                     {
