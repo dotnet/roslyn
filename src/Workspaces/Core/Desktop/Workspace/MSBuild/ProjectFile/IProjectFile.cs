@@ -37,11 +37,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         string GetDocumentExtension(SourceCodeKind kind);
 
         /// <summary>
-        /// Gets a specific project file property.
-        /// </summary>
-        string GetPropertyValue(string name);
-
-        /// <summary>
         /// Add a source document to a project file.
         /// </summary>
         void AddDocument(string filePath, string logicalPath = null);

@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -1259,7 +1260,6 @@ public class Test
 
         #region UnverifiableCode, SecurityPermission(SkipVerification)
 
-        // Verify via CCI
         [Fact]
         public void CheckUnsafeAttributes1()
         {
@@ -1282,7 +1282,6 @@ class C
             VerifyUnverifiableCodeAttribute(moduleAttribute, compilation);
         }
 
-        // Verify via CCI (module case)
         [Fact]
         public void CheckUnsafeAttributes2()
         {
@@ -1314,8 +1313,8 @@ class C
 
             var assemblyAttributeArgument = assemblyAttribute.CommonConstructorArguments.Single();
             Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction), assemblyAttributeArgument.Type);
-            Assert.Equal(Cci.SecurityAction.RequestMinimum, securityAttribute.Action);
-            Assert.Equal(Cci.SecurityAction.RequestMinimum, (Cci.SecurityAction)assemblyAttributeArgument.Value);
+            Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action);
+            Assert.Equal(DeclarativeSecurityAction.RequestMinimum, (DeclarativeSecurityAction)(int)assemblyAttributeArgument.Value);
 
             var assemblyAttributeNamedArgument = assemblyAttribute.CommonNamedArguments.Single();
             Assert.Equal("SkipVerification", assemblyAttributeNamedArgument.Key);
