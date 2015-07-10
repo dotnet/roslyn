@@ -2899,7 +2899,7 @@ end structure
 
                     ' Verify <System.Security.Permissions.HostProtection(MayLeakOnAbort := true)>
                     Dim securityAttribute = typeSecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.LinkDemand, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.LinkDemand, securityAttribute.Action)
                     Dim typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(hostProtectionAttr, typeAttribute.AttributeClass)
                     Assert.Equal(0, typeAttribute.CommonConstructorArguments.Length)

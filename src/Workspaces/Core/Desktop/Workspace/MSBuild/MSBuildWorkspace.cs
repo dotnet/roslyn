@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -631,8 +632,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private async Task<ProjectId> LoadProjectAsync(string projectFilePath, IProjectFileLoader loader, bool preferMetadata, Dictionary<ProjectId, ProjectInfo> loadedProjects, CancellationToken cancellationToken)
         {
-            System.Diagnostics.Debug.Assert(projectFilePath != null);
-            System.Diagnostics.Debug.Assert(loader != null);
+            Debug.Assert(projectFilePath != null);
+            Debug.Assert(loader != null);
 
             var projectId = this.GetOrCreateProjectId(projectFilePath);
 
@@ -640,6 +641,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectFile = await loader.LoadProjectFileAsync(projectFilePath, _properties, cancellationToken).ConfigureAwait(false);
             var projectFileInfo = await projectFile.GetProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
+
+            var projectDirectory = Path.GetDirectoryName(projectFilePath);
+            var outputFilePath = projectFileInfo.OutputFilePath;
+            var outputDirectory = Path.GetDirectoryName(outputFilePath);
 
             VersionStamp version;
             if (!string.IsNullOrEmpty(projectFilePath) && File.Exists(projectFilePath))
@@ -651,11 +656,37 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 version = VersionStamp.Create();
             }
 
-            // Documents
-            var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
-            CheckDocuments(docFileInfos, projectFilePath, projectId);
+            // translate information from command line args
+            var commandLineParser = this.Services.GetLanguageServices(loader.Language).GetService<ICommandLineParserService>();
+            var metadataService = this.Services.GetService<IMetadataService>();
+            var analyzerService = this.Services.GetService<IAnalyzerService>();
 
-            Encoding defaultEncoding = GetDefaultEncoding(projectFileInfo.CodePage);
+            var commandLineArgs = commandLineParser.Parse(
+                arguments: projectFileInfo.CommandLineArgs,
+                baseDirectory: projectDirectory, 
+                isInteractive: false, 
+                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
+
+            var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
+            var metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, metadataService.GetProvider()));
+
+            var analyzerLoader = analyzerService.GetLoader();
+            foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
+            {
+                analyzerLoader.AddDependencyLocation(path);
+            }
+
+            var analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
+
+            var defaultEncoding = commandLineArgs.Encoding;
+
+            // docs & additional docs
+            var docFileInfos = projectFileInfo.Documents.ToImmutableArrayOrEmpty();
+            var additionalDocFileInfos = projectFileInfo.AdditionalDocuments.ToImmutableArrayOrEmpty();
+
+            // check for duplicate documents
+            var allDocFileInfos = docFileInfos.AddRange(additionalDocFileInfos);
+            CheckDocuments(allDocFileInfos, projectFilePath, projectId);
 
             var docs = new List<DocumentInfo>();
             foreach (var docFileInfo in docFileInfos)
@@ -675,7 +706,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var additionalDocs = new List<DocumentInfo>();
-            foreach (var docFileInfo in projectFileInfo.AdditionalDocuments)
+            foreach (var docFileInfo in additionalDocFileInfos)
             {
                 string name;
                 ImmutableArray<string> folders;
@@ -695,13 +726,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var resolvedReferences = await this.ResolveProjectReferencesAsync(
                 projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
-            var metadataReferences = projectFileInfo.MetadataReferences
-                .Concat(resolvedReferences.MetadataReferences);
-
-            var outputFilePath = projectFileInfo.OutputFilePath;
-            var assemblyName = projectFileInfo.AssemblyName;
+            // add metadata references for project refs converted to metadata refs
+            metadataReferences = metadataReferences.Concat(resolvedReferences.MetadataReferences);
 
             // if the project file loader couldn't figure out an assembly name, make one using the project's file path.
+            var assemblyName = commandLineArgs.CompilationName;
             if (string.IsNullOrWhiteSpace(assemblyName))
             {
                 assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
@@ -713,6 +742,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
+            // make sure that doc-comments at least get parsed.
+            var parseOptions = commandLineArgs.ParseOptions;
+            if (parseOptions.DocumentationMode == DocumentationMode.None)
+            {
+                parseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Parse);
+            }
+
+            // add all the extra options that are really behavior overrides
+            var compOptions = commandLineArgs.CompilationOptions
+                    .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
+                    .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
+                    .WithMetadataReferenceResolver(
+                        new AssemblyReferenceResolver(
+                            new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
+                            MetadataFileReferenceProvider.Default))
+                    .WithStrongNameProvider(new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputFilePath)))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+
             loadedProjects.Add(
                 projectId,
                 ProjectInfo.Create(
@@ -723,36 +770,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     loader.Language,
                     projectFilePath,
                     outputFilePath,
-                    projectFileInfo.CompilationOptions,
-                    projectFileInfo.ParseOptions,
-                    docs,
-                    resolvedReferences.ProjectReferences,
-                    metadataReferences,
-                    analyzerReferences: projectFileInfo.AnalyzerReferences,
+                    compilationOptions: compOptions,
+                    parseOptions: parseOptions,
+                    documents: docs,
+                    projectReferences: resolvedReferences.ProjectReferences,
+                    metadataReferences: metadataReferences,
+                    analyzerReferences: analyzerReferences,
                     additionalDocuments: additionalDocs,
                     isSubmission: false,
                     hostObjectType: null));
 
             return projectId;
-        }
-
-        private static Encoding GetDefaultEncoding(int codePage)
-        {
-            // If no CodePage was specified in the project file, then the FileTextLoader will 
-            // attempt to use UTF8 before falling back on Encoding.Default.
-            if (codePage == 0)
-            {
-                return null;
-            }
-
-            try
-            {
-                return Encoding.GetEncoding(codePage);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                return null;
-            }
         }
 
         private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };

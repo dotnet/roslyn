@@ -200,7 +200,7 @@
     <Compile Include="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
     <Compile Include="Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="LanguageServices\VisualBasicCompilationFactoryService.vb" />
-    <Compile Include="LanguageServices\VisualBasicHostBuildDataFactory.vb" />
+    <Compile Include="LanguageServices\VisualBasicCommandLineParserService.vb" />
     <Compile Include="LanguageServices\VisualBasicSemanticFactsService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDeclarationService.vb" />
     <Compile Include="LanguageServices\VisualBasicSyntaxFactsService.vb" />

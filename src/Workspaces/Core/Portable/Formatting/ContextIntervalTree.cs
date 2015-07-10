@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Func<T, int, int, bool> _containPredicate;
 
         public ContextIntervalTree(IIntervalIntrospector<T> introspector)
-            : base(introspector)
+            : base(introspector, values: null)
         {
             _edgeExclusivePredicate = ContainsEdgeExclusive;
             _edgeInclusivePredicate = ContainsEdgeInclusive;
@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public void AddIntervalInPlace(T value)
         {
-            var newNode = new Node(Introspector, value);
-            this.root = Insert(root, newNode, Introspector, inPlace: true);
+            var newNode = new Node(value);
+            this.root = Insert(root, newNode, Introspector);
         }
 
         public T GetSmallestEdgeExclusivelyContainingInterval(int start, int length)
