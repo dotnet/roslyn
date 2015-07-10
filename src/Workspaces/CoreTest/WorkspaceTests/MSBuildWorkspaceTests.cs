@@ -1563,6 +1563,13 @@ class C1
         public void TestCompilationOptions_VisualBasic_OptionStrict_Off()
         {
             CreateVBFilesWith("OptionStrict", "Off");
+            AssertVBOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Off, options => options.OptionStrict);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_VisualBasic_OptionStrict_Custom()
+        {
+            CreateVBFilesWith("OptionStrict", "Custom");
             AssertVBOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Custom, options => options.OptionStrict);
         }
 
