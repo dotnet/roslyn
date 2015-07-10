@@ -132,6 +132,7 @@
     <Compile Include="Compilation.EmitStreamProvider.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
+    <Compile Include="InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="CorLightup.cs" />
     <Compile Include="Desktop\AssemblyPortabilityPolicy.cs" />

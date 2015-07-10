@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -243,23 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
-        private IEnumerable<ICompletionRules> GetCompletionRules()
-        {
-            var defaultRules = GetDefaultCompletionRules();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
-            {
-                var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionRules, this.SubjectBuffer);
-
-                return defaultRules.Concat(extensionProviders);
-            }
-
-            return defaultRules;
-        }
-
-        private IEnumerable<ICompletionRules> GetDefaultCompletionRules()
+        private ICompletionRules GetCompletionRules()
         {
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
@@ -267,11 +250,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var service = document.Project.LanguageServices.GetService<ICompletionService>();
                 if (service != null)
                 {
-                    return SpecializedCollections.SingletonEnumerable(service.GetDefaultCompletionRules());
+                    return service.GetDefaultCompletionRules();
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<ICompletionRules>();
+            return null;
         }
 
         private IEnumerable<ICompletionProvider> GetCompletionProviders()

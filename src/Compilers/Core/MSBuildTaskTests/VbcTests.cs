@@ -66,5 +66,36 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             test("D1,D2");
             test("D1 D2");
         }
+
+        [Fact]
+        public void Features()
+        {
+            Action<string> test = (s) =>
+            {
+                var vbc = new Vbc();
+                vbc.Features = s;
+                vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+                Assert.Equal(@"/optionstrict:custom /out:test.exe /features:a /features:b test.vb", vbc.GenerateResponseFileContents());
+            };
+
+            test("a;b");
+            test("a,b");
+            test("a b");
+            test(",a;b ");
+            test(";a;;b;");
+            test(",a,,b,");
+        }
+
+        [Fact]
+        public void FeaturesEmpty()
+        {
+            foreach (var cur in new[] { "", null })
+            {
+                var vbc = new Vbc();
+                vbc.Features = cur;
+                vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+                Assert.Equal(@"/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            }
+        }
     }
 }

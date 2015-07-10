@@ -83,6 +83,7 @@
   <ItemGroup>
     <Compile Include="CodeGeneration\SymbolEditorTests.cs" />
     <Compile Include="CodeGeneration\SyntaxGeneratorTests.cs" />
+    <Compile Include="CSharpCommandLineParserServiceTests.cs" />
     <Compile Include="Formatting\CSharpFormattingTestBase.cs" />
     <Compile Include="Formatting\FormattingElasticTriviaTests.cs" />
     <Compile Include="Formatting\FormattingMultipleSpanTests.cs" />

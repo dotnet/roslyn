@@ -6053,13 +6053,9 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             args.Errors.Verify()
             Assert.Empty(args.ParseOptions.Features)
 
-            args = DefaultParse({"/features:,", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("", args.ParseOptions.Features.Single().Key)
-
             args = DefaultParse({"/features:Test,", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
-            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "true"}, {"", "true"}}))
+            Assert.True(args.ParseOptions.Features.SetEquals(New Dictionary(Of String, String) From {{"Test", "true"}}))
         End Sub
 
         <Fact>
