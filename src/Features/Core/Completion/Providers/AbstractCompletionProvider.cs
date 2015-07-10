@@ -3,39 +3,40 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractCompletionProvider : ICompletionProvider
+    internal abstract partial class AbstractCompletionProvider : CompletionListProvider
     {
-        public abstract bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar);
-        public abstract bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar);
-        public abstract bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options);
-
         protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
-        public async Task<CompletionItemGroup> GetGroupAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task RegisterCompletionListAsync(CompletionListContext context)
         {
-            var items = await this.GetItemsAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            var builder = await this.GetBuilderAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var items = await this.GetItemsAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
 
             if (items == null && builder == null)
             {
-                return null;
+                return;
             }
 
-            return new CompletionItemGroup(
-                items ?? SpecializedCollections.EmptyEnumerable<CompletionItem>(),
-                builder,
-                await this.IsExclusiveAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false));
-        }
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    context.AddCompletionItem(item);
+                }
+            }
 
-        public virtual TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
+            if (builder != null)
+            {
+                context.RegisterBuilder(builder);
+            }
+
+            var isExclusive = await this.IsExclusiveAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+
+            context.MakeExclusive(isExclusive);
         }
 
         protected virtual Task<bool> IsExclusiveAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -72,11 +73,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             return SpecializedTasks.Default<CompletionItem>();
-        }
-
-        public virtual bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return false;
         }
     }
 }

@@ -1,31 +1,26 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 {
-    internal abstract class SuggestionModeCompletionProvider : ICompletionProvider
+    internal abstract class SuggestionModeCompletionProvider : CompletionListProvider
     {
         protected abstract Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
         protected abstract TextSpan GetFilterSpan(SourceText text, int position);
 
-        public async Task<CompletionItemGroup> GetGroupAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task RegisterCompletionListAsync(CompletionListContext context)
         {
-            var builder = await this.GetBuilderAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            if (builder == null)
+            var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            if (builder != null)
             {
-                return null;
+                context.RegisterBuilder(builder);
             }
-
-            return new CompletionItemGroup(
-                SpecializedCollections.EmptyEnumerable<CompletionItem>(),
-                builder,
-                isExclusive: false);
         }
 
         protected CompletionItem CreateEmptyBuilder(SourceText text, int position)
@@ -43,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
                 isBuilder: true);
         }
 
-        public TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null) => new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
-        public bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
-        public bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
-        public bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options) => false;
-        public bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar) => false;
+        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null) => new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
+        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
+        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
+        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options) => false;
+        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar) => false;
     }
 }

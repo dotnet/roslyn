@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("LoadCommandCompletionProvider", InteractiveLanguageNames.InteractiveCommand)]
-    internal class LoadCommandCompletionProvider : AbstractCompletionProvider, ITextCompletionProvider
+    internal class LoadCommandCompletionProvider : TextCompletionProvider
     {
         private const string NetworkPath = "\\\\";
 
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
-        public CompletionItemGroup GetGroup(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
+        public override CompletionList GetCompletionList(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
         {
             var items = this.GetItems(text, position, triggerInfo, cancellationToken);
             if (items == null || !items.Any())
@@ -34,12 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return null;
             }
 
-            return new CompletionItemGroup(items);
-        }
-
-        public virtual CompletionItemGroup GetAugmentGroup(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
-            return null;
+            return new CompletionList(items);
         }
 
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)

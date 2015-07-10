@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> _allCompletionProviders;
+        private readonly IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> _allCompletionProviders;
         private readonly ImmutableHashSet<char> _autoBraceCompletionChars;
         private readonly bool _isDebugger;
         private readonly bool _isImmediateWindow;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> allCompletionProviders,
+            IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> allCompletionProviders,
             ImmutableHashSet<char> autoBraceCompletionChars,
             bool isDebugger,
             bool isImmediateWindow)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> allCompletionProviders,
+            IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> allCompletionProviders,
             ImmutableHashSet<char> autoBraceCompletionChars)
         {
             var debuggerTextView = textView as IDebuggerTextView;

@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SuggestionModeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new CSharpSuggestionModeCompletionProvider();
         }
@@ -577,21 +575,18 @@ class a
         private void CheckResults(Document document, int position, bool isBuilder)
         {
             var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
-            var provider = CreateCompletionProvider();
+            var completionList = GetCompletionList(document, position, triggerInfo);
 
             if (isBuilder)
             {
-                var group = provider.GetGroupAsync(document, position, triggerInfo, CancellationToken.None).Result;
-                Assert.NotNull(group);
-                Assert.NotNull(group.Builder);
+                Assert.NotNull(completionList);
+                Assert.NotNull(completionList.Builder);
             }
             else
             {
-                var group = provider.GetGroupAsync(document, position, triggerInfo, CancellationToken.None).Result;
-
-                if (group != null)
+                if (completionList != null)
                 {
-                    Assert.True(group.Builder == null, "group.Builder == " + group.Builder.DisplayText);
+                    Assert.True(completionList.Builder == null, "group.Builder == " + (completionList.Builder != null ? completionList.Builder.DisplayText : "null"));
                 }
             }
         }

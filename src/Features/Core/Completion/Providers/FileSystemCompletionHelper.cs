@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly ISet<string> _allowableExtensions;
 
         private readonly Lazy<string[]> _lazyGetDrives;
-        private readonly ICompletionProvider _completionProvider;
+        private readonly CompletionListProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
 
         public FileSystemCompletionHelper(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             TextSpan textChangeSpan,
             ICurrentWorkingDirectoryDiscoveryService fileSystemDiscoveryService,
             Glyph folderGlyph,

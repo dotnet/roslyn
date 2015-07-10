@@ -6,16 +6,16 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Completion
 {
     /// <summary>
-    /// A group of items to be presented to a user in a completion list.
+    /// A completion list to be presented to the user.
     /// </summary>
-    internal class CompletionItemGroup
+    internal class CompletionList
     {
         /// <summary>
-        /// True if this group is exclusive.  If a group is exclusive, then only those items in that
-        /// group will be presented to the user.  If a group is non-exclusive, then all other
+        /// True if this list is exclusive.  If a list is exclusive, then only those items in that
+        /// group list will be presented to the user.  If a list is non-exclusive, then all other
         /// completion providers will be asked to augment the list of items it has provided.
         /// 
-        /// If multiple groups are marked as exclusive, only the first one returned from a provider
+        /// If multiple lists are marked as exclusive, only the first one returned from a provider
         /// will be used.  Providers can be ordered using the OrderAttribute.
         /// </summary>
         public bool IsExclusive { get; }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem Builder { get; }
 
-        public CompletionItemGroup(IEnumerable<CompletionItem> items, CompletionItem builder = null, bool isExclusive = false)
+        public CompletionList(IEnumerable<CompletionItem> items, CompletionItem builder = null, bool isExclusive = false)
         {
             this.Items = items.ToImmutableArray();
             this.Builder = builder;

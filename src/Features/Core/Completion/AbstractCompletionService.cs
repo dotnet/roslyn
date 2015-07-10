@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class AbstractCompletionService : ICompletionService, ITextCompletionService
     {
+        private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
+
         private const int MruSize = 10;
 
         private readonly List<string> _committedItems = new List<string>(MruSize);
@@ -69,51 +73,52 @@ namespace Microsoft.CodeAnalysis.Completion
             return candidate;
         }
 
-        public abstract IEnumerable<ICompletionProvider> GetDefaultCompletionProviders();
+        public abstract IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
 
         protected abstract string GetLanguageName();
 
-        public async Task<IEnumerable<CompletionItemGroup>> GetGroupsAsync(
+        public async Task<CompletionList> GetCompletionListAsync(
             Document document,
             int position,
             CompletionTriggerInfo triggerInfo,
-            IEnumerable<ICompletionProvider> completionProviders,
+            IEnumerable<CompletionListProvider> completionProviders,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetGroupsAsync(document, text, position, triggerInfo, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+            return await GetCompletionListAsync(document, text, position, triggerInfo, completionProviders, document.Project.Solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<IEnumerable<CompletionItemGroup>> GetGroupsAsync(
+        public Task<CompletionList> GetCompletionListAsync(
             SourceText text,
             int position,
             CompletionTriggerInfo triggerInfo,
-            IEnumerable<ICompletionProvider> completionProviders,
+            IEnumerable<CompletionListProvider> completionProviders,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            return GetGroupsAsync(null, text, position, triggerInfo, completionProviders, options, cancellationToken);
+            return GetCompletionListAsync(null, text, position, triggerInfo, completionProviders, options, cancellationToken);
         }
 
-        private class ProviderGroup
+        private class ProviderList
         {
-            public ICompletionProvider Provider;
-            public CompletionItemGroup Group;
+            public CompletionListProvider Provider;
+            public CompletionList List;
         }
 
-        private async Task<IEnumerable<CompletionItemGroup>> GetGroupsAsync(
+        private async Task<CompletionList> GetCompletionListAsync(
             Document documentOpt,
             SourceText text,
             int position,
             CompletionTriggerInfo triggerInfo,
-            IEnumerable<ICompletionProvider> completionProviders,
+            IEnumerable<CompletionListProvider> completionProviders,
             OptionSet options,
             CancellationToken cancellationToken)
         {
             completionProviders = completionProviders ?? this.GetDefaultCompletionProviders();
             var completionProviderToIndex = GetCompletionProviderToIndex(completionProviders);
+            var completionRules = GetDefaultCompletionRules();
 
-            IEnumerable<ICompletionProvider> triggeredProviders;
+            IEnumerable<CompletionListProvider> triggeredProviders;
             switch (triggerInfo.TriggerReason)
             {
                 case CompletionTriggerReason.TypeCharCommand:
@@ -122,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 case CompletionTriggerReason.BackspaceOrDeleteCommand:
                     triggeredProviders = this.TriggerOnBackspace(text, position, triggerInfo, options)
                         ? completionProviders
-                        : SpecializedCollections.EmptyEnumerable<ICompletionProvider>();
+                        : SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
                     break;
                 default:
                     triggeredProviders = completionProviders;
@@ -130,65 +135,146 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Now, ask all the triggered providers if they can provide a group.
-            var providersAndGroups = new List<ProviderGroup>();
-            foreach (var p in triggeredProviders)
+            var providersAndLists = new List<ProviderList>();
+            foreach (var provider in triggeredProviders)
             {
-                var g = await GetGroupAsync(p, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-                if (g != null)
+                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                if (completionList != null)
                 {
-                    providersAndGroups.Add(new ProviderGroup { Provider = p, Group = g });
+                    providersAndLists.Add(new ProviderList { Provider = provider, List = completionList });
                 }
             }
 
             // See if there was a group provided that was exclusive and had items in it.  If so, then
             // that's all we'll return.
-            var firstExclusiveGroup = providersAndGroups.FirstOrDefault(
-                t => t.Group.IsExclusive && t.Group.Items.Any());
+            var firstExclusiveList = providersAndLists.FirstOrDefault(
+                t => t.List.IsExclusive && t.List.Items.Any());
 
-            if (firstExclusiveGroup != null)
+            if (firstExclusiveList != null)
             {
-                return SpecializedCollections.SingletonEnumerable(firstExclusiveGroup.Group);
+                return MergeAndPruneCompletionLists(SpecializedCollections.SingletonEnumerable(firstExclusiveList.List), completionRules);
             }
 
             // If no exclusive providers provided anything, then go through the remaining
             // triggered list and see if any provide items.
-            var nonExclusiveGroups = providersAndGroups.Where(t => !t.Group.IsExclusive).ToList();
+            var nonExclusiveLists = providersAndLists.Where(t => !t.List.IsExclusive).ToList();
 
             // If we still don't have any items, then we're definitely done.
-            if (!nonExclusiveGroups.Any(g => g.Group.Items.Any()))
+            if (!nonExclusiveLists.Any(g => g.List.Items.Any()))
             {
                 return null;
             }
 
             // If we do have items, then ask all the other (non exclusive providers) if they
             // want to augment the items.
-            var usedProviders = nonExclusiveGroups.Select(g => g.Provider);
+            var usedProviders = nonExclusiveLists.Select(g => g.Provider);
             var nonUsedProviders = completionProviders.Except(usedProviders);
-            var nonUsedNonExclusiveProviders = new List<ProviderGroup>();
-            foreach (var p in nonUsedProviders)
+            var nonUsedNonExclusiveProviders = new List<ProviderList>();
+            foreach (var provider in nonUsedProviders)
             {
-                var g = await GetGroupAsync(p, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-                if (g != null && !g.IsExclusive)
+                var completionList = await GetCompletionListAsync(provider, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                if (completionList != null && !completionList.IsExclusive)
                 {
-                    nonUsedNonExclusiveProviders.Add(new ProviderGroup { Provider = p, Group = g });
+                    nonUsedNonExclusiveProviders.Add(new ProviderList { Provider = provider, List = completionList });
                 }
             }
 
-            var allGroups = nonExclusiveGroups.Concat(nonUsedNonExclusiveProviders).ToList();
-            if (allGroups.Count == 0)
+            var allProvidersAndLists = nonExclusiveLists.Concat(nonUsedNonExclusiveProviders).ToList();
+            if (allProvidersAndLists.Count == 0)
             {
                 return null;
             }
 
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.
-            allGroups.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
-            return allGroups.Select(g => g.Group);
+            allProvidersAndLists.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+            return MergeAndPruneCompletionLists(allProvidersAndLists.Select(g => g.List), completionRules);
         }
 
-        private Dictionary<ICompletionProvider, int> GetCompletionProviderToIndex(IEnumerable<ICompletionProvider> completionProviders)
+        private static CompletionList MergeAndPruneCompletionLists(IEnumerable<CompletionList> completionLists, ICompletionRules completionRules)
         {
-            var result = new Dictionary<ICompletionProvider, int>();
+            var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
+            CompletionItem builder = null;
+
+            foreach (var completionList in completionLists)
+            {
+                if (completionList != null)
+                {
+                    foreach (var item in completionList.Items.WhereNotNull())
+                    {
+                        // New items that match an existing item will replace it.  
+                        ReplaceExistingItem(item, displayNameToItemsMap, completionRules);
+                    }
+
+                    builder = builder ?? completionList.Builder;
+                }
+            }
+
+            if (displayNameToItemsMap.Count == 0)
+            {
+                return null;
+            }
+
+            var totalItems = displayNameToItemsMap.Values.Flatten().ToList();
+            totalItems.Sort();
+
+            // TODO(DustinCa): This is lossy -- we lose the IsExclusive field. Fix that.
+
+            return new CompletionList(totalItems, builder);
+        }
+
+        private static void ReplaceExistingItem(
+            CompletionItem item,
+            Dictionary<string, List<CompletionItem>> displayNameToItemsMap,
+            ICompletionRules completionRules)
+        {
+            // See if we have an item with 
+            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.DisplayText, s_createList);
+            for (int i = 0; i < sameNamedItems.Count; i++)
+            {
+                var existingItem = sameNamedItems[i];
+
+                Contract.Assert(item.DisplayText == existingItem.DisplayText);
+
+                if (completionRules.ItemsMatch(item, existingItem).Value)
+                {
+                    sameNamedItems[i] = Disambiguate(item, existingItem);
+                    return;
+                }
+            }
+
+            sameNamedItems.Add(item);
+        }
+
+        private static CompletionItem Disambiguate(CompletionItem item, CompletionItem existingItem)
+        {
+            // We've constructed the export order of completion providers so 
+            // that snippets are exported after everything else. That way,
+            // when we choose a single item per display text, snippet 
+            // glyphs appear by snippets. This breaks preselection of items
+            // whose display text is also a snippet (workitem 852578),
+            // the snippet item doesn't have its preselect bit set.
+            // We'll special case this by not preferring later items
+            // if they are snippets and the other candidate is preselected.
+            if (existingItem.Preselect && item.CompletionProvider is ISnippetCompletionProvider)
+            {
+                return existingItem;
+            }
+
+            // If one is a keyword, and the other is some other item that inserts the same text as the keyword,
+            // keep the keyword
+            var keywordItem = existingItem as KeywordCompletionItem ?? item as KeywordCompletionItem;
+            if (keywordItem != null)
+            {
+                return keywordItem;
+            }
+
+            return item;
+        }
+
+        private Dictionary<CompletionListProvider, int> GetCompletionProviderToIndex(IEnumerable<CompletionListProvider> completionProviders)
+        {
+            var result = new Dictionary<CompletionListProvider, int>();
 
             int i = 0;
             foreach (var completionProvider in completionProviders)
@@ -200,22 +286,52 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        private static Task<CompletionItemGroup> GetGroupAsync(
-            ICompletionProvider provider,
+        private static async Task<CompletionList> GetCompletionListAsync(
+            CompletionListProvider provider,
             Document documentOpt,
             SourceText text,
             int position,
             CompletionTriggerInfo triggerInfo,
             CancellationToken cancellationToken)
         {
-            return provider is ITextCompletionProvider
-                ? Task.FromResult(((ITextCompletionProvider)provider).GetGroup(text, position, triggerInfo, cancellationToken))
-                : documentOpt != null
-                    ? provider.GetGroupAsync(documentOpt, position, triggerInfo, cancellationToken)
-                    : SpecializedTasks.Default<CompletionItemGroup>();
+            if (provider is TextCompletionProvider)
+            {
+                return ((TextCompletionProvider)provider).GetCompletionList(text, position, triggerInfo, cancellationToken);
+            }
+
+            if (documentOpt != null)
+            {
+                var itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+                Action<CompletionItem> addCompletionItem = item =>
+                {
+                    itemsBuilder.Add(item);
+                };
+
+                CompletionItem builder = null;
+                Action<CompletionItem> registerBuilder = item =>
+                {
+                    builder = item;
+                };
+
+                var isExclusive = false;
+                Action<bool> makeExclusive = value =>
+                {
+                    isExclusive = value;
+                };
+
+                var context = new CompletionListContext(documentOpt, position, triggerInfo, addCompletionItem, registerBuilder, makeExclusive, cancellationToken);
+
+                await provider.RegisterCompletionListAsync(context).ConfigureAwait(false);
+
+                return new CompletionList(itemsBuilder.AsImmutable(), builder, isExclusive);
+            }
+
+            Contract.Fail("Should never get here.");
+
+            return null;
         }
 
-        public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<ICompletionProvider> completionProviders, OptionSet options)
+        public bool IsTriggerCharacter(SourceText text, int characterPosition, IEnumerable<CompletionListProvider> completionProviders, OptionSet options)
         {
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, GetLanguageName()))
             {

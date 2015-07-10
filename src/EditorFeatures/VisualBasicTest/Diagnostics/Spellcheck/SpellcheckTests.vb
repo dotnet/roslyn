@@ -41,7 +41,10 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -51,7 +54,10 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -60,7 +66,10 @@ End Class</File>
     Sub Bar(a as Func(Of [|Foa|]))
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"),
+                String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char"),
+                String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>

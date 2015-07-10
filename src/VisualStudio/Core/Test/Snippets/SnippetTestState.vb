@@ -2,7 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
@@ -43,7 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
             If languageName = LanguageNames.VisualBasic Then
                 Dim snippetProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
-                Dim snippetLazy = New Lazy(Of ICompletionProvider, OrderableLanguageMetadata)(Function() snippetProvider, New TestOrderableLanguageMetadata(languageName))
+                Dim snippetLazy = New Lazy(Of CompletionListProvider, OrderableLanguageMetadata)(Function() snippetProvider, New TestOrderableLanguageMetadata(languageName))
 
                 Dim asyncCompletionService = New AsyncCompletionService(
                     GetService(Of IEditorOperationsFactoryService)(),

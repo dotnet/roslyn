@@ -156,7 +156,8 @@
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
-    <Compile Include="Completion\CompletionItemGroup.cs" />
+    <Compile Include="Completion\CompletionList.cs" />
+    <Compile Include="Completion\CompletionListContext.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\CompletionTriggerInfo.cs" />
@@ -171,11 +172,12 @@
     <Compile Include="Completion\Providers\AbstractSymbolCompletionProvider.cs" />
     <Compile Include="Completion\Providers\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Completion\Providers\FileSystemCompletionHelper.cs" />
-    <Compile Include="Completion\Providers\ICompletionProvider.cs" />
+    <Compile Include="Completion\CompletionListProvider.cs" />
     <Compile Include="Completion\Providers\ICurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
     <Compile Include="Completion\Providers\IOUtilities.cs" />
-    <Compile Include="Completion\Providers\ITextCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\TextCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />

@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -8,7 +9,6 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
 
@@ -89,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Dim completionService = document.GetLanguageService(Of ICompletionService)()
             Dim providers = completionService.GetDefaultCompletionProviders()
 
-            Dim groups = Await completionService.GetGroupsAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo, providers, cancellationToken).ConfigureAwait(False)
-            If groups Is Nothing Then
+            Dim completionList = Await completionService.GetCompletionListAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo, providers, cancellationToken).ConfigureAwait(False)
+            If completionList Is Nothing Then
                 Return Nothing
             End If
 
@@ -99,8 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             ' group completion items by their unescaped display text and use that text in the 
             ' edit distance algorithm.
             Dim onlyConsiderGenerics = TryCast(identifierName, GenericNameSyntax) IsNot Nothing
-            Dim items = groups _
-                .SelectMany(Function(g) g.Items) _
+            Dim items = completionList.Items _
                 .Where(Function(i)
                            Return i.Glyph.HasValue AndAlso
                            i.Glyph.Value <> Glyph.Error AndAlso
