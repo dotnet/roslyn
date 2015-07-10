@@ -11,6 +11,7 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
+
     Public Class DataTipInfoGetterTests
 
         Private Sub TestNoDataTip(input As XElement)
@@ -97,7 +98,7 @@ end class</text>)
             Test(<text>
 class C
   sub Foo()
-    [|System.Console.Wri$$teLine|](args)
+    [|System.Console.Wri$$teLine(args)|]
   end sub
 end class</text>)
         End Sub
@@ -107,7 +108,7 @@ end class</text>)
             TestNoDataTip(<text>
 class C
   sub Foo()
-    [|System.Console.WriteLine|]$$(args)
+    System.Console.WriteLine$$(args)
   end sub
 end class</text>)
         End Sub
@@ -127,7 +128,7 @@ end class</text>)
             TestNoDataTip(<text>
 class C
   sub Foo()
-    [|System.Console.WriteLine|](args$$)
+    System.Console.WriteLine(args$$)
   end sub
 end class</text>)
         End Sub
@@ -400,5 +401,40 @@ End Class
             Test(<text><%= String.Format(sourceTemplate, "[|Me?!B?!$$C|]") %></text>)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingDataTips), WorkItem(2602)>
+        Public Sub TestParameterizedProperty()
+            Const sourceTemplate = "
+Class Class1
+    Public row = New DataRow()
+
+    Function F()
+        Return {0}
+    End Function
+
+    Public ReadOnly Property Item(ByVal i As Integer) As String
+        Get
+            Return str
+        End Get
+    End Property
+
+    Class DataRow
+        Public ReadOnly Property Item(ByVal str As String) As String
+            Get
+                Return str
+            End Get
+        End Property
     End Class
+End Class
+"
+
+            Test(<text><%= String.Format(sourceTemplate, "[|$$Item(42)|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|row.It$$em(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|row?.Ite$$m(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.row.$$Item(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me.row?.It$$em(""Test Row"")|].Length") %></text>)
+            Test(<text><%= String.Format(sourceTemplate, "[|Me?.row?.It$$em(""Test Row"")|].Length") %></text>)
+        End Sub
+
+    End Class
+
 End Namespace
