@@ -131,6 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 SyntaxKind.PublicKeyword, None,
                 SyntaxKind.RaiseEventKeyword, None,
                 SyntaxKind.ReadOnlyKeyword, None,
+                SyntaxKind.ReferenceKeyword, None,
                 SyntaxKind.ReDimKeyword, None,
                 SyntaxKind.REMKeyword, CanFollowExpr,
                 SyntaxKind.RemoveHandlerKeyword, None,
@@ -297,7 +298,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             Dim kind As SyntaxKind
             If Not s_keywords.TryGetValue(tokenName, kind) Then
-                kind = SyntaxKind.IdentifierToken
+                ' s_keywords includes preprocessor keywords, but only one of
+                ' "r" and "reference".  GetProcessorKeywordKind supports both.
+                Dim preprocessorKind = SyntaxFacts.GetPreprocessorKeywordKind(tokenName)
+                Debug.Assert(preprocessorKind = SyntaxKind.None OrElse preprocessorKind = SyntaxKind.ReferenceKeyword)
+                kind = If(preprocessorKind <> SyntaxKind.None, preprocessorKind, SyntaxKind.IdentifierToken)
             End If
             Return kind
         End Function

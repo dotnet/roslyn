@@ -18,9 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Determine if the kind represents a contextual keyword
         ''' </summary>
         Public Shared Function IsContextualKeyword(kind As SyntaxKind) As Boolean
-            Return kind - SyntaxKind.AggregateKeyword <=
-                    SyntaxKind.YieldKeyword - SyntaxKind.AggregateKeyword
-
+            Return kind = SyntaxKind.ReferenceKeyword OrElse
+                (SyntaxKind.AggregateKeyword <= kind AndAlso kind <= SyntaxKind.YieldKeyword)
         End Function
 
         ''' <summary>
@@ -66,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     SyntaxKind.RegionKeyword,
                     SyntaxKind.EndKeyword,
                     SyntaxKind.ConstKeyword,
+                    SyntaxKind.ReferenceKeyword,
                     SyntaxKind.EnableKeyword,
                     SyntaxKind.DisableKeyword,
                     SyntaxKind.ExternalSourceKeyword,
@@ -272,6 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             SyntaxKind.OutKeyword,
             SyntaxKind.PreserveKeyword,
             SyntaxKind.RegionKeyword,
+            SyntaxKind.ReferenceKeyword,
             SyntaxKind.SkipKeyword,
             SyntaxKind.StrictKeyword,
             SyntaxKind.TakeKeyword,
@@ -354,6 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             SyntaxKind.EndKeyword,
                                                             SyntaxKind.RegionKeyword,
                                                             SyntaxKind.ConstKeyword,
+                                                            SyntaxKind.ReferenceKeyword,
                                                             SyntaxKind.EnableKeyword,
                                                             SyntaxKind.DisableKeyword,
                                                             SyntaxKind.WarningKeyword,
@@ -797,6 +799,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"out", SyntaxKind.OutKeyword},
                    {"preserve", SyntaxKind.PreserveKeyword},
                    {"region", SyntaxKind.RegionKeyword},
+                   {"reference", SyntaxKind.ReferenceKeyword},
+                   {"r", SyntaxKind.ReferenceKeyword},
                    {"skip", SyntaxKind.SkipKeyword},
                    {"strict", SyntaxKind.StrictKeyword},
                    {"take", SyntaxKind.TakeKeyword},
@@ -831,6 +835,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    {"const", SyntaxKind.ConstKeyword},
                    {"externalsource", SyntaxKind.ExternalSourceKeyword},
                    {"externalchecksum", SyntaxKind.ExternalChecksumKeyword},
+                   {"reference", SyntaxKind.ReferenceKeyword},
+                   {"r", SyntaxKind.ReferenceKeyword},
                    {"enable", SyntaxKind.EnableKeyword},
                    {"disable", SyntaxKind.DisableKeyword}
             }
