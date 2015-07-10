@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return Cci.TypeMemberVisibility.Public;
 
                 case Accessibility.Private:
-                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
+                    if (symbol.ContainingType?.TypeKind == TypeKind.Submission)
                     {
                         // top-level private member:
                         return Cci.TypeMemberVisibility.Public;

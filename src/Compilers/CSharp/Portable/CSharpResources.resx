@@ -4645,6 +4645,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a local function or a reference to a local function</value>
   </data>
   <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
-    <value>Cannot infer the return type of {0} due to differing return types.</value>
+    <value>Cannot infer the return type of '{0}' due to differing return types.</value>
+  </data>
+  <data name="ERR_DynamicLocalFunctionParameter" xml:space="preserve">
+    <value>Cannot invoke the local function '{0}' with dynamic parameters.</value>
   </data>
 </root>

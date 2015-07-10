@@ -2129,18 +2129,49 @@ Local();
             VerifyOutputInMain(source, "2 Program", "System");
         }
 
-        [Fact(Skip = "Dynamic local function arguments not supported yet")]
+        [Fact]
         public void DynamicArgument()
         {
             var source = @"
-void Local(int x)
+using System;
+class Program
 {
-    Console.Write(x);
+    static void Main()
+    {
+        void Local(int x)
+        {
+            Console.Write(x);
+        }
+        dynamic val = 2;
+        Local(val);
+    }
 }
-dynamic val = 2;
-Local(val);
 ";
-            VerifyOutputInMain(source, "2", "System");
+            VerifyDiagnostics(source,
+    // (12,9): error CS8098: Cannot invoke the local function 'Local' with dynamic parameters.
+    //         Local(val);
+    Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParameter, "Local(val)").WithArguments("Local").WithLocation(12, 9)
+    );
+        }
+
+        [Fact]
+        public void DynamicParameter()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        void Local(dynamic x)
+        {
+            Console.Write(x);
+        }
+        Local(2);
+    }
+}
+";
+            VerifyOutput(source, "2");
         }
 
         [Fact]
@@ -2167,6 +2198,27 @@ var RetDyn()
 Console.Write(RetDyn());
 ";
             VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
+        public void DynamicDelegate()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        dynamic Local(dynamic x)
+        {
+            return x;
+        }
+        dynamic local = (Func<dynamic, dynamic>)Local;
+        Console.Write(local(2));
+    }
+}
+";
+            VerifyOutput(source, "2");
         }
 
         [Fact]
