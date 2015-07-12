@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         return existingData;
                     }
 
-                    var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, stateSet.Analyzer, _owner.ForceAnalyzeAllDocuments).ConfigureAwait(false);
+                    var diagnosticData = await GetProjectDiagnosticsAsync(analyzerDriver, stateSet.Analyzer).ConfigureAwait(false);
                     return new AnalysisData(versions.TextVersion, versions.DataVersion, GetExistingItems(existingData), diagnosticData.AsImmutableOrEmpty());
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

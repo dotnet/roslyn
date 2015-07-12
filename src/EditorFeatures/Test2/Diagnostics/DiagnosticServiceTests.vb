@@ -482,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
+                Assert.True(diagnostic.Id = "AD0001")
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
             End Using
         End Sub

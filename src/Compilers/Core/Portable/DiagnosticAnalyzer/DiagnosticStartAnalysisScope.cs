@@ -476,6 +476,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
 
+        internal static readonly AnalyzerActions Empty = new AnalyzerActions();
+
         internal AnalyzerActions()
         {
         }

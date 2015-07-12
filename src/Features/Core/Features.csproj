@@ -185,6 +185,7 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
+    <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.SolutionCrawlerAnalysisState.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
     <Compile Include="Diagnostics\PredefinedBuildTools.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
@@ -256,7 +257,6 @@
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
     <Compile Include="Completion\CompletionRules.cs" />
-    <Compile Include="Diagnostics\EngineV1\AbstractSyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\IDocumentDiagnosticAnalyzer.cs" />
@@ -268,7 +268,6 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticAnalyzerCategory.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.DiagnosticState.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer.cs" />
-    <Compile Include="Diagnostics\EngineV1\ISyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\EngineV1\MemberRangeMap.cs" />
     <Compile Include="DocumentationCommentFormatting\AbstractDocumentationCommentFormattingService.cs" />
     <Compile Include="DocumentationCommentFormatting\IDocumentationCommentFormattingService.cs" />

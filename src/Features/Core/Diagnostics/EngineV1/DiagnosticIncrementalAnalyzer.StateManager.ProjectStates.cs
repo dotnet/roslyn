@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return map.Values;
                 }
 
+                public IEnumerable<DiagnosticAnalyzer> GetAnalyzers(Project project)
+                {
+                    var map = GetOrUpdateAnalyzerMap(project);
+                    return map.Keys;
+                }
+
                 public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
                 {
                     var map = GetOrUpdateAnalyzerMap(project);
@@ -216,7 +222,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 [Conditional("DEBUG")]
                 private void VerifyDiagnosticStates(IEnumerable<StateSet> stateSets)
                 {
-                    StateManager.VerifyDiagnosticStates(_owner._hostStates.GetStateSets().Concat(stateSets));
+                    // We do not de-duplicate analyzer instances across host and project analyzers.
+                    var projectAnalyzers = stateSets.Select(state => state.Analyzer).ToImmutableHashSet();
+
+                    var hostStates = _owner._hostStates.GetStateSets()
+                        .Where(state => !projectAnalyzers.Contains(state.Analyzer));
+
+                    StateManager.VerifyDiagnosticStates(hostStates.Concat(stateSets));
                 }
 
                 private struct Entry

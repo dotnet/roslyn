@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 3) <see cref="CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-compilation per-<see cref="AnalyzerAndOptions"/>
     /// </summary>
     /// <remarks>
-    /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/> and
-    /// <see cref="GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer, AnalyzerExecutor)"/> out of the AnalyzerManager and into analyzer drivers.
+    /// TODO: Consider moving <see cref="_compilationScopeMap"/> and relevant APIs <see cref="GetCompilationAnalysisScopeAsync(DiagnosticAnalyzer, HostSessionStartAnalysisScope, AnalyzerExecutor)"/>
+    /// out of the AnalyzerManager and into analyzer drivers.
     /// </remarks>
     internal partial class AnalyzerManager
     {
@@ -149,30 +149,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Returns true if analyzer registered a compilation start action during <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/>
-        /// which registered a compilation end action and at least one other analyzer action, that the end action depends upon.
-        /// </summary>
-        public async Task<bool> GetAnalyzerHasDependentCompilationEndAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
-        {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
-            if (sessionScope.CompilationStartActions.Length > 0 && analyzerExecutor.Compilation != null)
-            {
-                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
-                var compilationActions = compilationScope.GetCompilationOnlyAnalyzerActions(analyzer);
-                return compilationActions != null &&
-                    compilationActions.CompilationEndActionsCount > 0 &&
-                    (compilationActions.CodeBlockEndActionsCount > 0 ||
-                     compilationActions.CodeBlockStartActionsCount > 0 ||
-                     compilationActions.SemanticModelActionsCount > 0 ||
-                     compilationActions.SymbolActionsCount > 0 ||
-                     compilationActions.SyntaxNodeActionsCount > 0 ||
-                     compilationActions.SyntaxTreeActionsCount > 0);
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Return <see cref="DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
@@ -184,7 +160,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
-                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () => { supportedDiagnostics = analyzer.SupportedDiagnostics; });
+                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
+                    {
+                        var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
+                        if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
+                        {
+                            supportedDiagnostics = supportedDiagnosticsLocal;
+                        }
+                    });
 
                 EventHandler<Exception> handler = null;
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;
@@ -192,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     handler = new EventHandler<Exception>((sender, ex) =>
                     {
-                        var diagnostic = AnalyzerExecutor.GetAnalyzerExceptionDiagnostic(analyzer, ex);
+                        var diagnostic = AnalyzerExecutor.CreateAnalyzerExceptionDiagnostic(analyzer, ex);
                         onAnalyzerException(ex, analyzer, diagnostic);
                     });
 
@@ -217,10 +200,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         internal void ClearAnalyzerState(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            foreach (var analyzer in analyzers)
+            if (!analyzers.IsDefaultOrEmpty)
             {
-                ClearDescriptorState(analyzer);
-                ClearAnalysisScopeState(analyzer);
+                foreach (var analyzer in analyzers)
+                {
+                    ClearDescriptorState(analyzer);
+                    ClearAnalysisScopeState(analyzer);
+                }
             }
         }
 
