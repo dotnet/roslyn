@@ -50,6 +50,9 @@
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
+    <Compile Include="..\..\Helpers\NoOpAnalyzerAssemblyLoader.cs">
+      <Link>ConsoleUtil.cs</Link>
+    </Compile>
     <Compile Include="Vbc.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
