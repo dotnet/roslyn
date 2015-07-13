@@ -628,6 +628,23 @@ namespace Microsoft.Cci
             }
         }
 
+        internal static int GetCompressedIntegerSize(int value)
+        {
+            Debug.Assert(value <= 0x1fffffff);
+
+            if (value <= 0x7f)
+            {
+                return 1;
+            }
+
+            if (value <= 0x3fff)
+            {
+                return 2;
+            }
+
+            return 4;
+        }
+
         /// <summary>
         /// Writes a constant value (see ECMA-335 Partition II section 22.9) at the current position.
         /// </summary>
