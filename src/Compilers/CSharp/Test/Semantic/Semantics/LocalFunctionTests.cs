@@ -2298,18 +2298,29 @@ class Program
         {
             return x;
         }
-        Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+        Expression<Func<T>> Local<T>(Expression<Func<T>> f)
         {
             return f;
         }
-        Console.Write(Local(x => Id(x)));
+        Console.Write(Local(() => Id(2)));
+        Console.Write(Local<Func<int, int>>(() => Id));
+        Console.Write(Local(() => new Func<int, int>(Id)));
+        // Disabled because of https://github.com/dotnet/roslyn/issues/3923
+        // Should produce a diagnostic once uncommented.
+        //Console.Write(Local(() => nameof(Id)));
     }
 }
 ";
             VerifyDiagnostics(source,
-    // (16,34): error CS8096: An expression tree may not contain a local function or a reference to a local function
-    //         Console.Write(Local(x => Id(x)));
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(x)").WithLocation(16, 34)
+    // (16,35): error CS8096: An expression tree may not contain a reference to a local function
+    //         Console.Write(Local(() => Id(2)));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(2)").WithLocation(16, 35),
+    // (17,51): error CS8096: An expression tree may not contain a reference to a local function
+    //         Console.Write(Local<Func<int, int>>(() => Id));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(17, 51),
+    // (18,35): error CS8096: An expression tree may not contain a reference to a local function
+    //         Console.Write(Local(() => new Func<int, int>(Id)));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "new Func<int, int>(Id)").WithLocation(18, 35)
     );
         }
 
