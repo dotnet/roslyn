@@ -591,6 +591,10 @@ namespace Microsoft.Cci
             }
         }
 
+        private const int SingleByteCompressedIntegerMaxValue = 0x7f;
+        private const int TwoByteCompressedIntegerMaxValue = 0x3fff;
+        private const int MaxCompressedIntegerValue = 0x1fffffff;
+
         /// <summary>
         /// Implements compressed unsigned integer encoding as defined by ECMA-335-II chapter 23.2: Blobs and signatures.
         /// </summary>
@@ -605,21 +609,21 @@ namespace Microsoft.Cci
         /// </remarks>
         internal void WriteCompressedUInt(uint val)
         {
+            Debug.Assert(val <= MaxCompressedIntegerValue);
+
             unchecked
             {
-                if (val <= 0x7f)
+                if (val <= SingleByteCompressedIntegerMaxValue)
                 {
                     WriteByte((byte)val);
                 }
-                else if (val <= 0x3fff)
+                else if (val <= TwoByteCompressedIntegerMaxValue)
                 {
                     WriteByte((byte)(0x80 | (val >> 8)));
                     WriteByte((byte)val);
                 }
                 else
                 {
-                    Debug.Assert(val <= 0x1fffffff);
-
                     WriteByte((byte)(0xc0 | (val >> 24)));
                     WriteByte((byte)(val >> 16));
                     WriteByte((byte)(val >> 8));
@@ -630,14 +634,14 @@ namespace Microsoft.Cci
 
         internal static int GetCompressedIntegerSize(int value)
         {
-            Debug.Assert(value <= 0x1fffffff);
+            Debug.Assert(value <= MaxCompressedIntegerValue);
 
-            if (value <= 0x7f)
+            if (value <= SingleByteCompressedIntegerMaxValue)
             {
                 return 1;
             }
 
-            if (value <= 0x3fff)
+            if (value <= TwoByteCompressedIntegerMaxValue)
             {
                 return 2;
             }
