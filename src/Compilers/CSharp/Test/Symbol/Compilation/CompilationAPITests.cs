@@ -452,6 +452,9 @@ class D
             // add again and verify that it throws
             Assert.Throws<ArgumentException>(() => comp.AddSyntaxTrees(t1));
 
+            // replace with existing and verify that it throws
+            Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees[0]));
+
             // SyntaxTrees have reference equality. This removal should fail.
             Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1)));
             Assert.Equal(4, comp.SyntaxTrees.Length);
@@ -1656,12 +1659,6 @@ class C { }", options: TestOptions.Script);
 
             var ars = arc.ReplaceSyntaxTree(tc, ts);
             Assert.False(arc.ReferenceManagerEquals(ars));
-
-            var ar3 = arc.ReplaceSyntaxTree(tc, ta);
-            Assert.True(arc.ReferenceManagerEquals(ar3));
-
-            var as1 = ars.ReplaceSyntaxTree(tr, ts);
-            Assert.False(ars.ReferenceManagerEquals(as1));
         }
 
         private sealed class EvolvingTestReference : PortableExecutableReference
