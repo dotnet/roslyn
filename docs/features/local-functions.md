@@ -8,7 +8,7 @@
 	- [ ] Tests
 	- [x] IDE integration
 	- Works alongside lambdas and behaves very similarly
-	- No optimized closures (struct closure class)
+	- Partially implemented zero-allocation closures on functions never converted to a delegate (nested zero-alloc closures are disabled)
 - [x] Standard parameter features
 	- params
 	- ref/out
@@ -34,4 +34,4 @@ TODO:
 - Update error messages.
 	- `LocalScopeBinder.ReportConflictWithLocal()` (twice)
 - `LocalScopeBinder.EnsureSingleDefinition()`, handle case where 'name' exists in both `localsMap` and `localFunctionsMap`. Might be related to `LocalFunctionTests.NameConflictLocalVarLast()`
-- `LambdaRewriter.RewriteLambdaOrLocalFunction()`, check `_analysis.methodsConvertedToDelegates.Contains(node.Symbol)` and don't use a static frame if true (just emit a static method)
+- Defining a local function with a dynamic parameter doesn't work at runtime.

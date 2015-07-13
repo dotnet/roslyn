@@ -174,58 +174,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Optimizes local functions that reference other local functions (even themselves) to not need closures if they aren't required.
+            /// Optimizes local functions such that if a local function only references other local functions without closures, it itself doesn't need a closure.
             /// </summary>
             private void RemoveUnneededReferences()
             {
-                var capturedVariablesByLambdaNew = new MultiDictionary<MethodSymbol, Symbol>();
-                var capturedVariablesKeepSet = new HashSet<Symbol>();
+                // Note: methodGraph is the inverse of the dependency graph
+                var methodGraph = new MultiDictionary<MethodSymbol, MethodSymbol>();
+                var capturesThis = new HashSet<MethodSymbol>();
+                var capturesVariable = new HashSet<MethodSymbol>();
+                var visitStack = new Stack<MethodSymbol>();
                 foreach (var methodKvp in CapturedVariablesByLambda)
                 {
-                    var isOnlyThis = false;
-                    var isGeneral = false;
-                    foreach (var reference in CapturedVariablesByLambda.TransitiveClosure(methodKvp.Key))
+                    foreach (var value in methodKvp.Value)
                     {
-                        if (reference.Kind != SymbolKind.Method)
+                        var method = value as MethodSymbol;
+                        if (method != null)
                         {
-                            if (reference == _topLevelMethod.ThisParameter)
+                            methodGraph.Add(method, methodKvp.Key);
+                        }
+                        else if (value == _topLevelMethod.ThisParameter)
+                        {
+                            if (capturesThis.Add(methodKvp.Key))
                             {
-                                isOnlyThis = true;
-                            }
-                            else
-                            {
-                                isGeneral = true;
-                                break;
+                                visitStack.Push(methodKvp.Key);
                             }
                         }
-                    }
-                    if (isGeneral)
-                    {
-                        foreach (var value in methodKvp.Value)
+                        else if (capturesVariable.Add(methodKvp.Key) && !capturesThis.Contains(methodKvp.Key)) // if capturesThis contains methodKvp, it's already in the stack.
                         {
-                            capturedVariablesByLambdaNew.Add(methodKvp.Key, value);
-                            capturedVariablesKeepSet.Add(value);
+                            visitStack.Push(methodKvp.Key);
                         }
-                    }
-                    else if (isOnlyThis)
-                    {
-                        capturedVariablesByLambdaNew.Add(methodKvp.Key, _topLevelMethod.ThisParameter);
-                        capturedVariablesKeepSet.Add(_topLevelMethod.ThisParameter);
                     }
                 }
-                CapturedVariablesByLambda = capturedVariablesByLambdaNew;
-                var capturedVariablesNew = new MultiDictionary<Symbol, CSharpSyntaxNode>();
-                foreach (var oldCaptured in CapturedVariables)
+
+                while (visitStack.Count > 0)
                 {
-                    if (capturedVariablesKeepSet.Contains(oldCaptured.Key))
+                    var current = visitStack.Pop();
+                    var setToAddTo = capturesVariable.Contains(current) ? capturesVariable : capturesThis;
+                    foreach (var capturesCurrent in methodGraph[current])
                     {
-                        foreach (var value in oldCaptured.Value)
+                        if (setToAddTo.Add(capturesCurrent))
                         {
-                            capturedVariablesNew.Add(oldCaptured.Key, value);
+                            visitStack.Push(capturesCurrent);
+                        }
+                    }
+                }
+
+                var capturedVariablesNew = new MultiDictionary<Symbol, CSharpSyntaxNode>();
+                foreach (var old in CapturedVariables)
+                {
+                    var method = old.Key as MethodSymbol;
+                    // don't add if it's a method that only captures 'this'
+                    if (method == null || capturesVariable.Contains(method))
+                    {
+                        foreach (var oldValue in old.Value)
+                        {
+                            capturedVariablesNew.Add(old.Key, oldValue);
                         }
                     }
                 }
                 CapturedVariables = capturedVariablesNew;
+                var capturedVariablesByLambdaNew = new MultiDictionary<MethodSymbol, Symbol>();
+                foreach (var old in CapturedVariablesByLambda)
+                {
+                    if (capturesVariable.Contains(old.Key))
+                    {
+                        foreach (var oldValue in old.Value)
+                        {
+                            capturedVariablesByLambdaNew.Add(old.Key, oldValue);
+                        }
+                    }
+                    else if (capturesThis.Contains(old.Key))
+                    {
+                        capturedVariablesByLambdaNew.Add(old.Key, _topLevelMethod.ThisParameter);
+                    }
+                }
+                CapturedVariablesByLambda = capturedVariablesByLambdaNew;
             }
 
             /// <summary>
@@ -306,6 +329,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ScopesThatCantBeStructs.Add(innermostScope);
                             }
                         }
+                    }
+                }
+
+                // Note the following is temporary, if we do end up changing the signature of closures to take all
+                // parent frames as a parameter list (where structs are by ref) instead of a linked list of frames,
+                // then we no longer need to worry about double-nested struct closures not being passed by reference.
+
+                // It is illegal to have any parent of a scope be a struct (due to by-value parent fields).
+                // So, find the parent of every closure and check if it's a struct. If so, make it a class.
+                foreach (var kvp in LambdaScopes)
+                {
+                    var scope = kvp.Value;
+                    while (NeedsParentFrame.Contains(scope) && ScopeParent.TryGetValue(scope, out scope) && !ScopesThatCantBeStructs.Contains(scope))
+                    {
+                        // The parent is a struct. Mark it a class. Keep going along the tree.
+                        ScopesThatCantBeStructs.Add(scope);
                     }
                 }
             }
@@ -423,17 +462,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitCall(BoundCall node)
             {
-                var localFunction = node.Method as LocalFunctionSymbol;
-                if (localFunction != null)
+                if (node.Method.MethodKind == MethodKind.LocalFunction)
                 {
-                    ReferenceVariable(node.Syntax, localFunction.OriginalDefinition);
+                    // Use OriginalDefinition to strip generic type parameters
+                    ReferenceVariable(node.Syntax, node.Method.OriginalDefinition);
                 }
                 return base.VisitCall(node);
             }
 
             public override BoundNode VisitLambda(BoundLambda node)
             {
-                MethodsConvertedToDelegates.Add(node.Symbol);
+                MethodsConvertedToDelegates.Add(node.Symbol.OriginalDefinition);
                 return VisitLambdaOrFunction(node);
             }
 
@@ -441,8 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
                 {
-                    ReferenceVariable(node.Syntax, node.MethodOpt);
-                    MethodsConvertedToDelegates.Add(node.MethodOpt);
+                    // Use OriginalDefinition to strip generic type parameters
+                    ReferenceVariable(node.Syntax, node.MethodOpt.OriginalDefinition);
+                    MethodsConvertedToDelegates.Add(node.MethodOpt.OriginalDefinition);
                 }
                 return base.VisitDelegateCreationExpression(node);
             }
@@ -498,12 +538,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // using generic MethodSymbol here and not LambdaSymbol because of local functions
                 MethodSymbol lambda = _currentParent as MethodSymbol;
-                if ((object)lambda != null && symbol.ContainingSymbol != lambda)
+                // "symbol == lambda" could happen if we're recursive
+                if ((object)lambda != null && symbol != lambda && symbol.ContainingSymbol != lambda)
                 {
                     CapturedVariables.Add(symbol, syntax);
 
                     // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
-                    for (; (object)lambda != null && symbol.ContainingSymbol != lambda; lambda = lambda.ContainingSymbol as MethodSymbol)
+                    for (; (object)lambda != null && symbol != lambda && symbol.ContainingSymbol != lambda; lambda = lambda.ContainingSymbol as MethodSymbol)
                     {
                         CapturedVariablesByLambda.Add(lambda, symbol);
                     }
@@ -538,8 +579,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
                     {
-                        ReferenceVariable(node.Syntax, node.SymbolOpt);
-                        MethodsConvertedToDelegates.Add(node.SymbolOpt);
+                        // Use OriginalDefinition to strip generic type parameters
+                        ReferenceVariable(node.Syntax, node.SymbolOpt.OriginalDefinition);
+                        MethodsConvertedToDelegates.Add(node.SymbolOpt.OriginalDefinition);
                     }
                     if (node.IsExtensionMethod || ((object)node.SymbolOpt != null && !node.SymbolOpt.IsStatic))
                     {

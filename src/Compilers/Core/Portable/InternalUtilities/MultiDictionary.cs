@@ -194,28 +194,4 @@ namespace Roslyn.Utilities
             _dictionary.Clear();
         }
     }
-
-    internal static class MultiDictionaryExtensions
-    {
-        // Adapted from FunctionExtensions.TransitiveClosure
-        public static HashSet<V> TransitiveClosure<K, V>(this MultiDictionary<K, V> relation, K item) where K : V
-        {
-            var closure = new HashSet<V>();
-            var stack = new Stack<K>();
-            stack.Push(item);
-            while (stack.Count > 0)
-            {
-                var current = stack.Pop();
-                foreach (var newItem in relation[current])
-                {
-                    if (closure.Add(newItem) && newItem is K)
-                    {
-                        stack.Push((K)newItem);
-                    }
-                }
-            }
-
-            return closure;
-        }
-    }
 }

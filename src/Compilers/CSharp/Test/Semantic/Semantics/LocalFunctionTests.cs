@@ -11,21 +11,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
-        void VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: _parseOptions);
-            var verify = CompileAndVerify(comp, expectedOutput: output);
-            verify.VerifyDiagnostics(); // no diagnostics
+            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        void VerifyOutput(string source, string output)
+        CompilationVerifier VerifyOutput(string source, string output)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: _parseOptions);
-            var verify = CompileAndVerify(comp, expectedOutput: output);
-            verify.VerifyDiagnostics(); // no diagnostics
+            return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        void VerifyOutputInMain(string methodBody, string output, params string[] usings)
+        CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
         {
             for (var i = 0; i < usings.Length; i++)
             {
@@ -40,7 +38,7 @@ class Program
 " + methodBody + @"
     }
 }";
-            VerifyOutput(source, output);
+            return VerifyOutput(source, output);
         }
 
         void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
@@ -362,6 +360,55 @@ local = (Action)Local;
 local();
 ";
             VerifyOutputInMain(source, "2 2", "System");
+        }
+
+        [Fact]
+        public void InterpolatedString()
+        {
+            var source = @"
+int x = 1;
+int Bar() => ++x;
+var str = $@""{((Func<int>)(() => { int Foo() => Bar(); return Foo(); }))()}"";
+Console.Write(str + ' ' + x);
+";
+            VerifyOutputInMain(source, "2 2", "System");
+        }
+
+        // StaticNoClosure*() are generic because the reference to the locfunc is constructed, and actual local function is not
+        // (i.e. testing to make sure we use MethodSymbol.OriginalDefinition in LambdaRewriter.Analysis)
+        [Fact]
+        public void StaticNoClosure()
+        {
+            var source = @"
+T Foo<T>(T x)
+{
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().IsStatic);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    Console.Write(' ');
+    return x;
+}
+Console.Write(Foo(2));
+";
+            VerifyOutputInMain(source, "True Program 2", "System");
+        }
+
+        [Fact]
+        public void StaticNoClosureDelegate()
+        {
+            var source = @"
+T Foo<T>(T x)
+{
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().IsStatic);
+    Console.Write(' ');
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+    Console.Write(' ');
+    return x;
+}
+Func<int, int> foo = Foo;
+Console.Write(foo(2));
+";
+            VerifyOutputInMain(source, "False Program+<>c 2", "System");
         }
 
         [Fact]
@@ -859,6 +906,75 @@ Foo();
         }
 
         [Fact]
+        public void ClosureOfStructClosure()
+        {
+            var source = @"
+void Outer()
+{
+    int a = 0;
+    void Middle()
+    {
+        int b = 0;
+        void Inner()
+        {
+            a++;
+            b++;
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+            Console.Write(' ');
+        }
+
+        a++;
+        Inner();
+        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+        Console.Write(' ');
+    }
+
+    Middle();
+    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+    Console.Write(' ');
+    Console.WriteLine(a);
+}
+
+Outer();
+";
+            VerifyOutputInMain(source, "System.ValueType System.Object System.Object 2", "System");
+        }
+
+        [Fact]
+        public void ThisClosureCallingOtherClosure()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    int _x;
+    int Test()
+    {
+        int First()
+        {
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            Console.Write(' ');
+            return ++_x;
+        }
+        int Second()
+        {
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            Console.Write(' ');
+            return First();
+        }
+        return Second();
+    }
+    static void Main()
+    {
+        Console.Write(new Program() { _x = 1 }.Test());
+    }
+}
+";
+            VerifyOutput(source, "Program Program 2");
+        }
+
+        [Fact]
         public void RecursiveStructClosure()
         {
             var source = @"
@@ -880,6 +996,43 @@ void Foo()
 Foo();
 ";
             VerifyOutputInMain(source, "2 System.ValueType", "System");
+        }
+
+        [Fact]
+        public void MutuallyRecursiveStructClosure()
+        {
+            var source = @"
+int x = 0;
+void Foo(int depth)
+{
+    int dummy = 0;
+    void Bar(int depth2)
+    {
+        dummy++;
+        if (depth2 == 2)
+        {
+            // should be struct
+            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+            Console.Write(' ');
+        }
+        Foo(depth2);
+    }
+    if (depth != 2)
+    {
+        x++;
+        Bar(depth + 1);
+    }
+    else
+    {
+        Console.Write(x);
+        Console.Write(' ');
+        // should be class (due to by-value passing). See bottom of LambdaRewriter.Analysis.ComputeLambdaScopesAndFrameCaptures
+        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
+    }
+}
+Foo(0);
+";
+            VerifyOutputInMain(source, "System.ValueType 2 System.Object", "System");
         }
 
         [Fact]
@@ -955,6 +1108,36 @@ class Program
 }
 ";
             VerifyOutput(source, "2 Program");
+        }
+
+        [Fact]
+        public void RecursionFrameCaptureTest()
+        {
+            // ensures that referring to a local function in an otherwise noncapturing Inner captures the frame of Outer.
+            var source = @"
+int x = 0;
+int Outer(bool isRecursive)
+{
+    if (isRecursive)
+    {
+        return x;
+    }
+    x++;
+    int Middle()
+    {
+        int Inner()
+        {
+            return Outer(true);
+        }
+        return Inner();
+    }
+    return Middle();
+}
+Console.Write(Outer(false));
+Console.Write(' ');
+Console.Write(x);
+";
+            VerifyOutputInMain(source, "1 1", "System");
         }
 
         [Fact]
@@ -1942,8 +2125,8 @@ void Local()
 }
 Local();
 ";
-            // a closure class that captures looks like "Program+<>c__DisplayClass0_0", not "Program+<>c"
-            VerifyOutputInMain(source, "2 Program+<>c", "System");
+            // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
+            VerifyOutputInMain(source, "2 Program", "System");
         }
 
         [Fact(Skip = "Dynamic local function arguments not supported yet")]
