@@ -6878,19 +6878,9 @@ using System.Diagnostics; // Unused.
             args.Errors.Verify();
             Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "false" }, { "Key", "value" } }));
 
-            // We don't do any rigorous validation of / features arguments...
-
-            args = DefaultParse(new[] { "/features", "a.vb" }, _baseDirectory);
-            args.Errors.Verify();
-            Assert.Empty(args.ParseOptions.Features);
-
-            args = DefaultParse(new[] { "/features:,", "a.vb" }, _baseDirectory);
-            args.Errors.Verify();
-            Assert.Equal("", args.ParseOptions.Features.Single().Key);
-
             args = DefaultParse(new[] { "/features:Test,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" }, { "", "true" } }));
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" } }));
         }
 
         [Fact]

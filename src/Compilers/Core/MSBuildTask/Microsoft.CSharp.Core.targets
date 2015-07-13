@@ -85,6 +85,7 @@
           ErrorEndLocation="$(ErrorEndLocation)"
           ErrorLog="$(ErrorLog)"
           ErrorReport="$(ErrorReport)"
+          Features="$(Features)"
           FileAlignment="$(FileAlignment)"
           GenerateFullPaths="$(GenerateFullPaths)"
           HighEntropyVA="$(HighEntropyVA)"

@@ -137,13 +137,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             else
             {
                 var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: CancellationToken.None);
+                symbol = symbols.FirstOrDefault();
 
-                var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
-                var overloads = semanticModel.GetMemberGroup(bindableParent);
-
-                symbol = symbols.Concat(overloads)
-                                .Distinct(SymbolEquivalenceComparer.Instance)
-                                 .FirstOrDefault();
+                if (symbol == null)
+                {
+                    var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
+                    var overloads = semanticModel.GetMemberGroup(bindableParent);
+                    symbol = overloads.FirstOrDefault();
+                }
             }
 
             // Local: return the name if it's the declaration, otherwise the type

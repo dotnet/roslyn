@@ -1,12 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition.Hosting
-Imports System.ComponentModel.Composition.Primitives
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Completion.Rules
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -63,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetService(Of IInlineRenameService)(),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
-                GetExports(Of ICompletionRules, OrderableLanguageMetadata)(),
                 completionProviders,
                 GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
 

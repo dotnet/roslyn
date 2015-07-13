@@ -439,6 +439,7 @@ namespace Microsoft.Cci
         private readonly uint[,] _dummyAssemblyAttributeParent = { { 0, 0 }, { 0, 0 } };
 
         internal const int MappedFieldDataAlignment = 8;
+        internal const int ManagedResourcesDataAlignment = 8;
 
         internal IModule Module => module;
 
@@ -2025,7 +2026,7 @@ namespace Microsoft.Cci
                 ilWriter,
                 mappedFieldDataWriter,
                 managedResourceDataWriter,
-                calculateMethodBodyStreamRva: _ => 0,
+                methodBodyStreamRva: 0,
                 calculateMappedFieldDataStreamRva: _ => 0,
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
                 metadataSizes: out metadataSizes,
@@ -2046,7 +2047,7 @@ namespace Microsoft.Cci
             BlobWriter ilWriter,
             BlobWriter mappedFieldDataWriter,
             BlobWriter managedResourceDataWriter,
-            Func<MetadataSizes, int> calculateMethodBodyStreamRva,
+            int methodBodyStreamRva,
             Func<MetadataSizes, int> calculateMappedFieldDataStreamRva,
             out int moduleVersionIdOffsetInMetadataStream,
             out int entryPointToken,
@@ -2094,7 +2095,6 @@ namespace Microsoft.Cci
                 strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
                 isMinimalDelta: IsMinimalDelta);
 
-            int methodBodyStreamRva = calculateMethodBodyStreamRva(metadataSizes);
             int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
 
             int guidHeapStartOffset;
@@ -2795,11 +2795,11 @@ namespace Microsoft.Cci
 
         private void PopulateDeclSecurityTableRowsFor(uint parent, IEnumerable<SecurityAttribute> attributes)
         {
-            OrderPreservingMultiDictionary<SecurityAction, ICustomAttribute> groupedSecurityAttributes = null;
+            OrderPreservingMultiDictionary<DeclarativeSecurityAction, ICustomAttribute> groupedSecurityAttributes = null;
 
             foreach (SecurityAttribute securityAttribute in attributes)
             {
-                groupedSecurityAttributes = groupedSecurityAttributes ?? OrderPreservingMultiDictionary<SecurityAction, ICustomAttribute>.GetInstance();
+                groupedSecurityAttributes = groupedSecurityAttributes ?? OrderPreservingMultiDictionary<DeclarativeSecurityAction, ICustomAttribute>.GetInstance();
                 groupedSecurityAttributes.Add(securityAttribute.Action, securityAttribute.Attribute);
             }
 
@@ -2811,7 +2811,7 @@ namespace Microsoft.Cci
             DeclSecurityRow r = new DeclSecurityRow();
             r.Parent = parent;
 
-            foreach (SecurityAction securityAction in groupedSecurityAttributes.Keys)
+            foreach (DeclarativeSecurityAction securityAction in groupedSecurityAttributes.Keys)
             {
                 r.Action = (ushort)securityAction;
                 r.PermissionSet = (uint)this.GetPermissionSetIndex(groupedSecurityAttributes[securityAction]);
@@ -3237,7 +3237,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Length % 8) == 0);
+            Debug.Assert((resourceDataWriter.Length % ManagedResourcesDataAlignment) == 0);
         }
 
         private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }

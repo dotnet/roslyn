@@ -285,6 +285,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpWinRTTest", "src\Comp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTask", "src\Compilers\Core\MSBuildTask\MSBuildTask.csproj", "{D874349C-8BB3-4BDC-8535-2D52CCCA1198}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTaskTests", "src\Compilers\Core\MSBuildTaskTests\MSBuildTaskTests.csproj", "{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}"
+EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BasicResultProvider", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.shproj", "{3140FE61-0856-4367-9AA3-8081B9A80E35}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicResultProvider.NetFX20", "src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\NetFX20\BasicResultProvider.NetFX20.vbproj", "{76242A2D-2600-49DD-8C15-FEA07ECB1842}"
@@ -357,8 +359,8 @@ Global
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d3}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 4
-		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bedc5a4a-809e-4017-9cfd-6c8d4e1847f0}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
@@ -4822,6 +4824,34 @@ Global
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|x64.Build.0 = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|x86.ActiveCfg = Release|Any CPU
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198}.Release|x86.Build.0 = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|ARM.ActiveCfg = Debug|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|ARM.Build.0 = Debug|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|x64.ActiveCfg = Debug|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|x64.Build.0 = Debug|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodDebug|ARM.ActiveCfg = Debug|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodDebug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodDebug|x64.ActiveCfg = Debug|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodDebug|x86.ActiveCfg = Debug|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodRelease|Any CPU.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodRelease|ARM.ActiveCfg = Release|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodRelease|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodRelease|x64.ActiveCfg = Release|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.DogfoodRelease|x86.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|ARM.ActiveCfg = Release|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|ARM.Build.0 = Release|ARM
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|x64.ActiveCfg = Release|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|x64.Build.0 = Release|x64
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}.Release|x86.ActiveCfg = Release|Any CPU
 		{76242A2D-2600-49DD-8C15-FEA07ECB1842}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{76242A2D-2600-49DD-8C15-FEA07ECB1842}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76242A2D-2600-49DD-8C15-FEA07ECB1842}.Debug|ARM.ActiveCfg = Debug|Any CPU
@@ -5707,6 +5737,7 @@ Global
 		{C1930979-C824-496B-A630-70F5369A636F} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{3140FE61-0856-4367-9AA3-8081B9A80E35} = {151F6994-AEB3-4B12-B746-2ACFF26C7BBB}
 		{76242A2D-2600-49DD-8C15-FEA07ECB1842} = {151F6994-AEB3-4B12-B746-2ACFF26C7BBB}
 		{76242A2D-2600-49DD-8C15-FEA07ECB1843} = {151F6994-AEB3-4B12-B746-2ACFF26C7BBB}
