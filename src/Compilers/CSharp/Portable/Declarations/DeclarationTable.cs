@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -39,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Lazy<ICollection<string>> _typeNames;
         private readonly Lazy<ICollection<string>> _namespaceNames;
         private readonly Lazy<ICollection<ReferenceDirective>> _referenceDirectives;
-        private readonly Lazy<ICollection<Diagnostic>> _referenceDirectiveDiagnostics;
 
         private DeclarationTable(
             ImmutableSetWithInsertionOrder<RootSingleNamespaceDeclaration> allOlderRootDeclarations,
@@ -53,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _typeNames = new Lazy<ICollection<string>>(GetMergedTypeNames);
             _namespaceNames = new Lazy<ICollection<string>>(GetMergedNamespaceNames);
             _referenceDirectives = new Lazy<ICollection<ReferenceDirective>>(GetMergedReferenceDirectives);
-            _referenceDirectiveDiagnostics = new Lazy<ICollection<Diagnostic>>(GetMergedDiagnostics);
         }
 
         public DeclarationTable AddRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
@@ -178,20 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ICollection<Diagnostic> GetMergedDiagnostics()
-        {
-            var cachedDiagnostics = _cache.ReferenceDirectiveDiagnostics.Value;
-
-            if (_latestLazyRootDeclaration == null)
-            {
-                return cachedDiagnostics;
-            }
-            else
-            {
-                return UnionCollection<Diagnostic>.Create(cachedDiagnostics, _latestLazyRootDeclaration.Value.ReferenceDirectiveDiagnostics);
-            }
-        }
-
         private static readonly Predicate<Declaration> s_isNamespacePredicate = d => d.Kind == DeclarationKind.Namespace;
         private static readonly Predicate<Declaration> s_isTypePredicate = d => d.Kind != DeclarationKind.Namespace;
 
@@ -262,15 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _referenceDirectives.Value;
-            }
-        }
-
-
-        public IEnumerable<Diagnostic> Diagnostics
-        {
-            get
-            {
-                return _referenceDirectiveDiagnostics.Value;
             }
         }
 
