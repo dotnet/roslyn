@@ -141,7 +141,7 @@ namespace Microsoft.Cci
             _blobHeapStartOffset = blobHeapStartOffset;
 
             // Unlike other heaps, #Guid heap in EnC delta is zero-padded.
-            _guidWriter.Pad(guidHeapStartOffset);
+             _guidWriter.WriteBytes(0, guidHeapStartOffset);
         }
 
         internal BlobIdx GetBlobIndex(BlobWriter stream)
@@ -162,7 +162,7 @@ namespace Microsoft.Cci
 
                 _blobHeapSize += BlobWriter.GetCompressedIntegerSize(blob.Length) + blob.Length;
             }
-
+            
             return index;
         }
 
@@ -268,9 +268,11 @@ namespace Microsoft.Cci
             if (!_userStrings.TryGetValue(str, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
+
                 index = _userStringWriter.Position + _userStringHeapStartOffset;
                 _userStrings.Add(str, index);
-                _userStringWriter.WriteCompressedUInt((uint)str.Length * 2 + 1);
+                _userStringWriter.WriteCompressedInteger((uint)str.Length * 2 + 1);
+
                 _userStringWriter.WriteUTF16(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple
@@ -432,9 +434,9 @@ namespace Microsoft.Cci
         private void WriteAlignedBlobHeap(BlobWriter writer)
         {
             int heapStart = writer.Position;
-            
+
             // ensure enough space in the buffer:
-            writer.Position += _blobHeapSize;
+            writer.SetPosition(writer.Position + _blobHeapSize);
 
             // Perf consideration: With large heap the following loop may cause a lot of cache misses 
             // since the order of entries in _blobs dictionary depends on the hash of the array values, 
@@ -445,23 +447,23 @@ namespace Microsoft.Cci
                 int heapOffset = entry.Value.HeapPosition;
                 var blob = entry.Key;
 
-                writer.Position = heapStart + heapOffset;
-                writer.WriteCompressedUInt((uint)blob.Length);
+                writer.SetPosition(heapStart + heapOffset);
+                writer.WriteCompressedInteger((uint)blob.Length);
                 writer.WriteBytes(blob);
             }
 
             Debug.Assert(writer.Length - heapStart == _blobHeapSize);
 
             // add padding:
-            writer.Position = writer.Length;
-            writer.Write(0, BitArithmeticUtilities.Align(_blobHeapSize, 4) - _blobHeapSize);
+            writer.SetPosition(writer.Length);
+            writer.WriteBytes(0, BitArithmeticUtilities.Align(_blobHeapSize, 4) - _blobHeapSize);
         }
 
         private static void WriteAligned(BlobWriter source, BlobWriter target)
         {
             int length = source.Length;
             source.WriteTo(target);
-            target.Write(0, BitArithmeticUtilities.Align(length, 4) - length);
+            target.WriteBytes(0, BitArithmeticUtilities.Align(length, 4) - length);
         }
     }
 }
