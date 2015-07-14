@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         private List<DocumentSnapshotSpan> TryGetSpansAndDocumentsToTag(string kind)
         {
+            this.WorkQueue.AssertIsForeground();
+
             // TODO: tagger creates so much temporary objects. GetSpansAndDocumentsToTags creates handful of objects per events 
             //       (in this case, on every caret move or text change). at some point of time, we should either re-write tagger framework
             //       or do some audit to reduce memory allocations.

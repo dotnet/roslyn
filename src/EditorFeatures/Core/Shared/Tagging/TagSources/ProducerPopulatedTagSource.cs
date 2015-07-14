@@ -398,6 +398,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         protected List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
         {
+            this.WorkQueue.AssertIsForeground();
+
             // TODO: Update to tag spans from all related documents.
 
             var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
