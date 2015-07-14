@@ -543,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (CompilationState.Emitting)
                     {
+                        Debug.Assert(capturedFrame.Type.IsReferenceType); // Make sure we're not accidentally capturing a struct by value
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
                     }
 
