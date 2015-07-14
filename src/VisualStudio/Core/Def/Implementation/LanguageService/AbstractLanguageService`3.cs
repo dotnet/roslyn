@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     // We need to get our outlining tag source to notify it to start blocking
                     var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
-                    outliningTaggerProvider.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = true;
+                    outliningTaggerProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(true);
 
                     try
                     {
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     }
                     finally
                     {
-                        outliningTaggerProvider.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = false;
+                        outliningTaggerProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(false);
                     }
                 }
             }

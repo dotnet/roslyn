@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
-    internal sealed class AsynchronousBufferTaggerProvider<TTag> :
+    internal sealed class AsynchronousBufferTaggerProviderWithTagSource<TTag> :
         AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>,
         ITaggerProvider,
         IAsynchronousTaggerDataSource<TTag>
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public override IEnumerable<Option<bool>> Options => dataSource.Options;
         public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => dataSource.PerLanguageOptions;
 
-        public AsynchronousBufferTaggerProvider(
+        public AsynchronousBufferTaggerProviderWithTagSource(
             IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,

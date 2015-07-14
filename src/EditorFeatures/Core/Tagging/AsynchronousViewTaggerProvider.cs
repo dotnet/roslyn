@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
     /// Convenience class that provides a default implementation for most of what is required to
-    /// be an <see cref="ITaggerProvider"/> that operates in an asynchronous fashion.
+    /// be an <see cref="IViewTaggerProvider"/> that operates in an asynchronous fashion.
     /// </summary>
-    internal abstract class AsynchronousTaggerProvider<TTag> :
+    internal abstract class AsynchronousViewTaggerProvider<TTag> :
         ForegroundThreadAffinitizedObject,
-        ITaggerProvider,
+        IViewTaggerProvider,
         IAsynchronousTaggerDataSource<TTag>
         where TTag : ITag
     {
-        private readonly AsynchronousBufferTaggerProviderWithTagSource<TTag> _underlyingTagger;
+        private readonly AsynchronousViewTaggerProviderWithTagSource<TTag> _underlyingTagger;
 
         public virtual bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
         public virtual IEnumerable<Option<bool>> Options => null;
@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-        protected AsynchronousTaggerProvider(
+        protected AsynchronousViewTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
-            _underlyingTagger = new AsynchronousBufferTaggerProviderWithTagSource<TTag>(
+            _underlyingTagger = new AsynchronousViewTaggerProviderWithTagSource<TTag>(
                 this, asyncListener, notificationService, createTagSource: null);
         }
 
-        public virtual ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public virtual ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            return _underlyingTagger.CreateTagger<T>(buffer);
+            return _underlyingTagger.CreateTagger<T>(textView, buffer);
         }
 
         public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);

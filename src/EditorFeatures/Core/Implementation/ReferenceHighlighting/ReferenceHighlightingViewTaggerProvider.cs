@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
-                new AsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag>(
+                new AsynchronousViewTaggerProviderWithTagSource<AbstractNavigatableReferenceHighlightingTag>(
                     this,
                     new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting),
                     notificationService,

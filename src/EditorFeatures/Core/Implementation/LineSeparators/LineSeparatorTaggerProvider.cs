@@ -5,9 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -24,48 +22,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [TagType(typeof(LineSeparatorTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class LineSeparatorTaggerProvider :
-        ForegroundThreadAffinitizedObject,
-        ITaggerProvider,
-        IAsynchronousTaggerDataSource<LineSeparatorTag>
+    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
-        private readonly Lazy<ITaggerProvider> _asynchronousTaggerProvider;
-
-        public TaggerDelay? UIUpdateDelay => null;
-        public bool RemoveTagsThatIntersectEdits => true;
-        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-
-        // TODO(cyrusn): Why don't these actually return real options for this feature?
-        public IEnumerable<Option<bool>> Options => null;
-        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+        public override bool RemoveTagsThatIntersectEdits => true;
+        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
         {
-            _asynchronousTaggerProvider = new Lazy<ITaggerProvider>(() =>
-                new AsynchronousTaggerProvider<LineSeparatorTag>(
-                    this,
-                    new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators),
-                    notificationService));
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            this.AssertIsForeground();
-            return _asynchronousTaggerProvider.Value.CreateTagger<T>(buffer);
-        }
-
-        public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.LineSeparator, TaggerDelay.NearImmediate));
         }
 
-        public ITagProducer<LineSeparatorTag> CreateTagProducer()
+        public override ITagProducer<LineSeparatorTag> CreateTagProducer()
         {
             return new TagProducer();
         }

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
             _asynchronousTaggerProvider = new Lazy<ITaggerProvider>(() =>
-                new AsynchronousBufferTaggerProvider<IClassificationTag>(
+                new AsynchronousBufferTaggerProviderWithTagSource<IClassificationTag>(
                     this,
                     new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification),
                     notificationService,

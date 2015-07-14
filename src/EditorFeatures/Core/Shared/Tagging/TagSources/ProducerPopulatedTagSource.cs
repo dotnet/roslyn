@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// 
     /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s and <see cref="ITagger{T}"/>s.
     /// Taggers that tag the buffer and don't care about a view (think classification) have one <see cref="BufferTagSource{TTag}"/>
-    /// per subject buffer, the lifetime management provided by <see cref="AsynchronousBufferTaggerProvider{TTag}"/>.
+    /// per subject buffer, the lifetime management provided by <see cref="AsynchronousBufferTaggerProviderWithTagSource{TTag}"/>.
     /// Taggers that tag the buffer and care about the view (think keyword highlighting) have a <see cref="ViewTagSource{TTag}"/>
-    /// per subject buffer/view pair, and the lifetime management for that is provided by a <see cref="AsynchronousViewTaggerProvider{TTag}"/>.
+    /// per subject buffer/view pair, and the lifetime management for that is provided by a <see cref="AsynchronousViewTaggerProviderWithTagSource{TTag}"/>.
     /// Special cases, like reference highlighting (which processes multiple subject buffers at once) have their own
     /// providers and tag source derivations.</para>
     /// </summary>

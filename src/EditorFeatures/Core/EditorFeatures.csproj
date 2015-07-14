@@ -670,6 +670,8 @@
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
+    <Compile Include="Tagging\AsynchronousViewTaggerProvider.cs" />
     <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
     <Compile Include="Undo\EditorSourceTextUndoService.cs" />
     <Compile Include="Undo\ISourceTextUndoTransaction.cs" />
@@ -789,7 +791,7 @@
     <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.SymbolRenameInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameLocationSet.cs" />
-    <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProviderFactory.cs" />
     <Compile Include="Tagging\IAsynchronousTaggerDataSource.cs" />
     <Compile Include="TextViewRoles.cs" />
     <Compile Include="Undo\Extensions.cs" />

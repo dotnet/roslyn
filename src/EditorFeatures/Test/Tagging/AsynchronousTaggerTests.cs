@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                 using (var disposable = (IDisposable)tagger)
                 {
-                    tagProvider.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = true;
+                    tagProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(true);
 
                     // The very first all to get tags should return the single outlining span.
                     var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
@@ -157,20 +157,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             }
         }
 
-        private sealed class TestTaggerProvider : ITaggerProvider, IAsynchronousTaggerDataSource<TestTag>
+        private sealed class TestTaggerProvider : AsynchronousTaggerProvider<TestTag>
         {
-            private readonly ITaggerProvider _taggerProvider;
             private readonly TestTagProducer _tagProducer;
             private readonly ITaggerEventSource _eventSource;
             private readonly Workspace _workspace;
             private readonly bool _disableCancellation;
 
-            public TaggerDelay? UIUpdateDelay => null;
-            public bool RemoveTagsThatIntersectEdits => true;
-            public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-            public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-            public IEnumerable<Option<bool>> Options => null;
-            public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+            public override bool RemoveTagsThatIntersectEdits => true;
+            public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
             public TestTaggerProvider(
                 TestTagProducer tagProducer,
@@ -179,27 +174,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 IAsynchronousOperationListener asyncListener,
                 IForegroundNotificationService notificationService,
                 bool disableCancellation = false)
+                    : base(asyncListener, notificationService)
             {
-                _taggerProvider = new AsynchronousTaggerProvider<TestTag>(this, asyncListener, notificationService);
                 _tagProducer = tagProducer;
                 _eventSource = eventSource;
                 _workspace = workspace;
                 _disableCancellation = disableCancellation;
             }
 
-            public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+            public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {
                 return _eventSource;
             }
 
-            public ITagProducer<TestTag> CreateTagProducer()
+            public override ITagProducer<TestTag> CreateTagProducer()
             {
                 return _tagProducer;
-            }
-
-            public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-            {
-                return _taggerProvider.CreateTagger<T>(buffer);
             }
         }
 

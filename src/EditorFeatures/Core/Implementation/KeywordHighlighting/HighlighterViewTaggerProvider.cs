@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         {
             _highlighterService = highlighterService;
             _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
-                new AsynchronousViewTaggerProvider<HighlightTag>(
+                new AsynchronousViewTaggerProviderWithTagSource<HighlightTag>(
                     this,
                     new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.KeywordHighlighting),
                     notificationService,
