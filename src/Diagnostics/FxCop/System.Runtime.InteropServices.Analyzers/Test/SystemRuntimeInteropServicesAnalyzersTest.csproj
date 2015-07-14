@@ -49,7 +49,7 @@
       <Project>{0A0621F2-D1DC-47FF-B643-C6646557505E}</Project>
       <Name>DiagnosticsTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.vbproj">
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

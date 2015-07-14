@@ -129,7 +129,7 @@ namespace Roslyn.Services.UnitTests
         {
             // modules: { MultiModule.dll, mod2.netmodule, mod3.netmodule }
             var dir = Temp.CreateDirectory();
-            string path0 = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModule).Path;
+            string path0 = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
             string path1 = dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2).Path;
             string path2 = dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3).Path;
 
@@ -199,7 +199,7 @@ namespace Roslyn.Services.UnitTests
             var r0 = _provider.GetReference(f0);
             Assert.Throws<BadImageFormatException>(() => r0.GetMetadata());
 
-            string f1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModule).Path;
+            string f1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
             var r1 = _provider.GetReference(f1);
             Assert.Throws<FileNotFoundException>(() => r1.GetMetadata());
         }
