@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
         public TaggerDelay? UIUpdateDelay => null;
+        public IEqualityComparer<HighlightTag> TagComparer => null;
         public bool RemoveTagsThatIntersectEdits => true;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;

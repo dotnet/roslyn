@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
         private readonly ITagProducer<TTag> _tagProducer;
+
+        // TODO(cyrusn): Why is this lazy?  We'll always need it.  So why not just eagerly create it?
         private IEqualityComparer<ITagSpan<TTag>> _lazyTagSpanComparer;
 
         /// <summary>
@@ -120,13 +122,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <remarks>Called on the foreground thread.</remarks>
         protected abstract SnapshotPoint? GetCaretPoint();
 
+        private IEqualityComparer<TTag> GetTagComparer()
+        {
+            return _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
+        }
+
         private IEqualityComparer<ITagSpan<TTag>> TagSpanComparer
         {
             get
             {
                 if (_lazyTagSpanComparer == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyTagSpanComparer, new TagSpanComparer<TTag>(_tagProducer.TagComparer), null);
+                    Interlocked.CompareExchange(ref _lazyTagSpanComparer, new TagSpanComparer<TTag>(this.GetTagComparer()), null);
                 }
 
                 return _lazyTagSpanComparer;
@@ -662,7 +669,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> previousSpans)
         {
             return new NormalizedSnapshotSpanCollection(
-                Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), new DiffSpanComparer(_tagProducer.TagComparer)));
+                Difference(latestSpans.GetSpans(snapshot),
+                           previousSpans.GetSpans(snapshot),
+                           new DiffSpanComparer(this.GetTagComparer())));
         }
 
         /// <summary>

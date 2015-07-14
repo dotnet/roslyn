@@ -1,14 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -39,18 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         SpanTrackingMode SpanTrackingMode { get; }
 
         /// <summary>
-        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
-        /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
-        /// </summary>
-        ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
-
-        /// <summary>
-        /// Creates the <see cref="ITagProducer{TTag}"/> which will be used by the 
-        /// <see cref="AsynchronousTaggerProvider{TTag}"/> to produce tags asynchronously.
-        /// </summary>
-        ITagProducer<TTag> CreateTagProducer();
-
-        /// <summary>
         /// Whether or not the the first set of tags for this tagger should be computed synchronously.
         /// </summary>
         bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted { get; }
@@ -71,5 +52,27 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// the UI.  Return 'null' to get the default delay.
         /// </summary>
         TaggerDelay? UIUpdateDelay { get; }
+
+        /// <summary>
+        /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
+        /// the <see cref="AsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
+        /// computed tags and a current set of computed tags should be considered the same or not.
+        /// If they are the same, then the UI will not be updated.  If they are different then
+        /// the UI will be updated for sets of tags that have been removed or added.
+        /// </summary>
+        /// <returns></returns>
+        IEqualityComparer<TTag> TagComparer { get; }
+
+        /// <summary>
+        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
+        /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
+        /// </summary>
+        ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
+
+        /// <summary>
+        /// Creates the <see cref="ITagProducer{TTag}"/> which will be used by the 
+        /// <see cref="AsynchronousTaggerProvider{TTag}"/> to produce tags asynchronously.
+        /// </summary>
+        ITagProducer<TTag> CreateTagProducer();
     }
 }

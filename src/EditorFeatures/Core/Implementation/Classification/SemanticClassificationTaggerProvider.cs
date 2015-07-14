@@ -37,11 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // then you don't want to remove the classification for 'Console'.
         public TaggerDelay? UIUpdateDelay => null;
         public bool RemoveTagsThatIntersectEdits => false;
+        public IEqualityComparer<IClassificationTag> TagComparer => null;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+
         public IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
         public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
-
 
         [ImportingConstructor]
         public SemanticClassificationTaggerProvider(

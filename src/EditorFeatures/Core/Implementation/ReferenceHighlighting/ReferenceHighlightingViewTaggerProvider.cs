@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+        public IEqualityComparer<AbstractNavigatableReferenceHighlightingTag> TagComparer => null;
         public IEnumerable<Option<bool>> Options => null;
         public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 

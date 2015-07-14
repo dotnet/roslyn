@@ -17,14 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     internal abstract class AbstractSingleDocumentTagProducer<TTag> : ITagProducer<TTag>
         where TTag : ITag
     {
-        public virtual IEqualityComparer<TTag> TagComparer
-        {
-            get
-            {
-                return EqualityComparer<TTag>.Default;
-            }
-        }
-
         public Task<IEnumerable<ITagSpan<TTag>>> ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
             // This abstract class should only be used in places where the tagger will only ever be analyzing at most one

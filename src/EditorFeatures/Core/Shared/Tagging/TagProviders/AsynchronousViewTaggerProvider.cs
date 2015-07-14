@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private readonly IAsynchronousTaggerDataSource<TTag> dataSource;
         private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource;
 
+        public IEqualityComparer<TTag> TagComparer => dataSource.TagComparer;
         public override TaggerDelay? UIUpdateDelay => dataSource.UIUpdateDelay;
         public SpanTrackingMode SpanTrackingMode => dataSource.SpanTrackingMode;
         public bool RemoveTagsThatIntersectEdits => dataSource.RemoveTagsThatIntersectEdits;

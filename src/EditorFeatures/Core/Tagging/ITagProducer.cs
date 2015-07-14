@@ -18,16 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         where TTag : ITag
     {
         /// <summary>
-        /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
-        /// the <see cref="AsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
-        /// computed tags and a current set of computed tags should be considered the same or not.
-        /// If they are the same, then the UI will not be updated.  If they are different then
-        /// the UI will be updated for sets of tags that have been removed or added.
-        /// </summary>
-        /// <returns></returns>
-        IEqualityComparer<TTag> TagComparer { get; }
-
-        /// <summary>
         /// Produce tags for the given spans.
         /// </summary>
         /// <param name="snapshotSpans">A list of SnapshotSpans and their corresponding documents

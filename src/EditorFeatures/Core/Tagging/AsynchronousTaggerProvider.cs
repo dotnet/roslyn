@@ -22,10 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private readonly AsynchronousBufferTaggerProviderWithTagSource<TTag> _underlyingTagger;
 
+        public virtual IEqualityComparer<TTag> TagComparer => null;
+        public virtual TaggerDelay? UIUpdateDelay => null;
         public virtual bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
         public virtual IEnumerable<Option<bool>> Options => null;
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
-        public virtual TaggerDelay? UIUpdateDelay => null;
 
         public abstract bool RemoveTagsThatIntersectEdits { get; }
         public abstract SpanTrackingMode SpanTrackingMode { get; }
