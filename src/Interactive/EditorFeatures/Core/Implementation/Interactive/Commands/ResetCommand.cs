@@ -5,13 +5,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.VisualStudio.InteractiveWindow.Commands
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [InteractiveWindowRole(InteractiveWindowRoles.Any)]
     internal sealed class ResetCommand : InteractiveWindowCommand
     {
         private const string CommandName = "reset";
@@ -60,7 +64,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 return ExecutionResult.Failed;
             }
 
-            return ((InteractiveWindow)window).ResetAsync(init.Value);
+            return window.Operations.ResetAsync(init.Value);
         }
 
         internal static string BuildCommandLine(bool initialize)

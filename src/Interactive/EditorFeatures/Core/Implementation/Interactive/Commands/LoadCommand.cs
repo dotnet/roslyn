@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [InteractiveWindowRole(InteractiveWindowRoles.Any)]
     internal sealed class LoadCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "load";

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             HostServices hostServices,
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
-            IInteractiveWindowCommand[] commands,
+            ImmutableArray<IInteractiveWindowCommand> commands,
             string responseFilePath,
             string initialWorkingDirectory,
             string interactiveHostPath,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _classifierAggregator = classifierAggregator;
             _initialWorkingDirectory = initialWorkingDirectory;
             _commandsFactory = commandsFactory;
-            _commands = commands.ToImmutableArray();
+            _commands = commands;
 
             var hostPath = interactiveHostPath;
             _interactiveHost = new InteractiveHost(replType, hostPath, initialWorkingDirectory);

@@ -3,10 +3,14 @@
 using System.ComponentModel.Composition;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.VisualStudio.InteractiveWindow.Commands
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [InteractiveWindowRole(InteractiveWindowRoles.Any)]
     internal sealed class ClearScreenCommand : InteractiveWindowCommand
     {
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)

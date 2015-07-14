@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         private readonly IViewClassifierAggregatorService _classifierAggregator;
         private readonly IContentTypeRegistryService _contentTypeRegistry;
         private readonly IInteractiveWindowCommandsFactory _commandsFactory;
-        private readonly IInteractiveWindowCommand[] _commands;
+        private readonly ImmutableArray<IInteractiveWindowCommand> _commands;
 
         // TODO: support multi-instance windows
         // single instance of the Interactive Window
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _classifierAggregator = classifierAggregator;
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
-            _commands = commands;
+            _commands = FilterCommands(commands, InteractiveWindowRoles.Any);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        protected IInteractiveWindowCommand[] Commands
+        protected ImmutableArray<IInteractiveWindowCommand> Commands
         {
             get
             {
@@ -102,6 +103,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _vsInteractiveWindow.Show(focus);
 
             return _vsInteractiveWindow;
+        }
+
+        private static ImmutableArray<IInteractiveWindowCommand> FilterCommands(IInteractiveWindowCommand[] commands, string supportedRole)
+        {
+            return commands.Where(
+                c => c.GetType().GetCustomAttributes(typeof(InteractiveWindowRoleAttribute), inherit: true).Where(
+                    a => ((InteractiveWindowRoleAttribute)a).Name == supportedRole).Any()).ToImmutableArray();
         }
     }
 }
