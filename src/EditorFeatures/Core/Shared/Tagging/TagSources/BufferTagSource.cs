@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
         {
         }
 
-        protected override ICollection<SnapshotSpan> GetInitialSpansToTag()
+        protected override IList<SnapshotSpan> GetInitialSpansToTag()
         {
             return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
         }

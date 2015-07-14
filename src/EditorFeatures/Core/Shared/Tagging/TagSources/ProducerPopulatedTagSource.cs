@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// Implemented by derived types to return a list of initial snapshot spans to tag.
         /// </summary>
         /// <remarks>Called on the foreground thread.</remarks>
-        protected abstract ICollection<SnapshotSpan> GetInitialSpansToTag();
+        protected abstract IList<SnapshotSpan> GetInitialSpansToTag();
 
         /// <summary>
         /// Implemented by derived types to return The caret position.

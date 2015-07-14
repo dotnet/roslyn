@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             _textView = textView;
         }
 
-        protected override ICollection<SnapshotSpan> GetInitialSpansToTag()
+        protected override IList<SnapshotSpan> GetInitialSpansToTag()
         {
             return _textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                            .Select(b => b.CurrentSnapshot.GetFullSpan())

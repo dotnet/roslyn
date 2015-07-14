@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             _textView = textView;
         }
 
-        protected override ICollection<SnapshotSpan> GetInitialSpansToTag()
+        protected override IList<SnapshotSpan> GetInitialSpansToTag()
         {
             // For a standard tagger, the spans to tag is the span of the entire snapshot.
             return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
