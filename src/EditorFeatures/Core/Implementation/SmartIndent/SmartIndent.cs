@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         {
             if (textView == null)
             {
-                throw new ArgumentNullException("textView");
+                throw new ArgumentNullException(nameof(textView));
             }
 
             _textView = textView;

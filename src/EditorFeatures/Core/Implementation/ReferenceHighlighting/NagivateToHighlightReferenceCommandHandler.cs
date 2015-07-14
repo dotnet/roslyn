@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             if (outliningManagerService == null)
             {
-                throw new ArgumentNullException("outliningManagerService");
+                throw new ArgumentNullException(nameof(outliningManagerService));
             }
 
             if (tagAggregatorFactory == null)
             {
-                throw new ArgumentNullException("tagAggregatorFactory");
+                throw new ArgumentNullException(nameof(tagAggregatorFactory));
             }
 
             _outliningManagerService = outliningManagerService;

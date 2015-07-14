@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (dataSource == null)
             {
-                throw new ArgumentNullException("dataSource");
+                throw new ArgumentNullException(nameof(dataSource));
             }
 
             _taggerImplementation = new AsynchronousTaggerProviderImpl(asyncListener, notificationService, dataSource);

@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (presentationSource == null)
             {
-                throw new ArgumentNullException("presentationSource");
+                throw new ArgumentNullException(nameof(presentationSource));
             }
 
             _presentationSource = presentationSource;
