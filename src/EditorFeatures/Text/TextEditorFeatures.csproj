@@ -73,6 +73,8 @@
     <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -89,7 +91,6 @@
     <Compile Include="Extensions.TextBufferMapper.cs" />
     <Compile Include="Implementation\TextBufferFactoryService\ITextBufferCloneService.cs" />
     <Compile Include="Implementation\TextBufferFactoryService\TextBufferCloneServiceFactory.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Shared\Extensions\ITextSnapshotExtensions.cs" />
     <Compile Include="Shared\Extensions\ITextSnapshotLineExtensions.cs" />
     <Compile Include="Shared\Extensions\TextSpanExtensions.cs" />
