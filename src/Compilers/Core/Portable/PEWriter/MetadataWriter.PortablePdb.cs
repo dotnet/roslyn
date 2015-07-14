@@ -199,14 +199,14 @@ namespace Microsoft.Cci
             if (value is decimal)
             {
                 writer.WriteByte(0x11);
-                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
 
                 writer.WriteDecimal((decimal)value);
             }
             else if (value is DateTime)
             {
                 writer.WriteByte(0x11);
-                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
 
                 writer.WriteDateTime((DateTime)value);
             }
@@ -233,7 +233,7 @@ namespace Microsoft.Cci
                 // EnumType
                 if (type.IsEnum)
                 {
-                    writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                    writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
                 }
             }
             else if (this.module.IsPlatformType(type, PlatformType.SystemObject))
@@ -243,7 +243,7 @@ namespace Microsoft.Cci
             else
             {
                 writer.WriteByte((byte)(type.IsValueType ? 0x11 : 0x12));
-                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
+                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(type, treatRefAsPotentialTypeSpec: true));
             }
 
             return _debugHeapsOpt.GetBlobIndex(writer);
@@ -271,8 +271,8 @@ namespace Microsoft.Cci
         {
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
-            writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(alias.Name)));
-            writer.WriteCompressedUInt((uint)GetOrAddAssemblyRefIndex(alias.Assembly));
+            writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(alias.Name)));
+            writer.WriteCompressedInteger((uint)GetOrAddAssemblyRefIndex(alias.Assembly));
         }
 
         private void SerializeImport(BlobWriter writer, UsedNamespaceOrType import)
@@ -285,8 +285,8 @@ namespace Microsoft.Cci
 
                 // <import> ::= ImportXmlNamespace <alias> <target-namespace>
                 writer.WriteByte((byte)ImportDefinitionKind.ImportXmlNamespace);
-                writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
-                writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.TargetXmlNamespaceOpt)));
+                writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
+                writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.TargetXmlNamespaceOpt)));
             }
             else if (import.TargetTypeOpt != null)
             {
@@ -297,7 +297,7 @@ namespace Microsoft.Cci
                 {
                     // <import> ::= AliasType <alias> <target-type>
                     writer.WriteByte((byte)ImportDefinitionKind.AliasType);
-                    writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
+                    writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
                 }
                 else
                 {
@@ -305,7 +305,7 @@ namespace Microsoft.Cci
                     writer.WriteByte((byte)ImportDefinitionKind.ImportType);
                 }
 
-                writer.WriteCompressedUInt(GetTypeDefOrRefCodedIndex(import.TargetTypeOpt, treatRefAsPotentialTypeSpec: true)); // TODO: index in release build         
+                writer.WriteCompressedInteger(GetTypeDefOrRefCodedIndex(import.TargetTypeOpt, treatRefAsPotentialTypeSpec: true)); // TODO: index in release build         
             }
             else if (import.TargetNamespaceOpt != null)
             {
@@ -315,7 +315,7 @@ namespace Microsoft.Cci
                     {
                         // <import> ::= AliasAssemblyNamespace <alias> <target-assembly> <target-namespace>
                         writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyNamespace);
-                        writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
+                        writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
                     }
                     else
                     {
@@ -323,7 +323,7 @@ namespace Microsoft.Cci
                         writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyNamespace);
                     }
 
-                    writer.WriteCompressedUInt((uint)GetAssemblyRefIndex(import.TargetAssemblyOpt));
+                    writer.WriteCompressedInteger((uint)GetAssemblyRefIndex(import.TargetAssemblyOpt));
                 }
                 else
                 {
@@ -331,7 +331,7 @@ namespace Microsoft.Cci
                     {
                         // <import> ::= AliasNamespace <alias> <target-namespace>
                         writer.WriteByte((byte)ImportDefinitionKind.AliasNamespace);
-                        writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
+                        writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
                     }
                     else
                     {
@@ -342,7 +342,7 @@ namespace Microsoft.Cci
 
                 // TODO: cache?
                 string namespaceName = TypeNameSerializer.BuildQualifiedNamespaceName(import.TargetNamespaceOpt);
-                writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(namespaceName)));
+                writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(namespaceName)));
             } 
             else
             {
@@ -351,7 +351,7 @@ namespace Microsoft.Cci
                 Debug.Assert(import.TargetAssemblyOpt == null);
 
                 writer.WriteByte((byte)ImportDefinitionKind.ImportAssemblyReferenceAlias);
-                writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
+                writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(_debugHeapsOpt.GetBlobIndexUtf8(import.AliasOpt)));
             }
         }
 
@@ -512,13 +512,13 @@ namespace Microsoft.Cci
 
             var writer = new BlobWriter();
 
-            writer.WriteUint((uint)((long)asyncInfo.CatchHandlerOffset + 1));
+            writer.WriteUInt32((uint)((long)asyncInfo.CatchHandlerOffset + 1));
 
             for (int i = 0; i < asyncInfo.ResumeOffsets.Length; i++)
             {
-                writer.WriteUint((uint)asyncInfo.YieldOffsets[i]);
-                writer.WriteUint((uint)asyncInfo.ResumeOffsets[i]);
-                writer.WriteCompressedUInt((uint)moveNextMethodRid);
+                writer.WriteUInt32((uint)asyncInfo.YieldOffsets[i]);
+                writer.WriteUInt32((uint)asyncInfo.ResumeOffsets[i]);
+                writer.WriteCompressedInteger((uint)moveNextMethodRid);
             }
 
             _customDebugInformationTable.Add(new CustomDebugInformationRow
@@ -541,8 +541,8 @@ namespace Microsoft.Cci
 
             foreach (var scope in scopes)
             {
-                writer.WriteUint((uint)scope.StartOffset);
-                writer.WriteUint((uint)scope.Length);
+                writer.WriteUInt32((uint)scope.StartOffset);
+                writer.WriteUInt32((uint)scope.Length);
             }
 
             _customDebugInformationTable.Add(new CustomDebugInformationRow
@@ -572,8 +572,8 @@ namespace Microsoft.Cci
             uint currentDocumentRowId = GetOrAddDocument(sequencePoints[0].Document, documentIndex);
 
             // header:
-            writer.WriteCompressedUInt((uint)localSignatureRowId);
-            writer.WriteCompressedUInt(currentDocumentRowId);
+            writer.WriteCompressedInteger((uint)localSignatureRowId);
+            writer.WriteCompressedInteger(currentDocumentRowId);
 
             for (int i = 0; i < sequencePoints.Length; i++)
             {
@@ -581,24 +581,24 @@ namespace Microsoft.Cci
                 if (documentRowId != currentDocumentRowId)
                 {
                     // document record:
-                    writer.WriteCompressedUInt(0);
-                    writer.WriteCompressedUInt(documentRowId);
+                    writer.WriteCompressedInteger(0);
+                    writer.WriteCompressedInteger(documentRowId);
                     currentDocumentRowId = documentRowId;
                 }
 
                 // delta IL offset:
                 if (i > 0)
                 {
-                    writer.WriteCompressedUInt((uint)(sequencePoints[i].Offset - sequencePoints[i - 1].Offset));
+                    writer.WriteCompressedInteger((uint)(sequencePoints[i].Offset - sequencePoints[i - 1].Offset));
                 }
                 else
                 {
-                    writer.WriteCompressedUInt((uint)sequencePoints[i].Offset);
+                    writer.WriteCompressedInteger((uint)sequencePoints[i].Offset);
                 }
 
                 if (sequencePoints[i].IsHidden)
                 {
-                    writer.WriteShort(0);
+                    writer.WriteInt16(0);
                     continue;
                 }
 
@@ -609,8 +609,8 @@ namespace Microsoft.Cci
                 if (previousNonHiddenStartLine < 0)
                 {
                     Debug.Assert(previousNonHiddenStartColumn < 0);
-                    writer.WriteCompressedUInt((uint)sequencePoints[i].StartLine);
-                    writer.WriteCompressedUInt((uint)sequencePoints[i].StartColumn);
+                    writer.WriteCompressedInteger((uint)sequencePoints[i].StartLine);
+                    writer.WriteCompressedInteger((uint)sequencePoints[i].StartColumn);
                 }
                 else
                 {
@@ -633,11 +633,11 @@ namespace Microsoft.Cci
             // only hidden sequence points have zero width
             Debug.Assert(deltaLines != 0 || deltaColumns != 0 || sequencePoint.IsHidden);
 
-            writer.WriteCompressedUInt((uint)deltaLines);
+            writer.WriteCompressedInteger((uint)deltaLines);
 
             if (deltaLines == 0)
             {
-                writer.WriteCompressedUInt((uint)deltaColumns);
+                writer.WriteCompressedInteger((uint)deltaColumns);
             }
             else
             {
@@ -689,7 +689,7 @@ namespace Microsoft.Cci
             foreach (var part in name.Split(separator))
             {
                 BlobIdx partIndex = _debugHeapsOpt.GetBlobIndex(ImmutableArray.Create(s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedUInt((uint)_debugHeapsOpt.ResolveBlobIndex(partIndex));
+                writer.WriteCompressedInteger((uint)_debugHeapsOpt.ResolveBlobIndex(partIndex));
             }
 
             return _debugHeapsOpt.GetBlobIndex(writer);
@@ -777,8 +777,8 @@ namespace Microsoft.Cci
                 writer.WriteReference(row.ImportScope, metadataSizes.ImportScopeIndexSize);
                 writer.WriteReference(row.VariableList, metadataSizes.LocalVariableIndexSize);
                 writer.WriteReference(row.ConstantList, metadataSizes.LocalConstantIndexSize);
-                writer.WriteUint(row.StartOffset);
-                writer.WriteUint(row.Length);
+                writer.WriteUInt32(row.StartOffset);
+                writer.WriteUInt32(row.Length);
             }
         }
 
@@ -786,8 +786,8 @@ namespace Microsoft.Cci
         {
             foreach (var row in _localVariableTable)
             {
-                writer.WriteUshort(row.Attributes);
-                writer.WriteUshort(row.Index);
+                writer.WriteUInt16(row.Attributes);
+                writer.WriteUInt16(row.Index);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
             }
         }

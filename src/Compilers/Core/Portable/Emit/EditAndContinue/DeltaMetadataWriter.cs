@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var writer = BlobWriter.GetInstance();
                 writer.WriteByte(0x07);
-                writer.WriteCompressedUInt((uint)localVariables.Length);
+                writer.WriteCompressedInteger((uint)localVariables.Length);
 
                 foreach (ILocalDefinition local in localVariables)
                 {

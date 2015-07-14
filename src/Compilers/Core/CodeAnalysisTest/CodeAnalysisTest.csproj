@@ -30,7 +30,7 @@
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
-    <Compile Include="PEWriter\BinaryWriterTests.cs" />
+    <Compile Include="PEWriter\BlobWriterTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="Text\LargeEncodedTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
