@@ -1,10 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -17,65 +13,47 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// Computes <see cref="ITag"/>s for a text buffer in an asynchronous manner.  Computation of
     /// the tags is handled by a provided <see cref="IAsynchronousTaggerDataSource{TTag}"/>.  The
     /// <see cref="AsynchronousTaggerProvider{TTag}"/> handles the jobs of scheduling when to 
-    /// compute tags, managing the collection of tags, and notifying the and keeping the user 
+    /// compute tags, managing the collection of tags, as well as notifying and keeping the user 
     /// interface up to date with the latest tags produced.
     /// </summary>
-    internal class AsynchronousTaggerProvider<TTag> : ITaggerProvider
+    // Note: it might seem desirable to avoid having this class and just expose
+    // AsynchronousBufferTaggerProvider and AsynchronousViewTaggerProvider.  However, those types
+    // expose a lot of complexity through their protected surface area.  For example, all the code
+    // to handle and manipulate complex tag sources.  For taggers that have no need to deal with 
+    // that (including 3rd party taggers), this class serves as a much nicer tagging entrypoint.
+    internal class AsynchronousTaggerProvider<TTag> : ITaggerProvider, IViewTaggerProvider
         where TTag : ITag
     {
-        private readonly AsynchronousTaggerProviderImpl _taggerImplementation;
+        private readonly AsynchronousBufferTaggerProvider<TTag> _bufferTaggerImplementation;
+        private readonly AsynchronousViewTaggerProvider<TTag> _viewTaggerImplementation;
 
         /// <summary>
         /// Creates a new <see cref="AsynchronousTaggerProvider{TTag}"/> using the provided 
         /// <see cref="IAsynchronousTaggerDataSource{TTag}"/> to determine when to compute tags 
         /// and to produce tags when appropriate.
         /// </summary>
-        public AsynchronousTaggerProvider(IAsynchronousTaggerDataSource<TTag> dataSource)
-            : this(null, null, dataSource)
-        {
-        }
-
         internal AsynchronousTaggerProvider(
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            IAsynchronousTaggerDataSource<TTag> dataSource)
+            IForegroundNotificationService notificationService)
         {
             if (dataSource == null)
             {
                 throw new ArgumentNullException("dataSource");
             }
 
-            _taggerImplementation = new AsynchronousTaggerProviderImpl(asyncListener, notificationService, dataSource);
+            _bufferTaggerImplementation = new AsynchronousBufferTaggerProvider<TTag>(dataSource, asyncListener, notificationService, createTagSource: null);
+            _viewTaggerImplementation = new AsynchronousViewTaggerProvider<TTag>(dataSource, asyncListener, notificationService, createTagSource: null);
         }
 
         ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
         {
-            return _taggerImplementation.CreateTagger<T>(buffer);
+            return _bufferTaggerImplementation.CreateTagger<T>(buffer);
         }
 
-        private class AsynchronousTaggerProviderImpl : AbstractAsynchronousBufferTaggerProvider<TTag>
+        ITagger<T> IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
         {
-            private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
-
-            public AsynchronousTaggerProviderImpl(IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService, IAsynchronousTaggerDataSource<TTag> dataSource)
-                : base(asyncListener, notificationService)
-            {
-                _dataSource = dataSource;
-            }
-
-            protected override bool RemoveTagsThatIntersectEdits => _dataSource.RemoveTagsThatIntersectEdits;
-
-            protected override SpanTrackingMode SpanTrackingMode => _dataSource.SpanTrackingMode;
-
-            protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            {
-                return _dataSource.CreateEventSource(textViewOpt, subjectBuffer);
-            }
-
-            protected override ITagProducer<TTag> CreateTagProducer()
-            {
-                return _dataSource.CreateTagProducer();
-            }
+            return _viewTaggerImplementation.CreateTagger<T>(textView, buffer);
         }
     }
 }

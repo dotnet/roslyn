@@ -11,22 +11,40 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
-    internal abstract class AbstractAsynchronousViewTaggerProvider<TTag> :
-        AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>, IViewTaggerProvider
+    internal sealed class AsynchronousViewTaggerProvider<TTag> :
+        AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>,
+        IViewTaggerProvider,
+        IAsynchronousTaggerDataSource<TTag>
         where TTag : ITag
     {
-        public AbstractAsynchronousViewTaggerProvider(
+        private readonly IAsynchronousTaggerDataSource<TTag> dataSource;
+        private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource;
+
+        public AsynchronousViewTaggerProvider(
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
+            IForegroundNotificationService notificationService,
+            CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource)
             : base(asyncListener, notificationService)
         {
+            this.dataSource = dataSource;
+            this.createTagSource = createTagSource;
         }
 
-        protected abstract bool RemoveTagsThatIntersectEdits { get; }
-        protected abstract SpanTrackingMode SpanTrackingMode { get; }
+        public bool RemoveTagsThatIntersectEdits => dataSource.RemoveTagsThatIntersectEdits;
+        public SpanTrackingMode SpanTrackingMode => dataSource.SpanTrackingMode;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
+        public override TaggerDelay? UIUpdateDelay => dataSource.UIUpdateDelay;
 
-        protected abstract ITagProducer<TTag> CreateTagProducer();
-        protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
+        public ITagProducer<TTag> CreateTagProducer()
+        {
+            return dataSource.CreateTagProducer();
+        }
+
+        public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return dataSource.CreateEventSource(textViewOpt, subjectBuffer);
+        }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
@@ -43,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return this.GetOrCreateTagger<T>(textView, subjectBuffer);
         }
 
-        internal sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag> tagSource)
+        protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag> tagSource)
         {
             return textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, UniqueKey, out tagSource);
         }
@@ -60,15 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return new ViewTagSource<TTag>(
-                textViewOpt,
-                subjectBuffer,
-                CreateTagProducer(),
-                CreateEventSource(textViewOpt, subjectBuffer),
-                AsyncListener,
-                NotificationService,
-                this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode);
+            var tagSource = createTagSource == null ? null : createTagSource(textViewOpt, subjectBuffer, this.AsyncListener, this.NotificationService);
+            return tagSource ?? new ViewTagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
         }
     }
 }

@@ -32,13 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         public ReferenceHighlightingTagSource(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            ITagProducer<AbstractNavigatableReferenceHighlightingTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
-            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
+            IForegroundNotificationService notificationService)
+            : base(textView, subjectBuffer, dataSource, asyncListener, notificationService)
         {
             _textView = textView;
         }

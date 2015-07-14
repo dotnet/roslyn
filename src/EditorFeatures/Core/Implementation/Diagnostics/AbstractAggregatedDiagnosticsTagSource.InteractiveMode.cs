@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     }
 
                     var tagSource = GetOrAddTagSource(e.Id);
-                    tagSource.OnDiagnosticsUpdated(e, text, snapshot, TaggerDelay.Medium.ComputeTimeDelay(this.SubjectBuffer));
+                    tagSource.OnDiagnosticsUpdated(e, text, snapshot, TaggerDelay.Medium.ComputeTimeDelayMS(this.SubjectBuffer));
                 }
             }
 
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     return;
                 }
 
-                var delay = TaggerDelay.Medium.ComputeTimeDelay(this.SubjectBuffer);
+                var delay = TaggerDelay.Medium.ComputeTimeDelayMS(this.SubjectBuffer);
                 var solution = document.Project.Solution;
 
                 var map = this.DiagnosticService.GetEngineCachedDiagnostics(document.Id);

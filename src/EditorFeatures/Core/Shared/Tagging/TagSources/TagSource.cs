@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         protected virtual void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
-            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelay(this.SubjectBuffer), this.WorkQueue.CancellationToken);
+            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
         }
 
         protected virtual void Disconnect()

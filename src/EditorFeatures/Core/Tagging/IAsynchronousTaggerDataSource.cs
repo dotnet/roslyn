@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -46,5 +47,27 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <see cref="AsynchronousTaggerProvider{TTag}"/> to produce tags asynchronously.
         /// </summary>
         ITagProducer<TTag> CreateTagProducer();
+
+        /// <summary>
+        /// Whether or not the the first set of tags for this tagger should be computed synchronously.
+        /// </summary>
+        bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted { get; }
+
+        /// <summary>
+        /// Options controlling this tagger.  The tagger infrastructure will check this option
+        /// against the buffer it is associated with to see if it should tag or not.
+        /// 
+        /// An empty enumerable, or null, can be returned to indicate that this tagger should 
+        /// run unconditionally.
+        /// </summary>
+        IEnumerable<Option<bool>> Options { get; }
+
+        IEnumerable<PerLanguageOption<bool>> PerLanguageOptions { get; }
+
+        /// <summary>
+        /// The amount of time the tagger engine will wait after tags are computed before updating
+        /// the UI.  Return 'null' to get the default delay.
+        /// </summary>
+        TaggerDelay? UIUpdateDelay { get; }
     }
 }

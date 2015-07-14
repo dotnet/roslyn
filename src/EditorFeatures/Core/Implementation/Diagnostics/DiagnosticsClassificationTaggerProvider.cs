@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             _typeMap = typeMap;
         }
 
-        protected override IEnumerable<Option<bool>> TagSourceOptions
+        public override IEnumerable<Option<bool>> Options
         {
             get
             {

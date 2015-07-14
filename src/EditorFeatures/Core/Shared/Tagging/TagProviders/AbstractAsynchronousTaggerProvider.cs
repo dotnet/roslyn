@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -14,6 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
+    internal delegate TTagSource CreateTagSource<TTagSource, TTag>(
+        ITextView textView, ITextBuffer subjectBuffer,
+        IAsynchronousOperationListener asyncListener,
+        IForegroundNotificationService notificationService) where TTagSource : TagSource<TTag> where TTag : ITag;
+
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
@@ -45,10 +51,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         protected abstract TTagSource CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        protected TTagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private TTagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            if (this.TagSourceOptions.Any((option) => !this.GetOption(subjectBuffer, option)) ||
-                this.TagSourcePerLanguageOptions.Any((option) => !this.GetOption(subjectBuffer, option)))
+            var options = this.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
+            var perLanguageOptions = this.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
+
+            if (options.Any((option) => !this.GetOption(subjectBuffer, option)) ||
+                perLanguageOptions.Any((option) => !this.GetOption(subjectBuffer, option)))
             {
                 return null;
             }
@@ -59,22 +68,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Feature on/off options.
         /// </summary>
-        protected virtual IEnumerable<Option<bool>> TagSourceOptions
+        public virtual IEnumerable<Option<bool>> Options
         {
             get { return SpecializedCollections.EmptyEnumerable<Option<bool>>(); }
         }
 
-        protected virtual IEnumerable<PerLanguageOption<bool>> TagSourcePerLanguageOptions
+        public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions
         {
             get { return SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>(); }
         }
 
-        protected virtual TimeSpan UIUpdateDelay
-        {
-            get { return TimeSpan.FromMilliseconds(TaggerConstants.MediumDelay); }
-        }
+        public virtual TaggerDelay? UIUpdateDelay => null;
 
-        internal abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TTagSource tagSource);
+        protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TTagSource tagSource);
         protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TTagSource tagSource);
         protected abstract void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 

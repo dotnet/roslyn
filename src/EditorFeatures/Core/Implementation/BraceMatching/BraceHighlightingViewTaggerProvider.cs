@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -20,26 +21,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
     internal class BraceHighlightingViewTaggerProvider :
-        AbstractAsynchronousViewTaggerProvider<BraceHighlightTag>
+        ForegroundThreadAffinitizedObject,
+        IViewTaggerProvider,
+        IAsynchronousTaggerDataSource<BraceHighlightTag>
     {
         private readonly IBraceMatchingService _braceMatcherService;
+        private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
         [ImportingConstructor]
         public BraceHighlightingViewTaggerProvider(
             IForegroundNotificationService notificationService,
             IBraceMatchingService braceMatcherService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.BraceHighlighting),
-                   notificationService)
         {
             _braceMatcherService = braceMatcherService;
+            _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
+                new AsynchronousTaggerProvider<BraceHighlightTag>(
+                    this,
+                    new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.BraceHighlighting),
+                    notificationService));
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        {
+            return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
+        }
 
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool RemoveTagsThatIntersectEdits => true;
 
-        protected override IEnumerable<Option<bool>> TagSourceOptions
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+
+        public TaggerDelay? UIUpdateDelay => null;
+
+        public IEnumerable<Option<bool>> Options
         {
             get
             {
@@ -47,14 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             }
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+
+        public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate));
         }
 
-        protected override ITagProducer<BraceHighlightTag> CreateTagProducer()
+        public ITagProducer<BraceHighlightTag> CreateTagProducer()
         {
             return new BraceHighlightingTagProducer(_braceMatcherService);
         }

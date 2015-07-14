@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -21,25 +22,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal class HighlighterViewTaggerProvider :
-        AbstractAsynchronousViewTaggerProvider<HighlightTag>
+        ForegroundThreadAffinitizedObject,
+        IViewTaggerProvider,
+        IAsynchronousTaggerDataSource<HighlightTag>
     {
         private readonly IHighlightingService _highlighterService;
+        private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
             IForegroundNotificationService notificationService,
             IHighlightingService highlighterService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.KeywordHighlighting), notificationService)
         {
             _highlighterService = highlighterService;
+            _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
+                new AsynchronousViewTaggerProvider<HighlightTag>(
+                    this,
+                    new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.KeywordHighlighting),
+                    notificationService,
+                    createTagSource: CreateTagSource));
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        {
+            return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
+        }
 
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool RemoveTagsThatIntersectEdits => true;
 
-        protected override IEnumerable<Option<bool>> TagSourceOptions
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+
+        public TaggerDelay? UIUpdateDelay => null;
+
+        public IEnumerable<Option<bool>> Options
         {
             get
             {
@@ -47,7 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             }
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+
+        public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle, reportChangedSpans: true),
@@ -55,22 +75,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.KeywordHighlighting, TaggerDelay.NearImmediate));
         }
 
-        protected override ITagProducer<HighlightTag> CreateTagProducer()
+        public ITagProducer<HighlightTag> CreateTagProducer()
         {
             return new HighlighterTagProducer(_highlighterService);
         }
 
-        protected override ProducerPopulatedTagSource<HighlightTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private ProducerPopulatedTagSource<HighlightTag> CreateTagSource(
+            ITextView textViewOpt, ITextBuffer subjectBuffer,
+            IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService)
         {
-            return new HighlightingTagSource(
-                textViewOpt,
-                subjectBuffer,
-                CreateTagProducer(),
-                CreateEventSource(textViewOpt, subjectBuffer),
-                AsyncListener,
-                NotificationService,
-                this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode);
+            return new HighlightingTagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
     }
 }

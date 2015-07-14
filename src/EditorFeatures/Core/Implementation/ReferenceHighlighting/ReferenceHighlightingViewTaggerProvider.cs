@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -22,25 +22,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider :
-        AbstractAsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag>
+        ForegroundThreadAffinitizedObject,
+        IViewTaggerProvider,
+        IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
+        private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
         [ImportingConstructor]
         public ReferenceHighlightingViewTaggerProvider(
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-            base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting), notificationService)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
+            _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
+                new AsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag>(
+                    this,
+                    new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting),
+                    notificationService,
+                    this.CreateTagSource));
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        {
+            return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
+        }
 
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool RemoveTagsThatIntersectEdits => true;
 
-        protected override IEnumerable<PerLanguageOption<bool>> TagSourcePerLanguageOptions
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions
         {
             get
             {
@@ -48,20 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
         }
 
-        protected override TimeSpan UIUpdateDelay
-        {
-            get
-            {
-                return TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay);
-            }
-        }
+        public IEnumerable<Option<bool>> Options => null;
 
-        protected override ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
+        public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
+
+        public ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
         {
             return new TagProducer();
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // PERF: use a longer delay for OnTextChanged to minimize the impact of GCs while typing
             return TaggerEventSources.Compose(
@@ -72,17 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ReferenceHighlighting, TaggerDelay.NearImmediate));
         }
 
-        protected override ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag> CreateTagSource(
+            ITextView textViewOpt, ITextBuffer subjectBuffer,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService)
         {
-            return new ReferenceHighlightingTagSource(
-                textViewOpt,
-                subjectBuffer,
-                CreateTagProducer(),
-                CreateEventSource(textViewOpt, subjectBuffer),
-                AsyncListener,
-                NotificationService,
-                this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode);
+            return new ReferenceHighlightingTagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
     }
 }

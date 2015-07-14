@@ -19,13 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlightingTagSource(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            ITagProducer<HighlightTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<HighlightTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
-            : base(textView, subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
+            IForegroundNotificationService notificationService)
+            : base(textView, subjectBuffer, dataSource, asyncListener, notificationService)
         {
         }
 

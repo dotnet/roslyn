@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// 
     /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s and <see cref="ITagger{T}"/>s.
     /// Taggers that tag the buffer and don't care about a view (think classification) have one <see cref="BufferTagSource{TTag}"/>
-    /// per subject buffer, the lifetime management provided by <see cref="AbstractAsynchronousBufferTaggerProvider{TTag}"/>.
+    /// per subject buffer, the lifetime management provided by <see cref="AsynchronousBufferTaggerProvider{TTag}"/>.
     /// Taggers that tag the buffer and care about the view (think keyword highlighting) have a <see cref="ViewTagSource{TTag}"/>
-    /// per subject buffer/view pair, and the lifetime management for that is provided by a <see cref="AbstractAsynchronousViewTaggerProvider{TTag}"/>.
+    /// per subject buffer/view pair, and the lifetime management for that is provided by a <see cref="AsynchronousViewTaggerProvider{TTag}"/>.
     /// Special cases, like reference highlighting (which processes multiple subject buffers at once) have their own
     /// providers and tag source derivations.</para>
     /// </summary>
@@ -63,16 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTags;
 
-        private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-
-        /// <summary>
-        /// A function that is provided to the producer of this tag source. May be null. In some
-        /// scenarios, such as restoring previous REPL history entries, we want to try to use the
-        /// cached tags we've already computed for the buffer, but those live in a different tag
-        /// source which we need some help to find.
-        /// </summary>
-        private readonly Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> _bufferToRelatedTagSource;
-
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
         private readonly ITagProducer<TTag> _tagProducer;
         private IEqualityComparer<ITagSpan<TTag>> _lazyTagSpanComparer;
 
@@ -97,27 +89,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         #endregion
 
         protected ProducerPopulatedTagSource(
+            ITextView textViewOpt,
             ITextBuffer subjectBuffer,
-            ITagProducer<TTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
+            IForegroundNotificationService notificationService)
                 : base(subjectBuffer, notificationService, asyncListener)
         {
-            if (spanTrackingMode == SpanTrackingMode.Custom)
+            if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
             {
                 throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
             }
 
-            _tagProducer = tagProducer;
-            _removeTagsThatIntersectEdits = removeTagsThatIntersectEdits;
-            _spanTrackingMode = spanTrackingMode;
+            _dataSource = dataSource;
+            _tagProducer = dataSource.CreateTagProducer();
+            _removeTagsThatIntersectEdits = dataSource.RemoveTagsThatIntersectEdits;
+            _spanTrackingMode = dataSource.SpanTrackingMode;
 
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
-            _eventSource = eventSource;
+            _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
 
             _accumulatedTextChanges = null;
 
@@ -699,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> tags;
             if (!map.TryGetValue(buffer, out tags))
             {
-                if (ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted && _previousCachedTags == null)
+                if (_dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted && _previousCachedTags == null)
                 {
                     // We can cancel any background computations currently happening
                     this.WorkQueue.CancelCurrentWork();
@@ -717,20 +708,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return tags;
-        }
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted
-        {
-            get
-            {
-                return _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-            }
-
-            set
-            {
-                this.WorkQueue.AssertIsForeground();
-                _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = value;
-            }
         }
 
         private class DiffSpanComparer : IDiffSpanComparer<ITagSpan<TTag>>
