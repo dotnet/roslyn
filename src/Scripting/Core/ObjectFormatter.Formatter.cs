@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 {
                     if (memberFormat != MemberDisplayFormat.InlineValue)
                     {
-                        result.Append(_language.FormatTypeName(originalType, _options));
+                        result.Append(_language.FormatTypeName(originalType.AsType(), _options));
                         result.Append(' ');
                     }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 {
                     if (memberFormat != MemberDisplayFormat.InlineValue)
                     {
-                        result.Append(_language.FormatTypeName(originalType, _options));
+                        result.Append(_language.FormatTypeName(originalType.AsType(), _options));
                         result.Append('(');
                     }
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
                 else
                 {
-                    result.Append(_language.FormatTypeName(originalType, _options));
+                    result.Append(_language.FormatTypeName(originalType.AsType(), _options));
                 }
 
                 if (memberFormat == MemberDisplayFormat.NoMembers)
@@ -411,8 +411,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                         var setter = property.SetMethod;
 
                         // If not ignoring visibility include properties that has a visible getter or setter.
-                        if (!(includeNonPublic || ignoreVisibility || 
-                            getter.IsPublic || getter.IsFamily || getter.IsFamilyOrAssembly || 
+                        if (!(includeNonPublic || ignoreVisibility ||
+                            getter.IsPublic || getter.IsFamily || getter.IsFamilyOrAssembly ||
                             (setter != null && (setter.IsPublic || setter.IsFamily || setter.IsFamilyOrAssembly))))
                         {
                             continue;
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             private void FormatException(Builder result, Exception exception)
             {
                 result.Append("!<");
-                result.Append(_language.FormatTypeName(exception.GetType().GetTypeInfo(), _options));
+                result.Append(_language.FormatTypeName(exception.GetType(), _options));
                 result.Append('>');
             }
 
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 Array array = collection as Array;
                 if (array != null)
                 {
-                    result.Append(_language.FormatArrayTypeName(array, _options));
+                    result.Append(_language.FormatArrayTypeName(array.GetType(), array, _options));
                     return;
                 }
 

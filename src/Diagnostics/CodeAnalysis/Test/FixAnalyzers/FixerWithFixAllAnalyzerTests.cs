@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Analyzers.FixAnalyzers
 {
     public class FixerWithFixAllAnalyzerTests : CodeFixTestBase
     {
-
         #region CSharp tests
 
         private static string s_CSharpCustomCodeActions = @"

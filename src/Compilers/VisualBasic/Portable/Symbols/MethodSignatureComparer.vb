@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 #End Region
 
-#Region "Detailed comparision functions"
+#Region "Detailed comparison functions"
         Public Shared Function DetailedCompare(
             method1 As MethodSymbol,
             method2 As MethodSymbol,
@@ -785,7 +785,7 @@ Done:
             Else
                 Dim indexedTypeArguments = StaticCast(Of TypeSymbol).From(IndexedTypeParameterSymbol.Take(method.Arity))
 
-                ' Checking method.IsDefinition instead of [containingSubsitution Is Nothing]
+                ' Checking method.IsDefinition instead of [containingSubstitution Is Nothing]
                 ' because this condition works better for SignatureOnlyMethodSymbol, which 
                 ' always reports itself as a definition, even when attached to a constructed/specialized
                 ' type.

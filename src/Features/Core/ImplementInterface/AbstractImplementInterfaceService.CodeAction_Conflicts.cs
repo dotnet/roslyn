@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
 
                 // Members normally conflict if they have the same name.  The exceptions are methods
-                // and parameterized properties (which conflict if htey have the same signature).
+                // and parameterized properties (which conflict if they have the same signature).
                 if (!IdentifiersMatch(member1.Name, member2.Name))
                 {
                     return false;

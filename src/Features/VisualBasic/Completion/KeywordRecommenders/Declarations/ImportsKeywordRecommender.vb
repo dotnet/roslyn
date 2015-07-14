@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             If context.SyntaxTree.HasCompilationUnitRoot Then
                 ' Make sure there isn't a Option statement after us
-                ' TODO: does this break our rule of not looking forwad?
+                ' TODO: does this break our rule of not looking forward?
                 Dim compilationUnit = DirectCast(context.SyntaxTree.GetRoot(cancellationToken), CompilationUnitSyntax)
                 If compilationUnit.Options.Count > 0 Then
                     If context.Position <= compilationUnit.Options.First().SpanStart Then

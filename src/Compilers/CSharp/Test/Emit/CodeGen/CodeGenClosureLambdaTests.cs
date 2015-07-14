@@ -2244,10 +2244,10 @@ static class M1
         var arg0 = arguments[0];
         GenericParameterAttributes attributes = arg0.GenericParameterAttributes;
         Console.WriteLine(attributes.ToString());
-        var arg0constraits = arg0.GetGenericParameterConstraints();
-        Console.WriteLine(arg0constraits.Length);
-        Console.WriteLine(arg0constraits[0]);
-        Console.WriteLine(arg0constraits[1]);
+        var arg0constraints = arg0.GetGenericParameterConstraints();
+        Console.WriteLine(arg0constraints.Length);
+        Console.WriteLine(arg0constraints[0]);
+        Console.WriteLine(arg0constraints[1]);
     }
 }";
             CompileAndVerify(source,

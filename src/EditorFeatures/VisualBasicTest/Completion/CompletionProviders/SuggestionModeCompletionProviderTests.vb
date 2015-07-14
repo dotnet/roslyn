@@ -297,7 +297,7 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(isAugment:=True).WithIsDebugger(True))
+            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo().WithIsDebugger(True))
         End Sub
 
         Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
@@ -326,7 +326,7 @@ End Class
         End Sub
 
         Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
-            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c, isAugment:=True))
+            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
 
             Dim provider = CreateCompletionProvider()
 
@@ -344,7 +344,7 @@ End Class
         End Sub
 
         Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
-            Return New SuggestionModeCompletionProvider()
+            Return New VisualBasicSuggestionModeCompletionProvider()
         End Function
     End Class
 End Namespace

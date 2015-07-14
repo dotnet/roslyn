@@ -69,19 +69,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Assert.Equal(symbol2.GetHashCode(), resolvedSymbol.GetHashCode())
         End Sub
 
-        Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, originalCompilation As Compilation, targetCompilation As Compilation, comparision As SymbolIdComparison) As ISymbol
+        Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, originalCompilation As Compilation, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
             Dim sid = SymbolKey.Create(originalSymbol, originalCompilation, CancellationToken.None)
-            Dim symInfo = sid.Resolve(targetCompilation, (comparision And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
+            Dim symInfo = sid.Resolve(targetCompilation, (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
             Return symInfo.Symbol
         End Function
 
-        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, compilation1 As Compilation, symbol2 As ISymbol, compilation2 As Compilation, comparision As SymbolIdComparison, Optional expectEqual As Boolean = True)
+        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, compilation1 As Compilation, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
 
             Dim sid1 = SymbolKey.Create(symbol1, compilation1, CancellationToken.None)
             Dim sid2 = SymbolKey.Create(symbol2, compilation2, CancellationToken.None)
 
-            Dim isCaseSensitive = (comparision And SymbolIdComparison.CaseSensitive) = SymbolIdComparison.CaseSensitive
-            Dim ignoreAssemblyIds = (comparision And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds
+            Dim isCaseSensitive = (comparison And SymbolIdComparison.CaseSensitive) = SymbolIdComparison.CaseSensitive
+            Dim ignoreAssemblyIds = (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds
             Dim message = String.Concat(
                 If(isCaseSensitive, "SymbolID CaseSensitive", "SymbolID CaseInsensitive"),
                 If(ignoreAssemblyIds, " IgnoreAssemblyIds ", " "),
@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
         Public Sub GetLocalSymbols(symbol As IMethodSymbol, list As List(Of ISymbol))
 
-            ' Delaration statement is child of Block
+            ' Declaration statement is child of Block
             For Each n In symbol.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax())
                 Dim body = TryCast(n.Parent, MethodBlockSyntax)
                 ' interface method

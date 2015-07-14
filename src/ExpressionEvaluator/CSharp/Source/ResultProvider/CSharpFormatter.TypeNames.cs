@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         protected override void AppendGenericTypeArgumentList(
-            StringBuilder builder, 
+            StringBuilder builder,
             Type[] typeArguments,
-            int typeArgumentOffset, 
+            int typeArgumentOffset,
             DynamicFlagsCustomTypeInfo dynamicFlags,
             ref int index,
-            int arity, 
+            int arity,
             bool escapeKeywordIdentifiers,
             out bool sawInvalidIdentifier)
         {

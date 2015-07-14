@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
@@ -59,13 +58,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal string ShadowCopyDirectory;
 
         // normalized absolute paths
-        private readonly IEnumerable<string> _noShadowCopyDirectories;
-
-        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
-            FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
-            FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
-            FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
-            FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+        private readonly ImmutableArray<string> _noShadowCopyDirectories;
 
         private struct CacheEntry<TPublic>
         {
@@ -93,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         // files that should not be copied:
         private HashSet<string> _lazySuppressedFiles;
 
-        private object Guard { get { return _shadowCopies; } }
+        private object Guard => _shadowCopies;
 
         /// <summary>
         /// Creates an instance of <see cref="MetadataShadowCopyProvider"/>.
@@ -106,41 +99,36 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (directory != null)
             {
-                RequireAbsolutePath(directory, "directory");
+                RequireAbsolutePath(directory, nameof(directory));
                 try
                 {
                     _baseDirectory = FileUtilities.NormalizeDirectoryPath(directory);
                 }
                 catch (Exception e)
                 {
-                    throw new ArgumentException(e.Message, "directory");
+                    throw new ArgumentException(e.Message, nameof(directory));
                 }
             }
             else
             {
-                _baseDirectory = Path.Combine(Path.GetTempPath(), "Roslyn", "MetadataShadowCopyProvider");
+                _baseDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             }
 
-            var normalizedDirs = s_systemNoShadowCopyDirectories;
             if (noShadowCopyDirectories != null)
             {
                 try
                 {
-                    normalizedDirs = normalizedDirs.AddRange(noShadowCopyDirectories.Select(FileUtilities.NormalizeDirectoryPath));
+                    _noShadowCopyDirectories = ImmutableArray.CreateRange(noShadowCopyDirectories.Select(FileUtilities.NormalizeDirectoryPath));
                 }
                 catch (Exception e)
                 {
-                    throw new ArgumentException(e.Message, "noShadowCopyDirectories");
+                    throw new ArgumentException(e.Message, nameof(noShadowCopyDirectories));
                 }
             }
-
-            _noShadowCopyDirectories = normalizedDirs;
-
-            // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
-            // there's nothing we can do if the process is forcefully quit or goes down in a completely
-            // uncontrolled manner (like a stack overflow). When the process goes down in a controlled
-            // manned, we should generally expect this event to be called.
-            AppDomain.CurrentDomain.ProcessExit += HandleProcessExit;
+            else
+            {
+                _noShadowCopyDirectories = ImmutableArray<string>.Empty;
+            }
         }
 
         private static void RequireAbsolutePath(string path, string argumentName)
@@ -152,14 +140,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (!PathUtilities.IsAbsolute(path))
             {
-                throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.AbsolutePathExpected, argumentName);
+                throw new ArgumentException(ScriptingResources.AbsolutePathExpected, argumentName);
             }
-        }
-
-        private void HandleProcessExit(object sender, EventArgs e)
-        {
-            Dispose();
-            AppDomain.CurrentDomain.ProcessExit -= HandleProcessExit;
         }
 
         /// <summary>
@@ -170,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not an absolute path.</exception>
         public bool IsShadowCopy(string fullPath)
         {
-            RequireAbsolutePath(fullPath, "fullPath");
+            RequireAbsolutePath(fullPath, nameof(fullPath));
 
             string directory = ShadowCopyDirectory;
             if (directory == null)
@@ -398,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not an absolute path.</exception>
         public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
         {
-            RequireAbsolutePath(fullPath, "fullPath");
+            RequireAbsolutePath(fullPath, nameof(fullPath));
             return new ShadowCopyReference(this, fullPath, properties);
         }
 
@@ -413,7 +395,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </remarks>
         public void SuppressShadowCopy(string originalPath)
         {
-            RequireAbsolutePath(originalPath, "originalPath");
+            RequireAbsolutePath(originalPath, nameof(originalPath));
 
             lock (Guard)
             {
@@ -435,17 +417,17 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException"><paramref name="fullPath"/> is not absolute.</exception>
         public bool NeedsShadowCopy(string fullPath)
         {
-            RequireAbsolutePath(fullPath, "fullPath");
+            RequireAbsolutePath(fullPath, nameof(fullPath));
             string directory = Path.GetDirectoryName(fullPath);
 
             // do not shadow-copy shadow-copies:
             string referencesDir = ShadowCopyDirectory;
-            if (referencesDir != null && directory.StartsWith(referencesDir, StringComparison.OrdinalIgnoreCase))
+            if (referencesDir != null && directory.StartsWith(referencesDir, StringComparison.Ordinal))
             {
                 return false;
             }
 
-            return !_noShadowCopyDirectories.Any(dir => directory.StartsWith(dir, StringComparison.OrdinalIgnoreCase));
+            return !_noShadowCopyDirectories.Any(dir => directory.StartsWith(dir, StringComparison.Ordinal));
         }
 
         private CacheEntry<MetadataShadowCopy> CreateMetadataShadowCopy(string originalPath, MetadataImageKind kind)
@@ -653,21 +635,8 @@ namespace Microsoft.CodeAnalysis.Scripting
             try
             {
                 File.Copy(originalPath, shadowCopyPath, overwrite: true);
-
                 StripReadOnlyAttributeFromFile(new FileInfo(shadowCopyPath));
-
-                // tomat: Ideally we would mark the handle as "delete on close". Unfortunately any subsequent attempt to create a handle to the file is denied if we do so.
-                // The only way to read the file is via the handle we open here, however we need to use APIs that take a path to the shadow copy and open it for read
-                // (e.g. Assembly.Load, VS XML doc caching service, etc.).
-#if DELETE_ON_CLOSE
-                // deletes the file if the shadow copy cache isn't explicitly cleared
-                var stream = new FileStream(shadowCopyPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, bufferSize: 0x1000, options: FileOptions.DeleteOnClose);
-                
-                // this prevents us to reopen the file, so we need to use the above stream later on
-                PathUtilities.PrepareDeleteOnCloseStreamForDisposal(stream);
-#else
                 return new FileStream(shadowCopyPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-#endif
             }
             catch (FileNotFoundException)
             {

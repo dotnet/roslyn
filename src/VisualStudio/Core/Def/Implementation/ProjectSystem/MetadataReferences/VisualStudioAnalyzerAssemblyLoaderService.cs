@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [ExportWorkspaceService(typeof(IAnalyzerService), ServiceLayer.Host), Shared]
     internal sealed class VsAnalyzerAssemblyLoaderService : IAnalyzerService
     {
-        ShadowCopyAnalyzerAssemblyLoader _loader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
+        private ShadowCopyAnalyzerAssemblyLoader _loader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"));
 
         public IAnalyzerAssemblyLoader GetLoader()
         {

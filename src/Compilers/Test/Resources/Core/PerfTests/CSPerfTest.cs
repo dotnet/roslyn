@@ -1577,7 +1577,7 @@ namespace ns1
                 Console.WriteLine("    c8.prop2.get()");
                 return _prop2;
             }
-            // Inaccessibile Setter
+            // Inaccessible Setter
             private set
             {
                 _prop2 = value;
@@ -3029,7 +3029,7 @@ namespace ns1
                 TT tt = default(TT); UU uu = default(UU); VV vv = default(VV);
                 T t = default(T); U u = default(U);
 
-                // Delegate Binding, Compound Assignemnt
+                // Delegate Binding, Compound Assignment
                 Del2<TT, UU, VV> d2 = foo; d2 += foo<TT, UU, VV>; d2 -= foo;
                 Del3<TT, VV, UU> d3 = foo; d3 += foo<TT, VV, UU>; d3 -= foo;
                 Del4<UU, TT, VV> d4 = foo; d4 += foo<UU, TT, VV>; d4 -= foo;
@@ -3038,7 +3038,7 @@ namespace ns1
                 d3(tt, vv, uu);
                 d4((a, b, c) => null, (a, b, c) => vv, (a, b, c) => { uu.Equals(vv); });
 
-                // Delegate Binding, Compound Assignemnt
+                // Delegate Binding, Compound Assignment
                 Del2<int, Del, VV> d22 = foo; d22 += (foo); d22 -= foo<int, Del, VV>;
                 Del3<long, int, Exception> d32 = foo; d32 += foo<long, int, Exception>; d32 -= ((foo));
                 Del4<T, U, Dictionary<List<TT>, Dictionary<List<UU>, VV>>> d42 = foo; d42 += foo; d42 -= foo;

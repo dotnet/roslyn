@@ -903,7 +903,7 @@ class C
         [WorkItem(836491, "DevDiv")]
         [WorkItem(827337, "DevDiv")]
         [Fact]
-        public void DisplayClass_AccrossSuspensionPoints_Release()
+        public void DisplayClass_AcrossSuspensionPoints_Release()
         {
             string source = @"
 using System;
@@ -991,7 +991,7 @@ class C
         [WorkItem(836491, "DevDiv")]
         [WorkItem(827337, "DevDiv")]
         [Fact]
-        public void DisplayClass_AccrossSuspensionPoints_Debug()
+        public void DisplayClass_AcrossSuspensionPoints_Debug()
         {
             string source = @"
 using System;
@@ -1090,7 +1090,7 @@ class C
         [WorkItem(836491, "DevDiv")]
         [WorkItem(827337, "DevDiv")]
         [Fact]
-        public void DynamicLocal_AccrossSuspensionPoints_Debug()
+        public void DynamicLocal_AcrossSuspensionPoints_Debug()
         {
             string source = @"
 using System.Threading.Tasks;

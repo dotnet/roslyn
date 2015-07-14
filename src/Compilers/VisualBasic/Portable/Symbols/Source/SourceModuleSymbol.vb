@@ -658,7 +658,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             builder.AddRange(Me._diagnosticBagDeclare)
             builder.AddRange(Me._lazyBoundImports.Diagnostics)
             builder.AddRange(Me._lazyLinkedAssemblyDiagnostics)
-            builder.AddRange(Me._declarationTable.ReferenceDirectiveDiagnostics)
 
             For Each tree In SyntaxTrees
                 builder.AddRange(GetSourceFile(tree).DeclarationErrors)

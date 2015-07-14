@@ -2817,7 +2817,7 @@ ProduceBoundNode:
                                                                       False, copyBackType, diagnostics,
                                                                       copybackConversionParamName:=parameterName).MakeCompilerGenerated()
 
-                ' since we are going to assing to a latebound invocation
+                ' since we are going to assign to a latebound invocation
                 ' force its arguments to be rvalues.
                 If argument.Kind = BoundKind.LateInvocation Then
                     argument = MakeArgsRValues(DirectCast(argument, BoundLateInvocation), diagnostics)

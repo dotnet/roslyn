@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _properties = properties;
                 }
 
-#pragma warning disable RS0013 // we are delegating to delegate so it is okay here
+#pragma warning disable RS0013 // we are delegating so it is okay here
                 public override DiagnosticDescriptor Descriptor => _original.Descriptor;
 #pragma warning restore RS0013 
 

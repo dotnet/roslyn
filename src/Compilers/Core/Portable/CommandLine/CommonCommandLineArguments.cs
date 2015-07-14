@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Arguments following script argument separator "--" or null if <see cref="IsInteractive"/> is false.
         /// </summary>
-        internal ImmutableArray<string> ScriptArguments { get; set; }
+        public ImmutableArray<string> ScriptArguments { get; internal set; }
 
         /// <summary>
         /// Source file paths.

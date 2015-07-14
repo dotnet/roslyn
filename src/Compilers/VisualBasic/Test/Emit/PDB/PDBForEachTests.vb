@@ -430,32 +430,32 @@ End Module
             ' It's now the scope of the complete loop and not just the body
             compilation.VerifyPdb("M1.Main",
  <symbols>
-    <entryPoint declaringType="M1" methodName="Main"/>
-    <methods>
-        <method containingType="M1" name="Main">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                    <slot kind="0" offset="36"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
-                <entry offset="0x8" startLine="8" startColumn="9" endLine="8" endColumn="23" document="0"/>
-                <entry offset="0xa" startLine="9" startColumn="13" endLine="9" endColumn="26" document="0"/>
-                <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
-                <entry offset="0x13" hidden="true" document="0"/>
-                <entry offset="0x17" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x18">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="myFArr" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
-                <local name="i" il_index="1" il_start="0x0" il_end="0x18" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
+     <entryPoint declaringType="M1" methodName="Main"/>
+     <methods>
+         <method containingType="M1" name="Main">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="0" offset="4"/>
+                     <slot kind="0" offset="36"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="0"/>
+                 <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="22" document="0"/>
+                 <entry offset="0x8" startLine="8" startColumn="9" endLine="8" endColumn="23" document="0"/>
+                 <entry offset="0xa" startLine="9" startColumn="13" endLine="9" endColumn="26" document="0"/>
+                 <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="15" document="0"/>
+                 <entry offset="0x13" hidden="true" document="0"/>
+                 <entry offset="0x17" startLine="11" startColumn="5" endLine="11" endColumn="12" document="0"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x18">
+                 <namespace name="System" importlevel="file"/>
+                 <currentnamespace name=""/>
+                 <local name="myFArr" il_index="0" il_start="0x0" il_end="0x18" attributes="0"/>
+                 <local name="i" il_index="1" il_start="0x0" il_end="0x18" attributes="0"/>
+             </scope>
+         </method>
+     </methods>
  </symbols>)
         End Sub
 

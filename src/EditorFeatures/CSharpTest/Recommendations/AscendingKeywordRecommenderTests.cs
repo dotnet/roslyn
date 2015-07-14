@@ -55,7 +55,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterOrderyByExpr()
+        public void AfterOrderByExpr()
         {
             VerifyKeyword(AddInsideMethod(
 @"var q = from x in y

@@ -67,21 +67,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #region Helpers
 
-        private CSharpParseOptions GetOptions(string[] defines)
+        private CSharpParseOptions GetOptions(SourceCodeKind kind, string[] defines)
         {
-            return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp4, preprocessorSymbols: defines);
+            return new CSharpParseOptions(languageVersion: LanguageVersion.CSharp4, kind: kind, preprocessorSymbols: defines);
         }
 
         private CompilationUnitSyntax Parse(string text, params string[] defines)
         {
-            var options = this.GetOptions(defines);
+            return Parse(text, SourceCodeKind.Regular, defines);
+        }
+
+        private CompilationUnitSyntax Parse(string text, SourceCodeKind kind, params string[] defines)
+        {
+            var options = this.GetOptions(kind, defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options).GetCompilationUnitRoot();
         }
 
         private SyntaxTree ParseTree(string text, params string[] defines)
         {
-            var options = this.GetOptions(defines);
+            var options = this.GetOptions(SourceCodeKind.Regular, defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
@@ -2076,7 +2081,7 @@ class Test
         [WorkItem(906835, "DevDiv/Personal")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressNegRegionWithInvalidExcapeString()
+        public void TestRegressNegRegionWithInvalidEscapeString()
         {
             // Dev10 compiler gives errors CS1009
             var text = @"
@@ -2109,7 +2114,7 @@ class Test
         [WorkItem(527079, "DevDiv")]
         [Fact]
         [Trait("Feature", "Directives")]
-        public void TestRegressRegionWithExcapeUnicodePrefixOnly()
+        public void TestRegressRegionWithEscapeUnicodePrefixOnly()
         {
             // [Breaking Change] Dev10 compiler gives errors CS1009
             var text = @"#region \u
@@ -3709,7 +3714,7 @@ static void Main() { }
         public void TestReference()
         {
             var text = @"#r ""bogus""";
-            var node = Parse(text);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo
             {
@@ -3724,7 +3729,7 @@ static void Main() { }
         public void TestReferenceWithComment()
         {
             var text = @"#r ""bogus"" // FOO";
-            var node = Parse(text);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectivesSpecial(node, new DirectiveInfo
             {
@@ -3797,7 +3802,7 @@ static void Main() { }
 #r ""C:\Documents and Settings\someuser\Local Settings\Temp\{f0a37341-d692-11d4-a984-009027ec0a9c}\test.cs"" // comment
 #r ""mailto://someuser@microsoft.com""
 ";
-            var node = Parse(text);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text);
             VerifyDirectives(node, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
                 SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,

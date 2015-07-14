@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For switch statements, we have an option of completely rewriting the switch header
         // and switch sections into simpler constructs, i.e. we can rewrite the switch header
         // using bound conditional goto statements and the rewrite the switch sections into
-        // bound labeleled statements.
+        // bound labeled statements.
 
         // However, all the logic for emitting the switch jump tables is language agnostic
         // and includes IL optimizations. Hence we delay the switch jump table generation

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
             if (textView == null)
             {
-                throw new ArgumentNullException("textView");
+                throw new ArgumentNullException(nameof(textView));
             }
 
             if (!textView.TextBuffer.GetOption(EditorComponentOnOffOptions.Adornment))

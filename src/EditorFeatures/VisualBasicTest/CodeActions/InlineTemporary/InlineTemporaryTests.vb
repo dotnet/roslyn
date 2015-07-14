@@ -3287,7 +3287,7 @@ End Module
         End Sub
 
         <WorkItem(608202)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
         Public Sub ParenthesizeQueryExpressionIfEndingWithDistinct()
             Dim code =
 <File>

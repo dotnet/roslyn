@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return false;
             }
 
-            // If we've finished computing the items then use the nagivation commands to change the
+            // If we've finished computing the items then use the navigation commands to change the
             // selected item.  Otherwise, the user was just typing and is now moving through the
             // file.  In this case stop everything we're doing.
             var model = sessionOpt.InitialUnfilteredModel != null ? WaitForController() : null;

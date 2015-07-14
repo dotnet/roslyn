@@ -165,9 +165,9 @@ End Module
 
         <WorkItem(543227, "DevDiv")>
         <Fact()>
-        Public Sub TestMultpleEnumDefaultValues()
+        Public Sub TestMultipleEnumDefaultValues()
             Dim source =
-<compilation name="TestMultpleEnumDefaultValues">
+<compilation>
     <file name="a.vb">
         <![CDATA[
 Option Strict On
@@ -623,7 +623,7 @@ x = nothing
 
         <WorkItem(543187, "DevDiv")>
         <Fact()>
-        Public Sub OptionalWithIUknownConstantAndIDispatchConstant()
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstant()
 
             Dim libSource =
 <compilation>
@@ -717,7 +717,7 @@ System.Runtime.InteropServices.DispatchWrapper
 
         <WorkItem(543187, "DevDiv")>
         <Fact()>
-        Public Sub OptionalWithIUknownConstantAndIDispatchConstantWithString()
+        Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString()
 
             Dim libSource =
 <compilation>

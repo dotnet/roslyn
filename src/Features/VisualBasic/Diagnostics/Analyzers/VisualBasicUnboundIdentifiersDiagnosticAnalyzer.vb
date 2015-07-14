@@ -13,9 +13,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
         Inherits UnboundIdentifiersDiagnosticAnalyzerBase(Of SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax, LambdaExpressionSyntax)
 
         Private Const s_undefinedType1 As String = "BC30002"
-        Private ReadOnly s_messageFormat As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.ERR_UndefinedType1), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
+        Private ReadOnly _messageFormat As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.ERR_UndefinedType1), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
         Private Const s_undefinedType2 As String = "BC30057"
-        Private ReadOnly s_messageFormat2 As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.ERR_TooManyArgs1), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
+        Private ReadOnly _messageFormat2 As LocalizableString = New LocalizableResourceString(NameOf(VBFeaturesResources.ERR_TooManyArgs1), VBFeaturesResources.ResourceManager, GetType(VBFeaturesResources.VBFeaturesResources))
 
 
         Private Shared ReadOnly s_kindsOfInterest As ImmutableArray(Of SyntaxKind) = ImmutableArray.Create(
@@ -33,13 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(s_undefinedType1, s_messageFormat)
+                Return GetDiagnosticDescriptor(s_undefinedType1, _messageFormat)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property DiagnosticDescriptor2 As DiagnosticDescriptor
             Get
-                Return GetDiagnosticDescriptor(s_undefinedType2, s_messageFormat2)
+                Return GetDiagnosticDescriptor(s_undefinedType2, _messageFormat2)
             End Get
         End Property
 

@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -281,10 +280,12 @@ namespace Microsoft.CodeAnalysis.Scripting
                 }
                 else if (globals != null && _globalsType != null)
                 {
-                    var runtimeType = globals.GetType();
-                    if (!_globalsType.IsAssignableFrom(runtimeType))
+                    var runtimeType = globals.GetType().GetTypeInfo();
+                    var globalsType = _globalsType.GetTypeInfo();
+
+                    if (!globalsType.IsAssignableFrom(runtimeType))
                     {
-                        throw new ArgumentException(string.Format(ScriptingResources.GlobalsNotAssignable, runtimeType, _globalsType));
+                        throw new ArgumentException(string.Format(ScriptingResources.GlobalsNotAssignable, runtimeType, globalsType));
                     }
                 }
 
@@ -372,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
             if (this.GlobalsType != null)
             {
-                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(this.GlobalsType.Assembly);
+                var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(this.GlobalsType.GetTypeInfo().Assembly);
                 if (!references.Contains(globalsTypeAssembly))
                 {
                     references = references.Add(globalsTypeAssembly);
@@ -420,6 +421,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                     var executor = this.Builder.Build(this, diagnostics, cancellationToken);
 
+                    // emit can fail due to compilation errors or because there is nothing to emit:
                     if (diagnostics.HasAnyErrors())
                     {
                         CompilationError(diagnostics);

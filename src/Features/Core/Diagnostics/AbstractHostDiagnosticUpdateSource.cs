@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private class HostArgsId : AnalyzerUpdateArgsId
         {
             private readonly AbstractHostDiagnosticUpdateSource _source;
-            private readonly ProjectId _projectId;
+            private readonly ProjectId _projectIdOpt;
 
-            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId id) : base(analyzer)
+            public HostArgsId(AbstractHostDiagnosticUpdateSource source, DiagnosticAnalyzer analyzer, ProjectId projectIdOpt) : base(analyzer)
             {
                 this._source = source;
-                this._projectId = id;
+                this._projectIdOpt = projectIdOpt;
             }
 
             public override bool Equals(object obj)
@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return false;
                 }
 
-                return _source == other._source && _projectId == other._projectId && base.Equals(obj);
+                return _source == other._source && _projectIdOpt == other._projectIdOpt && base.Equals(obj);
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectId.GetHashCode(), base.GetHashCode()));
+                return Hash.Combine(_source.GetHashCode(), Hash.Combine(_projectIdOpt == null ? 1 : _projectIdOpt.GetHashCode(), base.GetHashCode()));
             }
         }
     }

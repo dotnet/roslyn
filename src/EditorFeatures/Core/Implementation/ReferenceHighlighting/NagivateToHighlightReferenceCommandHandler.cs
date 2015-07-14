@@ -17,25 +17,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.NavigateToHighlightedReference,
        ContentTypeNames.RoslynContentType)]
-    internal partial class NagivateToHighlightReferenceCommandHandler :
+    internal partial class NavigateToHighlightReferenceCommandHandler :
         ICommandHandler<NavigateToHighlightedReferenceCommandArgs>
     {
         private readonly IOutliningManagerService _outliningManagerService;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory;
 
         [ImportingConstructor]
-        public NagivateToHighlightReferenceCommandHandler(
+        public NavigateToHighlightReferenceCommandHandler(
             IOutliningManagerService outliningManagerService,
             IViewTagAggregatorFactoryService tagAggregatorFactory)
         {
             if (outliningManagerService == null)
             {
-                throw new ArgumentNullException("outliningManagerService");
+                throw new ArgumentNullException(nameof(outliningManagerService));
             }
 
             if (tagAggregatorFactory == null)
             {
-                throw new ArgumentNullException("tagAggregatorFactory");
+                throw new ArgumentNullException(nameof(tagAggregatorFactory));
             }
 
             _outliningManagerService = outliningManagerService;

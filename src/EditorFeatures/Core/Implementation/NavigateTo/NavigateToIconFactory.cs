@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         {
             if (bmpSource == null)
             {
-                throw new ArgumentNullException("bmpSource");
+                throw new ArgumentNullException(nameof(bmpSource));
             }
 
             // We shall convert this BitmapSource to an icon. Sadly, there's no direct API to do this. The approach

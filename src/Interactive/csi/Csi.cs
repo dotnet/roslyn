@@ -29,7 +29,7 @@ namespace CSharpInteractive
             try
             {
                 var responseFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, InteractiveResponseFileName);
-                return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args, new SimpleAnalyzerAssemblyLoader()), Console.Out);
+                return ScriptCompilerUtil.RunInteractive(new Csi(responseFile, Directory.GetCurrentDirectory(), args, new NotImplementedAnalyzerLoader()), Console.Out);
             }
             catch (Exception ex)
             {

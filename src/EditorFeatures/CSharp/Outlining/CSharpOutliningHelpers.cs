@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
         {
             if (node == null)
             {
-                throw new ArgumentNullException("node");
+                throw new ArgumentNullException(nameof(node));
             }
 
             var triviaList = node.GetLeadingTrivia();

@@ -140,7 +140,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     try
                     {
-
                         if (!holdsMutex)
                         {
                             try
@@ -302,7 +301,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Size of the buffer coming in, chars written coming out.
         /// </param>
         [DllImport("Kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", CharSet = CharSet.Unicode)]
-        static extern bool QueryFullProcessImageName(
+        private static extern bool QueryFullProcessImageName(
             IntPtr processHandle,
             int flags,
             StringBuilder exeNameBuffer,

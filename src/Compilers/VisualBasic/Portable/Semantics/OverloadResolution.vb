@@ -1404,7 +1404,7 @@ ResolutionComplete:
                 If cmp = ApplicabilityComparisonResult.RightIsMoreApplicable OrElse
                    cmp = ApplicabilityComparisonResult.Undefined OrElse
                    cmp = ApplicabilityComparisonResult.EquallyApplicable Then
-                    ' We do this for equal applicability too because this condender was droped during the first loop, so, 
+                    ' We do this for equal applicability too because this contender was dropped during the first loop, so, 
                     ' if we continue, the mightBeTheMostApplicable candidate will be definitely dropped too.
                     mightBeTheMostApplicableIndex = -1
                     Exit For
@@ -1783,7 +1783,7 @@ ResolutionComplete:
                             Continue For
                         End If
 
-                        ' Shadowingis applied only to candidates that have the same types for corresponding parameters
+                        ' Shadowing is applied only to candidates that have the same types for corresponding parameters
                         ' in virtual signatures
                         Dim equallyApplicable As Boolean = True
                         For k = 0 To arguments.Length - 1 Step 1
@@ -2334,8 +2334,8 @@ BreakTheTie:
 
             ' Look through the candidate set for lifted operators that require narrowing conversions whose
             ' source operators also require narrowing conversions. In that case, we only want to keep one method in
-            ' the set. If the source operator requires nullables to be unwrapped, then we disgard it and keep the lifted operator.
-            ' If it does not, then we disgard the lifted operator and keep the source operator. This will prevent the presence of
+            ' the set. If the source operator requires nullables to be unwrapped, then we discard it and keep the lifted operator.
+            ' If it does not, then we discard the lifted operator and keep the source operator. This will prevent the presence of
             ' lifted operators from causing overload resolution conflicts where there otherwise wouldn't be one. However,
             ' if the source operator only requires narrowing conversions from numeric literals, then we keep both in the set,
             ' because the conversion in that case is not really narrowing.
@@ -3319,7 +3319,7 @@ Bailout:
                 Return False
             End If
 
-            ' Characteristics of convertion applied to a default value for an optional parameter shouldn't be used to disambiguate
+            ' Characteristics of conversion applied to a default value for an optional parameter shouldn't be used to disambiguate
             ' between two candidates.
 
             If Conversions.IsNarrowingConversion(conv.Key) Then
@@ -3365,7 +3365,7 @@ Bailout:
             End If
 
             ' If we are in attribute context, keep track of candidates that will result in illegal arguments.
-            ' They should be dismissed in faivor of other applicable candidates.
+            ' They should be dismissed in favor of other applicable candidates.
             If binder.BindingLocation = BindingLocation.Attribute AndAlso
                Not candidate.IsIllegalInAttribute AndAlso
                Not methodOrPropertyGroup.WasCompilerGenerated AndAlso
@@ -4087,7 +4087,7 @@ DeterminedTheWinner:
 
                     ' We should continue the loop because at least with
                     ' extension methods in the picture, there could be other 
-                    ' winners and loosers in the results.
+                    ' winners and losers in the results.
                     ' Since we removed the element, we should bypass index increment.
                     Continue While
 

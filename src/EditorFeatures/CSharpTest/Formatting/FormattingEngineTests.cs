@@ -817,7 +817,7 @@ class Program
         [WorkItem(449)]
         [WorkItem(1077103)]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void NoFormattingInsideCommentsOfPreprocessorDirectves()
+        public void NoFormattingInsideCommentsOfPreprocessorDirectives()
         {
             var code = @"class Program
 {
@@ -1040,7 +1040,7 @@ class C : Attribute
         [WorkItem(464)]
         [WorkItem(908729)]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void DoNotFormatColonInTyepPararmeter()
+        public void DoNotFormatColonInTypeParameter()
         {
             var code = @"class Program<T>
 {

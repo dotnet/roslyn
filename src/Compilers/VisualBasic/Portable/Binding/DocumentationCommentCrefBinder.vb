@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim triviaList As SyntaxTriviaList = reference.GetTrailingTrivia()
             For Each trivia In triviaList
                 If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
-                    ' ignore those, represending VB intrinsic types
+                    ' ignore those, representing VB intrinsic types
                     Dim name As TypeSyntax = reference.Name
                     If name.Kind = SyntaxKind.IdentifierName Then
                         Dim identifier As SyntaxToken = DirectCast(name, IdentifierNameSyntax).Identifier
@@ -874,7 +874,7 @@ lAgain:
 
             If TypeOf di Is AmbiguousSymbolDiagnostic Then
                 ' Several ambiguous symbols wrapped in 'AmbiguousSymbolDiagnostic', return 
-                ' unwrapped symbols in 'ambiguousSymbols' and return Nothing as a rresult
+                ' unwrapped symbols in 'ambiguousSymbols' and return Nothing as a result
                 Debug.Assert(lookupResult.Kind = LookupResultKind.Ambiguous)
 
                 Dim ambiguousSymbols As ImmutableArray(Of Symbol) = DirectCast(di, AmbiguousSymbolDiagnostic).AmbiguousSymbols

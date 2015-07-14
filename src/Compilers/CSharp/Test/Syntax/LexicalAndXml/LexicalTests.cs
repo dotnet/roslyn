@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithFloatSpecifer()
+        public void TestNumericLiteralWithFloatSpecifier()
         {
             var value = 123f;
             var text = "123f";
@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithUpperFloatSpecifer()
+        public void TestNumericLiteralWithUpperFloatSpecifier()
         {
             var value = 123F;
             var text = "123F";
@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndFloatSpecifer()
+        public void TestNumericLiteralWithDecimalAndFloatSpecifier()
         {
             var value = 123.456f;
             var text = "123.456f";
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndExponentAndFloatSpecifer()
+        public void TestNumericLiteralWithDecimalAndExponentAndFloatSpecifier()
         {
             var value = 123.456e10f;
             var text = "123.456e10f";
@@ -1532,7 +1532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDoubleSpecifer()
+        public void TestNumericLiteralWithDoubleSpecifier()
         {
             var value = 123d;
             var text = "123d";
@@ -1548,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithUpperDoubleSpecifer()
+        public void TestNumericLiteralWithUpperDoubleSpecifier()
         {
             var value = 123D;
             var text = "123D";
@@ -1564,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndDoubleSpecifer()
+        public void TestNumericLiteralWithDecimalAndDoubleSpecifier()
         {
             var value = 123.456d;
             var text = "123.456d";
@@ -1580,7 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalAndExponentAndDoubleSpecifer()
+        public void TestNumericLiteralWithDecimalAndExponentAndDoubleSpecifier()
         {
             var value = 123.456e10d;
             var text = "123.456e10D";
@@ -1596,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalSpecifer()
+        public void TestNumericLiteralWithDecimalSpecifier()
         {
             var value = 123m;
             var text = "123m";
@@ -1612,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalPointAndDecimalSpecifer()
+        public void TestNumericLiteralWithDecimalPointAndDecimalSpecifier()
         {
             var value = 123.456m;
             var text = "123.456m";
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
-        public void TestNumericLiteralWithDecimalPointAndExponentAndDecimalSpecifer()
+        public void TestNumericLiteralWithDecimalPointAndExponentAndDecimalSpecifier()
         {
             var value = 123.456e2m;
             var text = "123.456e2m";

@@ -28,7 +28,7 @@ namespace System.Runtime.Analyzers
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var model = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            
+
             var flagsAttributeType = WellKnownTypes.FlagsAttribute(model.Compilation);
             if (flagsAttributeType == null)
             {
