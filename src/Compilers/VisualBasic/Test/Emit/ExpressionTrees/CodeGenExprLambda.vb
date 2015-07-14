@@ -6805,6 +6805,46 @@ end class
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
+
+        <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
+        <Fact()>
+        Public Sub GenericField01()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+
+Public Class Module1
+    Public Class S(Of T)
+        Public x As T
+    End Class
+
+    Public Shared Function SomeFunc(Of A)(selector As System.Linq.Expressions.Expression(Of Func(Of Object, A))) As Object
+        Return Nothing
+    End Function
+
+    Public Shared Sub CallIt(Of T)(p As T)
+        Dim goodF As Func(Of Object, Object) = Function(xs) SomeFunc(Of S(Of T))(Function(e) New S(Of T)())
+        Dim z1 = goodF(3)
+
+        Dim badF As Func(Of Object, Object) = Function(xs)
+                                                  Return SomeFunc(Of S(Of T))(Function(e) New S(Of T) With {.x = p})
+                                              End Function
+        Dim z2 = badF(3)
+    End Sub
+
+    Public Shared Sub Main()
+        CallIt(Of Integer)(3)
+    End Sub
+End Class
+
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 expectedOutput:="").VerifyDiagnostics()
+        End Sub
+
         <Fact()>
         Public Sub ExpressionTrees_MyBaseMyClass()
             Dim file = <file name="expr.vb"><![CDATA[

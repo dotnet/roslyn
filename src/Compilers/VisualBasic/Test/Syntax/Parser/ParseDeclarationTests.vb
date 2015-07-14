@@ -1002,6 +1002,22 @@ p1 as vb$anonymous1
         Assert.Equal("(Of T)", DirectCast(c.Members(3), OperatorBlockSyntax).OperatorStatement.OperatorToken.TrailingTrivia.Node.ToFullString)
     End Sub
 
+    <Fact>
+    Public Sub ERR_NamespaceNotAllowedInScript()
+        Const source = "
+Namespace N
+End Namespace
+"
+
+        Dim expectedDiagnostics = <errors><![CDATA[
+BC36965: You cannot declare Namespace in script code
+Namespace N
+~~~~~~~~~
+]]></errors>
+        Parse(source, TestOptions.Script).AssertTheseDiagnostics(expectedDiagnostics)
+        Parse(source, TestOptions.Interactive).AssertTheseDiagnostics(expectedDiagnostics)
+    End Sub
+
 #End Region
 
 End Class

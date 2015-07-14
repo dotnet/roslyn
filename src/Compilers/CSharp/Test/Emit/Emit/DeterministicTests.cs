@@ -85,7 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void CompareAllBytesEmitted_Release()
         {
-            foreach (var pdbFormat in new[] { DebugInformationFormat.Pdb })
+            foreach (var pdbFormat in new[]
+            {
+                DebugInformationFormat.Pdb,
+                DebugInformationFormat.PortablePdb,
+                DebugInformationFormat.Embedded
+            })
             {
                 var source =
     @"class Program
@@ -105,7 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact, WorkItem(926)]
         public void CompareAllBytesEmitted_Debug()
         {
-            foreach (var pdbFormat in new[] { DebugInformationFormat.Pdb })
+            foreach (var pdbFormat in new[] 
+            {
+                DebugInformationFormat.Pdb,
+                DebugInformationFormat.PortablePdb,
+                DebugInformationFormat.Embedded
+            })
             {
                 var source =
 @"class Program

@@ -423,6 +423,9 @@ End Namespace
             comp = comp.AddSyntaxTrees(t1).ReplaceSyntaxTree(t1, t1)
             Assert.Equal(3, comp.SyntaxTrees.Length)
 
+            ' Replace with existing and verify that it throws
+            Assert.Throws(Of ArgumentException)(Sub() comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees(0)))
+
             Assert.Throws(Of ArgumentException)(Sub() comp.AddSyntaxTrees(t1))
 
             ' SyntaxTrees have reference equality. This removal should fail.

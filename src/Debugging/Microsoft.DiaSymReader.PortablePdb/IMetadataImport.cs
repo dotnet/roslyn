@@ -7,7 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Roslyn.Test.PdbUtilities
+namespace Microsoft.DiaSymReader.PortablePdb
 {
     internal static class IMetadataImportExtensions
     {

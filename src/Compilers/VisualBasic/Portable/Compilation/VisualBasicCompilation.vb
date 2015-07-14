@@ -877,7 +877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             )
 
             Dim entry = New DeclarationTableEntry(New Lazy(Of RootSingleNamespaceDeclaration)(Function() ForTree(tree, compilationOptions, isSubmission)), isEmbedded:=False)
-            declMap = declMap.Add(tree, entry)
+            declMap = declMap.Add(tree, entry) ' Callers are responsible for checking for existing entries.
             declTable = declTable.AddRootDeclaration(entry)
             referenceDirectivesChanged = referenceDirectivesChanged OrElse tree.HasReferenceDirectives
         End Sub
@@ -989,6 +989,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim declMap = _rootNamespaces
+
+            If declMap.ContainsKey(vbNewTree) Then
+                Throw New ArgumentException(VBResources.SyntaxTreeAlreadyPresent, NameOf(newTree))
+            End If
+
             Dim declTable = _declarationTable
             Dim referenceDirectivesChanged = False
 
