@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return dataSource.CreateEventSource(textViewOpt, subjectBuffer);
         }
 
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return dataSource.GetSpansToTag(textViewOpt, subjectBuffer);
+        }
+
         protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var tagSource = createTagSource == null ? null : createTagSource(textViewOpt, subjectBuffer, AsyncListener, NotificationService);

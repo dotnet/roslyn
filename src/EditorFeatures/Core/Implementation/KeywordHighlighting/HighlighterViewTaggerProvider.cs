@@ -77,5 +77,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         {
             return new HighlightingTagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
+
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return null;
+        }
     }
 }

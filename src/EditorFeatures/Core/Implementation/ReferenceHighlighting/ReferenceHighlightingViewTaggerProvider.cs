@@ -81,5 +81,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             return new ReferenceHighlightingTagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
+
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return null;
+        }
     }
 }

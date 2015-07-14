@@ -72,6 +72,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         #region Fields that can only be accessed from the foreground thread
 
+        private readonly ITextView _textViewOpt;
+        private readonly ITextBuffer _subjectBuffer;
+
         /// <summary>
         /// Our tagger event source that lets us know when we should call into the tag producer for
         /// new tags.
@@ -97,6 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
             }
 
+            _textViewOpt = textViewOpt;
+            _subjectBuffer = subjectBuffer;
             _dataSource = dataSource;
             _tagProducer = dataSource.CreateTagProducer();
             _spanTrackingMode = dataSource.SpanTrackingMode;
@@ -403,7 +408,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // TODO: Update to tag spans from all related documents.
 
             var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
-            var spansToTag = this.GetInitialSpansToTag().Select(span =>
+            var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer) ?? this.GetInitialSpansToTag();
+            var spansAndDocumentsToTag = spansToTag.Select(span =>
             {
                 Document document = null;
                 if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out document))
@@ -418,7 +424,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return new DocumentSnapshotSpan(document, span);
             }).ToList();
 
-            return spansToTag;
+            return spansAndDocumentsToTag;
         }
 
         [Conditional("DEBUG")]

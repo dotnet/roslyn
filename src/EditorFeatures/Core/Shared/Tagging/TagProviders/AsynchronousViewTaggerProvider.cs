@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return dataSource.CreateEventSource(textViewOpt, subjectBuffer);
         }
 
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return dataSource.GetSpansToTag(textViewOpt, subjectBuffer);
+        }
+
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
             if (textView == null)

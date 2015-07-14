@@ -74,5 +74,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <see cref="AsynchronousTaggerProvider{TTag}"/> to produce tags asynchronously.
         /// </summary>
         ITagProducer<TTag> CreateTagProducer();
+
+        /// <summary>
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to determine
+        /// the set of spans that it should asynchronously tag.  This will be called in response to
+        /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
+        /// will only be called from the UI thread.  The tagger infrastructure will then determine
+        /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
+        /// and will asycnhronously call into the <see cref="ITagProducer{TTag}"/> at some point in
+        /// the future to produce tags for these spans.
+        /// 
+        /// Return <code>null</code> to get the default set of spans tagged.  This will normally be 
+        /// the span of the entire text buffer.
+        /// </summary>
+        IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer);
     }
 }

@@ -85,5 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short),
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.Short, reportChangedSpans: true));
         }
+
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return null;
+        }
     }
 }

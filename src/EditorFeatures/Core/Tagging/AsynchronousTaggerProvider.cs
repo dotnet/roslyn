@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IAsynchronousTaggerDataSource<TTag>
         where TTag : ITag
     {
-        private readonly AsynchronousBufferTaggerProviderWithTagSource<TTag> _underlyingTagger;
+        private readonly ITaggerProvider _underlyingTagger;
 
         public virtual IEqualityComparer<TTag> TagComparer => null;
         public virtual TaggerDelay? UIUpdateDelay => null;
@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public virtual ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             return _underlyingTagger.CreateTagger<T>(buffer);
+        }
+
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return null;
         }
 
         public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
