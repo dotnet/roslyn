@@ -15617,7 +15617,15 @@ namespace N1
    class A { public int Foo() { return 2; }}
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var expectedDiagnostics = new[] 
+            {
+                // (2,1): error CS7021: You cannot declare namespace in script code
+                // namespace N1
+                Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
+            };
+
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Script)).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Interactive)).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

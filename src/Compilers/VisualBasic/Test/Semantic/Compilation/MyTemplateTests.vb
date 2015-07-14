@@ -215,7 +215,6 @@ End Class
             compilation.VerifyDiagnostics()
 
             CompileAndVerify(compilation, expectedOutput:="HelloWinform")
-
         End Sub
 
         <Fact()>

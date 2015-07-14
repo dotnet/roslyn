@@ -7,6 +7,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.DiaSymReader.PortablePdb;
 using System.Reflection;
 
 namespace Roslyn.Test.PdbUtilities

@@ -2586,6 +2586,84 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")]
+        [Fact]
+        public void GenericField01()
+        {
+            var text =
+@"
+using System;
+
+public class M
+{
+
+    public class S<T>
+    {
+        public T x;
+    }
+
+    public static object SomeFunc<A>(System.Linq.Expressions.Expression<Func<object, A>> selector)
+    { return null; }
+
+    public static void CallIt<T>(T t)
+    {
+        Func<object, object> goodF = xs => SomeFunc<S<T>>(e => new S<T>());
+        var z1 = goodF(3);
+
+        Func<object, object> badF = xs => SomeFunc<S<T>>(e => new S<T> { x = t });
+        var z2 = badF(3);
+    }
+
+    public static void Main()
+    {
+        CallIt<int>(3);
+    }
+}
+";
+            CompileAndVerify(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef }, expectedOutput: "");
+        }
+
+        [WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")]
+        [Fact]
+        public void GenericProperty01()
+        {
+            var text =
+@"
+using System;
+
+public class M
+{
+
+    public class S<T>
+    {
+        public T x{get; set;}
+    }
+
+    public static object SomeFunc<A>(System.Linq.Expressions.Expression<Func<object, A>> selector)
+    { return null; }
+
+    public static void CallIt<T>(T t)
+    {
+        Func<object, object> goodF = xs => SomeFunc<S<T>>(e => new S<T>());
+        var z1 = goodF(3);
+
+        Func<object, object> badF = xs => SomeFunc<S<T>>(e => new S<T> { x = t });
+        var z2 = badF(3);
+    }
+
+    public static void Main()
+    {
+        CallIt<int>(3);
+    }
+}
+";
+            CompileAndVerify(
+                new[] { text, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef }, expectedOutput: "");
+        }
+
         [WorkItem(544304, "DevDiv")]
         [Fact]
         public void CheckedEnumAddition()

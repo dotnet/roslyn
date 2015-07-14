@@ -1633,6 +1633,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim namespaceKeyword As KeywordSyntax = ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
 
+            If IsScript Then
+                namespaceKeyword = AddError(namespaceKeyword, ERRID.ERR_NamespaceNotAllowedInScript)
+            End If
+
             Dim unexpectedSyntax As SyntaxList(Of SyntaxToken) = Nothing
             Dim result As NamespaceStatementSyntax
 

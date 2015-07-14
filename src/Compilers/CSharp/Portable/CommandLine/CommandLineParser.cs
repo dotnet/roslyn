@@ -1022,12 +1022,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSearchPaths.Add(outputDirectory);
             }
 
-            if (!emitPdb)
+            var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
+
+            var debugInfoFormat = DebugInformationFormat.Pdb;
+            string pdbFormatStr;
+            if (emitPdb && parsedFeatures.TryGetValue("pdb", out pdbFormatStr))
             {
-                if (pdbPath != null)
+                if (pdbFormatStr == "portable")
                 {
-                    // Can't give a PDB file name and turn off debug information
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_MissingDebugSwitch);
+                    debugInfoFormat = DebugInformationFormat.PortablePdb;
+                }
+                else if (pdbFormatStr == "embedded")
+                {
+                    debugInfoFormat = DebugInformationFormat.Embedded;
+                    emitPdb = false;
                 }
             }
 
@@ -1040,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
                 kind: SourceCodeKind.Regular,
-                features: CompilerOptionParseUtilities.ParseFeatures(features)
+                features: parsedFeatures
             );
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
@@ -1068,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var emitOptions = new EmitOptions
             (
                 metadataOnly: false,
-                debugInformationFormat: DebugInformationFormat.Pdb,
+                debugInformationFormat: debugInfoFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
                 baseAddress: baseAddress,

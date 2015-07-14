@@ -1231,15 +1231,23 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
@@ -5522,7 +5530,7 @@ public class C
         [Fact, WorkItem(530359, "DevDiv")]
         public void NoStdLib02()
         {
-            #region "source"
+#region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -5641,7 +5649,7 @@ namespace System
     }
 }
 ";
-            #endregion
+#endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
@@ -6215,7 +6223,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -6226,7 +6234,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
         }
 

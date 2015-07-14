@@ -139,7 +139,7 @@ namespace Microsoft.Cci
             cmw.WriteByte(0);
 
             // length (will be patched)
-            cmw.WriteUint(0);
+            cmw.WriteUInt32(0);
 
             data(cmw);
 
@@ -152,11 +152,11 @@ namespace Microsoft.Cci
                 cmw.WriteByte(0);
             }
 
-            cmw.Position = alignmentSizeAndLengthPosition;
+            cmw.SetPosition(alignmentSizeAndLengthPosition);
             cmw.WriteByte(alignmentSize);
-            cmw.WriteUint((uint)alignedLength);
+            cmw.WriteUInt32((uint)alignedLength);
 
-            cmw.Position = length;
+            cmw.SetPosition(length);
             return cmw;
         }
 
@@ -174,9 +174,9 @@ namespace Microsoft.Cci
             cmw.Align(4);
             uint length = 10 + (uint)iteratorClassName.Length * 2;
             if ((length & 3) != 0) length += 4 - (length & 3);
-            cmw.WriteUint(length);
+            cmw.WriteUInt32(length);
             cmw.WriteUTF16(iteratorClassName);
-            cmw.WriteShort(0);
+            cmw.WriteInt16(0);
             cmw.Align(4);
             Debug.Assert(cmw.Position == length);
             customDebugInfo.Add(cmw);
@@ -195,20 +195,20 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindStateMachineHoistedLocalScopes);
             cmw.Align(4);
-            cmw.WriteUint(12 + numberOfScopes * 8);
-            cmw.WriteUint(numberOfScopes);
+            cmw.WriteUInt32(12 + numberOfScopes * 8);
+            cmw.WriteUInt32(numberOfScopes);
             foreach (var scope in scopes)
             {
                 if (scope.IsDefault)
                 {
-                    cmw.WriteUint(0);
-                    cmw.WriteUint(0);
+                    cmw.WriteUInt32(0);
+                    cmw.WriteUInt32(0);
                 }
                 else
                 {
                     // Dev12 C# emits end-inclusive range
-                    cmw.WriteUint((uint)scope.StartOffset);
-                    cmw.WriteUint((uint)scope.EndOffset - 1);
+                    cmw.WriteUInt32((uint)scope.StartOffset);
+                    cmw.WriteUInt32((uint)scope.EndOffset - 1);
                 }
             }
 
@@ -253,8 +253,8 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiKindDynamicLocals);
             cmw.Align(4);
             // size = Version,Kind + size + cBuckets + (dynamicCount * sizeOf(Local Blob))
-            cmw.WriteUint(4 + 4 + 4 + (uint)dynamicLocals.Count * blobSize);//Size of the Dynamic Block
-            cmw.WriteUint((uint)dynamicLocals.Count);
+            cmw.WriteUInt32(4 + 4 + 4 + (uint)dynamicLocals.Count * blobSize);//Size of the Dynamic Block
+            cmw.WriteUInt32((uint)dynamicLocals.Count);
 
             int localIndex = 0;
             foreach (ILocalDefinition local in dynamicLocals)
@@ -277,7 +277,7 @@ namespace Microsoft.Cci
                         }
                     }
                     cmw.WriteBytes(flag); //Written Flag
-                    cmw.WriteUint((uint)dynamicTransformFlags.Length); //Written Length
+                    cmw.WriteUInt32((uint)dynamicTransformFlags.Length); //Written Length
                 }
                 else
                 {
@@ -287,12 +287,12 @@ namespace Microsoft.Cci
                 if (localIndex < dynamicVariableCount)
                 {
                     // Dynamic variable
-                    cmw.WriteUint((uint)local.SlotIndex);
+                    cmw.WriteUInt32((uint)local.SlotIndex);
                 }
                 else
                 {
                     // Dynamic constant
-                    cmw.WriteUint(0);
+                    cmw.WriteUInt32(0);
                 }
 
                 char[] localName = new char[64];
@@ -358,11 +358,11 @@ namespace Microsoft.Cci
                 cmw.WriteByte(CDI.CdiKindUsingInfo);
                 cmw.Align(4);
 
-                cmw.WriteUint(streamLength = BitArithmeticUtilities.Align((uint)usingCounts.Count * 2 + 10, 4));
-                cmw.WriteUshort((ushort)usingCounts.Count);
+                cmw.WriteUInt32(streamLength = BitArithmeticUtilities.Align((uint)usingCounts.Count * 2 + 10, 4));
+                cmw.WriteUInt16((ushort)usingCounts.Count);
                 foreach (ushort uc in usingCounts)
                 {
-                    cmw.WriteUshort(uc);
+                    cmw.WriteUInt16(uc);
                 }
 
                 cmw.Align(4);
@@ -427,8 +427,8 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardToModuleInfo);
             cmw.Align(4);
-            cmw.WriteUint(12);
-            cmw.WriteUint((uint)_methodTokenWithModuleInfo);
+            cmw.WriteUInt32(12);
+            cmw.WriteUInt32((uint)_methodTokenWithModuleInfo);
             customDebugInfo.Add(cmw);
         }
 
@@ -438,8 +438,8 @@ namespace Microsoft.Cci
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindForwardInfo);
             cmw.Align(4);
-            cmw.WriteUint(12);
-            cmw.WriteUint((uint)_previousMethodTokenWithUsingInfo);
+            cmw.WriteUInt32(12);
+            cmw.WriteUInt32((uint)_previousMethodTokenWithUsingInfo);
             customDebugInfo.Add(cmw);
         }
     }
