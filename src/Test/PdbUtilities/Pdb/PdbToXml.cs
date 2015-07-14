@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -996,14 +997,99 @@ namespace Roslyn.Test.PdbUtilities
                 _writer.WriteEndElement();
             }
         }
-
+        
         private unsafe string FormatSignature(ImmutableArray<byte> signature)
         {
-            // TODO:
-            // A null reference, the type is encoded in the signature. 
-            // Ideally we would parse the signature and display the target type name. 
-            // That requires MetadataReader vNext though.
-            return BitConverter.ToString(signature.ToArray());
+            fixed (byte* sigPtr = signature.ToArray())
+            {
+                var sigReader = new BlobReader(sigPtr, signature.Length);
+                var provider = new SignatureVisualizer(_metadataReader);
+                return SignatureDecoder.DecodeType(ref sigReader, provider);
+            }
+        }
+
+        private sealed class SignatureVisualizer : ISignatureTypeProvider<string>
+        {
+            private readonly MetadataReader _reader;
+
+            public SignatureVisualizer(MetadataReader reader)
+            {
+                _reader = reader;
+            }
+
+            public MetadataReader Reader => _reader;
+
+            public string GetArrayType(string elementType, ArrayShape shape)
+            {
+                return elementType + "[" + new string(',', shape.Rank) + "]";
+            }
+
+            public string GetByReferenceType(string elementType)
+            {
+                return elementType + "&";  
+            }
+
+            public string GetFunctionPointerType(MethodSignature<string> signature)
+            {
+                // TODO:
+                return "method-ptr"; 
+            }
+
+            public string GetGenericInstance(string genericType, ImmutableArray<string> typeArguments)
+            {
+                // using {} since the result is embedded in XML
+                return genericType + "{" + string.Join(", ", typeArguments) + "}";
+            }
+
+            public string GetGenericMethodParameter(int index)
+            {
+                return "!!" + index;
+            }
+
+            public string GetGenericTypeParameter(int index)
+            {
+                return "!" + index;
+            }
+
+            public string GetModifiedType(string unmodifiedType, ImmutableArray<CustomModifier<string>> customModifiers)
+            {
+                return string.Join(" ", customModifiers.Select(mod => (mod.IsRequired ? "modreq(" : "modopt(") + mod.Type + ")")) + 
+                    unmodifiedType;
+            }
+
+            public string GetPinnedType(string elementType)
+            {
+                return "pinned " + elementType;
+            }
+
+            public string GetPointerType(string elementType)
+            {
+                return elementType + "*";
+            }
+
+            public string GetPrimitiveType(PrimitiveTypeCode typeCode)
+            {
+                return typeCode.ToString();
+            }
+
+            public string GetSZArrayType(string elementType)
+            {
+                return elementType + "[]";
+            }
+
+            public string GetTypeFromDefinition(TypeDefinitionHandle handle)
+            {
+                var typeDef = _reader.GetTypeDefinition(handle);
+                var name = _reader.GetString(typeDef.Name);
+                return typeDef.Namespace.IsNil ? name : _reader.GetString(typeDef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromReference(TypeReferenceHandle handle)
+            {
+                var typeRef = _reader.GetTypeReference(handle);
+                var name = _reader.GetString(typeRef.Name);
+                return typeRef.Namespace.IsNil ? name : _reader.GetString(typeRef.Namespace) + "." + name;
+            }
         }
 
         private static string EscapeNonPrintableCharacters(string str)
@@ -1370,7 +1456,7 @@ namespace Roslyn.Test.PdbUtilities
             return string.Format("<unexpected token kind: {0}>", AsToken(metadataReader.GetToken(handle)));
         }
 
-        #region Utils
+#region Utils
 
         private void WriteToken(int token)
         {
@@ -1398,6 +1484,6 @@ namespace Roslyn.Test.PdbUtilities
             Debug.Assert(false, message);
         }
 
-        #endregion
+#endregion
     }
 }

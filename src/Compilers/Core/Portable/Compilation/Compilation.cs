@@ -1773,10 +1773,7 @@ namespace Microsoft.CodeAnalysis
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
-
-            // Portable PDBs not supported yet:
-            bool emitPortablePdb = false;
-
+            bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             try

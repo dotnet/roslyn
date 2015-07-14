@@ -192,6 +192,11 @@ namespace Microsoft.Cci
             return this.GetBlobIndex(ImmutableArray.Create(byteArray));
         }
 
+        public BlobIdx GetBlobIndexUtf8(string str)
+        {
+            return GetBlobIndex(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
+        }
+
         public int GetGuidIndex(Guid guid)
         {
             if (guid == Guid.Empty)
