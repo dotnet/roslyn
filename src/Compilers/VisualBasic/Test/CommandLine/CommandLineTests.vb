@@ -2201,15 +2201,23 @@ a.vb
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug:full", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.False(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:pdbonly", "/debug-", "/debug+", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
+            Assert.True(parsedArgs.EmitPdb)
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat)
 
             parsedArgs = DefaultParse({"/debug:", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("debug", ":pdbonly|full"))

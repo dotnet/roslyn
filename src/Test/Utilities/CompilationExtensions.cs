@@ -24,8 +24,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var stream = new MemoryStream();
 
-            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug && !CLRHelpers.IsRunningOnMono())
+            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
+                if (CLRHelpers.IsRunningOnMono())
+                {
+                    options = (options ?? EmitOptions.Default).WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
+                }
+
                 pdbStream = new MemoryStream();
             }
 

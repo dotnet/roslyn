@@ -159,6 +159,27 @@ namespace Microsoft.Cci
             {
                 nativePdbContentId = default(ContentId);
             }
+            
+            // write to Portable PDB stream:
+            ContentId portablePdbContentId;
+            Stream portablePdbStream = getPortablePdbStreamOpt?.Invoke();
+            if (portablePdbStream != null)
+            {
+                debugMetadataWriterOpt.WriteTo(portablePdbStream);
+
+                if (_deterministic)
+                {
+                    portablePdbContentId = ContentId.FromHash(CryptographicHashProvider.ComputeSha1(portablePdbStream));
+                }
+                else
+                {
+                    portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(_timeStamp));
+                }
+            }
+            else
+            {
+                portablePdbContentId = default(ContentId);
+            }
 
             // Only the size of the fixed part of the debug table goes here.
             DirectoryEntry debugDirectory = default(DirectoryEntry);
@@ -209,6 +230,7 @@ namespace Microsoft.Cci
                 managedResourceWriter,
                 metadataSizes,
                 nativePdbContentId,
+                portablePdbContentId,
                 out metadataPosition);
 
             var resourceSection = sectionHeaders.FirstOrDefault(s => s.Name == ResourceSectionName);
@@ -1148,7 +1170,8 @@ namespace Microsoft.Cci
             BlobWriter mappedFieldDataWriter,
             BlobWriter managedResourceWriter,
             MetadataSizes metadataSizes,
-            ContentId pdbContentId,
+            ContentId nativePdbContentId,
+            ContentId portablePdbContentId,
             out long metadataPosition)
         {
             // TODO: zero out all bytes:
@@ -1180,7 +1203,7 @@ namespace Microsoft.Cci
 
             if (EmitPdb)
             {
-                WriteDebugTable(peStream, textSection, pdbContentId, metadataSizes);
+                WriteDebugTable(peStream, textSection, nativePdbContentId, portablePdbContentId, metadataSizes);
             }
 
             if (_properties.RequiresStartupStub)
@@ -1317,19 +1340,27 @@ namespace Microsoft.Cci
             }
         }
 
-        private void WriteDebugTable(Stream peStream, SectionHeader textSection, ContentId nativePdbContentId, MetadataSizes metadataSizes)
+        private void WriteDebugTable(Stream peStream, SectionHeader textSection, ContentId nativePdbContentId, ContentId portablePdbContentId, MetadataSizes metadataSizes)
         {
+            Debug.Assert(nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault);
+
             var writer = new BlobWriter();
 
             // characteristics:
             writer.WriteUint(0);
 
-            // PDB stamp
-            writer.WriteBytes(nativePdbContentId.Stamp);
-
-            // version
-            writer.WriteUint(0);
-
+            // PDB stamp & version
+            if (portablePdbContentId.IsDefault)
+            {
+                writer.WriteBytes(nativePdbContentId.Stamp);
+                writer.WriteUint(0);
+            }
+            else
+            {
+                writer.WriteBytes(portablePdbContentId.Stamp);
+                writer.WriteUint('P' << 24 | 'M' << 16 | 0x00 << 8 | 0x01);
+            }
+            
             // type: 
             const int ImageDebugTypeCodeView = 2;
             writer.WriteUint(ImageDebugTypeCodeView);
@@ -1351,7 +1382,7 @@ namespace Microsoft.Cci
             writer.WriteByte((byte)'S');
 
             // PDB id:
-            writer.WriteBytes(nativePdbContentId.Guid);
+            writer.WriteBytes(nativePdbContentId.Guid ?? portablePdbContentId.Guid);
 
             // age
             writer.WriteUint(PdbWriter.Age);

@@ -41,9 +41,21 @@ namespace Microsoft.Cci
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
+            MetadataHeapsBuilder debugHeapsOpt;
+            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            {
+                case DebugInformationFormat.PortablePdb:
+                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
+                    break;
 
-            // Portable PDBs not supported yet:
-            MetadataHeapsBuilder debugHeapsOpt = null;
+                case DebugInformationFormat.Embedded:
+                    debugHeapsOpt = heaps;
+                    break;
+
+                default:
+                    debugHeapsOpt = null;
+                    break;
+            }
 
             return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }

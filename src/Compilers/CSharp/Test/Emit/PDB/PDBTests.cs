@@ -3892,6 +3892,23 @@ public class T
     </method>
   </methods>
 </symbols>", DebugInformationFormat.Pdb);
+
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""T"" name=""Main"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <constant name=""HighSurrogateCharacter"" value=""\uD800"" type=""String"" />
+        <constant name=""LowSurrogateCharacter"" value=""\uDC00"" type=""String"" />
+        <constant name=""MatchedSurrogateCharacters"" value=""\uD800\uDC00"" type=""String"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>", DebugInformationFormat.PortablePdb);
         }
 
         [Fact, WorkItem(546862, "DevDiv")]
@@ -3932,6 +3949,21 @@ public class T
     </method>
   </methods>
 </symbols>", DebugInformationFormat.Pdb);
+
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""T"" name=""Main"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <constant name=""invalidUnicodeString"" value=""\uD800\u0000\uDC00"" type=""String"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>", DebugInformationFormat.PortablePdb);
         }
 
         [Fact]
@@ -4073,22 +4105,22 @@ public class C<S>
         <constant name=""U8"" value=""0"" type=""UInt64"" />
         <constant name=""R4"" value=""0"" type=""Single"" />
         <constant name=""R8"" value=""0"" type=""Double"" />
-        <constant name=""EI1"" value=""0"" signature=""15-11-10-01-08"" />
-        <constant name=""EU1"" value=""0"" signature=""15-11-14-01-08"" />
-        <constant name=""EI2"" value=""0"" signature=""15-11-18-01-08"" />
-        <constant name=""EU2"" value=""0"" signature=""15-11-1C-01-08"" />
-        <constant name=""EI4"" value=""0"" signature=""15-11-20-01-08"" />
-        <constant name=""EU4"" value=""0"" signature=""15-11-24-01-08"" />
-        <constant name=""EI8"" value=""0"" signature=""15-11-28-01-08"" />
-        <constant name=""EU8"" value=""0"" signature=""15-11-2C-01-08"" />
+        <constant name=""EI1"" value=""0"" signature=""EnumI1{Int32}"" />
+        <constant name=""EU1"" value=""0"" signature=""EnumU1{Int32}"" />
+        <constant name=""EI2"" value=""0"" signature=""EnumI2{Int32}"" />
+        <constant name=""EU2"" value=""0"" signature=""EnumU2{Int32}"" />
+        <constant name=""EI4"" value=""0"" signature=""EnumI4{Int32}"" />
+        <constant name=""EU4"" value=""0"" signature=""EnumU4{Int32}"" />
+        <constant name=""EI8"" value=""0"" signature=""EnumI8{Int32}"" />
+        <constant name=""EU8"" value=""0"" signature=""EnumU8{Int32}"" />
         <constant name=""StrWithNul"" value=""\u0000"" type=""String"" />
         <constant name=""EmptyStr"" value="""" type=""String"" />
         <constant name=""NullStr"" value=""null"" type=""String"" />
         <constant name=""NullObject"" value=""null"" type=""Object"" />
         <constant name=""NullDynamic"" value=""null"" type=""Object"" />
-        <constant name=""NullTypeDef"" value=""null"" signature=""12-08"" />
-        <constant name=""NullTypeRef"" value=""null"" signature=""12-1D"" />
-        <constant name=""NullTypeSpec"" value=""null"" signature=""15-12-21-04-15-12-25-02-08-15-12-0C-01-08-1C-1E-00-15-12-29-01-13-00"" />
+        <constant name=""NullTypeDef"" value=""null"" signature=""X"" />
+        <constant name=""NullTypeRef"" value=""null"" signature=""System.Action"" />
+        <constant name=""NullTypeSpec"" value=""null"" signature=""System.Func`4{System.Collections.Generic.Dictionary`2{Int32, C`1{Int32}}, Object, !!0, System.Collections.Generic.List`1{!0}}"" />
         <constant name=""D"" value=""0"" type=""Decimal"" />
       </scope>
     </method>
