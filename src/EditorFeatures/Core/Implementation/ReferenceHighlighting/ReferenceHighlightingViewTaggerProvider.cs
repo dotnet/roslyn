@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
@@ -28,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
+
+        public bool RemoveTagsThatIntersectEdits => true;
+        public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+        public IEnumerable<Option<bool>> Options => null;
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
         public ReferenceHighlightingViewTaggerProvider(
@@ -48,24 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
         }
-
-        public bool RemoveTagsThatIntersectEdits => true;
-
-        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-
-        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions
-        {
-            get
-            {
-                yield return FeatureOnOffOptions.ReferenceHighlighting;
-            }
-        }
-
-        public IEnumerable<Option<bool>> Options => null;
-
-        public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
 
         public ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
         {

@@ -165,6 +165,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             private readonly Workspace _workspace;
             private readonly bool _disableCancellation;
 
+            public TaggerDelay? UIUpdateDelay => null;
+            public bool RemoveTagsThatIntersectEdits => true;
+            public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+            public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+            public IEnumerable<Option<bool>> Options => null;
+            public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+
             public TestTaggerProvider(
                 TestTagProducer tagProducer,
                 ITaggerEventSource eventSource,
@@ -179,18 +186,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 _workspace = workspace;
                 _disableCancellation = disableCancellation;
             }
-
-            public bool RemoveTagsThatIntersectEdits => true;
-
-            public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-            public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-
-            public IEnumerable<Option<bool>> Options => null;
-
-            public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
-
-            public TaggerDelay? UIUpdateDelay => null;
 
             public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {

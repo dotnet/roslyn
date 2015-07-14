@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
@@ -29,6 +30,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
         private readonly Lazy<ITaggerProvider> _asynchronousTaggerProvider;
+
+        // We don't want to remove a tag just because it intersected an edit.  This can 
+        // cause flashing when a edit touches the edge of a classified symbol without
+        // changing it.  For example, if you have "Console." and you remove the <dot>,
+        // then you don't want to remove the classification for 'Console'.
+        public TaggerDelay? UIUpdateDelay => null;
+        public bool RemoveTagsThatIntersectEdits => false;
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+        public IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+
 
         [ImportingConstructor]
         public SemanticClassificationTaggerProvider(
@@ -51,28 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             return _asynchronousTaggerProvider.Value.CreateTagger<T>(buffer);
         }
-
-        // We don't want to remove a tag just because it intersected an edit.  This can 
-        // cause flashing when a edit touches the edge of a classified symbol without
-        // changing it.  For example, if you have "Console." and you remove the <dot>,
-        // then you don't want to remove the classification for 'Console'.
-        public bool RemoveTagsThatIntersectEdits => false;
-
-        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        public TaggerDelay? UIUpdateDelay => null;
-
-        public IEnumerable<Option<bool>> Options
-        {
-            get
-            {
-                yield return InternalFeatureOnOffOptions.SemanticColorizer;
-            }
-        }
-
-        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
 
         private ProducerPopulatedTagSource<IClassificationTag> CreateTagSource(
             ITextView textViewOpt, ITextBuffer subjectBuffer,

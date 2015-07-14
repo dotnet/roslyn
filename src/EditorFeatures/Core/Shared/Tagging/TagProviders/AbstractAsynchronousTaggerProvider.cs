@@ -68,16 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Feature on/off options.
         /// </summary>
-        public virtual IEnumerable<Option<bool>> Options
-        {
-            get { return SpecializedCollections.EmptyEnumerable<Option<bool>>(); }
-        }
-
-        public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions
-        {
-            get { return SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>(); }
-        }
-
+        public virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
+        public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
         public virtual TaggerDelay? UIUpdateDelay => null;
 
         protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TTagSource tagSource);

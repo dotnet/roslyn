@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -18,6 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private readonly IAsynchronousTaggerDataSource<TTag> dataSource;
         private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource;
+
+        public override TaggerDelay? UIUpdateDelay => dataSource.UIUpdateDelay;
+        public SpanTrackingMode SpanTrackingMode => dataSource.SpanTrackingMode;
+        public bool RemoveTagsThatIntersectEdits => dataSource.RemoveTagsThatIntersectEdits;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
+        public override IEnumerable<Option<bool>> Options => dataSource.Options;
+        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => dataSource.PerLanguageOptions;
 
         public AsynchronousBufferTaggerProvider(
             IAsynchronousTaggerDataSource<TTag> dataSource,
@@ -39,11 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             return this.GetOrCreateTagger<T>(null, subjectBuffer);
         }
-
-        public bool RemoveTagsThatIntersectEdits => dataSource.RemoveTagsThatIntersectEdits;
-        public SpanTrackingMode SpanTrackingMode => dataSource.SpanTrackingMode;
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-        public override TaggerDelay? UIUpdateDelay => dataSource.UIUpdateDelay;
 
         public ITagProducer<TTag> CreateTagProducer()
         {

@@ -31,6 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     {
         private readonly Lazy<ITaggerProvider> _asynchronousTaggerProvider;
 
+        public TaggerDelay? UIUpdateDelay => null;
+        public bool RemoveTagsThatIntersectEdits => true;
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+
+        // TODO(cyrusn): Why don't these actually return real options for this feature?
+        public IEnumerable<Option<bool>> Options => null;
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
             IForegroundNotificationService notificationService,
@@ -48,19 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             this.AssertIsForeground();
             return _asynchronousTaggerProvider.Value.CreateTagger<T>(buffer);
         }
-
-        public bool RemoveTagsThatIntersectEdits => true;
-
-        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-
-        public TaggerDelay? UIUpdateDelay => null;
-
-        // TODO(cyrusn): Why don't these actually return real options for this feature?
-        public IEnumerable<Option<bool>> Options => null;
-
-        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
         public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {

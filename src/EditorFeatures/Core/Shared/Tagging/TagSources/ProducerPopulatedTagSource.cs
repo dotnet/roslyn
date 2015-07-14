@@ -52,12 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private readonly object _cachedTagsGate = new object();
 
         /// <summary>
-        /// True if edits should cause us to remove tags that intersect with edits.  Used to ensure
-        /// that squiggles are removed when the user types over them.
-        /// </summary>
-        private readonly bool _removeTagsThatIntersectEdits;
-
-        /// <summary>
         /// The tracking mode we want to use for the tracking spans we create.
         /// </summary>
         private readonly SpanTrackingMode _spanTrackingMode;
@@ -103,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             _dataSource = dataSource;
             _tagProducer = dataSource.CreateTagProducer();
-            _removeTagsThatIntersectEdits = dataSource.RemoveTagsThatIntersectEdits;
             _spanTrackingMode = dataSource.SpanTrackingMode;
 
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -273,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return;
             }
 
-            if (!_removeTagsThatIntersectEdits)
+            if (!_dataSource.RemoveTagsThatIntersectEdits)
             {
                 return;
             }

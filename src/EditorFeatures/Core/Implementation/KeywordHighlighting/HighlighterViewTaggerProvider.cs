@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
@@ -28,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     {
         private readonly IHighlightingService _highlighterService;
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
+
+        public TaggerDelay? UIUpdateDelay => null;
+        public bool RemoveTagsThatIntersectEdits => true;
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+        public IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
@@ -48,24 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         {
             return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
         }
-
-        public bool RemoveTagsThatIntersectEdits => true;
-
-        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-
-        public TaggerDelay? UIUpdateDelay => null;
-
-        public IEnumerable<Option<bool>> Options
-        {
-            get
-            {
-                yield return InternalFeatureOnOffOptions.KeywordHighlight;
-            }
-        }
-
-        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
         public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
