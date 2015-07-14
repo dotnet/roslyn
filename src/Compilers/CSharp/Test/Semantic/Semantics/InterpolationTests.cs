@@ -642,7 +642,7 @@ namespace System
         {
             if (formattable == null)
             {
-                throw new ArgumentNullException(nameof()formattable"");
+                throw new ArgumentNullException(""formattable"");
             }
 
             return formattable.ToString(Globalization.CultureInfo.InvariantCulture);
@@ -680,12 +680,12 @@ namespace System.Runtime.CompilerServices
         {
             if (format == null)
             {
-                throw new ArgumentNullException(nameof()format"");
+                throw new ArgumentNullException(""format"");
             }
 
             if (arguments == null)
             {
-                throw new ArgumentNullException(nameof()arguments"");
+                throw new ArgumentNullException(""arguments"");
             }
 
             return new ConcreteFormattableString(format, arguments);
