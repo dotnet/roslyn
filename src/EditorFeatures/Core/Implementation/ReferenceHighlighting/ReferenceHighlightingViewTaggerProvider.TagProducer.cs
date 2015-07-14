@@ -31,10 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 }
             }
 
-            public void Dispose()
-            {
-            }
-
             public Task<IEnumerable<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>> ProduceTagsAsync(
                 IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
             {

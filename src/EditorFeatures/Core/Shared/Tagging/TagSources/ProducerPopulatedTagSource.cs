@@ -151,9 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             base.Disconnect();
 
-            // Disconnect from the producer and the event source.
-            _tagProducer.Dispose();
-
             // Tell the interaction object to stop issuing events.
             _eventSource.Disconnect();
 

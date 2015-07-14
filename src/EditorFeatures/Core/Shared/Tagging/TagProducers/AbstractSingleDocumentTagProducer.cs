@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     internal abstract class AbstractSingleDocumentTagProducer<TTag> : ITagProducer<TTag>
         where TTag : ITag
     {
-        public virtual void Dispose()
-        {
-        }
-
         public virtual IEqualityComparer<TTag> TagComparer
         {
             get

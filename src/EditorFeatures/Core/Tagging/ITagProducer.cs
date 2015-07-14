@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// Produces <see cref="ITag"/>s for a given <see cref="SnapshotSpan"/>s in a
     /// <see cref="Document"/>.
     /// </summary>
-    internal interface ITagProducer<TTag> : IDisposable
+    internal interface ITagProducer<TTag>
         where TTag : ITag
     {
         /// <summary>
