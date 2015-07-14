@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
         {
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (symbol == null)
             {
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             if (symbol.Kind == SymbolKind.Namespace)

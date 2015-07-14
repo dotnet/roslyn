@@ -18,12 +18,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Progression
         {
             if (symbol == null)
             {
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             if (solution == null)
             {
-                throw new ArgumentNullException("solution");
+                throw new ArgumentNullException(nameof(solution));
             }
 
             switch (symbol.Kind)
@@ -59,17 +59,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Progression
         {
             if (graph == null)
             {
-                throw new ArgumentNullException("graph");
+                throw new ArgumentNullException(nameof(graph));
             }
 
             if (symbol == null)
             {
-                throw new ArgumentNullException("symbol");
+                throw new ArgumentNullException(nameof(symbol));
             }
 
             if (solution == null)
             {
-                throw new ArgumentNullException("solution");
+                throw new ArgumentNullException(nameof(solution));
             }
 
             return await GraphBuilder.GetOrCreateNodeAsync(graph, symbol, solution, cancellationToken).ConfigureAwait(false);
