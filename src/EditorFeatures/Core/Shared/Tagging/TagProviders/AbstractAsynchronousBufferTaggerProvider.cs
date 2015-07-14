@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 AsyncListener,
                 NotificationService,
                 this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode,
-                GetRelatedTagSource);
+                this.SpanTrackingMode);
         }
 
         internal sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag> tagSource)
@@ -63,12 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected sealed override void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             subjectBuffer.Properties.RemoveProperty(UniqueKey);
-        }
-
-        protected virtual ProducerPopulatedTagSource<TTag> GetRelatedTagSource(ITextBuffer subjectBuffer)
-        {
-            // By default, we don't do any tag stealing. We're a law-abiding citizen!
-            return null;
         }
     }
 }

@@ -17,12 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
     internal class BufferTagSource<TTag> : ProducerPopulatedTagSource<TTag> where TTag : ITag
     {
         public BufferTagSource(
-            ITextBuffer subjectBuffer, ITagProducer<TTag> tagProducer, ITaggerEventSource eventSource,
-            IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService,
+            ITextBuffer subjectBuffer,
+            ITagProducer<TTag> tagProducer,
+            ITaggerEventSource eventSource,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode,
-            Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource) :
-            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource)
+            SpanTrackingMode spanTrackingMode)
+                : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
         {
         }
 
