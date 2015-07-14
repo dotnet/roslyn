@@ -4,10 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
-using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -29,7 +26,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
-            get { return "Reset the execution environment to the initial state, keep REPL history."; }
+            // TODO: Needs localization...
+            get { return "Reset the execution environment to the initial state, keep history."; }
         }
 
         public override IEnumerable<string> Names
@@ -46,24 +44,21 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
-                return new ReadOnlyCollection<KeyValuePair<string, string>>(new[]
-                {
-                    new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.")
-                });
+                // TODO: Needs localization...
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.");
             }
         }
 
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
             int noConfigStart, noConfigEnd;
-            bool? init = ParseArguments(arguments, out noConfigStart, out noConfigEnd);
-            if (init == null)
+            if (!TryParseArguments(arguments, out noConfigStart, out noConfigEnd))
             {
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }
 
-            return ((InteractiveWindow)window).ResetAsync(init.Value);
+            return ((InteractiveWindow)window).ResetAsync(initialize: noConfigStart > -1);
         }
 
         internal static string BuildCommandLine(bool initialize)
@@ -77,15 +72,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             string arguments = snapshot.GetText(argumentsSpan);
 
             int noConfigStart, noConfigEnd;
-            bool? init = ParseArguments(arguments, out noConfigStart, out noConfigEnd);
-
-            if (noConfigStart >= 0)
+            if (TryParseArguments(arguments, out noConfigStart, out noConfigEnd))
             {
-                yield return new ClassificationSpan(new SnapshotSpan(snapshot, Span.FromBounds(argumentsSpan.Start + noConfigStart, argumentsSpan.Start + noConfigEnd)), _registry.Keyword);
+                if (noConfigStart > -1)
+                {
+                    yield return new ClassificationSpan(new SnapshotSpan(snapshot, Span.FromBounds(argumentsSpan.Start + noConfigStart, argumentsSpan.Start + noConfigEnd)), _registry.Keyword);
+                }
             }
         }
 
-        private static bool? ParseArguments(string arguments, out int noConfigStart, out int noConfigEnd)
+        private static bool TryParseArguments(string arguments, out int noConfigStart, out int noConfigEnd)
         {
             noConfigStart = noConfigEnd = -1;
 
@@ -99,10 +95,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             {
                 noConfigStart = arguments.IndexOf(noconfig, StringComparison.OrdinalIgnoreCase);
                 noConfigEnd = noConfigStart + noconfig.Length;
-                return false;
+                return true;
             }
 
-            return null;
+            return false;
         }
     }
 }
