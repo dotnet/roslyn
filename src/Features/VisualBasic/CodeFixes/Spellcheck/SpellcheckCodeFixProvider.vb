@@ -143,7 +143,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                         Return goodnessComparisan
                     End If
 
-                    Return r1.ReplacementText.CompareTo(r2.ReplacementText)
+                    ' Try to order by name. Note that this is unescaped version of the name.
+                    Dim nameCompare = String.Compare(r1.Name, r2.Name, StringComparison.CurrentCultureIgnoreCase)
+                    If nameCompare <> 0 Then
+                        Return nameCompare
+                    End If
+
+                    ' Prefer escaped identifiers ahead of non-escaped
+                    Dim r1StartsWithEscape = r1.ReplacementText.Length > 0 AndAlso r1.ReplacementText(0) = "["c
+                    Dim r2StartsWithEscape = r2.ReplacementText.Length > 0 AndAlso r2.ReplacementText(0) = "["c
+
+                    If r1StartsWithEscape Then
+                        Return -1
+                    ElseIf r2StartsWithEscape
+                        Return 1
+                    End If
+
+                    Return String.Compare(r1.ReplacementText, r2.ReplacementText, StringComparison.CurrentCultureIgnoreCase)
                 End Function)
 
             Return results _

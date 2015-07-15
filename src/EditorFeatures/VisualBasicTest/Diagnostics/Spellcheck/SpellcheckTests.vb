@@ -384,7 +384,7 @@ End Module</File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
@@ -398,7 +398,7 @@ End Module</File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
@@ -412,7 +412,7 @@ End Module</File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
