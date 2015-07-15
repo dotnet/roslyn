@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => AssemblyMetadata.Create(default(ImmutableArray<ModuleMetadata>)));
             Assert.Throws<ArgumentException>(() => AssemblyMetadata.Create(ImmutableArray.Create<ModuleMetadata>()));
 
-            var m1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModule);
+            var m1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModuleDll);
             var m2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod2);
             var m3 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod3);
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromBytes()
         {
-            using (var a = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModule))
+            using (var a = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModuleDll))
             {
                 // even though the image refers to other modules only the manifest module is loaded:
                 Assert.Equal(1, a.GetModules().Length);
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CreateFromFile()
         {
             var dir = Temp.CreateDirectory();
-            var mm = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModule).Path;
+            var mm = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
 
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ModuleMetadata m1, m2, m3;
             var md = AssemblyMetadata.Create(
-                m1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModule),
+                m1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModuleDll),
                 m2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod2),
                 m3 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod3));
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             ModuleMetadata m1, m2, m3;
             var a = AssemblyMetadata.Create(
-                m1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModule),
+                m1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModuleDll),
                 m2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod2),
                 m3 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod3));
 

@@ -23,8 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             ' Metadata is in Compilers\Test\Resources
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 {
-                    TestResources.SymbolsTests.General.MDTestLib1,
-                    TestResources.SymbolsTests.General.MDTestLib2,
+                    TestResources.General.MDTestLib1,
+                    TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
                     ProprietaryTestResources.NetFX.v4_0_21006.mscorlib,

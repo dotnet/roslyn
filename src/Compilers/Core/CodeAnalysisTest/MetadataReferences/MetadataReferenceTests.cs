@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromStream_MemoryStream()
         {
-            var r = MetadataReference.CreateFromStream(new MemoryStream(TestResources.SymbolsTests.General.C1, writable: false));
+            var r = MetadataReference.CreateFromStream(new MemoryStream(TestResources.General.C1, writable: false));
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
 
             Assert.Equal("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9",
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Module_WithXxx()
         {
             var doc = new TestDocumentationProvider();
-            var module = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1);
+            var module = ModuleMetadata.CreateFromImage(TestResources.General.C1);
             var r = module.GetReference(filePath: @"c:\temp", display: "hello", documentation: doc);
             Assert.Same(doc, r.DocumentationProvider);
             Assert.Same(doc, r.DocumentationProvider);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Assembly_WithXxx()
         {
             var doc = new TestDocumentationProvider();
-            var assembly = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1);
+            var assembly = AssemblyMetadata.CreateFromImage(TestResources.General.C1);
 
             var r = assembly.GetReference(
                 documentation: doc,
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Module_Path()
         {
-            var module = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1);
+            var module = ModuleMetadata.CreateFromImage(TestResources.General.C1);
 
             // no path specified
             var mmr1 = module.GetReference();
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Assembly_Path()
         {
-            var assembly = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1);
+            var assembly = AssemblyMetadata.CreateFromImage(TestResources.General.C1);
 
             // no path specified
             var mmr1 = assembly.GetReference();
@@ -324,19 +324,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             MetadataReference r;
 
-            r = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1);
+            r = MetadataReference.CreateFromImage(TestResources.General.C1);
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
 
-            r = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference();
+            r = ModuleMetadata.CreateFromImage(TestResources.General.C1).GetReference();
             Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
 
-            r = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1, filePath: @"c:\blah");
+            r = MetadataReference.CreateFromImage(TestResources.General.C1, filePath: @"c:\blah");
             Assert.Equal(@"c:\blah", r.Display);
 
-            r = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(display: @"dddd");
+            r = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(display: @"dddd");
             Assert.Equal(@"dddd", r.Display);
 
-            r = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath: @"c:\blah", display: @"dddd");
+            r = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath: @"c:\blah", display: @"dddd");
             Assert.Equal(@"dddd", r.Display);
 
             r = CS.CSharpCompilation.Create("compilation name").ToMetadataReference();

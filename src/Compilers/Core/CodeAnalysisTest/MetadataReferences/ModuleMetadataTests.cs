@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public unsafe void CreateFromMetadata_Assembly()
         {
-            var assembly = TestResources.MetadataTests.Basic.Members;
+            var assembly = TestResources.Basic.Members;
             PEHeaders h = new PEHeaders(new MemoryStream(assembly));
 
             fixed (byte* ptr = &assembly[h.MetadataStartOffset])
