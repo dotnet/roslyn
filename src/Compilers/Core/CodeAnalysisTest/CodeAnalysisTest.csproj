@@ -25,6 +25,7 @@
     <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
+    <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />

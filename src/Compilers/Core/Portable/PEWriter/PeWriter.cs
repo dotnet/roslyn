@@ -39,7 +39,7 @@ namespace Microsoft.Cci
         private readonly IEnumerable<IWin32Resource> _nativeResourcesOpt;
         private readonly ResourceSection _nativeResourceSectionOpt;
 
-        private readonly BlobWriter _win32ResourceWriter = new BlobWriter(1024);
+        private readonly BlobBuilder _win32ResourceWriter = new BlobBuilder(1024);
         
         private PeWriter(
             ModulePropertiesForSerialization properties,
@@ -87,12 +87,12 @@ namespace Microsoft.Cci
         private bool WritePeToStream(MetadataWriter mdWriter, Func<Stream> getPeStream, Func<Stream> getPortablePdbStreamOpt, PdbWriter nativePdbWriterOpt)
         {
             // TODO: we can precalculate the exact size of IL stream
-            var ilWriter = new BlobWriter(32 * 1024);
-            var metadataWriter = new BlobWriter(16 * 1024);
-            var mappedFieldDataWriter = new BlobWriter();
-            var managedResourceWriter = new BlobWriter(1024);
+            var ilWriter = new BlobBuilder(32 * 1024);
+            var metadataWriter = new BlobBuilder(16 * 1024);
+            var mappedFieldDataWriter = new BlobBuilder();
+            var managedResourceWriter = new BlobBuilder(1024);
 
-            var debugMetadataWriterOpt = (getPortablePdbStreamOpt != null) ? new BlobWriter(16 * 1024) : null;
+            var debugMetadataWriterOpt = (getPortablePdbStreamOpt != null) ? new BlobBuilder(16 * 1024) : null;
 
             nativePdbWriterOpt?.SetMetadataEmitter(mdWriter);
 
@@ -824,7 +824,7 @@ namespace Microsoft.Cci
                 languageDirectory.Entries.Add(r);
             }
 
-            var dataWriter = BlobWriter.GetInstance();
+            var dataWriter = BlobBuilder.GetInstance();
 
             //'dataWriter' is where opaque resource data goes as well as strings that are used as type or name identifiers
             this.WriteDirectory(typeDirectory, _win32ResourceWriter, 0, 0, sizeOfDirectoryTree, resourcesRva, dataWriter);
@@ -838,7 +838,7 @@ namespace Microsoft.Cci
             dataWriter.Free();
         }
 
-        private void WriteDirectory(Directory directory, BlobWriter writer, uint offset, uint level, uint sizeOfDirectoryTree, int virtualAddressBase, BlobWriter dataWriter)
+        private void WriteDirectory(Directory directory, BlobBuilder writer, uint offset, uint level, uint sizeOfDirectoryTree, int virtualAddressBase, BlobBuilder dataWriter)
         {
             writer.WriteUInt32(0); // Characteristics
             writer.WriteUInt32(0); // Timestamp
@@ -1009,7 +1009,7 @@ namespace Microsoft.Cci
 
         private void WriteHeaders(Stream peStream, NtHeader ntHeader, CoffHeader coffHeader, List<SectionHeader> sectionHeaders, out long ntHeaderTimestampPosition)
         {
-            var writer = new BlobWriter(1024);
+            var writer = new BlobBuilder(1024);
 
             // MS-DOS stub (128 bytes)
             writer.WriteBytes(s_dosHeader);
@@ -1129,7 +1129,7 @@ namespace Microsoft.Cci
             writer.WriteTo(peStream);
         }
 
-        private static void WriteSectionHeader(SectionHeader sectionHeader, BlobWriter writer)
+        private static void WriteSectionHeader(SectionHeader sectionHeader, BlobBuilder writer)
         {
             if (sectionHeader.VirtualSize == 0)
             {
@@ -1165,10 +1165,10 @@ namespace Microsoft.Cci
             int importTableRva,
             int importAddressTableRva,
             int entryPointToken,
-            BlobWriter metadataWriter,
-            BlobWriter ilWriter,
-            BlobWriter mappedFieldDataWriter,
-            BlobWriter managedResourceWriter,
+            BlobBuilder metadataWriter,
+            BlobBuilder ilWriter,
+            BlobBuilder mappedFieldDataWriter,
+            BlobBuilder managedResourceWriter,
             MetadataSizes metadataSizes,
             ContentId nativePdbContentId,
             ContentId portablePdbContentId,
@@ -1227,7 +1227,7 @@ namespace Microsoft.Cci
 
         private void WriteImportAddressTable(Stream peStream, int importTableRva)
         {
-            var writer = new BlobWriter(SizeOfImportAddressTable);
+            var writer = new BlobBuilder(SizeOfImportAddressTable);
             int ilRVA = importTableRva + 40;
             int hintRva = ilRVA + (_is32bit ? 12 : 16);
 
@@ -1249,7 +1249,7 @@ namespace Microsoft.Cci
 
         private void WriteImportTable(Stream peStream, int importTableRva, int importAddressTableRva)
         {
-            var writer = new BlobWriter(SizeOfImportTable);
+            var writer = new BlobBuilder(SizeOfImportTable);
             int ilRVA = importTableRva + 40;
             int hintRva = ilRVA + (_is32bit ? 12 : 16);
             int nameRva = hintRva + 12 + 2;
@@ -1291,7 +1291,7 @@ namespace Microsoft.Cci
 
         private static void WriteNameTable(Stream peStream)
         {
-            var writer = new BlobWriter(SizeOfNameTable);
+            var writer = new BlobBuilder(SizeOfNameTable);
             foreach (char ch in CorEntryPointDll)
             {
                 writer.WriteByte((byte)ch);
@@ -1306,7 +1306,7 @@ namespace Microsoft.Cci
 
         private static void WriteCorHeader(Stream peStream, CorHeader corHeader)
         {
-            var writer = new BlobWriter(CorHeaderSize);
+            var writer = new BlobBuilder(CorHeaderSize);
             writer.WriteUInt32(CorHeaderSize);
             writer.WriteUInt16(corHeader.MajorRuntimeVersion);
             writer.WriteUInt16(corHeader.MinorRuntimeVersion); 
@@ -1344,7 +1344,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault);
 
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             // characteristics:
             writer.WriteUInt32(0);
@@ -1397,7 +1397,7 @@ namespace Microsoft.Cci
 
         private void WriteRuntimeStartupStub(Stream peStream, int importAddressTableRva)
         {
-            var writer = new BlobWriter(16);
+            var writer = new BlobBuilder(16);
             // entry point code, consisting of a jump indirect to _CorXXXMain
             if (_is32bit)
             {
@@ -1433,7 +1433,7 @@ namespace Microsoft.Cci
         private void WriteRelocSection(Stream peStream, SectionHeader relocSection, int entryPointAddress)
         {
             peStream.Position = relocSection.PointerToRawData;
-            var writer = new BlobWriter(relocSection.SizeOfRawData);
+            var writer = new BlobBuilder(relocSection.SizeOfRawData);
             writer.WriteUInt32((((uint)entryPointAddress + 2) / 0x1000) * 0x1000);
             writer.WriteUInt32(_properties.Requires64bits && !_properties.RequiresAmdInstructionSet ? 14u : 12u);
             uint offsetWithinPage = ((uint)entryPointAddress + 2) % 0x1000;
