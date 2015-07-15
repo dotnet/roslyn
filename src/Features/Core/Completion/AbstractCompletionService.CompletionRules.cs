@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 }
             }
 
-            public virtual bool? MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+            public virtual bool MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
             {
                 // If the user hasn't typed anything, and this item was preselected, or was in the
                 // MRU list, then we definitely want to include it.
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return true;
             }
 
-            public virtual bool? IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
+            public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason)
             {
                 var patternMatcher = GetPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
                 var match1 = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item1.FilterText));
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return match1.CompareTo(match2);
             }
 
-            public virtual bool? ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
+            public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo)
             {
                 return filterText.Length == 0 && !item.Preselect;
             }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 _completionService.CompletionItemCommitted(item);
             }
 
-            public virtual bool? ItemsMatch(CompletionItem item1, CompletionItem item2)
+            public virtual bool ItemsMatch(CompletionItem item1, CompletionItem item2)
             {
                 return
                     item1.FilterSpan == item2.FilterSpan &&

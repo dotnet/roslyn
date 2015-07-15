@@ -7,23 +7,21 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Returns true if the completion item matches the filter text typed so far.  Returns 'true'
         /// iff the completion item matches and should be included in the filtered completion
-        /// results, false if it should not be, and null if the determination should be left to the
-        /// next <see cref="ICompletionRules"/> to determine.
+        /// results, or false if it should not be.
         /// </summary>
-        bool? MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason);
+        bool MatchesFilterText(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason);
 
         /// <summary>
-        /// Returns 'true' if item1 is a better completion item than item2 given the provided filter
-        /// text, 'false' if it is not better, and 'null' if the determination should be left to the
-        /// next <see cref="ICompletionRules"/> to determine.
+        /// Returns true if item1 is a better completion item than item2 given the provided filter
+        /// text, or false if it is not better.
         /// </summary>
-        bool? IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason);
+        bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTriggerInfo triggerInfo, CompletionFilterReason filterReason);
 
         /// <summary>
-        /// Returns true if the completion item should be "soft" selected, false if it should be "hard"
-        /// selected, and null if the determination should be left to the next <see cref="ICompletionRules"/> to determine.
+        /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
+        /// selected.
         /// </summary>
-        bool? ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo);
+        bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTriggerInfo triggerInfo);
 
         /// <summary>
         /// Called by completion engine when a completion item is committed.  Completion rules can
@@ -32,9 +30,8 @@ namespace Microsoft.CodeAnalysis.Completion
         void CompletionItemCommitted(CompletionItem item);
 
         /// <summary>
-        /// Returns true if item1 and item2 are similar enough that only one should be shown in the completion list.
-        /// Null if left to the next <see cref="ICompletionRules"/> to determine.
+        /// Returns true if item1 and item2 are similar enough that only one should be shown in the completion list; otherwise, false.
         /// </summary>
-        bool? ItemsMatch(CompletionItem item1, CompletionItem item2);
+        bool ItemsMatch(CompletionItem item1, CompletionItem item2);
     }
 }

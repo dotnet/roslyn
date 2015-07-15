@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 Contract.Assert(item.DisplayText == existingItem.DisplayText);
 
-                if (completionRules.ItemsMatch(item, existingItem).Value)
+                if (completionRules.ItemsMatch(item, existingItem))
                 {
                     sameNamedItems[i] = Disambiguate(item, existingItem);
                     return;

@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return 0
             End Function
 
-            Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean?
+            Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean
                 If filterReason = CompletionFilterReason.BackspaceOrDelete Then
                     Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
                     Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return x
             End Function
 
-            Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean?
+            Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo, filterReason As CompletionFilterReason) As Boolean
                 ' If this is a session started on backspace, we use a much looser prefix match check
                 ' to see if an item matches
                 If filterReason = CompletionFilterReason.BackspaceOrDelete AndAlso triggerInfo.TriggerReason = CompletionTriggerReason.BackspaceOrDeleteCommand Then
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return MyBase.MatchesFilterText(item, filterText, triggerInfo, filterReason)
             End Function
 
-            Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo) As Boolean?
+            Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, triggerInfo As CompletionTriggerInfo) As Boolean
                 ' VB has additional specialized logic for soft selecting an item in completion when the only filter text is "_"
                 If (filterText.Length = 0 OrElse filterText = "_") Then
                     ' Object Creation hard selects even with no selected item
@@ -108,11 +108,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return False
             End Function
 
-            Public Overrides Function ItemsMatch(item1 As CompletionItem, item2 As CompletionItem) As Boolean?
+            Public Overrides Function ItemsMatch(item1 As CompletionItem, item2 As CompletionItem) As Boolean
                 Return MyBase.ItemsMatch(item1, item2) AndAlso MatchGlyph(item1, item2)
             End Function
 
-            Private Function MatchGlyph(item1 As CompletionItem, item2 As CompletionItem) As Boolean?
+            Private Function MatchGlyph(item1 As CompletionItem, item2 As CompletionItem) As Boolean
                 ' DevDiv 957450: Normally, we want to show items with the same display text and
                 ' different glyphs. That way, the we won't hide user-defined symbols that happen
                 ' to match a keyword (like Select). However, we want to avoid showing the keyword
@@ -131,7 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                     Return False
                 End If
 
-                Return item1.Glyph = item2.Glyph
+                Return (item1.Glyph IsNot Nothing AndAlso item2.Glyph IsNot Nothing) AndAlso
+                       (item1.Glyph.Value = item2.Glyph.Value)
             End Function
         End Class
     End Class
