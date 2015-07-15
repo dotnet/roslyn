@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
@@ -51,34 +50,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
-            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim token = root.FindToken(span.Start)
-            If Not token.Span.IntersectsWith(span) Then
+            Dim syntaxRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim errorNode = syntaxRoot.FindNode(span)
+            If errorNode.Span <> span Then
                 Return
             End If
 
-            Dim errorSyntax = token.GetAncestors(Of SyntaxNode)() _
-                              .FirstOrDefault(Function(c) c.Span = span)
+            If errorNode IsNot Nothing Then
+                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
-            If errorSyntax IsNot Nothing Then
-                Dim semanticModel = DirectCast(Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), SemanticModel)
-                For Each node In errorSyntax.DescendantNodesAndSelf().OfType(Of SimpleNameSyntax)()
-                    If node.IsMissing OrElse node.Identifier.ValueText.Length < 3 Then
-                        Continue For
+                For Each node In errorNode.DescendantNodesAndSelf().OfType(Of SimpleNameSyntax)()
+                    If Not node.IsMissing AndAlso node.Identifier.ValueText.Length >= 3 Then
+                        Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
+                        If symbolInfo.Symbol Is Nothing Then
+                            Dim actions = Await CreateSpellCheckCodeIssueAsync(document, node, cancellationToken).ConfigureAwait(False)
+
+                            If actions IsNot Nothing Then
+                                context.RegisterFixes(actions, context.Diagnostics)
+                            End If
+
+                            Exit For
+                        End If
                     End If
-
-                    Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
-                    If symbolInfo.Symbol IsNot Nothing Then
-                        Continue For
-                    End If
-
-                    Dim actions = Await CreateSpellCheckCodeIssueAsync(document, node, cancellationToken).ConfigureAwait(False)
-
-                    If actions IsNot Nothing Then
-                        context.RegisterFixes(actions, context.Diagnostics)
-                    End If
-                    Return
                 Next
             End If
         End Function
@@ -89,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Dim completionService = document.GetLanguageService(Of ICompletionService)()
             Dim providers = completionService.GetDefaultCompletionProviders()
 
-            Dim completionList = Await completionService.GetCompletionListAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo, providers, cancellationToken).ConfigureAwait(False)
+            Dim completionList = Await completionService.GetCompletionListAsync(document, identifierName.SpanStart, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), providers, cancellationToken).ConfigureAwait(False)
             If completionList Is Nothing Then
                 Return Nothing
             End If
@@ -98,25 +92,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             ' like if the user types "intege" when Integer and [Integer] are both available. To handle this case,
             ' group completion items by their unescaped display text and use that text in the 
             ' edit distance algorithm.
+
             Dim onlyConsiderGenerics = TryCast(identifierName, GenericNameSyntax) IsNot Nothing
-            Dim items = completionList.Items _
-                .Where(Function(i)
-                           Return i.Glyph.HasValue AndAlso
-                           i.Glyph.Value <> Glyph.Error AndAlso
-                           i.Glyph.Value <> Glyph.Namespace AndAlso
-                               (Not onlyConsiderGenerics OrElse i.DisplayText.Contains("(Of"))
-                       End Function) _
-                .GroupBy(Function(i) GetUnescapedName(GetReasonableName(i.DisplayText)))
 
             Dim results = New List(Of SpellcheckResult)()
-
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
-
             Dim identifierText = identifierName.Identifier.ValueText
 
-            For Each item In items
-                Dim name = item.Key
+            For Each item In completionList.Items
+                If Not item.Glyph.HasValue OrElse
+                   item.Glyph.Value = Glyph.Error OrElse
+                   item.Glyph.Value = Glyph.Namespace OrElse
+                   (onlyConsiderGenerics AndAlso Not item.DisplayText.Contains("(Of")) Then
+
+                    Continue For
+                End If
+
+                Dim name = GetUnescapedName(GetReasonableName(item.DisplayText))
                 Dim distance = EditDistance.GetEditDistance(name, identifierText)
                 Dim longestCommonSequence = EditDistance.GetLongestCommonSubsequenceLength(name, identifierText)
 
@@ -137,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
 
                 ' If it's within tolerances, keep it.
                 If editDistancePercentage <= s_maximumEditDistancePercentage AndAlso longestCommonPercentage >= s_minimumLongestCommonSubsequencePercentage Then
-                    results.Add(New SpellcheckResult(name, item, editDistancePercentage, longestCommonPercentage, goodness, complexify:=True))
+                    results.Add(New SpellcheckResult(name, GetReasonableName(item.CompletionProvider.GetTextChange(item).NewText), goodness))
                 End If
             Next
 
@@ -145,39 +136,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                 Return Nothing
             End If
 
-            Dim sortedSymbols = results.OrderBy(Function(r) r.Goodness)
+            results.Sort(
+                Function(r1, r2)
+                    Dim goodnessComparisan = r1.Goodness.CompareTo(r2.Goodness)
+                    If goodnessComparisan <> 0 Then
+                        Return goodnessComparisan
+                    End If
 
-            Dim namesToSuggest = sortedSymbols _
-                .Take(s_maxMatches) _
-                .SelectMany(Function(res) res.Item) _
-                .Select(Function(i) GetReasonableName(i.CompletionProvider.GetTextChange(i).NewText)) _
-                .Distinct() _
-                .Take(s_maxMatches)
-
-            Return namesToSuggest.Select(
-                Function(n)
-                    Return New SpellCheckCodeAction(
-                        document,
-                        identifierName,
-                        n,
-                        ShouldComplexify(n, semanticModel, identifierName.SpanStart))
+                    Return r1.ReplacementText.CompareTo(r2.ReplacementText)
                 End Function)
+
+            Return results _
+                .Select(Function(result) result.ReplacementText) _
+                .Distinct() _
+                .Take(s_maxMatches) _
+                .Select(Function(name) New SpellCheckCodeAction(document, identifierName, name))
         End Function
 
-        Private Function GetReasonableName(name As String) As String
+        Private Structure SpellcheckResult
+            Public ReadOnly Name As String
+            Public ReadOnly Goodness As Integer
+            Public ReadOnly ReplacementText As String
+
+            Public Sub New(name As String, replacementText As String, goodness As Integer)
+                Me.Name = name
+                Me.ReplacementText = replacementText
+                Me.Goodness = goodness
+            End Sub
+
+            Public Overrides Function ToString() As String
+                Return $"{{{NameOf(Name)} = {Name}, {NameOf(Goodness)} = {Goodness}, {NameOf(ReplacementText)} = {ReplacementText}}}"
+            End Function
+        End Structure
+
+        Private Shared Function GetReasonableName(name As String) As String
             ' Note: Because we're using completion items rather than looking up available symbols,
             ' We need to trim the display text to a valid identifier. That way, we suggest List
-            ' (as Dev11 did) rather than List(Of ...).
-            Dim length = name.Length
-            For i = 0 To name.Length - 1
-                If i = 0 AndAlso name(i) = "["c Then
-                    Continue For
-                End If
+            ' (as Dev11 did) rather than List(Of ...). However, we don't want to remove escaping characters.
 
+            Dim start = 0
+
+            ' If the first character is a starting escape character, we want to skip it when processing
+            ' the name for valid identifier characters.
+            If name.Length > 0 AndAlso name(0) = "["c Then
+                start = 1
+            End If
+
+            Dim length = name.Length
+            For i = start To name.Length - 1
                 If Not SyntaxFacts.IsIdentifierPartCharacter(name(i)) Then
                     length = i
 
-                    If name(i) = "]"c AndAlso i > 0 AndAlso name(0) = "["c Then
+                    ' If this is a closing escape character and the first character was a starting escape
+                    ' character, we increase the length to ensure that the name we return includes both
+                    ' escape characters.
+                    If name(i) = "]"c AndAlso name(0) = "["c Then
                         length += 1
                     End If
 
@@ -188,60 +201,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
             Return name.Substring(0, length)
         End Function
 
-        Private Function GetUnescapedName(name As String) As String
-            Return If(name IsNot Nothing AndAlso name.Length > 2 AndAlso name(0) = "["c AndAlso name(name.Length - 1) = "]"c,
-                      name.Substring(1, name.Length - 2),
-                      name)
+        Private Shared Function GetUnescapedName(name As String) As String
+            If name IsNot Nothing AndAlso name.Length > 2 AndAlso name(0) = "["c AndAlso name(name.Length - 1) = "]"c Then
+                Return name.Substring(1, name.Length - 2)
+            End If
+
+            Return name
         End Function
 
-        Private Structure SpellcheckResult
-            Public ReadOnly Name As String
-            Public ReadOnly EditDistancePercentage As Double
-            Public ReadOnly LongestCommonPercentage As Double
-            Public ReadOnly Goodness As Integer
-            Public ReadOnly Complexify As Boolean
-            Public ReadOnly Item As IGrouping(Of String, CompletionItem)
-
-            Public Sub New(name As String, item As IGrouping(Of String, CompletionItem), editDistancePercentage As Double, longestCommonPercentage As Double, goodness As Integer, complexify As Boolean)
-                Me.Name = name
-                Me.Item = item
-                Me.EditDistancePercentage = editDistancePercentage
-                Me.LongestCommonPercentage = longestCommonPercentage
-                Me.Goodness = goodness
-                Me.Complexify = complexify
-            End Sub
-        End Structure
-
-        Private Function ShouldComplexify(item As String, semanticModel As SemanticModel, position As Integer) As Boolean
-            ' If it's not a predefined type name, we should try to complexify
-            Dim type = semanticModel.GetSpeculativeTypeInfo(position, SyntaxFactory.ParseExpression(item), SpeculativeBindingOption.BindAsTypeOrNamespace)
-            Return type.Type IsNot Nothing AndAlso Not IsPredefinedType(type.Type)
-        End Function
-
-        Private Function IsPredefinedType(type As ITypeSymbol) As Boolean
-            Select Case type.SpecialType
-                Case SpecialType.System_Boolean,
-                     SpecialType.System_Byte,
-                     SpecialType.System_SByte,
-                     SpecialType.System_Int16,
-                     SpecialType.System_UInt16,
-                     SpecialType.System_Int32,
-                     SpecialType.System_UInt32,
-                     SpecialType.System_Int64,
-                     SpecialType.System_UInt64,
-                     SpecialType.System_Single,
-                     SpecialType.System_Double,
-                     SpecialType.System_Decimal,
-                     SpecialType.System_DateTime,
-                     SpecialType.System_Char,
-                     SpecialType.System_String,
-                     SpecialType.System_Enum,
-                     SpecialType.System_Object,
-                     SpecialType.System_Delegate
-                    Return True
-                Case Else
-                    Return False
-            End Select
-        End Function
     End Class
 End Namespace

@@ -404,7 +404,7 @@ Module Program
     End Class
 
     Sub Main(args As String())
-        Dim x as Integer
+        Dim x as [Integer]
     End Sub
 End Module</File>
 
@@ -418,7 +418,7 @@ Module Program
     End Class
 
     Sub Main(args As String())
-        Dim x as [Integer]
+        Dim x as Integer
     End Sub
 End Module</File>
 
