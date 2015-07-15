@@ -519,7 +519,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_FSharpTestLibraryRef == null)
                 {
-                    s_FSharpTestLibraryRef = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.FSharpTestLibrary).GetReference(display: "FSharpTestLibrary.dll");
+                    s_FSharpTestLibraryRef = AssemblyMetadata.CreateFromImage(TestResources.General.FSharpTestLibrary).GetReference(display: "FSharpTestLibrary.dll");
                 }
 
                 return s_FSharpTestLibraryRef;

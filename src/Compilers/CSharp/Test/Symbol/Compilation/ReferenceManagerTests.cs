@@ -55,10 +55,10 @@ public class C
         public void VersionUnification_SymbolUsed()
         {
             // Identity: C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
-            var v1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(display: "C, V1");
+            var v1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(display: "C, V1");
 
             // Identity: C, Version=2.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9
-            var v2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2).GetReference(display: "C, V2");
+            var v2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(display: "C, V2");
 
             var refV1 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v1 }, assemblyName: "refV1");
             var refV2 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v2 }, assemblyName: "refV2");
@@ -99,8 +99,8 @@ public class C
         [WorkItem(546080, "DevDiv")]
         public void VersionUnification_SymbolNotUsed()
         {
-            var v1 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1);
-            var v2 = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2);
+            var v1 = MetadataReference.CreateFromImage(TestResources.General.C1);
+            var v2 = MetadataReference.CreateFromImage(TestResources.General.C2);
 
             var refV1 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v1 });
             var refV2 = CreateCompilationWithMscorlib("public class D : C { }", new[] { v2 });
@@ -762,8 +762,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
             CSharpCompilation c;
             string source;
 
-            var r1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R1");
-            var r2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R2");
+            var r1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R1");
+            var r2 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(filePath: @"c:\temp\a.dll", display: "R2");
             var rFoo = r2.WithAliases(new[] { "foo" });
             var rBar = r2.WithAliases(new[] { "bar" });
             var rEmbed = r1.WithEmbedInteropTypes(true);
@@ -854,7 +854,7 @@ public class E : bar::C { }
         [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void DuplicateAssemblyReferences_EquivalentPath()
         {
-            string p1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib1).Path;
+            string p1 = Temp.CreateFile().WriteAllBytes(TestResources.General.MDTestLib1).Path;
             string p2 = MakeEquivalentPath(p1);
             string p3 = MakeEquivalentPath(p2);
 
@@ -960,8 +960,8 @@ public class E : bar::C { }
         [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void DuplicateAssemblyReferences_EquivalentStrongNames_Metadata()
         {
-            var ref1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2).GetReference(embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
-            var ref2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2).GetReference(embedInteropTypes: false, filePath: @"R:\B\MTTestLib1.dll");
+            var ref1 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(embedInteropTypes: true, filePath: @"R:\A\MTTestLib1.dll");
+            var ref2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(embedInteropTypes: false, filePath: @"R:\B\MTTestLib1.dll");
 
             var c = CreateCompilationWithMscorlib("class C {}", new[] { ref1, ref2 });
             c.VerifyDiagnostics(
@@ -1288,8 +1288,8 @@ public class A
         [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void ReferenceResolution1()
         {
-            var path1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib1).Path;
-            var path2 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.MDTestLib2).Path;
+            var path1 = Temp.CreateFile().WriteAllBytes(TestResources.General.MDTestLib1).Path;
+            var path2 = Temp.CreateFile().WriteAllBytes(TestResources.General.MDTestLib2).Path;
 
             var resolver = new ReferenceResolver1(path1, path2);
             var c1 = CSharpCompilation.Create("c1",
@@ -2144,7 +2144,7 @@ public class Source
         [ClrOnlyFact(ClrOnlyReason.Signing)]
         public void ReferenceWithNoMetadataSection()
         {
-            var c = CreateCompilationWithMscorlib("", new[] { new TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe") });
+            var c = CreateCompilationWithMscorlib("", new[] { new TestImageReference(TestResources.Basic.NativeApp, "NativeApp.exe") });
             c.VerifyDiagnostics(
                 // error CS0009: Metadata file 'NativeApp.exe' could not be opened -- PE image doesn't contain managed metadata.
                 Diagnostic(ErrorCode.FTL_MetadataCantOpenFile).WithArguments(@"NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata));

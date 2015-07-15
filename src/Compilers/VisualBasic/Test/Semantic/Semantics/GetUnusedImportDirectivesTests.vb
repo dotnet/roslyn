@@ -68,7 +68,7 @@ Imports System
 
         <Fact>
         Public Sub AllAssemblyLevelAttributesMustBeBound()
-            Dim snkPath = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path
+            Dim snkPath = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey).Path
 
             Dim ivtCompilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation name="IVT">
