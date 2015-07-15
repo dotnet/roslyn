@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCondBranch(condition.Left, ref lazyFallThrough, stopSense);
             EmitCondExpr(condition.Right, sense);
 
-            // if fall-through was not initialized, no one is going to take that branch
+            // if fall-through was not initialized, no-one is going to take that branch
             // and we are done with Right on stack
             if (lazyFallThrough == null)
             {

@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (!field.IsStatic && EmitFieldLoadReceiverAddress(fieldAccess.ReceiverOpt))
                 {
-                    Debug.Assert(!field.IsVolatile, "volatile value type fields are unexpected");
+                    Debug.Assert(!field.IsVolatile, "volatile valuetype fields are unexpected");
 
                     _builder.EmitOpCode(ILOpCode.Ldflda);
                     EmitSymbolToken(field, fieldAccess.Syntax);

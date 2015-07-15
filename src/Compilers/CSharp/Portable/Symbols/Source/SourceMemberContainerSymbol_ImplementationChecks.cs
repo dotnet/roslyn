@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // CONSIDER: We know that no one will ask for NotOverriddenAbstractMembers again
+            // CONSIDER: We know that no-one will ask for NotOverriddenAbstractMembers again
             // (since this class is concrete), so we could just call the construction method
             // directly to avoid storing the result.
             foreach (var abstractMember in this.AbstractMembers)

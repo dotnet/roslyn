@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     var variable = variableInfo[i];
 
-                    // there should be no one set as return value yet
+                    // there should be no-one set as return value yet
                     Contract.ThrowIfTrue(variable.UseAsReturnValue);
 
                     if (!variable.CanBeUsedAsReturnValue)
