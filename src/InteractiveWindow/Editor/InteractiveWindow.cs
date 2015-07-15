@@ -9,7 +9,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,11 +37,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     {
         private bool _adornmentToMinimize;
 
-        // true iff code is being executed:
-        private bool _isRunning;
-        private bool _isInitializing;
+        private State _DO_NOT_USE_stateBackingField;
+        private State _state
+        {
+            get
+            {
+                // Reads can happen on the UI thread via the
+                // public API, but the contract does not
+                // guarantee consistency in such cases.
+                return _DO_NOT_USE_stateBackingField;
+            }
+            set
+            {
+                // All state transitions happen on the UI
+                // thread so we don't have to worry about.
+                AssertOnUIThread();
+                _DO_NOT_USE_stateBackingField = value;
+            }
+        }
 
-        private Task<ExecutionResult> _currentTask;
+        private Task<ExecutionResult> _DO_NOT_USE_currentTask;
+        private Task<ExecutionResult> _currentTask
+        {
+            get
+            {
+                AssertOnUIThread();
+                return _DO_NOT_USE_currentTask;
+            }
+            set
+            {
+                AssertOnUIThread();
+                _DO_NOT_USE_currentTask = value;
+            }
+        }
 
         private DispatcherTimer _executionTimer;
         private Cursor _oldCursor;
@@ -67,8 +94,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly ISmartIndentationService _smartIndenterService;
 
         // the language engine and content type of the active submission:
-        private bool _engineInitialized;
-        private IInteractiveEvaluator _engine;
+        private readonly IInteractiveEvaluator _evaluator;
 
         private IIntellisenseSessionStack _sessionStack; // TODO: remove
 
@@ -82,6 +108,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly ITextBuffer _outputBuffer;
         private readonly IProjectionBuffer _projectionBuffer;
         private readonly ITextBuffer _stdInputBuffer;
+
         private ITextBuffer _currentLanguageBuffer;
         private string _historySearch;
 
@@ -98,7 +125,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         ////
 
         // Pending submissions to be processed whenever the REPL is ready to accept submissions.
-        private Queue<PendingSubmission> _pendingSubmissions;
+        private readonly Queue<PendingSubmission> _pendingSubmissions = new Queue<PendingSubmission>();
 
         ////
         //// Standard input.
@@ -106,7 +133,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         // non-null if reading from stdin - position in the _inputBuffer where we map stdin
         private int? _stdInputStart; // TODO (tomat): this variable is not used in thread-safe manner
-        private int _currentInputId = 1;
         private SnapshotSpan? _inputValue;
         private string _uncommittedInput;
         private readonly AutoResetEvent _inputEvent = new AutoResetEvent(false);
@@ -140,6 +166,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ISmartIndentationService smartIndenterService,
             IInteractiveEvaluator evaluator)
         {
+            if (evaluator == null)
+            {
+                throw new ArgumentNullException(nameof(evaluator));
+            }
+
             _host = host;
             this.Properties = new PropertyCollection();
             _history = new History();
@@ -197,33 +228,26 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _errorOutputWriter = new InteractiveWindowWriter(this, errorSpans);
             OutputClassifierProvider.AttachToBuffer(_outputBuffer, errorSpans);
 
-            this.Evaluator = evaluator;
+            RequiresUIThread();
+            evaluator.CurrentWindow = this;
+            _evaluator = evaluator;
         }
 
         public async Task<ExecutionResult> InitializeAsync()
         {
             RequiresUIThread();
 
-            if (_engineInitialized)
+            if (_state != State.Starting)
             {
                 throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
             }
-            _isInitializing = true;
-            _engineInitialized = true;
 
-            ExecutionResult result;
-            try
-            {
-                // Anything that reads options should wait until after this call so the evaluator can set the options first
-                result = await _engine.InitializeAsync().ConfigureAwait(continueOnCapturedContext: true);
-            }
-            finally
-            {
-                _isInitializing = false;
-            }
-            _engineInitialized = true;
+            _state = State.Initializing;
 
-            Debug.Assert(Dispatcher.CheckAccess());
+            // Anything that reads options should wait until after this call so the evaluator can set the options first
+            ExecutionResult result = await _evaluator.InitializeAsync().ConfigureAwait(continueOnCapturedContext: true);
+
+            AssertOnUIThread();
 
             if (result.IsSuccessful)
             {
@@ -341,49 +365,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public IInteractiveEvaluator Evaluator
         {
-            get
-            {
-                return _engine;
-            }
-
-            set
-            {
-                RequiresUIThread();
-
-                if (value == null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                if (_engine != value)
-                {
-                    value.CurrentWindow = this;
-
-                    _engine = value;
-                    _engineInitialized = false;
-                }
-            }
+            get { return _evaluator; }
         }
 
         public void ClearHistory()
         {
-            if (!CheckAccess())
-            {
-                Dispatcher.Invoke(new Action(ClearHistory));
-                return;
-            }
-
-            _history.Clear();
+            UIThread(() => _history.Clear());
         }
 
         public void ClearView()
         {
-            UIThread(() => ClearView(insertInputPrompt: !_isRunning));
+            UIThread(() => ClearViewInternal());
         }
 
-        private void ClearView(bool insertInputPrompt)
+        private void ClearViewInternal()
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
 
             if (_stdInputStart != null)
             {
@@ -395,7 +392,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             // remove all the spans except our initial span from the projection buffer
             _promptLineMapping.Clear();
-            _currentInputId = 1;
             _uncommittedInput = null;
 
             // Clear the projection and buffers last as this might trigger events that might access other state of the REPL window:
@@ -429,7 +425,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             _history.ForgetOriginalBuffers();
 
-            if (insertInputPrompt)
+            // If we were waiting for input, we need to restore the prompt that we just cleared.
+            // If we are in any other state, then we'll let normal transitions trigger the next prompt.
+            if (_state == State.WaitingForInput)
             {
                 PrepareForInput();
             }
@@ -437,27 +435,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public void InsertCode(string text)
         {
-            if (!CheckAccess())
+            if (!OnUIThread())
             {
                 Dispatcher.BeginInvoke(new Action(() => InsertCode(text)));
                 return;
             }
 
+            AssertOnUIThread();
+
             if (_stdInputStart == null)
             {
-                if (_isRunning)
-                {
-                    AppendUncommittedInput(text);
-                }
-                else
-                {
-                    if (!TextView.Selection.IsEmpty)
-                    {
-                        CutOrDeleteSelection(isCut: false);
-                    }
+                return;
+            }
 
-                    _editorOperations.InsertText(text);
+            if (_state == State.ExecutingInput)
+            {
+                AppendUncommittedInput(text);
+            }
+            else
+            {
+                if (!TextView.Selection.IsEmpty)
+                {
+                    CutOrDeleteSelection(isCut: false);
                 }
+
+                _editorOperations.InsertText(text);
             }
         }
 
@@ -465,23 +467,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             var completion = new TaskCompletionSource<object>();
             var submissions = inputs.ToArray();
-            PendingSubmission[] pendingSubmissions = new PendingSubmission[submissions.Length];
-            if (submissions.Length == 0)
+            var numSubmissions = submissions.Length;
+            PendingSubmission[] pendingSubmissions = new PendingSubmission[numSubmissions];
+            if (numSubmissions == 0)
             {
                 completion.SetResult(null);
             }
             else
             {
-                for (int i = 0; i < submissions.Length; i++)
+                for (int i = 0; i < numSubmissions; i++)
                 {
-                    if (i == submissions.Length - 1)
-                    {
-                        pendingSubmissions[i] = new PendingSubmission(submissions[i], completion);
-                    }
-                    else
-                    {
-                        pendingSubmissions[i] = new PendingSubmission(submissions[i], null);
-                    }
+                    pendingSubmissions[i] = new PendingSubmission(submissions[i], i == numSubmissions - 1 ? completion : null);
                 }
             }
 
@@ -491,15 +487,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void Submit(PendingSubmission[] pendingSubmissions)
         {
-            if (!CheckAccess())
+            if (!OnUIThread())
             {
                 Dispatcher.BeginInvoke(new Action(() => Submit(pendingSubmissions)));
                 return;
             }
 
+            AssertOnUIThread();
             if (_stdInputStart == null)
             {
-                if (!_isRunning && _currentLanguageBuffer != null)
+                if (_state == State.WaitingForInput && _currentLanguageBuffer != null)
                 {
                     StoreUncommittedInput();
                     PendSubmissions(pendingSubmissions);
@@ -527,11 +524,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void PendSubmissions(IEnumerable<PendingSubmission> inputs)
         {
-            if (_pendingSubmissions == null)
-            {
-                _pendingSubmissions = new Queue<PendingSubmission>();
-            }
-
             foreach (var input in inputs)
             {
                 _pendingSubmissions.Enqueue(input);
@@ -540,7 +532,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public void AddInput(string command)
         {
-            if (_isRunning || _currentLanguageBuffer == null)
+            // TODO (acasey): ui thread?
+            if (_state == State.ExecutingInput || _currentLanguageBuffer == null)
             {
                 AddLanguageBuffer();
                 _currentLanguageBuffer.Insert(0, command);
@@ -557,12 +550,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public Task<ExecutionResult> ResetAsync(bool initialize = true)
         {
-            if (!CheckAccess())
+            if (!OnUIThread())
             {
                 return UIThread(() => ResetAsync(initialize));
             }
 
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
+            Debug.Assert(_state != State.Resetting, "The button should have been disabled.");
 
             if (_stdInputStart != null)
             {
@@ -572,9 +566,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _buffer.Flush();
 
             // replace the task being interrupted by a "reset" task:
-            _isRunning = true;
-            _isInitializing = true;
-            _currentTask = _engine.ResetAsync(initialize);
+            _state = State.Resetting;
+            _currentTask = _evaluator.ResetAsync(initialize);
             _currentTask.ContinueWith(FinishExecute, _uiScheduler);
 
             return _currentTask;
@@ -868,7 +861,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 MoveCaretToClosestEditableBuffer();
 
-                string format = _engine.FormatClipboard();
+                string format = _evaluator.FormatClipboard();
                 if (format != null)
                 {
                     InsertCode(format);
@@ -1190,27 +1183,30 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Keyboard Commands
 
+        /// <remarks>Only consistent on the UI thread.</remarks>
         public bool IsRunning
         {
             get
             {
-                return _isRunning;
+                return _state != State.WaitingForInput;
             }
         }
 
+        /// <remarks>Only consistent on the UI thread.</remarks>
         public bool IsResetting
         {
             get
             {
-                return _engineInitialized && _isInitializing;
+                return _state == State.Resetting;
             }
         }
 
+        /// <remarks>Only consistent on the UI thread.</remarks>
         public bool IsInitializing
         {
             get
             {
-                return !_engineInitialized && _isInitializing;
+                return _state == State.Starting || _state == State.Initializing;
             }
         }
 
@@ -1698,7 +1694,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private void AppendInput(string text)
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
 
             var inputSpan = _projectionSpans[_projectionSpans.Count - 1];
             Debug.Assert(inputSpan.Kind == ReplSpanKind.Language || inputSpan.Kind == ReplSpanKind.StandardInput);
@@ -1759,7 +1755,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void PrepareForInput()
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
 
             _buffer.Flush();
 
@@ -1773,13 +1769,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             Debug.Assert(_currentLanguageBuffer != null);
 
-            if (_pendingSubmissions == null || _pendingSubmissions.Count == 0)
+            if (_pendingSubmissions.Count == 0)
             {
                 RestoreUncommittedInput();
 
                 // move to the end (it might have been in virtual space):
                 Caret.MoveTo(GetLastLine().End);
                 Caret.EnsureVisible();
+
+                _state = State.WaitingForInput;
 
                 var ready = ReadyForInput;
                 if (ready != null)
@@ -1806,14 +1804,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private Task Submit()
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
             RequiresLanguageBuffer();
 
             // TODO: queue submission
             // Ensure that the REPL doesn't try to execute if it is already
             // executing.  If this invariant can no longer be maintained more of
             // the code in this method will need to be bullet-proofed
-            if (_isRunning)
+            if (_state == State.ExecutingInput)
             {
                 return Task.FromResult<object>(null);
             }
@@ -1834,18 +1832,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             else
             {
                 _history.Add(trimmedSpan);
-                _isRunning = true;
+                _state = State.ExecutingInput;
 
                 StartCursorTimer();
 
-                _currentTask = _engine.ExecuteCodeAsync(snapshotSpan.GetText()) ?? ExecutionResult.Failed;
+                Debug.Assert(_currentTask == null, "Shouldn't be either executing or resetting");
+                _currentTask = _evaluator.ExecuteCodeAsync(snapshotSpan.GetText());
                 return _currentTask.ContinueWith(FinishExecute, _uiScheduler);
             }
         }
 
         private void FinishCurrentSubmissionInput()
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
 
             AppendLineNoPromptInjection(_currentLanguageBuffer);
             ApplyProtection(_currentLanguageBuffer, regions: null);
@@ -1885,6 +1884,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void AppendUncommittedInput(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                // Do nothing.
+            }   
             if (string.IsNullOrEmpty(_uncommittedInput))
             {
                 _uncommittedInput = text;
@@ -1904,21 +1907,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
+        // TODO: What happens if multiple non-UI threads call this method? (https://github.com/dotnet/roslyn/issues/3984)
         public TextReader ReadStandardInput()
         {
             // shouldn't be called on the UI thread because we'll hang
-            Debug.Assert(!CheckAccess());
+            RequiresNonUIThread();
 
-            bool wasRunning = _isRunning;
+            State previousState = default(State); // Compiler doesn't know these lambdas run sequentially.
             UIThread(() =>
             {
+                previousState = _state;
+
+                _state = State.ReadingStandardInput;
+
                 _buffer.Flush();
 
-                if (_isRunning)
-                {
-                    _isRunning = false;
-                }
-                else if (_projectionSpans.Count > 0 && _projectionSpans[_projectionSpans.Count - 1].Kind == ReplSpanKind.Language)
+                if (previousState == State.WaitingForInput && _projectionSpans.Count > 0 && _projectionSpans[_projectionSpans.Count - 1].Kind == ReplSpanKind.Language)
                 {
                     // we need to remove our input prompt.
                     RemoveLastInputPrompt();
@@ -1929,7 +1933,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 Caret.EnsureVisible();
                 ResetCursor();
 
-                _isRunning = false;
                 _uncommittedInput = null;
                 _stdInputStart = _stdInputBuffer.CurrentSnapshot.Length;
             });
@@ -1956,13 +1959,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     NewOutputBuffer();
 
-                    if (wasRunning)
+                    // TODO: Do we need to restore the state if reading is cancelled? (https://github.com/dotnet/roslyn/issues/3984)
+                    if (previousState == State.WaitingForInput)
                     {
-                        _isRunning = true;
+                        PrepareForInput(); // Will update _state.
                     }
                     else
                     {
-                        PrepareForInput();
+                        _state = previousState;
                     }
                 }
             });
@@ -2003,6 +2007,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return stdInputPoint != null && stdInputPoint.Value.Position >= _stdInputStart.Value;
         }
 
+        // TODO: Ensure that callers handle the fact that cleanup will not have happened by
+        // the time this method returns. (https://github.com/dotnet/roslyn/issues/3984)
         private void CancelStandardInput()
         {
             AppendLineNoPromptInjection(_stdInputBuffer);
@@ -2060,7 +2066,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             _buffer.Flush();
             InlineAdornmentProvider.AddInlineAdornment(TextView, element, OnAdornmentLoaded);
-            OnInlineAdornmentAdded();
+            _adornmentToMinimize = true;
             WriteLine(string.Empty);
             WriteLine(string.Empty);
         }
@@ -2072,7 +2078,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         internal void AppendOutput(IEnumerable<string> output, int outputLength)
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
             Debug.Assert(output.Any());
 
             // we maintain this invariant so that projections don't split "\r\n" in half 
@@ -2224,11 +2230,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Caret.EnsureVisible();
         }
 
-        private void OnInlineAdornmentAdded()
-        {
-            _adornmentToMinimize = true;
-        }
-
         #endregion
 
         #region Execution
@@ -2254,12 +2255,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return false;
             }
 
-            return _engine.CanExecuteCode(input);
+            return _evaluator.CanExecuteCode(input);
         }
 
         private void FinishExecute(Task<ExecutionResult> result)
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
 
             // The finished task has been replaced by another task (e.g. reset).
             // Do not perform any task finalization, it will be done by the replacement task.
@@ -2268,8 +2269,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return;
             }
 
-            _isRunning = false;
-            _isInitializing = false;
             _currentTask = null;
             ResetCursor();
 
@@ -2286,7 +2285,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public void ExecuteInput()
         {
-            Debug.Assert(CheckAccess());
+            AssertOnUIThread();
 
             ITextBuffer languageBuffer = GetLanguageBuffer(Caret.Position.BufferPosition);
             if (languageBuffer == null)
@@ -2326,9 +2325,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private ReplSpan CreatePrimaryPrompt()
         {
-            var result = CreatePrompt(Evaluator.GetPrompt(), ReplSpanKind.Prompt);
-            _currentInputId++;
-            return result;
+            return CreatePrompt(_evaluator.GetPrompt(), ReplSpanKind.Prompt);
         }
 
         private ReplSpan CreatePrompt(string prompt, ReplSpanKind promptKind)
@@ -2357,7 +2354,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private ReplSpan CreateSecondaryPrompt()
         {
             // TODO (crwilcox) format prompt used to get a blank here but now gets "> " from get prompt.
-            return CreatePrompt(Evaluator.GetPrompt(), ReplSpanKind.SecondaryPrompt);
+            return CreatePrompt(_evaluator.GetPrompt(), ReplSpanKind.SecondaryPrompt);
         }
 
         /// <summary>
@@ -2484,7 +2481,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             ITextBuffer buffer = _host.CreateAndActivateBuffer(this);
 
-            buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), _engine);
+            buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), _evaluator);
             buffer.Properties.AddProperty(typeof(InteractiveWindow), this);
 
             _currentLanguageBuffer = buffer;
@@ -3018,14 +3015,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             get { return ((FrameworkElement)TextView).Dispatcher; }
         }
 
-        internal bool CheckAccess()
+        internal bool OnUIThread()
         {
             return Dispatcher.CheckAccess();
         }
 
         private T UIThread<T>(Func<T> func)
         {
-            if (!CheckAccess())
+            if (!OnUIThread())
             {
                 return (T)Dispatcher.Invoke(func);
             }
@@ -3035,7 +3032,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal void UIThread(Action action)
         {
-            if (!CheckAccess())
+            if (!OnUIThread())
             {
                 Dispatcher.Invoke(action);
                 return;
@@ -3044,11 +3041,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             action();
         }
 
+        [Conditional("DEBUG")]
+        private void AssertOnUIThread()
+        {
+            Debug.Assert(OnUIThread());
+        }
+
         private void RequiresUIThread()
         {
-            if (!CheckAccess())
+            if (!OnUIThread())
             {
                 throw new InvalidOperationException("Must be called on UI thread.");
+            }
+        }
+
+        private void RequiresNonUIThread()
+        {
+            if (OnUIThread())
+            {
+                throw new InvalidOperationException(InteractiveWindowResources.RequireNonUIThread);
             }
         }
 
@@ -3177,6 +3188,51 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 return _window.TrySubmitStandardInput();
             }
+        }
+
+        private enum State
+        {
+            /// <summary>
+            /// Initial state.  <see cref="InitializeAsync"/> hasn't been called.
+            /// Transition to <see cref="Initializing"/> when <see cref="InitializeAsync"/> is called.
+            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
+            /// </summary>
+            Starting,
+            /// <summary>
+            /// In the process of calling <see cref="InitializeAsync"/>.
+            /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
+            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
+            /// </summary>
+            Initializing,
+            /// <summary>
+            /// In the process of calling <see cref="ResetAsync"/>.
+            /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
+            /// Note: Should not see <see cref="ResetAsync"/> calls while in this state.
+            /// </summary>
+            Resetting,
+            /// <summary>
+            /// Prompt has been displayed - waiting for the user to make the next submission.
+            /// Transition to <see cref="ExecutingInput"/> when <see cref="ExecuteInput"/> is called.
+            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
+            /// </summary>
+            WaitingForInput,
+            /// <summary>
+            /// Executing the user's submission.
+            /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
+            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
+            /// </summary>
+            ExecutingInput,
+            /// <summary>
+            /// In the process of calling <see cref="ReadStandardInput"/>.
+            /// Return to preceding state when finished.
+            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
+            /// </summary>
+            /// <remarks>
+            /// TODO: When we clean up <see cref="ReadStandardInput"/> (https://github.com/dotnet/roslyn/issues/3984)
+            /// we should try to eliminate the "preceding state", since it substantially
+            /// increases the complexity of the state machine.
+            /// </remarks>
+            ReadingStandardInput,
         }
     }
 }

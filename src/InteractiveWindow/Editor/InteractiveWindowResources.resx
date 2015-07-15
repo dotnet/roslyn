@@ -126,4 +126,7 @@
   <data name="MissingCommandName" xml:space="preserve">
     <value>The command of type '{0}' has no command names.</value>
   </data>
+  <data name="RequireNonUIThread" xml:space="preserve">
+    <value>This method may not be called on the UI thread (to avoid hangs).</value>
+  </data>
 </root>
