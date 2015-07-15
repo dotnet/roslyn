@@ -25,12 +25,13 @@
     <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
+    <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
-    <Compile Include="PEWriter\BinaryWriterTests.cs" />
+    <Compile Include="PEWriter\BlobWriterTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="Text\LargeEncodedTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
@@ -50,7 +51,7 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.vbproj">
+    <ProjectReference Include="..\..\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>

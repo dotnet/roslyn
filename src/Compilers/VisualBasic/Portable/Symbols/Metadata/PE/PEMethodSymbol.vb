@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End If
 
-            ' do not cache the result, the compiler doesn't use this (it's only exposed thru public API):
+            ' do not cache the result, the compiler doesn't use this (it's only exposed through public API):
             Return _containingType.ContainingPEModule.Module.GetDllImportData(Me._handle)
         End Function
 

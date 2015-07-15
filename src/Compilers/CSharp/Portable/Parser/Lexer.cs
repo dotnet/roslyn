@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // and max positions and use those for quick checks internally.
         //
         // Note: it is critical that this method must only be called from a 
-        // codepath that checked for IsIdentifierStartChar or '@' first. 
+        // code path that checked for IsIdentifierStartChar or '@' first. 
         private bool ScanIdentifier_FastPath(ref TokenInfo info)
         {
             if ((_mode & LexerMode.MaskLexMode) == LexerMode.DebuggerSyntax)

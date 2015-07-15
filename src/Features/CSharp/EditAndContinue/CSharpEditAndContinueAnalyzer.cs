@@ -3051,7 +3051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static CheckedStatementSyntax TryGetCheckedStatementAncestor(SyntaxNode node)
         {
-            // Ignoring lambda boundaries since checked context flows thru.
+            // Ignoring lambda boundaries since checked context flows through.
 
             while (node != null)
             {

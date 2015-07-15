@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var writer = Cci.BlobWriter.GetInstance();
+            var writer = Cci.BlobBuilder.GetInstance();
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         WriteOpCode(writer, ILOpCode.Switch);
 
                         var switchBlock = (SwitchBlock)block;
-                        writer.WriteUint(switchBlock.BranchesCount);
+                        writer.WriteUInt32(switchBlock.BranchesCount);
 
                         int switchBlockEnd = switchBlock.Start + switchBlock.TotalSize;
 
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         foreach (var branchBlock in blockBuilder)
                         {
-                            writer.WriteInt(branchBlock.Start - switchBlockEnd);
+                            writer.WriteInt32(branchBlock.Start - switchBlockEnd);
                         }
 
                         blockBuilder.Free();
@@ -925,11 +925,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             {
                                 sbyte btOffset = (sbyte)offset;
                                 Debug.Assert(btOffset == offset);
-                                writer.WriteSbyte(btOffset);
+                                writer.WriteSByte(btOffset);
                             }
                             else
                             {
-                                writer.WriteInt(offset);
+                                writer.WriteInt32(offset);
                             }
                         }
 

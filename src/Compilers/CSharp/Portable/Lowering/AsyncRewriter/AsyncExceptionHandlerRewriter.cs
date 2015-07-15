@@ -692,13 +692,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyses method body for Try blocks with awaits in finally blocks 
+        /// Analyses method body for try blocks with awaits in finally blocks 
         /// Also collects labels that such blocks contain.
         /// </summary>
         private sealed class AwaitInFinallyAnalysis : LabelCollector
         {
-            // all try blocks with yields in them and complete set of labels inside those trys
-            // NOTE: non-yielding Trys are transparently ignored - i.e. their labels are included
+            // all try blocks with yields in them and complete set of labels inside those try blocks
+            // NOTE: non-yielding try blocks are transparently ignored - i.e. their labels are included
             //       in the label set of the nearest yielding-try parent  
             private Dictionary<BoundTryStatement, HashSet<LabelSymbol>> _labelsInInterestingTry;
 

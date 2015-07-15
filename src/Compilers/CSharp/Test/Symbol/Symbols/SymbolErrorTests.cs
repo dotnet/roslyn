@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region Symbol Error Tests
 
-        private static readonly ModuleMetadata s_mod1 = ModuleMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestMod01);
-        private static readonly ModuleMetadata s_mod2 = ModuleMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestMod02);
+        private static readonly ModuleMetadata s_mod1 = ModuleMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestMod01);
+        private static readonly ModuleMetadata s_mod2 = ModuleMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestMod02);
 
         [Fact()]
         public void CS0148ERR_BadDelegateConstructor()

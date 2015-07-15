@@ -626,7 +626,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         {
             if (inspectionContext == null)
             {
-                throw new ArgumentNullException("inspectionContext");
+                throw new ArgumentNullException(nameof(inspectionContext));
             }
 
             var module = new DkmClrModuleInstance(

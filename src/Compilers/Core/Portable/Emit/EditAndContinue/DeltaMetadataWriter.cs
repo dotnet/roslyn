@@ -609,9 +609,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (localVariables.Length > 0)
             {
-                var writer = BlobWriter.GetInstance();
+                var writer = BlobBuilder.GetInstance();
                 writer.WriteByte(0x07);
-                writer.WriteCompressedUInt((uint)localVariables.Length);
+                writer.WriteCompressedInteger((uint)localVariables.Length);
 
                 foreach (ILocalDefinition local in localVariables)
                 {

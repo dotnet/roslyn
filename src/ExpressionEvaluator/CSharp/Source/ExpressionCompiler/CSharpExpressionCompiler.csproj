@@ -75,7 +75,6 @@
     <Compile Include="EEAssemblyBuilder.cs" />
     <Compile Include="EETypeNameDecoder.cs" />
     <Compile Include="EvaluationContext.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Rewriters\CapturedVariableRewriter.cs" />
     <Compile Include="Rewriters\LocalDeclarationRewriter.cs" />
     <Compile Include="Rewriters\MayHaveSideEffectsVisitor.cs" />
@@ -105,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.CSharp.ExpressionCompiler.UnitTests" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.ProductionBreakpoints.CodeAnalysis" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

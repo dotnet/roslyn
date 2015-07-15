@@ -68,6 +68,10 @@
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
     </ProjectReference>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
+    </Reference>
     <Reference Include="xunit.assert, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\xunit.assert.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.assert.dll</HintPath>

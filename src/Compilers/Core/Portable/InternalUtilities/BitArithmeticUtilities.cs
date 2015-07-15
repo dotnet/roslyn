@@ -61,7 +61,7 @@ namespace Roslyn.Utilities
 
         internal static int Align(int position, int alignment)
         {
-            Debug.Assert(position >= 0 && alignment >= 0);
+            Debug.Assert(position >= 0 && alignment > 0);
             Debug.Assert(CountBits(alignment) == 1);
 
             int result = position & ~(alignment - 1);

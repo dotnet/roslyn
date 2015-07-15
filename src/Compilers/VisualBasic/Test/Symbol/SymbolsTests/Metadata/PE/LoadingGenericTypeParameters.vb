@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Equal(0, objectType.TypeParameters.Length)
             Assert.Equal(0, objectType.TypeArguments.Length)
 
-            assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib1)
+            assembly = MetadataTestHelpers.LoadFromBytes(TestResources.General.MDTestLib1)
             module0 = assembly.Modules(0)
 
             Dim C1 = module0.GlobalNamespace.GetTypeMembers("C1").Single()

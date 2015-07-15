@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Process tempStores and add them as sideeffects to arguments where needed. The return
+        /// Process tempStores and add them as side-effects to arguments where needed. The return
         /// value tells how many temps are actually needed. For unnecessary temps the corresponding
         /// temp store will be cleared.
         /// </summary>
@@ -745,12 +745,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the temp, the argument RefKind needs to be restored.
                         refKinds[a] = ((BoundLocal)argument).LocalSymbol.RefKind;
 
-                        // the matched store will not need to go into sideeffects, only ones before it will
+                        // the matched store will not need to go into side-effects, only ones before it will
                         // remove the store to signal that we are not using its temp.
                         tempStores[correspondingStore] = null;
                         tempsRemainedInUse--;
 
-                        // no need for sideeffects?
+                        // no need for side-effects?
                         // just combine store and load
                         if (correspondingStore == firstUnclaimedStore)
                         {
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all sideeffects were claimed");
+            Debug.Assert(firstUnclaimedStore == tempStores.Count, "not all side-effects were claimed");
             return tempsRemainedInUse;
         }
 
@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
         // We should have ignored the 'ref' on the parameter during overload resolution for the given method call.
         // If we had any ref omitted argument for the given call, we create a temporary local and
-        // replace the argument with the following BoundSequence: { sideeffects: { temp = argument }, value = { ref temp } }
+        // replace the argument with the following BoundSequence: { side-effects: { temp = argument }, value = { ref temp } }
         // NOTE: The temporary local must be scoped to live across the entire BoundCall node,
         // otherwise the codegen optimizer might re-use the same temporary for multiple ref-omitted arguments for this call.
         private void RewriteArgumentsForComCall(

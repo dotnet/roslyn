@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (items == null)
             {
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
             }
 
             if (list.Count == 0)
