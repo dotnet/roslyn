@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
 
-            ' merge sideeffects - prologue followed by rewritten original sideeffects
+            ' merge side-effect - prologue followed by rewritten original side-effect
             For Each s In node.SideEffects
                 Dim replacement = DirectCast(Me.Visit(s), BoundExpression)
                 If replacement IsNot Nothing Then

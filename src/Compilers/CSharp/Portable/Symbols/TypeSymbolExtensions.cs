@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Guess the non-error typekind that the given type was intended to represent,
+        /// Guess the non-error type kind that the given type was intended to represent,
         /// if possible. If not, return TypeKind.Error.
         /// </summary>
         internal static TypeKind GetNonErrorTypeKindGuess(this TypeSymbol type)

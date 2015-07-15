@@ -15560,7 +15560,7 @@ End Module
         <WorkItem(737273, "DevDiv")>
         <Fact, WorkItem(1005639)>
         Public Sub OnError_WithLoopingConstructs()
-            'Various Looping constructs with Errors and capturing the behaviour of Resume Next as going into the loop rather
+            'Various Looping constructs with Errors and capturing the behavior of Resume Next as going into the loop rather
             ' then skipping to the next statement outside of the loop
             Dim source =
     <compilation name="ErrorHandling">
@@ -18225,7 +18225,7 @@ Procedure call or argument is not valid.
 
 
             'As we are handling the error in the Add, we should handle two items to the collection
-            'In other collection initializer we would result in all or nothing behaviour
+            'In other collection initializer we would result in all or nothing behavior
             Dim compilationDef =
         <compilation name="ErrorHandlerTest">
             <file name="a.vb">

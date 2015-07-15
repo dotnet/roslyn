@@ -64,9 +64,9 @@ class Program
             // types that are more specific than others. We did not correctly update the C# 4 compiler to handle this 
             // situation.
             // 
-            // Unfortunately, real-world code exists that depends on this bad behaviour, so we are going to preserve it.
+            // Unfortunately, real-world code exists that depends on this bad behavior, so we are going to preserve it.
             //
-            // The essence of the bug is: the correct behaviour is to do the first tiebreaker first, and the second tiebreaker
+            // The essence of the bug is: the correct behavior is to do the first tiebreaker first, and the second tiebreaker
             // if necessary. The native compiler, and now Roslyn, does this wrong. It says "is the argument a lambda?" If so,
             // then it applies the second tiebreaker and ignores the first. Otherwise, it applies the first tiebreaker and 
             // ignores the second.
@@ -76,11 +76,11 @@ class Program
             // On the first call, the native compiler and Roslyn agree that overload 2 is better. (Remember, Action<T> is 
             // contravariant, so Action<object> is more specific than Action<string>. Every action that takes an object 
             // is also an action that takes a string, so an action that takes an object is more specific.) This is the correct
-            // behaviour. The compiler uses the first tiebreaker.
+            // behavior. The compiler uses the first tiebreaker.
 
             // On the second call, the native compiler incorrectly believes that overload 3 is better, because it 
             // does not correctly determine that Action<object> is more specific than Action<string> when the argument is 
-            // a lambda. The correct behaviour according to the spec would be to produce an ambiguity error. (Why? 
+            // a lambda. The correct behavior according to the spec would be to produce an ambiguity error. (Why? 
             // because overload 3 is more specific in its first parameter type, and less specific in its second parameter type.
             // And vice-versa for overload 4. No overload is not-worse in all parameters.)
 
@@ -116,7 +116,7 @@ class P
 
             // Now let's look at some ambiguity errors:
             //
-            // On the first call, the native compiler incorrectly produces an ambiguity error. The correct behaviour according
+            // On the first call, the native compiler incorrectly produces an ambiguity error. The correct behavior according
             // to the specification is to choose overload 2, because it is more specific. Because the argument is a lambda
             // we incorrectly skip the first tiebreaker entirely and go straight to the second tiebreaker. We are now in a situation
             // where we have two delegate types that are both void returning, and so by the second tiebreaker, neither is better.
@@ -5793,7 +5793,7 @@ public class Q
 
             // ERICLI: This test illustrates an unfortunate situation where neither Roslyn nor the
             // native compiler are compliant with the specification, and the native compiler's 
-            // behaviour is unusual. In this particular situation, the native compiler is 
+            // behavior is unusual. In this particular situation, the native compiler is 
             // getting the right answer completely by accident; it is the confluence of two incorrect
             // decisions adding up accidentally to a correct decision.
             //
@@ -5839,7 +5839,7 @@ public class Q
             // for the wrong reason.  Suppose we have a simplified version of the code below: r = r + (x=>x);
             // What happens?
             //
-            // The correct behaviour according to the spec is to say that there are two possible operators,
+            // The correct behavior according to the spec is to say that there are two possible operators,
             // MC + EXPR and MC + MC.  Are either of them *applicable*? Clearly both are good in their left
             // hand operand. Can the right-hand operand, a lambda, be converted via implicit conversion to 
             // the expression tree type? Obviously yes. Can the lambda be converted to MainClass?  
@@ -5862,7 +5862,7 @@ public class Q
             //
             // In Roslyn, there are now two operators in the candidate set of applicable operators. Which one wins?
             //
-            // The correct behaviour is to say that the more specific one wins. Since there is an implicit conversion
+            // The correct behavior is to say that the more specific one wins. Since there is an implicit conversion
             // from EXPR to MC but not from MC to EXPR, the MC + EXPR candidate must be better, so it wins.
             //
             // But that is not what Roslyn does; remember, Roslyn is being bug-compatible with the native compiler.

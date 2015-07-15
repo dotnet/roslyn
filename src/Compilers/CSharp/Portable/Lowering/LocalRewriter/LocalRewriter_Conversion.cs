@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static readonly bool[,] s_needsChecked =
             {   //         chri08u08i16u16i32u32i64u64
-                /* chr */
+            /* chr */
                           { n, y, y, y, n, n, n, n, n },
             /* i08 */
                           { y, n, y, n, y, n, y, n, y },

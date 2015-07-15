@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (this.IsOverride)
             {
                 // This will cause another call to SourceMethodSymbol.LazyMethodChecks, 
-                // but that method already handles re-entrancy for exactly this case.
+                // but that method already handles reentrancy for exactly this case.
                 MethodSymbol overriddenMethod = this.OverriddenMethod;
                 if ((object)overriddenMethod != null)
                 {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If we are outputing a .winmdobj then the setter name is put_, not set_.
+        /// If we are outputting a .winmdobj then the setter name is put_, not set_.
         /// </summary>
         internal static string GetAccessorName(string propertyName, bool getNotSet, bool isWinMdOutput)
         {

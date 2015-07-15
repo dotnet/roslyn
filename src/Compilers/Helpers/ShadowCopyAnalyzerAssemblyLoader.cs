@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
                 Mutex mutex = null;
                 try
                 {
-                    // We only want to try deleting the directory if no one else is currently
+                    // We only want to try deleting the directory if no-one else is currently
                     // using it. That is, if there is no corresponding mutex.
                     if (!Mutex.TryOpenExisting(name, out mutex))
                     {

@@ -1517,7 +1517,7 @@ class Program
         [Fact, WorkItem(544438, "DevDiv"), WorkItem(538206, "DevDiv")]
         public void DefaultParameterValueIntToObj()
         {
-            // The native compiler's behaviour:
+            // The native compiler's behavior:
             // It does honour int default values in attributes whether the parameter 
             // is int or object, and whether the attributes appear in source or metadata.
             // The native compiler does NOT honor decimal and datetime attributes in source

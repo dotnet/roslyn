@@ -5,7 +5,7 @@ using Xunit;
 
 // The way the specification describes, and the way the native compiler reports name
 // collision errors is inconsistent and confusing. In Roslyn we will implement
-// the following more rational behaviours:
+// the following more rational behaviors:
 //
 // ------------------
 //

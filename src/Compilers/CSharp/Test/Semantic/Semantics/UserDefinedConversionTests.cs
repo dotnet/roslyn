@@ -286,7 +286,7 @@ Diagnostic(ErrorCode.ERR_BadArgType, "default(R?)").WithArguments("1", "R?", "G"
         {
             // These are all cases where the specification says the conversion should either not exist
             // or be ambiguous, but the native compiler allows the conversion. Roslyn emulates the
-            // native compiler's behaviour to avoid the breaking change.
+            // native compiler's behavior to avoid the breaking change.
 
             string implicitConversions = _userDefinedConversionTestTemplate.Replace("XXX", "implicit");
             string implicitConversionBadSuccess = @"

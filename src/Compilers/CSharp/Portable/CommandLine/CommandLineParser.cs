@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "m":
                         case "main":
-                            // Remove any quotes for consistent behaviour as MSBuild can return quoted or 
+                            // Remove any quotes for consistent behavior as MSBuild can return quoted or 
                             // unquoted main.    
                             unquoted = RemoveAllQuotes(value);
                             if (string.IsNullOrEmpty(unquoted))
