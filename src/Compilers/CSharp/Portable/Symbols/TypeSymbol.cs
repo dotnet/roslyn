@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static void ReportImplicitImplementationMismatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol closestMismatch, DiagnosticBag diagnostics)
         {
-            // Determine  a better location for diagnostic squiggles.  Squiggle the interace rather than the class.
+            // Determine  a better location for diagnostic squiggles.  Squiggle the interface rather than the class.
             Location interfacelocation = null;
             if ((object)implementingType != null)
             {

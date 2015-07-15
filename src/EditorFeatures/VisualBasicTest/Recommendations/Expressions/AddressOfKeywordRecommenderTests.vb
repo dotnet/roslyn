@@ -143,7 +143,7 @@ End Module
         <Fact>
         <WorkItem(545206)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AdressOfNotAfterAddressOf()
+        Public Sub AddressOfNotAfterAddressOf()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
     Dim d As Func(Of Boolean) = AddressOf |
@@ -158,7 +158,7 @@ End Function
         <Fact>
         <WorkItem(545206)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Sub AdressOfNotAfterAddressOfInDelegateCreation()
+        Public Sub AddressOfNotAfterAddressOfInDelegateCreation()
             Dim code = <ModuleDeclaration><![CDATA[
 Sub Main(args As String())
     Dim d As New Foo(AddressOf |

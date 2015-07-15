@@ -14418,7 +14418,7 @@ class AAttribute : Attribute { }
         }
 
         [Fact]
-        public void CS0133ERR_InvalidFixzedBufferCountFromField()
+        public void CS0133ERR_InvalidFixedBufferCountFromField()
         {
             var text = @"unsafe struct s
     {
@@ -14511,7 +14511,7 @@ class AAttribute : Attribute { }
 unsafe struct s
 {
     private fixed ushort _e_res[4]; 
-    void Error_UsingFixedBuffersWiththis()
+    void Error_UsingFixedBuffersWithThis()
     {
         ushort c = this._e_res;
     }
@@ -15138,7 +15138,7 @@ using System.Runtime.InteropServices;
 [assembly: Guid(""A7721B07-2448-447A-BA36-64682CBEF136"")]
 namespace NS
 {
-    public struct MyStuct
+    public struct MyStruct
     {
         private int _age;
         public string Name;
@@ -15149,7 +15149,7 @@ namespace NS
 {
     public static void Main()
     {
-        NS.MyStuct S = new NS.MyStuct();
+        NS.MyStruct S = new NS.MyStruct();
         System.Console.Write(S);
     }
 }
@@ -15158,9 +15158,9 @@ namespace NS
             var ref1 = new CSharpCompilationReference(comp, embedInteropTypes: true);
             var comp1 = CreateCompilationWithMscorlib(text, new[] { ref1 });
             comp1.VerifyEmitDiagnostics(
-                // (5,24): error CS1757: Embedded interop struct 'NS.MyStuct' can contain only public instance fields.
-                //         NS.MyStuct S = new NS.MyStuct();
-                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "new NS.MyStuct()").WithArguments("NS.MyStuct"));
+                // (5,24): error CS1757: Embedded interop struct 'NS.MyStruct' can contain only public instance fields.
+                //         NS.MyStruct S = new NS.MyStruct();
+                Diagnostic(ErrorCode.ERR_InteropStructContainsMethods, "new NS.MyStruct()").WithArguments("NS.MyStruct"));
         }
 
         [Fact]
@@ -15617,7 +15617,15 @@ namespace N1
    class A { public int Foo() { return 2; }}
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+            var expectedDiagnostics = new[] 
+            {
+                // (2,1): error CS7021: You cannot declare namespace in script code
+                // namespace N1
+                Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
+            };
+
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Script)).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Interactive)).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -16268,7 +16276,7 @@ partial class AnotherChild : Parent
 
 public class cly : clx
 {
-    public void f() // CS0114, hides base class membe
+    public void f() // CS0114, hides base class member
     {
     }
 
@@ -16974,7 +16982,7 @@ class Test : TestBase   // CS0660
         }
 
         [Fact]
-        public void CS0660WRN_EqualityOpWithoutEquals_NoWarningWhenOveriddenWithDynamicParameter()
+        public void CS0660WRN_EqualityOpWithoutEquals_NoWarningWhenOverriddenWithDynamicParameter()
         {
             string source = @"
 public class C

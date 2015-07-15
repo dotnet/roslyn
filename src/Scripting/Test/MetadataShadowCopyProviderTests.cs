@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Scripting;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Services.UnitTests
 {
@@ -16,9 +19,15 @@ namespace Roslyn.Services.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
+                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+
         public MetadataShadowCopyProviderTests()
         {
-            _provider = new MetadataShadowCopyProvider(TempRoot.Root);
+            _provider = new MetadataShadowCopyProvider(TempRoot.Root, s_systemNoShadowCopyDirectories);
         }
 
         public override void Dispose()
@@ -168,7 +177,7 @@ namespace Roslyn.Services.UnitTests
             var modifiedMetadata3 = reference2.GetMetadata() as AssemblyMetadata;
             Assert.NotSame(modifiedMetadata3, metadata2);
 
-            // a new reference is created, again we get the modified image (which is copied to the shadow copy driectory):
+            // a new reference is created, again we get the modified image (which is copied to the shadow copy directory):
             var reference4 = _provider.GetReference(path0);
             Assert.NotNull(reference4);
             Assert.Equal(path0, reference4.FilePath);

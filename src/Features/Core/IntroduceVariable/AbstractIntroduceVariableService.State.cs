@@ -75,9 +75,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     .OfType<INamedTypeSymbol>()
                     .FirstOrDefault();
 
-#if SCRIPTING
                 containingType = containingType ?? this.Document.SemanticModel.Compilation.ScriptClass;
-#endif
+
                 if (containingType == null || containingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
@@ -233,7 +232,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 // LValue location.  i.e. if you have: "a[1] = b" then you don't want to change that to
                 // "var c = a[1]; c = b", as that write is no longer happening into the right LValue.
                 //
-                // In essense, this says "i can be replaced with an expression as long as i'm not being
+                // In essence, this says "i can be replaced with an expression as long as i'm not being
                 // written to".
                 var semanticFacts = this.Document.Project.LanguageServices.GetService<ISemanticFactsService>();
                 return semanticFacts.CanReplaceWithRValue(this.Document.SemanticModel, this.Expression, cancellationToken);
@@ -242,12 +241,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private bool CanGenerateInto<TSyntax>(CancellationToken cancellationToken)
                 where TSyntax : SyntaxNode
             {
-#if SCRIPTING
                 if (this.Document.SemanticModel.Compilation.ScriptClass != null)
                 {
                     return true;
                 }
-#endif
 
                 var syntax = this.Expression.GetAncestor<TSyntax>();
                 return syntax != null && !syntax.OverlapsHiddenPosition(cancellationToken);
@@ -260,13 +257,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return true;
                 }
 
-#if SCRIPTING
                 // If we're interactive/script, we can generate into the compilation unit.
                 if (this.Document.Document.SourceCodeKind != SourceCodeKind.Regular)
                 {
                     return true;
                 }
-#endif
+
                 return false;
             }
         }

@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <compilation>
         <file name="a.vb">
 'note that T is not defined which causes the object creation expression
-'to be bad. This test insures that the arguments are still bound and analyzable.
+'to be bad. This test ensures that the arguments are still bound and analyzable.
         Module M
         Private Shared Function Meth() As T
             Return New T(Function() String.Empty)'BIND:"String"
@@ -8536,7 +8536,7 @@ End Module
         End Sub
         <WorkItem(10607, "DevDiv_Projects/Roslyn")>
         <Fact()>
-        Public Sub GetSymbolForOptionalParamMethodCallWithOutParanthesis()
+        Public Sub GetSymbolForOptionalParamMethodCallWithOutParenthesis()
             Dim compilation = CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[

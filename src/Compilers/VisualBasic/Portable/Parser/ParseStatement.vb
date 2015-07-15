@@ -1424,7 +1424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim keyword As SyntaxToken = CurrentToken
                 GetNextToken()
 
-                ' Only consume the let.  Leave the rest to be processed as an assignmen in case the user wrote let x = ...
+                ' Only consume the let.  Leave the rest to be processed as an assignment in case the user wrote let x = ...
                 Return InternalSyntaxFactory.EmptyStatement.AddTrailingSyntax(keyword, ERRID.ERR_ObsoleteLetSetNotNeeded)
             End If
 

@@ -213,9 +213,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 private bool ItemsMatch(CompletionItem item1, CompletionItem item2)
                 {
                     Contract.Assert(item1.DisplayText == item2.DisplayText);
-                    return _session._completionRules.Select(r => r.ItemsMatch(item1, item2))
-                                .FirstOrDefault(m => m.HasValue)
-                                .Value;
+
+                    return _session._completionRules.ItemsMatch(item1, item2).Value;
                 }
             }
         }

@@ -250,6 +250,28 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub DiagnosticsInNoCompilationProjects()
+            Dim test =
+                <Workspace>
+                    <Project Language="NoCompilation">
+                        <Document FilePath="A.ts">
+                            Dummy content.
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim diagnostics =
+                <Diagnostics>
+                    <Error Id=<%= NoCompilationDocumentDiagnosticAnalyzer.Descriptor.Id %>
+                        MappedFile="A.ts" MappedLine="0" MappedColumn="0"
+                        OriginalFile="A.ts" OriginalLine="0" OriginalColumn="0"
+                        Message=<%= NoCompilationDocumentDiagnosticAnalyzer.Descriptor.MessageFormat.ToString() %>/>
+                </Diagnostics>
+
+            VerifyAllAvailableDiagnostics(test, diagnostics)
+        End Sub
+
         Private Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True, Optional enabled As Boolean = True)
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
 
@@ -288,9 +310,11 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
             Dim snapshot = workspace.CurrentSolution
 
-            Dim notificationServie = New TestForegroundNotificationService()
+            Dim notificationService = New TestForegroundNotificationService()
 
-            Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()
+            Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
+                NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))
+
             Dim analyzerService = New TestDiagnosticAnalyzerService(compilerAnalyzersMap)
 
             ' CollectErrors generates interleaved background and foreground tasks.
@@ -302,13 +326,11 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Function GetExpectedDiagnostics(workspace As TestWorkspace, diagnostics As XElement) As List(Of IErrorTaskItem)
             Dim result As New List(Of IErrorTaskItem)
-            Dim code As Integer, mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
+            Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String
             Dim documentId As DocumentId
 
             For Each diagnostic As XElement In diagnostics.Elements()
-
-                code = Integer.Parse(diagnostic.Attribute(s_codeAttributeName).Value)
                 mappedLine = Integer.Parse(diagnostic.Attribute(s_mappedLineAttributeName).Value)
                 mappedColumn = Integer.Parse(diagnostic.Attribute(s_mappedColumnAttributeName).Value)
                 originalLine = Integer.Parse(diagnostic.Attribute(s_originalLineAttributeName).Value)

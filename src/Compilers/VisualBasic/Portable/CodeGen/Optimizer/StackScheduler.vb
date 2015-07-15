@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Return info
             End If
 
-            ' Add dummy definitons. 
+            ' Add dummy definitions. 
             ' Although we do not schedule dummies we intend to guarantee that no local definition 
             ' span intersects with definition spans of a dummy that will ensure that at any access 
             ' to dummy is done on same stack state.

@@ -342,11 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal IEnumerable<Diagnostic> Diagnostics
-        {
-            get { return _sources.Diagnostics; }
-        }
-
         public override ImmutableArray<Location> Locations
         {
             get

@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                 If containingToken.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse
                    containingToken.IsKind(SyntaxKind.InterpolatedStringText) OrElse
                     (containingToken.IsKind(SyntaxKind.CloseBraceToken) AndAlso token.Parent.IsKind(SyntaxKind.Interpolation)) Then
-                     Return IndentFromStartOfLine(0)
+                    Return IndentFromStartOfLine(0)
                 End If
                 If containingToken.Kind = SyntaxKind.StringLiteralToken AndAlso containingToken.FullSpan.Contains(position) Then
                     Return IndentFromStartOfLine(0)
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                     Return GetIndentationOfLine(baseLine)
                 End If
 
-                ' if position is between "," and next token, consider the positon to be belonged to the list that
+                ' if position is between "," and next token, consider the position to be belonged to the list that
                 ' owns the ","
                 If IsCommaInParameters(token) AndAlso (token.Span.End <= position AndAlso position <= token.GetNextToken().SpanStart) Then
                     Return GetIndentationOfCurrentPosition(token, token.SpanStart)
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
                         Return GetIndentationOfLine(triviaLine, Me.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
                     End If
 
-                    ' no base line to use to calcuate the indentation
+                    ' no base line to use to calculate the indentation
                     Return IndentFromStartOfLine(0)
                 End If
 

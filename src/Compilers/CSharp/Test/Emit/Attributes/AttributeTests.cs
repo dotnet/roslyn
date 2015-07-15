@@ -127,7 +127,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-// These are not pseduo attributes, but encoded as bits in metadata
+// These are not pseudo attributes, but encoded as bits in metadata
 [assembly: AssemblyAlgorithmId(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)]
 [assembly: AssemblyCultureAttribute("""")]
 [assembly: AssemblyDelaySign(true)]
@@ -1560,7 +1560,7 @@ namespace AttributeTest
 
         [WorkItem(541058, "DevDiv")]
         [Fact]
-        public void TestAttributesWithtypeof()
+        public void TestAttributesWithTypeof()
         {
             string source = @"
 using System;
@@ -2530,8 +2530,8 @@ class Program
             // by the specification but they are by the native compiler; we maintain compatibility
             // with this bug.
             // 
-            // Additionaly, it also treats "new X()", where X is an enum type, as a
-            // constant expression with default value 0, we maintaing compatibility with it.
+            // Additionally, it also treats "new X()", where X is an enum type, as a
+            // constant expression with default value 0, we maintaining compatibility with it.
 
             var source =
 @"using System;
@@ -2726,7 +2726,7 @@ partial class Program
 
         [WorkItem(542533, "DevDiv")]
         [Fact]
-        public void AttributesInMultipleParialDeclarations_Type()
+        public void AttributesInMultiplePartialDeclarations_Type()
         {
             var source1 = @"
 using System;
@@ -2767,7 +2767,7 @@ class C
 
         [WorkItem(542533, "DevDiv")]
         [Fact]
-        public void AttributesInMultipleParialDeclarations_TypeParam()
+        public void AttributesInMultiplePartialDeclarations_TypeParam()
         {
             var source1 = @"
 using System;
@@ -6136,7 +6136,7 @@ public class IA
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source2, new[] { reference1 });
-            compilation.VerifyDiagnostics(); // we now regognize the extension method even without the assembly-level attribute
+            compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
             var assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
@@ -7298,7 +7298,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll" );
+            var compilation2 = CreateCompilationWithMscorlib(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
             Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
             compilation2.VerifyDiagnostics();
 

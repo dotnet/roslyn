@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-        public void Class_TypeParameter_GreatherThan()
+        public void Class_TypeParameter_GreaterThan()
         {
             var code = @"class C$$";
 

@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _manager = null;
                 }
 
-                // Clean up our RCW. This RCW is a unqiue RCW, so this is actually safe to do!
+                // Clean up our RCW. This RCW is a unique RCW, so this is actually safe to do!
                 Marshal.ReleaseComObject(_invisibleEditor);
                 _invisibleEditor = null;
 

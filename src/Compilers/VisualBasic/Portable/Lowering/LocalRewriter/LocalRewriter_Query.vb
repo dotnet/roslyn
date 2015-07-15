@@ -100,8 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         createSequencePoint = aggregateClause
                         sequencePointSpan = aggregateClause.Span
                     Else
-                        ' We should create sequence point that spans from begining of the Aggregate clause 
-                        ' to the begining of the Into clause because all that code is involved into group calculation.
+                        ' We should create sequence point that spans from beginning of the Aggregate clause 
+                        ' to the beginning of the Into clause because all that code is involved into group calculation.
 
                         createSequencePoint = aggregateClause
                         If aggregateClause.AdditionalQueryOperators.Count = 0 Then

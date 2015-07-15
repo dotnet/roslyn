@@ -1005,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not constructorCallMap.TryGetValue(currentMethod, currentMethodPointTo) Then
 
                     ' We didn't find anything, which means we maybe already processed 'currentMethod'
-                    ' or it does not reference another constructor of this type, or there is somethig wrong with it;
+                    ' or it does not reference another constructor of this type, or there is something wrong with it;
 
                     ' In any case we can restart iteration, none of the constructors in path are part of cycles
 
@@ -1910,7 +1910,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Else
 
-                ' Otherwise we should bind invocation exprerssion
+                ' Otherwise we should bind invocation expression
                 ' Binder must be passed in 'binderOpt'
                 Debug.Assert(binderOpt IsNot Nothing)
 

@@ -193,6 +193,4 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public ImmutableArray<AssemblyIdentity> References { get; }
         }
     }
-
-
 }

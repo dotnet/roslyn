@@ -2000,7 +2000,7 @@ using static System.Math;
  
 static class Logo
 {
-    public const int Hight = 32;
+    public const int Height = 32;
     public const int Width = 32;
 }
 ";

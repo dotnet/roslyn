@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    from node in root.DescendantNodesAndSelf()
                    where node.IsKind(SyntaxKind.IdentifierName)
                    let nameSyntax = (IdentifierNameSyntax)node
-                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name && 
+                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name &&
                          (model.GetSymbolInfo(nameSyntax, cancellationToken).Symbol?.Equals(localOrParameter) ?? false)
                    select node;
         }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Constructor initializer with lambda:  public C() : base(() => { [|...|] }) <<{ }>>
                 // Field initializers:                   [|public int a = <<expr>>|], [|b = <<expr>>|];
 
-                // No need to special case property initializers here, the actiave statement always spans the initializer expression.
+                // No need to special case property initializers here, the active statement always spans the initializer expression.
 
                 if (declarationBody.Parent.Kind() == SyntaxKind.ConstructorDeclaration)
                 {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
         {
-            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) && 
+            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) &&
                    SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
         }
 
@@ -2889,7 +2889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var oldContainingStatementPart = FindContainingStatementPart(oldNode);
                 var newContainingStatementPart = FindContainingStatementPart(newNode);
 
-                // If the old statememnt has spilled state and the new doesn't the edit is ok. We'll just not use the spilled state.
+                // If the old statement has spilled state and the new doesn't the edit is ok. We'll just not use the spilled state.
                 if (!SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) &&
                     !HasNoSpilledState(newNode, newContainingStatementPart))
                 {

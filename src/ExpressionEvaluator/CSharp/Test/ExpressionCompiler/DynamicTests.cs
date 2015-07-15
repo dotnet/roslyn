@@ -495,10 +495,10 @@ public class Outer<T, U>
                 "C.M");
             var aliases = ImmutableArray.Create(
                 Alias(
-                    DkmClrAliasKind.Variable, 
-                    "d1", 
-                    "d1", 
-                    typeof(object).AssemblyQualifiedName, 
+                    DkmClrAliasKind.Variable,
+                    "d1",
+                    "d1",
+                    typeof(object).AssemblyQualifiedName,
                     MakeCustomTypeInfo(true)),
                 Alias(
                     DkmClrAliasKind.Variable,

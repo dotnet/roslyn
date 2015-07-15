@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod()
+        public void TestAddUsingForAddExtentionMethod()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|1|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -89,7 +89,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod2()
+        public void TestAddUsingForAddExtentionMethod2()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , [|3|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -99,7 +99,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod3()
+        public void TestAddUsingForAddExtentionMethod3()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , [|2|] , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -109,7 +109,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod4()
+        public void TestAddUsingForAddExtentionMethod4()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , [|{ 4 , 5 , 6 }|] , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -119,7 +119,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod5()
+        public void TestAddUsingForAddExtentionMethod5()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , [|{ 7 , 8 , 9 }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -129,7 +129,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod6()
+        public void TestAddUsingForAddExtentionMethod6()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , [|{ '7' , '8' , '9' }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -139,7 +139,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod7()
+        public void TestAddUsingForAddExtentionMethod7()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , [|{ ""Four"" , ""Five"" , ""Six"" }|] , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -149,7 +149,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod8()
+        public void TestAddUsingForAddExtentionMethod8()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -159,7 +159,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod9()
+        public void TestAddUsingForAddExtentionMethod9()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|""This""|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
@@ -169,7 +169,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod10()
+        public void TestAddUsingForAddExtentionMethod10()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
@@ -179,7 +179,7 @@ null, 0, true, true, null, false, null);
 
         [WorkItem(269)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestAddUsingForAddExentionMethod11()
+        public void TestAddUsingForAddExtentionMethod11()
         {
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",

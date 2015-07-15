@@ -50,7 +50,7 @@ class C : I
 
         <WorkItem(546205)>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespcae()
+        Public Sub RenameExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace()
             Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -75,7 +75,7 @@ class C : N.I
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespcae()
+        Public Sub RenameInterfaceForExplicitlyImplementedInterfaceMemberWithInterfaceInNamespace()
             Using result = RenameEngineResult.Create(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">

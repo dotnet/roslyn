@@ -3881,7 +3881,7 @@ class C
 
             diff1.VerifySynthesizedMembers(
                 "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
-                        
+
             diff1.VerifyIL("C.F", @"
 {
   // Code size        9 (0x9)

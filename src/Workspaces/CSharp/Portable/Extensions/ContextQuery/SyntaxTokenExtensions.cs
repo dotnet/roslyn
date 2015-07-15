@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   Foo : base( |
             //   Foo : base(bar: |
             //   Foo : this( |
-            //   Foo : ths(bar: |
+            //   Foo : this(bar: |
 
             // Foo(bar: |
             if (targetToken.Kind() == SyntaxKind.ColonToken &&
@@ -620,9 +620,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // interface IFoo<A,|
             // interface IFoo<[Bar]|
 
-            // deletate X D<|
-            // deletate X D<A,|
-            // deletate X D<[Bar]|
+            // delegate X D<|
+            // delegate X D<A,|
+            // delegate X D<[Bar]|
             if (targetToken.Kind() == SyntaxKind.LessThanToken &&
                 IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
             {

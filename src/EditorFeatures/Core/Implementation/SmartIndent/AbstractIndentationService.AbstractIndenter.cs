@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             {
                 if (Tree == null)
                 {
-                    throw new ArgumentNullException("syntaxTree");
+                    throw new ArgumentNullException(nameof(Tree));
                 }
 
                 var line = this.LineToBeIndented;

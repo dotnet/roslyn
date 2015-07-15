@@ -287,7 +287,7 @@ End Class</a>.Value
 
         <WorkItem(545844)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DoNotShowParamterizedPropertiesWithSomeMandatoryArguments()
+        Public Sub DoNotShowParameterizedPropertiesWithSomeMandatoryArguments()
             Dim text = <a>Imports System
 Public Class AImpl
     Property P(x As Integer, Optional y As Integer = 2) As Object

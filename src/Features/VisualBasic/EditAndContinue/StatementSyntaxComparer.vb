@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 '    Return Label.AwaitExpression
 
                 Case SyntaxKind.GenericName
-                    ' optimizaiton - no need to dig into type instantiations
+                    ' optimization - no need to dig into type instantiations
                     isLeaf = True
                     Return Label.Ignored
 

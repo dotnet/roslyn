@@ -13,7 +13,7 @@ namespace System.Runtime.Analyzers
     /// </para>
     /// </summary>
     public abstract class TestForEmptyStringsUsingStringLengthAnalyzer<TLanguageKindEnum> : AbstractSyntaxNodeAnalyzer<TLanguageKindEnum>
-        where TLanguageKindEnum: struct
+        where TLanguageKindEnum : struct
     {
         internal const string RuleId = "CA1820";
         private const string StringEmptyFieldName = "Empty";

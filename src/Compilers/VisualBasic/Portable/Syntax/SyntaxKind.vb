@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         NamedFieldInitializer = 128               ' NamedFieldInitializerSyntax : FieldInitializerSyntax
         ''' <summary>
         ''' Represents an "= initializer" clause in a declaration for a variable,
-        ''' pararameter or automatic property.
+        ''' parameter or automatic property.
         ''' </summary>
         EqualsValue = 129                         ' EqualsValueSyntax
         ''' <summary>
@@ -851,13 +851,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WhileStatement = 234                     ' WhileStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents a For or For Each block, including the introducting statement, the
+        ''' Represents a For or For Each block, including the introducing statement, the
         ''' body and the "Next" (which can be omitted if a containing For has a Next with
         ''' multiple variables).
         ''' </summary>
         ForBlock = 237                           ' ForBlockSyntax : ExecutableStatementSyntax : StatementSyntax
         ''' <summary>
-        ''' Represents a For or For Each block, including the introducting statement, the
+        ''' Represents a For or For Each block, including the introducing statement, the
         ''' body and the "Next" (which can be omitted if a containing For has a Next with
         ''' multiple variables).
         ''' </summary>

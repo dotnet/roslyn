@@ -27,7 +27,7 @@ public struct A {
     public int y;
 }
 
-// Need a struct with non-lifted short-circuiting opreators.
+// Need a struct with non-lifted short-circuiting operators.
 public struct NLS
 {
     public static NLS operator&(NLS a, NLS b) { return new NLS { value = a.value & b.value }; }
@@ -38,7 +38,7 @@ public struct NLS
     public bool value;
 }
 
-// Need a struct with lifted short-circuiting opreators.
+// Need a struct with lifted short-circuiting operators.
 public struct LS
 {
     public static LS operator&(LS a, LS b) { return new LS { value = a.value & b.value }; }
@@ -691,7 +691,7 @@ public class DATest : DATestBase {
         if (f) { int a; do No(); while (fFalse || G(out a)); F(a); } // Assigned
     }
 
-    // Do statement with break and contine.
+    // Do statement with break and continue.
     public void T131() {
         if (f) { int a; do { break; F(a); } while (f); } // Unreachable
         if (f) { int a; do break; while (F(a)); } // Unreachable
@@ -1483,7 +1483,7 @@ class C
                 //         { int a; F(fFalse && F(a) ? 1 : 2); F(a); } // Error on second F(a)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
 
-                // Dev10 spuriuos: error CS0165: Use of unassigned local variable 'a'
+                // Dev10 spurious: error CS0165: Use of unassigned local variable 'a'
 
                 // (200,36): error CS0165: Use of unassigned local variable 'a'
                 //         { int a; F(f || G(out a) ? a : 2); } // Error
@@ -1495,13 +1495,13 @@ class C
                 //         { int a; F(fTrue || G(out a) ? a : 2); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a"),
 
-                // Dev10 spuriuos: (207,46,207,47): error CS0165: Use of unassigned local variable 'a'
+                // Dev10 spurious: (207,46,207,47): error CS0165: Use of unassigned local variable 'a'
 
                 // (208,50): error CS0165: Use of unassigned local variable 'a'
                 //         { int a; F(fTrue || G(out a) ? 1 : 2); F(a); } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a")
 
-                // Dev10 spuriuos: (209,60,209,61): error CS0165: Use of unassigned local variable 'a'
+                // Dev10 spurious: (209,60,209,61): error CS0165: Use of unassigned local variable 'a'
                 );
         }
 

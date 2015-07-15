@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     /// </summary>
     public abstract class FixerWithFixAllAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
         where TLanguageKindEnum: struct
-    {
-        private static string CodeFixProviderMetadataName = typeof(CodeFixProvider).FullName;
-        private static string CodeActionMetadataName = typeof(CodeAction).FullName;
+    { 
+        private static string s_codeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
+        private static string s_codeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         private const string GetFixAllProviderMethodName = "GetFixAllProvider";
         private const string CreateMethodName = "Create";
         private const string EquivalenceKeyPropertyName = "EquivalenceKey";
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
         private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        
+
         private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            var codeFixProviderSymbol = context.Compilation.GetTypeByMetadataName(CodeFixProviderMetadataName);
+            var codeFixProviderSymbol = context.Compilation.GetTypeByMetadataName(s_codeFixProviderMetadataName);
             if (codeFixProviderSymbol == null)
             {
                 return;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            var codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
+            var codeActionSymbol = context.Compilation.GetTypeByMetadataName(s_codeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 {
                     return;
                 }
-                
+
                 if (namedType.DerivesFrom(_codeFixProviderSymbol))
                 {
                     _codeFixProviders = _codeFixProviders ?? new HashSet<INamedTypeSymbol>();
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                         {
                             return true;
                         }
-                    }                    
+                    }
                 }
 
                 return false;

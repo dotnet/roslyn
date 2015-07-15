@@ -14717,7 +14717,7 @@ Module Module1
         Dim sPath As String = ""
         sPath = "Test4"
         On Error GoTo 0
-        Error 5 '<- Will error here on undhandled exception
+        Error 5 '<- Will error here on unhandled exception
 
         Console.WriteLine(sPath)
         Exit Sub
@@ -15561,7 +15561,7 @@ End Module
         <Fact, WorkItem(1005639)>
         Public Sub OnError_WithLoopingConstructs()
             'Various Looping constructs with Errors and capturing the behaviour of Resume Next as going into the loop rather
-            ' then skipping to the next statement outstide of the loop
+            ' then skipping to the next statement outside of the loop
             Dim source =
     <compilation name="ErrorHandling">
         <file name="a.vb">

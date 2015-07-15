@@ -458,7 +458,7 @@ class A
 }
 class B : A
 {
-    // Hiding a member (no new keword)
+    // Hiding a member (no new keyword)
     // generates a warning only.
     public static int P { get; set; } // CS0108
     public int Q { get; set; } // CS0108

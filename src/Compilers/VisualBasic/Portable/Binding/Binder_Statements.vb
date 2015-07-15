@@ -2366,7 +2366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '       it might cause errors for write-only property, etc.
                 notParenthesized = MakeRValue(notParenthesized, diagnostics)
 
-                ' this is not an event. Add diagnostics if node is not aready bad
+                ' this is not an event. Add diagnostics if node is not already bad
                 ' NOTE that we are not marking the node as bad if it is not
                 '      in such case there is nothing wrong with the event access node.
                 '      However since we cannot provide event symbol, the AddRemovehandler
@@ -4149,27 +4149,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Checks if a given symbol is a function that takes no parameters.
         ''' </summary>
         Private Shared ReadOnly s_isFunctionWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
-                                                                                      If sym.Kind = SymbolKind.Method Then
-                                                                                          Dim method = DirectCast(sym, MethodSymbol)
-                                                                                          Return Not method.IsSub() AndAlso
-                                                                                                 Not method.IsGenericMethod AndAlso
-                                                                                                 method.CanBeCalledWithNoParameters
-                                                                                      End If
-                                                                                      Return False
-                                                                                  End Function
+                                                                                               If sym.Kind = SymbolKind.Method Then
+                                                                                                   Dim method = DirectCast(sym, MethodSymbol)
+                                                                                                   Return Not method.IsSub() AndAlso
+                                                                                                          Not method.IsGenericMethod AndAlso
+                                                                                                          method.CanBeCalledWithNoParameters
+                                                                                               End If
+                                                                                               Return False
+                                                                                           End Function
 
         ''' <summary>
         ''' Checks if a given symbol is a property that is readable.
         ''' </summary>
         Private Shared ReadOnly s_isReadablePropertyWithoutArguments As Func(Of Symbol, Boolean) = Function(sym)
-                                                                                              If sym.Kind = SymbolKind.Property Then
-                                                                                                  Dim prop = DirectCast(sym, PropertySymbol)
-                                                                                                  Return prop.IsReadable AndAlso
-                                                                                                         Not prop.GetMostDerivedGetMethod().IsGenericMethod AndAlso
-                                                                                                         prop.GetCanBeCalledWithNoParameters
-                                                                                              End If
-                                                                                              Return False
-                                                                                          End Function
+                                                                                                       If sym.Kind = SymbolKind.Property Then
+                                                                                                           Dim prop = DirectCast(sym, PropertySymbol)
+                                                                                                           Return prop.IsReadable AndAlso
+                                                                                                                  Not prop.GetMostDerivedGetMethod().IsGenericMethod AndAlso
+                                                                                                                  prop.GetCanBeCalledWithNoParameters
+                                                                                                       End If
+                                                                                                       Return False
+                                                                                                   End Function
 
         ''' <summary>
         ''' Returns the lookup result if at least one found symbol matches the requirements that are verified

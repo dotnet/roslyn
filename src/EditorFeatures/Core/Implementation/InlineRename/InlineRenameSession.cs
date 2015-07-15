@@ -120,8 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _baseSolution = _triggerDocument.Project.Solution;
             this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
-            this._editAndContinueWorkspaceService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            this._editAndContinueWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
+            _editAndContinueWorkspaceService = workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            _editAndContinueWorkspaceService.BeforeDebuggingStateChanged += OnBeforeDebuggingStateChanged;
 
             InitializeOpenBuffers(triggerSpan);
         }

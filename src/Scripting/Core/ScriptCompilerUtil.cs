@@ -91,27 +91,28 @@ namespace Microsoft.CodeAnalysis.Scripting
                 compiledAssembly = output.ToArray();
             }
 
-            var assembly = Assembly.Load(compiledAssembly);
+            var assembly = CorLightup.Desktop.LoadAssembly(compiledAssembly);
 
-            return Execute(assembly, compiler.Arguments.ScriptArguments.ToArray());
+            return Execute(assembly, compilation.GetEntryPoint(default(CancellationToken)), compiler.Arguments.ScriptArguments.ToArray());
         }
 
-        private static int Execute(Assembly assembly, string[] scriptArguments)
+        private static int Execute(Assembly assembly, IMethodSymbol entryPoint, string[] scriptArguments)
         {
-            var parameters = assembly.EntryPoint.GetParameters();
             object[] arguments;
 
-            if (parameters.Length == 0)
+            if (entryPoint.Parameters.Length == 0)
             {
                 arguments = SpecializedCollections.EmptyObjects;
             }
             else
             {
-                Debug.Assert(parameters.Length == 1);
+                Debug.Assert(entryPoint.Parameters.Length == 1);
                 arguments = new object[] { scriptArguments };
             }
 
-            object result = assembly.EntryPoint.Invoke(null, arguments);
+            var rtEntryPoint = ScriptBuilder.GetEntryPointRuntimeMethod(entryPoint, assembly, default(CancellationToken));
+
+            object result = rtEntryPoint.Invoke(null, arguments);
             return result is int ? (int)result : CommonCompiler.Succeeded;
         }
     }

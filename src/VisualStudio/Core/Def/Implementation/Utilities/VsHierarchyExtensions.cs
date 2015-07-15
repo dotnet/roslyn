@@ -12,12 +12,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             if (runningDocTable == null)
             {
-                throw new ArgumentNullException("runningDocTable");
+                throw new ArgumentNullException(nameof(runningDocTable));
             }
 
             if (hierarchy == null)
             {
-                throw new ArgumentNullException("hierarchy");
+                throw new ArgumentNullException(nameof(hierarchy));
             }
 
             // First, get the doc cookie for this

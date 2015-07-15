@@ -746,7 +746,7 @@ Derived2.P.set";
 
         [WorkItem(540410, "DevDiv")]
         [Fact]
-        public void ImplementMulipleInterfaceWithSommonBase()
+        public void ImplementMultipleInterfaceWithCommonBase()
         {
             var source = @"
 interface IBase
@@ -881,7 +881,7 @@ public static class MainClass
         }
 
         [Fact]
-        public void TestImplicitImplSigntureMismatches_ParamsAndOptionals()
+        public void TestImplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
             // Replace params with non-params in signature of implemented member (and vice-versa)

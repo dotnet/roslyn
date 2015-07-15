@@ -347,7 +347,7 @@ namespace A.B {
 
             Assert.Empty(comp.GetDiagnostics());
 
-            // use exported type witl partial alias
+            // use exported type with partial alias
             comp = CSharpCompilation.Create("APP1",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
@@ -451,6 +451,9 @@ class D
 
             // add again and verify that it throws
             Assert.Throws<ArgumentException>(() => comp.AddSyntaxTrees(t1));
+
+            // replace with existing and verify that it throws
+            Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees[0]));
 
             // SyntaxTrees have reference equality. This removal should fail.
             Assert.Throws<ArgumentException>(() => comp = comp.RemoveSyntaxTrees(SyntaxFactory.ParseSyntaxTree(s1)));
@@ -847,7 +850,7 @@ var a = new C2();
 
             // Add Module file reference
             comp = comp.AddReferences(modRef1);
-            // Not implemente code
+            // Not implemented code
             //var modSmb = comp.GetReferencedModuleSymbol(modRef1);
             //Assert.Equal("ModuleCS00.mod", modSmb.Name);
             //Assert.Equal(4, comp.References.Count);
@@ -1656,12 +1659,6 @@ class C { }", options: TestOptions.Script);
 
             var ars = arc.ReplaceSyntaxTree(tc, ts);
             Assert.False(arc.ReferenceManagerEquals(ars));
-
-            var ar3 = arc.ReplaceSyntaxTree(tc, ta);
-            Assert.True(arc.ReferenceManagerEquals(ar3));
-
-            var as1 = ars.ReplaceSyntaxTree(tr, ts);
-            Assert.False(ars.ReferenceManagerEquals(as1));
         }
 
         private sealed class EvolvingTestReference : PortableExecutableReference

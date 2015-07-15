@@ -6781,7 +6781,7 @@ class MyDerived : MyClass
         }
 
         [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
-        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation01()
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation01()
         {
             var text =
 @"public static class Foo<T>
@@ -6812,7 +6812,7 @@ class MyDerived : MyClass
         }
 
         [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
-        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation02()
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation02()
         {
             var text =
 @"using System;
@@ -8054,7 +8054,7 @@ public class MemberInitializerTest
         }
 
         [Fact]
-        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializerr()
+        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializer()
         {
             CreateCompilationWithMscorlib(
 @"
@@ -20957,10 +20957,10 @@ class C
 }
 ";
             CompileAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
-    // Do not report the following warning:
-    // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
-    //         System.Console.WriteLine(default(string).IsNull());
-    // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
+                // Do not report the following warning:
+                // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
+                //         System.Console.WriteLine(default(string).IsNull());
+                // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
         }
 
@@ -22476,7 +22476,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
-            // queriied via an API (command line compile would exit after parse errors were reported). 
+            // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();

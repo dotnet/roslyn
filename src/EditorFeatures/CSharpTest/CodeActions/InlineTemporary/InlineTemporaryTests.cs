@@ -3202,7 +3202,7 @@ class Program
 
         [WorkItem(529698)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public void InlineCompundAssignmentIntoInitializer()
+        public void InlineCompoundAssignmentIntoInitializer()
         {
             Test(
             @"

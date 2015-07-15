@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
 
-            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols accross all generations,
+            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             Dim metadataSymbols = GetMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
 

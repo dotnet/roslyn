@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
         {
-
             var result = CSharpScript.Run(@"
 class SomeClass
 {
@@ -88,13 +87,11 @@ class SomeClass
 dynamic d = new SomeClass();
 d.Do();"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
-
         }
 
         [Fact(Skip = "Bug 170")]
         public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
         {
-
             var result = CSharpScript.Run(@"
 class SomeClass
 {
@@ -105,7 +102,6 @@ class SomeClass
 dynamic d = new SomeClass();
 d.Do()"
 , ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
-
         }
 
         public class Globals
@@ -172,6 +168,7 @@ d.Do()"
             Assert.Equal(10100, result.ReturnValue);
         }
 
+#if TODO // https://github.com/dotnet/roslyn/issues/3720
         [Fact]
         public void TestCreateMethodDelegate()
         {
@@ -181,6 +178,7 @@ d.Do()"
             var result = fn(5);
             Assert.Equal(25, result);
         }
+#endif
 
         [Fact]
         public void TestGetScriptVariableAfterRunningScript()

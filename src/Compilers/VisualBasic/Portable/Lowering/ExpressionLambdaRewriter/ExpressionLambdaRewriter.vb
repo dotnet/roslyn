@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function TranslateLambdaBody(block As BoundBlock) As BoundExpression
             ' VB expression trees can be only one statement. Similar analysis is performed 
             ' in DiagnosticsPass, but it does not take into account how the statements
-            ' are rewritten, so here we recheck lowered lambda bodiess as well.
+            ' are rewritten, so here we recheck lowered lambda bodies as well.
 
             ' There might be a sequence point at the beginning.
             ' There may be a label and return statement at the end also but the expression tree ignores that.

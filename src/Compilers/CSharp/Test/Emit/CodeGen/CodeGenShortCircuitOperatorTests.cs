@@ -3418,11 +3418,11 @@ interface I1
 }
 ";
             var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
-            base.CompileAndVerify(comp, expectedOutput:"420");
+            base.CompileAndVerify(comp, expectedOutput: "420");
         }
 
         [Fact]
-        public void ConditionalMemberAccessCoalessce001()
+        public void ConditionalMemberAccessCoalesce001()
         {
             var source = @"
 class Program
@@ -3498,7 +3498,7 @@ class Program
         }
 
         [Fact]
-        public void ConditionalMemberAccessCoalessce001n()
+        public void ConditionalMemberAccessCoalesce001n()
         {
             var source = @"
 class Program
@@ -3575,7 +3575,7 @@ class Program
         }
 
         [Fact]
-        public void ConditionalMemberAccessCoalessce001r()
+        public void ConditionalMemberAccessCoalesce001r()
         {
             var source = @"
 class Program
@@ -3657,7 +3657,7 @@ class Program
         }
 
         [Fact]
-        public void ConditionalMemberAccessCoalessce002()
+        public void ConditionalMemberAccessCoalesce002()
         {
             var source = @"
 class Program
@@ -3743,7 +3743,7 @@ class Program
         }
 
         [Fact]
-        public void ConditionalMemberAccessCoalessce002r()
+        public void ConditionalMemberAccessCoalesce002r()
         {
             var source = @"
 class Program
@@ -6842,6 +6842,5 @@ class C
 }
 ");
         }
-
     }
 }

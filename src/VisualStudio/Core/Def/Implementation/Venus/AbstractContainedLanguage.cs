@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             this.Project = project;
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             if (subjectBuffer == null)
             {
-                throw new ArgumentNullException("subjectBuffer");
+                throw new ArgumentNullException(nameof(subjectBuffer));
             }
 
             this.SubjectBuffer = subjectBuffer;
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             if (dataBuffer == null)
             {
-                throw new ArgumentNullException("dataBuffer");
+                throw new ArgumentNullException(nameof(dataBuffer));
             }
 
             this.DataBuffer = dataBuffer;

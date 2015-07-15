@@ -312,12 +312,6 @@ namespace Microsoft.CodeAnalysis
             return (AssemblyContentType)(GetPropertyWord(nameObject, PropertyId.CONTENT_TYPE) ?? 0);
         }
 
-        internal static CultureInfo GetCultureInfo(IAssemblyName nameObject)
-        {
-            var cultureName = GetCulture(nameObject);
-            return (cultureName != null) ? new CultureInfo(cultureName) : null;
-        }
-
         internal static ProcessorArchitecture GetProcessorArchitecture(IAssemblyName nameObject)
         {
             return (ProcessorArchitecture)(GetPropertyWord(nameObject, PropertyId.ARCHITECTURE) ?? 0);
@@ -395,34 +389,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Converts <see cref="IAssemblyName"/> to <see cref="AssemblyName"/> with possibly missing name components.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="AssemblyName"/> whose fields are be null if not present in <paramref name="nameObject"/>.
-        /// </returns>
-        internal static AssemblyName ToAssemblyName(IAssemblyName nameObject)
-        {
-            var result = new AssemblyName();
-            result.Name = GetName(nameObject);
-            result.Version = GetVersion(nameObject);
-            result.CultureInfo = GetCultureInfo(nameObject);
-
-            byte[] publicKey = GetPublicKey(nameObject);
-            if (publicKey != null && publicKey.Length != 0)
-            {
-                result.SetPublicKey(publicKey);
-            }
-            else
-            {
-                result.SetPublicKeyToken(GetPublicKeyToken(nameObject));
-            }
-
-            result.Flags = GetFlags(nameObject);
-            result.ContentType = GetContentType(nameObject);
-            return result;
-        }
-
-        /// <summary>
         /// Converts <see cref="IAssemblyName"/> to <see cref="AssemblyName"/> with all metadata fields filled.
         /// </summary>
         /// <returns>
@@ -473,7 +439,7 @@ namespace Microsoft.CodeAnalysis
                 {
 #if SCRIPTING
 
-                    throw new ArgumentException(Microsoft.CodeAnalysis.Scripting.ScriptingResources.InvalidCharactersInAssemblyName, "name");
+                    throw new ArgumentException(Scripting.ScriptingResources.InvalidCharactersInAssemblyName, "name");
 
 #elif WORKSPACE_DESKTOP
 
@@ -496,10 +462,9 @@ namespace Microsoft.CodeAnalysis
                 SetProperty(result, PropertyId.REVISION_NUMBER, unchecked((ushort)name.Version.Revision));
             }
 
-            CultureInfo info = name.CultureInfo;
-            if (info != null)
+            string cultureName = name.CultureName;
+            if (cultureName != null)
             {
-                string cultureName = info.Name;
                 if (cultureName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING

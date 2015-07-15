@@ -25,14 +25,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             assemblyName As String,
             options As CompilationOptions,
             hostObjectType As Type) As Compilation Implements ICompilationFactoryService.CreateSubmissionCompilation
-#If SCRIPTING Then
+
             Return VisualBasicCompilation.CreateSubmission(
                 assemblyName,
                 options:=DirectCast(options, VisualBasicCompilationOptions),
                 hostObjectType:=hostObjectType)
-#Else
-            Throw New NotImplementedException()
-#End If
         End Function
 
         Private Function ICompilationFactoryService_GetCompilationFromCompilationReference(reference As MetadataReference) As Compilation Implements ICompilationFactoryService.GetCompilationFromCompilationReference

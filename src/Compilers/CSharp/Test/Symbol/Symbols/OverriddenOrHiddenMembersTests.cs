@@ -1768,8 +1768,8 @@ class Derived : AccessorModifierMismatch
             var text = @"
 class Derived : Base
 {
-    public delegate void BogusDelegetate();
-    public event BogusDelegetate set_Instance;
+    public delegate void BogusDelegate();
+    public event BogusDelegate set_Instance;
 
     public int get_Instance
     {

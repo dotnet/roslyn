@@ -288,7 +288,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumeratorNonConvertalbeType()
+        public void TestAddYieldGenericIEnumeratorNonConvertableType()
         {
             var initial =
 @"using System;
@@ -306,7 +306,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
-        public void TestAddYieldGenericIEnumeratorConvertalbeTypeDateTime()
+        public void TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
         {
             var initial =
 @"using System;

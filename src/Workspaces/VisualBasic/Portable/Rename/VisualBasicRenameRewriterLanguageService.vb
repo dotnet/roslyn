@@ -120,8 +120,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If lambdas.Count() <> 0 Then
                     For Each lambda In lambdas
                         If Me._conflictLocations.Any(Function(cf)
-                                                        Return cf.Contains(lambda.Span)
-                                                    End Function) Then
+                                                         Return cf.Contains(lambda.Span)
+                                                     End Function) Then
                             isInConflictLambdaBody = True
                             Exit For
                         End If
