@@ -1382,7 +1382,7 @@ class C
 
             Public checkpoint As Checkpoint = New Checkpoint()
 
-            Public Overrides Async Function RegisterCompletionListAsync(context As CompletionListContext) As Task
+            Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
                 Await checkpoint.Task.ConfigureAwait(False)
             End Function
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Implement to register the items and other details for a <see cref="CompletionList"/>
         /// </summary>
-        public abstract Task RegisterCompletionListAsync(CompletionListContext context);
+        public abstract Task ProduceCompletionListAsync(CompletionListContext context);
 
         /// <summary>
         /// Returns true if the character at the specific position in the text snapshot should

@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Me._span = span
         End Sub
 
-        Public Overrides Function RegisterCompletionListAsync(context As CompletionListContext) As Task
+        Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
             Dim item = New CompletionItem(Me, "DisplayText", _span)
             context.AddCompletionItem(item)
 

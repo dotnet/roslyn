@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 var context = new CompletionListContext(documentOpt, position, triggerInfo, addCompletionItem, registerBuilder, makeExclusive, cancellationToken);
 
-                await provider.RegisterCompletionListAsync(context).ConfigureAwait(false);
+                await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
 
                 return new CompletionList(itemsBuilder.AsImmutable(), builder, isExclusive);
             }

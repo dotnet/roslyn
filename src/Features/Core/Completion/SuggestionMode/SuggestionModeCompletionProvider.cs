@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
         protected abstract Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
         protected abstract TextSpan GetFilterSpan(SourceText text, int position);
 
-        public override async Task RegisterCompletionListAsync(CompletionListContext context)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
             var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
             if (builder != null)

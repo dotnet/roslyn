@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
-        public override async Task RegisterCompletionListAsync(CompletionListContext context)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
             var items = await this.GetItemsAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
             var builder = await this.GetBuilderAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);

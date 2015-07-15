@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me._isTriggerCharacter = isTriggerCharacter
         End Sub
 
-        Public Overrides Function RegisterCompletionListAsync(context As CompletionListContext) As Task
+        Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
             If _getItems Is Nothing Then
                 Return SpecializedTasks.EmptyTask
             End If

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var context = new CompletionListContext(document, position, triggerInfo, addCompletionItem, registerBuilder, makeExclusive, CancellationToken.None);
 
-            provider.RegisterCompletionListAsync(context).Wait();
+            provider.ProduceCompletionListAsync(context).Wait();
 
             return new CompletionList(itemsBuilder.AsImmutable(), builder, isExclusive);
         }
