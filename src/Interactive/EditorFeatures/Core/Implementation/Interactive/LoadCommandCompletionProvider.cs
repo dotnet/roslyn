@@ -99,14 +99,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return text.Lines.GetLineFromPosition(position).Start + quotedPathGroup.Index;
         }
 
-        private IEnumerable<CompletionItem> GetItems(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var line = text.Lines.GetLineFromPosition(position);
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, position));
             var match = s_directiveRegex.Match(lineText);
             if (!match.Success)
             {
-                return null;
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             var quotedPathGroup = match.Groups[1];
@@ -114,14 +114,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var endsWithQuote = PathCompletionUtilities.EndsWithQuote(quotedPath);
             if (endsWithQuote && (position >= line.Start + match.Length))
             {
-                return null;
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             var buffer = text.Container.GetTextBuffer();
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot == null)
             {
-                return null;
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
             var fileSystem = PathCompletionUtilities.GetCurrentWorkingDirectoryDiscoveryService(snapshot);
@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 allowableExtensions: new[] { ".csx" });
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);
+
             return helper.GetItems(pathThroughLastSlash, documentPath: null);
         }
 

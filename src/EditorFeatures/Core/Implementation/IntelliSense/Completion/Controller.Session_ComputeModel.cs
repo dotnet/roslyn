@@ -108,10 +108,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         var trackingSpan = await _completionService.GetDefaultTrackingSpanAsync(_documentOpt, _subjectBufferCaretPosition, cancellationToken).ConfigureAwait(false);
+
                         return Model.CreateModel(
                             _disconnectedBufferGraph,
                             trackingSpan,
-                            completionList.Items.ToList(),
+                            completionList.Items,
                             selectedItem: completionList.Items.First(),
                             isHardSelection: false,
                             isUnique: false,

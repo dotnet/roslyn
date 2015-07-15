@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             var completionList = GetCompletionList(document, position, triggerInfo);
-            var items = completionList == null ? null : completionList.Items;
+            var items = completionList == null ? default(ImmutableArray<CompletionItem>) : completionList.Items;
 
             if (checkForAbsence)
             {

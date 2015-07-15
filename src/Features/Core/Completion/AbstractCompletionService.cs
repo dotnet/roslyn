@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 {
                     foreach (var item in completionList.Items.WhereNotNull())
                     {
-                        // New items that match an existing item will replace it.  
+                        // New items that match an existing item will replace it.
                         ReplaceExistingItem(item, displayNameToItemsMap, completionRules);
                     }
 
@@ -215,12 +215,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 return null;
             }
 
+            // TODO(DustinCa): Revisit performance of this.
             var totalItems = displayNameToItemsMap.Values.Flatten().ToList();
             totalItems.Sort();
 
             // TODO(DustinCa): This is lossy -- we lose the IsExclusive field. Fix that.
 
-            return new CompletionList(totalItems, builder);
+            return new CompletionList(totalItems.ToImmutableArray(), builder);
         }
 
         private static void ReplaceExistingItem(

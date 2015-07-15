@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -21,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool IsExclusive { get; }
 
         /// <summary>
-        /// The list of completion items to present to the user.  Can not be empty.
+        /// The completion items to present to the user.  Can not be empty.
         /// </summary>
-        public IEnumerable<CompletionItem> Items { get; }
+        public ImmutableArray<CompletionItem> Items { get; }
 
         /// <summary>
         /// A completion builder to present to the user.  Can be null if no builder need be
@@ -34,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem Builder { get; }
 
-        public CompletionList(IEnumerable<CompletionItem> items, CompletionItem builder = null, bool isExclusive = false)
+        public CompletionList(ImmutableArray<CompletionItem> items, CompletionItem builder = null, bool isExclusive = false)
         {
-            this.Items = items.ToImmutableArray();
+            this.Items = items;
             this.Builder = builder;
             this.IsExclusive = isExclusive;
         }

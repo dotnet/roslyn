@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public static Model CreateModel(
             DisconnectedBufferGraph disconnectedBufferGraph,
             TextSpan defaultTrackingSpanInSubjectBuffer,
-            IList<CompletionItem> totalItems,
+            ImmutableArray<CompletionItem> totalItems,
             CompletionItem selectedItem,
             bool isHardSelection,
             bool isUnique,
@@ -101,19 +102,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // the description if necessary. We won't do this if the list was triggered to show
                 // snippet shortcuts.
 
-                updatedTotalItems = new List<CompletionItem>();
+                var updatedTotalItemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
                 updatedSelectedItem = null;
 
                 foreach (var item in totalItems)
                 {
                     var updatedItem = new DescriptionModifyingCompletionItem(item, completionService, workspace);
-                    updatedTotalItems.Add(updatedItem);
+                    updatedTotalItemsBuilder.Add(updatedItem);
 
                     if (item == selectedItem)
                     {
                         updatedSelectedItem = updatedItem;
                     }
                 }
+
+                updatedTotalItems = updatedTotalItemsBuilder.AsImmutable();
 
                 updatedBuilder = null;
                 if (builder != null)

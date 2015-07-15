@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -55,14 +54,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
         }
 
-        public IEnumerable<CompletionItem> GetItems(string pathSoFar, string documentPath)
+        public ImmutableArray<CompletionItem> GetItems(string pathSoFar, string documentPath)
         {
             if (_exclude != null && _exclude(pathSoFar))
             {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
-            return GetFilesAndDirectories(pathSoFar, documentPath).ToList();
+            return GetFilesAndDirectories(pathSoFar, documentPath);
         }
 
         private CompletionItem CreateCurrentDirectoryItem()
@@ -80,9 +79,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new CompletionItem(_completionProvider, "\\\\", textChangeSpan);
         }
 
-        private IList<CompletionItem> GetFilesAndDirectories(string path, string basePath)
+        private ImmutableArray<CompletionItem> GetFilesAndDirectories(string path, string basePath)
         {
-            var result = new List<CompletionItem>();
+            var result = ImmutableArray.CreateBuilder<CompletionItem>();
             var pathKind = PathUtilities.GetPathKind(path);
             switch (pathKind)
             {
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     throw ExceptionUtilities.Unreachable;
             }
 
-            return result;
+            return result.AsImmutable();
         }
 
         private static bool IsDriveRoot(string fullPath)
