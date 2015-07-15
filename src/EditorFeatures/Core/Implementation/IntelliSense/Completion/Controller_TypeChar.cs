@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
-        private ICompletionRules GetCompletionRules()
+        private CompletionRules GetCompletionRules()
         {
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)

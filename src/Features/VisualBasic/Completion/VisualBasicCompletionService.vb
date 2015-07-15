@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return _completionProviders
         End Function
 
-        Public Overrides Function GetDefaultCompletionRules() As ICompletionRules
+        Public Overrides Function GetDefaultCompletionRules() As CompletionRules
             Return New VisualBasicCompletionRules(Me)
         End Function
 

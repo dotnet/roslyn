@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return document.GetLanguageService<ICompletionService>().GetDefaultCompletionProviders();
         }
 
-        public static ICompletionRules GetDefaultCompletionRules(Document document)
+        public static CompletionRules GetDefaultCompletionRules(Document document)
         {
             return document.GetLanguageService<ICompletionService>().GetDefaultCompletionRules();
         }

@@ -151,7 +151,6 @@
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Common\Glyph.cs" />
-    <Compile Include="Completion\AbstractCompletionService.CompletionRules.cs" />
     <Compile Include="Completion\AbstractCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
@@ -254,7 +253,7 @@
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
-    <Compile Include="Completion\ICompletionRules.cs" />
+    <Compile Include="Completion\CompletionRules.cs" />
     <Compile Include="Diagnostics\EngineV1\AbstractSyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />

@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 CompletionItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
-                ICompletionRules completionRules,
+                CompletionRules completionRules,
                 CompletionTriggerInfo triggerInfo,
                 CompletionFilterReason reason)
             {

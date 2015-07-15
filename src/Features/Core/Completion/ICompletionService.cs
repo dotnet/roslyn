@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Returns the default set of completion rules for this completion service.
         /// </summary>
-        ICompletionRules GetDefaultCompletionRules();
+        CompletionRules GetDefaultCompletionRules();
 
         /// <summary>
         /// Clears the most-recently-used cache used by completion.
