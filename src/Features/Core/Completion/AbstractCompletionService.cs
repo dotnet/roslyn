@@ -302,29 +302,11 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (documentOpt != null)
             {
-                var itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
-                Action<CompletionItem> addCompletionItem = item =>
-                {
-                    itemsBuilder.Add(item);
-                };
-
-                CompletionItem builder = null;
-                Action<CompletionItem> registerBuilder = item =>
-                {
-                    builder = item;
-                };
-
-                var isExclusive = false;
-                Action<bool> makeExclusive = value =>
-                {
-                    isExclusive = value;
-                };
-
-                var context = new CompletionListContext(documentOpt, position, triggerInfo, addCompletionItem, registerBuilder, makeExclusive, cancellationToken);
+                var context = new CompletionListContext(documentOpt, position, triggerInfo, cancellationToken);
 
                 await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
 
-                return new CompletionList(itemsBuilder.AsImmutable(), builder, isExclusive);
+                return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
             }
 
             Contract.Fail("Should never get here.");

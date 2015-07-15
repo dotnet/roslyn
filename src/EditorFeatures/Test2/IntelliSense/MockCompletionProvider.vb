@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             For Each item In items
-                context.AddCompletionItem(item)
+                context.AddItem(item)
             Next
 
             Return SpecializedTasks.EmptyTask

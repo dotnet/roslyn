@@ -1,33 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal struct CompletionListContext
+    internal sealed class CompletionListContext
     {
-        private readonly Document _document;
-        private readonly int _position;
-        private readonly CompletionTriggerInfo _triggerInfo;
-        private readonly CancellationToken _cancellationToken;
+        private readonly ImmutableArray<CompletionItem>.Builder _itemsBuilder;
+        private CompletionItem _builder;
+        private bool _isExclusive;
 
-        private readonly Action<CompletionItem> _addCompletionItem;
-        private readonly Action<CompletionItem> _registerBuilder;
-        private readonly Action<bool> _makeExclusive;
+        public Document Document { get; }
+        public int Position { get; }
+        public CompletionTriggerInfo TriggerInfo { get; }
+        public CancellationToken CancellationToken { get; }
 
-        public Document Document => _document;
-        public int Position => _position;
-        public CompletionTriggerInfo TriggerInfo => _triggerInfo;
-        public CancellationToken CancellationToken => _cancellationToken;
+        public CompletionItem Builder => this._builder;
+        public bool IsExclusive => this._isExclusive;
 
         public CompletionListContext(
             Document document,
             int position,
             CompletionTriggerInfo triggerInfo,
-            Action<CompletionItem> addCompletionItem,
-            Action<CompletionItem> registerBuilder,
-            Action<bool> makeExclusive,
             CancellationToken cancellationToken)
         {
             if (document == null)
@@ -35,53 +31,47 @@ namespace Microsoft.CodeAnalysis.Completion
                 throw new ArgumentNullException(nameof(document));
             }
 
-            if (addCompletionItem == null)
-            {
-                throw new ArgumentNullException(nameof(addCompletionItem));
-            }
+            this.Document = document;
+            this.Position = position;
+            this.TriggerInfo = triggerInfo;
+            this.CancellationToken = cancellationToken;
 
-            if (registerBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(registerBuilder));
-            }
-
-            if (makeExclusive == null)
-            {
-                throw new ArgumentNullException(nameof(makeExclusive));
-            }
-
-            _document = document;
-            _position = position;
-            _triggerInfo = triggerInfo;
-            _addCompletionItem = addCompletionItem;
-            _registerBuilder = registerBuilder;
-            _makeExclusive = makeExclusive;
-            _cancellationToken = cancellationToken;
+            this._itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
         }
 
-        public void AddCompletionItem(CompletionItem item)
+        public void AddItem(CompletionItem item)
         {
             if (item == null)
             {
                 throw new ArgumentNullException(nameof(item));
             }
 
-            _addCompletionItem(item);
+            _itemsBuilder.Add(item);
         }
 
-        public void RegisterBuilder(CompletionItem item)
+        public ImmutableArray<CompletionItem> GetItems()
         {
-            if (item == null)
+            return this._itemsBuilder.AsImmutable();
+        }
+
+        public void RegisterBuilder(CompletionItem builder)
+        {
+            if (builder == null)
             {
-                throw new ArgumentNullException(nameof(item));
+                throw new ArgumentNullException(nameof(builder));
             }
 
-            _registerBuilder(item);
+            if (_builder != null)
+            {
+                throw new InvalidOperationException("Builder has already been registered.");
+            }
+
+            _builder = builder;
         }
 
         public void MakeExclusive(bool value)
         {
-            _makeExclusive(value);
+            _isExclusive = value;
         }
     }
 }

@@ -53,29 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo)
         {
-            var itemsBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
-            Action<CompletionItem> addCompletionItem = item =>
-            {
-                itemsBuilder.Add(item);
-            };
-
-            CompletionItem builder = null;
-            Action<CompletionItem> registerBuilder = item =>
-            {
-                builder = item;
-            };
-
-            var isExclusive = false;
-            Action<bool> makeExclusive = value =>
-            {
-                isExclusive = value;
-            };
-
-            var context = new CompletionListContext(document, position, triggerInfo, addCompletionItem, registerBuilder, makeExclusive, CancellationToken.None);
+            var context = new CompletionListContext(document, position, triggerInfo, CancellationToken.None);
 
             provider.ProduceCompletionListAsync(context).Wait();
 
-            return new CompletionList(itemsBuilder.AsImmutable(), builder, isExclusive);
+            return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
         internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo)

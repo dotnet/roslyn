@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
 
         Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
             Dim item = New CompletionItem(Me, "DisplayText", _span)
-            context.AddCompletionItem(item)
+            context.AddItem(item)
 
             Return SpecializedTasks.EmptyTask
         End Function

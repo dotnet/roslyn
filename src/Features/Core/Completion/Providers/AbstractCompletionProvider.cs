@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 foreach (var item in items)
                 {
-                    context.AddCompletionItem(item);
+                    context.AddItem(item);
                 }
             }
 
