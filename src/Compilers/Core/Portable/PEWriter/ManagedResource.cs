@@ -32,7 +32,7 @@ namespace Microsoft.Cci
             _isPublic = isPublic;
         }
 
-        public void WriteData(BlobWriter resourceWriter)
+        public void WriteData(BlobBuilder resourceWriter)
         {
             if (_fileReference == null)
             {

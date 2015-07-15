@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public void Serialize(Cci.BlobWriter writer)
+        public void Serialize(Cci.BlobBuilder writer)
         {
             switch (this.Discriminator)
             {
