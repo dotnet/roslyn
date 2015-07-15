@@ -252,6 +252,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
+            /// Finds all generic methods and forces them to be classes. TODO: We should be able to handle this, but for this prototype it's too complicated.
+            /// </summary>
+            private void MarkGenericMethodsAsClass()
+            {
+                foreach (var scope in this.LambdaScopes)
+                {
+                    var isGeneric = false;
+                    var method = scope.Key;
+                    while (method != null && !isGeneric)
+                    {
+                        isGeneric = method.Arity != 0;
+                        method = method.ContainingSymbol as MethodSymbol;
+                    }
+                    if (isGeneric)
+                    {
+                        var node = scope.Value;
+                        do
+                        {
+                            ScopesThatCantBeStructs.Add(node);
+                        } while (this.ScopeParent.TryGetValue(node, out node));
+                    }
+                }
+            }
+
+            /// <summary>
             /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
             ///  </summary>
             internal void ComputeLambdaScopesAndFrameCaptures()
@@ -314,7 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         LambdaScopes.Add(kvp.Key, innermostScope);
 
-                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(kvp.Key);
+                        // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
+                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(kvp.Key) || kvp.Key.IsAsync || kvp.Key.IsIterator;
                         if (markAsNoStruct)
                         {
                             ScopesThatCantBeStructs.Add(innermostScope);
@@ -332,21 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // Note the following is temporary, if we do end up changing the signature of closures to take all
-                // parent frames as a parameter list (where structs are by ref) instead of a linked list of frames,
-                // then we no longer need to worry about double-nested struct closures not being passed by reference.
-
-                // It is illegal to have any parent of a scope be a struct (due to by-value parent fields).
-                // So, find the parent of every closure and check if it's a struct. If so, make it a class.
-                foreach (var kvp in LambdaScopes)
-                {
-                    var scope = kvp.Value;
-                    while (NeedsParentFrame.Contains(scope) && ScopeParent.TryGetValue(scope, out scope) && !ScopesThatCantBeStructs.Contains(scope))
-                    {
-                        // The parent is a struct. Mark it a class. Keep going along the tree.
-                        ScopesThatCantBeStructs.Add(scope);
-                    }
-                }
+                MarkGenericMethodsAsClass();
             }
 
             /// <summary>

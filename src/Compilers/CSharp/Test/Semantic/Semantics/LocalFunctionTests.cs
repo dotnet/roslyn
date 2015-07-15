@@ -949,7 +949,30 @@ Foo();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
             var foo = verify.FindLocalFunction("Foo");
-            Assert.True(foo.ContainingType.IsValueType);
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            Assert.Equal(program, foo.ContainingType);
+            Assert.True(foo.IsStatic);
+            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
+            Assert.True(foo.Parameters[0].Type.IsValueType);
+        }
+
+        [Fact]
+        public void StructClosureGeneric()
+        {
+            var source = @"
+int x = 2;
+void Foo<T1>()
+{
+    int y = x;
+    void Bar<T2>()
+    {
+        Console.Write(x + y);
+    }
+    Bar<T1>();
+}
+Foo<int>();
+";
+            var verify = VerifyOutputInMain(source, "4", "System");
         }
 
         [Fact]
@@ -979,9 +1002,25 @@ void Outer()
 Outer();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            Assert.True(verify.FindLocalFunction("Inner").ContainingType.IsValueType);
-            Assert.True(verify.FindLocalFunction("Middle").ContainingType.IsReferenceType);
-            Assert.True(verify.FindLocalFunction("Outer").ContainingType.IsReferenceType);
+            var inner = verify.FindLocalFunction("Inner");
+            var middle = verify.FindLocalFunction("Middle");
+            var outer = verify.FindLocalFunction("Outer");
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            Assert.Equal(program, inner.ContainingType);
+            Assert.Equal(program, middle.ContainingType);
+            Assert.Equal(program, outer.ContainingType);
+            Assert.True(inner.IsStatic);
+            Assert.True(middle.IsStatic);
+            Assert.True(outer.IsStatic);
+            Assert.Equal(2, inner.Parameters.Length);
+            Assert.Equal(1, middle.Parameters.Length);
+            Assert.Equal(0, outer.Parameters.Length);
+            Assert.Equal(RefKind.Ref, inner.Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, inner.Parameters[1].RefKind);
+            Assert.Equal(RefKind.Ref, middle.Parameters[0].RefKind);
+            Assert.True(inner.Parameters[0].Type.IsValueType);
+            Assert.True(inner.Parameters[1].Type.IsValueType);
+            Assert.True(middle.Parameters[0].Type.IsValueType);
         }
 
         [Fact]
@@ -1038,7 +1077,11 @@ Foo();
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
             var foo = verify.FindLocalFunction("Foo");
-            Assert.True(foo.ContainingType.IsValueType);
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            Assert.Equal(program, foo.ContainingType);
+            Assert.True(foo.IsStatic);
+            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
+            Assert.True(foo.Parameters[0].Type.IsValueType);
         }
 
         [Fact]
@@ -1067,9 +1110,21 @@ void Foo(int depth)
 Foo(0);
 ";
             var verify = VerifyOutputInMain(source, "2", "System");
-            // should be class (due to by-value passing). See bottom of LambdaRewriter.Analysis.ComputeLambdaScopesAndFrameCaptures
-            Assert.True(verify.FindLocalFunction("Foo").ContainingType.IsReferenceType);
-            Assert.True(verify.FindLocalFunction("Bar").ContainingType.IsValueType);
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            var foo = verify.FindLocalFunction("Foo");
+            var bar = verify.FindLocalFunction("Bar");
+            Assert.Equal(program, foo.ContainingType);
+            Assert.Equal(program, bar.ContainingType);
+            Assert.True(foo.IsStatic);
+            Assert.True(bar.IsStatic);
+            Assert.Equal(2, foo.Parameters.Length);
+            Assert.Equal(3, bar.Parameters.Length);
+            Assert.Equal(RefKind.Ref, foo.Parameters[1].RefKind);
+            Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
+            Assert.Equal(RefKind.Ref, bar.Parameters[2].RefKind);
+            Assert.True(foo.Parameters[1].Type.IsValueType);
+            Assert.True(bar.Parameters[2].Type.IsValueType);
+            Assert.True(bar.Parameters[2].Type.IsValueType);
         }
 
         [Fact]

@@ -14,9 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class SynthesizedLambdaMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
         private readonly MethodSymbol _topLevelMethod;
+        private readonly ImmutableArray<TypeSymbol> _structClosures;
 
         internal SynthesizedLambdaMethod(
             NamedTypeSymbol containingType,
+            ImmutableArray<TypeSymbol> structClosures,
             ClosureKind closureKind,
             MethodSymbol topLevelMethod,
             DebugId topLevelMethodId,
@@ -35,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                        | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
             _topLevelMethod = topLevelMethod;
+            _structClosures = structClosures;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
@@ -87,8 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaId.Generation);
         }
 
-        internal override int ParameterCount => this.BaseMethod.ParameterCount;
-
         // The lambda symbol might have declared no parameters in the case
         //
         // D d = delegate {};
@@ -101,6 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // UNDONE: synthetic parameters; in this implementation we use the parameter
         // UNDONE: names from the delegate. Does it really matter?
         protected override ImmutableArray<ParameterSymbol> BaseMethodParameters => this.BaseMethod.Parameters;
+
+        protected override ImmutableArray<TypeSymbol> ExtraSynthesizedRefParameters => _structClosures;
+        internal int ExtraSynthesizedParameterCount => this._structClosures.IsDefault ? 0 : this._structClosures.Length;
 
         internal override bool GenerateDebugInfo => !this.IsAsync;
         internal override bool IsExpressionBodied => false;
