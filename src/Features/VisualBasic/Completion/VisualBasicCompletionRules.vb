@@ -2,7 +2,6 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
-Imports Microsoft.CodeAnalysis.Completion.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
