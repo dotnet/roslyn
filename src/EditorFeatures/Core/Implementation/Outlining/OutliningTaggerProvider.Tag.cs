@@ -58,9 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
             private IWpfTextView CreateElisionBufferView(ITextBuffer finalBuffer)
             {
-                var view = _textEditorFactoryService.CreateTextView(
-                    finalBuffer,
-                    _textEditorFactoryService.NoRoles);
+                var roles = _textEditorFactoryService.CreateTextViewRoleSet(OutliningRegionTextViewRole);
+                var view = _textEditorFactoryService.CreateTextView(finalBuffer, roles);
 
                 view.Background = Brushes.Transparent;
 

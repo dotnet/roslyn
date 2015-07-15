@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag>,
         IEqualityComparer<IOutliningRegionTag>
     {
+        public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
+
         private const int MaxPreviewText = 1000;
         private const string Ellipsis = "...";
 
