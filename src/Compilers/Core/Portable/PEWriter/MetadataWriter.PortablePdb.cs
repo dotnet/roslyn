@@ -185,7 +185,7 @@ namespace Microsoft.Cci
 
         private BlobIdx SerializeLocalConstantSignature(ILocalDefinition localConstant)
         {
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             // CustomMod*
             SerializeCustomModifiers(localConstant.CustomModifiers, writer);
@@ -267,7 +267,7 @@ namespace Microsoft.Cci
 
         private const int ModuleImportScopeRid = 1;
 
-        private void SerializeImport(BlobWriter writer, AssemblyReferenceAlias alias)
+        private void SerializeImport(BlobBuilder writer, AssemblyReferenceAlias alias)
         {
             // <import> ::= AliasAssemblyReference <alias> <target-assembly>
             writer.WriteByte((byte)ImportDefinitionKind.AliasAssemblyReference);
@@ -275,7 +275,7 @@ namespace Microsoft.Cci
             writer.WriteCompressedInteger((uint)GetOrAddAssemblyRefIndex(alias.Assembly));
         }
 
-        private void SerializeImport(BlobWriter writer, UsedNamespaceOrType import)
+        private void SerializeImport(BlobBuilder writer, UsedNamespaceOrType import)
         {
             if (import.TargetXmlNamespaceOpt != null)
             {
@@ -358,7 +358,7 @@ namespace Microsoft.Cci
         private void DefineModuleImportScope()
         {
             // module-level import scope:
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             SerializeModuleDefaultNamespace();
 
@@ -406,7 +406,7 @@ namespace Microsoft.Cci
 
         private BlobIdx SerializeImportsBlob(IImportScope scope)
         {
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
             {
@@ -510,7 +510,7 @@ namespace Microsoft.Cci
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
             Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
 
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             writer.WriteUInt32((uint)((long)asyncInfo.CatchHandlerOffset + 1));
 
@@ -537,7 +537,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             foreach (var scope in scopes)
             {
@@ -564,7 +564,7 @@ namespace Microsoft.Cci
                 return default(BlobIdx);
             }
 
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             int previousNonHiddenStartLine = -1;
             int previousNonHiddenStartColumn = -1;
@@ -625,7 +625,7 @@ namespace Microsoft.Cci
             return _debugHeapsOpt.GetBlobIndex(writer);
         }
 
-        private void SerializeDeltaLinesAndColumns(BlobWriter writer, SequencePoint sequencePoint)
+        private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SequencePoint sequencePoint)
         {
             int deltaLines = sequencePoint.EndLine - sequencePoint.StartLine;
             int deltaColumns = sequencePoint.EndColumn - sequencePoint.StartColumn;
@@ -677,7 +677,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(name != null);
 
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
 
             int c1 = Count(name, Separator1[0]);
             int c2 = Count(name, Separator2[0]);
@@ -719,7 +719,7 @@ namespace Microsoft.Cci
 
             if (!encInfo.LocalSlots.IsDefaultOrEmpty)
             {
-                var writer = new BlobWriter();
+                var writer = new BlobBuilder();
 
                 encInfo.SerializeLocalSlots(writer);
 
@@ -733,7 +733,7 @@ namespace Microsoft.Cci
 
             if (!encInfo.Lambdas.IsDefaultOrEmpty)
             {
-                var writer = new BlobWriter();
+                var writer = new BlobBuilder();
 
                 encInfo.SerializeLambdaMap(writer);
 
@@ -750,7 +750,7 @@ namespace Microsoft.Cci
 
         #region Table Serialization
 
-        private void SerializeDocumentTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeDocumentTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _documentTable)
             {
@@ -761,7 +761,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeMethodBodyTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeMethodBodyTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _methodBodyTable)
             {
@@ -769,7 +769,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeLocalScopeTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeLocalScopeTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _localScopeTable)
             {
@@ -782,7 +782,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeLocalVariableTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeLocalVariableTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _localVariableTable)
             {
@@ -792,7 +792,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeLocalConstantTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeLocalConstantTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _localConstantTable)
             {
@@ -801,7 +801,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeImportScopeTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeImportScopeTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _importScopeTable)
             {
@@ -810,7 +810,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeStateMachineMethodTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeStateMachineMethodTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var row in _stateMachineMethodTable)
             {
@@ -819,7 +819,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomDebugInformationTable(BlobWriter writer, MetadataSizes metadataSizes)
+        private void SerializeCustomDebugInformationTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             // sort by Parent, Kind
             _customDebugInformationTable.Sort(CustomDebugInformationRowComparer.Instance);

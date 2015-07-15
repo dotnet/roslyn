@@ -224,6 +224,7 @@
     <EmbeddedResource Include="SymbolsTests\Metadata\InvalidCharactersInAssemblyName.dll" />
     <Content Include="SymbolsTests\Metadata\InvalidCharactersInAssemblyName.il" />
     <EmbeddedResource Include="SymbolsTests\Metadata\MDTestAttributeApplicationLib.dll" />
+    <EmbeddedResource Include="SymbolsTests\Metadata\InvalidPublicKey.dll" />
     <Content Include="SymbolsTests\Metadata\MDTestAttributeApplicationLib.vb" />
     <EmbeddedResource Include="SymbolsTests\Metadata\MDTestAttributeDefLib.dll" />
     <Content Include="SymbolsTests\Metadata\MDTestAttributeDefLib.vb" />
@@ -411,6 +412,9 @@
   <ItemGroup>
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestResources.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />

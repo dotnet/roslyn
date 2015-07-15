@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return mapBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeLocalSlots(Cci.BlobWriter writer)
+        internal void SerializeLocalSlots(Cci.BlobBuilder writer)
         {
             int syntaxOffsetBaseline = -1;
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Emit
             lambdas = lambdasBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeLambdaMap(Cci.BlobWriter writer)
+        internal void SerializeLambdaMap(Cci.BlobBuilder writer)
         {
             Debug.Assert(this.MethodOrdinal >= -1);
             writer.WriteCompressedInteger((uint)(this.MethodOrdinal + 1));
