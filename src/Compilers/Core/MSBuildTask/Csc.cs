@@ -462,12 +462,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///     the return value will also be false.
         /// </summary>
         /// <owner>RGoel</owner>
-        private bool InitializeHostCompiler
-            (
-            // NOTE: For compat reasons this must remain ICscHostObject
-            // we can dynamically test for smarter interfaces later..
-            ICscHostObject cscHostObject
-            )
+        private bool InitializeHostCompiler(ICscHostObject cscHostObject)
         {
             bool success;
             this.HostCompilerSupportsAllParameters = this.UseHostCompilerIfAvailable;
@@ -476,16 +471,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             try
             {
                 // Need to set these separately, because they don't require a CommitChanges to the C# compiler in the IDE.
-                param = "LinkResources"; this.CheckHostObjectSupport(param, cscHostObject.SetLinkResources(this.LinkResources));
-                param = "References"; this.CheckHostObjectSupport(param, cscHostObject.SetReferences(this.References));
-                param = "Resources"; this.CheckHostObjectSupport(param, cscHostObject.SetResources(this.Resources));
-                param = "Sources"; this.CheckHostObjectSupport(param, cscHostObject.SetSources(this.Sources));
+                CheckHostObjectSupport(param = nameof(LinkResources), cscHostObject.SetLinkResources(LinkResources));
+                CheckHostObjectSupport(param = nameof(References), cscHostObject.SetReferences(References));
+                CheckHostObjectSupport(param = nameof(Resources), cscHostObject.SetResources(Resources));
+                CheckHostObjectSupport(param = nameof(Sources), cscHostObject.SetSources(Sources));
 
                 // For host objects which support it, pass the list of analyzers.
                 IAnalyzerHostObject analyzerHostObject = cscHostObject as IAnalyzerHostObject;
                 if (analyzerHostObject != null)
                 {
-                    param = "Analyzers"; this.CheckHostObjectSupport(param, analyzerHostObject.SetAnalyzers(this.Analyzers));
+                    CheckHostObjectSupport(param = nameof(Analyzers), analyzerHostObject.SetAnalyzers(Analyzers));
                 }
             }
             catch (Exception e) when (!Utilities.IsCriticalException(e))
@@ -503,76 +498,76 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                param = "BeginInitialization";
+                param = nameof(cscHostObject.BeginInitialization);
                 cscHostObject.BeginInitialization();
 
-                param = "AdditionalLibPaths"; this.CheckHostObjectSupport(param, cscHostObject.SetAdditionalLibPaths(this.AdditionalLibPaths));
-                param = "AddModules"; this.CheckHostObjectSupport(param, cscHostObject.SetAddModules(this.AddModules));
-                param = "AllowUnsafeBlocks"; this.CheckHostObjectSupport(param, cscHostObject.SetAllowUnsafeBlocks(this.AllowUnsafeBlocks));
-                param = "BaseAddress"; this.CheckHostObjectSupport(param, cscHostObject.SetBaseAddress(this.BaseAddress));
-                param = "CheckForOverflowUnderflow"; this.CheckHostObjectSupport(param, cscHostObject.SetCheckForOverflowUnderflow(this.CheckForOverflowUnderflow));
-                param = "CodePage"; this.CheckHostObjectSupport(param, cscHostObject.SetCodePage(this.CodePage));
+                CheckHostObjectSupport(param = nameof(AdditionalLibPaths), cscHostObject.SetAdditionalLibPaths(AdditionalLibPaths));
+                CheckHostObjectSupport(param = nameof(AddModules), cscHostObject.SetAddModules(AddModules));
+                CheckHostObjectSupport(param = nameof(AllowUnsafeBlocks), cscHostObject.SetAllowUnsafeBlocks(AllowUnsafeBlocks));
+                CheckHostObjectSupport(param = nameof(BaseAddress), cscHostObject.SetBaseAddress(BaseAddress));
+                CheckHostObjectSupport(param = nameof(CheckForOverflowUnderflow), cscHostObject.SetCheckForOverflowUnderflow(CheckForOverflowUnderflow));
+                CheckHostObjectSupport(param = nameof(CodePage), cscHostObject.SetCodePage(CodePage));
 
                 // These two -- EmitDebugInformation and DebugType -- must go together, with DebugType 
                 // getting set last, because it is more specific.
-                param = "EmitDebugInformation"; this.CheckHostObjectSupport(param, cscHostObject.SetEmitDebugInformation(this.EmitDebugInformation));
-                param = "DebugType"; this.CheckHostObjectSupport(param, cscHostObject.SetDebugType(this.DebugType));
+                CheckHostObjectSupport(param = nameof(EmitDebugInformation), cscHostObject.SetEmitDebugInformation(EmitDebugInformation));
+                CheckHostObjectSupport(param = nameof(DebugType), cscHostObject.SetDebugType(DebugType));
 
-                param = "DefineConstants"; this.CheckHostObjectSupport(param, cscHostObject.SetDefineConstants(this.GetDefineConstantsSwitch(this.DefineConstants)));
-                param = "DelaySign"; this.CheckHostObjectSupport(param, cscHostObject.SetDelaySign((_store["DelaySign"] != null), this.DelaySign));
-                param = "DisabledWarnings"; this.CheckHostObjectSupport(param, cscHostObject.SetDisabledWarnings(this.DisabledWarnings));
-                param = "DocumentationFile"; this.CheckHostObjectSupport(param, cscHostObject.SetDocumentationFile(this.DocumentationFile));
-                param = "ErrorReport"; this.CheckHostObjectSupport(param, cscHostObject.SetErrorReport(this.ErrorReport));
-                param = "FileAlignment"; this.CheckHostObjectSupport(param, cscHostObject.SetFileAlignment(this.FileAlignment));
-                param = "GenerateFullPaths"; this.CheckHostObjectSupport(param, cscHostObject.SetGenerateFullPaths(this.GenerateFullPaths));
-                param = "KeyContainer"; this.CheckHostObjectSupport(param, cscHostObject.SetKeyContainer(this.KeyContainer));
-                param = "KeyFile"; this.CheckHostObjectSupport(param, cscHostObject.SetKeyFile(this.KeyFile));
-                param = "LangVersion"; this.CheckHostObjectSupport(param, cscHostObject.SetLangVersion(this.LangVersion));
-                param = "MainEntryPoint"; this.CheckHostObjectSupport(param, cscHostObject.SetMainEntryPoint(this.TargetType, this.MainEntryPoint));
-                param = "ModuleAssemblyName"; this.CheckHostObjectSupport(param, cscHostObject.SetModuleAssemblyName(this.ModuleAssemblyName));
-                param = "NoConfig"; this.CheckHostObjectSupport(param, cscHostObject.SetNoConfig(this.NoConfig));
-                param = "NoStandardLib"; this.CheckHostObjectSupport(param, cscHostObject.SetNoStandardLib(this.NoStandardLib));
-                param = "Optimize"; this.CheckHostObjectSupport(param, cscHostObject.SetOptimize(this.Optimize));
-                param = "OutputAssembly"; this.CheckHostObjectSupport(param, cscHostObject.SetOutputAssembly(this.OutputAssembly.ItemSpec));
-                param = "PdbFile"; this.CheckHostObjectSupport(param, cscHostObject.SetPdbFile(this.PdbFile));
+                CheckHostObjectSupport(param = nameof(DefineConstants), cscHostObject.SetDefineConstants(GetDefineConstantsSwitch(DefineConstants)));
+                CheckHostObjectSupport(param = nameof(DelaySign), cscHostObject.SetDelaySign((_store["DelaySign"] != null), DelaySign));
+                CheckHostObjectSupport(param = nameof(DisabledWarnings), cscHostObject.SetDisabledWarnings(DisabledWarnings));
+                CheckHostObjectSupport(param = nameof(DocumentationFile), cscHostObject.SetDocumentationFile(DocumentationFile));
+                CheckHostObjectSupport(param = nameof(ErrorReport), cscHostObject.SetErrorReport(ErrorReport));
+                CheckHostObjectSupport(param = nameof(FileAlignment), cscHostObject.SetFileAlignment(FileAlignment));
+                CheckHostObjectSupport(param = nameof(GenerateFullPaths), cscHostObject.SetGenerateFullPaths(GenerateFullPaths));
+                CheckHostObjectSupport(param = nameof(KeyContainer), cscHostObject.SetKeyContainer(KeyContainer));
+                CheckHostObjectSupport(param = nameof(KeyFile), cscHostObject.SetKeyFile(KeyFile));
+                CheckHostObjectSupport(param = nameof(LangVersion), cscHostObject.SetLangVersion(LangVersion));
+                CheckHostObjectSupport(param = nameof(MainEntryPoint), cscHostObject.SetMainEntryPoint(TargetType, MainEntryPoint));
+                CheckHostObjectSupport(param = nameof(ModuleAssemblyName), cscHostObject.SetModuleAssemblyName(ModuleAssemblyName));
+                CheckHostObjectSupport(param = nameof(NoConfig), cscHostObject.SetNoConfig(NoConfig));
+                CheckHostObjectSupport(param = nameof(NoStandardLib), cscHostObject.SetNoStandardLib(NoStandardLib));
+                CheckHostObjectSupport(param = nameof(Optimize), cscHostObject.SetOptimize(Optimize));
+                CheckHostObjectSupport(param = nameof(OutputAssembly), cscHostObject.SetOutputAssembly(OutputAssembly?.ItemSpec));
+                CheckHostObjectSupport(param = nameof(PdbFile), cscHostObject.SetPdbFile(PdbFile));
 
                 // For host objects which support it, set platform with 32BitPreference, HighEntropyVA, and SubsystemVersion
                 ICscHostObject4 cscHostObject4 = cscHostObject as ICscHostObject4;
                 if (cscHostObject4 != null)
                 {
-                    param = "PlatformWith32BitPreference"; this.CheckHostObjectSupport(param, cscHostObject4.SetPlatformWith32BitPreference(this.PlatformWith32BitPreference));
-                    param = "HighEntropyVA"; this.CheckHostObjectSupport(param, cscHostObject4.SetHighEntropyVA(this.HighEntropyVA));
-                    param = "SubsystemVersion"; this.CheckHostObjectSupport(param, cscHostObject4.SetSubsystemVersion(this.SubsystemVersion));
+                    CheckHostObjectSupport(param = nameof(PlatformWith32BitPreference), cscHostObject4.SetPlatformWith32BitPreference(PlatformWith32BitPreference));
+                    CheckHostObjectSupport(param = nameof(HighEntropyVA), cscHostObject4.SetHighEntropyVA(HighEntropyVA));
+                    CheckHostObjectSupport(param = nameof(SubsystemVersion), cscHostObject4.SetSubsystemVersion(SubsystemVersion));
                 }
                 else
                 {
-                    param = "Platform"; this.CheckHostObjectSupport(param, cscHostObject.SetPlatform(this.Platform));
+                    CheckHostObjectSupport(param = nameof(Platform), cscHostObject.SetPlatform(Platform));
                 }
 
                 // For host objects which support it, set the analyzer ruleset and additional files.
                 IAnalyzerHostObject analyzerHostObject = cscHostObject as IAnalyzerHostObject;
                 if (analyzerHostObject != null)
                 {
-                    param = "CodeAnalysisRuleSet"; this.CheckHostObjectSupport(param, analyzerHostObject.SetRuleSet(this.CodeAnalysisRuleSet));
-                    param = "AdditionalFiles"; this.CheckHostObjectSupport(param, analyzerHostObject.SetAdditionalFiles(this.AdditionalFiles));
+                    CheckHostObjectSupport(param = nameof(CodeAnalysisRuleSet), analyzerHostObject.SetRuleSet(CodeAnalysisRuleSet));
+                    CheckHostObjectSupport(param = nameof(AdditionalFiles), analyzerHostObject.SetAdditionalFiles(AdditionalFiles));
                 }
 
                 ICscHostObject5 cscHostObject5 = cscHostObject as ICscHostObject5;
                 if (cscHostObject5 != null)
                 {
-                    param = "ErrorLog"; this.CheckHostObjectSupport(param, cscHostObject5.SetErrorLog(this.ErrorLog));
-                    param = "ReportAnalyzer"; this.CheckHostObjectSupport(param, cscHostObject5.SetReportAnalyzer(this.ReportAnalyzer));
+                    CheckHostObjectSupport(param = nameof(ErrorLog), cscHostObject5.SetErrorLog(ErrorLog));
+                    CheckHostObjectSupport(param = nameof(ReportAnalyzer), cscHostObject5.SetReportAnalyzer(ReportAnalyzer));
                 }
 
-                param = "ResponseFiles"; this.CheckHostObjectSupport(param, cscHostObject.SetResponseFiles(this.ResponseFiles));
-                param = "TargetType"; this.CheckHostObjectSupport(param, cscHostObject.SetTargetType(this.TargetType));
-                param = "TreatWarningsAsErrors"; this.CheckHostObjectSupport(param, cscHostObject.SetTreatWarningsAsErrors(this.TreatWarningsAsErrors));
-                param = "WarningLevel"; this.CheckHostObjectSupport(param, cscHostObject.SetWarningLevel(this.WarningLevel));
+                CheckHostObjectSupport(param = nameof(ResponseFiles), cscHostObject.SetResponseFiles(ResponseFiles));
+                CheckHostObjectSupport(param = nameof(TargetType), cscHostObject.SetTargetType(TargetType));
+                CheckHostObjectSupport(param = nameof(TreatWarningsAsErrors), cscHostObject.SetTreatWarningsAsErrors(TreatWarningsAsErrors));
+                CheckHostObjectSupport(param = nameof(WarningLevel), cscHostObject.SetWarningLevel(WarningLevel));
                 // This must come after TreatWarningsAsErrors.
-                param = "WarningsAsErrors"; this.CheckHostObjectSupport(param, cscHostObject.SetWarningsAsErrors(this.WarningsAsErrors));
+                CheckHostObjectSupport(param = nameof(WarningsAsErrors), cscHostObject.SetWarningsAsErrors(WarningsAsErrors));
                 // This must come after TreatWarningsAsErrors.
-                param = "WarningsNotAsErrors"; this.CheckHostObjectSupport(param, cscHostObject.SetWarningsNotAsErrors(this.WarningsNotAsErrors));
-                param = "Win32Icon"; this.CheckHostObjectSupport(param, cscHostObject.SetWin32Icon(this.Win32Icon));
+                CheckHostObjectSupport(param = nameof(WarningsNotAsErrors), cscHostObject.SetWarningsNotAsErrors(WarningsNotAsErrors));
+                CheckHostObjectSupport(param = nameof(Win32Icon), cscHostObject.SetWin32Icon(Win32Icon));
 
                 // In order to maintain compatibility with previous host compilers, we must
                 // light-up for ICscHostObject2/ICscHostObject3
@@ -580,7 +575,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (cscHostObject is ICscHostObject2)
                 {
                     ICscHostObject2 cscHostObject2 = (ICscHostObject2)cscHostObject;
-                    param = "Win32Manifest"; this.CheckHostObjectSupport(param, cscHostObject2.SetWin32Manifest(this.GetWin32ManifestSwitch(this.NoWin32Manifest, this.Win32Manifest)));
+                    CheckHostObjectSupport(param = nameof(Win32Manifest), cscHostObject2.SetWin32Manifest(GetWin32ManifestSwitch(NoWin32Manifest, Win32Manifest)));
                 }
                 else
                 {
@@ -588,17 +583,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // then we need to state that we are falling back to the command line compiler
                     if (!String.IsNullOrEmpty(Win32Manifest))
                     {
-                        this.CheckHostObjectSupport("Win32Manifest", false);
+                        CheckHostObjectSupport(param = nameof(Win32Manifest), resultFromHostObjectSetOperation: false);
                     }
                 }
 
                 // This must come after Win32Manifest
-                param = "Win32Resource"; this.CheckHostObjectSupport(param, cscHostObject.SetWin32Resource(this.Win32Resource));
+                CheckHostObjectSupport(param = nameof(Win32Resource), cscHostObject.SetWin32Resource(Win32Resource));
 
                 if (cscHostObject is ICscHostObject3)
                 {
                     ICscHostObject3 cscHostObject3 = (ICscHostObject3)cscHostObject;
-                    param = "ApplicationConfiguration"; this.CheckHostObjectSupport(param, cscHostObject3.SetApplicationConfiguration(this.ApplicationConfiguration));
+                    CheckHostObjectSupport(param = nameof(ApplicationConfiguration), cscHostObject3.SetApplicationConfiguration(ApplicationConfiguration));
                 }
                 else
                 {
@@ -606,7 +601,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // then we need to state that we are falling back to the command line compiler
                     if (!String.IsNullOrEmpty(ApplicationConfiguration))
                     {
-                        this.CheckHostObjectSupport("ApplicationConfiguration", false);
+                        CheckHostObjectSupport(nameof(ApplicationConfiguration), resultFromHostObjectSetOperation: false);
                     }
                 }
 
@@ -617,7 +612,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // Other options are not supported since in-proc compiler always uses current locale.
                 if (!String.IsNullOrEmpty(PreferredUILang) && !String.Equals(PreferredUILang, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    this.CheckHostObjectSupport("PreferredUILang", false);
+                    CheckHostObjectSupport(nameof(PreferredUILang), resultFromHostObjectSetOperation: false);
                 }
             }
             catch (Exception e) when (!Utilities.IsCriticalException(e))

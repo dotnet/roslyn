@@ -449,7 +449,7 @@ public class neutral
             var hash_module = TestReferences.SymbolsTests.netModule.hash_module;
 
             var hash_resources = new[] {new ResourceDescription("hash_resource", "snKey.snk",
-                () => new MemoryStream(TestResources.SymbolsTests.General.snKey, writable: false),
+                () => new MemoryStream(TestResources.General.snKey, writable: false),
                 true)};
 
             CSharpCompilation compilation;

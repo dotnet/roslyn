@@ -93,6 +93,10 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
@@ -411,7 +415,6 @@
     <Compile Include="ImplementInterface\IImplementInterfaceService.cs" />
     <Compile Include="IncrementalCaches\SymbolTreeInfoIncrementalAnalyzerProvider.cs" />
     <Compile Include="IncrementalCaches\SyntaxTreeInfoIncrementalAnalyzerProvider.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.CodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.State.cs" />
