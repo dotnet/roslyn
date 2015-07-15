@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             var project = ProjectTracker.GetProject(documentId.ProjectId);

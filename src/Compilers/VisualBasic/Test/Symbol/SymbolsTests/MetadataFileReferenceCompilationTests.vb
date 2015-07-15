@@ -78,8 +78,8 @@ BC31007: Unable to load module file 'Foo.dll': Image is too small.
 
     <Fact>
     Public Sub ReferencesVersioning()
-        Dim metadata1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1)
-        Dim metadata2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.C2)
+        Dim metadata1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1)
+        Dim metadata2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2)
 
         Dim b = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
 <compilation name="b">
@@ -91,7 +91,7 @@ Public Class B
 End Class
     </file>
 </compilation>,
-        references:={MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2)},
+        references:={MetadataReference.CreateFromImage(TestResources.General.C2)},
         options:=TestOptions.ReleaseDll)
 
         Dim metadata3 = AssemblyMetadata.CreateFromImage(b.EmitToArray())
