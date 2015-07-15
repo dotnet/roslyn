@@ -198,16 +198,17 @@ namespace Microsoft.CodeAnalysis.Completion
 
             foreach (var completionList in completionLists)
             {
-                if (completionList != null)
-                {
-                    foreach (var item in completionList.Items.WhereNotNull())
-                    {
-                        // New items that match an existing item will replace it.
-                        ReplaceExistingItem(item, displayNameToItemsMap, completionRules);
-                    }
+                Contract.Assert(completionList != null);
 
-                    builder = builder ?? completionList.Builder;
+                foreach (var item in completionList.Items)
+                {
+                    Contract.Assert(item != null);
+
+                    // New items that match an existing item will replace it.
+                    ReplaceExistingItem(item, displayNameToItemsMap, completionRules);
                 }
+
+                builder = builder ?? completionList.Builder;
             }
 
             if (displayNameToItemsMap.Count == 0)
