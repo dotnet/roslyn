@@ -41,8 +41,13 @@ namespace TestResources
         {
             if (resource == null)
             {
-                var bytes = GetResourceBlob(name);
-                resource = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
+                using (var stream = GetResourceStream(name))
+                {
+                    using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
+                    {
+                        resource = streamReader.ReadToEnd();
+                    }
+                }
             }
 
             return resource;

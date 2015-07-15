@@ -415,8 +415,8 @@ namespace TestResources.SymbolsTests
         private static byte[] _CL3;
         public static byte[] CL3 => ResourceLoader.GetOrCreateResource(ref _CL3, "SymbolsTests.MissingTypes.CL3.dll");
 
-        private static byte[] _CL3_VB;
-        public static byte[] CL3_VB => ResourceLoader.GetOrCreateResource(ref _CL3_VB, "SymbolsTests.MissingTypes.CL3.vb");
+        private static string _CL3_VB;
+        public static string CL3_VB => ResourceLoader.GetOrCreateResource(ref _CL3_VB, "SymbolsTests.MissingTypes.CL3.vb");
 
         private static byte[] _MDMissingType;
         public static byte[] MDMissingType => ResourceLoader.GetOrCreateResource(ref _MDMissingType, "SymbolsTests.MissingTypes.MDMissingType.dll");
@@ -598,14 +598,14 @@ namespace TestResources.SymbolsTests
         private static byte[] _MTTestLib1;
         public static byte[] MTTestLib1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1, "SymbolsTests.V1.MTTestLib1.Dll");
 
-        private static byte[] _MTTestLib1_V1;
-        public static byte[] MTTestLib1_V1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1_V1, "SymbolsTests.V1.MTTestLib1_V1.vb");
+        private static string _MTTestLib1_V1;
+        public static string MTTestLib1_V1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1_V1, "SymbolsTests.V1.MTTestLib1_V1.vb");
 
         private static byte[] _MTTestLib2;
         public static byte[] MTTestLib2 => ResourceLoader.GetOrCreateResource(ref _MTTestLib2, "SymbolsTests.V1.MTTestLib2.Dll");
 
-        private static byte[] _MTTestLib2_V1;
-        public static byte[] MTTestLib2_V1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib2_V1, "SymbolsTests.V1.MTTestLib2_V1.vb");
+        private static string _MTTestLib2_V1;
+        public static string MTTestLib2_V1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib2_V1, "SymbolsTests.V1.MTTestLib2_V1.vb");
 
         private static byte[] _MTTestModule1;
         public static byte[] MTTestModule1 => ResourceLoader.GetOrCreateResource(ref _MTTestModule1, "SymbolsTests.V1.MTTestModule1.netmodule");
@@ -619,14 +619,14 @@ namespace TestResources.SymbolsTests
         private static byte[] _MTTestLib1;
         public static byte[] MTTestLib1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1, "SymbolsTests.V2.MTTestLib1.Dll");
 
-        private static byte[] _MTTestLib1_V2;
-        public static byte[] MTTestLib1_V2 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1_V2, "SymbolsTests.V2.MTTestLib1_V2.vb");
+        private static string _MTTestLib1_V2;
+        public static string MTTestLib1_V2 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1_V2, "SymbolsTests.V2.MTTestLib1_V2.vb");
 
         private static byte[] _MTTestLib3;
         public static byte[] MTTestLib3 => ResourceLoader.GetOrCreateResource(ref _MTTestLib3, "SymbolsTests.V2.MTTestLib3.Dll");
 
-        private static byte[] _MTTestLib3_V2;
-        public static byte[] MTTestLib3_V2 => ResourceLoader.GetOrCreateResource(ref _MTTestLib3_V2, "SymbolsTests.V2.MTTestLib3_V2.vb");
+        private static string _MTTestLib3_V2;
+        public static string MTTestLib3_V2 => ResourceLoader.GetOrCreateResource(ref _MTTestLib3_V2, "SymbolsTests.V2.MTTestLib3_V2.vb");
 
         private static byte[] _MTTestModule1;
         public static byte[] MTTestModule1 => ResourceLoader.GetOrCreateResource(ref _MTTestModule1, "SymbolsTests.V2.MTTestModule1.netmodule");
@@ -640,14 +640,14 @@ namespace TestResources.SymbolsTests
         private static byte[] _MTTestLib1;
         public static byte[] MTTestLib1 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1, "SymbolsTests.V3.MTTestLib1.Dll");
 
-        private static byte[] _MTTestLib1_V3;
-        public static byte[] MTTestLib1_V3 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1_V3, "SymbolsTests.V3.MTTestLib1_V3.vb");
+        private static string _MTTestLib1_V3;
+        public static string MTTestLib1_V3 => ResourceLoader.GetOrCreateResource(ref _MTTestLib1_V3, "SymbolsTests.V3.MTTestLib1_V3.vb");
 
         private static byte[] _MTTestLib4;
         public static byte[] MTTestLib4 => ResourceLoader.GetOrCreateResource(ref _MTTestLib4, "SymbolsTests.V3.MTTestLib4.Dll");
 
-        private static byte[] _MTTestLib4_V3;
-        public static byte[] MTTestLib4_V3 => ResourceLoader.GetOrCreateResource(ref _MTTestLib4_V3, "SymbolsTests.V3.MTTestLib4_V3.vb");
+        private static string _MTTestLib4_V3;
+        public static string MTTestLib4_V3 => ResourceLoader.GetOrCreateResource(ref _MTTestLib4_V3, "SymbolsTests.V3.MTTestLib4_V3.vb");
 
         private static byte[] _MTTestModule1;
         public static byte[] MTTestModule1 => ResourceLoader.GetOrCreateResource(ref _MTTestModule1, "SymbolsTests.V3.MTTestModule1.netmodule");

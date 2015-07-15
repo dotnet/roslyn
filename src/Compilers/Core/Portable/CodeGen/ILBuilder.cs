@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var writer = Cci.BlobWriter.GetInstance();
+            var writer = Cci.BlobBuilder.GetInstance();
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {
