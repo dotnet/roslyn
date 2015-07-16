@@ -51,6 +51,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
+        internal static ICompletionService GetCompletionService(Document document)
+        {
+            return document.Project.LanguageServices.GetService<ICompletionService>();
+        }
+
+        internal static CompletionRules GetCompletionRules(Document document)
+        {
+            return GetCompletionService(document).GetDefaultCompletionRules();
+        }
+
         internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo)
         {
             var context = new CompletionListContext(document, position, triggerInfo, CancellationToken.None);
@@ -285,8 +295,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
             if (customCommitCompletionProvider != null)
             {
+                var completionRules = GetCompletionRules(document);
                 var textView = WorkspaceFixture.Workspace.Documents.Single().GetTextView();
-                VerifyCustomCommitWorker(customCommitCompletionProvider, firstItem, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                VerifyCustomCommitWorker(customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
             {
@@ -294,8 +305,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        internal virtual void VerifyCustomCommitWorker(ICustomCommitCompletionProvider customCommitCompletionProvider,
+        internal virtual void VerifyCustomCommitWorker(
+            ICustomCommitCompletionProvider customCommitCompletionProvider,
             CompletionItem completionItem,
+            CompletionRules completionRules,
             ITextView textView,
             ITextBuffer textBuffer,
             string codeBeforeCommit,
@@ -306,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string actualExpectedCode = null;
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out actualExpectedCode, out expectedCaretPosition);
 
-            if (commitChar.HasValue && !((CompletionListProvider)customCommitCompletionProvider).IsCommitCharacter(completionItem, commitChar.Value, string.Empty))
+            if (commitChar.HasValue && !completionRules.IsCommitCharacter(completionItem, commitChar.Value, string.Empty))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -349,7 +362,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var items = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var textChange = CompletionProvider.IsCommitCharacter(firstItem, commitChar.HasValue ? commitChar.Value : ' ', textTypedSoFar)
+            var completionRules = GetCompletionRules(document);
+            var textChange = completionRules.IsCommitCharacter(firstItem, commitChar.HasValue ? commitChar.Value : ' ', textTypedSoFar)
                 ? CompletionProvider.GetTextChange(firstItem, commitChar, textTypedSoFar)
                 : new TextChange();
 

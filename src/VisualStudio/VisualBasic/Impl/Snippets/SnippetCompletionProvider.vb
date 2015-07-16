@@ -52,13 +52,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                                                   s.Shortcut,
                                                                   span,
                                                                   description:=s.Description.ToSymbolDisplayParts(),
-                                                                  glyph:=Glyph.Snippet))
-        End Function
-
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Dim commitChars = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
-
-            Return commitChars.Contains(ch)
+                                                                  glyph:=Glyph.Snippet,
+                                                                  rules:=SnippetCompletionItemRules.Instance))
         End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

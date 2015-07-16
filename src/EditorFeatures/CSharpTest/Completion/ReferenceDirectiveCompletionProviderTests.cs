@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         public void IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\', ',' };
-            TestCommitCharacters(commitCharacters);
+            VerifyCommitCharacters("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

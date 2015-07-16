@@ -18,21 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle:=SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions:=
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            If ch = "("c AndAlso completionItem.DisplayText.IndexOf("("c) <> -1 Then
-                Return False
-            End If
-
-            If ch = " " Then
-                Dim textSoFar = textTypedSoFar.TrimEnd()
-                Return Not (textSoFar.Length >= 2 AndAlso Char.ToUpper(textSoFar(textSoFar.Length - 2)) = "O"c AndAlso Char.ToUpper(textSoFar(textSoFar.Length - 1)) = "F"c)
-            End If
-
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)

@@ -5,10 +5,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders.XmlDocCommentCompletion
 {
-    internal class XmlDocCommentCompletionItemRules : CompletionItemRules
+    internal abstract class AbstractXmlDocCommentCompletionItemRules : CompletionItemRules
     {
-        public static XmlDocCommentCompletionItemRules Instance = new XmlDocCommentCompletionItemRules();
-
         public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
             if (ch == '!' || ch == '-' || ch == '[')

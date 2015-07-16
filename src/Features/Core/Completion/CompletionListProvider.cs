@@ -24,14 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public abstract bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options);
 
         /// <summary>
-        /// Returns true if the character is one that can commit the specified completion item. A
-        /// character will be checked to see if it should filter an item.  If not, it will be checked
-        /// to see if it should commit that item.  If it does neither, then completion will be
-        /// dismissed.
-        /// </summary>
-        public abstract bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar);
-
-        /// <summary>
         /// The text change that will be made when this item is committed.  The text change includes
         /// both the span of text to replace (respective to the original document text when this
         /// completion item was created) and the text to replace it with.  The span will be adjusted

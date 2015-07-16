@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsCommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            VerifyCommonCommitCharacters("$$", textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

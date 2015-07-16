@@ -9,6 +9,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         public static MemberInsertingCompletionItemRules Instance { get; } = new MemberInsertingCompletionItemRules();
 
+        public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            // Commit on tab, enter and (
+            return ch == '(';
+        }
+
         public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;

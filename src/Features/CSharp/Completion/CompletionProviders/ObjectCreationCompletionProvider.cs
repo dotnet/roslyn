@@ -26,14 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.GetTextChangeSpan(text, position);
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            // TODO(cyrusn): We could just allow the standard list of completion characters.
-            // However, i'd like to see what the experience is like really filtering down to the set
-            // of things that is allowable.
-            return ch == ' ' || ch == '(' || ch == '{' || ch == '[';
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
@@ -106,6 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return base.GetDisplayAndInsertionText(symbol, context);
+        }
+
+        protected override CompletionItemRules CreateCompletionItemRules()
+        {
+            return ObjectCreationCompletionItemRules.Instance;
         }
     }
 }

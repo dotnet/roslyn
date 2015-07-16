@@ -689,7 +689,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            Const code = "
+Imports System
+Class C
+    Sub M()
+        $$
+    End Sub
+End Class"
+
+            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

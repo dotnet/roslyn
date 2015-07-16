@@ -17,7 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class C
+{
+    $$
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

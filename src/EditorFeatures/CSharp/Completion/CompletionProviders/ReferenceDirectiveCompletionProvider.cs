@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
-        }
-
         private ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
         {
             return PathCompletionUtilities.GetCurrentWorkingDirectoryDiscoveryService(textSnapshot);

@@ -177,7 +177,7 @@ text;
             }
         }
 
-        protected void TestCommonIsCommitCharacter()
+        protected void VerifyCommonCommitCharacters(string initialMarkup, string textTypedSoFar)
         {
             var commitCharacters = new[]
             {
@@ -186,18 +186,37 @@ text;
                 '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'
             };
 
-            TestCommitCharacters(commitCharacters);
+            VerifyCommitCharacters(initialMarkup, textTypedSoFar, commitCharacters);
         }
 
-        protected void TestCommitCharacters(char[] commitCharacters)
+        protected void VerifyCommitCharacters(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null)
         {
-            foreach (var ch in commitCharacters)
-            {
-                Assert.True(CompletionProvider.IsCommitCharacter(null, ch, null), "Expected '" + ch + "' to be a commit character");
-            }
+            Assert.NotNull(validChars);
+            invalidChars = invalidChars ?? new [] { 'x' };
 
-            var chr = 'x';
-            Assert.False(CompletionProvider.IsCommitCharacter(null, chr, null), "Expected '" + chr + "' NOT to be a commit character");
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup))
+            {
+                var hostDocument = workspace.DocumentWithCursor;
+                var documentId = workspace.GetDocumentId(hostDocument);
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var position = hostDocument.CursorPosition.Value;
+
+                var completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
+
+                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
+                var completionRules = completionService.GetDefaultCompletionRules();
+
+                foreach (var ch in validChars)
+                {
+                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character");
+                }
+
+                foreach (var ch in invalidChars)
+                {
+                    Assert.False(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' NOT to be a commit character");
+                }
+            }
         }
 
         protected void TestCommonIsTextualTriggerCharacter()

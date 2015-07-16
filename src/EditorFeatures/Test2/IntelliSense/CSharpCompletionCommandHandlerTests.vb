@@ -1390,10 +1390,6 @@ class C
                 Return True
             End Function
 
-            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-                Return False
-            End Function
-
             Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
                 Throw New NotImplementedException()
             End Function

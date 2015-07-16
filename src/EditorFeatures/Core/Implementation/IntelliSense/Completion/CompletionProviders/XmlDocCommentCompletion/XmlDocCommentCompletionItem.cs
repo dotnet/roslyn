@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 
         public XmlDocCommentCompletionItem(CompletionListProvider provider,
             TextSpan filterSpan,
-            string displayText)
-            : this(provider, filterSpan, displayText, displayText, string.Empty)
+            string displayText,
+            CompletionItemRules rules)
+            : this(provider, filterSpan, displayText, displayText, string.Empty, rules)
         {
         }
 
@@ -25,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             TextSpan filterSpan,
             string displayText,
             string beforeCaretText,
-            string afterCaretText)
-            : base(provider, displayText, filterSpan, glyph: CodeAnalysis.Glyph.Keyword, rules: XmlDocCommentCompletionItemRules.Instance)
+            string afterCaretText,
+            CompletionItemRules rules)
+            : base(provider, displayText, filterSpan, glyph: CodeAnalysis.Glyph.Keyword, rules: rules)
         {
             _beforeCaretText = beforeCaretText;
             _afterCaretText = afterCaretText;

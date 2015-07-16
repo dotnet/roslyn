@@ -37,7 +37,19 @@ class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

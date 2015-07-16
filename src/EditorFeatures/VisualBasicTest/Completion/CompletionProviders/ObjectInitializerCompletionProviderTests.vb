@@ -366,7 +366,18 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            Const code = "
+Public Class C
+    Public bar as Integer
+End Class
+
+Class Program
+    Sub foo()
+        Dim a as C = new C With { .$$
+    End Sub
+End Program"
+
+            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

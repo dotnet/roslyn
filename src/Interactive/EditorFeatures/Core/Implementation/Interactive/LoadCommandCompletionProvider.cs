@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
-        }
-
         public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
         {
             // When we commit "\\" when the user types \ we have to adjust for the fact that the

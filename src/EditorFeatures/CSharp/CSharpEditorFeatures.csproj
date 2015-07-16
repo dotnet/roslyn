@@ -99,6 +99,7 @@
     <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionProvider.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />
     <Compile Include="CSharpEditorResources.Designer.cs">

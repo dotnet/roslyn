@@ -7,7 +7,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Class CrefCompletionItemRules
         Inherits CompletionItemRules
 
-        Public Shared ReadOnly Property Instance As CrefCompletionItemRules = New CrefCompletionItemRules()
+        Public Shared ReadOnly Property Instance As New CrefCompletionItemRules()
+
+        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Result(Of Boolean)
+            If ch = "("c AndAlso completionItem.DisplayText.IndexOf("("c) <> -1 Then
+                Return False
+            End If
+
+            If ch = " " Then
+                Dim textSoFar = textTypedSoFar.TrimEnd()
+                Return Not (textSoFar.Length >= 2 AndAlso Char.ToUpper(textSoFar(textSoFar.Length - 2)) = "O"c AndAlso Char.ToUpper(textSoFar(textSoFar.Length - 1)) = "F"c)
+            End If
+
+            Return MyBase.IsCommitCharacter(completionItem, ch, textTypedSoFar)
+        End Function
 
         Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String, options As OptionSet) As Result(Of Boolean)
             Return False

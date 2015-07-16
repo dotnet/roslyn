@@ -24,17 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Dim symbolItem = TryCast(completionItem, SymbolCompletionItem)
-            If symbolItem IsNot Nothing AndAlso symbolItem.Context.IsInImportsDirective Then
-                ' If the user is writing "Imports S" then the only commit character is <dot>
-                ' as they might be typing an Imports alias.
-                Return ch = "."c
-            End If
-
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
@@ -98,5 +87,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return MyBase.GetFilterText(symbol, displayText, context)
         End Function
+
+        Protected Overrides Function CreateCompletionItemRules() As CompletionItemRules
+            Return SymbolCompletionItemRules.Instance
+        End Function
+
     End Class
 End Namespace

@@ -14,15 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
     Partial Friend Class XmlDocCommentCompletionProvider
         Inherits AbstractDocCommentCompletionProvider
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            If (ch = """"c OrElse ch = " "c) AndAlso
-                completionItem.DisplayText.Contains(ch) Then
-                Return False
-            End If
-
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = "<"c OrElse (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
         End Function
@@ -168,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
             Dim nameToken = name.LocalName
             If Not nameToken.IsMissing AndAlso nameToken.ValueText.Length > 0 Then
-                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(New XmlDocCommentCompletionItem(Me, span, nameToken.ValueText, nameToken.ValueText + ">", String.Empty))
+                Return SpecializedCollections.SingletonEnumerable(Of CompletionItem)(New XmlDocCommentCompletionItem(Me, span, nameToken.ValueText, nameToken.ValueText + ">", String.Empty, GetCompletionItemRules()))
             End If
 
             Return Nothing
@@ -224,11 +215,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
                     If attributeName = "name" Then
                         If tagName = "param" Then
-                            items.AddRange(symbol.GetParameters().Select(Function(s) New XmlDocCommentCompletionItem(Me, span, s.Name)))
+                            items.AddRange(symbol.GetParameters().Select(Function(s) New XmlDocCommentCompletionItem(Me, span, s.Name, GetCompletionItemRules())))
                         End If
 
                         If tagName = "typeparam" Then
-                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) New XmlDocCommentCompletionItem(Me, span, s.Name)))
+                            items.AddRange(symbol.GetTypeArguments().Select(Function(s) New XmlDocCommentCompletionItem(Me, span, s.Name, GetCompletionItemRules())))
                         End If
                     End If
                 End If
@@ -271,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             Dim typeParameters = type.GetTypeArguments().Select(Function(t) t.Name).ToSet()
             RemoveExistingTags(parent, typeParameters, Function(e) FindName("typeparam", e))
 
-            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p))))
+            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
 
             Return items
         End Function
@@ -297,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 End If
             Next
 
-            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p))))
+            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
 
             If value Then
                 items.Add(GetItem("value", span))
@@ -327,8 +318,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
                 End If
             Next
 
-            items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("param", p))))
-            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p))))
+            items.AddRange(parameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("param", p), GetCompletionItemRules())))
+            items.AddRange(typeParameters.Select(Function(p) New XmlDocCommentCompletionItem(Me, span, FormatParameter("typeparam", p), GetCompletionItemRules())))
 
             If returns Then
                 items.Add(GetItem("return", span))
@@ -377,6 +368,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
             End If
 
             Return Nothing
+        End Function
+
+        Protected Overrides Function GetCompletionItemRules() As AbstractXmlDocCommentCompletionItemRules
+            Return XmlDocCommentCompletionItemRules.Instance
         End Function
 
     End Class

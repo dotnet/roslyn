@@ -23,10 +23,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Return SpecializedTasks.EmptyTask
         End Function
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return True
         End Function

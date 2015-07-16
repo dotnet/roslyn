@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
                 Glyph? glyph,
                 string sortText)
-                : base(completionProvider, displayText, textSpan, descriptionFactory, glyph, sortText)
+                : base(completionProvider, displayText, textSpan, descriptionFactory, glyph, sortText, rules: CrefCompletionItemRules.Instance)
             {
                 this.InsertionText = insertionText;
             }

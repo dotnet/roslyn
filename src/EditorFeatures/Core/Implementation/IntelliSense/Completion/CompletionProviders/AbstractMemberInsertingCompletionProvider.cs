@@ -42,12 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return SpecializedTasks.True;
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string text)
-        {
-            // Commit on tab, enter and (
-            return ch == '(';
-        }
-
         public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
         {
             return default(TextChange);

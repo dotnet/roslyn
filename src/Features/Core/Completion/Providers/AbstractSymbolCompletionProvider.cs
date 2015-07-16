@@ -140,7 +140,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols,
                 context,
                 supportedPlatforms: supportedPlatformData,
-                preselect: preselect);
+                preselect: preselect,
+                rules: CreateCompletionItemRules());
+        }
+
+        protected virtual CompletionItemRules CreateCompletionItemRules()
+        {
+            return null;
         }
 
         private string GetInsertionText(SymbolCompletionItem symbolItem, char ch)

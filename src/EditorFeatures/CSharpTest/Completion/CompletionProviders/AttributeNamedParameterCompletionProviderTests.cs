@@ -40,7 +40,22 @@ public class TestAttribute : Attribute
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+using System;
+class class1
+{
+    [Test($$
+    public void Foo()
+    {
+    }
+}
+ 
+public class TestAttribute : Attribute
+{
+    public ConsoleColor Color { get; set; }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

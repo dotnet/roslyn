@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterText = GetCurrentFilterText(model, selectedItem);
 
-            return selectedItem.CompletionProvider.IsCommitCharacter(selectedItem, ch, filterText);
+            return GetCompletionRules().IsCommitCharacter(selectedItem, ch, filterText);
         }
 
         private bool IsFilterCharacter(char ch)

@@ -185,9 +185,11 @@
     <Compile Include="Completion\CompletionProviders\ImplementsClauseCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionItemRules.vb" />
     <Compile Include="Completion\SuggestionMode\VisualBasicSuggestionModeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.vb" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.vb" />

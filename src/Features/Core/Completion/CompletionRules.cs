@@ -156,6 +156,29 @@ namespace Microsoft.CodeAnalysis.Completion
                 && item1.SortText == item2.SortText;
         }
 
+        protected virtual bool IsCommitCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the character is one that can commit the specified completion item. A
+        /// character will be checked to see if it should filter an item.  If not, it will be checked
+        /// to see if it should commit that item.  If it does neither, then completion will be
+        /// dismissed.
+        /// </summary>
+        public bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            var result = completionItem.Rules.IsCommitCharacter(completionItem, ch, textTypedSoFar);
+
+            if (result.UseDefault)
+            {
+                return IsCommitCharacterCore(completionItem, ch, textTypedSoFar);
+            }
+
+            return (bool)result;
+        }
+
         protected virtual bool IsFilterCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
             return false;

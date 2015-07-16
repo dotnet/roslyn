@@ -10,6 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Private NotInheritable Class VisualBasicCompletionRules
             Inherits CompletionRules
 
+            Private ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c, "?"c}
+
             Public Sub New(service As AbstractCompletionService)
                 MyBase.New(service)
             End Sub
@@ -133,6 +135,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
                 Return (item1.Glyph IsNot Nothing AndAlso item2.Glyph IsNot Nothing) AndAlso
                        (item1.Glyph.Value = item2.Glyph.Value)
+            End Function
+
+            Protected Overrides Function IsCommitCharacterCore(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
+                Return s_commitChars.Contains(ch)
             End Function
 
             Protected Overrides Function SendEnterThroughToEditorCore(completionItem As CompletionItem, textTypedSoFar As String, options As OptionSet) As Boolean

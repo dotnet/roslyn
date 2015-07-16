@@ -39,10 +39,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return SpecializedTasks.EmptyTask
         End Function
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return If(_isTriggerCharacter Is Nothing, Nothing, _isTriggerCharacter(text, characterPosition))
         End Function

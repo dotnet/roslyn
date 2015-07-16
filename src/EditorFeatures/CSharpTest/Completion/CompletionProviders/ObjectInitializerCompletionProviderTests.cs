@@ -536,7 +536,18 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestCommitCharacter()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "v");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
