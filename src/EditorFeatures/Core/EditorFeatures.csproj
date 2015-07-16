@@ -674,6 +674,7 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerDataSource.cs" />
     <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
     <Compile Include="Tagging\AsynchronousViewTaggerProvider.cs" />
     <Compile Include="Undo\DefaultSourceTextUndoService.cs" />

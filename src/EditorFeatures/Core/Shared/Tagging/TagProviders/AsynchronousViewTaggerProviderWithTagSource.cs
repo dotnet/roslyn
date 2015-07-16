@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -15,20 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal sealed class AsynchronousViewTaggerProviderWithTagSource<TTag> :
         AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>,
-        IViewTaggerProvider,
-        IAsynchronousTaggerDataSource<TTag>
+        IViewTaggerProvider
         where TTag : ITag
     {
-        private readonly IAsynchronousTaggerDataSource<TTag> dataSource;
-        private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource;
-
-        public IEqualityComparer<TTag> TagComparer => dataSource.TagComparer;
-        public override TaggerDelay? UIUpdateDelay => dataSource.UIUpdateDelay;
-        public SpanTrackingMode SpanTrackingMode => dataSource.SpanTrackingMode;
-        public bool RemoveTagsThatIntersectEdits => dataSource.RemoveTagsThatIntersectEdits;
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-        public override IEnumerable<Option<bool>> Options => dataSource.Options;
-        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => dataSource.PerLanguageOptions;
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
+        private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> _createTagSource;
 
         public AsynchronousViewTaggerProviderWithTagSource(
             IAsynchronousTaggerDataSource<TTag> dataSource,
@@ -37,23 +26,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource)
             : base(asyncListener, notificationService)
         {
-            this.dataSource = dataSource;
-            this.createTagSource = createTagSource;
+            this._dataSource = dataSource;
+            this._createTagSource = createTagSource;
         }
 
         public ITagProducer<TTag> CreateTagProducer()
         {
-            return dataSource.CreateTagProducer();
+            return _dataSource.CreateTagProducer();
         }
 
         public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return dataSource.CreateEventSource(textViewOpt, subjectBuffer);
+            return _dataSource.CreateEventSource(textViewOpt, subjectBuffer);
         }
 
         public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return dataSource.GetSpansToTag(textViewOpt, subjectBuffer);
+            return _dataSource.GetSpansToTag(textViewOpt, subjectBuffer);
         }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
@@ -88,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            var tagSource = createTagSource == null ? null : createTagSource(textViewOpt, subjectBuffer, this.AsyncListener, this.NotificationService);
-            return tagSource ?? new ProducerPopulatedTagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
+            var tagSource = _createTagSource == null ? null : _createTagSource(textViewOpt, subjectBuffer, this.AsyncListener, this.NotificationService);
+            return tagSource ?? new ProducerPopulatedTagSource<TTag>(textViewOpt, subjectBuffer, _dataSource, AsyncListener, NotificationService);
         }
     }
 }
