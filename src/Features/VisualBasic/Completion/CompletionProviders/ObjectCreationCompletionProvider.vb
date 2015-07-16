@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
-        End Function
-
         Protected Overrides Function GetObjectCreationNewExpression(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
             Dim newExpression As SyntaxNode = Nothing
 
@@ -49,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
 
-        Protected Overrides Function CreateCompletionItemRules() As CompletionItemRules
+        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
             Return ObjectCreationCompletionItemRules.Instance
         End Function
     End Class

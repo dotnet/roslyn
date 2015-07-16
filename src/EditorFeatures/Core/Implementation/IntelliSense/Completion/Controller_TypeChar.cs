@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // with "WriteLine(".  That way if they undo, they will end up with "WriteL" again.
 
             var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem, ch, GetCurrentFilterText(model, selectedItem));
+            var textChange = GetCompletionRules().GetTextChange(selectedItem, ch, GetCurrentFilterText(model, selectedItem));
             this.Commit(selectedItem, new TextChange(textChange.Span, textChange.NewText + ch), model, ch);
         }
     }

@@ -166,7 +166,7 @@
     <Compile Include="ProjectSystemShim\VisualBasicProjectShimWithServices.CodeModel.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectShimWithServices.vb" />
     <Compile Include="Snippets\SnippetCommandHandler.vb" />
-    <Compile Include="Snippets\SnippetCompletionItemRules.vb" />
+    <Compile Include="Snippets\SnippetCompletionProvider.ItemRules.vb" />
     <Compile Include="Snippets\SnippetCompletionProvider.vb" />
     <Compile Include="Snippets\SnippetExpansionClient.vb" />
     <Compile Include="Snippets\SnippetFunctions\SnippetFunctionClassName.vb" />

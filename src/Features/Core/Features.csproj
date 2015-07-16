@@ -178,7 +178,9 @@
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
     <Compile Include="Completion\Providers\IOUtilities.cs" />
     <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\KeywordCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\ObjectInitializerCompletionItemRules.cs" />
+    <Compile Include="Completion\Providers\AbstractSymbolCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\TextCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />

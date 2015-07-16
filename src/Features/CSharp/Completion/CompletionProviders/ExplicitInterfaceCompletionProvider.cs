@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class ExplicitInterfaceCompletionProvider : AbstractCompletionProvider
+    internal partial class ExplicitInterfaceCompletionProvider : AbstractCompletionProvider
     {
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -115,20 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     filterSpan: textChangeSpan,
                     position: position,
                     symbols: new List<ISymbol> { member },
-                    context: context));
+                    context: context,
+                    rules: ItemRules.Instance));
             }
 
             return completions;
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char), string textTypedSoFar = null)
-        {
-            if (ch.HasValue && ch.Value == '(')
-            {
-                return new TextChange(selectedItem.FilterSpan, ((SymbolCompletionItem)selectedItem).Symbols[0].Name);
-            }
-
-            return new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
         }
     }
 }

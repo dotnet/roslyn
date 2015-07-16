@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
         End Sub
 
         Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
-            Dim item = New CompletionItem(Me, "DisplayText", _span)
+            Dim item = New CompletionItem(Me, "DisplayText", _span, rules:=ItemRules.Instance)
             context.AddItem(item)
 
             Return SpecializedTasks.EmptyTask
@@ -27,9 +27,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Return True
         End Function
 
-        Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
-            Return New TextChange(selectedItem.FilterSpan, "InsertionText")
-        End Function
+        Private Class ItemRules
+            Inherits CompletionItemRules
 
+            Public Shared ReadOnly Property Instance As New ItemRules()
+
+            Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As Result(Of TextChange)
+                Return New TextChange(selectedItem.FilterSpan, "InsertionText")
+            End Function
+        End Class
     End Class
 End Namespace

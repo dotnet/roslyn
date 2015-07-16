@@ -1,12 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal partial class CompletionItemRules
     {
         public static CompletionItemRules Default = new CompletionItemRules();
+
+        /// <summary>
+        /// The text change that will be made when this item is committed.  The text change includes
+        /// both the span of text to replace (respective to the original document text when this
+        /// completion item was created) and the text to replace it with.  The span will be adjusted
+        /// automatically by the completion engine to fit on the current text using "EdgeInclusive"
+        /// semantics.
+        /// </summary>
+        public virtual Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
+        {
+            return Result<TextChange>.Default;
+        }
 
         /// <summary>
         /// Returns true if the character is one that can commit the specified completion item. A

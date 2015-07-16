@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return SpecializedTasks.True;
         }
 
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return default(TextChange);
-        }
-
         public void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar)
         {
             var currentSnapshot = subjectBuffer.CurrentSnapshot;

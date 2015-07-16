@@ -3,22 +3,16 @@
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class SymbolCompletionItemRules
+    Friend Class EnumCompletionItemRules
         Inherits AbstractSymbolCompletionItemRules
 
-        Public Shared ReadOnly Property Instance As New SymbolCompletionItemRules()
+        Public Shared ReadOnly Property Instance As New EnumCompletionItemRules()
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Result(Of Boolean)
-            Dim symbolItem = TryCast(completionItem, SymbolCompletionItem)
-            If symbolItem IsNot Nothing AndAlso symbolItem.Context.IsInImportsDirective Then
-                ' If the user is writing "Imports S" then the only commit character is <dot>
-                ' as they might be typing an Imports alias.
-                Return ch = "."c
-            End If
-
-            Return MyBase.IsCommitCharacter(completionItem, ch, textTypedSoFar)
+        Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As Result(Of TextChange)
+            Return New TextChange(selectedItem.FilterSpan, DirectCast(selectedItem, SymbolCompletionItem).InsertionText)
         End Function
 
         Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String

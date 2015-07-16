@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.CSharp), [Shared]>

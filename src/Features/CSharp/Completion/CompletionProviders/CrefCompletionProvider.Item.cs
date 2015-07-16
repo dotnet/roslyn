@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class CrefCompletionProvider
     {
-        private class CrefCompletionItem : CompletionItem
+        private class Item : CompletionItem
         {
             public readonly string InsertionText;
 
-            public CrefCompletionItem(
+            public Item(
                 CompletionListProvider completionProvider,
                 string displayText,
                 string insertionText,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
                 Glyph? glyph,
                 string sortText)
-                : base(completionProvider, displayText, textSpan, descriptionFactory, glyph, sortText, rules: CrefCompletionItemRules.Instance)
+                : base(completionProvider, displayText, textSpan, descriptionFactory, glyph, sortText, rules: ItemRules.Instance)
             {
                 this.InsertionText = insertionText;
             }

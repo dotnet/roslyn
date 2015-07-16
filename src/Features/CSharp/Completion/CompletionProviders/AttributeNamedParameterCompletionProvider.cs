@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class AttributeNamedParameterCompletionProvider : AbstractCompletionProvider
+    internal partial class AttributeNamedParameterCompletionProvider : AbstractCompletionProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
@@ -27,37 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            var displayText = selectedItem.DisplayText;
-
-            if (ch != null)
-            {
-                // If user types a space, do not complete the " =" (space and equals) at the end of a named parameter. The
-                // typed space character will be passed through to the editor, and they can then type the '='.
-                if (ch == ' ' && displayText.EndsWith(SpaceEqualsString, StringComparison.Ordinal))
-                {
-                    return new TextChange(selectedItem.FilterSpan, displayText.Remove(displayText.Length - SpaceEqualsString.Length));
-                }
-
-                // If the user types '=', do not complete the '=' at the end of the named parameter because the typed '=' 
-                // will be passed through to the editor.
-                if (ch == '=' && displayText.EndsWith(EqualsString, StringComparison.Ordinal))
-                {
-                    return new TextChange(selectedItem.FilterSpan, displayText.Remove(displayText.Length - EqualsString.Length));
-                }
-
-                // If the user types ':', do not complete the ':' at the end of the named parameter because the typed ':' 
-                // will be passed through to the editor.
-                if (ch == ':' && displayText.EndsWith(ColonString, StringComparison.Ordinal))
-                {
-                    return new TextChange(selectedItem.FilterSpan, displayText.Remove(displayText.Length - ColonString.Length));
-                }
-            }
-
-            return new TextChange(selectedItem.FilterSpan, displayText);
         }
 
         protected override async Task<bool> IsExclusiveAsync(Document document, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -177,14 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return
             from p in attributeNamedParameters
             where !existingNamedParameters.Contains(p.Name)
-            select new CSharpCompletionItem(
-                workspace,
+            select new CompletionItem(
                 this,
                 p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
                 CompletionUtilities.GetTextChangeSpan(text, position),
                 CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
                 p.GetGlyph(),
-                sortText: p.Name);
+                sortText: p.Name,
+                rules: ItemRules.Instance);
         }
 
         private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
@@ -199,14 +167,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             from pl in parameterLists
             from p in pl
             where !existingNamedParameters.Contains(p.Name)
-            select new CSharpCompletionItem(
-                workspace,
+            select new CompletionItem(
                 this,
                 p.Name.ToIdentifierToken().ToString() + ColonString,
                 CompletionUtilities.GetTextChangeSpan(text, position),
                 CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
                 p.GetGlyph(),
-                sortText: p.Name);
+                sortText: p.Name,
+                rules: ItemRules.Instance);
         }
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)

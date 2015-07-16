@@ -1389,10 +1389,6 @@ class C
             Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
                 Return True
             End Function
-
-            Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
-                Throw New NotImplementedException()
-            End Function
         End Class
 
         <WorkItem(1015893)>

@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var completionRules = GetCompletionRules(document);
             var textChange = completionRules.IsCommitCharacter(firstItem, commitChar.HasValue ? commitChar.Value : ' ', textTypedSoFar)
-                ? CompletionProvider.GetTextChange(firstItem, commitChar, textTypedSoFar)
+                ? completionRules.GetTextChange(firstItem, commitChar, textTypedSoFar)
                 : new TextChange();
 
             var oldText = document.GetTextAsync().Result;

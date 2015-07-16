@@ -171,10 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override CompletionItem CreateItem(Workspace workspace, TextSpan span, RecommendedKeyword keyword)
+        protected override CompletionItem CreateItem(TextSpan span, RecommendedKeyword keyword)
         {
-            return new CSharpCompletionItem(
-                workspace,
+            return new CompletionItem(
                 this,
                 displayText: keyword.Keyword,
                 filterSpan: span,

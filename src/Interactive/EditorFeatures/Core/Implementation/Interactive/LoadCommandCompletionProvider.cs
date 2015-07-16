@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     [ExportCompletionProvider("LoadCommandCompletionProvider", InteractiveLanguageNames.InteractiveCommand)]
     internal class LoadCommandCompletionProvider : TextCompletionProvider
     {
-        internal const string NetworkPath = "\\\\";
-
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
         public override CompletionList GetCompletionList(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
@@ -40,20 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            // When we commit "\\" when the user types \ we have to adjust for the fact that the
-            // controller will automatically append \ after we commit.  Because of that, we don't
-            // want to actually commit "\\" as we'll end up with "\\\".  So instead we just commit
-            // "\" and know that controller will append "\" and give us "\\".
-            if (selectedItem.DisplayText == NetworkPath && ch == '\\')
-            {
-                return new TextChange(selectedItem.FilterSpan, "\\");
-            }
-
-            return base.GetTextChange(selectedItem, ch, textTypedSoFar);
         }
 
         private string GetPathThroughLastSlash(SourceText text, int position, Group quotedPathGroup)

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -18,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
+    internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
     {
         protected override TextSpan GetTextChangeSpan(SourceText text, int position)
         {
@@ -62,18 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
-        {
-            if (symbol is IAliasSymbol)
-            {
-                return ((IAliasSymbol)symbol).Name;
-            }
-
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return displayString;
-        }
-
         protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
@@ -100,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return base.GetDisplayAndInsertionText(symbol, context);
         }
 
-        protected override CompletionItemRules CreateCompletionItemRules()
+        protected override CompletionItemRules GetCompletionItemRules()
         {
-            return ObjectCreationCompletionItemRules.Instance;
+            return ItemRules.Instance;
         }
     }
 }

@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .Replace("()", "");
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new CrefCompletionItem(
+            return new Item(
                 completionProvider: this,
                 displayText: insertionText,
                 insertionText: insertionText,
@@ -207,11 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private string CreateParameters(IEnumerable<ITypeSymbol> arguments, SemanticModel semanticModel, int position)
         {
             return string.Join(", ", arguments.Select(t => t.ToMinimalDisplayString(semanticModel, position)));
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return new TextChange(selectedItem.FilterSpan, ((CrefCompletionItem)selectedItem).InsertionText);
         }
     }
 }

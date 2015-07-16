@@ -3,12 +3,29 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     internal class LoadCommandCompletionItemRules : CompletionItemRules
     {
+        private const string NetworkPath = "\\\\";
+
         public static LoadCommandCompletionItemRules Instance = new LoadCommandCompletionItemRules();
+
+        public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+        {
+            // When we commit "\\" when the user types \ we have to adjust for the fact that the
+            // controller will automatically append \ after we commit.  Because of that, we don't
+            // want to actually commit "\\" as we'll end up with "\\\".  So instead we just commit
+            // "\" and know that controller will append "\" and give us "\\".
+            if (selectedItem.DisplayText == NetworkPath && ch == '\\')
+            {
+                return new TextChange(selectedItem.FilterSpan, "\\");
+            }
+
+            return base.GetTextChange(selectedItem, ch, textTypedSoFar);
+        }
 
         public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
@@ -19,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         {
             // If they've typed '\\', then we do not consider \ to be a filter character.  We want to
             // just commit at this point.
-            if (textTypedSoFar == LoadCommandCompletionProvider.NetworkPath)
+            if (textTypedSoFar == NetworkPath)
             {
                 return false;
             }

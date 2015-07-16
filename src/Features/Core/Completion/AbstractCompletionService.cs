@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public Task<string> GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem completionItem, Workspace workspace)
         {
-            var insertionText = completionItem.CompletionProvider.GetTextChange(completionItem, '\t').NewText;
+            var insertionText = GetDefaultCompletionRules().GetTextChange(completionItem, '\t').NewText;
 
             var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
             if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))

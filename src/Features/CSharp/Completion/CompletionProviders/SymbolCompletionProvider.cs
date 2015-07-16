@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -74,35 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
         {
-            var insertionText = GetInsertionText(symbol, context);
+            var insertionText = SymbolCompletionItemRules.GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
 
             return ValueTuple.Create(displayText, insertionText);
         }
 
-        private string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
-        {
-            string name;
-
-            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService<ISyntaxFactsService>(), out name))
-            {
-                // Cannot escape Attribute name with the suffix removed. Only use the name with
-                // the suffix removed if it does not need to be escaped.
-                if (name.Equals(name.EscapeIdentifier()))
-                {
-                    return name;
-                }
-            }
-
-            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
-        }
-
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
-        {
-            return GetInsertionText(symbol, context);
-        }
-
-        protected override CompletionItemRules CreateCompletionItemRules()
+        protected override CompletionItemRules GetCompletionItemRules()
         {
             return SymbolCompletionItemRules.Instance;
         }

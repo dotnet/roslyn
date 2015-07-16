@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+            var textChange = GetCompletionRules().GetTextChange(selectedItem);
 
             Commit(selectedItem, textChange, model, null);
             committed = true;

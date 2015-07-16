@@ -18,7 +18,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProvider("SnippetCompletionProvider", LanguageNames.VisualBasic)>
-    Friend Class SnippetCompletionProvider
+    Partial Friend Class SnippetCompletionProvider
         Inherits Extensibility.Completion.SnippetCompletionProvider
 
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
@@ -53,7 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                                                   span,
                                                                   description:=s.Description.ToSymbolDisplayParts(),
                                                                   glyph:=Glyph.Snippet,
-                                                                  rules:=SnippetCompletionItemRules.Instance))
+                                                                  rules:=ItemRules.Instance))
         End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

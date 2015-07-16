@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
                 rules: SuggestionModeCompletionItemRules.Instance);
         }
 
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null) => new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options) => false;
     }
 }

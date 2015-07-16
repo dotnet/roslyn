@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -154,6 +155,30 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             return item1.FilterSpan == item2.FilterSpan
                 && item1.SortText == item2.SortText;
+        }
+
+        protected virtual TextChange GetTextChangeCore(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
+        {
+            return new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
+        }
+
+        /// <summary>
+        /// The text change that will be made when this item is committed.  The text change includes
+        /// both the span of text to replace (respective to the original document text when this
+        /// completion item was created) and the text to replace it with.  The span will be adjusted
+        /// automatically by the completion engine to fit on the current text using "EdgeInclusive"
+        /// semantics.
+        /// </summary>
+        public TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
+        {
+            var result = selectedItem.Rules.GetTextChange(selectedItem, ch, textTypedSoFar);
+
+            if (result.UseDefault)
+            {
+                return GetTextChangeCore(selectedItem, ch, textTypedSoFar);
+            }
+
+            return (TextChange)result;
         }
 
         protected virtual bool IsCommitCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)

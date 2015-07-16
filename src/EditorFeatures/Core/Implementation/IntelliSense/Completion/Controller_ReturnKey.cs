@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
+            var completionRules = GetCompletionRules();
+
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
@@ -91,15 +93,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
-                var completionRules = GetCompletionRules();
                 var options = GetOptions();
-                if (completionRules != null && options != null)
+                if (options != null)
                 {
                     sendThrough = completionRules.SendEnterThroughToEditor(selectedItem, textTypedSoFar, options);
                 }
             }
 
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+            var textChange = completionRules.GetTextChange(selectedItem);
             this.Commit(selectedItem, textChange, model, null);
             committed = true;
         }

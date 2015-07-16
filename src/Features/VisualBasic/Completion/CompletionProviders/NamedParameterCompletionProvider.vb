@@ -11,26 +11,13 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class NamedParameterCompletionProvider
+    Partial Friend Class NamedParameterCompletionProvider
         Inherits AbstractCompletionProvider
 
-        Private Const s_colonEquals As String = ":="
+        Friend Const s_colonEquals As String = ":="
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
-        End Function
-
-        Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
-            Dim symbolItem = DirectCast(selectedItem, SymbolCompletionItem)
-            If ch.HasValue AndAlso ch.Value = ":"c Then
-                Return New TextChange(symbolItem.FilterSpan,
-                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - s_colonEquals.Length))
-            ElseIf ch.HasValue AndAlso ch.Value = "="c Then
-                Return New TextChange(selectedItem.FilterSpan,
-                                                     symbolItem.InsertionText.Substring(0, symbolItem.InsertionText.Length - (s_colonEquals.Length - 1)))
-            Else
-                Return New TextChange(symbolItem.FilterSpan, symbolItem.InsertionText)
-            End If
         End Function
 
         Protected Overrides Async Function IsExclusiveAsync(document As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
@@ -76,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)
-            Dim parameterLists = GetParameterLists(DirectCast(semanticModel, SemanticModel), position, argumentList.Parent, cancellationToken)
+            Dim parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken)
             If parameterLists Is Nothing Then
                 Return Nothing
             End If
@@ -93,7 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return unspecifiedParameters.Select(
                 Function(p) New SymbolCompletionItem(
                     Me, p.Name & s_colonEquals, p.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                    CompletionUtilities.GetTextChangeSpan(text, position), position, SpecializedCollections.SingletonEnumerable(p).ToList(), context))
+                    CompletionUtilities.GetTextChangeSpan(text, position), position, SpecializedCollections.SingletonEnumerable(p).ToList(), context,
+                    rules:=ItemRules.Instance))
         End Function
 
         Private Function IsValid(parameterList As ImmutableArray(Of ISymbol), existingNamedParameters As ISet(Of String)) As Boolean
@@ -146,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim namedParameters = attributeType.GetAttributeNamedParameters(semanticModel.Compilation, within)
             Return SpecializedCollections.SingletonEnumerable(
-                ImmutableArray.CreateRange(Of ISymbol)(namedParameters))
+                ImmutableArray.CreateRange(namedParameters))
         End Function
 
         Private Function GetInvocationExpressionParameterLists(semanticModel As SemanticModel,

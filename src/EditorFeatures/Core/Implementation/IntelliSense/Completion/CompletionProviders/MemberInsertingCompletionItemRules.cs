@@ -2,12 +2,18 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal class MemberInsertingCompletionItemRules : CompletionItemRules
     {
         public static MemberInsertingCompletionItemRules Instance { get; } = new MemberInsertingCompletionItemRules();
+
+        public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+        {
+            return default(TextChange);
+        }
 
         public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
