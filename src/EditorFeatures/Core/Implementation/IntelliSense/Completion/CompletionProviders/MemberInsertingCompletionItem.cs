@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
         public SyntaxToken Token { get; }
 
         public MemberInsertionCompletionItem(
-            ICompletionProvider provider,
+            CompletionListProvider provider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,

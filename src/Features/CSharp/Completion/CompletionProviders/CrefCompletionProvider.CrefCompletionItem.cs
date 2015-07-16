@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             public CrefCompletionItem(
                 Workspace workspace,
-                ICompletionProvider completionProvider,
+                CompletionListProvider completionProvider,
                 string displayText,
                 string insertionText,
                 TextSpan textSpan,
