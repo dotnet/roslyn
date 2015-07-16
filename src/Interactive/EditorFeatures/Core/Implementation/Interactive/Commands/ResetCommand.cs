@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public override string Description
         {
             // TODO: Needs localization...
-            get { return "Reset the execution environment to the initial state, keep REPL history."; }
+            get { return "Reset the execution environment to the initial state, keep history."; }
         }
 
         public override IEnumerable<string> Names

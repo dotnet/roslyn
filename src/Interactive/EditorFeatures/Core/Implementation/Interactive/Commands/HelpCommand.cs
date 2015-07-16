@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private static readonly string[] s_details = new[]
         {
             // TODO: Needs localization...
-            "  command-name    Name of the REPL command to display help on.",
+            "  command-name    Name of the command to display help on.",
         };
 
         public override string Description
         {
             // TODO: Needs localization...
-            get { return "Display help on specified REPL command, or all available REPL commands and key bindings if none specified."; }
+            get { return "Display help on specified command, or all available REPL commands and key bindings if none specified."; }
         }
 
         public override IEnumerable<string> Names
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             if (!ParseArguments(window, arguments, out commandName, out command))
             {
                 // TODO: Needs localization...
-                window.ErrorOutputWriter.WriteLine(string.Format("Unknown REPL command '{0}'", commandName));
+                window.ErrorOutputWriter.WriteLine(string.Format("Unknown command '{0}'", commandName));
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }
