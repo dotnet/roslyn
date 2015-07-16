@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
-            get { return "Reset the execution environment to the initial state, keep REPL history."; }
+            get { return "Reset the execution environment to the initial state, keep history."; }
         }
 
         public override IEnumerable<string> Names
@@ -43,10 +43,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
-                return new ReadOnlyCollection<KeyValuePair<string, string>>(new[]
-                {
-                    new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.")
-                });
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.");
             }
         }
 
