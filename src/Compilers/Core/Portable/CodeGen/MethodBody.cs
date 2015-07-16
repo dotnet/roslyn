@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private readonly Cci.IMethodDefinition _parent;
 
-        private readonly byte[] _ilBits;
+        private readonly ImmutableArray<byte> _ilBits;
         private readonly ushort _maxStack;
         private readonly ImmutableArray<Cci.ILocalDefinition> _locals;
         private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
 
         public MethodBody(
-            byte[] ilBits,
+            ImmutableArray<byte> ilBits,
             ushort maxStack,
             Cci.IMethodDefinition parent,
             DebugId methodId,
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         ushort Cci.IMethodBody.MaxStack => _maxStack;
 
-        public byte[] IL => _ilBits;
+        public ImmutableArray<byte> IL => _ilBits;
 
         public ImmutableArray<Cci.SequencePoint> GetSequencePoints()
         {
