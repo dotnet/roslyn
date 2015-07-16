@@ -32,11 +32,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             get { return "[command-name]"; }
         }
 
-        public override IEnumerable<string> DetailedDescription
-        {
-            get { return base.DetailedDescription; }
-        }
-
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
             string commandName;
