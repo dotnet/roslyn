@@ -1741,7 +1741,7 @@ namespace Roslyn.Test.MetadataUtilities
             ILVisualizerAsTokens.Instance.DumpMethod(
                 builder,
                 body.MaxStack,
-                body.GetILBytes(),
+                body.GetILContent(),
                 ImmutableArray.Create<ILVisualizer.LocalInfo>(),     // TODO
                 ImmutableArray.Create<ILVisualizer.HandlerSpan>());  // TOOD: ILVisualizer.GetHandlerSpans(body.ExceptionRegions)
 

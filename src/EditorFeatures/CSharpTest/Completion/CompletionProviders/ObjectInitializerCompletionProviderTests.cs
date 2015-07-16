@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ObjectInitializerCompletionProvider();
         }
@@ -579,21 +578,18 @@ End Class";
 
         private void VerifyExclusive(string markup, bool exclusive)
         {
-            var provider = CreateCompletionProvider();
-
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
             {
-                var document = workspace.Documents.Single();
-                var position = document.CursorPosition.Value;
-                var actualDocument = workspace.CurrentSolution.GetDocument(document.Id);
-
+                var hostDocument = workspace.Documents.Single();
+                var position = hostDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var group = provider.GetGroupAsync(actualDocument, position, triggerInfo, CancellationToken.None).Result;
+                var completionList = GetCompletionList(document, position, triggerInfo);
 
-                if (group != null)
+                if (completionList != null)
                 {
-                    Assert.True(exclusive == group.IsExclusive, "group.IsExclusive == " + group.IsExclusive);
+                    Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
                 }
             }
         }

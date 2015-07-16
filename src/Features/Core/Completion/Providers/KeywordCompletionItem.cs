@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal class KeywordCompletionItem : CompletionItem
     {
-        public KeywordCompletionItem(ICompletionProvider completionProvider, string displayText, TextSpan filterSpan, Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory, Glyph? glyph, bool isIntrinsic)
+        public KeywordCompletionItem(CompletionListProvider completionProvider, string displayText, TextSpan filterSpan, Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory, Glyph? glyph, bool isIntrinsic)
             : base(completionProvider, displayText, filterSpan, descriptionFactory, glyph)
         {
             this.IsIntrinsic = isIntrinsic;

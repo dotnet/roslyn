@@ -5,10 +5,11 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.SuggestionMode
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
     Friend Class VisualBasicSuggestionModeCompletionProvider
         Inherits SuggestionModeCompletionProvider
 

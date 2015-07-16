@@ -1,7 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
@@ -81,7 +81,7 @@ End Class]]></document>
         Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestState.CreateVisualBasicTestState(
                 xElement,
-                New ICompletionProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
+                New CompletionListProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
                 Nothing,
                 New List(Of Type) From {GetType(TestVisualBasicSnippetInfoService)})
 

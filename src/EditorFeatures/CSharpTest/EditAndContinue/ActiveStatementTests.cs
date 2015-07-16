@@ -7410,7 +7410,7 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatement()
+        public void MethodToAsyncMethod_WithActiveStatement1()
         {
             string src1 = @"
 class C
@@ -7437,11 +7437,68 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.AwaitExpression));
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "await", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async Task<int> F()"));
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithActiveStatementInLambda()
+        public void MethodToAsyncMethod_WithActiveStatement2()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    <AS:0>{</AS:0>
+        Console.WriteLine(1);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static async void F()
+    <AS:0>{</AS:0>
+        Console.WriteLine(1);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithActiveStatement3()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static async void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithActiveStatementInLambda1()
         {
             string src1 = @"
 class C
@@ -7471,7 +7528,67 @@ class C
         }
 
         [Fact]
-        public void MethodToAsyncMethod_WithoutActiveStatement()
+        public void MethodToAsyncMethod_WithActiveStatementInLambda_2()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        var f = new Action(() => { <AS:1>Console.WriteLine(1);</AS:1> });
+        <AS:0>f();</AS:0>
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static async void F()
+    {
+        var f = new Action(() => { <AS:1>Console.WriteLine(1);</AS:1> });
+        <AS:0>f();</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithLambda()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    <AS:0>{</AS:0>
+        var f = new Action(() => { Console.WriteLine(1); });
+        f();
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static async void F()
+    <AS:0>{</AS:0>
+        var f = new Action(() => { Console.WriteLine(1); });
+        f();
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "static async void F()"));
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithoutActiveStatement_1()
         {
             string src1 = @"
 class C
@@ -7490,6 +7607,33 @@ class C
     {
         Console.WriteLine(1);
         return await Task.FromResult(1);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void MethodToAsyncMethod_WithoutActiveStatement_2()
+        {
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        Console.WriteLine(1);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static async void F()
+    {
+        Console.WriteLine(1);
     }
 }
 ";

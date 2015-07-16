@@ -2,7 +2,7 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public string Language { get; }
 
         public ExportCompletionProviderAttribute(string name, string language)
-            : base(typeof(ICompletionProvider))
+            : base(typeof(CompletionListProvider))
         {
             if (name == null)
             {
