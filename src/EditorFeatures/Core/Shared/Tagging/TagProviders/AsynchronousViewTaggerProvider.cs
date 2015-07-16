@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var tagSource = createTagSource == null ? null : createTagSource(textViewOpt, subjectBuffer, this.AsyncListener, this.NotificationService);
-            return tagSource ?? new ViewTagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
+            return tagSource ?? new ProducerPopulatedTagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
         }
     }
 }

@@ -2,7 +2,6 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -11,10 +10,10 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
     /// <summary>
-    /// A derivation of <see cref="ViewTagSource{TTag}" /> that only recomputes highlighting if you moved out
+    /// A derivation of <see cref="ProducerPopulatedTagSource{TTag}" /> that only recomputes highlighting if you moved out
     /// of the existing set of highlights.
     /// </summary>
-    internal sealed class HighlightingTagSource : ViewTagSource<HighlightTag>
+    internal sealed class HighlightingTagSource : ProducerPopulatedTagSource<HighlightTag>
     {
         public HighlightingTagSource(
             ITextView textView,

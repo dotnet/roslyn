@@ -12,8 +12,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>this is a bare minimum base implementation of TagSource where you can provide your own implementation that
-    /// doesn't rely on any other framework such as event source, event producer to participate in async tagger framework</para>
+    /// <para>this is a bare minimum base implementation of TagSource where you can provide your own 
+    /// implementation that doesn't rely on any other framework such as event source, event producer
+    /// to participate in async tagger framework</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
     internal abstract partial class TagSource<TTag>

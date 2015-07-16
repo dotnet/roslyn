@@ -7,11 +7,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -20,26 +22,23 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous tagging infrastructure. It's
-    /// the coordinator between <see cref="ITagProducer{TTag}"/>s, <see cref="ITaggerEventSource"/>s, and
-    /// <see cref="ITagger{T}"/>s.</para>
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous
+    /// tagging infrastructure. It is the coordinator between  <see cref="ITagProducer{TTag}"/>s,
+    /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the list of cached tags. When an
-    /// <see cref="ITaggerEventSource"/> says tags need to be recomputed, the tag source starts the computation
-    /// and calls the <see cref="ITagProducer{TTag}"/> to build the new list of tags. When that's done,
-    /// the tags are stored in <see cref="_cachedTags"/>. The tagger, when asked for tags from the editor, then returns
-    /// the tags that are stored in <see cref="_cachedTags"/></para>
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the
+    /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
+    /// the tag source starts the computation and calls the <see cref="ITagProducer{TTag}"/> to build
+    /// the new list of tags. When that's done, the tags are stored in <see cref="_cachedTags"/>. The 
+    /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
+    /// <see cref="_cachedTags"/></para>
     /// 
-    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s and <see cref="ITagger{T}"/>s.
-    /// Taggers that tag the buffer and don't care about a view (think classification) have one <see cref="BufferTagSource{TTag}"/>
-    /// per subject buffer, the lifetime management provided by <see cref="AsynchronousBufferTaggerProviderWithTagSource{TTag}"/>.
-    /// Taggers that tag the buffer and care about the view (think keyword highlighting) have a <see cref="ViewTagSource{TTag}"/>
-    /// per subject buffer/view pair, and the lifetime management for that is provided by a <see cref="AsynchronousViewTaggerProviderWithTagSource{TTag}"/>.
-    /// Special cases, like reference highlighting (which processes multiple subject buffers at once) have their own
-    /// providers and tag source derivations.</para>
+    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s
+    /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
+    /// subject buffers at once) have their own providers and tag source derivations.</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal abstract partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
+    internal partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
         where TTag : ITag
     {
         #region Fields that can be accessed from either thread
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _previousCachedTags;
         #endregion
 
-        protected ProducerPopulatedTagSource(
+        public ProducerPopulatedTagSource(
             ITextView textViewOpt,
             ITextBuffer subjectBuffer,
             IAsynchronousTaggerDataSource<TTag> dataSource,
@@ -110,16 +109,23 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         /// <summary>
-        /// Implemented by derived types to return a list of initial snapshot spans to tag.
+        /// Can be overridden by derived types to return a list of initial snapshot spans to tag.
         /// </summary>
         /// <remarks>Called on the foreground thread.</remarks>
-        protected abstract IList<SnapshotSpan> GetInitialSpansToTag();
+        protected virtual IList<SnapshotSpan> GetInitialSpansToTag()
+        {
+            // For a standard tagger, the spans to tag is the span of the entire snapshot.
+            return new[] { _subjectBuffer.CurrentSnapshot.GetFullSpan() };
+        }
 
         /// <summary>
-        /// Implemented by derived types to return The caret position.
+        /// Implemented by derived types to return the caret position.
         /// </summary>
         /// <remarks>Called on the foreground thread.</remarks>
-        protected abstract SnapshotPoint? GetCaretPoint();
+        protected virtual SnapshotPoint? GetCaretPoint()
+        {
+            return _textViewOpt?.GetCaretPoint(_subjectBuffer);
+        }
 
         private IEqualityComparer<TTag> TagComparer => 
             _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;

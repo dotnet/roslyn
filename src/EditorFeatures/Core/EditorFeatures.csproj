@@ -766,12 +766,10 @@
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
-    <Compile Include="Shared\Tagging\TagSources\BufferTagSource.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\SemanticBufferTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\ProducerPopulatedTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\TagSource_ReferenceCounting.cs" />
-    <Compile Include="Shared\Tagging\TagSources\ViewTagSource.cs" />
     <Compile Include="Shared\Tagging\Utilities\BatchChangeNotifier.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanComparer.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.cs" />

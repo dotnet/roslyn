@@ -31,16 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             _lastSemanticVersion = VersionStamp.Default;
         }
 
-        protected override IList<SnapshotSpan> GetInitialSpansToTag()
-        {
-            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
-        }
-
-        protected override SnapshotPoint? GetCaretPoint()
-        {
-            return null;
-        }
-
         protected override async Task RecomputeTagsAsync(
             SnapshotPoint? caret, TextChangeRange? range, IEnumerable<DocumentSnapshotSpan> spansToCompute, CancellationToken cancellationToken)
         {
