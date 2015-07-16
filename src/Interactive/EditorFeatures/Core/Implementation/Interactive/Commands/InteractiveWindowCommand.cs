@@ -17,15 +17,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     /// </summary>
     internal abstract class InteractiveWindowCommand : IInteractiveWindowCommand
     {
+        public abstract Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments);
+
+        public abstract string Description { get; }
+
+        public abstract IEnumerable<string> Names { get; }
+
         public virtual IEnumerable<ClassificationSpan> ClassifyArguments(ITextSnapshot snapshot, Span argumentsSpan, Span spanToClassify)
         {
             return Enumerable.Empty<ClassificationSpan>();
         }
 
-        public abstract Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments);
-        public abstract string Description { get; }
-
-        public virtual IEnumerable<KeyValuePair<string, string>> ParametersDescription
+        public virtual string CommandLine
         {
             get { return null; }
         }
@@ -35,12 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             get { return null; }
         }
 
-        public virtual string CommandLine
-        {
-            get { return null; }
-        }
-
-        public virtual IEnumerable<string> Names
+        public virtual IEnumerable<KeyValuePair<string, string>> ParametersDescription
         {
             get { return null; }
         }
