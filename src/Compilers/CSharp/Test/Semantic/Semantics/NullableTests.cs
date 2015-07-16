@@ -111,7 +111,7 @@ class C
         public void TestLiftedIncrementOperatorBreakingChanges02()
         {
             // Now here we have a case where the compilation *should* succeed, and does, but 
-            // the native compiler and Roslyn produce opposite behaviour. Again, the native
+            // the native compiler and Roslyn produce opposite behavior. Again, the native
             // compiler lowers this to:
             //
             // C temp1 = c;

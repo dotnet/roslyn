@@ -20,7 +20,7 @@ Module Program
     Sub Main()
         Dim obj As Object = New cls1
         obj.P1 = 42                         ' assignment    (Set)
-        obj.P1()                            ' sideeffect    (Call)
+        obj.P1()                            ' side-effect   (Call)
         Console.WriteLine(obj.P1)           ' value         (Get)
     End Sub
 

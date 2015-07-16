@@ -426,7 +426,7 @@ namespace System.Collections
                 .VerifyDiagnostics();
 
 
-            //IMPORTANT: we shoud NOT load fields of self-containing structs like - "ldfld int int.m_value"
+            //IMPORTANT: we should NOT load fields of self-containing structs like - "ldfld int int.m_value"
             CompileAndVerify(comp, verify: false).
                 VerifyIL("int.CompareTo(int)", @"
 {
@@ -564,7 +564,7 @@ namespace System
                 .VerifyDiagnostics();
 
 
-            //IMPORTANT: we shoud NOT delegate E1.GetHashCode() to int.GetHashCode()
+            //IMPORTANT: we should NOT delegate E1.GetHashCode() to int.GetHashCode()
             //           it is entirely possible that Enum.GetHashCode and int.GetHashCode 
             //           have different implementations
             CompileAndVerify(comp, verify: false).
@@ -685,7 +685,7 @@ namespace System
 }";
             var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-            //IMPORTANT: we shoud NOT load fields of clr-confusing structs off the field value.
+            //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 
             //           the following snippet  (note ldargA, not ldarg) -
             //      IL_0000:  ldarga.s   V_0
@@ -693,7 +693,7 @@ namespace System
             //
             //           it may seem redundant since in general we can load the filed off the value
             //           but see the bug see VSW #396011, JIT needs references when loading
-            //           fields of certain clr-ambiguous structs (only possible when building mscolib)
+            //           fields of certain clr-ambiguous structs (only possible when building mscorlib)
 
             CompileAndVerify(comp, verify: false).
                 VerifyIL("System.IntPtr..ctor(int)", @"

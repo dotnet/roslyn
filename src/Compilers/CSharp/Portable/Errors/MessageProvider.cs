@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override string ConvertSymbolToString(int errorCode, ISymbol symbol)
         {
-            // show extra info for assembly if possible such as version, publictoken and etc
+            // show extra info for assembly if possible such as version, public key token etc.
             if (symbol.Kind == SymbolKind.Assembly || symbol.Kind == SymbolKind.Namespace)
             {
                 return symbol.ToString();

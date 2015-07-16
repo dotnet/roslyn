@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim constantValue = expression.ConstantValueOpt
             If constantValue IsNot Nothing Then
                 If Not used Then
-                    ' unused constants have no sideeffects.
+                    ' unused constants have no side-effects.
                     Return
                 End If
                 If constantValue.IsDecimal OrElse constantValue.IsDateTime Then
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitLocalLoad(DirectCast(expression, BoundLocal), used)
 
                 Case BoundKind.Parameter
-                    If used Then ' unused parameter has no sideeffects
+                    If used Then ' unused parameter has no side-effects
                         EmitParameterLoad(DirectCast(expression, BoundParameter))
                     End If
 
@@ -84,12 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitArrayElementLoad(DirectCast(expression, BoundArrayAccess), used)
 
                 Case BoundKind.MeReference, BoundKind.MyClassReference
-                    If used Then ' unused Me/MyClass has no sideeffects
+                    If used Then ' unused Me/MyClass has no side-effects
                         EmitMeOrMyClassReferenceExpression(expression)
                     End If
 
                 Case BoundKind.MyBaseReference
-                    If used Then ' unused base has no sideeffects
+                    If used Then ' unused base has no side-effects
                         _builder.EmitOpCode(ILOpCode.Ldarg_0)
                     End If
 
@@ -350,10 +350,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' local should be alsready on the stack
                 EmitPopIfUnused(used)
             Else
-                If used Then ' unused local has no sideeffects
+                If used Then ' unused local has no side-effects
                     _builder.EmitLocalLoad(GetLocal(local))
                 Else
-                    ' do nothing. Unused local load has no sideeffects.                    
+                    ' do nothing. Unused local load has no side-effects.                    
                     Return
                 End If
             End If
@@ -533,7 +533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                 _builder.EmitOpCode(ILOpCode.Ldelem)
                             Else
                                 ' no need to read whole element of nontrivial type/size here
-                                ' just take a reference to an element for array access sideeffects 
+                                ' just take a reference to an element for array access side-effects 
                                 If elementType.TypeKind = TypeKind.TypeParameter Then
                                     _builder.EmitOpCode(ILOpCode.Readonly)
                                 End If
@@ -554,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitFieldLoad(fieldAccess As BoundFieldAccess, used As Boolean)
             Dim field = fieldAccess.FieldSymbol
 
-            'TODO: For static field access this may require ..ctor to run. Is this a sideeffect?
+            'TODO: For static field access this may require ..ctor to run. Is this a side-effect?
             ' Accessing unused instance field on a struct is a noop. Just emit the receiver.
             If Not used AndAlso Not field.IsShared AndAlso fieldAccess.ReceiverOpt.Type.IsVerifierValue() Then
                 EmitExpression(fieldAccess.ReceiverOpt, used:=False)
@@ -591,14 +591,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitStaticFieldLoad(field As FieldSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
-            'TODO: this may require ..ctor to run. Is this a sideeffect?
+            'TODO: this may require ..ctor to run. Is this a side-effect?
             _builder.EmitOpCode(ILOpCode.Ldsfld)
             EmitSymbolToken(field, syntaxNode)
             EmitPopIfUnused(used)
         End Sub
 
         Private Sub EmitInstanceFieldLoad(fieldAccess As BoundFieldAccess, used As Boolean)
-            'TODO: access to a field on this/base has no sideeffects.
+            'TODO: access to a field on this/base has no side-effects.
 
             Dim field As FieldSymbol = fieldAccess.FieldSymbol
             Dim receiver = fieldAccess.ReceiverOpt
@@ -1349,7 +1349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' It appears that verifier/JIT gets easily confused. 
         ' So to not rely on whether that should work or not we will flag potentially 
         ' "complicated" casts and make them static casts to ensure we are all on 
-        ' the same page with what type shoud be tracked.
+        ' the same page with what type should be tracked.
         Private Shared Function IsVarianceCast(toType As TypeSymbol, fromType As TypeSymbol) As Boolean
             If (toType = fromType) Then
                 Return False
@@ -1549,7 +1549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitConstantExpression(type As TypeSymbol, constantValue As ConstantValue, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
-            ' unused constant has no sideeffects
+            ' unused constant has no side-effects
             If used Then
                 ' Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
                 If ((type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull) Then

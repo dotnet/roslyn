@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 For i As Integer = 0 To variableInfo.Count - 1
                     Dim variable = variableInfo(i)
 
-                    ' there should be no one set as return value yet
+                    ' there should be no-one set as return value yet
                     Contract.ThrowIfTrue(variable.UseAsReturnValue)
 
                     If Not variable.CanBeUsedAsReturnValue Then

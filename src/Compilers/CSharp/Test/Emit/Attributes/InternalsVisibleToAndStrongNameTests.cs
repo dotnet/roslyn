@@ -861,7 +861,7 @@ public class Z
 {
 }";
 
-                //now that the module checks out, ensure that adding it to a compilation outputing a dll
+                //now that the module checks out, ensure that adding it to a compilation outputting a dll
                 //results in a signed assembly.
                 var assemblyComp = CreateCompilationWithMscorlib(source,
                     new[] { metadata.GetReference() },

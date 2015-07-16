@@ -15,6 +15,8 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
@@ -79,7 +81,6 @@
     <Compile Include="Performance\EmptyArrayDiagnosticAnalyzer.cs" />
     <Compile Include="Performance\EquatableAnalyzer.cs" />
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reliability\AttributeHelpers.cs" />
     <Compile Include="Reliability\DoNotCreateTasksWithoutTaskSchedulerAnalyzer.cs" />
     <Compile Include="Reliability\SymbolDeclaredEventAnalyzer.cs" />

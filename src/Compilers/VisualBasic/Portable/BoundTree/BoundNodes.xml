@@ -1447,7 +1447,7 @@
            and it should be replaced with the final type after successful overload resolution. 
            
            Note, that this will mutate the symbol, but it shouldn't be a problem because we will 
-           not reuse the same lambda symbol across different overload resolutions and no one should need 
+           not reuse the same lambda symbol across different overload resolutions and no-one should need 
            to examine the ReturnType before the resolution is complete. If we were to replace LambdaSymbol
            with a different symbol instead, we would have to update the Expression and symbols used by it 
            as they might have references to the original LambdaSymbol because it is the ContainingMember 

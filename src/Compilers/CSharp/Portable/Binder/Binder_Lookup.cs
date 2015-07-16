@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // This viability check is only used by SemanticModel.LookupSymbols, which does its own
-                // filtering of not-referencable symbols.  Hence, we do not check CanBeReferencedByName
+                // filtering of not-referenceable symbols.  Hence, we do not check CanBeReferencedByName
                 // here.
                 return true;
             }

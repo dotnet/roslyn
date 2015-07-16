@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if this type si equal or derives from a given type.
+        /// Returns true if this type is equal or derives from a given type.
         /// </summary>
         internal bool IsEqualToOrDerivedFrom(TypeSymbol type, bool ignoreDynamic, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {

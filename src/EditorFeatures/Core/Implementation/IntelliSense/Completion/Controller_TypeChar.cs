@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return null;
         }
 
-        private IEnumerable<ICompletionProvider> GetCompletionProviders()
+        private IEnumerable<CompletionListProvider> GetCompletionProviders()
         {
             var defaultProviders = GetDefaultCompletionProviders();
 
@@ -267,13 +267,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
                     _allCompletionProviders, this.SubjectBuffer);
 
-                return defaultProviders.Concat(extensionProviders.Where(p => !(p is ISnippetCompletionProvider)));
+                return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionProvider)));
             }
 
             return defaultProviders;
         }
 
-        private IEnumerable<ICompletionProvider> GetSnippetCompletionProviders()
+        private IEnumerable<CompletionListProvider> GetSnippetCompletionProviders()
         {
             Workspace workspace;
             if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
@@ -281,13 +281,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
                     _allCompletionProviders, this.SubjectBuffer);
 
-                return extensionProviders.OfType<ISnippetCompletionProvider>();
+                return extensionProviders.OfType<SnippetCompletionProvider>();
             }
 
-            return SpecializedCollections.EmptyEnumerable<ICompletionProvider>();
+            return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
         }
 
-        private IEnumerable<ICompletionProvider> GetDefaultCompletionProviders()
+        private IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<ICompletionProvider>();
+            return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
         }
 
         private bool IsTextualTriggerCharacter(ICompletionService completionService, char ch, OptionSet options)
