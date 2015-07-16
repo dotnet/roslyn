@@ -9,6 +9,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
     {
         public static XmlDocCommentCompletionItemRules Instance = new XmlDocCommentCompletionItemRules();
 
+        public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            if (ch == '!' || ch == '-' || ch == '[')
+            {
+                return true;
+            }
+
+            return base.IsFilterCharacter(completionItem, ch, textTypedSoFar);
+        }
+
         public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;

@@ -1390,10 +1390,6 @@ class C
                 Return True
             End Function
 
-            Public Overrides Function IsFilterCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-                Return False
-            End Function
-
             Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
                 Return False
             End Function

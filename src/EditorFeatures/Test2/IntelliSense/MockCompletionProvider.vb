@@ -51,8 +51,5 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return New TextChange(selectedItem.FilterSpan, selectedItem.DisplayText)
         End Function
 
-        Public Overrides Function IsFilterCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
     End Class
 End Namespace

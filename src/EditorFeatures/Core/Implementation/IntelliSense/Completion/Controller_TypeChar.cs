@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterText = GetCurrentFilterText(model, selectedItem);
 
-            return selectedItem.CompletionProvider.IsFilterCharacter(selectedItem, ch, filterText);
+            return GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText);
         }
 
         private string GetCurrentFilterText(Model model, CompletionItem selectedItem)

@@ -156,6 +156,29 @@ namespace Microsoft.CodeAnalysis.Completion
                 && item1.SortText == item2.SortText;
         }
 
+        protected virtual bool IsFilterCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the character typed should be used to filter the specified completion
+        /// item.  A character will be checked to see if it should filter an item.  If not, it will be
+        /// checked to see if it should commit that item.  If it does neither, then completion will
+        /// be dismissed.
+        /// </summary>
+        public bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            var result = completionItem.Rules.IsFilterCharacter(completionItem, ch, textTypedSoFar);
+
+            if (result.UseDefault)
+            {
+                return IsFilterCharacterCore(completionItem, ch, textTypedSoFar);
+            }
+
+            return (bool)result;
+        }
+
         protected virtual bool SendEnterThroughToEditorCore(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;

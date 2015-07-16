@@ -35,8 +35,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Return New TextChange(selectedItem.FilterSpan, "InsertionText")
         End Function
 
-        Public Overrides Function IsFilterCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
     End Class
 End Namespace

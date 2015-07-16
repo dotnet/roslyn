@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
     {
         public static ReferenceDirectiveCompletionItemRules Instance = new ReferenceDirectiveCompletionItemRules();
 
+        public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            return PathCompletionUtilities.IsFilterCharacter(completionItem, ch, textTypedSoFar);
+        }
+
         public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);

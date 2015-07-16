@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
 
         public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null) => new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
         public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
-        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options) => false;
     }
 }

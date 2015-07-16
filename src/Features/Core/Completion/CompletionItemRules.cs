@@ -9,6 +9,17 @@ namespace Microsoft.CodeAnalysis.Completion
         public static CompletionItemRules Default = new CompletionItemRules();
 
         /// <summary>
+        /// Returns true if the character typed should be used to filter the specified completion
+        /// item.  A character will be checked to see if it should filter an item.  If not, it will be
+        /// checked to see if it should commit that item.  If it does neither, then completion will
+        /// be dismissed.
+        /// </summary>
+        public virtual Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            return Result<bool>.Default;
+        }
+
+        /// <summary>
         /// Returns true if the enter key that was typed should also be sent through to the editor
         /// after committing the provided completion item.
         /// </summary>

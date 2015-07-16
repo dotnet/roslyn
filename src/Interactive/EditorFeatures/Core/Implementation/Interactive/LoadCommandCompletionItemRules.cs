@@ -10,6 +10,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     {
         public static LoadCommandCompletionItemRules Instance = new LoadCommandCompletionItemRules();
 
+        public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        {
+            // If they've typed '\\', then we do not consider \ to be a filter character.  We want to
+            // just commit at this point.
+            if (textTypedSoFar == LoadCommandCompletionProvider.NetworkPath)
+            {
+                return false;
+            }
+
+            return PathCompletionUtilities.IsFilterCharacter(completionItem, ch, textTypedSoFar);
+        }
+
         public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);

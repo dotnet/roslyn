@@ -100,10 +100,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             var item = (XmlDocCommentCompletionItem)completionItem;
             item.Commit(textView, subjectBuffer, triggerSnapshot, commitChar);
         }
-
-        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return base.IsFilterCharacter(completionItem, ch, textTypedSoFar) || ch == '!' || ch == '-' || ch == '[';
-        }
     }
 }

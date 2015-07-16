@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
     [ExportCompletionProvider("LoadCommandCompletionProvider", InteractiveLanguageNames.InteractiveCommand)]
     internal class LoadCommandCompletionProvider : TextCompletionProvider
     {
-        private const string NetworkPath = "\\\\";
+        internal const string NetworkPath = "\\\\";
 
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
@@ -40,18 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
-        }
-
-        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            // If they've typed '\\', then we do not consider \ to be a filter character.  We want to
-            // just commit at this point.
-            if (textTypedSoFar == NetworkPath)
-            {
-                return false;
-            }
-
-            return PathCompletionUtilities.IsFilterCharacter(completionItem, ch, textTypedSoFar);
         }
 
         public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
