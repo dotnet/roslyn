@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (newSymbols.Count > 0)
                 {
                     // Only if we detected that a referenced assembly refers to the assembly being built
-                    // we allow the references to get ahold of the assembly being built.
+                    // we allow the references to get a hold of the assembly being built.
                     if (hasCircularReference)
                     {
                         bindingResult[0].AssemblySymbol = assemblySymbol;

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly SupportedPlatformData _supportedPlatforms;
 
         public SymbolCompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             string insertionText,
             TextSpan filterSpan,
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public SymbolCompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             string insertionText,
             string filterText,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public SymbolCompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             string insertionText,
             string filterText,

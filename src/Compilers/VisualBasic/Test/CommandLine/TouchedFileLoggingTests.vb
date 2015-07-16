@@ -61,7 +61,7 @@ End Class
         <Fact>
         Public Sub StrongNameKeyVbc()
             Dim hello = Temp.CreateFile().WriteAllText(_helloWorldCS).Path
-            Dim snkPath = Temp.CreateFile("TestKeyPair_", ".snk").WriteAllBytes(TestResources.SymbolsTests.General.snKey).Path
+            Dim snkPath = Temp.CreateFile("TestKeyPair_", ".snk").WriteAllBytes(TestResources.General.snKey).Path
             Dim touchedDir = Temp.CreateDirectory()
             Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
 

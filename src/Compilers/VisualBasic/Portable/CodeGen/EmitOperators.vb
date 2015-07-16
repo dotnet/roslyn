@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitCondBranch(condition.Left, fallThrough, stopSense)
             EmitCondExpr(condition.Right, sense)
 
-            ' if fallthrough was not initialized, no one is going to take that branch
+            ' if fall-through was not initialized, no-one is going to take that branch
             ' and we are done with Right on the stack
             If fallThrough Is Nothing Then
                 Return

@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for numeric and enum conversions even if they are not literals (such as, (1-1) --> enum), but
             // the runtime binder didn't. So we do need to set this flag whenever we see a constant.
 
-            // But the compilication is that null values lose their type when they get to the runtime binder,
+            // But the complication is that null values lose their type when they get to the runtime binder,
             // and so we need a way to distinguish a null constant of any given type from the null literal.
             // The design is simple! We use UseCompileTimeType to determine whether we care about the type of
             // a null constant argument, so that the null literal gets "LiteralConstant" whereas every other

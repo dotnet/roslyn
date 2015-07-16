@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundCall(syntax, lateIndexSetMethod, Nothing, Nothing, callArgs, Nothing, True, lateIndexSetMethod.ReturnType)
         End Function
 
-        ' NOTE: assignmentArguments are no-sideeffects expressions representing
+        ' NOTE: assignmentArguments are no-side-effects expressions representing
         '       corresponding arguments if those need to be used as target of assignments.
         Private Function LateCallOrGet(memberAccess As BoundLateMemberAccess,
                                     receiverExpression As BoundExpression,
@@ -818,7 +818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' same as LateCaptureReceiverAndArgsComplex, but without a receiver
         ' and does not produce reReadable arguments - just 
-        ' argument (that includes initialization of captures if needed) and a no-sideeffect writeable.
+        ' argument (that includes initialization of captures if needed) and a no-side-effect writeable.
         ' NOTE: writeables are not rewritten. They will be rewritten when they are combined with values into assignments.
         Private Sub LateCaptureArgsComplex(ByRef temps As ArrayBuilder(Of SynthesizedLocal),
                            ByRef arguments As ImmutableArray(Of BoundExpression),

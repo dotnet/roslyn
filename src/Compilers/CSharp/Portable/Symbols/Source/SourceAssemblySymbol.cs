@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInternalAccessibility;
                     bool success = _unassignedFieldsMap.TryGetValue(field, out isInternalAccessibility);
-                    Debug.Assert(success, "Once CompletionPart.Module is set, no one should be modifying the map.");
+                    Debug.Assert(success, "Once CompletionPart.Module is set, no-one should be modifying the map.");
 
                     if (isInternalAccessibility && internalsAreVisible)
                     {

@@ -8234,7 +8234,7 @@ class Program
 }
 ";
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
-            // This will compile without warning but runtime behaviour is unpredictable.
+            // This will compile without warning but runtime behavior is unpredictable.
 
             var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyIL("Program.Load", @"

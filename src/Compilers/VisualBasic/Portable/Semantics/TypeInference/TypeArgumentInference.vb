@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         useSiteDiagnostics, diagnostic, inferTheseTypeParameters)
         End Function
 
-        ' No one should create instances of this class.
+        ' No-one should create instances of this class.
         Private Sub New()
         End Sub
 
@@ -1529,7 +1529,7 @@ HandleAsAGeneralExpression:
             ' and "true" if it succeeded.
             ' Success in pattern-matching may or may not produce type-hints for generic parameters.
             ' If it happened not to produce any type-hints, then maybe other argument/parameter pairs will have produced
-            ' their own type hints that allow inference to succeed, or maybe no one else will have produced type hints,
+            ' their own type hints that allow inference to succeed, or maybe no-one else will have produced type hints,
             ' or maybe other people will have produced conflicting type hints. In those cases, we'd return True from
             ' here (to show success at pattern-matching) and leave the downstream code to produce an error message about
             ' failing to infer T.

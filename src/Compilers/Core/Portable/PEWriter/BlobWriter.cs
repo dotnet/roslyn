@@ -8,17 +8,18 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal unsafe sealed class BlobWriter
+    internal unsafe sealed class BlobBuilder
     {
         private byte[] _buffer;
         private int _length;
         private int _position;
 
-        internal BlobWriter(int initialSize = 64)
+        internal BlobBuilder(int initialSize = 64)
         {
             // the writer assumes little-endian architecture:
             Debug.Assert(BitConverter.IsLittleEndian);
@@ -26,10 +27,18 @@ namespace Microsoft.Cci
             _buffer = new byte[initialSize];
         }
 
-        internal BlobWriter(ObjectPool<BlobWriter> pool)
+        internal BlobBuilder(ObjectPool<BlobBuilder> pool)
             : this()
         {
             _pool = pool;
+        }
+
+        /// <summary>
+        /// Compares the current content of this writer with another one.
+        /// </summary>
+        public bool ContentEquals(BlobBuilder other)
+        {
+            return other != null && Length == other.Length && ByteSequenceComparer.Equals(_buffer, 0, other._buffer, 0, Length);
         }
 
         public byte[] Buffer => _buffer;
@@ -643,7 +652,7 @@ namespace Microsoft.Cci
             }
         }
 
-        internal void WriteTo(BlobWriter stream)
+        internal void WriteTo(BlobBuilder stream)
         {
             stream.WriteBytes(_buffer, 0, _length);
         }
@@ -662,7 +671,7 @@ namespace Microsoft.Cci
 
         #region Poolable
 
-        private readonly ObjectPool<BlobWriter> _pool;
+        private readonly ObjectPool<BlobBuilder> _pool;
 
         //
         // To implement Poolable, you need two things:
@@ -685,23 +694,23 @@ namespace Microsoft.Cci
         }
 
         //2) Expose  the way to get an instance.
-        private static readonly ObjectPool<BlobWriter> s_poolInstance = CreatePool();
+        private static readonly ObjectPool<BlobBuilder> s_poolInstance = CreatePool();
 
-        public static BlobWriter GetInstance()
+        public static BlobBuilder GetInstance()
         {
             var stream = s_poolInstance.Allocate();
             return stream;
         }
 
-        public static ObjectPool<BlobWriter> CreatePool()
+        public static ObjectPool<BlobBuilder> CreatePool()
         {
             return CreatePool(32);
         }
 
-        public static ObjectPool<BlobWriter> CreatePool(int size)
+        public static ObjectPool<BlobBuilder> CreatePool(int size)
         {
-            ObjectPool<BlobWriter> pool = null;
-            pool = new ObjectPool<BlobWriter>(() => new BlobWriter(pool), size);
+            ObjectPool<BlobBuilder> pool = null;
+            pool = new ObjectPool<BlobBuilder>(() => new BlobBuilder(pool), size);
             return pool;
         }
 

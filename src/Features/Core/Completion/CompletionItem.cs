@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The ICompletionProvider that this CompletionItem was created from.
         /// </summary>
-        public virtual ICompletionProvider CompletionProvider { get; }
+        public virtual CompletionListProvider CompletionProvider { get; }
 
         /// <summary>
         /// The text for the completion item should be presented to the user (for example, in a
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool ShouldFormatOnCommit { get; internal set; }
 
         public CompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public CompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private CompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,

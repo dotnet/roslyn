@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Interactive
     [ExportLanguageService(typeof(ICompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
     internal class InteractiveCommandCompletionService : AbstractCompletionService
     {
-        private readonly ImmutableList<ICompletionProvider> _completionProviders;
+        private readonly ImmutableList<CompletionListProvider> _completionProviders;
 
         [ImportingConstructor]
         public InteractiveCommandCompletionService(
-            [ImportMany] IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> completionProviders)
+            [ImportMany] IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> completionProviders)
         {
             _completionProviders =
                 ExtensionOrderer.Order(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 .ToImmutableList();
         }
 
-        public override IEnumerable<ICompletionProvider> GetDefaultCompletionProviders()
+        public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             return _completionProviders;
         }
