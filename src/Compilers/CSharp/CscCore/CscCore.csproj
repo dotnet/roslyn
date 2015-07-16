@@ -47,6 +47,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Core\MSBuildTask\BuildClient.cs">
+      <Link>BuildClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Core\MSBuildTask\NativeMethods.cs">
+      <Link>NativeMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Core\VBCSCompiler\BuildProtocol.cs">
+      <Link>BuildProtocol.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Core\VBCSCompiler\CompilerServerLogger.cs">
+      <Link>CompilerServerLogger.cs</Link>
+    </Compile>
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>

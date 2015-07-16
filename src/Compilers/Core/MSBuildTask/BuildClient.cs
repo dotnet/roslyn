@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// The IsConnected property on named pipes does not detect when the client has disconnected
         /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
-        /// which serves to check the pipe for disconnection. 
+        /// which serves to check the pipe for disconnection.
         ///
         /// This will return true if the pipe was disconnected.
         /// </summary>
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 catch (OperationCanceledException) { }
                 catch (Exception e)
                 {
-                    // It is okay for this call to fail.  Errors will be reflected in the 
-                    // IsConnected property which will be read on the next iteration of the 
+                    // It is okay for this call to fail.  Errors will be reflected in the
+                    // IsConnected property which will be read on the next iteration of the
                     LogException(e, "Error poking pipe");
                 }
             }
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (!File.Exists(expectedPath))
                 return false;
 
-            // As far as I can tell, there isn't a way to use the Process class to 
+            // As far as I can tell, there isn't a way to use the Process class to
             // create a process with no stdin/stdout/stderr, so we use P/Invoke.
             // This code was taken from MSBuild task starting code.
 
@@ -448,14 +448,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <remarks>
         /// The type is embedded in assemblies that need to run cross platform.  While this particular
         /// code will never be hit when running on non-Windows platforms it does need to work when
-        /// on Windows.  To facilitate that we use reflection to make the check here to enable it to 
-        /// compile into our cross plat assemblies. 
+        /// on Windows.  To facilitate that we use reflection to make the check here to enable it to
+        /// compile into our cross plat assemblies.
         /// </remarks>
         private static bool CheckPipeConnectionOwnership(NamedPipeClientStream pipeStream)
         {
             try
             {
-                var assembly = typeof(object).Assembly;
+                var assembly = typeof(object).GetTypeInfo().Assembly;
 
                 var currentIdentity = assembly
                     .GetType("System.Security.Principal.WindowsIdentity")
