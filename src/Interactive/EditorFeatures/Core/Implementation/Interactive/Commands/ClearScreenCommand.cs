@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public override IEnumerable<string> Names
         {
-            get { yield return "cls"; }
+            get { yield return "cls"; yield return "clear"; }
         }
     }
 }
