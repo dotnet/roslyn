@@ -156,6 +156,7 @@
     <Compile Include="Emit\OptionalArgumentsTests.cs" />
     <Compile Include="Emit\OutputStreams.cs" />
     <Compile Include="Emit\ResourceTests.cs" />
+    <Compile Include="Emit\ScriptTests.cs" />
     <Compile Include="PDB\CheckSumTest.cs" />
     <Compile Include="PDB\PDBAsyncTests.cs" />
     <Compile Include="PDB\PDBConstantTests.cs" />
