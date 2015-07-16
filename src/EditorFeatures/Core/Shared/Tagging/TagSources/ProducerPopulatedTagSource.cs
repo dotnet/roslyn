@@ -51,18 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private readonly object _cachedTagsGate = new object();
 
-        /// <summary>
-        /// The tracking mode we want to use for the tracking spans we create.
-        /// </summary>
-        private readonly SpanTrackingMode _spanTrackingMode;
-
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTags;
 
         private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
         private readonly ITagProducer<TTag> _tagProducer;
 
-        // TODO(cyrusn): Why is this lazy?  We'll always need it.  So why not just eagerly create it?
-        private IEqualityComparer<ITagSpan<TTag>> _lazyTagSpanComparer;
+        private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
 
         /// <summary>
         /// accumulated text changes since last tag calculation
@@ -104,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _subjectBuffer = subjectBuffer;
             _dataSource = dataSource;
             _tagProducer = dataSource.CreateTagProducer();
-            _spanTrackingMode = dataSource.SpanTrackingMode;
 
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+            _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
 
             _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
 
@@ -127,23 +121,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <remarks>Called on the foreground thread.</remarks>
         protected abstract SnapshotPoint? GetCaretPoint();
 
-        private IEqualityComparer<TTag> GetTagComparer()
-        {
-            return _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
-        }
-
-        private IEqualityComparer<ITagSpan<TTag>> TagSpanComparer
-        {
-            get
-            {
-                if (_lazyTagSpanComparer == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyTagSpanComparer, new TagSpanComparer<TTag>(this.GetTagComparer()), null);
-                }
-
-                return _lazyTagSpanComparer;
-            }
-        }
+        private IEqualityComparer<TTag> TagComparer => 
+            _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
 
         private void AttachEventHandlersAndStart()
         {
@@ -290,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var newTreeForBuffer = new TagSpanIntervalTree<TTag>(
                 buffer,
                 treeForBuffer.SpanTrackingMode,
-                allTags.Except(tagsToRemove, this.TagSpanComparer));
+                allTags.Except(tagsToRemove, _tagSpanComparer));
 
             UpdateCachedTagsForBuffer(e.After, newTreeForBuffer);
         }
@@ -309,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> oldCachedTagsForBuffer = null;
             if (!oldCachedTags.TryGetValue(snapshot.TextBuffer, out oldCachedTagsForBuffer))
             {
-                oldCachedTagsForBuffer = new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _spanTrackingMode);
+                oldCachedTagsForBuffer = new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
             var difference = ComputeDifference(snapshot, oldCachedTagsForBuffer, newTagsForBuffer);
@@ -469,14 +448,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     tags = tagsInBuffer;
                 }
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
+                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _dataSource.SpanTrackingMode, tags));
             }
 
             foreach (var kv in tagsToKeepByBuffer)
             {
                 if (!map.ContainsKey(kv.Key) && kv.Value.Any())
                 {
-                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _spanTrackingMode, kv.Value));
+                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _dataSource.SpanTrackingMode, kv.Value));
                 }
             }
 
@@ -517,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     tags = tagsInBuffer;
                 }
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
+                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _dataSource.SpanTrackingMode, tags));
             }
 
             // Check if we didn't produce any new tags for this buffer.  If we didn't, but we did 
@@ -528,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var allTags = beforeTagsToKeep;
                 allTags.AddRange(afterTagsToKeep);
 
-                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, _spanTrackingMode, allTags));
+                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, _dataSource.SpanTrackingMode, allTags));
             }
 
             return map;
@@ -560,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     invalidSpans.AddRange(treeForBuffer.GetIntersectingSpans(spanToInvalidate));
                 }
 
-                map = map.Add(kv.Key, treeForBuffer.GetSpans(kv.Key.CurrentSnapshot).Except(invalidSpans, this.TagSpanComparer));
+                map = map.Add(kv.Key, treeForBuffer.GetSpans(kv.Key.CurrentSnapshot).Except(invalidSpans, _tagSpanComparer));
             }
 
             return map;
@@ -677,9 +656,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> previousSpans)
         {
             return new NormalizedSnapshotSpanCollection(
-                Difference(latestSpans.GetSpans(snapshot),
-                           previousSpans.GetSpans(snapshot),
-                           new DiffSpanComparer(this.GetTagComparer())));
+                Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), new DiffSpanComparer(this.TagComparer)));
         }
 
         /// <summary>
