@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             return _underlyingTagger.CreateTagger<T>(buffer);
         }
 
-        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        public virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return null;
         }

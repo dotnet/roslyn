@@ -793,7 +793,6 @@
     <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.SymbolRenameInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameLocationSet.cs" />
-    <Compile Include="Tagging\AsynchronousTaggerProviderFactory.cs" />
     <Compile Include="Tagging\IAsynchronousTaggerDataSource.cs" />
     <Compile Include="TextViewRoles.cs" />
     <Compile Include="Undo\Extensions.cs" />
