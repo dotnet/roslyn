@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal class InteractiveWindow : IInteractiveWindow
+    internal class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
     {
         private bool _adornmentToMinimize;
 
@@ -76,7 +76,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private readonly IWpfTextView _textView;
         private readonly IEditorOperations _editorOperations;
-        private readonly InteractiveOperations _interactiveOperations;
         private readonly History _history;
         private readonly TaskScheduler _uiScheduler;
 
@@ -174,7 +173,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _host = host;
             this.Properties = new PropertyCollection();
             _history = new History();
-            _interactiveOperations = new InteractiveOperations(this);
 
             _projectionBufferFactory = projectionBufferFactory;
             _bufferFactory = bufferFactory;
@@ -206,18 +204,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             _textView = host.CreateTextView(this, projBuffer, CreateRoleSet());
 
-            TextView.Caret.PositionChanged += CaretPositionChanged;
+            _textView.Caret.PositionChanged += CaretPositionChanged;
 
-            TextView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
-            TextView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginId, false);
-            TextView.Options.SetOptionValue(DefaultTextViewHostOptions.OutliningMarginId, false);
-            TextView.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
-            TextView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.WordWrap);
+            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
+            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginId, false);
+            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.OutliningMarginId, false);
+            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
+            _textView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.WordWrap);
 
-            string lineBreak = TextView.Options.GetNewLineCharacter();
+            string lineBreak = _textView.Options.GetNewLineCharacter();
             _lineBreakOutputSpan = new ReplSpan(lineBreak, ReplSpanKind.Output);
             _emptySubmissionSpan = new ReplSpan(lineBreak, ReplSpanKind.Language);
-            _editorOperations = editorOperationsFactory.GetEditorOperations(TextView);
+            _editorOperations = editorOperationsFactory.GetEditorOperations(_textView);
             _uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
 
             _outputTrackingCaretPosition = -1;
@@ -233,7 +231,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _evaluator = evaluator;
         }
 
-        public async Task<ExecutionResult> InitializeAsync()
+        async Task<ExecutionResult> IInteractiveWindow.InitializeAsync()
         {
             RequiresUIThread();
 
@@ -267,21 +265,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
         }
 
-        public void Close()
+        void IInteractiveWindow.Close()
         {
             Caret.PositionChanged -= CaretPositionChanged;
 
-            TextView.Close();
+            _textView.Close();
         }
 
         #endregion
 
         #region Misc Helpers
 
-        private string LineBreak
-        {
-            get { return _lineBreakOutputSpan.InertValue; }
-        }
+        private string LineBreak => _lineBreakOutputSpan.InertValue;
 
         private IIntellisenseSessionStack SessionStack
         {
@@ -289,27 +284,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 if (_sessionStack == null)
                 {
-                    _sessionStack = _intellisenseSessionStackMap.GetStackForTextView(TextView);
+                    _sessionStack = _intellisenseSessionStackMap.GetStackForTextView(_textView);
                 }
 
                 return _sessionStack;
             }
         }
 
-        public ITextBuffer TextBuffer
-        {
-            get { return TextView.TextBuffer; }
-        }
+        private ITextBuffer TextBuffer => _textView.TextBuffer;
 
-        public ITextSnapshot CurrentSnapshot
-        {
-            get { return TextBuffer.CurrentSnapshot; }
-        }
+        private ITextSnapshot CurrentSnapshot => TextBuffer.CurrentSnapshot;
 
-        public ITextBuffer CurrentLanguageBuffer
-        {
-            get { return _currentLanguageBuffer; }
-        }
+        public ITextBuffer CurrentLanguageBuffer => _currentLanguageBuffer;
 
         private void RequiresLanguageBuffer()
         {
@@ -319,7 +305,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public void Dispose()
+        void IDisposable.Dispose()
         {
             if (_buffer != null)
             {
@@ -340,40 +326,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         public event Action ReadyForInput;
 
-        public IWpfTextView TextView
-        {
-            get
-            {
-                return _textView;
-            }
-        }
+        IWpfTextView IInteractiveWindow.TextView => _textView;
 
-        public ITextBuffer OutputBuffer
-        {
-            get { return _outputBuffer; }
-        }
+        ITextBuffer IInteractiveWindow.OutputBuffer => _outputBuffer;
 
-        public TextWriter OutputWriter
-        {
-            get { return _outputWriter; }
-        }
+        TextWriter IInteractiveWindow.OutputWriter => _outputWriter;
 
-        public TextWriter ErrorOutputWriter
-        {
-            get { return _errorOutputWriter; }
-        }
+        TextWriter IInteractiveWindow.ErrorOutputWriter => _errorOutputWriter;
 
-        public IInteractiveEvaluator Evaluator
-        {
-            get { return _evaluator; }
-        }
+        IInteractiveEvaluator IInteractiveWindow.Evaluator => _evaluator;
 
-        public void ClearHistory()
+        void IInteractiveWindowOperations.ClearHistory()
         {
             UIThread(() => _history.Clear());
         }
 
-        public void ClearView()
+        void IInteractiveWindowOperations.ClearView()
         {
             UIThread(() => ClearViewInternal());
         }
@@ -388,7 +356,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             _adornmentToMinimize = false;
-            InlineAdornmentProvider.RemoveAllAdornments(TextView);
+            InlineAdornmentProvider.RemoveAllAdornments(_textView);
 
             // remove all the spans except our initial span from the projection buffer
             _promptLineMapping.Clear();
@@ -454,7 +422,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
             else
             {
-                if (!TextView.Selection.IsEmpty)
+                if (!_textView.Selection.IsEmpty)
                 {
                     CutOrDeleteSelection(isCut: false);
                 }
@@ -463,7 +431,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public Task SubmitAsync(IEnumerable<string> inputs)
+        Task IInteractiveWindow.SubmitAsync(IEnumerable<string> inputs)
         {
             var completion = new TaskCompletionSource<object>();
             var submissions = inputs.ToArray();
@@ -530,7 +498,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public void AddInput(string command)
+        void IInteractiveWindow.AddInput(string command)
         {
             // TODO (acasey): ui thread?
             if (_state == State.ExecutingInput || _currentLanguageBuffer == null)
@@ -573,7 +541,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return _currentTask;
         }
 
-        public void FlushOutput()
+        void IInteractiveWindow.FlushOutput()
         {
             _buffer.Flush();
         }
@@ -585,7 +553,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Clears the current input
         /// </summary>
-        public void Cancel()
+        void IInteractiveWindowOperations.Cancel()
         {
             ClearInput();
             _editorOperations.MoveToEndOfDocument(false);
@@ -645,13 +613,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public void HistorySearchNext()
+        void IInteractiveWindowOperations.HistorySearchNext()
         {
             EnsureHistorySearch();
             HistoryNext(_historySearch);
         }
 
-        public void HistorySearchPrevious()
+        void IInteractiveWindowOperations.HistorySearchPrevious()
         {
             EnsureHistorySearch();
             HistoryPrevious(_historySearch);
@@ -661,7 +629,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             if (_historySearch == null)
             {
-                _historySearch = CurrentLanguageBuffer.CurrentSnapshot.GetText();
+                _historySearch = _currentLanguageBuffer.CurrentSnapshot.GetText();
             }
         }
 
@@ -680,12 +648,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Moves to the beginning of the line.
         /// </summary>
-        public void Home(bool extendSelection)
+        void IInteractiveWindowOperations.Home(bool extendSelection)
         {
             var caret = Caret;
 
             // map the end of subject buffer line:
-            var subjectLineEnd = TextView.BufferGraph.MapDownToFirstMatch(
+            var subjectLineEnd = _textView.BufferGraph.MapDownToFirstMatch(
                 caret.Position.BufferPosition.GetContainingLine().End,
                 PointTrackingMode.Positive,
                 snapshot => snapshot.TextBuffer != _projectionBuffer,
@@ -693,7 +661,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             ITextSnapshotLine subjectLine = subjectLineEnd.GetContainingLine();
 
-            var projectedSubjectLineStart = TextView.BufferGraph.MapUpToBuffer(
+            var projectedSubjectLineStart = _textView.BufferGraph.MapUpToBuffer(
                 subjectLine.Start,
                 PointTrackingMode.Positive,
                 PositionAffinity.Successor,
@@ -721,13 +689,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             if (extendSelection)
             {
-                VirtualSnapshotPoint anchor = TextView.Selection.AnchorPoint;
+                VirtualSnapshotPoint anchor = _textView.Selection.AnchorPoint;
                 caret.MoveTo(moveTo);
-                TextView.Selection.Select(anchor.TranslateTo(TextView.TextSnapshot), TextView.Caret.Position.VirtualBufferPosition);
+                _textView.Selection.Select(anchor.TranslateTo(_textView.TextSnapshot), _textView.Caret.Position.VirtualBufferPosition);
             }
             else
             {
-                TextView.Selection.Clear();
+                _textView.Selection.Clear();
                 caret.MoveTo(moveTo);
             }
         }
@@ -735,12 +703,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Moves to the end of the line.
         /// </summary>
-        public void End(bool extendSelection)
+        void IInteractiveWindowOperations.End(bool extendSelection)
         {
             var caret = Caret;
 
             // map the end of the subject buffer line:
-            var subjectLineEnd = TextView.BufferGraph.MapDownToFirstMatch(
+            var subjectLineEnd = _textView.BufferGraph.MapDownToFirstMatch(
                 caret.Position.BufferPosition.GetContainingLine().End,
                 PointTrackingMode.Positive,
                 snapshot => snapshot.TextBuffer != _projectionBuffer,
@@ -748,7 +716,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             ITextSnapshotLine subjectLine = subjectLineEnd.GetContainingLine();
 
-            var moveTo = TextView.BufferGraph.MapUpToBuffer(
+            var moveTo = _textView.BufferGraph.MapUpToBuffer(
                 subjectLine.End,
                 PointTrackingMode.Positive,
                 PositionAffinity.Successor,
@@ -756,28 +724,28 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             if (extendSelection)
             {
-                VirtualSnapshotPoint anchor = TextView.Selection.AnchorPoint;
+                VirtualSnapshotPoint anchor = _textView.Selection.AnchorPoint;
                 caret.MoveTo(moveTo);
-                TextView.Selection.Select(anchor.TranslateTo(TextView.TextSnapshot), TextView.Caret.Position.VirtualBufferPosition);
+                _textView.Selection.Select(anchor.TranslateTo(_textView.TextSnapshot), _textView.Caret.Position.VirtualBufferPosition);
             }
             else
             {
-                TextView.Selection.Clear();
+                _textView.Selection.Clear();
                 caret.MoveTo(moveTo);
             }
         }
 
-        public void SelectAll()
+        void IInteractiveWindowOperations.SelectAll()
         {
-            SnapshotSpan? span = GetContainingRegion(TextView.Caret.Position.BufferPosition);
+            SnapshotSpan? span = GetContainingRegion(_textView.Caret.Position.BufferPosition);
 
             // if the span is already selected select all text in the projection buffer:
-            if (span == null || (TextView.Selection.SelectedSpans.Count == 1 && TextView.Selection.SelectedSpans[0] == span.Value))
+            if (span == null || (_textView.Selection.SelectedSpans.Count == 1 && _textView.Selection.SelectedSpans[0] == span.Value))
             {
                 span = new SnapshotSpan(TextBuffer.CurrentSnapshot, new Span(0, TextBuffer.CurrentSnapshot.Length));
             }
 
-            TextView.Selection.Select(span.Value, isReversed: false);
+            _textView.Selection.Select(span.Value, isReversed: false);
         }
 
         /// <summary>
@@ -787,7 +755,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// 
         /// Internal for testing.
         /// </summary>
-        internal SnapshotSpan? GetContainingRegion(SnapshotPoint point)
+        private SnapshotSpan? GetContainingRegion(SnapshotPoint point)
         {
             int closestPrecedingPrimaryPromptIndex;
             ReplSpan projectionSpan = GetClosestPrecedingInputSpan(point, out closestPrecedingPrimaryPromptIndex);
@@ -804,7 +772,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 new SnapshotPoint(inputSnapshot, inputSnapshot.Length) :
                 projectionSpan.TrackingSpan.GetEndPoint(inputSnapshot);
 
-            SnapshotPoint projectedInputBufferEnd = TextView.BufferGraph.MapUpToBuffer(
+            SnapshotPoint projectedInputBufferEnd = _textView.BufferGraph.MapUpToBuffer(
                 inputBufferEnd,
                 PointTrackingMode.Positive,
                 PositionAffinity.Predecessor,
@@ -813,7 +781,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // point is between the primary prompt (including) and the last character of the corresponding language/stdin buffer:
             if (point <= projectedInputBufferEnd)
             {
-                var projectedLanguageBufferStart = TextView.BufferGraph.MapUpToBuffer(
+                var projectedLanguageBufferStart = _textView.BufferGraph.MapUpToBuffer(
                     new SnapshotPoint(inputSnapshot, 0),
                     PointTrackingMode.Positive,
                     PositionAffinity.Successor,
@@ -845,7 +813,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             var trackingSpan = lastSpanBeforeNextPrompt.TrackingSpan;
             return new SnapshotSpan(
                 projectedInputBufferEnd,
-                TextView.BufferGraph.MapUpToBuffer(
+                _textView.BufferGraph.MapUpToBuffer(
                     trackingSpan.GetEndPoint(trackingSpan.TextBuffer.CurrentSnapshot),
                     PointTrackingMode.Positive,
                     PositionAffinity.Predecessor,
@@ -855,7 +823,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// <summary>
         /// Pastes from the clipboard into the text view
         /// </summary>
-        public bool Paste()
+        bool IInteractiveWindowOperations.Paste()
         {
             return UIThread(() =>
             {
@@ -892,14 +860,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Debug.Assert(_currentLanguageBuffer != null);
 
             var caretLine = caretPosition.GetContainingLine();
-            var indentation = _smartIndenterService.GetDesiredIndentation(TextView, caretLine);
+            var indentation = _smartIndenterService.GetDesiredIndentation(_textView, caretLine);
 
             if (indentation != null)
             {
                 if (caretPosition == caretLine.End)
                 {
                     // create virtual space:
-                    TextView.Caret.MoveTo(new VirtualSnapshotPoint(caretPosition, indentation.Value));
+                    _textView.Caret.MoveTo(new VirtualSnapshotPoint(caretPosition, indentation.Value));
                 }
                 else
                 {
@@ -930,7 +898,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private SnapshotPoint? GetPositionInBuffer(SnapshotPoint point, ITextBuffer buffer)
         {
-            return TextView.BufferGraph.MapDownToBuffer(
+            return _textView.BufferGraph.MapDownToBuffer(
                         point,
                         PointTrackingMode.Positive,
                         buffer,
@@ -941,9 +909,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private string GetWhiteSpaceForVirtualSpace(int virtualSpaces)
         {
             string textToInsert;
-            if (!TextView.Options.IsConvertTabsToSpacesEnabled())
+            if (!_textView.Options.IsConvertTabsToSpacesEnabled())
             {
-                int tabSize = TextView.Options.GetTabSize();
+                int tabSize = _textView.Options.GetTabSize();
 
                 int spacesAfterPreviousTabStop = virtualSpaces % tabSize;
                 int columnOfPreviousTabStop = virtualSpaces - spacesAfterPreviousTabStop;
@@ -972,7 +940,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private void DeletePreviousCharacter()
         {
-            SnapshotPoint? point = MapToEditableBuffer(TextView.Caret.Position.BufferPosition);
+            SnapshotPoint? point = MapToEditableBuffer(_textView.Caret.Position.BufferPosition);
 
             // We are not in an editable buffer, or we are at the start of the buffer, nothing to delete.
             if (point == null || point.Value == 0)
@@ -995,19 +963,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position - characterSize, characterSize));
 
             // scroll to the line being edited:
-            SnapshotPoint caretPosition = TextView.Caret.Position.BufferPosition;
-            TextView.ViewScroller.EnsureSpanVisible(new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0));
+            SnapshotPoint caretPosition = _textView.Caret.Position.BufferPosition;
+            _textView.ViewScroller.EnsureSpanVisible(new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0));
         }
 
         private void CutOrDeleteCurrentLine(bool isCut)
         {
             ITextSnapshotLine line;
             int column;
-            TextView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out line, out column);
+            _textView.Caret.Position.VirtualBufferPosition.GetLineAndColumn(out line, out column);
 
             CutOrDelete(new[] { line.ExtentIncludingLineBreak }, isCut);
 
-            TextView.Caret.MoveTo(new VirtualSnapshotPoint(TextView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(line.LineNumber), column));
+            _textView.Caret.MoveTo(new VirtualSnapshotPoint(_textView.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(line.LineNumber), column));
         }
 
         /// <summary>
@@ -1015,10 +983,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private void CutOrDeleteSelection(bool isCut)
         {
-            CutOrDelete(TextView.Selection.SelectedSpans, isCut);
+            CutOrDelete(_textView.Selection.SelectedSpans, isCut);
 
             // if the selection spans over prompts the prompts remain selected, so clear manually:
-            TextView.Selection.Clear();
+            _textView.Selection.Clear();
         }
 
         private void CutOrDelete(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
@@ -1033,7 +1001,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 foreach (var projectionSpan in projectionSpans)
                 {
-                    var spans = TextView.BufferGraph.MapDownToBuffer(projectionSpan, SpanTrackingMode.EdgeInclusive, affectedBuffer);
+                    var spans = _textView.BufferGraph.MapDownToBuffer(projectionSpan, SpanTrackingMode.EdgeInclusive, affectedBuffer);
                     foreach (var span in spans)
                     {
                         if (isCut)
@@ -1057,7 +1025,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             if (deletedText != null)
             {
                 var data = new DataObject();
-                if (TextView.Selection.Mode == TextSelectionMode.Box)
+                if (_textView.Selection.Mode == TextSelectionMode.Box)
                 {
                     data.SetData(BoxSelectionCutCopyTag, new object());
                 }
@@ -1069,10 +1037,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private bool ReduceBoxSelectionToEditableBox(bool isDelete = true)
         {
-            Debug.Assert(TextView.Selection.Mode == TextSelectionMode.Box);
+            Debug.Assert(_textView.Selection.Mode == TextSelectionMode.Box);
 
-            VirtualSnapshotPoint anchor = TextView.Selection.AnchorPoint;
-            VirtualSnapshotPoint active = TextView.Selection.ActivePoint;
+            VirtualSnapshotPoint anchor = _textView.Selection.AnchorPoint;
+            VirtualSnapshotPoint active = _textView.Selection.ActivePoint;
 
             bool result;
             if (active < anchor)
@@ -1084,8 +1052,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 result = ReduceBoxSelectionToEditableBox(ref anchor, ref active, isDelete);
             }
 
-            TextView.Selection.Select(anchor, active);
-            TextView.Caret.MoveTo(active);
+            _textView.Selection.Select(anchor, active);
+            _textView.Caret.MoveTo(active);
 
             return result;
         }
@@ -1184,47 +1152,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region Keyboard Commands
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        public bool IsRunning
-        {
-            get
-            {
-                return _state != State.WaitingForInput;
-            }
-        }
+        bool IInteractiveWindow.IsRunning => _state != State.WaitingForInput;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        public bool IsResetting
-        {
-            get
-            {
-                return _state == State.Resetting;
-            }
-        }
+        bool IInteractiveWindow.IsResetting => _state == State.Resetting;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        public bool IsInitializing
-        {
-            get
-            {
-                return _state == State.Starting || _state == State.Initializing;
-            }
-        }
+        bool IInteractiveWindow.IsInitializing => _state == State.Starting || _state == State.Initializing;
 
-        public IInteractiveWindowOperations Operations
-        {
-            get
-            {
-                return _interactiveOperations;
-            }
-        }
+        IInteractiveWindowOperations IInteractiveWindow.Operations => this;
 
-        public bool Delete()
+        bool IInteractiveWindowOperations.Delete()
         {
             _historySearch = null;
             bool handled = false;
-            if (!TextView.Selection.IsEmpty)
+            if (!_textView.Selection.IsEmpty)
             {
-                if (TextView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
+                if (_textView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
                 {
                     CutOrDeleteSelection(isCut: false);
                     MoveCaretToClosestEditableBuffer();
@@ -1235,9 +1179,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return handled;
         }
 
-        public void Cut()
+        void IInteractiveWindowOperations.Cut()
         {
-            if (TextView.Selection.IsEmpty)
+            if (_textView.Selection.IsEmpty)
             {
                 CutOrDeleteCurrentLine(isCut: true);
             }
@@ -1249,19 +1193,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             MoveCaretToClosestEditableBuffer();
         }
 
-        public bool Backspace()
+        bool IInteractiveWindowOperations.Backspace()
         {
             bool handled = false;
-            if (!TextView.Selection.IsEmpty)
+            if (!_textView.Selection.IsEmpty)
             {
-                if (TextView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
+                if (_textView.Selection.Mode == TextSelectionMode.Stream || ReduceBoxSelectionToEditableBox())
                 {
                     CutOrDeleteSelection(isCut: false);
                     MoveCaretToClosestEditableBuffer();
                     handled = true;
                 }
             }
-            else if (TextView.Caret.Position.VirtualSpaces == 0)
+            else if (_textView.Caret.Position.VirtualSpaces == 0)
             {
                 DeletePreviousCharacter();
                 handled = true;
@@ -1270,12 +1214,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return handled;
         }
 
-        public bool TrySubmitStandardInput()
+        bool IInteractiveWindowOperations.TrySubmitStandardInput()
         {
             _historySearch = null;
             if (_stdInputStart != null)
             {
-                if (InStandardInputRegion(TextView.Caret.Position.BufferPosition))
+                if (InStandardInputRegion(_textView.Caret.Position.BufferPosition))
                 {
                     SubmitStandardInput();
                 }
@@ -1286,12 +1230,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return false;
         }
 
-        public bool BreakLine()
+        bool IInteractiveWindowOperations.BreakLine()
         {
             return HandlePostServicesReturn(false);
         }
 
-        public bool Return()
+        bool IInteractiveWindowOperations.Return()
         {
             _historySearch = null;
             return HandlePostServicesReturn(true);
@@ -1319,7 +1263,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 // insert new line (triggers secondary prompt injection in buffer changed event):
                 _currentLanguageBuffer.Insert(caretPosition, LineBreak);
-                IndentCurrentLine(TextView.Caret.Position.BufferPosition);
+                IndentCurrentLine(_textView.Caret.Position.BufferPosition);
 
                 return true;
             }
@@ -1368,17 +1312,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Caret and Cursor
 
-        private ITextCaret Caret
-        {
-            get { return TextView.Caret; }
-        }
+        private ITextCaret Caret => _textView.Caret;
 
-        private bool CaretAtEnd
-        {
-            get { return Caret.Position.BufferPosition.Position == CurrentSnapshot.Length; }
-        }
+        private bool CaretAtEnd => Caret.Position.BufferPosition.Position == CurrentSnapshot.Length;
 
-        public bool CaretInActiveCodeRegion
+        private bool CaretInActiveCodeRegion
         {
             get
             {
@@ -1392,7 +1330,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        public bool CaretInStandardInputRegion
+        private bool CaretInStandardInputRegion
         {
             get
             {
@@ -1408,11 +1346,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void MoveCaretToClosestEditableBuffer()
         {
-            SnapshotPoint currentPosition = TextView.Caret.Position.BufferPosition;
+            SnapshotPoint currentPosition = _textView.Caret.Position.BufferPosition;
             SnapshotPoint newPosition = GetClosestEditablePoint(currentPosition);
             if (currentPosition != newPosition)
             {
-                TextView.Caret.MoveTo(newPosition);
+                _textView.Caret.MoveTo(newPosition);
             }
         }
 
@@ -1436,7 +1374,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             var projectionLine = projectionPoint.GetContainingLine();
 
-            SnapshotPoint? lineEnd = TextView.BufferGraph.MapDownToBuffer(
+            SnapshotPoint? lineEnd = _textView.BufferGraph.MapDownToBuffer(
                 projectionLine.End,
                 PointTrackingMode.Positive,
                 editableBuffer,
@@ -1452,7 +1390,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 editablePoint = lineEnd.Value.GetContainingLine().Start;
             }
 
-            return TextView.BufferGraph.MapUpToBuffer(
+            return _textView.BufferGraph.MapUpToBuffer(
                 editablePoint,
                 PointTrackingMode.Positive,
                 PositionAffinity.Successor,
@@ -1501,7 +1439,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             var inputBuffer = projectionSpan.TrackingSpan.TextBuffer;
             var inputSnapshot = inputBuffer.CurrentSnapshot;
 
-            var projectedSnapshot = TextView.BufferGraph.MapUpToBuffer(
+            var projectedSnapshot = _textView.BufferGraph.MapUpToBuffer(
                 new SnapshotSpan(inputSnapshot, 0, inputSnapshot.Length),
                 SpanTrackingMode.EdgePositive,
                 _projectionBuffer);
@@ -1539,7 +1477,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             Debug.Assert(_currentLanguageBuffer != null);
 
-            var langPoint = TextView.BufferGraph.MapDownToBuffer(
+            var langPoint = _textView.BufferGraph.MapDownToBuffer(
                 new SnapshotPoint(
                     _projectionBuffer.CurrentSnapshot,
                     Caret.Position.BufferPosition.Position),
@@ -1564,7 +1502,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             if (_oldCursor != null)
             {
-                ((ContentControl)TextView).Cursor = _oldCursor;
+                ((ContentControl)_textView).Cursor = _oldCursor;
             }
 
             _oldCursor = null;
@@ -1582,7 +1520,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private void SetRunningCursor(object sender, EventArgs e)
         {
-            var view = (ContentControl)TextView;
+            var view = (ContentControl)_textView;
 
             // Save the old value of the cursor so it can be restored
             // after execution has finished
@@ -1852,7 +1790,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             if (_adornmentToMinimize)
             {
                 // TODO (tomat): remember the index of the adornment(s) in the current output and minimize those instead of the last one 
-                InlineAdornmentProvider.MinimizeLastInlineAdornment(TextView);
+                InlineAdornmentProvider.MinimizeLastInlineAdornment(_textView);
                 _adornmentToMinimize = false;
             }
 
@@ -1867,7 +1805,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ReplaceProjectionSpan(_currentOutputProjectionSpan, nonGrowingSpan);
 
             AppendNewOutputProjectionBuffer();
-            _outputTrackingCaretPosition = TextView.Caret.Position.BufferPosition;
+            _outputTrackingCaretPosition = _textView.Caret.Position.BufferPosition;
         }
 
         private void StoreUncommittedInput()
@@ -1908,7 +1846,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         }
 
         // TODO: What happens if multiple non-UI threads call this method? (https://github.com/dotnet/roslyn/issues/3984)
-        public TextReader ReadStandardInput()
+        TextReader IInteractiveWindow.ReadStandardInput()
         {
             // shouldn't be called on the UI thread because we'll hang
             RequiresNonUIThread();
@@ -2027,20 +1965,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Output
 
-        public Span Write(string text)
+        Span IInteractiveWindow.Write(string text)
         {
             int result = _buffer.Write(text);
             return new Span(result, (text != null ? text.Length : 0));
         }
 
-        public Span WriteLine(string text = null)
+        public Span WriteLine(string text)
         {
             int result = _buffer.Write(text);
             _buffer.Write(LineBreak);
             return new Span(result, (text != null ? text.Length : 0) + LineBreak.Length);
         }
 
-        public Span WriteError(string text)
+        Span IInteractiveWindow.WriteError(string text)
         {
             int result = _buffer.Write(text);
             var res = new Span(result, (text != null ? text.Length : 0));
@@ -2048,7 +1986,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return res;
         }
 
-        public Span WriteErrorLine(string text = null)
+        Span IInteractiveWindow.WriteErrorLine(string text)
         {
             int result = _buffer.Write(text);
             _buffer.Write(LineBreak);
@@ -2057,7 +1995,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return res;
         }
 
-        public void Write(UIElement element)
+        void IInteractiveWindow.Write(UIElement element)
         {
             if (element == null)
             {
@@ -2065,7 +2003,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             _buffer.Flush();
-            InlineAdornmentProvider.AddInlineAdornment(TextView, element, OnAdornmentLoaded);
+            InlineAdornmentProvider.AddInlineAdornment(_textView, element, OnAdornmentLoaded);
             _adornmentToMinimize = true;
             WriteLine(string.Empty);
             WriteLine(string.Empty);
@@ -2141,10 +2079,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             CheckPromptLineMappingConsistency(_currentOutputProjectionSpan);
 
             // caret didn't move since last time we moved it to track output:
-            if (_outputTrackingCaretPosition == TextView.Caret.Position.BufferPosition)
+            if (_outputTrackingCaretPosition == _textView.Caret.Position.BufferPosition)
             {
-                TextView.Caret.EnsureVisible();
-                _outputTrackingCaretPosition = TextView.Caret.Position.BufferPosition;
+                _textView.Caret.EnsureVisible();
+                _outputTrackingCaretPosition = _textView.Caret.Position.BufferPosition;
             }
         }
 
@@ -2283,7 +2221,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             PrepareForInput();
         }
 
-        public void ExecuteInput()
+        void IInteractiveWindowOperations.ExecuteInput()
         {
             AssertOnUIThread();
 
@@ -2953,7 +2891,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             // 
             // This works the same way w/ our input buffer where the input buffer present instead of <lang span 2>.
 
-            public void FillInInsertionSizes(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints, string insertionText, IList<int> insertionSizes)
+            void IProjectionEditResolver.FillInInsertionSizes(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints, string insertionText, IList<int> insertionSizes)
             {
                 int index = IndexOfEditableBuffer(sourceInsertionPoints);
                 if (index != -1)
@@ -2962,13 +2900,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            public int GetTypicalInsertionPosition(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
+            int IProjectionEditResolver.GetTypicalInsertionPosition(SnapshotPoint projectionInsertionPoint, ReadOnlyCollection<SnapshotPoint> sourceInsertionPoints)
             {
                 int index = IndexOfEditableBuffer(sourceInsertionPoints);
                 return index != -1 ? index : 0;
             }
 
-            public void FillInReplacementSizes(SnapshotSpan projectionReplacementSpan, ReadOnlyCollection<SnapshotSpan> sourceReplacementSpans, string insertionText, IList<int> insertionSizes)
+            void IProjectionEditResolver.FillInReplacementSizes(SnapshotSpan projectionReplacementSpan, ReadOnlyCollection<SnapshotSpan> sourceReplacementSpans, string insertionText, IList<int> insertionSizes)
             {
                 int index = IndexOfEditableBuffer(sourceReplacementSpans);
                 if (index != -1)
@@ -3010,10 +2948,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region UI Dispatcher Helpers
 
-        private Dispatcher Dispatcher
-        {
-            get { return ((FrameworkElement)TextView).Dispatcher; }
-        }
+        private Dispatcher Dispatcher => ((FrameworkElement)_textView).Dispatcher;
 
         internal bool OnUIThread()
         {
@@ -3078,128 +3013,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         #region Testing
 
-        internal List<ReplSpan> ProjectionSpans
-        {
-            get { return _projectionSpans; }
-        }
+        internal List<ReplSpan> ProjectionSpans => _projectionSpans;
 
         #endregion
-
-        private class InteractiveOperations : IInteractiveWindowOperations
-        {
-            private readonly InteractiveWindow _window;
-
-            public InteractiveOperations(InteractiveWindow window)
-            {
-                _window = window;
-            }
-
-            public bool Backspace()
-            {
-                return _window.Backspace();
-            }
-
-            public bool BreakLine()
-            {
-                return _window.BreakLine();
-            }
-
-            public void Cancel()
-            {
-                _window.Cancel();
-            }
-
-            public void ClearHistory()
-            {
-                _window.ClearHistory();
-            }
-
-            public void ClearView()
-            {
-                _window.ClearView();
-            }
-
-            public void Cut()
-            {
-                _window.Cut();
-            }
-
-            public bool Delete()
-            {
-                return _window.Delete();
-            }
-
-            public void End(bool extendSelection)
-            {
-                _window.End(extendSelection);
-            }
-
-            public void ExecuteInput()
-            {
-                _window.ExecuteInput();
-            }
-
-            public void HistoryNext(string search = null)
-            {
-                _window.HistoryNext(search);
-            }
-
-            public void HistoryPrevious(string search = null)
-            {
-                _window.HistoryPrevious(search);
-            }
-
-            public void HistorySearchNext()
-            {
-                _window.HistorySearchNext();
-            }
-
-            public void HistorySearchPrevious()
-            {
-                _window.HistorySearchPrevious();
-            }
-
-            public void Home(bool extendSelection)
-            {
-                _window.Home(extendSelection);
-            }
-
-            public bool Paste()
-            {
-                return _window.Paste();
-            }
-
-            public Task<ExecutionResult> ResetAsync(bool initialize = true)
-            {
-                return _window.ResetAsync(initialize);
-            }
-
-            public bool Return()
-            {
-                return _window.Return();
-            }
-
-            public void SelectAll()
-            {
-                _window.SelectAll();
-            }
-
-            public bool TrySubmitStandardInput()
-            {
-                return _window.TrySubmitStandardInput();
-            }
-        }
 
         private enum State
         {
             /// <summary>
-            /// Initial state.  <see cref="InitializeAsync"/> hasn't been called.
-            /// Transition to <see cref="Initializing"/> when <see cref="InitializeAsync"/> is called.
+            /// Initial state.  <see cref="IInteractiveWindow.InitializeAsync"/> hasn't been called.
+            /// Transition to <see cref="Initializing"/> when <see cref="IInteractiveWindow.InitializeAsync"/> is called.
             /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
             /// </summary>
             Starting,
             /// <summary>
-            /// In the process of calling <see cref="InitializeAsync"/>.
+            /// In the process of calling <see cref="IInteractiveWindow.InitializeAsync"/>.
             /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
             /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
             /// </summary>
@@ -3212,7 +3039,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Resetting,
             /// <summary>
             /// Prompt has been displayed - waiting for the user to make the next submission.
-            /// Transition to <see cref="ExecutingInput"/> when <see cref="ExecuteInput"/> is called.
+            /// Transition to <see cref="ExecutingInput"/> when <see cref="IInteractiveWindowOperations.ExecuteInput"/> is called.
             /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
             /// </summary>
             WaitingForInput,
@@ -3223,12 +3050,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             ExecutingInput,
             /// <summary>
-            /// In the process of calling <see cref="ReadStandardInput"/>.
+            /// In the process of calling <see cref="IInteractiveWindow.ReadStandardInput"/>.
             /// Return to preceding state when finished.
             /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
             /// </summary>
             /// <remarks>
-            /// TODO: When we clean up <see cref="ReadStandardInput"/> (https://github.com/dotnet/roslyn/issues/3984)
+            /// TODO: When we clean up <see cref="IInteractiveWindow.ReadStandardInput"/> (https://github.com/dotnet/roslyn/issues/3984)
             /// we should try to eliminate the "preceding state", since it substantially
             /// increases the complexity of the state machine.
             /// </remarks>
