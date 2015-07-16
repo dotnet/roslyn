@@ -5,12 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Completion.Rules;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -32,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
-        private readonly IList<Lazy<ICompletionRules, OrderableLanguageMetadata>> _allCompletionRules;
-        private readonly IList<Lazy<ICompletionProvider, OrderableLanguageMetadata>> _allCompletionProviders;
+        private readonly IList<Lazy<CompletionListProvider, OrderableLanguageMetadata>> _allCompletionProviders;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, IBraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
 
@@ -44,12 +41,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IInlineRenameService inlineRenameService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
-            [ImportMany] IEnumerable<Lazy<ICompletionRules, OrderableLanguageMetadata>> allCompletionRules,
-            [ImportMany] IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> allCompletionProviders,
+            [ImportMany] IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> allCompletionProviders,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, IBraceCompletionMetadata>> autoBraceCompletionChars)
             : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
-                  asyncListeners, allCompletionRules, allCompletionProviders, autoBraceCompletionChars)
+                  asyncListeners, allCompletionProviders, autoBraceCompletionChars)
         {
         }
 
@@ -59,8 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IInlineRenameService inlineRenameService,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            IEnumerable<Lazy<ICompletionRules, OrderableLanguageMetadata>> allCompletionRules,
-            IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> allCompletionProviders,
+            IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> allCompletionProviders,
             IEnumerable<Lazy<IBraceCompletionSessionProvider, IBraceCompletionMetadata>> autoBraceCompletionChars)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
@@ -68,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             _inlineRenameService = inlineRenameService;
             _completionPresenter = completionPresenter;
             _asyncListeners = asyncListeners;
-            _allCompletionRules = ExtensionOrderer.Order(allCompletionRules);
             _allCompletionProviders = ExtensionOrderer.Order(allCompletionProviders);
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _autoBraceCompletionCharSet = new Dictionary<IContentType, ImmutableHashSet<char>>();
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 textView, subjectBuffer,
                 _editorOperationsFactoryService, _undoHistoryRegistry, _completionPresenter,
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.CompletionSet),
-                _allCompletionRules, _allCompletionProviders, autobraceCompletionCharSet);
+                _allCompletionProviders, autobraceCompletionCharSet);
 
             return true;
         }

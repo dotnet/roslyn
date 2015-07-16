@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // and max positions and use those for quick checks internally.
         //
         // Note: it is critical that this method must only be called from a 
-        // codepath that checked for IsIdentifierStartChar or '@' first. 
+        // code path that checked for IsIdentifierStartChar or '@' first. 
         private bool ScanIdentifier_FastPath(ref TokenInfo info)
         {
             if ((_mode & LexerMode.MaskLexMode) == LexerMode.DebuggerSyntax)
@@ -2010,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // NOTE: If we don't intern the string value, then we won't get a hit
                 // in the keyword dictionary!  (It searches for a key using identity.)
-                // The text does not have to be interned (and probalbly shouldn't be
+                // The text does not have to be interned (and probably shouldn't be
                 // if it contains entities (else-case).
 
                 var width = TextWindow.Width; // exact size of input characters

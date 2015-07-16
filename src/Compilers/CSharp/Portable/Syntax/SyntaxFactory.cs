@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
         /// <param name="kind">A syntax kind value for a token. These have the suffix Token or Keyword.</param>
-        /// <param name="text">The text from which this this token was created (e.g. lexed).</param>
+        /// <param name="text">The text from which this token was created (e.g. lexed).</param>
         /// <param name="valueText">How C# should interpret the text of this token.</param>
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Token(SyntaxTriviaList leading, SyntaxKind kind, string text, string valueText, SyntaxTriviaList trailing)
@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="newNode">The new node.</param>
         /// <param name="ignoreChildNode">
         /// If specified called for every child syntax node (not token) that is visited during the comparison. 
-        /// It it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
+        /// If it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         /// </param>
         public static bool AreEquivalent(SyntaxNode oldNode, SyntaxNode newNode, Func<SyntaxKind, bool> ignoreChildNode = null)
         {
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="newList">The new list.</param>
         /// <param name="ignoreChildNode">
         /// If specified called for every child syntax node (not token) that is visited during the comparison. 
-        /// It it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
+        /// If it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         /// </param>
         public static bool AreEquivalent<TNode>(SyntaxList<TNode> oldList, SyntaxList<TNode> newList, Func<SyntaxKind, bool> ignoreChildNode = null)
             where TNode : SyntaxNode
@@ -1514,7 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="newList">The new list.</param>
         /// <param name="ignoreChildNode">
         /// If specified called for every child syntax node (not token) that is visited during the comparison. 
-        /// It it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
+        /// If it returns true the child is recursively visited, otherwise the child and its subtree is disregarded.
         /// </param>
         public static bool AreEquivalent<TNode>(SeparatedSyntaxList<TNode> oldList, SeparatedSyntaxList<TNode> newList, Func<SyntaxKind, bool> ignoreChildNode = null)
             where TNode : SyntaxNode

@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   a parameter list with inaccessible names and no optional parameters is constructed, so that invocations cannot use 
             //   named parameters or omit optional arguments.
             // - For partial methods, the parameter list of the defining partial method declaration is used.
-            // - For all other other function members and delegates there is only a single parameter list, which is the one used.
+            // - For all other function members and delegates there is only a single parameter list, which is the one used.
             //
             // The position of an argument or parameter is defined as the number of arguments or
             // parameters preceding it in the argument list or parameter list.
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     are ignored if they are applicable only in their expanded form, or if one or more of their
             //     optional parameters do not have a corresponding parameter in the targeted delegate type.
             //   
-            // Therefore, no parameters are optional when performining method group conversion.  Alternatively,
+            // Therefore, no parameters are optional when performing method group conversion.  Alternatively,
             // we could eliminate methods based on the number of arguments, but then we wouldn't be able to
             // fall back on them if no other candidates were available.
 

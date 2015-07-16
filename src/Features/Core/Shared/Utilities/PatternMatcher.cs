@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // f) Is the pattern a substring of the candidate starting on one of the candidate's word boundaries?
 
                 // We could check every character boundary start of the candidate for the pattern. However, that's
-                // an m * n operation in the wost case. Instead, find the first instance of the pattern 
+                // an m * n operation in the worst case. Instead, find the first instance of the pattern 
                 // substring, and see if it starts on a capital letter. It seems unlikely that the user will try to 
                 // filter the list based on a substring that starts on a capital letter and also with a lowercase one.
                 // (Pattern: fogbar, Candidate: quuxfogbarFogBar).

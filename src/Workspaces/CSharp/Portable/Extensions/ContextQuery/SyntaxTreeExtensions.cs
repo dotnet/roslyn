@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                             var declStatement = type.Parent.Parent as LocalDeclarationStatementSyntax;
 
                             // note, this doesn't apply for cases where we know it 
-                            // absolutely is not multiplcation or a conditional expression.
+                            // absolutely is not multiplication or a conditional expression.
                             var underlyingType = type is PointerTypeSyntax
                                 ? ((PointerTypeSyntax)type).ElementType
                                 : ((NullableTypeSyntax)type).ElementType;

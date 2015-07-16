@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 case Accessibility.Private:
                                     // if s2 is private and within a subclass of s1's parent,
-                                    // or withing the same assembly as s1
+                                    // or within the same assembly as s1
                                     // then this is at least as restrictive as s1's internal protected.
                                     if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly))
                                     {
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Guess the non-error typekind that the given type was intended to represent,
+        /// Guess the non-error type kind that the given type was intended to represent,
         /// if possible. If not, return TypeKind.Error.
         /// </summary>
         internal static TypeKind GetNonErrorTypeKindGuess(this TypeSymbol type)

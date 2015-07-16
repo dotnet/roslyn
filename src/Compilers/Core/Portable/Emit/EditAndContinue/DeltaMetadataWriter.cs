@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
         private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
-        private readonly HeapOrReferenceIndex<int> _standAloneSignatureIndex;
+        private readonly HeapOrReferenceIndex<BlobIdx> _standAloneSignatureIndex;
         private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> _addedOrChangedMethods;
 
         public DeltaMetadataWriter(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this), lastRowId: sizes[(int)TableIndex.MethodSpec]);
             _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this, lastRowId: sizes[(int)TableIndex.TypeRef]);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this), lastRowId: sizes[(int)TableIndex.TypeSpec]);
-            _standAloneSignatureIndex = new HeapOrReferenceIndex<int>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
+            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobIdx>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
 
             _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
         }
@@ -402,12 +402,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return _typeSpecIndex.Rows;
         }
 
-        protected override int GetOrAddStandAloneSignatureIndex(int blobIndex)
+        protected override int GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
         {
             return _standAloneSignatureIndex.GetOrAdd(blobIndex);
         }
 
-        protected override IReadOnlyList<int> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
         {
             return _standAloneSignatureIndex.Rows;
         }
@@ -609,9 +609,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (localVariables.Length > 0)
             {
-                var writer = BlobWriter.GetInstance();
+                var writer = BlobBuilder.GetInstance();
                 writer.WriteByte(0x07);
-                writer.WriteCompressedUInt((uint)localVariables.Length);
+                writer.WriteCompressedInteger((uint)localVariables.Length);
 
                 foreach (ILocalDefinition local in localVariables)
                 {
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
 
-                int blobIndex = heaps.GetBlobIndex(writer);
+                BlobIdx blobIndex = heaps.GetBlobIndex(writer);
                 localSignatureRowId = GetOrAddStandAloneSignatureIndex(blobIndex);
                 writer.Free();
             }

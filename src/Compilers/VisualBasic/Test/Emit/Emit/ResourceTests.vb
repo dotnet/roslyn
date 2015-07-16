@@ -123,7 +123,7 @@ End Class
             Dim c1 = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseExe)
             Dim exe = Temp.CreateFile()
             Using output As FileStream = exe.Open()
-                Dim memStream = New MemoryStream(TestResources.SymbolsTests.General.nativeCOFFResources)
+                Dim memStream = New MemoryStream(TestResources.General.nativeCOFFResources)
                 c1.Emit(output, win32Resources:=memStream)
             End Using
 

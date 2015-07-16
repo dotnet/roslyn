@@ -4594,7 +4594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if (this.EnclosingNameofArgument == node)
                             {
-                                // Support selecing an extension method from a type name in nameof(.)
+                                // Support selecting an extension method from a type name in nameof(.)
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, diagnostics);
                             }
                             else

@@ -5,38 +5,34 @@ Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Completion.Rules
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     <ExportLanguageService(GetType(ICompletionService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicCompletionService
         Inherits AbstractCompletionService
 
-        Private ReadOnly _completionProviders As IEnumerable(Of ICompletionProvider) = New ICompletionProvider() {
+        Private ReadOnly _completionProviders As IEnumerable(Of CompletionListProvider) = New CompletionListProvider() {
             New KeywordCompletionProvider(),
             New SymbolCompletionProvider(),
             New ObjectInitializerCompletionProvider(),
             New ObjectCreationCompletionProvider(),
             New EnumCompletionProvider(),
             New NamedParameterCompletionProvider(),
-            New SuggestionModeCompletionProvider(),
+            New VisualBasicSuggestionModeCompletionProvider(),
             New ImplementsClauseCompletionProvider(),
             New HandlesClauseCompletionProvider(),
-            New ImplementsInheritsStatementCompletionProvider(),
             New PartialTypeCompletionProvider(),
             New CrefCompletionProvider(),
             New CompletionListTagCompletionProvider
         }.ToImmutableArray()
 
-        Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of ICompletionProvider)
+        Public Overrides Function GetDefaultCompletionProviders() As IEnumerable(Of CompletionListProvider)
             Return _completionProviders
         End Function
 

@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
             Dim concurrentBuild As Boolean = True
-            Dim emitPdb As Boolean = False
+            Dim emitPdb As Boolean
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
@@ -576,7 +576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 If String.IsNullOrEmpty(value) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "debug", ":pdbonly|full")
                                 ElseIf Not String.Equals(value, "full", StringComparison.OrdinalIgnoreCase) AndAlso
-                                           Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
+                                       Not String.Equals(value, "pdbonly", StringComparison.OrdinalIgnoreCase) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "debug", value)
                                 End If
                             End If
@@ -1122,59 +1122,73 @@ lVbRuntimePlus:
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 
+            Dim parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features)
+
+            Dim debugInfoFormat = DebugInformationFormat.Pdb
+            Dim pdbFormatStr As String = Nothing
+            If emitPdb AndAlso parsedFeatures.TryGetValue("pdb", pdbFormatStr) Then
+                If StringComparer.Ordinal.Equals(pdbFormatStr, "portable") Then
+                    debugInfoFormat = DebugInformationFormat.PortablePdb
+                ElseIf StringComparer.Ordinal.Equals(pdbFormatStr, "embedded") Then
+                    debugInfoFormat = DebugInformationFormat.Embedded
+                    emitPdb = False
+                End If
+            End If
+
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
             If Not IsInteractive AndAlso
-                    Not hasSourceFiles AndAlso
-                    Not managedResources.IsEmpty() AndAlso
-                    outputFileName = Nothing AndAlso
-                    Not flattenedArgs.IsEmpty() Then
+                Not hasSourceFiles AndAlso
+                Not managedResources.IsEmpty() AndAlso
+                outputFileName = Nothing AndAlso
+                Not flattenedArgs.IsEmpty() Then
+
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
             Dim parseOptions = New VisualBasicParseOptions(
-                    languageVersion:=languageVersion,
-                    documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
-                    kind:=SourceCodeKind.Regular,
-                    preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
-                    features:=ParseFeatures(features))
+                languageVersion:=languageVersion,
+                documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
+                kind:=SourceCodeKind.Regular,
+                preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
+                features:=parsedFeatures)
 
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
             Dim options = New VisualBasicCompilationOptions(
-                        outputKind:=outputKind,
-                        moduleName:=moduleName,
-                        mainTypeName:=mainTypeName,
-                        scriptClassName:=WellKnownMemberNames.DefaultScriptClassName,
-                        globalImports:=globalImports,
-                        rootNamespace:=rootNamespace,
-                        optionStrict:=optionStrict,
-                        optionInfer:=optionInfer,
-                        optionExplicit:=optionExplicit,
-                        optionCompareText:=optionCompareText,
-                        embedVbCoreRuntime:=embedVbCoreRuntime,
-                        checkOverflow:=checkOverflow,
-                        concurrentBuild:=concurrentBuild,
-                        cryptoKeyContainer:=keyContainerSetting,
-                        cryptoKeyFile:=keyFileSetting,
-                        delaySign:=delaySignSetting,
-                        platform:=platform,
-                        generalDiagnosticOption:=generalDiagnosticOption,
-                        specificDiagnosticOptions:=specificDiagnosticOptions,
-                        optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
-                        parseOptions:=parseOptions)
+                outputKind:=outputKind,
+                moduleName:=moduleName,
+                mainTypeName:=mainTypeName,
+                scriptClassName:=WellKnownMemberNames.DefaultScriptClassName,
+                globalImports:=globalImports,
+                rootNamespace:=rootNamespace,
+                optionStrict:=optionStrict,
+                optionInfer:=optionInfer,
+                optionExplicit:=optionExplicit,
+                optionCompareText:=optionCompareText,
+                embedVbCoreRuntime:=embedVbCoreRuntime,
+                checkOverflow:=checkOverflow,
+                concurrentBuild:=concurrentBuild,
+                cryptoKeyContainer:=keyContainerSetting,
+                cryptoKeyFile:=keyFileSetting,
+                delaySign:=delaySignSetting,
+                platform:=platform,
+                generalDiagnosticOption:=generalDiagnosticOption,
+                specificDiagnosticOptions:=specificDiagnosticOptions,
+                optimizationLevel:=If(optimize, OptimizationLevel.Release, OptimizationLevel.Debug),
+                parseOptions:=parseOptions)
 
             Dim emitOptions = New EmitOptions(
-                    metadataOnly:=False,
-                    debugInformationFormat:=DebugInformationFormat.Pdb,
-                    pdbFilePath:=Nothing, ' to be determined later
-                    outputNameOverride:=Nothing,  ' to be determined later
-                    fileAlignment:=fileAlignment,
-                    baseAddress:=baseAddress,
-                    highEntropyVirtualAddressSpace:=highEntropyVA,
-                    subsystemVersion:=ssVersion,
-                    runtimeMetadataVersion:=Nothing)
+                metadataOnly:=False,
+                debugInformationFormat:=debugInfoFormat,
+                pdbFilePath:=Nothing, ' to be determined later
+                outputNameOverride:=Nothing,  ' to be determined later
+                fileAlignment:=fileAlignment,
+                baseAddress:=baseAddress,
+                highEntropyVirtualAddressSpace:=highEntropyVA,
+                subsystemVersion:=ssVersion,
+                runtimeMetadataVersion:=Nothing)
 
             ' add option incompatibility errors if any
             diagnostics.AddRange(options.Errors)
@@ -1185,43 +1199,43 @@ lVbRuntimePlus:
             End If
 
             Return New VisualBasicCommandLineArguments With
-                {
-                    .IsInteractive = IsInteractive,
-                    .BaseDirectory = baseDirectory,
-                    .Errors = diagnostics.AsImmutable(),
-                    .Utf8Output = utf8output,
-                    .CompilationName = compilationName,
-                    .OutputFileName = outputFileName,
-                    .OutputDirectory = outputDirectory,
-                    .DocumentationPath = documentationPath,
-                    .ErrorLogPath = errorLogPath,
-                    .SourceFiles = sourceFiles.AsImmutable(),
-                    .Encoding = codepage,
-                    .ChecksumAlgorithm = checksumAlgorithm,
-                    .MetadataReferences = metadataReferences.AsImmutable(),
-                    .AnalyzerReferences = analyzers.AsImmutable(),
-                    .AdditionalFiles = additionalFiles.AsImmutable(),
-                    .ReferencePaths = searchPaths,
-                    .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
-                    .Win32ResourceFile = win32ResourceFile,
-                    .Win32Icon = win32IconFile,
-                    .Win32Manifest = win32ManifestFile,
-                    .NoWin32Manifest = noWin32Manifest,
-                    .DisplayLogo = displayLogo,
-                    .DisplayHelp = displayHelp,
-                    .ManifestResources = managedResources.AsImmutable(),
-                    .CompilationOptions = options,
-                    .ParseOptions = If(IsInteractive, scriptParseOptions, parseOptions),
-                    .EmitOptions = emitOptions,
-                    .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
-                    .TouchedFilesPath = touchedFilesPath,
-                    .OutputLevel = outputLevel,
-                    .EmitPdb = emitPdb,
-                    .DefaultCoreLibraryReference = defaultCoreLibraryReference,
-                    .PreferredUILang = preferredUILang,
-                    .SqmSessionGuid = sqmsessionguid,
-                    .ReportAnalyzer = reportAnalyzer
-                }
+            {
+                .IsInteractive = IsInteractive,
+                .BaseDirectory = baseDirectory,
+                .Errors = diagnostics.AsImmutable(),
+                .Utf8Output = utf8output,
+                .CompilationName = compilationName,
+                .OutputFileName = outputFileName,
+                .OutputDirectory = outputDirectory,
+                .DocumentationPath = documentationPath,
+                .ErrorLogPath = errorLogPath,
+                .SourceFiles = sourceFiles.AsImmutable(),
+                .Encoding = codepage,
+                .ChecksumAlgorithm = checksumAlgorithm,
+                .MetadataReferences = metadataReferences.AsImmutable(),
+                .AnalyzerReferences = analyzers.AsImmutable(),
+                .AdditionalFiles = additionalFiles.AsImmutable(),
+                .ReferencePaths = searchPaths,
+                .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
+                .Win32ResourceFile = win32ResourceFile,
+                .Win32Icon = win32IconFile,
+                .Win32Manifest = win32ManifestFile,
+                .NoWin32Manifest = noWin32Manifest,
+                .DisplayLogo = displayLogo,
+                .DisplayHelp = displayHelp,
+                .ManifestResources = managedResources.AsImmutable(),
+                .CompilationOptions = options,
+                .ParseOptions = If(IsInteractive, scriptParseOptions, parseOptions),
+                .EmitOptions = emitOptions,
+                .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
+                .TouchedFilesPath = touchedFilesPath,
+                .OutputLevel = outputLevel,
+                .EmitPdb = emitPdb,
+                .DefaultCoreLibraryReference = defaultCoreLibraryReference,
+                .PreferredUILang = preferredUILang,
+                .SqmSessionGuid = sqmsessionguid,
+                .ReportAnalyzer = reportAnalyzer
+            }
         End Function
 
         Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String, sdkDirectory As String) As CommandLineReference?

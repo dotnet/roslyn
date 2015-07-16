@@ -1611,7 +1611,7 @@ End Module
 
         <WorkItem(546853, "DevDiv")>
         <Fact()>
-        Public Sub CallingVistualFinalMethod()
+        Public Sub CallingVirtualFinalMethod()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
@@ -9552,7 +9552,7 @@ End Class
 
             ' CONSIDER: This is the dev10 behavior.
             ' Shouldn't there be an error for trying to call an inaccessible ctor?
-            ' NOTE: Current behaviour is to skip private constructor and use 'initobj'
+            ' NOTE: Current behavior is to skip private constructor and use 'initobj'
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[

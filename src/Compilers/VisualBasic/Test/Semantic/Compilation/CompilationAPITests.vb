@@ -296,7 +296,7 @@ End Namespace
             Assert.Contains(Of String)("mscorlib", ListNames)
             Assert.Contains(Of String)("System", ListNames)
 
-            'RemoveAllReferebces
+            'RemoveAllReferences
             c2 = c2.RemoveAllReferences
             Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(c2.References))
 
@@ -422,6 +422,9 @@ End Namespace
             ' Replace an existing item with same item 
             comp = comp.AddSyntaxTrees(t1).ReplaceSyntaxTree(t1, t1)
             Assert.Equal(3, comp.SyntaxTrees.Length)
+
+            ' Replace with existing and verify that it throws
+            Assert.Throws(Of ArgumentException)(Sub() comp.ReplaceSyntaxTree(t1, comp.SyntaxTrees(0)))
 
             Assert.Throws(Of ArgumentException)(Sub() comp.AddSyntaxTrees(t1))
 

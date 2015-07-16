@@ -1783,7 +1783,7 @@ ResolutionComplete:
                             Continue For
                         End If
 
-                        ' Shadowingis applied only to candidates that have the same types for corresponding parameters
+                        ' Shadowing is applied only to candidates that have the same types for corresponding parameters
                         ' in virtual signatures
                         Dim equallyApplicable As Boolean = True
                         For k = 0 To arguments.Length - 1 Step 1

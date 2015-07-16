@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private int _instructionCountAtLastLabel = -1;
 
         // This data is only relevant when builder has been realized.
-        internal byte[] RealizedIL;
+        internal ImmutableArray<byte> RealizedIL;
         internal ImmutableArray<Cci.ExceptionHandlerRegion> RealizedExceptionHandlers;
         internal SequencePointList RealizedSequencePoints;
 
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void Realize()
         {
-            if (this.RealizedIL == null)
+            if (this.RealizedIL.IsDefault)
             {
                 this.RealizeBlocks();
 
@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var writer = Cci.BlobWriter.GetInstance();
+            var writer = Cci.BlobBuilder.GetInstance();
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         WriteOpCode(writer, ILOpCode.Switch);
 
                         var switchBlock = (SwitchBlock)block;
-                        writer.WriteUint(switchBlock.BranchesCount);
+                        writer.WriteUInt32(switchBlock.BranchesCount);
 
                         int switchBlockEnd = switchBlock.Start + switchBlock.TotalSize;
 
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         foreach (var branchBlock in blockBuilder)
                         {
-                            writer.WriteInt(branchBlock.Start - switchBlockEnd);
+                            writer.WriteInt32(branchBlock.Start - switchBlockEnd);
                         }
 
                         blockBuilder.Free();
@@ -925,11 +925,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             {
                                 sbyte btOffset = (sbyte)offset;
                                 Debug.Assert(btOffset == offset);
-                                writer.WriteSbyte(btOffset);
+                                writer.WriteSByte(btOffset);
                             }
                             else
                             {
-                                writer.WriteInt(offset);
+                                writer.WriteInt32(offset);
                             }
                         }
 
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            this.RealizedIL = writer.ToArray();
+            this.RealizedIL = writer.ToImmutableArray();
             writer.Free();
 
             RealizeSequencePoints();
@@ -1199,8 +1199,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal ILBuilder GetSnapshot()
         {
             var snapshot = (ILBuilder)this.MemberwiseClone();
-            snapshot.RealizedIL = new byte[this.RealizedIL.Length];
-            Array.Copy(this.RealizedIL, snapshot.RealizedIL, this.RealizedIL.Length);
+            snapshot.RealizedIL = RealizedIL;
             return snapshot;
         }
 
@@ -1220,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal int AllocateILMarker()
         {
-            Debug.Assert(this.RealizedIL == null, "Too late to allocate a new IL marker");
+            Debug.Assert(this.RealizedIL.IsDefault, "Too late to allocate a new IL marker");
             if (_allocatedILMarkers == null)
             {
                 _allocatedILMarkers = ArrayBuilder<ILMarker>.GetInstance();
@@ -1245,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public int GetILOffsetFromMarker(int ilMarker)
         {
-            Debug.Assert(this.RealizedIL != null, "Builder must be realized to perform this operation");
+            Debug.Assert(!RealizedIL.IsDefault, "Builder must be realized to perform this operation");
             Debug.Assert(_allocatedILMarkers != null, "There are not markers in this builder");
             Debug.Assert(ilMarker >= 0 && ilMarker < _allocatedILMarkers.Count, "Wrong builder?");
             return _allocatedILMarkers[ilMarker].AbsoluteOffset;

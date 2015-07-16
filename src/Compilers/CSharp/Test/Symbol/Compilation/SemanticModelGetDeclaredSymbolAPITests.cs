@@ -522,7 +522,7 @@ class C
         }
 
         [Fact]
-        public void TestGetDeclaredSymbolFromMutipleLocalDeclarators()
+        public void TestGetDeclaredSymbolFromMultipleLocalDeclarators()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 
@@ -548,7 +548,7 @@ class C
         }
 
         [Fact]
-        public void TestGetDeclaredSymbolFromMutipleLabelDeclarators()
+        public void TestGetDeclaredSymbolFromMultipleLabelDeclarators()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 class C 

@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
     {
         private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
             new Lazy<List<string>>(() => GlobalAssemblyCache.GetAssemblySimpleNames().ToList());
-        private readonly ICompletionProvider _completionProvider;
+        private readonly CompletionListProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
 
-        public GlobalAssemblyCacheCompletionHelper(ICompletionProvider completionProvider, TextSpan textChangeSpan)
+        public GlobalAssemblyCacheCompletionHelper(CompletionListProvider completionProvider, TextSpan textChangeSpan)
         {
             _completionProvider = completionProvider;
             _textChangeSpan = textChangeSpan;

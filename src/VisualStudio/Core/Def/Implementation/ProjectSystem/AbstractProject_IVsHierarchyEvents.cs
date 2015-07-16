@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if ((propid == (int)__VSHPROPID.VSHPROPID_ProjectIDGuid) &&
                  itemid == (uint)VSConstants.VSITEMID.Root)
             {
-                // this should happen whle project loading if it ever happens
+                // this should happen while project loading if it ever happens
                 _guid = GetProjectIDGuid(_hierarchy);
             }
 

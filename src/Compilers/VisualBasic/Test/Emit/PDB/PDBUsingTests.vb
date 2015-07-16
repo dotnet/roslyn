@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -390,5 +391,30 @@ End Class
                 End Sub)
         End Sub
 
+        <Fact>
+        Public Sub BadGlobalImports()
+            Dim source1 = "
+Namespace N
+    Friend Class A
+    End Class
+End Namespace
+"
+            Dim source2 = "
+Class C
+    Sub Main() 
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.ReleaseDll)
+            Dim ref1 = comp1.EmitToImageReference()
+
+            Dim comp2 = CreateCompilationWithMscorlib(
+                {source2}, {ref1},
+                options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("X=N.A"), GlobalImport.Parse("System")))
+
+            comp2.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_InaccessibleSymbol2))
+        End Sub
     End Class
 End Namespace

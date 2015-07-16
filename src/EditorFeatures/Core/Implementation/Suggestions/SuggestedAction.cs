@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 // HasPreview is called synchronously on the UI thread. In order to avoid blocking the UI thread,
                 // we need to provide a 'quick' answer here as opposed to the 'right' answer. Providing the 'right'
-                // answer is expensive (because we will need to call CodeAction.GetPreivewOperationsAsync() for this
+                // answer is expensive (because we will need to call CodeAction.GetPreviewOperationsAsync() for this
                 // and this will involve computing the changed solution for the ApplyChangesOperation for the fix /
                 // refactoring). So we always return 'true' here (so that platform will call GetActionSetsAsync()
                 // below). Platform guarantees that nothing bad will happen if we return 'true' here and later return

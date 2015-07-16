@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert((object)operand.Type != null);
                     if (!operand.Type.IsVerifierReference())
                     {
-                        // box the operand for isint if it is not a verifier reference
+                        // box the operand for isinst if it is not a verifier reference
                         EmitBox(operand.Type, operand.Syntax);
                     }
                     _builder.EmitOpCode(ILOpCode.Isinst);
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // here we have our exception on the stack in a form of a reference type (O)
                 // it means that we have to "unbox" it before storing to the local 
-                // if exception's type is a generic type prameter.
+                // if exception's type is a generic type parameter.
                 if (!exceptionSourceOpt.Type.IsVerifierReference())
                 {
                     Debug.Assert(exceptionSourceOpt.Type.IsTypeParameter()); // only expecting type parameters

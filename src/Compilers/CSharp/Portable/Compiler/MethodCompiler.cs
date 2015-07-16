@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // CONSIDER: instead of storing a flag, we could track the first member symbol with an error (to improve the diagnostic).
 
         // NOTE: once the flag is set to true, it should never go back to false!!!
-        // Do not use this as a shortcircuiting for stages that might produce diagnostics.
+        // Do not use this as a short-circuiting for stages that might produce diagnostics.
         // That would make diagnostics to depend on the random order in which methods are compiled.
         private bool _globalHasErrors;
 
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void CompileSynthesizedExplicitImplementations(SourceMemberContainerTypeSymbol sourceTypeSymbol, TypeCompilationState compilationState)
         {
-            // we are not generating any observable diagnostics here so it is ok to shortcircuit on global errors.
+            // we are not generating any observable diagnostics here so it is ok to short-circuit on global errors.
             if (!_globalHasErrors)
             {
                 foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
 
-            // we are not generating any observable diagnostics here so it is ok to shortcircuit on global errors.
+            // we are not generating any observable diagnostics here so it is ok to short-circuit on global errors.
             if ((object)synthesizedAccessor != null && !_globalHasErrors)
             {
                 Debug.Assert(synthesizedAccessor.SynthesizesLoweredBoundBody);
@@ -1518,6 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Binder binder = factory.GetBinder(arrowExpression);
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
+                    importChain = binder.ImportChain;
                     // Add locals
                     return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }

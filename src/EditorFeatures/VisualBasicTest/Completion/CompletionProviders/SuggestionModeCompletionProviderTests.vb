@@ -3,13 +3,9 @@
 Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class SuggestionModeCompletionProviderTests
@@ -297,7 +293,7 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(isAugment:=True).WithIsDebugger(True))
+            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo().WithIsDebugger(True))
         End Sub
 
         Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
@@ -326,25 +322,22 @@ End Class
         End Sub
 
         Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
-            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c, isAugment:=True))
+            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
 
-            Dim provider = CreateCompletionProvider()
+            Dim completionList = GetCompletionList(document, position, triggerInfo.Value)
 
             If isBuilder Then
-                Dim group = provider.GetGroupAsync(document, position, triggerInfo.Value, CancellationToken.None).Result
-                Assert.NotNull(group)
-                Assert.NotNull(group.Builder)
+                Assert.NotNull(completionList)
+                Assert.NotNull(completionList.Builder)
             Else
-                Dim group = provider.GetGroupAsync(document, position, triggerInfo.Value, CancellationToken.None).Result
-
-                If group IsNot Nothing Then
-                    Assert.True(group.Builder Is Nothing, "group.Builder = " & group.Builder.DisplayText)
+                If completionList IsNot Nothing Then
+                    Assert.True(completionList.Builder Is Nothing, "group.Builder = " & If(completionList.Builder IsNot Nothing, completionList.Builder.DisplayText, "null"))
                 End If
             End If
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
-            Return New SuggestionModeCompletionProvider()
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+            Return New VisualBasicSuggestionModeCompletionProvider()
         End Function
     End Class
 End Namespace

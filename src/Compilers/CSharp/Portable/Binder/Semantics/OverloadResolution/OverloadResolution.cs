@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // UNDONE: This List<MethodResolutionResult> deal should probably be its own datastructure.
+        // UNDONE: This List<MethodResolutionResult> deal should probably be its own data structure.
         // We need an indexable collection of mappings from method candidates to their up-to-date
         // overload resolution status. It must be fast and memory efficient, but it will very often
         // contain just 1 candidate.      
@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // is better in one place. We know we can bail out at this point; neither is
                     // going to be better than the other.
 
-                    // But first, let's see we we can ignore the ambiguity due to an undocumented legacy behavior of the compiler.
+                    // But first, let's see if we can ignore the ambiguity due to an undocumented legacy behavior of the compiler.
                     // This is not part of the language spec.
                     if (okToDowngradeResultToNeither)
                     {
@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
-            //                 native compiler includes types of optinal parameters. We partially duplicate this behavior
+            //                 native compiler includes types of optional parameters. We partially duplicate this behavior
             //                 here by comparing the number of parameters used taking params expansion and 
             //                 optional parameters into account.
             if (!allSame || m1ParametersUsedIncludingExpansionAndOptional != m2ParametersUsedIncludingExpansionAndOptional)

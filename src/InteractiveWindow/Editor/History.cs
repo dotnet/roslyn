@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                     else
                     {
-                        // we cycled thru the entire history:
+                        // we cycled through the entire history:
                         return null;
                     }
                 }

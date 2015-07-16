@@ -162,6 +162,34 @@ using Microsoft.VisualStudio.Shell;
     PublicKeyToken = Constants.PublicKeyToken,
     GenerateCodeBase = false)]
 
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "System.Reflection.Metadata",
+    OldVersionLowerBound = "1.0.0.0",
+    OldVersionUpperBound = "1.0.99.0",
+    NewVersion = "1.1.0.0",
+    PublicKeyToken = "b03f5f7f11d50a3a",
+    GenerateCodeBase = false)]
+
+#if !OFFICIAL_BUILD
+
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.InteractiveWindow",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.VsInteractiveWindow",
+    OldVersionLowerBound = Constants.OldVersionLowerBound,
+    OldVersionUpperBound = Constants.OldVersionUpperBound,
+    NewVersion = Constants.NewVersion,
+    PublicKeyToken = Constants.PublicKeyToken,
+    GenerateCodeBase = false)]
+
+#endif
+
 internal class Constants
 {
     public const string OldVersionLowerBound = "0.7.0.0";

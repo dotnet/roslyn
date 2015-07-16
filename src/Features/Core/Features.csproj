@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -94,6 +93,10 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
@@ -153,7 +156,8 @@
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
-    <Compile Include="Completion\CompletionItemGroup.cs" />
+    <Compile Include="Completion\CompletionList.cs" />
+    <Compile Include="Completion\CompletionListContext.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\CompletionTriggerInfo.cs" />
@@ -168,13 +172,15 @@
     <Compile Include="Completion\Providers\AbstractSymbolCompletionProvider.cs" />
     <Compile Include="Completion\Providers\CurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Completion\Providers\FileSystemCompletionHelper.cs" />
-    <Compile Include="Completion\Providers\ICompletionProvider.cs" />
+    <Compile Include="Completion\CompletionListProvider.cs" />
     <Compile Include="Completion\Providers\ICurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
     <Compile Include="Completion\Providers\IOUtilities.cs" />
-    <Compile Include="Completion\Providers\ITextCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\TextCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
+    <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
@@ -411,7 +417,6 @@
     <Compile Include="ImplementInterface\IImplementInterfaceService.cs" />
     <Compile Include="IncrementalCaches\SymbolTreeInfoIncrementalAnalyzerProvider.cs" />
     <Compile Include="IncrementalCaches\SyntaxTreeInfoIncrementalAnalyzerProvider.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.CodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.State.cs" />
@@ -551,10 +556,10 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

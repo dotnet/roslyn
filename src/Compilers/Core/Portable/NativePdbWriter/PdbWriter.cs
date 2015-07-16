@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly BlobWriter _logData;
+        private readonly BlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,7 +57,7 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = BlobWriter.GetInstance();
+                _logData = BlobBuilder.GetInstance();
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
@@ -73,7 +73,7 @@ namespace Microsoft.Cci
             if (_logData.Length >= bufferFlushLimit)
             {
                 _hashAlgorithm.TransformBlock(_logData.Buffer, _logData.Position);
-                _logData.Position = 0;
+                _logData.Clear();
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_logData != null);
             _hashAlgorithm.TransformFinalBlock(_logData.Buffer, _logData.Position);
-            _logData.Position = 0;
+            _logData.Clear();
             return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
         }
 
@@ -126,10 +126,10 @@ namespace Microsoft.Cci
 
         public void LogArgument(uint[] data)
         {
-            _logData.WriteInt(data.Length);
+            _logData.WriteInt32(data.Length);
             for (int i = 0; i < data.Length; i++)
             {
-                _logData.WriteUint(data[i]);
+                _logData.WriteUInt32(data[i]);
             }
             MaybeFlush();
         }
@@ -142,7 +142,7 @@ namespace Microsoft.Cci
 
         public void LogArgument(uint data)
         {
-            _logData.WriteUint(data);
+            _logData.WriteUInt32(data);
         }
 
         public void LogArgument(byte data)
@@ -166,12 +166,12 @@ namespace Microsoft.Cci
 
         public void LogArgument(long data)
         {
-            _logData.WriteLong(data);
+            _logData.WriteInt64(data);
         }
 
         public void LogArgument(int data)
         {
-            _logData.WriteInt(data);
+            _logData.WriteInt32(data);
         }
 
         public void LogArgument(object data)

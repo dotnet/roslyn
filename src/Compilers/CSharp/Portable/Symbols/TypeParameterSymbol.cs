@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (constraint.TypeKind)
                 {
                     case TypeKind.Interface:
-                        return false; // can be satisfied by valuetypes
+                        return false; // can be satisfied by value types
                     case TypeKind.Error:
                         return false;
                 }
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SpecialType.System_Object:
                     case SpecialType.System_ValueType:
                     case SpecialType.System_Enum:
-                        return false; // can be satisfied by valuetypes
+                        return false; // can be satisfied by value types
                 }
 
                 return true;

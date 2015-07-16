@@ -190,7 +190,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWritteInstance1()
+        public void TestGenerateOffWrittenInstance1()
         {
             Test(
 @"class Class { void Method() { this.[|foo|] = 1; } }",
@@ -198,7 +198,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWritteInstance2()
+        public void TestGenerateOffWrittenInstance2()
         {
             Test(
 @"class Class { void Method() { this.[|foo|] = 1; } }",

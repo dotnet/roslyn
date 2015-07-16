@@ -4053,14 +4053,14 @@ End Class
                 <constant name="U8" value="0" type="UInt64"/>
                 <constant name="R4" value="0" type="Single"/>
                 <constant name="R8" value="0" type="Double"/>
-                <constant name="EI1" value="0" signature="15-11-10-01-08"/>
-                <constant name="EU1" value="0" signature="15-11-14-01-08"/>
-                <constant name="EI2" value="0" signature="15-11-18-01-08"/>
-                <constant name="EU2" value="0" signature="15-11-1C-01-08"/>
-                <constant name="EI4" value="0" signature="15-11-20-01-08"/>
-                <constant name="EU4" value="0" signature="15-11-24-01-08"/>
-                <constant name="EI8" value="0" signature="15-11-28-01-08"/>
-                <constant name="EU8" value="0" signature="15-11-2C-01-08"/>
+                <constant name="EI1" value="0" signature="EnumI1{Int32}"/>
+                <constant name="EU1" value="0" signature="EnumU1{Int32}"/>
+                <constant name="EI2" value="0" signature="EnumI2{Int32}"/>
+                <constant name="EU2" value="0" signature="EnumU2{Int32}"/>
+                <constant name="EI4" value="0" signature="EnumI4{Int32}"/>
+                <constant name="EU4" value="0" signature="EnumU4{Int32}"/>
+                <constant name="EI8" value="0" signature="EnumI8{Int32}"/>
+                <constant name="EU8" value="0" signature="EnumU8{Int32}"/>
                 <constant name="EmptyStr" value="" type="String"/>
                 <constant name="NullStr" value="null" type="String"/>
                 <constant name="NullObject" value="null" type="Object"/>

@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, SyntaxNode newStatement);
-        internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isLeaf);
+        internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldBody, SyntaxNode newBody, SyntaxNode oldStatement, SyntaxNode newStatement, bool isLeaf);
         internal abstract void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
         internal abstract void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol);
         internal abstract void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
@@ -1062,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     // other statements around active statement:
-                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldStatementSyntax, newStatementSyntax, isLeaf);
+                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldBody, newBody, oldStatementSyntax, newStatementSyntax, isLeaf);
                 }
                 else if (match == null)
                 {
@@ -1939,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // The old source symbol has the same identity as the new one.
                 // Two distinct assembly symbols that are referenced by the compilations have to have distinct identities.
                 // If the compilation has two metadata references whose identities unify the compiler de-dups them and only creates
-                // a single PE symbol. Thus comparing assemblies by identity paritions them so that each partition
+                // a single PE symbol. Thus comparing assemblies by identity partitions them so that each partition
                 // contains assemblies that originated from the same Gen0 assembly.
 
                 return x.Identity.Equals(y.Identity);
@@ -2638,7 +2638,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (!isConstructor)
                 {
                     // rude edit: Editing a field/property initializer of a partial type.
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.PartialTypeInitializerUpdate, newDeclaration.Span));
+                    diagnostics.Add(new RudeEditDiagnostic(
+                                        RudeEditKind.PartialTypeInitializerUpdate, 
+                                        newDeclaration.Span,
+                                        newDeclaration,
+                                        new[] { GetTopLevelDisplayName(newDeclaration, EditKind.Update)}));
                     return false;
                 }
 
@@ -2774,7 +2778,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // field and property initializers in update.ChangedDeclarations and we only need 
                     // the current top match to map nodes from all unchanged initializers.
                     //
-                    // We will create an aggregate syntax map even in cases when we don't neccessarily need it,
+                    // We will create an aggregate syntax map even in cases when we don't necessarily need it,
                     // for example if none of the edited declarations are active. It's ok to have a map that we don't need.
                     var aggregateSyntaxMap = (oldCtor != null && update.ChangedDeclarations.Count > 0) ?
                         CreateAggregateSyntaxMap(topMatch.ReverseMatches, update.ChangedDeclarations) : null;

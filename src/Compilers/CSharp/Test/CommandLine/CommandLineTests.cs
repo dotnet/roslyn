@@ -1231,15 +1231,23 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
@@ -3962,7 +3970,7 @@ public class CS1698_a {}
             var cs1698 = folder.CreateFile("CS1698.cs");
             cs1698.WriteAllText(text);
 
-            var snkFile = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.snKey);
+            var snkFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
             var kfile = "/keyfile:" + snkFile.Path;
 
             CSharpCommandLineArguments parsedArgs = DefaultParse(new[] { "/t:library", kfile, "CS1698a.cs" }, _baseDirectory);
@@ -5522,7 +5530,7 @@ public class C
         [Fact, WorkItem(530359, "DevDiv")]
         public void NoStdLib02()
         {
-            #region "source"
+#region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -5641,7 +5649,7 @@ namespace System
     }
 }
 ";
-            #endregion
+#endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
@@ -6097,7 +6105,7 @@ public class Test
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
-            string badres = Temp.CreateFile().WriteAllBytes(TestResources.DiagnosticTests.DiagnosticTests.badresfile).Path;
+            string badres = Temp.CreateFile().WriteAllBytes(TestResources.DiagnosticTests.badresfile).Path;
 
             var baseDir = Path.GetDirectoryName(source);
             var fileName = Path.GetFileName(source);
@@ -6215,7 +6223,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -6226,7 +6234,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
         }
 
@@ -6878,19 +6886,9 @@ using System.Diagnostics; // Unused.
             args.Errors.Verify();
             Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "false" }, { "Key", "value" } }));
 
-            // We don't do any rigorous validation of / features arguments...
-
-            args = DefaultParse(new[] { "/features", "a.vb" }, _baseDirectory);
-            args.Errors.Verify();
-            Assert.Empty(args.ParseOptions.Features);
-
-            args = DefaultParse(new[] { "/features:,", "a.vb" }, _baseDirectory);
-            args.Errors.Verify();
-            Assert.Equal("", args.ParseOptions.Features.Single().Key);
-
             args = DefaultParse(new[] { "/features:Test,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" }, { "", "true" } }));
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" } }));
         }
 
         [Fact]

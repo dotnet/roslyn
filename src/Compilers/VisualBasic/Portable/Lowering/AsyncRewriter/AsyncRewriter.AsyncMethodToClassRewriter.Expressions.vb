@@ -616,8 +616,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(nullCheckTarget.Type.IsTypeParameter())
 
                         ' The "receiver IsNot Nothing" check becomes
-                        ' Not <receiver's type is refernce type> OrElse receiver IsNot Nothing 
-                        ' The <receiver's type is refernce type> is performed by boxing default value of receiver's type and checking if it is a null reference. 
+                        ' Not <receiver's type is reference type> OrElse receiver IsNot Nothing 
+                        ' The <receiver's type is reference type> is performed by boxing default value of receiver's type and checking if it is a null reference. 
 
                         Dim notReferenceType = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(),
                                                                                                           nullCheckTarget.Type),

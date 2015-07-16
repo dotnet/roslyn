@@ -14,16 +14,81 @@ using Roslyn.Utilities;
 namespace Microsoft.Cci
 {
     /// <summary>
-    /// Wraps a virtual string table index.
-    /// An override to SerializeIndex does the resolving at the right time.
+    /// Represents a value on #String heap that has not been serialized yet.
     /// </summary>
-    internal struct StringIdx
+    internal struct StringIdx : IEquatable<StringIdx>
     {
-        public readonly int VirtIdx;
+        // index in _stringIndexToHeapPositionMap
+        public readonly int MapIndex;
 
         internal StringIdx(int virtIdx)
         {
-            this.VirtIdx = virtIdx;
+            MapIndex = virtIdx;
+        }
+
+        public bool Equals(StringIdx other)
+        {
+            return MapIndex == other.MapIndex;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is StringIdx && Equals((StringIdx)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return MapIndex.GetHashCode();
+        }
+
+        public static bool operator ==(StringIdx left, StringIdx right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(StringIdx left, StringIdx right)
+        {
+            return !left.Equals(right);
+        }
+    }
+
+    /// <summary>
+    /// Represents a value on #Blob heap that has not been serialized yet.
+    /// </summary>
+    internal struct BlobIdx : IEquatable<BlobIdx>
+    {
+        // The position of the blob on heap relative to the start of the heap.
+        // In EnC deltas this value is not the same as the value stored in blob token.
+        public readonly int HeapPosition;
+
+        internal BlobIdx(int heapPosition)
+        {
+            HeapPosition = heapPosition;
+        }
+
+        public bool Equals(BlobIdx other)
+        {
+            return HeapPosition == other.HeapPosition;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is BlobIdx && Equals((BlobIdx)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HeapPosition.GetHashCode();
+        }
+
+        public static bool operator ==(BlobIdx left, BlobIdx right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(BlobIdx left, BlobIdx right)
+        {
+            return !left.Equals(right);
         }
     }
 
@@ -32,75 +97,76 @@ namespace Microsoft.Cci
         private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
         // #US heap
-        private readonly Dictionary<string, int> _userStringIndex = new Dictionary<string, int>();
-        private readonly BlobWriter _userStringWriter = new BlobWriter(1024);
-        private readonly int _userStringIndexStartOffset;
+        private readonly Dictionary<string, int> _userStrings = new Dictionary<string, int>();
+        private readonly BlobBuilder _userStringWriter = new BlobBuilder(1024);
+        private readonly int _userStringHeapStartOffset;
 
         // #String heap
-        private Dictionary<string, StringIdx> _stringIndex = new Dictionary<string, StringIdx>(128);
-        private int[] _stringIndexMap;
-        private readonly BlobWriter _stringWriter = new BlobWriter(1024);
-        private readonly int _stringIndexStartOffset;
+        private Dictionary<string, StringIdx> _strings = new Dictionary<string, StringIdx>(128);
+        private int[] _stringIndexToHeapPositionMap;
+        private BlobBuilder _stringWriter;
+        private readonly int _stringHeapStartOffset;
 
         // #Blob heap
-        private readonly Dictionary<ImmutableArray<byte>, int> _blobIndex = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
-        private readonly BlobWriter _blobWriter = new BlobWriter(1024);
-        private readonly int _blobIndexStartOffset;
+        private readonly Dictionary<ImmutableArray<byte>, BlobIdx> _blobs = new Dictionary<ImmutableArray<byte>, BlobIdx>(ByteSequenceComparer.Instance);
+        private readonly int _blobHeapStartOffset;
+        private int _blobHeapSize;
 
         // #GUID heap
-        private readonly Dictionary<Guid, int> _guidIndex = new Dictionary<Guid, int>();
-        private readonly BlobWriter _guidWriter = new BlobWriter(16); // full metadata has just a single guid
+        private readonly Dictionary<Guid, int> _guids = new Dictionary<Guid, int>();
+        private readonly BlobBuilder _guidWriter = new BlobBuilder(16); // full metadata has just a single guid
 
         private bool _streamsAreComplete;
 
         public MetadataHeapsBuilder(
-            int userStringIndexStartOffset = 0,
-            int stringIndexStartOffset = 0,
-            int blobIndexStartOffset = 0,
-            int guidIndexStartOffset = 0)
+            int userStringHeapStartOffset = 0,
+            int stringHeapStartOffset = 0,
+            int blobHeapStartOffset = 0,
+            int guidHeapStartOffset = 0)
         {
             // Add zero-th entry to heaps. 
             // Full metadata represent empty blob/string at heap index 0.
             // Delta metadata requires these to avoid nil generation-relative handles, 
             // which are technically viable but confusing.
-            _blobWriter.WriteByte(0);
-            _stringWriter.WriteByte(0);
             _userStringWriter.WriteByte(0);
+
+            _blobs.Add(ImmutableArray<byte>.Empty, new BlobIdx(0));
+            _blobHeapSize = 1;
 
             // When EnC delta is applied #US, #String and #Blob heaps are appended.
             // Thus indices of strings and blobs added to this generation are offset
             // by the sum of respective heap sizes of all previous generations.
-            _userStringIndexStartOffset = userStringIndexStartOffset;
-            _stringIndexStartOffset = stringIndexStartOffset;
-            _blobIndexStartOffset = blobIndexStartOffset;
+            _userStringHeapStartOffset = userStringHeapStartOffset;
+            _stringHeapStartOffset = stringHeapStartOffset;
+            _blobHeapStartOffset = blobHeapStartOffset;
 
             // Unlike other heaps, #Guid heap in EnC delta is zero-padded.
-            _guidWriter.Pad(guidIndexStartOffset);
+             _guidWriter.WriteBytes(0, guidHeapStartOffset);
         }
 
-        internal int GetBlobIndex(BlobWriter stream)
+        internal BlobIdx GetBlobIndex(BlobBuilder stream)
         {
             // TODO: avoid making a copy if the blob exists in the index
             return GetBlobIndex(stream.ToImmutableArray());
         }
 
-        internal int GetBlobIndex(ImmutableArray<byte> blob)
+        internal BlobIdx GetBlobIndex(ImmutableArray<byte> blob)
         {
-            int result = 0;
-            if (blob.Length == 0 || _blobIndex.TryGetValue(blob, out result))
+            BlobIdx index;
+            if (!_blobs.TryGetValue(blob, out index))
             {
-                return result;
-            }
+                Debug.Assert(!_streamsAreComplete);
 
-            Debug.Assert(!_streamsAreComplete);
-            result = _blobWriter.Position + _blobIndexStartOffset;
-            _blobIndex.Add(blob, result);
-            _blobWriter.WriteCompressedUInt((uint)blob.Length);
-            _blobWriter.WriteBytes(blob);
-            return result;
+                index = new BlobIdx(_blobHeapSize);
+                _blobs.Add(blob, index);
+
+                _blobHeapSize += BlobBuilder.GetCompressedIntegerSize(blob.Length) + blob.Length;
+            }
+            
+            return index;
         }
 
-        public int GetConstantBlobIndex(object value)
+        public BlobIdx GetConstantBlobIndex(object value)
         {
             string str = value as string;
             if (str != null)
@@ -108,12 +174,12 @@ namespace Microsoft.Cci
                 return this.GetBlobIndex(str);
             }
 
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
             writer.WriteConstant(value);
             return this.GetBlobIndex(writer);
         }
 
-        public int GetBlobIndex(string str)
+        public BlobIdx GetBlobIndex(string str)
         {
             byte[] byteArray = new byte[str.Length * 2];
             int i = 0;
@@ -126,6 +192,11 @@ namespace Microsoft.Cci
             return this.GetBlobIndex(ImmutableArray.Create(byteArray));
         }
 
+        public BlobIdx GetBlobIndexUtf8(string str)
+        {
+            return GetBlobIndex(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
+        }
+
         public int GetGuidIndex(Guid guid)
         {
             if (guid == Guid.Empty)
@@ -134,7 +205,7 @@ namespace Microsoft.Cci
             }
 
             int result;
-            if (_guidIndex.TryGetValue(guid, out result))
+            if (_guids.TryGetValue(guid, out result))
             {
                 return result;
             }
@@ -158,22 +229,10 @@ namespace Microsoft.Cci
             // Its first element is numbered 1, its second 2, and so on.
             int result = (_guidWriter.Length >> 4) + 1;
 
-            _guidIndex.Add(guid, result);
+            _guids.Add(guid, result);
             _guidWriter.WriteBytes(guid.ToByteArray());
 
             return result;
-        }
-
-        public unsafe byte[] GetExistingBlob(int signatureOffset)
-        {
-            fixed (byte* ptr = _blobWriter.Buffer)
-            {
-                var reader = new BlobReader(ptr + signatureOffset, (int)_blobWriter.Length + _blobIndexStartOffset - signatureOffset);
-                int size;
-                bool isValid = reader.TryReadCompressedInteger(out size);
-                Debug.Assert(isValid);
-                return reader.ReadBytes(size);
-            }
         }
 
         public StringIdx GetStringIndex(string str)
@@ -183,11 +242,11 @@ namespace Microsoft.Cci
             {
                 index = new StringIdx(0);
             }
-            else if (!_stringIndex.TryGetValue(str, out index))
+            else if (!_strings.TryGetValue(str, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
-                index = new StringIdx(_stringIndex.Count + 1); // idx 0 is reserved for empty string
-                _stringIndex.Add(str, index);
+                index = new StringIdx(_strings.Count + 1); // idx 0 is reserved for empty string
+                _strings.Add(str, index);
             }
 
             return index;
@@ -195,18 +254,25 @@ namespace Microsoft.Cci
 
         public int ResolveStringIndex(StringIdx index)
         {
-            return _stringIndexMap[index.VirtIdx];
+            return _stringHeapStartOffset + _stringIndexToHeapPositionMap[index.MapIndex];
+        }
+
+        public int ResolveBlobIndex(BlobIdx index)
+        {
+            return _blobHeapStartOffset + index.HeapPosition;
         }
 
         public int GetUserStringToken(string str)
         {
             int index;
-            if (!_userStringIndex.TryGetValue(str, out index))
+            if (!_userStrings.TryGetValue(str, out index))
             {
                 Debug.Assert(!_streamsAreComplete);
-                index = _userStringWriter.Position + _userStringIndexStartOffset;
-                _userStringIndex.Add(str, index);
-                _userStringWriter.WriteCompressedUInt((uint)str.Length * 2 + 1);
+
+                index = _userStringWriter.Position + _userStringHeapStartOffset;
+                _userStrings.Add(str, index);
+                _userStringWriter.WriteCompressedInteger((uint)str.Length * 2 + 1);
+
                 _userStringWriter.WriteUTF16(str);
 
                 // Write out a trailing byte indicating if the string is really quite simple
@@ -276,10 +342,10 @@ namespace Microsoft.Cci
         {
             var heapSizes = new int[MetadataTokens.HeapCount];
 
-            heapSizes[(int)HeapIndex.UserString] = (int)_userStringWriter.Length;
-            heapSizes[(int)HeapIndex.String] = (int)_stringWriter.Length;
-            heapSizes[(int)HeapIndex.Blob] = (int)_blobWriter.Length;
-            heapSizes[(int)HeapIndex.Guid] = (int)_guidWriter.Length;
+            heapSizes[(int)HeapIndex.UserString] = _userStringWriter.Length;
+            heapSizes[(int)HeapIndex.String] = _stringWriter.Length;
+            heapSizes[(int)HeapIndex.Blob] = _blobHeapSize;
+            heapSizes[(int)HeapIndex.Guid] = _guidWriter.Length;
 
             return ImmutableArray.CreateRange(heapSizes);
         }
@@ -291,34 +357,38 @@ namespace Microsoft.Cci
         private void SerializeStringHeap()
         {
             // Sort by suffix and remove stringIndex
-            var sorted = new List<KeyValuePair<string, StringIdx>>(_stringIndex);
+            var sorted = new List<KeyValuePair<string, StringIdx>>(_strings);
             sorted.Sort(new SuffixSort());
-            _stringIndex = null;
+            _strings = null;
+
+            _stringWriter = new BlobBuilder(1024);
 
             // Create VirtIdx to Idx map and add entry for empty string
-            _stringIndexMap = new int[sorted.Count + 1];
-            _stringIndexMap[0] = 0;
+            _stringIndexToHeapPositionMap = new int[sorted.Count + 1];
+
+            _stringIndexToHeapPositionMap[0] = 0;
+            _stringWriter.WriteByte(0);
 
             // Find strings that can be folded
             string prev = string.Empty;
-            foreach (KeyValuePair<string, StringIdx> cur in sorted)
+            foreach (KeyValuePair<string, StringIdx> entry in sorted)
             {
-                int position = _stringWriter.Position + _stringIndexStartOffset;
+                int position = _stringWriter.Position;
 
                 // It is important to use ordinal comparison otherwise we'll use the current culture!
-                if (prev.EndsWith(cur.Key, StringComparison.Ordinal))
+                if (prev.EndsWith(entry.Key, StringComparison.Ordinal))
                 {
                     // Map over the tail of prev string. Watch for null-terminator of prev string.
-                    _stringIndexMap[cur.Value.VirtIdx] = position - (s_utf8Encoding.GetByteCount(cur.Key) + 1);
+                    _stringIndexToHeapPositionMap[entry.Value.MapIndex] = position - (s_utf8Encoding.GetByteCount(entry.Key) + 1);
                 }
                 else
                 {
-                    _stringIndexMap[cur.Value.VirtIdx] = position;
-                    _stringWriter.WriteString(cur.Key, s_utf8Encoding);
+                    _stringIndexToHeapPositionMap[entry.Value.MapIndex] = position;
+                    _stringWriter.WriteString(entry.Key, s_utf8Encoding);
                     _stringWriter.WriteByte(0);
                 }
 
-                prev = cur.Key;
+                prev = entry.Key;
             }
         }
 
@@ -350,22 +420,50 @@ namespace Microsoft.Cci
             }
         }
 
-        public void WriteTo(BlobWriter stream, out int guidHeapStartOffset)
+        public void WriteTo(BlobBuilder writer, out int guidHeapStartOffset)
         {
-            WriteAligned(_stringWriter, stream);
-            WriteAligned(_userStringWriter, stream);
+            WriteAligned(_stringWriter, writer);
+            WriteAligned(_userStringWriter, writer);
 
-            guidHeapStartOffset = stream.Position;
+            guidHeapStartOffset = writer.Position;
 
-            WriteAligned(_guidWriter, stream);
-            WriteAligned(_blobWriter, stream);
+            WriteAligned(_guidWriter, writer);
+            WriteAlignedBlobHeap(writer);
         }
 
-        private static void WriteAligned(BlobWriter source, BlobWriter target)
+        private void WriteAlignedBlobHeap(BlobBuilder writer)
+        {
+            int heapStart = writer.Position;
+
+            // ensure enough space in the buffer:
+            writer.SetPosition(writer.Position + _blobHeapSize);
+
+            // Perf consideration: With large heap the following loop may cause a lot of cache misses 
+            // since the order of entries in _blobs dictionary depends on the hash of the array values, 
+            // which is not correlated to the heap index. If we observe such issue we should order 
+            // the entries by heap position before running this loop.
+            foreach (var entry in _blobs)
+            {
+                int heapOffset = entry.Value.HeapPosition;
+                var blob = entry.Key;
+
+                writer.SetPosition(heapStart + heapOffset);
+                writer.WriteCompressedInteger((uint)blob.Length);
+                writer.WriteBytes(blob);
+            }
+
+            Debug.Assert(writer.Length - heapStart == _blobHeapSize);
+
+            // add padding:
+            writer.SetPosition(writer.Length);
+            writer.WriteBytes(0, BitArithmeticUtilities.Align(_blobHeapSize, 4) - _blobHeapSize);
+        }
+
+        private static void WriteAligned(BlobBuilder source, BlobBuilder target)
         {
             int length = source.Length;
             source.WriteTo(target);
-            target.Write(0, BitArithmeticUtilities.Align(length, 4) - length);
+            target.WriteBytes(0, BitArithmeticUtilities.Align(length, 4) - length);
         }
     }
 }

@@ -30,6 +30,7 @@ using Roslyn.Utilities;
 using ShellInterop = Microsoft.VisualStudio.Shell.Interop;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 using VsThreading = Microsoft.VisualStudio.Threading;
+using Document = Microsoft.CodeAnalysis.Document;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -720,7 +721,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     // Try to get spans from the tracking service first.
                     // We might get an imprecise result if the document analysis hasn't been finished yet and 
-                    // the active statement has structurealy changed, but that's ok. The user won't see an updated tag
+                    // the active statement has structurally changed, but that's ok. The user won't see an updated tag
                     // for the statement until the analysis finishes anyways.
                     TextSpan span;
                     LinePositionSpan lineSpan;

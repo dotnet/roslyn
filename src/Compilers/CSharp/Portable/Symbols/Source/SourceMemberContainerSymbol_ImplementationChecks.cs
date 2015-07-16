@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // CONSIDER: We know that no one will ask for NotOverriddenAbstractMembers again
+            // CONSIDER: We know that no-one will ask for NotOverriddenAbstractMembers again
             // (since this class is concrete), so we could just call the construction method
             // directly to avoid storing the result.
             foreach (var abstractMember in this.AbstractMembers)
@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
         {
-            // We ideally want to identify the interface location in the baselist with an exact match but
+            // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
-            // this is the similar logic as the VB Implementation.
+            // this is the similar logic as the VB implementation.
             Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface));
             HashSet<DiagnosticInfo> unuseddiagnostics = null;
 

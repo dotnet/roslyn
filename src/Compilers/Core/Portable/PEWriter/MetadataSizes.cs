@@ -11,6 +11,16 @@ namespace Microsoft.Cci
     {
         private const int StreamAlignment = 4;
 
+        public const ulong DebugMetadataTablesMask = 
+            1UL << (int)TableIndex.Document |
+            1UL << (int)TableIndex.MethodBody |
+            1UL << (int)TableIndex.LocalScope |
+            1UL << (int)TableIndex.LocalVariable |
+            1UL << (int)TableIndex.LocalConstant |
+            1UL << (int)TableIndex.ImportScope |
+            1UL << (int)TableIndex.StateMachineMethod |
+            1UL << (int)TableIndex.CustomDebugInformation;
+
         public readonly bool IsMinimalDelta;
 
         // EnC delta tables are stored as uncompressed metadata table stream
@@ -41,6 +51,11 @@ namespace Microsoft.Cci
         public readonly byte TypeDefOrRefCodedIndexSize;
         public readonly byte TypeOrMethodDefCodedIndexSize;
 
+        public readonly byte LocalVariableIndexSize;
+        public readonly byte LocalConstantIndexSize;
+        public readonly byte ImportScopeIndexSize;
+        public readonly byte HasCustomDebugInformationSize;
+
         /// <summary>
         /// Table row counts. 
         /// </summary>
@@ -52,19 +67,31 @@ namespace Microsoft.Cci
         public readonly ulong PresentTablesMask;
 
         /// <summary>
+        /// Non-empty tables stored in an external metadata table stream that might be referenced from the metadata table stream being emitted.
+        /// </summary>
+        public readonly ulong ExternalTablesMask;
+
+        /// <summary>
         /// Exact (unaligned) heap sizes.
         /// </summary>
         public readonly ImmutableArray<int> HeapSizes;
 
         /// <summary>
-        /// Overall size of metadata stream storage (stream headers, streams: heaps + tables).
+        /// Overall size of metadata stream storage (stream headers, table stream, heaps, additional streams).
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataStreamStorageSize;
 
         /// <summary>
         /// The size of metadata stream (#- or #~). Aligned.
+        /// Aligned to <see cref="StreamAlignment"/>.
         /// </summary>
         public readonly int MetadataTableStreamSize;
+
+        /// <summary>
+        /// The size of #Pdb stream. Aligned.
+        /// </summary>
+        public readonly int StandalonePdbStreamSize;
 
         /// <summary>
         /// The size of IL stream.
@@ -73,13 +100,20 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// The size of mapped field data stream.
+        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
         /// </summary>
         public readonly int MappedFieldDataSize;
 
         /// <summary>
         /// The size of managed resource data stream.
+        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
         /// </summary>
         public readonly int ResourceDataSize;
+
+        /// <summary>
+        /// Size of strong name hash.
+        /// </summary>
+        public readonly int StrongNameSignatureSize;
 
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
@@ -87,10 +121,14 @@ namespace Microsoft.Cci
             int ilStreamSize,
             int mappedFieldDataSize,
             int resourceDataSize,
-            bool isMinimalDelta)
+            int strongNameSignatureSize,
+            bool isMinimalDelta,
+            bool emitStandaloneDebugMetadata,
+            bool isStandaloneDebugMetadata)
         {
             Debug.Assert(rowCounts.Length == MetadataTokens.TableCount);
             Debug.Assert(heapSizes.Length == MetadataTokens.HeapCount);
+            Debug.Assert(!isStandaloneDebugMetadata || emitStandaloneDebugMetadata);
 
             const byte large = 4;
             const byte small = 2;
@@ -100,13 +138,32 @@ namespace Microsoft.Cci
             this.ResourceDataSize = resourceDataSize;
             this.ILStreamSize = ilStreamSize;
             this.MappedFieldDataSize = mappedFieldDataSize;
+            this.StrongNameSignatureSize = strongNameSignatureSize;
             this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;
             this.StringIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.String] > ushort.MaxValue) ? large : small;
             this.GuidIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Guid] > ushort.MaxValue) ? large : small;
 
-            PresentTablesMask = ComputeNonEmptyTableMask(rowCounts);
+            ulong allTables = ComputeNonEmptyTableMask(rowCounts);
+            if (!emitStandaloneDebugMetadata)
+            {
+                // all tables
+                PresentTablesMask = allTables;
+                ExternalTablesMask = 0;
+            }
+            else if (isStandaloneDebugMetadata)
+            {
+                // debug tables:
+                PresentTablesMask = allTables & DebugMetadataTablesMask;
+                ExternalTablesMask = allTables & ~DebugMetadataTablesMask;
+            }
+            else
+            {
+                // type-system tables only:
+                PresentTablesMask = allTables & ~DebugMetadataTablesMask;
+                ExternalTablesMask = 0;
+            }
 
             this.CustomAttributeTypeCodedIndexSize = this.GetReferenceByteSize(3, TableIndex.MethodDef, TableIndex.MemberRef);
             this.DeclSecurityCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.MethodDef, TableIndex.TypeDef);
@@ -153,6 +210,39 @@ namespace Microsoft.Cci
             this.TypeDefIndexSize = this.GetReferenceByteSize(0, TableIndex.TypeDef);
             this.TypeDefOrRefCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.TypeSpec);
             this.TypeOrMethodDefCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.TypeDef, TableIndex.MethodDef);
+
+            this.LocalVariableIndexSize = this.GetReferenceByteSize(0, TableIndex.LocalVariable);
+            this.LocalConstantIndexSize = this.GetReferenceByteSize(0, TableIndex.LocalConstant);
+            this.ImportScopeIndexSize = this.GetReferenceByteSize(0, TableIndex.ImportScope);
+
+            this.HasCustomDebugInformationSize = this.GetReferenceByteSize(5,
+                TableIndex.MethodDef,
+                TableIndex.Field,
+                TableIndex.TypeRef,
+                TableIndex.TypeDef,
+                TableIndex.Param,
+                TableIndex.InterfaceImpl,
+                TableIndex.MemberRef,
+                TableIndex.Module,
+                TableIndex.DeclSecurity,
+                TableIndex.Property,
+                TableIndex.Event,
+                TableIndex.StandAloneSig,
+                TableIndex.ModuleRef,
+                TableIndex.TypeSpec,
+                TableIndex.Assembly,
+                TableIndex.AssemblyRef,
+                TableIndex.File,
+                TableIndex.ExportedType,
+                TableIndex.ManifestResource,
+                TableIndex.GenericParam,
+                TableIndex.GenericParamConstraint,
+                TableIndex.MethodSpec,
+                TableIndex.Document,
+                TableIndex.LocalScope,
+                TableIndex.LocalVariable,
+                TableIndex.LocalConstant,
+                TableIndex.ImportScope);
 
             int size = this.CalculateTableStreamHeaderSize();
 
@@ -202,6 +292,15 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.MethodSpec, this.MethodDefOrRefCodedIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.GenericParamConstraint, this.GenericParamIndexSize + this.TypeDefOrRefCodedIndexSize);
 
+            size += GetTableSize(TableIndex.Document, this.BlobIndexSize + this.GuidIndexSize + this.BlobIndexSize + this.GuidIndexSize);
+            size += GetTableSize(TableIndex.MethodBody, this.BlobIndexSize);
+            size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
+            size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
+            size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.ImportScope, this.ImportScopeIndexSize + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.StateMachineMethod, this.MethodDefIndexSize + this.MethodDefIndexSize);
+            size += GetTableSize(TableIndex.CustomDebugInformation, this.HasCustomDebugInformationSize + this.GuidIndexSize + this.BlobIndexSize);
+
             // +1 for terminating 0 byte
             size = BitArithmeticUtilities.Align(size + 1, StreamAlignment);
 
@@ -212,8 +311,13 @@ namespace Microsoft.Cci
             size += GetAlignedHeapSize(HeapIndex.Guid);
             size += GetAlignedHeapSize(HeapIndex.Blob);
 
+            this.StandalonePdbStreamSize = isStandaloneDebugMetadata ? CalculateStandalonePdbStreamSize() : 0;
+            size += this.StandalonePdbStreamSize;
+
             this.MetadataStreamStorageSize = size;
         }
+
+        public bool IsStandaloneDebugMetadata => StandalonePdbStreamSize > 0;
 
         public bool IsPresent(TableIndex table) => (PresentTablesMask & (1UL << (int)table)) != 0;
 
@@ -230,6 +334,7 @@ namespace Microsoft.Cci
             {
                 const int RegularStreamHeaderSizes = 76;
                 const int MinimalDeltaMarkerStreamSize = 16;
+                const int StandalonePdbStreamSize = 16;
 
                 Debug.Assert(RegularStreamHeaderSizes ==
                     GetMetadataStreamHeaderSize("#~") +
@@ -239,6 +344,7 @@ namespace Microsoft.Cci
                     GetMetadataStreamHeaderSize("#Blob"));
 
                 Debug.Assert(MinimalDeltaMarkerStreamSize == GetMetadataStreamHeaderSize("#JTD"));
+                Debug.Assert(StandalonePdbStreamSize == GetMetadataStreamHeaderSize("#Pdb"));
 
                 return
                     sizeof(uint) +                 // signature
@@ -250,7 +356,8 @@ namespace Microsoft.Cci
                     sizeof(ushort) +               // storage header: reserved
                     sizeof(ushort) +               // stream count
                     RegularStreamHeaderSizes +
-                    (IsMinimalDelta ? MinimalDeltaMarkerStreamSize : 0);
+                    (IsMinimalDelta ? MinimalDeltaMarkerStreamSize : 0) +
+                    (IsStandaloneDebugMetadata ? StandalonePdbStreamSize : 0);
             }
         }
 
@@ -293,6 +400,24 @@ namespace Microsoft.Cci
                 }
             }
 
+            return result;
+        }
+
+        internal int CalculateStandalonePdbStreamSize()
+        {
+            int result = sizeof(int) +        // EntryPoint
+                         sizeof(long);        // ReferencedTypeSystemTables
+
+            // external table row counts
+            for (int i = 0; i < RowCounts.Length; i++)
+            {
+                if (((1UL << i) & ExternalTablesMask) != 0)
+                {
+                    result += sizeof(int);
+                }
+            }
+
+            Debug.Assert(result % StreamAlignment == 0);
             return result;
         }
 

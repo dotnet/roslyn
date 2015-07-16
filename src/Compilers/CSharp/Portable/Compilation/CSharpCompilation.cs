@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool referenceDirectivesChanged)
         {
             var lazyRoot = new Lazy<RootSingleNamespaceDeclaration>(() => DeclarationTreeBuilder.ForTree(tree, options.ScriptClassName ?? "", isSubmission));
-            declMap = declMap.SetItem(tree, lazyRoot);
+            declMap = declMap.Add(tree, lazyRoot); // Callers are responsible for checking for existing entries.
             declTable = declTable.AddRootDeclaration(lazyRoot);
             referenceDirectivesChanged = referenceDirectivesChanged || tree.HasReferenceDirectives();
         }
@@ -829,6 +829,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var declMap = _rootNamespaces;
+
+            if (declMap.ContainsKey(newTree))
+            {
+                throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, nameof(newTree));
+            }
+
             var declTable = _declarationTable;
             bool referenceDirectivesChanged = false;
 
@@ -2097,8 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Assembly.ForceComplete(location, cancellationToken);
 
-            var result = this.FreezeDeclarationDiagnostics().Concat(
-                ((SourceModuleSymbol)this.SourceModule).Diagnostics);
+            var result = this.FreezeDeclarationDiagnostics();
 
             if (locationFilterOpt != null)
             {
@@ -2222,6 +2227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Emit
 
+        internal override byte LinkerMajorVersion => 0x30;
+        
         internal override bool IsDelaySigned
         {
             get { return SourceAssembly.IsDelaySigned; }
@@ -2239,12 +2246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            // Do not waste a slot in the submission chain for submissions that contain no executable code
-            // (they may only contain #r directives, usings, etc.)
-            if (IsSubmission && !HasCodeToEmit())
-            {
-                return null;
-            }
+            Debug.Assert(!IsSubmission || HasCodeToEmit());
 
             string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)

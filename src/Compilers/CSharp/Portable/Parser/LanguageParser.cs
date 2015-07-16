@@ -445,6 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
 
+            if (IsScript || IsInteractive)
+            {
+                namespaceToken = this.AddError(namespaceToken, ErrorCode.ERR_NamespaceNotAllowedInScript);
+            }
+
             var name = this.ParseQualifiedName();
             if (ContainsGeneric(name))
             {
@@ -2392,7 +2397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        // if were no attributes and no modifiers we should've parsed it already in namespace body:
+                        // if were no attributes and no modifiers we should have parsed it already in namespace body:
                         Debug.Assert(modifiers.Count > 0);
 
                         modifiers[0] = this.AddError(modifiers[0], ErrorCode.ERR_BadModifiersOnNamespace);
@@ -9137,7 +9142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // Adapted from CParser::ScanAsyncLambda
 
-            // Precendence must not exceed that of lambdas
+            // Precedence must not exceed that of lambdas
             if (precedence > LambdaPrecedence)
             {
                 return false;

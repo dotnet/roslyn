@@ -586,7 +586,7 @@ End Class
             Dim secondMeSymbol = model.GetSemanticInfoSummary(CType(secondMe.AsNode(), ExpressionSyntax)).Symbol
             Dim thirdMeSymbol = model.GetSemanticInfoSummary(CType(thirdMe.AsNode(), ExpressionSyntax)).Symbol
 
-            'Assert.Equal(1, firstMeSymbols.Count)   returnd 0 symbols
+            'Assert.Equal(1, firstMeSymbols.Count)   returned 0 symbols
             'Assert.Equal(1, secondMeSymbols.Count)
             'Assert.Equal(1, thirdMeSymbols.Count)
         End Sub

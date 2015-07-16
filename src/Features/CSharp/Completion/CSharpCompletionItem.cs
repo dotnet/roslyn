@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         public CSharpCompletionItem(
             Workspace workspace,
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,

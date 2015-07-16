@@ -1,13 +1,15 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class SymbolCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Private Const s_unicodeEllipsis = ChrW(&H2026)
+
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New SymbolCompletionProvider()
         End Function
 
@@ -155,22 +157,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NullableType()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d as $$?")))
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BaseDeclarations1()
-            VerifyNSATExists(
-                AddImportsStatement("Imports System",
-                    CreateContent("Class A",
-                                  "    Inherits $$")))
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub BaseDeclarations2()
-            VerifyNSATExists(
-                AddImportsStatement("Imports System",
-                    CreateContent("Class A",
-                                  "    Implements $$")))
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -4479,31 +4465,6 @@ End Structure
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EditorBrowsable_Struct_BrowsableStateNever_DeriveFrom()
-
-            Dim markup = <Text><![CDATA[
-Class Program
-    Inherits $$
-End Class
-]]></Text>.Value
-
-            Dim referencedCode = <Text><![CDATA[
-<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
-Public Structure Foo
-End Structure
-]]></Text>.Value
-            VerifyItemInEditorBrowsableContexts(
-                markup:=markup,
-                referencedCode:=referencedCode,
-                item:="Foo",
-                expectedSymbolsSameSolution:=1,
-                expectedSymbolsMetadataReference:=0,
-                sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic)
-        End Sub
-
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Struct_BrowsableStateAlways_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4519,31 +4480,7 @@ End Class
 Public Structure Foo
 End Structure
 ]]></Text>.Value
-            VerifyItemInEditorBrowsableContexts(
-                markup:=markup,
-                referencedCode:=referencedCode,
-                item:="Foo",
-                expectedSymbolsSameSolution:=1,
-                expectedSymbolsMetadataReference:=1,
-                sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic)
-        End Sub
 
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EditorBrowsable_Struct_BrowsableStateAlways_DeriveFrom()
-
-            Dim markup = <Text><![CDATA[
-Class Program
-    Inherits $$
-End Class
-]]></Text>.Value
-
-            Dim referencedCode = <Text><![CDATA[
-<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
-Public Structure Foo
-End Structure
-]]></Text>.Value
             VerifyItemInEditorBrowsableContexts(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4571,6 +4508,7 @@ End Class
 Public Structure Foo
 End Structure
 ]]></Text>.Value
+
             VerifyItemInEditorBrowsableContexts(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4581,41 +4519,6 @@ End Structure
                 referencedLanguage:=LanguageNames.VisualBasic,
                 hideAdvancedMembers:=False)
 
-            VerifyItemInEditorBrowsableContexts(
-                markup:=markup,
-                referencedCode:=referencedCode,
-                item:="Foo",
-                expectedSymbolsSameSolution:=1,
-                expectedSymbolsMetadataReference:=0,
-                sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
-        End Sub
-
-        <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub EditorBrowsable_Struct_BrowsableStateAdvanced_DeriveFrom()
-
-            Dim markup = <Text><![CDATA[
-Class Program
-    Inherits $$
-End Class
-]]></Text>.Value
-
-            Dim referencedCode = <Text><![CDATA[
-<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)>
-Public Structure Foo
-End Structure
-]]></Text>.Value
-            VerifyItemInEditorBrowsableContexts(
-                markup:=markup,
-                referencedCode:=referencedCode,
-                item:="Foo",
-                expectedSymbolsSameSolution:=1,
-                expectedSymbolsMetadataReference:=1,
-                sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
             VerifyItemInEditorBrowsableContexts(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -4957,6 +4860,538 @@ public class Foo
         End Sub
 #End Region
 
+#Region "Inherits/Implements Tests"
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_AfterInherits()
+            Const markup = "
+Public Class Base
+End Class
+
+Class Derived
+    Inherits $$
+End Class
+"
+
+            VerifyItemExists(markup, "Base")
+            VerifyItemIsAbsent(markup, "Derived")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_AfterInheritsDotIntoClass()
+            Const markup = "
+Public Class Base
+    Public Class Nest
+    End Class
+End Class
+
+Class Derived
+    Inherits Base.$$
+End Class
+"
+
+            VerifyItemExists(markup, "Nest")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_AfterImplements()
+            Const markup = "
+Public Interface IFoo
+End Interface
+
+Class C
+    Implements $$
+End Class
+"
+
+            VerifyItemExists(markup, "IFoo")
+        End Sub
+
+        <WorkItem(995986)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_AliasedInterfaceAfterImplements()
+            Const markup = "
+Imports IAlias = IFoo
+Public Interface IFoo
+End Interface
+
+Class C
+    Implements $$
+End Class
+"
+
+            VerifyItemExists(markup, "IAlias")
+        End Sub
+
+        <WorkItem(995986)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_AliasedNamespaceAfterImplements()
+            Const markup = "
+Imports AliasedNS = NS1
+Namespace NS1
+    Public Interface IFoo
+    End Interface
+
+    Class C
+        Implements $$
+    End Class
+End Namespace
+"
+
+            VerifyItemExists(markup, "AliasedNS")
+        End Sub
+
+        <WorkItem(995986)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_AliasedClassAfterInherits()
+            Const markup = "
+Imports AliasedClass = Base
+Public Class Base
+End Interface
+
+Class C
+    Inherits $$
+End Class
+"
+
+            VerifyItemExists(markup, "AliasedClass")
+        End Sub
+
+        <WorkItem(995986)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_AliasedNamespaceAfterInherits()
+            Const markup = "
+Imports AliasedNS = NS1
+Namespace NS1
+Public Class Base
+End Interface
+
+Class C
+    Inherits $$
+    End Class
+End Namespace
+"
+
+            VerifyItemExists(markup, "AliasedNS")
+        End Sub
+
+        <WorkItem(995986)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_AliasedClassAfterInherits2()
+            Const markup = "
+Imports AliasedClass = NS1.Base
+Namespace NS1
+Public Class Base
+End Interface
+
+Class C
+    Inherits $$
+    End Class
+End Namespace
+"
+
+            VerifyItemExists(markup, "AliasedClass")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_AfterImplementsComma()
+            Const markup = "
+Public Interface IFoo
+End Interface
+
+Public Interface IBar
+End interface
+
+Class C
+    Implements IFoo, $$
+End Class
+"
+
+            VerifyItemExists(markup, "IBar")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_ClassContainingInterface()
+            Const markup = "
+Public Class Base
+    Public Interface Nest
+    End Class
+End Class
+
+Class Derived
+    Implements $$
+End Class
+"
+
+            VerifyItemExists(markup, "Base")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_NoClassNotContainingInterface()
+            Const markup = "
+Public Class Base
+End Class
+
+Class Derived
+    Implements $$
+End Class
+"
+
+            VerifyItemIsAbsent(markup, "Base")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_GenericClass()
+            Const markup = "
+Public Class base(Of T)
+
+End Class
+
+Public Class derived
+    Inherits $$
+End Class
+"
+
+            VerifyItemExists(markup, "base(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_GenericInterface()
+            Const markup = "
+Public Interface IFoo(Of T)
+
+End Interface
+
+Public Class bar
+    Implements $$
+End Class
+"
+
+            VerifyItemExists(markup, "IFoo(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(546610)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_IncompleteClassDeclaration()
+            Const markup = "
+Public Interface IFoo
+End Interface
+Public Interface IBar
+End interface
+Class C
+    Implements IFoo,$$
+"
+
+            VerifyItemExists(markup, "IBar")
+        End Sub
+
+        <WorkItem(546611)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_NotNotInheritable()
+            Const markup = "
+Public NotInheritable Class D
+End Class
+Class C
+    Inherits $$
+"
+
+            VerifyItemIsAbsent(markup, "D")
+        End Sub
+
+        <WorkItem(546802)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_KeywordIdentifiersShownUnescaped()
+            Const markup = "
+Public Class [Inherits]
+End Class
+Class C
+    Inherits $$
+"
+
+            VerifyItemExists(markup, "Inherits")
+        End Sub
+
+        <WorkItem(546802)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_KeywordIdentifiersCommitEscaped()
+            Const markup = "
+Public Class [Inherits]
+End Class
+Class C
+    Inherits $$
+"
+
+            Const expected = "
+Public Class [Inherits]
+End Class
+Class C
+    Inherits [Inherits]
+"
+
+            VerifyProviderCommit(markup, "Inherits", expected, "."c, "")
+        End Sub
+
+        <WorkItem(546801)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_Modules()
+            Const markup = "
+Module Module1
+Sub Main()
+End Sub
+End Module
+Module Module2
+  Class Bx
+  End Class
+
+End Module 
+
+Class Max
+  Class Bx
+  End Class
+End Class
+
+Class A
+Inherits $$
+
+End Class
+"
+
+            VerifyItemExists(markup, "Module2")
+            VerifyItemIsAbsent(markup, "Module1")
+        End Sub
+
+        <WorkItem(530726)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_DoNotShowNamespaceWithNoApplicableClasses()
+            Const markup = "
+Namespace N
+    Module M
+    End Module
+End Namespace
+Class C
+    Inherits $$
+End Class
+"
+
+            VerifyItemIsAbsent(markup, "N")
+        End Sub
+
+        <WorkItem(530725)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_CheckStructContents()
+            Const markup = "
+Namespace N
+    Public Structure S1
+        Public Class B
+        End Class
+    End Structure
+    Public Structure S2
+    End Structure
+End Namespace
+Class C
+    Inherits N.$$
+End Class
+"
+            VerifyItemIsAbsent(markup, "S2")
+            VerifyItemExists(markup, "S1")
+        End Sub
+
+        <WorkItem(530724)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_NamespaceContainingInterface()
+            Const markup = "
+Namespace N
+    Interface IFoo
+    End Interface
+End Namespace
+Class C
+    Implements $$
+End Class
+"
+
+            VerifyItemExists(markup, "N")
+        End Sub
+
+        <WorkItem(531256)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_OnlyInterfacesForInterfaceInherits1()
+            Const markup = "
+Interface ITestInterface
+End Interface
+
+Class TestClass
+End Class
+
+Interface IFoo
+    Inherits $$
+"
+
+            VerifyItemExists(markup, "ITestInterface")
+            VerifyItemIsAbsent(markup, "TestClass")
+        End Sub
+
+        <WorkItem(1036374)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_InterfaceCircularInheritance()
+            Const markup = "
+Interface ITestInterface
+End Interface
+
+Class TestClass
+End Class
+
+Interface A(Of T)
+    Inherits A(Of A(Of T))
+    Interface B
+        Inherits $$
+    End Interface
+End Interface
+"
+
+            VerifyItemExists(markup, "ITestInterface")
+            VerifyItemIsAbsent(markup, "TestClass")
+        End Sub
+
+        <WorkItem(531256)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_OnlyInterfacesForInterfaceInherits2()
+            Const markup = "
+Interface ITestInterface
+End Interface
+
+Class TestClass
+End Class
+
+Interface IFoo
+    Implements $$
+"
+
+            VerifyItemIsAbsent(markup, "ITestInterface")
+            VerifyItemIsAbsent(markup, "TestClass")
+        End Sub
+
+        <WorkItem(547291)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_CommitGenericOnParen()
+            Const markup = "
+Class G(Of T)
+End Class
+
+Class DG
+    Inherits $$
+End Class
+"
+
+            Dim expected = "
+Class G(Of T)
+End Class
+
+Class DG
+    Inherits G(
+End Class
+"
+
+            VerifyProviderCommit(markup, "G(Of " & s_unicodeEllipsis & ")", expected, "("c, "")
+        End Sub
+
+        <WorkItem(579186)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Implements_AfterImplementsWithCircularInheritance()
+            Const markup = "
+Interface I(Of T)
+End Interface
+ 
+Class C(Of T)
+    Class D
+        Inherits C(Of D)
+        Implements $$
+    End Class
+End Class
+"
+
+            VerifyItemExists(markup, "I(Of …)")
+        End Sub
+
+        <WorkItem(622563)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_CommitNonGenericOnParen()
+            Const markup = "
+Class G
+End Class
+
+Class DG
+    Inherits $$
+End Class
+"
+
+            Dim expected = "
+Class G
+End Class
+
+Class DG
+    Inherits G
+End Class
+"
+            VerifyProviderCommit(markup, "G", expected, "("c, "")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_AfterInheritsWithCircularInheritance()
+            Const markup = "
+Class B
+End Class
+ 
+Class C(Of T)
+    Class D
+        Inherits C(Of D)
+        Inherits $$
+    End Class
+End Class
+"
+
+            VerifyItemExists(markup, "B")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_ClassesInsideSealedClasses()
+            Const markup = "
+Public NotInheritable Class G
+    Public Class H
+
+    End Class
+End Class
+
+Class SomeClass
+    Inherits $$
+
+End Class
+"
+
+            VerifyItemExists(markup, "G")
+        End Sub
+
+        <WorkItem(638762)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub Inherits_ClassWithinNestedStructs()
+            Const markup = "
+Structure somestruct
+    Structure Inner
+        Class FinallyAClass
+        End Class
+    End Structure
+ 
+End Structure
+Class SomeClass
+    Inherits $$
+
+End
+"
+
+            VerifyItemExists(markup, "somestruct")
+        End Sub
+
+#End Region
+
         <WorkItem(715146)>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExtensionMethodsOffered()
@@ -5035,7 +5470,7 @@ End Class
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AvailableInBothLinkedFiles()
             Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1">
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
     Dim x as integer
@@ -5045,8 +5480,8 @@ Class C
 end class]]>
                                  </Document>
                              </Project>
-                             <Project Language="Visual Basic" CommonReferences=" true" AssemblyName="Proj2">
-                                 <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             <Project Language="Visual Basic" CommonReferences=" True" AssemblyName="Proj2">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
@@ -5056,7 +5491,7 @@ end class]]>
         <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AvailableInOneLinkedFile()
             Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="FOO=True">
                                  <Document FilePath="CurrentDocument.vb"><![CDATA[
 Class C
 #If FOO Then
@@ -5068,8 +5503,8 @@ Class C
         End Class]]>
                                  </Document>
                              </Project>
-                             <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj2">
-                                 <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 

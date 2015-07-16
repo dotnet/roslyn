@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IList<Lazy<ICompletionRules, OrderableLanguageMetadata>> _allCompletionRules;
-        private readonly IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> _allCompletionProviders;
+        private readonly IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> _allCompletionProviders;
         private readonly ImmutableHashSet<char> _autoBraceCompletionChars;
         private readonly bool _isDebugger;
         private readonly bool _isImmediateWindow;
@@ -58,8 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IList<Lazy<ICompletionRules, OrderableLanguageMetadata>> allCompletionRules,
-            IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> allCompletionProviders,
+            IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> allCompletionProviders,
             ImmutableHashSet<char> autoBraceCompletionChars,
             bool isDebugger,
             bool isImmediateWindow)
@@ -67,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _undoHistoryRegistry = undoHistoryRegistry;
-            _allCompletionRules = allCompletionRules;
             _allCompletionProviders = allCompletionProviders;
             _autoBraceCompletionChars = autoBraceCompletionChars;
             _isDebugger = isDebugger;
@@ -81,8 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> presenter,
             IAsynchronousOperationListener asyncListener,
-            IList<Lazy<ICompletionRules, OrderableLanguageMetadata>> allCompletionRules,
-            IEnumerable<Lazy<ICompletionProvider, OrderableLanguageMetadata>> allCompletionProviders,
+            IEnumerable<Lazy<CompletionListProvider, OrderableLanguageMetadata>> allCompletionProviders,
             ImmutableHashSet<char> autoBraceCompletionChars)
         {
             var debuggerTextView = textView as IDebuggerTextView;
@@ -92,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
                 (v, b) => new Controller(textView, subjectBuffer, editorOperationsFactoryService, undoHistoryRegistry,
                     presenter, asyncListener,
-                    allCompletionRules, allCompletionProviders, autoBraceCompletionChars,
+                    allCompletionProviders, autoBraceCompletionChars,
                     isDebugger, isImmediateWindow));
         }
 

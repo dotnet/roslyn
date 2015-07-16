@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            // We're going to use a special decoder that can generate useable symbols for type parameters without full context.
+            // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             // (We're not just using a different type - we're also changing the type context.)
             var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol);
 

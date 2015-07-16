@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Roslyn Bug 9681: Compilers incorrectly use the *failure* of binding some subexpression to indicate some other strategy is applicable (attributes, 'var')
 
-            // Rolsyn reproduces Dev10 compiler behavior which doesn't report an error if one of the 
+            // Roslyn reproduces Dev10 compiler behavior which doesn't report an error if one of the 
             // lookups is single viable and other lookup is ambiguous. If one of the lookup results 
             // (either with or without "Attribute" suffix) is single viable and is an attribute type we 
             // use it  disregarding the second result which may be ambiguous. 
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // This viability check is only used by SemanticModel.LookupSymbols, which does its own
-                // filtering of not-referencable symbols.  Hence, we do not check CanBeReferencedByName
+                // filtering of not-referenceable symbols.  Hence, we do not check CanBeReferencedByName
                 // here.
                 return true;
             }

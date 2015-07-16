@@ -51,16 +51,5 @@ namespace Microsoft.CodeAnalysis
         {
             return value == Platform.X86;
         }
-
-        /// <summary>
-        /// Gets a value indicating whether the options require the AMD instruction set.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if the options require the AMD instruction set; otherwise, <c>false</c>.
-        /// </value>
-        internal static bool RequiresAmdInstructionSet(this Platform value)
-        {
-            return value == Platform.X64;
-        }
     }
 }

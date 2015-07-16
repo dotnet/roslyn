@@ -1134,7 +1134,7 @@ class Program
 
         // Take the type parameter as object
         [Fact]
-        public void TypeParameterAsUsingResourse()
+        public void TypeParameterAsUsingResource()
         {
             var source = @"
 class Gen<T>
@@ -1151,7 +1151,7 @@ class Gen<T>
         }
 
         [Fact]
-        public void TypeParameterAsUsingResourse_2()
+        public void TypeParameterAsUsingResource_2()
         {
             var source = @"
 using System;
@@ -1193,7 +1193,7 @@ class Gen<T> where T : new()
 
         // Take the out parameter as object
         [Fact]
-        public void OutParameterAsUsingResourse()
+        public void OutParameterAsUsingResource()
         {
             var source = @"
 class Program

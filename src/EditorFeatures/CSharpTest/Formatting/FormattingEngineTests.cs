@@ -1040,7 +1040,7 @@ class C : Attribute
         [WorkItem(464)]
         [WorkItem(908729)]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void DoNotFormatColonInTyepPararmeter()
+        public void DoNotFormatColonInTypeParameter()
         {
             var code = @"class Program<T>
 {

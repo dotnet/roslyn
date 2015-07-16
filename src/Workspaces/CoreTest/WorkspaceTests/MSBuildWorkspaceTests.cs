@@ -1563,6 +1563,13 @@ class C1
         public void TestCompilationOptions_VisualBasic_OptionStrict_Off()
         {
             CreateVBFilesWith("OptionStrict", "Off");
+            AssertVBOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Off, options => options.OptionStrict);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestCompilationOptions_VisualBasic_OptionStrict_Custom()
+        {
+            CreateVBFilesWith("OptionStrict", "Custom");
             AssertVBOptions(Microsoft.CodeAnalysis.VisualBasic.OptionStrict.Custom, options => options.OptionStrict);
         }
 
@@ -2389,7 +2396,7 @@ class C1
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            // open for read-write so no one else can read
+            // open for read-write so no-one else can read
             var projectFile = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
             using (File.Open(projectFile, FileMode.Open, FileAccess.ReadWrite))
             {
@@ -2406,7 +2413,7 @@ class C1
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            // open for read-write so no one else can read
+            // open for read-write so no-one else can read
             var projectFile = GetSolutionFileName(@"CSharpProject\NoProject.csproj");
             var ws = MSBuildWorkspace.Create();
             AssertThrows<System.IO.FileNotFoundException>(() =>
@@ -2420,7 +2427,7 @@ class C1
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
-            // open for read-write so no one else can read
+            // open for read-write so no-one else can read
             var solutionFile = GetSolutionFileName(@"NoSolution.sln");
             var ws = MSBuildWorkspace.Create();
             AssertThrows<System.IO.FileNotFoundException>(() =>

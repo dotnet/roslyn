@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // native compiler emits both of them, synthetic attribute is emitted after the one from source. Incidentally, ALink picks the last attribute
                     // for signing and things seem to work out. However, relying on the order of attributes feels fragile, especially given that Roslyn emits
                     // synthetic attributes before attributes from source. The behavior we settled on for .NET modules is that, if the attribute in source has the
-                    // same value as the one in compilation options, we won't emit the senthetic attribute. If the value doesn't match, we report an error, which 
+                    // same value as the one in compilation options, we won't emit the synthetic attribute. If the value doesn't match, we report an error, which 
                     // is a breaking change. Bottom line, we will never produce a module or an assembly with two attributes, regardless whether values are the same
                     // or not.
                     if (_compilation.Options.OutputKind == OutputKind.NetModule)
@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (attribute != null)
                         {
-                            yield return new Cci.SecurityAttribute((Cci.SecurityAction)constantValue, attribute);
+                            yield return new Cci.SecurityAttribute((DeclarativeSecurityAction)(int)constantValue, attribute);
                         }
                     }
                 }
@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInternalAccessibility;
                     bool success = _unassignedFieldsMap.TryGetValue(field, out isInternalAccessibility);
-                    Debug.Assert(success, "Once CompletionPart.Module is set, no one should be modifying the map.");
+                    Debug.Assert(success, "Once CompletionPart.Module is set, no-one should be modifying the map.");
 
                     if (isInternalAccessibility && internalsAreVisible)
                     {
