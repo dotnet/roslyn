@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
@@ -7,6 +8,26 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    static class LocalFunctionTestsExt
+    {
+        public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
+        {
+            localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
+            var methods = verifier.TestData.Methods;
+            IMethodSymbol result = null;
+            foreach (var kvp in methods)
+            {
+                if (kvp.Key.Contains(localFunctionName))
+                {
+                    Assert.Null(result); // more than one name matched
+                    result = kvp.Value.Method;
+                }
+            }
+            Assert.NotNull(result); // no methods matched
+            return result;
+        }
+    }
+
     public class LocalFunctionTests : CSharpTestBase
     {
         private readonly CSharpParseOptions _parseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
@@ -382,15 +403,14 @@ Console.Write(str + ' ' + x);
             var source = @"
 T Foo<T>(T x)
 {
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().IsStatic);
-    Console.Write(' ');
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-    Console.Write(' ');
     return x;
 }
 Console.Write(Foo(2));
 ";
-            VerifyOutputInMain(source, "True Program 2", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            var foo = verify.FindLocalFunction("Foo");
+            Assert.True(foo.IsStatic);
+            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), foo.ContainingType);
         }
 
         [Fact]
@@ -399,16 +419,17 @@ Console.Write(Foo(2));
             var source = @"
 T Foo<T>(T x)
 {
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().IsStatic);
-    Console.Write(' ');
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-    Console.Write(' ');
     return x;
 }
 Func<int, int> foo = Foo;
 Console.Write(foo(2));
 ";
-            VerifyOutputInMain(source, "False Program+<>c 2", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            var foo = verify.FindLocalFunction("Foo");
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            Assert.False(foo.IsStatic);
+            Assert.Equal("<>c", foo.ContainingType.Name);
+            Assert.Equal(program, foo.ContainingType.ContainingType);
         }
 
         [Fact]
@@ -489,6 +510,32 @@ class Program
     }
 }";
             VerifyOutput(source, "2 2 3 3");
+        }
+
+        [Fact]
+        public void ClosureGeneralThisOnly()
+        {
+            var source = @"
+var x = 0;
+void Outer()
+{
+    if (++x == 2)
+    {
+        Console.Write(x);
+        return;
+    }
+    void Inner()
+    {
+        Outer();
+    }
+    Inner();
+}
+Outer();
+";
+            var verify = VerifyOutputInMain(source, "2", "System");
+            var outer = verify.FindLocalFunction("Outer");
+            var inner = verify.FindLocalFunction("Inner");
+            Assert.Equal(outer.ContainingType, inner.ContainingType);
         }
 
         [Fact]
@@ -897,12 +944,12 @@ int x = 2;
 void Foo()
 {
     Console.Write(x);
-    Console.Write(' ');
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
 }
 Foo();
 ";
-            VerifyOutputInMain(source, "2 System.ValueType", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            var foo = verify.FindLocalFunction("Foo");
+            Assert.True(foo.ContainingType.IsValueType);
         }
 
         [Fact]
@@ -919,25 +966,22 @@ void Outer()
         {
             a++;
             b++;
-            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
-            Console.Write(' ');
         }
 
         a++;
         Inner();
-        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
-        Console.Write(' ');
     }
 
     Middle();
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
-    Console.Write(' ');
     Console.WriteLine(a);
 }
 
 Outer();
 ";
-            VerifyOutputInMain(source, "System.ValueType System.Object System.Object 2", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            Assert.True(verify.FindLocalFunction("Inner").ContainingType.IsValueType);
+            Assert.True(verify.FindLocalFunction("Middle").ContainingType.IsReferenceType);
+            Assert.True(verify.FindLocalFunction("Outer").ContainingType.IsReferenceType);
         }
 
         [Fact]
@@ -953,14 +997,10 @@ class Program
     {
         int First()
         {
-            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-            Console.Write(' ');
             return ++_x;
         }
         int Second()
         {
-            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-            Console.Write(' ');
             return First();
         }
         return Second();
@@ -971,7 +1011,10 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "Program Program 2");
+            var verify = VerifyOutput(source, "2");
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            Assert.Equal(program, verify.FindLocalFunction("First").ContainingType);
+            Assert.Equal(program, verify.FindLocalFunction("Second").ContainingType);
         }
 
         [Fact]
@@ -989,13 +1032,13 @@ void Foo()
     else
     {
         Console.Write(x);
-        Console.Write(' ');
-        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
     }
 }
 Foo();
 ";
-            VerifyOutputInMain(source, "2 System.ValueType", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            var foo = verify.FindLocalFunction("Foo");
+            Assert.True(foo.ContainingType.IsValueType);
         }
 
         [Fact]
@@ -1009,12 +1052,6 @@ void Foo(int depth)
     void Bar(int depth2)
     {
         dummy++;
-        if (depth2 == 2)
-        {
-            // should be struct
-            Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
-            Console.Write(' ');
-        }
         Foo(depth2);
     }
     if (depth != 2)
@@ -1025,14 +1062,14 @@ void Foo(int depth)
     else
     {
         Console.Write(x);
-        Console.Write(' ');
-        // should be class (due to by-value passing). See bottom of LambdaRewriter.Analysis.ComputeLambdaScopesAndFrameCaptures
-        Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.BaseType);
     }
 }
 Foo(0);
 ";
-            VerifyOutputInMain(source, "System.ValueType 2 System.Object", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            // should be class (due to by-value passing). See bottom of LambdaRewriter.Analysis.ComputeLambdaScopesAndFrameCaptures
+            Assert.True(verify.FindLocalFunction("Foo").ContainingType.IsReferenceType);
+            Assert.True(verify.FindLocalFunction("Bar").ContainingType.IsValueType);
         }
 
         [Fact]
@@ -1090,8 +1127,6 @@ class Program
         {
             if (_x == 0)
             {
-                // Ensure we're in a this-only closure. Should NOT print a display class.
-                Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
                 return;
             }
             Console.Write(_x);
@@ -1107,7 +1142,9 @@ class Program
     }
 }
 ";
-            VerifyOutput(source, "2 Program");
+            var verify = VerifyOutput(source, "2");
+            var program = verify.Compilation.GetTypeByMetadataName("Program");
+            Assert.Equal(program, verify.FindLocalFunction("Inner").ContainingType);
         }
 
         [Fact]
@@ -2120,27 +2157,59 @@ const int x = 2;
 void Local()
 {
     Console.Write(x);
-    Console.Write(' ');
-    Console.Write(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 }
 Local();
 ";
             // Should be a static method on "Program" itself, not a display class like "Program+<>c__DisplayClass0_0"
-            VerifyOutputInMain(source, "2 Program", "System");
+            var verify = VerifyOutputInMain(source, "2", "System");
+            var foo = verify.FindLocalFunction("Local");
+            Assert.True(foo.IsStatic);
+            Assert.Equal(verify.Compilation.GetTypeByMetadataName("Program"), foo.ContainingType);
         }
 
-        [Fact(Skip = "Dynamic local function arguments not supported yet")]
+        [Fact]
         public void DynamicArgument()
         {
             var source = @"
-void Local(int x)
+using System;
+class Program
 {
-    Console.Write(x);
+    static void Main()
+    {
+        void Local(int x)
+        {
+            Console.Write(x);
+        }
+        dynamic val = 2;
+        Local(val);
+    }
 }
-dynamic val = 2;
-Local(val);
 ";
-            VerifyOutputInMain(source, "2", "System");
+            VerifyDiagnostics(source,
+    // (12,9): error CS8098: Cannot invoke the local function 'Local' with dynamic parameters.
+    //         Local(val);
+    Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParameter, "Local(val)").WithArguments("Local").WithLocation(12, 9)
+    );
+        }
+
+        [Fact]
+        public void DynamicParameter()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        void Local(dynamic x)
+        {
+            Console.Write(x);
+        }
+        Local(2);
+    }
+}
+";
+            VerifyOutput(source, "2");
         }
 
         [Fact]
@@ -2167,6 +2236,27 @@ var RetDyn()
 Console.Write(RetDyn());
 ";
             VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
+        public void DynamicDelegate()
+        {
+            var source = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        dynamic Local(dynamic x)
+        {
+            return x;
+        }
+        dynamic local = (Func<dynamic, dynamic>)Local;
+        Console.Write(local(2));
+    }
+}
+";
+            VerifyOutput(source, "2");
         }
 
         [Fact]
@@ -2208,18 +2298,29 @@ class Program
         {
             return x;
         }
-        Expression<Func<int, int>> Local(Expression<Func<int, int>> f)
+        Expression<Func<T>> Local<T>(Expression<Func<T>> f)
         {
             return f;
         }
-        Console.Write(Local(x => Id(x)));
+        Console.Write(Local(() => Id(2)));
+        Console.Write(Local<Func<int, int>>(() => Id));
+        Console.Write(Local(() => new Func<int, int>(Id)));
+        // Disabled because of https://github.com/dotnet/roslyn/issues/3923
+        // Should produce a diagnostic once uncommented.
+        //Console.Write(Local(() => nameof(Id)));
     }
 }
 ";
             VerifyDiagnostics(source,
-    // (16,34): error CS8096: An expression tree may not contain a local function or a reference to a local function
-    //         Console.Write(Local(x => Id(x)));
-    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(x)").WithLocation(16, 34)
+    // (16,35): error CS8096: An expression tree may not contain a reference to a local function
+    //         Console.Write(Local(() => Id(2)));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id(2)").WithLocation(16, 35),
+    // (17,51): error CS8096: An expression tree may not contain a reference to a local function
+    //         Console.Write(Local<Func<int, int>>(() => Id));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "Id").WithLocation(17, 51),
+    // (18,35): error CS8096: An expression tree may not contain a reference to a local function
+    //         Console.Write(Local(() => new Func<int, int>(Id)));
+    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, "new Func<int, int>(Id)").WithLocation(18, 35)
     );
         }
 

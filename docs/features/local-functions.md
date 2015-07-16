@@ -29,6 +29,10 @@
 	- [x] Basic features (variable highlight, rename, etc.)
 	- [ ] Advanced features (refactorings, analyzers)
 
+Intentionally disabled features that might eventually be in the end result:
+- Calling a local function with a dynamic argument (due to name mangling and potential conflicts with closures and possibly overloads/shadows)
+- Referring to a local function in an expression tree (note that defining a local function itself in an expression tree is impossible)
+
 TODO:
 
 - Update error messages.

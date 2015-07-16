@@ -1313,5 +1313,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ConstantStringTooLong = 8095,
         ERR_ExpressionTreeContainsLocalFunction = 8096,
         ERR_ReturnTypesDontMatch = 8097,
+        ERR_DynamicLocalFunctionParameter = 8098,
     }
 }

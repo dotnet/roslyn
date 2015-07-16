@@ -3410,6 +3410,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot invoke the local function &apos;{0}&apos; with dynamic parameters..
+        /// </summary>
+        internal static string ERR_DynamicLocalFunctionParameter {
+            get {
+                return ResourceManager.GetString("ERR_DynamicLocalFunctionParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to One or more types required to compile a dynamic expression cannot be found. Are you missing a reference?.
         /// </summary>
         internal static string ERR_DynamicRequiredTypesMissing {
@@ -3878,7 +3887,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a local function or a reference to a local function.
+        ///   Looks up a localized string similar to An expression tree may not contain a reference to a local function.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsLocalFunction {
             get {
@@ -7559,7 +7568,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the return type of {0} due to differing return types..
+        ///   Looks up a localized string similar to Cannot infer the return type of &apos;{0}&apos; due to differing return types..
         /// </summary>
         internal static string ERR_ReturnTypesDontMatch {
             get {
