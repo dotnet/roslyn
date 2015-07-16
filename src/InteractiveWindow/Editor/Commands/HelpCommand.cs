@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             // display help on a particular command:
             command = commands[name];
 
-            if (command == null && name.StartsWith(prefix, StringComparison.Ordinal))
+            if (command == null && name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             {
                 name = name.Substring(prefix.Length);
                 command = commands[name];
