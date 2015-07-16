@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public string Description
         {
+            // TODO: Needs localization...
             get { return "Executes the specified file within the current interactive session."; }
         }
 

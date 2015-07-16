@@ -18,11 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         private static readonly string[] s_details = new[]
         {
+            // TODO: Needs localization...
             "  command-name    Name of the REPL command to display help on.",
         };
 
         public override string Description
         {
+            // TODO: Needs localization...
             get { return "Display help on specified REPL command, or all available REPL commands and key bindings if none specified."; }
         }
 
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public override string CommandLine
         {
+            // TODO: Needs localization...
             get { return "[command-name]"; }
         }
 
@@ -47,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             IInteractiveWindowCommand command;
             if (!ParseArguments(window, arguments, out commandName, out command))
             {
+                // TODO: Needs localization...
                 window.ErrorOutputWriter.WriteLine(string.Format("Unknown REPL command '{0}'", commandName));
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;

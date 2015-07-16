@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         {
             if ((name != null) && name.Contains(","))
             {
+                // TODO: Needs localization...
                 throw new ArgumentException($"{nameof(InteractiveWindowRoleAttribute)} name cannot contain commas. Apply multiple attributes if you want to support multiple roles.", nameof(name));
             }
 
