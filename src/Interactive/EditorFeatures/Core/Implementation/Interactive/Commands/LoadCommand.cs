@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [InteractiveWindowRole(InteractiveWindowRoles.Any)]
     internal sealed class LoadCommand : IInteractiveWindowCommand
     {
         private const string CommandName = "load";
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public string Description
         {
+            // TODO: Needs localization...
             get { return "Executes the specified file within the current interactive session."; }
         }
 

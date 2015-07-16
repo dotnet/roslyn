@@ -4,22 +4,28 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.VisualStudio.InteractiveWindow.Commands
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [InteractiveWindowRole(InteractiveWindowRoles.Any)]
     internal sealed class HelpReplCommand : InteractiveWindowCommand
     {
         internal const string CommandName = "help";
 
         private static readonly string[] s_details = new[]
         {
-            "  command-name    Name of the REPL command to display help on.",
+            // TODO: Needs localization...
+            "  command-name    Name of the command to display help on.",
         };
 
         public override string Description
         {
-            get { return "Display help on specified REPL command, or all available REPL commands and key bindings if none specified."; }
+            // TODO: Needs localization...
+            get { return "Display help on specified command, or all available REPL commands and key bindings if none specified."; }
         }
 
         public override IEnumerable<string> Names
@@ -29,6 +35,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string CommandLine
         {
+            // TODO: Needs localization...
             get { return "[command-name]"; }
         }
 
@@ -38,7 +45,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
             IInteractiveWindowCommand command;
             if (!ParseArguments(window, arguments, out commandName, out command))
             {
-                window.ErrorOutputWriter.WriteLine(string.Format("Unknown REPL command '{0}'", commandName));
+                // TODO: Needs localization...
+                window.ErrorOutputWriter.WriteLine(string.Format("Unknown command '{0}'", commandName));
                 ReportInvalidArguments(window);
                 return ExecutionResult.Failed;
             }

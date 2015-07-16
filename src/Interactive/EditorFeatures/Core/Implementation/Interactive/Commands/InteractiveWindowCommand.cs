@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.VisualStudio.InteractiveWindow.Commands
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     /// <summary>
     /// Represents a command which can be run from a REPL window.

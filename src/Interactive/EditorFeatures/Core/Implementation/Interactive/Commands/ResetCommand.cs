@@ -5,13 +5,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
-namespace Microsoft.VisualStudio.InteractiveWindow.Commands
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     [Export(typeof(IInteractiveWindowCommand))]
+    [InteractiveWindowRole(InteractiveWindowRoles.Any)]
     internal sealed class ResetCommand : InteractiveWindowCommand
     {
         private const string CommandName = "reset";
@@ -26,6 +30,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
+            // TODO: Needs localization...
             get { return "Reset the execution environment to the initial state, keep history."; }
         }
 
@@ -43,6 +48,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             get
             {
+                // TODO: Needs localization...
                 yield return new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.");
             }
         }
@@ -56,7 +62,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 return ExecutionResult.Failed;
             }
 
-            return ((InteractiveWindow)window).ResetAsync(initialize: noConfigStart > -1);
+            return window.Operations.ResetAsync(initialize: noConfigStart > -1);
         }
 
         internal static string BuildCommandLine(bool initialize)
