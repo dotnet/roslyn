@@ -2454,7 +2454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return the interface with an original definition matches
         /// the original definition of the target. If the are no matches,
-        /// or multiple multiple matches, the return value is null.
+        /// or multiple matches, the return value is null.
         /// </summary>
         private static NamedTypeSymbol GetInterfaceInferenceBound(ImmutableArray<NamedTypeSymbol> interfaces, NamedTypeSymbol target)
         {

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType, "only valuetypes may need a ref to this");
+                    Debug.Assert(expression.Type.IsValueType, "only value types may need a ref to this");
                     _builder.EmitOpCode(ILOpCode.Ldarg_0);
                     break;
 
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         /// <summary>
-        /// Special HasHome for fields. Fields have homes when they are writeable.
+        /// Special HasHome for fields. Fields have homes when they are writable.
         /// </summary>
         private bool HasHome(BoundFieldAccess fieldAccess)
         {
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (!HasHome(fieldAccess))
             {
-                // accessing a field that is not writeable (const or readonly)
+                // accessing a field that is not writable (const or readonly)
                 return EmitAddressOfTempClone(fieldAccess);
             }
             else if (fieldAccess.FieldSymbol.IsStatic)

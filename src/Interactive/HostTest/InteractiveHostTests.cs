@@ -618,16 +618,16 @@ WriteLine(5);
             var dir3 = Temp.CreateDirectory();
 
             // [assembly:AssemblyVersion("1.0.0.0")] public class C { public static int Main() { return 1; } }");
-            var file1 = dir1.CreateFile("c.dll").WriteAllBytes(TestResources.SymbolsTests.General.C1);
+            var file1 = dir1.CreateFile("c.dll").WriteAllBytes(TestResources.General.C1);
 
             // [assembly:AssemblyVersion("2.0.0.0")] public class C { public static int Main() { return 2; } }");
-            var file2 = dir2.CreateFile("c.dll").WriteAllBytes(TestResources.SymbolsTests.General.C2);
+            var file2 = dir2.CreateFile("c.dll").WriteAllBytes(TestResources.General.C2);
 
             Assert.True(LoadReference(file1.Path).IsSuccessful);
             Assert.True(LoadReference(file2.Path).IsSuccessful);
 
             var main = CompileLibrary(dir3, "main.exe", "Main", @"public class Program { public static int Main() { return C.Main(); } }",
-                MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C2.AsImmutableOrNull()));
+                MetadataReference.CreateFromImage(TestResources.General.C2.AsImmutableOrNull()));
 
             Assert.True(LoadReference(main.Path).IsSuccessful);
             Assert.True(Execute("Program.Main()"));
@@ -845,7 +845,7 @@ System.Console.WriteLine(""OK"");
         public void MultiModuleAssembly()
         {
             var dir = Temp.CreateDirectory();
-            var dll = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModule);
+            var dll = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll);
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
 

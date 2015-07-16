@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // If the member is from metadata, then even a fallback match is an exact match.
             // We just declined to set the flag at the time in case there was a "better" exact match.
-            // Having said that, there's no reason to update the flag, since no one will consume it.
+            // Having said that, there's no reason to update the flag, since no-one will consume it.
             // if (!memberIsFromSomeCompilation && ((object)currTypeBestMatch != null)) currTypeHasExactMatch = true;
 
             // There's a special case where we have to go back and fix up our best match.

@@ -2874,7 +2874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Is and As operator should have null ConstantValue as they are not constant expressions.
             // However we perform analysis of is/as expressions at bind time to detect if the expression 
             // will always evaluate to a constant to generate warnings (always true/false/null).
-            // We also need this analysis result during rewrite to optimize away redundant isint instructions.
+            // We also need this analysis result during rewrite to optimize away redundant isinst instructions.
             // We store the conversion kind from expression's operand type to target type to enable these
             // optimizations during is/as operator rewrite.            
 

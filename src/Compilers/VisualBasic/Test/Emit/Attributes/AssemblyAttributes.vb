@@ -625,7 +625,7 @@ End Class
         Dim hash_module = TestReferences.SymbolsTests.netModule.hash_module
 
         Dim hash_resources = {New ResourceDescription("hash_resource", "snKey.snk",
-            Function() New MemoryStream(TestResources.SymbolsTests.General.snKey, writable:=False),
+            Function() New MemoryStream(TestResources.General.snKey, writable:=False),
             True)}
 
         Dim compilation As VisualBasicCompilation

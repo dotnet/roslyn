@@ -18,15 +18,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             TestBaseTypeResolutionHelper1(assembly)
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                                    {TestResources.SymbolsTests.General.MDTestLib1,
-                                     TestResources.SymbolsTests.General.MDTestLib2,
+                                    {TestResources.General.MDTestLib1,
+                                     TestResources.General.MDTestLib2,
                                      ProprietaryTestResources.NetFX.v4_0_21006.mscorlib})
 
             TestBaseTypeResolutionHelper2(assemblies)
 
             assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                                    {TestResources.SymbolsTests.General.MDTestLib1,
-                                     TestResources.SymbolsTests.General.MDTestLib2})
+                                    {TestResources.General.MDTestLib1,
+                                     TestResources.General.MDTestLib2})
 
             TestBaseTypeResolutionHelper3(assemblies)
 

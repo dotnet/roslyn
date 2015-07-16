@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals = new SynthesizedLocalOrdinalsDispenser();
         private int _uniqueNameId;
 
-        // label used when when return is emitted in a form of store/goto
+        // label used when return is emitted in a form of store/goto
         private static readonly object s_returnLabel = new object();
 
         private int _asyncCatchHandlerOffset = -1;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Emit sequence points unless
             // - the PDBs are not being generated
             // - debug information for the method is not generated since the method does not contain
-            //   user code that can be stepped thru, or changed during EnC.
+            //   user code that can be stepped through, or changed during EnC.
             // 
             // This setting only affects generating PDB sequence points, it shall not affect generated IL in any way.
             _emitPdbSequencePoints = emittingPdb && method.GenerateDebugInfo;

@@ -28,7 +28,7 @@
       <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
       <Name>CSharpCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.vbproj">
+    <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>

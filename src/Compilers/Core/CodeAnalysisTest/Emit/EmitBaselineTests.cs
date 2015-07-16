@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         public void CreateInitialBaseline()
         {
             var provider = new Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>(_ => default(EditAndContinueMethodDebugInformation));
-            var peModule = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Basic.Members);
+            var peModule = ModuleMetadata.CreateFromImage(TestResources.Basic.Members);
             var peReader = peModule.Module.PEReaderOpt;
 
             var mdBytes = peReader.GetMetadata().GetContent();

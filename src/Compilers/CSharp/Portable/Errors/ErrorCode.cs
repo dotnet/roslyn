@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantConvAnonMethNoParams = 1688,
         ERR_ConditionalOnNonAttributeClass = 1689,
         WRN_CallOnNonAgileField = 1690,
-        // WRN_BadWarningNumber = 1691,    // we no longer generate this warning for an unrecognized warning ID specified as an argument to /nowarn or /warnasserror.
+        // WRN_BadWarningNumber = 1691,    // we no longer generate this warning for an unrecognized warning ID specified as an argument to /nowarn or /warnaserror.
         WRN_InvalidNumber = 1692,
         // WRN_FileNameTooLong = 1694, //unused.
         WRN_IllegalPPChecksum = 1695,

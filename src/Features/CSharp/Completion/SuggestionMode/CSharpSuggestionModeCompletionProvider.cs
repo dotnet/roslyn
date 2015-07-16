@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.SuggestionMode;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -14,7 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {

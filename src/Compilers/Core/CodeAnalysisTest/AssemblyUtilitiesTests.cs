@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
-            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Beta);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var betaDll = directory.CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Gamma);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Delta);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
 
             var results = AssemblyUtilities.FindAssemblySet(alphaDll.Path);
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
             var assembly = Assembly.Load(File.ReadAllBytes(alphaDll.Path));
 
@@ -175,9 +175,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
-            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Gamma);
-            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Delta);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var gammaDll = directory.CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var deltaDll = directory.CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
 
             var results = AssemblyUtilities.IdentifyMissingDependencies(alphaDll.Path, new[] { alphaDll.Path, gammaDll.Path, deltaDll.Path });
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
             var results = AssemblyUtilities.IdentifyMissingDependencies(alphaDll.Path, new[] { alphaDll.Path }).Select(identity => identity.Name);
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var directory = Temp.CreateDirectory();
 
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
             var result = AssemblyUtilities.GetAssemblyIdentity(alphaDll.Path);
 

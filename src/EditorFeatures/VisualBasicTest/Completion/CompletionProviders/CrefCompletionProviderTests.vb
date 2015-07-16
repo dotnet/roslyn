@@ -3,10 +3,8 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -18,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class CrefCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New CrefCompletionProvider()
         End Function
 
@@ -429,7 +427,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim items = provider.GetGroupAsync(document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CancellationToken.None).Result
+                Dim completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
             End Using
         End Sub
 

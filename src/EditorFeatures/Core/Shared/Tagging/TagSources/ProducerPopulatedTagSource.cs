@@ -103,9 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode,
-            Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource = null) :
-                base(subjectBuffer, notificationService, asyncListener)
+            SpanTrackingMode spanTrackingMode)
+                : base(subjectBuffer, notificationService, asyncListener)
         {
             if (spanTrackingMode == SpanTrackingMode.Custom)
             {
@@ -119,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
             _eventSource = eventSource;
-            _bufferToRelatedTagSource = bufferToRelatedTagSource;
 
             _accumulatedTextChanges = null;
 

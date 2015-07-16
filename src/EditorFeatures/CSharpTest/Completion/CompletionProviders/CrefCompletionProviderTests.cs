@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new CrefCompletionProvider();
         }
@@ -430,7 +429,7 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var items = provider.GetGroupAsync(document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CancellationToken.None).Result;
+                var completionList = GetCompletionList(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
             }
         }
 

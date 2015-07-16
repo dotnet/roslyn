@@ -28,9 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode,
-            Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource)
-            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource)
+            SpanTrackingMode spanTrackingMode)
+                : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
         {
             _lastSemanticVersion = VersionStamp.Default;
         }

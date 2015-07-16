@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   and outermost scope is -1
                     //   Such lambda will be placed in a closure frame that corresponds to the method//s outer block
                     //   and this frame will also lift original Me as a field when created by its parent.
-                    //   Note that is is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
+                    //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermostScope != null)
                     {
                         lambdaScopes.Add(kvp.Key, innermostScope);

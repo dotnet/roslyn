@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
     {
         private static byte[] CompressUnsignedInteger(int value)
         {
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
             writer.WriteCompressedInteger((uint)value);
             return writer.ToArray();
         }
 
         private static byte[] CompressSignedInteger(int value)
         {
-            var writer = new BlobWriter();
+            var writer = new BlobBuilder();
             writer.WriteCompressedSignedInteger(value);
             return writer.ToArray();
         }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void WritePrimitive()
         {
-            var writer = new BlobWriter(4);
+            var writer = new BlobBuilder(4);
 
             writer.WriteUInt32(0x11223344);
             writer.WriteUInt16(0x5566);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void WriteBytes1()
         {
-            var writer = new BlobWriter(4);
+            var writer = new BlobBuilder(4);
 
             writer.WriteBytes(new byte[] { 1, 2, 3, 4 });
             writer.WriteBytes(new byte[] { });
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void WriteBytes2()
         {
-            var writer = new BlobWriter(4);
+            var writer = new BlobBuilder(4);
 
             writer.WriteBytes(0xff, 0);
             writer.WriteBytes(1, 4);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void WriteAlignPad()
         {
-            var writer = new BlobWriter(4);
+            var writer = new BlobBuilder(4);
 
             writer.WriteByte(0x01);
             writer.PadTo(2);
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
         [Fact]
         public void WriteUTF8()
         {
-            var writer = new BlobWriter(4);
+            var writer = new BlobBuilder(4);
             writer.WriteUTF8("a");
             writer.WriteUTF8("");
             writer.WriteUTF8("bc");

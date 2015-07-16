@@ -22,14 +22,14 @@ namespace Roslyn.Test.Utilities
         private static bool s_keyInstalled;
         internal const string TestContainerName = "RoslynTestContainer";
 
-        internal static readonly ImmutableArray<byte> PublicKey = new DesktopStrongNameProvider().GetPublicKey(TestResources.SymbolsTests.General.snKey);
+        internal static readonly ImmutableArray<byte> PublicKey = new DesktopStrongNameProvider().GetPublicKey(TestResources.General.snKey);
 
         // Modifies machine wide state.
         internal unsafe static void InstallKey()
         {
             if (!s_keyInstalled)
             {
-                InstallKey(TestResources.SymbolsTests.General.snKey, TestContainerName);
+                InstallKey(TestResources.General.snKey, TestContainerName);
                 s_keyInstalled = true;
             }
         }
@@ -74,19 +74,19 @@ namespace Roslyn.Test.Utilities
             {
                 if (PathEquals(fullPath, KeyPairFile))
                 {
-                    return TestResources.SymbolsTests.General.snKey;
+                    return TestResources.General.snKey;
                 }
                 else if (PathEquals(fullPath, PublicKeyFile))
                 {
-                    return TestResources.SymbolsTests.General.snPublicKey;
+                    return TestResources.General.snPublicKey;
                 }
                 else if (PathEquals(fullPath, KeyPairFile2))
                 {
-                    return TestResources.SymbolsTests.General.snKey2;
+                    return TestResources.General.snKey2;
                 }
                 else if (PathEquals(fullPath, PublicKeyFile2))
                 {
-                    return TestResources.SymbolsTests.General.snPublicKey2;
+                    return TestResources.General.snPublicKey2;
                 }
 
                 throw new FileNotFoundException("File not found", fullPath);
