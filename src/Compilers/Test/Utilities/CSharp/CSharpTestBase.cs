@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var peMethod = (PEMethodSymbol)moduleDecoder.GetSymbolForILToken(method.Handle);
 
             StringBuilder sb = new StringBuilder();
-            var ilBytes = bodyBlock.GetILBytes();
+            var ilBytes = bodyBlock.GetILContent();
 
             var ehHandlerRegions = Visualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
 

@@ -124,7 +124,7 @@ namespace Roslyn.Test.Utilities
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
             var visualizer = new ILBuilderVisualizer(builder.module);
 
-            if (ilStream != null)
+            if (!ilStream.IsDefault)
             {
                 visualizer.DumpMethod(sb, builder.MaxStack, ilStream, locals, GetHandlerSpans(builder.RealizedExceptionHandlers), markers);
             }
@@ -190,7 +190,7 @@ namespace Roslyn.Test.Utilities
             var instrCnt = block.RegularInstructionsLength;
             if (instrCnt != 0)
             {
-                byte[] il = block.RegularInstructions.ToArray();
+                var il = block.RegularInstructions.ToImmutableArray();
                 new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, instrCnt, sb, SpecializedCollections.EmptyArray<ILVisualizer.HandlerSpan>(), block.Start);
             }
 
@@ -219,7 +219,7 @@ namespace Roslyn.Test.Utilities
 
         private static void DumpSwitchBlockIL(ILBuilder.SwitchBlock block, StringBuilder sb)
         {
-            byte[] il = block.RegularInstructions.ToArray();
+            var il = block.RegularInstructions.ToImmutableArray();
             new ILBuilderVisualizer(block.builder.module).DumpILBlock(il, il.Length, sb, SpecializedCollections.EmptyArray<HandlerSpan>(), block.Start);
 
             // switch (N, t1, t2... tN)
