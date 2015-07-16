@@ -108,8 +108,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         private static ImmutableArray<IInteractiveWindowCommand> FilterCommands(IInteractiveWindowCommand[] commands, string supportedRole)
         {
             return commands.Where(
-                c => c.GetType().GetCustomAttributes(typeof(InteractiveWindowRoleAttribute), inherit: true).Where(
-                    a => ((InteractiveWindowRoleAttribute)a).Name == supportedRole).Any()).ToImmutableArray();
+                c => c.GetType().GetCustomAttributes(typeof(InteractiveWindowRoleAttribute), inherit: true).Any(
+                    a => ((InteractiveWindowRoleAttribute)a).Name == supportedRole)).ToImmutableArray();
         }
     }
 }
