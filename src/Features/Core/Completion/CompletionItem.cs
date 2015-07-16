@@ -90,6 +90,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool ShouldFormatOnCommit { get; internal set; }
 
+        public CompletionItemRules Rules { get; }
+
         public CompletionItem(
             CompletionListProvider completionProvider,
             string displayText,
@@ -101,10 +103,11 @@ namespace Microsoft.CodeAnalysis.Completion
             bool preselect = false,
             bool isBuilder = false,
             bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false)
+            bool shouldFormatOnCommit = false,
+            CompletionItemRules rules = null)
             : this(completionProvider, displayText, filterSpan,
                    description.IsDefault ? (Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>>)null : c => Task.FromResult(description),
-                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
+                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }
 
@@ -119,8 +122,10 @@ namespace Microsoft.CodeAnalysis.Completion
             bool preselect = false,
             bool isBuilder = false,
             bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false) :
-                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
+            bool shouldFormatOnCommit = false,
+            CompletionItemRules rules = null) :
+                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText, 
+                     filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }
 
@@ -131,12 +136,13 @@ namespace Microsoft.CodeAnalysis.Completion
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
             Glyph? glyph,
             bool hasAsyncDescription,
-            string sortText = null,
-            string filterText = null,
-            bool preselect = false,
-            bool isBuilder = false,
-            bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false)
+            string sortText,
+            string filterText,
+            bool preselect,
+            bool isBuilder,
+            bool showsWarningIcon,
+            bool shouldFormatOnCommit,
+            CompletionItemRules rules)
         {
             this.CompletionProvider = completionProvider;
             this.DisplayText = displayText;
@@ -149,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.ShowsWarningIcon = showsWarningIcon;
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
             this.HasAsyncDescription = hasAsyncDescription;
+            this.Rules = rules ?? CompletionItemRules.Default;
 
             if (descriptionFactory != null)
             {

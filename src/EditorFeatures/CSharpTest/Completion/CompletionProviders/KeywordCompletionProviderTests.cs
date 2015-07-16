@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("int", "int", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("int", "int", sendThroughEnterEnabled: true, expected: true);
+            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -151,9 +152,29 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public virtual bool ItemsMatch(CompletionItem item1, CompletionItem item2)
         {
-            return
-                item1.FilterSpan == item2.FilterSpan &&
-                item1.SortText == item2.SortText;
+            return item1.FilterSpan == item2.FilterSpan
+                && item1.SortText == item2.SortText;
+        }
+
+        protected virtual bool SendEnterThroughToEditorCore(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true if the enter key that was typed should also be sent through to the editor
+        /// after committing the provided completion item.
+        /// </summary>
+        public bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        {
+            var result = completionItem.Rules.SendEnterThroughToEditor(completionItem, textTypedSoFar, options);
+
+            if (result.UseDefault)
+            {
+                return SendEnterThroughToEditorCore(completionItem, textTypedSoFar, options);
+            }
+
+            return (bool)result;
         }
     }
 }

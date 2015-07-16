@@ -29,8 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("T", "T", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("T", "T", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+class C
+{
+    $$
+}";
+
+            VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "T", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

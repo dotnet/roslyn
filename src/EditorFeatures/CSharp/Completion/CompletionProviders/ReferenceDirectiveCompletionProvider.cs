@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
         }
 
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         private ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
         {
             return PathCompletionUtilities.GetCurrentWorkingDirectoryDiscoveryService(textSnapshot);
@@ -77,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             var documentPath = document.Project.IsSubmission ? null : document.FilePath;
             var textChangeSpan = this.GetTextChangeSpan(stringLiteral, position);
 
-            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan);
+            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: ReferenceDirectiveCompletionItemRules.Instance);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot == null)
@@ -106,7 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                 Glyph.Assembly,
                 searchPaths: metadataFileResolver.SearchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
-                exclude: path => path.Contains(","));
+                exclude: path => path.Contains(","),
+                itemRules: ReferenceDirectiveCompletionItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(stringLiteral, position);
             return gacHelper.GetItems(pathThroughLastSlash, documentPath).Concat(

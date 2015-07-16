@@ -25,9 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SendEnterThroughToEditorTest()
-            TestCommonSendEnterThroughToEditor()
+            VerifySendEnterThroughToEditor("$$", "Class", expected:=True)
         End Sub
-
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InEmptyFile()

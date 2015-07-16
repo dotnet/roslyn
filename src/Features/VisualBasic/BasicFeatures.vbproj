@@ -178,6 +178,7 @@
     <Compile Include="CodeRefactorings\RemoveStatementCodeAction.vb" />
     <Compile Include="Completion\CompletionProviders\CompletionListTagCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.vb" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\EnumCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\HandlesClauseCompletionProvider.vb" />

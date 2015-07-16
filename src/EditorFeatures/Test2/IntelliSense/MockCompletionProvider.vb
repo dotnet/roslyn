@@ -47,10 +47,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return If(_isTriggerCharacter Is Nothing, Nothing, _isTriggerCharacter(text, characterPosition))
         End Function
 
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
-
         Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
             Return New TextChange(selectedItem.FilterSpan, selectedItem.DisplayText)
         End Function

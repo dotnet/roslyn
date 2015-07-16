@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sessionOpt == null)
             {
                 // The user may be trying to invoke snippets
-                var completionService = CreateCompletionService();
+                var completionService = GetCompletionService();
                 if (completionService != null &&
                     completionService.SupportSnippetCompletionListOnTab &&
                     TryInvokeSnippetCompletion(args, completionService))

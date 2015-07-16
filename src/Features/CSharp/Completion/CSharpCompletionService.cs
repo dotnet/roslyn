@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             return false;
         }
 
+        public override CompletionRules GetDefaultCompletionRules()
+        {
+            return new CSharpCompletionRules(this);
+        }
+
         protected override string GetLanguageName()
         {
             return LanguageNames.CSharp;

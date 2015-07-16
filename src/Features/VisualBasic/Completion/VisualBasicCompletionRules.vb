@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
@@ -133,6 +134,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 Return (item1.Glyph IsNot Nothing AndAlso item2.Glyph IsNot Nothing) AndAlso
                        (item1.Glyph.Value = item2.Glyph.Value)
             End Function
+
+            Protected Overrides Function SendEnterThroughToEditorCore(completionItem As CompletionItem, textTypedSoFar As String, options As OptionSet) As Boolean
+                ' In VB we always send enter through to the editor.
+                Return True
+            End Function
+
         End Class
     End Class
 End Namespace

@@ -38,10 +38,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
-
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
@@ -187,7 +183,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                       End If
 
                                       Return New CompletionItem(Me, displayString, span, glyph:=s.GetGlyph(),
-                                                                descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s))
+                                                                descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s),
+                                                                rules:=CrefCompletionItemRules.Instance)
                                   End Function)
         End Function
 

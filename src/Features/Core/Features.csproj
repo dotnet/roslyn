@@ -155,6 +155,8 @@
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
+    <Compile Include="Completion\CompletionItemRules.cs" />
+    <Compile Include="Completion\CompletionItemRules.Result.cs" />
     <Compile Include="Completion\CompletionList.cs" />
     <Compile Include="Completion\CompletionListContext.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
@@ -176,9 +178,11 @@
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
     <Compile Include="Completion\Providers\IOUtilities.cs" />
     <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\ObjectInitializerCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\TextCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
+    <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionItemRules.cs" />
     <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />

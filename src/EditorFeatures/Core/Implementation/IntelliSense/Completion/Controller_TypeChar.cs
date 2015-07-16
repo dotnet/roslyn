@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var completionService = this.CreateCompletionService();
+            var completionService = this.GetCompletionService();
             if (completionService == null)
             {
                 return;

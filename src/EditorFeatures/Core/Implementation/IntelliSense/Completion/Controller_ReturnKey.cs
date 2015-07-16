@@ -90,7 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
-                sendThrough = selectedItem.CompletionProvider.SendEnterThroughToEditor(selectedItem, textTypedSoFar);
+
+                var completionRules = GetCompletionRules();
+                var options = GetOptions();
+                if (completionRules != null && options != null)
+                {
+                    sendThrough = completionRules.SendEnterThroughToEditor(selectedItem, textTypedSoFar, options);
+                }
             }
 
             var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);

@@ -33,10 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar)
-        End Function
-
         Private Shared Function GetKeywordRecommenders() As IEnumerable(Of IKeywordRecommender(Of VisualBasicSyntaxContext))
             Return {
                 New KeywordRecommenders.ArrayStatements.EraseKeywordRecommender(),

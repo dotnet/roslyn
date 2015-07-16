@@ -37,11 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
             return text[characterPosition] == '<';
         }
 
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return false;
-        }
-
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             if (triggerInfo.IsDebugger)
@@ -196,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, "typeparam"));
 
-            items.AddRange(typeParameters.Select(t => new XmlItem(this,
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this,
                 filterSpan,
                 FormatParameter("typeparam", t))));
             return items;
@@ -228,8 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, "typeparam"));
 
-            items.AddRange(typeParameters.Select(t => new XmlItem(this, filterSpan, "typeparam", "name", t)));
-            items.Add(new XmlItem(this, filterSpan, "value"));
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, "typeparam", "name", t)));
+            items.Add(new XmlDocCommentCompletionItem(this, filterSpan, "value"));
             return items;
         }
 
@@ -255,11 +250,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 // We're writing the name of a paramref or typeparamref
                 if (parentElementName == "paramref")
                 {
-                    items.AddRange(parameters.Select(p => new XmlItem(this, filterSpan, p)));
+                    items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, p)));
                 }
                 else if (parentElementName == "typeparamref")
                 {
-                    items.AddRange(typeParameters.Select(t => new XmlItem(this, filterSpan, t)));
+                    items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, t)));
                 }
 
                 return items;
@@ -285,12 +280,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 }
             }
 
-            items.AddRange(parameters.Select(p => new XmlItem(this, filterSpan, FormatParameter("param", p))));
-            items.AddRange(typeParameters.Select(t => new XmlItem(this, filterSpan, FormatParameter("typeparam", t))));
+            items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("param", p))));
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("typeparam", t))));
 
             if (returns && !symbol.ReturnsVoid)
             {
-                items.Add(new XmlItem(this, filterSpan, "returns"));
+                items.Add(new XmlDocCommentCompletionItem(this, filterSpan, "returns"));
             }
 
             return items;

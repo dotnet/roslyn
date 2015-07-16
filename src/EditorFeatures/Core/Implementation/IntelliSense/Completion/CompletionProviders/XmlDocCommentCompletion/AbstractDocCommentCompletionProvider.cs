@@ -47,17 +47,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             if (_tagMap.ContainsKey(n))
             {
                 var value = _tagMap[n];
-                return new XmlItem(this, span, n, value[0], value[1]);
+                return new XmlDocCommentCompletionItem(this, span, n, value[0], value[1]);
             }
 
-            return new XmlItem(this, span, n);
+            return new XmlDocCommentCompletionItem(this, span, n);
         }
 
         protected IEnumerable<CompletionItem> GetAttributeItem(string n, TextSpan span)
         {
-            var items = _attributeMap.Where(x => x[0] == n).Select(x => new XmlItem(this, span, x[1], x[2], x[3]));
+            var items = _attributeMap.Where(x => x[0] == n).Select(x => new XmlDocCommentCompletionItem(this, span, x[1], x[2], x[3]));
 
-            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(new XmlItem(this, span, n));
+            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(new XmlDocCommentCompletionItem(this, span, n));
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems(TextSpan filterSpan)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 
         public void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar)
         {
-            var item = (XmlItem)completionItem;
+            var item = (XmlDocCommentCompletionItem)completionItem;
             item.Commit(textView, subjectBuffer, triggerSnapshot, commitChar);
         }
 

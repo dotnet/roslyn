@@ -43,12 +43,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public abstract bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar);
 
         /// <summary>
-        /// Returns true if the enter key that was typed should also be sent through to the editor
-        /// after committing the provided completion item.
-        /// </summary>
-        public abstract bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar);
-
-        /// <summary>
         /// The text change that will be made when this item is committed.  The text change includes
         /// both the span of text to replace (respective to the original document text when this
         /// completion item was created) and the text to replace it with.  The span will be adjusted

@@ -1398,10 +1398,6 @@ class C
                 Return False
             End Function
 
-            Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-                Throw New NotImplementedException()
-            End Function
-
             Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
                 Throw New NotImplementedException()
             End Function

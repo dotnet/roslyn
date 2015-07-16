@@ -59,11 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
         }
 
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
         {
             // When we commit "\\" when the user types \ we have to adjust for the fact that the
@@ -135,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 Glyph.OpenFolder,
                 Glyph.CSharpFile,
                 searchPaths: searchPaths,
-                allowableExtensions: new[] { ".csx" });
+                allowableExtensions: new[] { ".csx" },
+                itemRules: LoadCommandCompletionItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);
 

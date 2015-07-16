@@ -1,25 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports System.Windows.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text
-Imports Moq
-Imports Roslyn.Test.EditorUtilities
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
@@ -115,8 +100,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return importsStatement & vbCrLf & vbCrLf & text
         End Function
 
-        Protected Sub TestCommonSendEnterThroughToEditor()
-            Assert.True(CompletionProvider.SendEnterThroughToEditor(Nothing, Nothing), "Expected hardcoded 'true' from SendEnterThroughToEditor")
+        Protected Sub VerifySendEnterThroughToEditor(initialMarkup As String, textTypedSoFar As String, expected As Boolean)
+            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup)
+                Dim hostDocument = workspace.DocumentWithCursor
+                Dim documentId = workspace.GetDocumentId(hostDocument)
+                Dim document = workspace.CurrentSolution.GetDocument(documentId)
+                Dim position = hostDocument.CursorPosition.Value
+
+                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
+
+                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
+                Dim completionRules = completionService.GetDefaultCompletionRules()
+
+                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
+            End Using
         End Sub
 
         Protected Sub TestCommonIsCommitCharacter()

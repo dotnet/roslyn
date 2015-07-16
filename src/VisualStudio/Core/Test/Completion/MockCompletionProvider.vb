@@ -31,10 +31,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Return True
         End Function
 
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return False
-        End Function
-
         Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
             Return New TextChange(selectedItem.FilterSpan, "InsertionText")
         End Function

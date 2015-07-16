@@ -124,18 +124,26 @@ usingDirectives +
 text;
         }
 
-        protected void VerifySendEnterThroughToEnter(string displayText, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
+        protected void VerifySendEnterThroughToEnter(string initialMarkup, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(""))
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup))
             {
-                var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var item = new CSharpCompletionItem(workspace, CompletionProvider, displayText, new TextSpan(0, 0), null, null);
+                var hostDocument = workspace.DocumentWithCursor;
+                var documentId = workspace.GetDocumentId(hostDocument);
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var position = hostDocument.CursorPosition.Value;
+
+                var completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var optionService = workspace.Services.GetService<IOptionService>();
                 var options = optionService.GetOptions().WithChangedOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
                 optionService.SetOptions(options);
 
-                Assert.Equal(expected, CompletionProvider.SendEnterThroughToEditor(item, textTypedSoFar));
+                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
+                var completionRules = completionService.GetDefaultCompletionRules();
+
+                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));
             }
         }
 

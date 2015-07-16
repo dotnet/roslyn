@@ -18,8 +18,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+using System;
+class class1
+{
+    [Test($$
+    public void Foo()
+    {
+    }
+}
+ 
+public class TestAttribute : Attribute
+{
+    public ConsoleColor Color { get; set; }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "Color =", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "Color =", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 // User hit ctrl-space.  If there was no completion up then we want to trigger
                 // completion. 
-                var completionService = this.CreateCompletionService();
+                var completionService = this.GetCompletionService();
                 if (completionService == null)
                 {
                     return;

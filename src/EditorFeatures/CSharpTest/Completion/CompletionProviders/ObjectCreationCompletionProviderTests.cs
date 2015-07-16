@@ -133,8 +133,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+using D = System.Globalization.DigitShapes; 
+class Program
+{
+    static void Main(string[] args)
+    {
+        D d = new $$
+    }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "D", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "D", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WorkItem(828196)]

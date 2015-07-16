@@ -45,11 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
         }
 
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -206,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new CrefCompletionItem(
-                workspace,
                 completionProvider: this,
                 displayText: insertionText,
                 insertionText: insertionText,

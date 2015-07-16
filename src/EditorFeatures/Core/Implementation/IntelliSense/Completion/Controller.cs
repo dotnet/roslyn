@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private ICompletionService CreateCompletionService()
+        private ICompletionService GetCompletionService()
         {
             AssertIsForeground();
 
