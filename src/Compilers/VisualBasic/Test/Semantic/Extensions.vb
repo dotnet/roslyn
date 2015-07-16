@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-' This is deliberately declared in the global namespace so that it will always be discoverable (regarless of Imports).
+' This is deliberately declared in the global namespace so that it will always be discoverable (regardless of Imports).
 Friend Module Extensions
 
     ''' <summary>

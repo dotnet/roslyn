@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             {
                 return _documentToComplexifiedSpansMap[documentId].First(c => c.OriginalSpan.Contains(originalSpan)).NewSpan;
             }
-            
+
             // The RenamedSpansTracker doesn't currently track unresolved conflicts for
             // unmodified locations.  If the document wasn't modified, we can just use the 
             // original span as the new span.

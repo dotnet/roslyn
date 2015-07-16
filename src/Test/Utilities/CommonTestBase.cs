@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Reflection.PortableExecutable;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             ParseOptions parseOptions);
 
         protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
-                
+
         internal CompilationVerifier CompileAndVerify(
             string source,
             IEnumerable<MetadataReference> additionalRefs = null,
@@ -497,24 +498,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #endregion
 
         #region Other Helpers
-        internal static ModulePropertiesForSerialization GetDefaultModulePropertiesForSerialization()
+
+        internal static Cci.ModulePropertiesForSerialization GetDefaultModulePropertiesForSerialization()
         {
-            return new ModulePropertiesForSerialization(
+            return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: default(Guid),
-                fileAlignment: ModulePropertiesForSerialization.DefaultFileAlignment32Bit,
+                fileAlignment: Cci.ModulePropertiesForSerialization.DefaultFileAlignment32Bit,
+                sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: "v4.0.30319",
-                platform: Platform.AnyCpu,
+                machine: 0,
+                prefer32Bit: false,
                 trackDebugData: false,
-                baseAddress: ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit,
-                sizeOfHeapReserve: ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit,
-                sizeOfHeapCommit: ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit,
-                sizeOfStackReserve: ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit,
-                sizeOfStackCommit: ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit,
+                baseAddress: Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit,
+                sizeOfHeapReserve: Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit,
+                sizeOfHeapCommit: Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit,
+                sizeOfStackReserve: Cci.ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit,
+                sizeOfStackCommit: Cci.ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit,
                 enableHighEntropyVA: true,
                 strongNameSigned: false,
                 configureToExecuteInAppContainer: false,
-                subsystemVersion: default(SubsystemVersion));
+                subsystem: Subsystem.WindowsCui,
+                imageCharacteristics: Characteristics.Dll,
+                majorSubsystemVersion: 0,
+                minorSubsystemVersion: 0,
+                linkerMajorVersion: 0,
+                linkerMinorVersion: 0);
         }
+
         #endregion
     }
 }

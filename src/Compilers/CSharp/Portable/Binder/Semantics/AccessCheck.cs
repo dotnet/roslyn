@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsNestedWithinOriginalContainingType(withinType, originalContainingType);
         }
 
-        // Is the type "withinType" nested withing the original type "originalContainingType".
+        // Is the type "withinType" nested within the original type "originalContainingType".
         private static bool IsNestedWithinOriginalContainingType(
             NamedTypeSymbol withinType,
             NamedTypeSymbol originalContainingType)

@@ -1910,7 +1910,7 @@ public class foo
         }
 
         [Fact]
-        public void ExoressionsInDefaultCheckedContext()
+        public void ExpressionsInDefaultCheckedContext()
         {
             // Expressions which are in unchecked statement are in explicitly unchecked context.
             // Expressions which are out of unchecked statement are in default checked context.

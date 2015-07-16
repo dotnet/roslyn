@@ -32,11 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         public CommandLineParser GetCommandLineParser()
         {
-#if SCRIPTING
             return CSharpCommandLineParser.Interactive;
-#else
-            return CSharpCommandLineParser.Default;
-#endif
         }
 
         public DiagnosticFormatter GetDiagnosticFormatter()

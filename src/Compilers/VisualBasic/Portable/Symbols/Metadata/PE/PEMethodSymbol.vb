@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' e = obsolete attribute populated. 1 bit
             ' f = custom attributes populated. 1 bit
             ' g = use site diagnostic populated. 1 bit
-            ' h = conditional attributes populted. 1 bit
+            ' h = conditional attributes populated. 1 bit
 
             Private _bits As Integer
 

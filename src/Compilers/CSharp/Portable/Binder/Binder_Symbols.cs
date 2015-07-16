@@ -1030,7 +1030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : null;
         }
 
-        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol) 
+        internal static bool TryGetSpecialTypeMember<TSymbol>(CSharpCompilation compilation, SpecialMember specialMember, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, out TSymbol symbol)
             where TSymbol : Symbol
         {
             symbol = (TSymbol)compilation.GetSpecialTypeMember(specialMember);

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -315,42 +316,41 @@ End Namespace
 "
 
             Dim comp = CreateCompilationWithMscorlib({source}, {piaRef}, TestOptions.DebugDll)
-            AssertNoErrors(comp)
+            Dim v = CompileAndVerify(comp)
 
-            Dim expected =
-                <symbols>
-                    <methods>
-                        <method containingType="N1.C" name="M">
-                            <customDebugInfo>
-                                <encLocalSlotMap>
-                                    <slot kind="0" offset="4"/>
-                                </encLocalSlotMap>
-                            </customDebugInfo>
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23" document="0"/>
-                                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="0"/>
-                                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="0"/>
-                            </sequencePoints>
-                            <scope startOffset="0x0" endOffset="0x4">
-                                <defunct name="&amp;PIA"/>
-                                <currentnamespace name="N1"/>
-                                <local name="o" il_index="0" il_start="0x0" il_end="0x4" attributes="0"/>
-                            </scope>
-                        </method>
-                        <method containingType="N2.D" name="M">
-                            <sequencePoints>
-                                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="0"/>
-                                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="0"/>
-                            </sequencePoints>
-                            <scope startOffset="0x0" endOffset="0x2">
-                                <defunct name="&amp;PIA"/>
-                                <currentnamespace name="N2"/>
-                            </scope>
-                        </method>
-                    </methods>
-                </symbols>
-            Dim actual = GetPdbXml(comp)
-            AssertXml.Equal(expected, actual)
+            v.VerifyPdb(
+<symbols>
+    <methods>
+        <method containingType="N1.C" name="M">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="4"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23" document="0"/>
+                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="0"/>
+                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="0"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x4">
+                <defunct name="&amp;PIA"/>
+                <currentnamespace name="N1"/>
+                <local name="o" il_index="0" il_start="0x0" il_end="0x4" attributes="0"/>
+            </scope>
+        </method>
+        <method containingType="N2.D" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="0"/>
+                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="0"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x2">
+                <defunct name="&amp;PIA"/>
+                <currentnamespace name="N2"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>
+            )
         End Sub
 
         <Fact>
@@ -391,5 +391,30 @@ End Class
                 End Sub)
         End Sub
 
+        <Fact>
+        Public Sub BadGlobalImports()
+            Dim source1 = "
+Namespace N
+    Friend Class A
+    End Class
+End Namespace
+"
+            Dim source2 = "
+Class C
+    Sub Main() 
+        Console.WriteLine()
+    End Sub
+End Class
+"
+            Dim comp1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.ReleaseDll)
+            Dim ref1 = comp1.EmitToImageReference()
+
+            Dim comp2 = CreateCompilationWithMscorlib(
+                {source2}, {ref1},
+                options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("X=N.A"), GlobalImport.Parse("System")))
+
+            comp2.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_InaccessibleSymbol2))
+        End Sub
     End Class
 End Namespace

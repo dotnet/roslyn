@@ -162,6 +162,14 @@ using Microsoft.VisualStudio.Shell;
     PublicKeyToken = Constants.PublicKeyToken,
     GenerateCodeBase = false)]
 
+[assembly: ProvideBindingRedirection(
+    AssemblyName = "System.Reflection.Metadata",
+    OldVersionLowerBound = "1.0.0.0",
+    OldVersionUpperBound = "1.0.99.0",
+    NewVersion = "1.1.0.0",
+    PublicKeyToken = "b03f5f7f11d50a3a",
+    GenerateCodeBase = false)]
+
 internal class Constants
 {
     public const string OldVersionLowerBound = "0.7.0.0";

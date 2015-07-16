@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Friend Overridable Sub CollectConstituentTokensAndDiagnostics(tokenListBuilder As SyntaxListBuilder(Of SyntaxToken),
                                                                       nonTokenDiagnostics As IList(Of DiagnosticInfo))
-            ' This implemention is overridden for tokens; this is the implementation for non-token nodes.
+            ' This implementation is overridden for tokens; this is the implementation for non-token nodes.
 
             ' Add diagnostics.
             Dim diagnostics As DiagnosticInfo() = Me.GetDiagnostics()

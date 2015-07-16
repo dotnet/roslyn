@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -913,6 +914,47 @@ class Program
             // whenever an unrecognized warning code was supplied in a #pragma directive.
             // We no longer generate a warning in such cases.
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleLabesWithBadConstantValues()
+        {
+            var source = @"
+class Program
+{
+    enum E 
+    { 
+        V1 = 1000, 
+        V2 = 1001
+    }
+
+    public static void Main() { } 
+
+    public static void Test(E x)
+    {
+        switch (x) 
+        {
+            case E.V1:
+            case E.V2:
+            default:
+                break;
+        }
+    }
+}";
+
+            var syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
+
+            // Intentionally not passing any references here to ensure System.Int32 is 
+            // unresolvable and hence the constant values in the enum "E" will all be 
+            // created as ConstantValue.Bad 
+            var comp = CreateCompilation(new[] { syntaxTree }, references: null);
+            var semanticModel = comp.GetSemanticModel(syntaxTree);
+            var node = syntaxTree.GetRoot().DescendantNodes().First(x => x.IsKind(SyntaxKind.SimpleMemberAccessExpression));
+
+            // Ensure the model can still bind without throwing when multiple labels values 
+            // have duplicate constants (ConstantValue.Bad).  
+            var symbolInfo = semanticModel.GetSymbolInfo(node);
+            Assert.NotNull(symbolInfo);
         }
 
         #endregion

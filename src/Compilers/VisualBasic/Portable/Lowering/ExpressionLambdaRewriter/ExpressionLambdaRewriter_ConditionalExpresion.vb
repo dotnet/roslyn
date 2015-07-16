@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            ' For user defined copnversion we need to keep the proper method call 
+            ' For user defined conversion we need to keep the proper method call 
             Return ReplaceArgWithParameterInUserDefinedConversion(conversion, toType, parameter, isChecked)
         End Function
 

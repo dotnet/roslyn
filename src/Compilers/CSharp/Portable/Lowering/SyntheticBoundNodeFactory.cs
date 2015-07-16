@@ -106,13 +106,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _binder.MakeInvocationExpression(
-                node, 
-                receiver, 
-                methodName, 
-                args, 
-                diagnostics, 
-                typeArgs: typeArgs, 
-                allowFieldsAndProperties: false, 
+                node,
+                receiver,
+                methodName,
+                args,
+                diagnostics,
+                typeArgs: typeArgs,
+                allowFieldsAndProperties: false,
                 allowUnexpandedForm: allowUnexpandedForm);
         }
 

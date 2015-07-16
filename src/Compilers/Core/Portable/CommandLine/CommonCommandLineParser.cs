@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis
             get { return _messageProvider; }
         }
 
-        internal bool IsInteractive
+        public bool IsInteractive
         {
             get { return _isInteractive; }
         }
 
-        internal abstract string RegularFileExtension { get; }
-        internal abstract string ScriptFileExtension { get; }
+        protected abstract string RegularFileExtension { get; }
+        protected abstract string ScriptFileExtension { get; }
 
         // internal for testing
         internal virtual TextReader CreateTextFileReader(string fullPath)
@@ -956,31 +956,6 @@ namespace Microsoft.CodeAnalysis
                     enumerator.Dispose();
                 }
             }
-        }
-
-        internal static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
-        {
-            var set = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var commaFeatures in values)
-            {
-                foreach (var feature in commaFeatures.Split(','))
-                {
-                    int equals = feature.IndexOf('=');
-                    if (equals > 0)
-                    {
-                        string name = feature.Substring(0, equals);
-                        string value = feature.Substring(equals + 1);
-                        set[name] = value;
-                    }
-                    else
-                    {
-                        set[feature] = "true";
-                    }
-                }
-            }
-
-            return set.ToImmutable();
         }
 
         internal abstract void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> errors);

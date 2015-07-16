@@ -38,7 +38,7 @@ class C
     vo[||]id foo() { }
 }", "void");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestReturn()
         {

@@ -1091,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 MemberAnalysisResult.Worse();
                         results[i] = new MemberResolutionResult<TMember>(results[i].Member, results[i].LeastOverriddenMember, analysisResult);
                     }
-                    else 
+                    else
                     {
                         Debug.Assert(worse[i] != notBetterThanEverything || i == notBestIdx);
                     }
@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC VIOLATION: When checking for matching parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN},
-            //                 native compiler includes types of optinal parameters. We partially duplicate this behavior
+            //                 native compiler includes types of optional parameters. We partially duplicate this behavior
             //                 here by comparing the number of parameters used taking params expansion and 
             //                 optional parameters into account.
             if (!allSame || m1ParametersUsedIncludingExpansionAndOptional != m2ParametersUsedIncludingExpansionAndOptional)
@@ -2522,7 +2522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   is elided, along with the corresponding arguments(s).
 
                     // We don't need to check constraints of types of the non-elided parameters since they 
-                    // have no effect on aplicability of this candidate.
+                    // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
                     effectiveParameters = constructedEffectiveParameters;
                 }

@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -72,6 +71,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ArrayExtensions.cs">
       <Link>InternalUtilities\ArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerOptionParseUtilities.cs">
+      <Link>InternalUtilities\CompilerOptionParseUtilities.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentSet.cs">
       <Link>InternalUtilities\ConcurrentSet.cs</Link>
@@ -407,7 +409,6 @@
     <Compile Include="Log\Logger.LogBlock.cs" />
     <Compile Include="Log\LogMessage.cs" />
     <Compile Include="Log\WorkspaceErrorLogger.cs" />
-    <Compile Include="HostBuild.cs" />
     <Compile Include="Rename\TokenRenameInfo.cs" />
     <Compile Include="Serialization\AssemblySerializationInfoService.cs" />
     <Compile Include="Serialization\IAssemblySerializationInfoService.cs" />
@@ -581,7 +582,7 @@
     <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
     <Compile Include="Workspace\Host\Caching\IWorkspaceCacheService.cs" />
-    <Compile Include="Workspace\Host\CommandLineArgumentsFactory\ICommandLineArgumentsFactoryService.cs" />
+    <Compile Include="Workspace\Host\CommandLine\ICommandLineParserService.cs" />
     <Compile Include="Workspace\Host\HostContext\HostContextService.cs" />
     <Compile Include="Workspace\Host\HostContext\IHostContextService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />
@@ -962,8 +963,7 @@
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

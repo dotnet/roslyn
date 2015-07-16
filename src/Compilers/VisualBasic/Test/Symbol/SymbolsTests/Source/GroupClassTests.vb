@@ -25,8 +25,8 @@ Module Module1
 
         For Each field In fields
             System.Console.WriteLine("{0} {1} {2}", field.Name, field.FieldType, field.Attributes)
-            For Each attibute In field.GetCustomAttributes(False)
-                System.Console.WriteLine("  {0}", attibute)
+            For Each attribute In field.GetCustomAttributes(False)
+                System.Console.WriteLine("  {0}", attribute)
             Next
         Next
 
@@ -35,8 +35,8 @@ Module Module1
 
         For Each method In methods
             System.Console.WriteLine("{0} {1} {2}", method.Name, method.Attributes, method.GetMethodImplementationFlags())
-            For Each attibute In method.GetCustomAttributes(False)
-                System.Console.WriteLine("  {0}", attibute)
+            For Each attribute In method.GetCustomAttributes(False)
+                System.Console.WriteLine("  {0}", attribute)
             Next
         Next
 
@@ -45,8 +45,8 @@ Module Module1
 
         For Each prop In properties
             System.Console.WriteLine("{0} {1}", prop.Name, prop.Attributes)
-            For Each attibute In prop.GetCustomAttributes(False)
-                System.Console.WriteLine("  {0}", attibute)
+            For Each attribute In prop.GetCustomAttributes(False)
+                System.Console.WriteLine("  {0}", attribute)
             Next
         Next
 

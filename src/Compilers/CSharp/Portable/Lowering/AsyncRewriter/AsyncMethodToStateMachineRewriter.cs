@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newBody =
                 F.SequencePoint(
-                    body.Syntax, 
+                    body.Syntax,
                     F.Block(
                         locals.ToImmutableAndFree(), 
                         ImmutableArray<LocalFunctionSymbol>.Empty,
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
             }
-            
+
             F.CloseMethod(newBody);
         }
 

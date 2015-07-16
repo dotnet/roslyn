@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         private readonly string _asyncOperationId;
 
         // Null when we absolutely know we don't have any sort of item computation going on. Non
-        // null the moment we think we start computating state. Null again once we decide we can
+        // null the moment we think we start computing state. Null again once we decide we can
         // stop.
         protected TSession sessionOpt;
 

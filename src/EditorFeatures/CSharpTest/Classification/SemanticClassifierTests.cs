@@ -1223,7 +1223,7 @@ class C<T>
 
         [WorkItem(542685)]
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void DontColorThingsOtherThanFromInAssignement()
+        public void DontColorThingsOtherThanFromInAssignment()
         {
             TestInMethod("var q = 3; q = fro ",
                 Keyword("var"));

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(!code.IsControlTransfer(),
                 "Control transferring opcodes should not be emitted directly. Use special methods such as EmitRet().");
 
-            WriteOpCode(this.GetCurrentStream(), code);
+            WriteOpCode(this.GetCurrentWriter(), code);
 
             _emitState.AdjustStack(stackAdjustment);
             _emitState.InstructionAdded();
@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void EmitToken(string value)
         {
             uint token = module?.GetFakeStringTokenForIL(value) ?? 0xFFFF;
-            this.GetCurrentStream().WriteUint(token);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitToken(Microsoft.Cci.IReference value, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             uint token = module?.GetFakeSymbolTokenForIL(value, syntaxNode, diagnostics) ?? 0xFFFF;
-            this.GetCurrentStream().WriteUint(token);
+            this.GetCurrentWriter().WriteUInt32(token);
         }
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
@@ -679,32 +679,32 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitInt8(sbyte int8)
         {
-            this.GetCurrentStream().WriteSbyte(int8);
+            this.GetCurrentWriter().WriteSByte(int8);
         }
 
         private void EmitInt32(int int32)
         {
-            this.GetCurrentStream().WriteInt(int32);
+            this.GetCurrentWriter().WriteInt32(int32);
         }
 
         private void EmitInt64(long int64)
         {
-            this.GetCurrentStream().WriteLong(int64);
+            this.GetCurrentWriter().WriteInt64(int64);
         }
 
         private void EmitFloat(float floatValue)
         {
             int int32 = BitConverter.ToInt32(BitConverter.GetBytes(floatValue), 0);
-            this.GetCurrentStream().WriteInt(int32);
+            this.GetCurrentWriter().WriteInt32(int32);
         }
 
         private void EmitDouble(double doubleValue)
         {
             long int64 = BitConverter.DoubleToInt64Bits(doubleValue);
-            this.GetCurrentStream().WriteLong(int64);
+            this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Microsoft.Cci.BinaryWriter writer, ILOpCode code)
+        private static void WriteOpCode(Cci.BlobWriter writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Microsoft.Cci.BinaryWriter GetCurrentStream()
+        private Cci.BlobWriter GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

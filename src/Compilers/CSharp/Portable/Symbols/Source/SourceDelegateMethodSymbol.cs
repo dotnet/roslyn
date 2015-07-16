@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // associate "Invoke and .ctor" with whole delegate declaration for the sorting purposes
                 // other methods will be associated with delegate's identifier
                 // we want this just to keep the order of synthesized methods the same as in Dev12
-                // Dev12 order is not strictly aphabetical - .ctor and Invoke go before other members.
+                // Dev12 order is not strictly alphabetical - .ctor and Invoke go before other members.
                 // there are no real reasons for emitting the members inone order or another, 
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // associate "Invoke and .ctor" with whole delegate declaration for the sorting purposes
                 // other methods will be associated with delegate's identifier
                 // we want this just to keep the order of synthesized methods the same as in Dev12
-                // Dev12 order is not strictly aphabetical - .ctor and Invoke go before other members.
+                // Dev12 order is not strictly alphabetical - .ctor and Invoke go before other members.
                 // there are no real reasons for emitting the members inone order or another, 
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);

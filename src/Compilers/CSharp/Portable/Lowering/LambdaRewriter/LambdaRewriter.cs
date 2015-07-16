@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         frame.Constructor));
 
                     // associate the frame with the the first lambda that caused it to exist. 
-                    // we need to associate this with somme syntax.
+                    // we need to associate this with some syntax.
                     // unfortunately either containing method or containing class could be synthetic
                     // therefore could have no syntax.
                     CSharpSyntaxNode syntax = lambda.Syntax;
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
-            // To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffecs.
+            // To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffects.
             BoundExpression rewrittenExceptionSource = null;
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)

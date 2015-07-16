@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 #Region "CData"
         Private Function XmlMakeBeginCDataToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
             Debug.Assert(NextAre("<![CDATA["))
- 
+
             AdvanceChar(9)
             Dim followingTrivia = scanTrailingTrivia()
             Return MakePunctuationToken(SyntaxKind.BeginCDataToken, "<![CDATA[", precedingTrivia, followingTrivia)

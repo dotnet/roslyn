@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// A remote singleton server-activated object that lives in the interactive host process and controls it.
         /// </summary>
-        internal sealed class Service : MarshalByRefObject
+        internal sealed class Service : MarshalByRefObject, IDisposable
         {
             private static readonly ManualResetEventSlim s_clientExited = new ManualResetEventSlim(false);
 
@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             private static Control s_ui;
 
             internal static readonly ImmutableArray<string> DefaultSourceSearchPaths =
-                ImmutableArray.Create<string>(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
+
+            internal static readonly ImmutableArray<string> DefaultReferenceSearchPaths =
+                ImmutableArray.Create(FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
 
             private readonly InteractiveAssemblyLoader _assemblyLoader;
             private readonly MetadataShadowCopyProvider _metadataFileProvider;
@@ -55,15 +58,26 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Session is not thread-safe by itself, 
             // so we need to lock whenever we compile a submission or add a reference:
             private readonly object _sessionGuard = new object();
-            private ScriptOptions _options = ScriptOptions.Default;
+            private ScriptOptions _options;
             private ScriptState _lastResult;
+
+            private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
+                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
 
             #region Setup
 
             public Service()
             {
                 // TODO (tomat): we should share the copied files with the host
-                _metadataFileProvider = new MetadataShadowCopyProvider();
+                _metadataFileProvider = new MetadataShadowCopyProvider(
+                    Path.Combine(Path.GetTempPath(), "InteractiveHostShadow"),
+                    noShadowCopyDirectories: s_systemNoShadowCopyDirectories);
+
+                _options = ScriptOptions.Default.WithSearchPaths(DefaultReferenceSearchPaths);
+
                 _assemblyLoader = new InteractiveAssemblyLoader(_metadataFileProvider);
                 _sourceSearchPaths = DefaultSourceSearchPaths;
                 _formattingOptions = new ObjectFormattingOptions(
@@ -72,6 +86,23 @@ namespace Microsoft.CodeAnalysis.Interactive
                     useHexadecimalNumbers: false,
                     maxOutputLength: 200,
                     memberIndentation: "  ");
+
+                // We want to be sure to delete the shadow-copied files when the process goes away. Frankly
+                // there's nothing we can do if the process is forcefully quit or goes down in a completely
+                // uncontrolled manner (like a stack overflow). When the process goes down in a controlled
+                // manned, we should generally expect this event to be called.
+                AppDomain.CurrentDomain.ProcessExit += HandleProcessExit;
+            }
+
+            private void HandleProcessExit(object sender, EventArgs e)
+            {
+                Dispose();
+                AppDomain.CurrentDomain.ProcessExit -= HandleProcessExit;
+            }
+
+            public void Dispose()
+            {
+                _metadataFileProvider.Dispose();
             }
 
             public override object InitializeLifetimeService()
@@ -148,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // Disables Windows Error Reporting for the process, so that the process fails fast.
                 // Unfortunately, this doesn't work on Windows Server 2008 (OS v6.0), Vista (OS v6.0) and XP (OS v5.1)
                 // Note that GetErrorMode is not available on XP at all.
-                if (Environment.OSVersion.Version >= new System.Version(6, 1, 0, 0))
+                if (Environment.OSVersion.Version >= new Version(6, 1, 0, 0))
                 {
                     SetErrorMode(GetErrorMode() | ErrorMode.SEM_FAILCRITICALERRORS | ErrorMode.SEM_NOOPENFILEERRORBOX | ErrorMode.SEM_NOGPFAULTERRORBOX);
                 }
@@ -571,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // Testing utility.
             // TODO (tomat): needed since MetadataReference is not serializable . 
             // Has to be public to be callable via remoting.
-            public AssemblyLoadResult LoadReferenceThrowing(string reference, bool addReference)
+            public SerializableAssemblyLoadResult LoadReferenceThrowing(string reference, bool addReference)
             {
                 var fullPath = ResolveReferencePath(reference, baseFilePath: null);
                 if (fullPath == null)
@@ -717,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 bool hasValue;
-                var resultType = GetSubmissionResultType(script.GetCompilation(), out hasValue);
+                var resultType = script.GetCompilation().GetSubmissionResultType(out hasValue);
                 if (hasValue)
                 {
                     if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
@@ -732,10 +763,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                 return true;
             }
-
-            // TODO: replace by direct call to GetSubmissionResultType when it becomes public
-            private delegate ITypeSymbol GetSubmissionResultTypeDelegate(Compilation compilation, out bool hasValue);
-            private GetSubmissionResultTypeDelegate GetSubmissionResultType = typeof(Compilation).GetTypeInfo().GetDeclaredMethod("GetSubmissionResultType").CreateDelegate<GetSubmissionResultTypeDelegate>();
 
             private class ExecuteSubmissionError
             {
@@ -807,9 +834,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-#endregion
+            #endregion
 
-#region Win32 API
+            #region Win32 API
 
             [DllImport("kernel32", PreserveSig = true)]
             internal static extern ErrorMode SetErrorMode(ErrorMode mode);
@@ -846,9 +873,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                 SEM_NOOPENFILEERRORBOX = 0x8000,
             }
 
-#endregion
+            #endregion
 
-#region Testing
+            #region Testing
 
             // TODO(tomat): remove when the compiler supports events
             // For testing purposes only!
@@ -886,7 +913,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return _metadataFileProvider.IsShadowCopy(path);
             }
 
-#endregion
+            #endregion
         }
     }
 }

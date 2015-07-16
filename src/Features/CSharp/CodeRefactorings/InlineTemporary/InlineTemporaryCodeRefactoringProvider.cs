@@ -521,11 +521,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                         // inlinedNode is the expanded form of the actual initializer expression in the original document.
                         // We have annotated the inner initializer with a special syntax annotation "InitializerAnnotation".
                         // Get this annotated node and compute the symbol info for this node in the inlined document.
-                        var innerInitializerInInlineNodeorToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
+                        var innerInitializerInInlineNodeOrToken = inlinedNode.GetAnnotatedNodesAndTokens(InitializerAnnotation).First();
 
-                        ExpressionSyntax innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeorToken.IsNode ?
-                            innerInitializerInInlineNodeorToken.AsNode() :
-                            innerInitializerInInlineNodeorToken.AsToken().Parent);
+                        ExpressionSyntax innerInitializerInInlineNode = (ExpressionSyntax)(innerInitializerInInlineNodeOrToken.IsNode ?
+                            innerInitializerInInlineNodeOrToken.AsNode() :
+                            innerInitializerInInlineNodeOrToken.AsToken().Parent);
                         var newInitializerSymbolInfo = newSemanticModelForInlinedDocument.GetSymbolInfo(innerInitializerInInlineNode, cancellationToken);
 
                         // Verification: The symbol info associated with any of the inlined expressions does not match the symbol info for original initializer expression prior to inline.

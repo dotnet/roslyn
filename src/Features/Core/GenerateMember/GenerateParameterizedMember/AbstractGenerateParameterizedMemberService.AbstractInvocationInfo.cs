@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 ITypeParameterSymbol typeParameter,
                 CancellationToken cancellationToken)
             {
-                var constraints = typeParameter.ConstraintTypes.Where(ts => !ts.IsUnexpressableTypeParameterConstraint()).ToList();
+                var constraints = typeParameter.ConstraintTypes.Where(ts => !ts.IsUnexpressibleTypeParameterConstraint()).ToList();
                 var classTypes = constraints.Where(ts => ts.TypeKind == TypeKind.Class).ToList();
                 var nonClassTypes = constraints.Where(ts => ts.TypeKind != TypeKind.Class).ToList();
 

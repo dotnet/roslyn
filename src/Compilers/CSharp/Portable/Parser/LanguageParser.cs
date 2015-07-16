@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal TNode ParseWithStackGuard<TNode>(Func<TNode> parseFunc, Func<TNode> createEmptyNodeFunc) where TNode : CSharpSyntaxNode
         {
             // If this value is non-zero then we are nesting calls to ParseWithStackGuard which should not be 
-            // happenning.  It's not a bug but it's inefficient and should be changed.
+            // happening.  It's not a bug but it's inefficient and should be changed.
             Debug.Assert(_recursionDepth == 0);
 
             try
@@ -444,6 +444,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
+
+            if (IsScript || IsInteractive)
+            {
+                namespaceToken = this.AddError(namespaceToken, ErrorCode.ERR_NamespaceNotAllowedInScript);
+            }
 
             var name = this.ParseQualifiedName();
             if (ContainsGeneric(name))
@@ -4654,7 +4659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // assume it's not the actual name.  
                 // 
                 // So, if we're after a newline and we see a name followed by the list below, then we
-                // assume that we're accidently consuming too far into the next statement.
+                // assume that we're accidentally consuming too far into the next statement.
                 //
                 // <dot>, <arrow>, any binary operator (except =), <question>.  None of these characters
                 // are allowed in a normal variable declaration.  This also provides a more useful error
@@ -6952,7 +6957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // If we have a single statement, it might be small, like "return null", or large,
                 // like a loop or if or switch with many statements inside. Use the width as a proxy for
-                // how big it is. If it's small, its better to forgoe a many children list anyway, since the
+                // how big it is. If it's small, its better to forgo a many children list anyway, since the
                 // weak reference would consume as much memory as is saved.
                 return statements[0].Width > 60;
             }
@@ -7359,7 +7364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword || this.CurrentToken.Kind == SyntaxKind.ForEachKeyword);
 
-            // Check if the user wrote the following accidently:
+            // Check if the user wrote the following accidentally:
             //
             // for (SomeType t in
             //
@@ -9378,7 +9383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             // Adapted from CParser::ScanAsyncLambda
 
-            // Precendence must not exceed that of lambdas
+            // Precedence must not exceed that of lambdas
             if (precedence > LambdaPrecedence)
             {
                 return false;

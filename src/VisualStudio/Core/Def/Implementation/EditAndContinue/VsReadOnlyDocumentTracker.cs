@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
             // while the code is running and get refreshed next time the web page is hit.
 
-            // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandradTextDocument.
+            // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.
             var containedDocument = _vsProject.VisualStudioWorkspace.GetHostDocument(documentId) as ContainedDocument;
             return containedDocument == null;
         }

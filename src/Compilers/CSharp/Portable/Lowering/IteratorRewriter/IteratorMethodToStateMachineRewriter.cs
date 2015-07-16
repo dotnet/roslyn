@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///             break;
         ///             
         ///         case state5:
-        ///             ... another dispatch of nested states to their finallies ...
+        ///             ... another dispatch of nested states to their finally blocks ...
         ///             break;
         ///     }
         /// }
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (finished)
                 {
-                    // since we are finised, we need to treat this as a potential Leave
+                    // since we are finished, we need to treat this as a potential Leave
                     gotoExit = (BoundGotoStatement)VisitGotoStatement(gotoExit);
                 }
 

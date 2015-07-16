@@ -54,7 +54,7 @@ End Class
         }
 
         [Fact]
-        public void TestVisualBasicDefaulFormattingRules()
+        public void TestVisualBasicDefaultFormattingRules()
         {
             var rules = Formatter.GetDefaultFormattingRules(new TestWorkspace(), LanguageNames.VisualBasic);
 

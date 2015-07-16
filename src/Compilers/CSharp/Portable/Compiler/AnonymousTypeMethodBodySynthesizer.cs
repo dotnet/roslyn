@@ -276,8 +276,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                             F.Field(F.This(), property.BackingField),
                                                                             null,
                                                                             F.Call(new BoundConditionalReceiver(
-                                                                                F.Syntax, 
-                                                                                id: i, 
+                                                                                F.Syntax,
+                                                                                id: i,
                                                                                 type: property.BackingField.Type), manager.System_Object__ToString),
                                                                             null,
                                                                             id: i,

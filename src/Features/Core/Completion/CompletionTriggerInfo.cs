@@ -22,12 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public char? TriggerCharacter { get; }
 
         /// <summary>
-        /// Returns true if the reason completion was triggered was to augment an existing list of
-        /// completion items.
-        /// </summary>
-        public bool IsAugment { get; }
-
-        /// <summary>
         ///  Returns true if completion was triggered by the debugger.
         /// </summary>
         internal bool IsDebugger { get; }
@@ -37,56 +31,48 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal bool IsImmediateWindow { get; }
 
-        private CompletionTriggerInfo(CompletionTriggerReason triggerReason, char? triggerCharacter, bool isAugment, bool isDebugger, bool isImmediateWindow)
+        private CompletionTriggerInfo(CompletionTriggerReason triggerReason, char? triggerCharacter, bool isDebugger, bool isImmediateWindow)
             : this()
         {
             Contract.ThrowIfTrue(triggerReason == CompletionTriggerReason.TypeCharCommand && triggerCharacter == null);
             this.TriggerReason = triggerReason;
             this.TriggerCharacter = triggerCharacter;
-            this.IsAugment = isAugment;
             this.IsDebugger = isDebugger;
             this.IsImmediateWindow = isImmediateWindow;
         }
 
-        public static CompletionTriggerInfo CreateTypeCharTriggerInfo(char triggerCharacter, bool isAugment = false)
+        public static CompletionTriggerInfo CreateTypeCharTriggerInfo(char triggerCharacter)
         {
-            return new CompletionTriggerInfo(CompletionTriggerReason.TypeCharCommand, triggerCharacter, isAugment, isDebugger: false, isImmediateWindow: false);
+            return new CompletionTriggerInfo(CompletionTriggerReason.TypeCharCommand, triggerCharacter, isDebugger: false, isImmediateWindow: false);
         }
 
-        public static CompletionTriggerInfo CreateInvokeCompletionTriggerInfo(bool isAugment = false)
+        public static CompletionTriggerInfo CreateInvokeCompletionTriggerInfo()
         {
-            return new CompletionTriggerInfo(CompletionTriggerReason.InvokeCompletionCommand, null, isAugment, isDebugger: false, isImmediateWindow: false);
+            return new CompletionTriggerInfo(CompletionTriggerReason.InvokeCompletionCommand, null, isDebugger: false, isImmediateWindow: false);
         }
 
-        public static CompletionTriggerInfo CreateBackspaceTriggerInfo(char? triggerCharacter, bool isAugment = false)
+        public static CompletionTriggerInfo CreateBackspaceTriggerInfo(char? triggerCharacter)
         {
-            return new CompletionTriggerInfo(CompletionTriggerReason.BackspaceOrDeleteCommand, triggerCharacter, isAugment, isDebugger: false, isImmediateWindow: false);
+            return new CompletionTriggerInfo(CompletionTriggerReason.BackspaceOrDeleteCommand, triggerCharacter, isDebugger: false, isImmediateWindow: false);
         }
 
         public static CompletionTriggerInfo CreateSnippetTriggerInfo()
         {
-            return new CompletionTriggerInfo(CompletionTriggerReason.Snippets, null, isAugment: false, isDebugger: false, isImmediateWindow: false);
-        }
-
-        internal CompletionTriggerInfo WithIsAugment(bool isAugment)
-        {
-            return this.IsAugment == isAugment
-                ? this
-                : new CompletionTriggerInfo(this.TriggerReason, this.TriggerCharacter, isAugment, this.IsDebugger, this.IsImmediateWindow);
+            return new CompletionTriggerInfo(CompletionTriggerReason.Snippets, null, isDebugger: false, isImmediateWindow: false);
         }
 
         internal CompletionTriggerInfo WithIsDebugger(bool isDebugger)
         {
             return this.IsDebugger == isDebugger
                 ? this
-                : new CompletionTriggerInfo(this.TriggerReason, this.TriggerCharacter, this.IsAugment, isDebugger, this.IsImmediateWindow);
+                : new CompletionTriggerInfo(this.TriggerReason, this.TriggerCharacter, isDebugger, this.IsImmediateWindow);
         }
 
         internal CompletionTriggerInfo WithIsImmediateWindow(bool isImmediateWIndow)
         {
             return this.IsImmediateWindow == isImmediateWIndow
                 ? this
-                : new CompletionTriggerInfo(this.TriggerReason, this.TriggerCharacter, this.IsAugment, this.IsDebugger, isImmediateWIndow);
+                : new CompletionTriggerInfo(this.TriggerReason, this.TriggerCharacter, this.IsDebugger, isImmediateWIndow);
         }
     }
 }

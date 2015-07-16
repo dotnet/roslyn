@@ -138,9 +138,9 @@ BC30451: 'Unknown' is not declared. It may be inaccessible due to its protection
         End Sub
 
         <Fact()>
-        Public Sub ObjectInitializerOnlyDotIndentifierInInitializer()
+        Public Sub ObjectInitializerOnlyDotIdentifierInInitializer()
             Dim source =
-<compilation name="ObjectInitializerOnlyDotIndentifierInInitializer">
+<compilation>
     <file name="a.vb">
 Option Strict On
 

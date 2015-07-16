@@ -190,7 +190,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWritteInstance1()
+        public void TestGenerateOffWrittenInstance1()
         {
             Test(
 @"class Class { void Method() { this.[|foo|] = 1; } }",
@@ -198,7 +198,7 @@ index: 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateOffWritteInstance2()
+        public void TestGenerateOffWrittenInstance2()
         {
             Test(
 @"class Class { void Method() { this.[|foo|] = 1; } }",
@@ -2462,7 +2462,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInCoditionalAccessExpression()
+        public void TestGeneratePropertyInConditionalAccessExpression()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2471,7 +2471,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInCoditionalAccessExpression2()
+        public void TestGeneratePropertyInConditionalAccessExpression2()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2480,7 +2480,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInCoditionalAccessExpression3()
+        public void TestGeneratePropertyInConditionalAccessExpression3()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2489,7 +2489,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGeneratePropertyInCoditionalAccessExpression4()
+        public void TestGeneratePropertyInConditionalAccessExpression4()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2498,7 +2498,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInCoditionalAccessExpression()
+        public void TestGenerateFieldInConditionalAccessExpression()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2508,7 +2508,7 @@ index: 1);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInCoditionalAccessExpression2()
+        public void TestGenerateFieldInConditionalAccessExpression2()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2518,7 +2518,7 @@ index: 1);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInCoditionalAccessExpression3()
+        public void TestGenerateFieldInConditionalAccessExpression3()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2528,7 +2528,7 @@ index: 1);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateFieldInCoditionalAccessExpression4()
+        public void TestGenerateFieldInConditionalAccessExpression4()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2538,7 +2538,7 @@ index: 1);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInCoditionalAccessExpression()
+        public void TestGenerateReadonlyFieldInConditionalAccessExpression()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { C x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2548,7 +2548,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInCoditionalAccessExpression2()
+        public void TestGenerateReadonlyFieldInConditionalAccessExpression2()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2558,7 +2558,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInCoditionalAccessExpression3()
+        public void TestGenerateReadonlyFieldInConditionalAccessExpression3()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { int ? x = a ? . B . [|C|] ; } public class E { } } ",
@@ -2568,7 +2568,7 @@ index: 2);
 
         [WorkItem(1064748)]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public void TestGenerateReadonlyFieldInCoditionalAccessExpression4()
+        public void TestGenerateReadonlyFieldInConditionalAccessExpression4()
         {
             Test(
 @"class C { public E B { get ; private set ; } void Main ( C a ) { var x = a ? . B . [|C|] ; } public class E { } } ",

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             if (defaultContentType == null)
             {
-                throw new ArgumentNullException("defaultContentType");
+                throw new ArgumentNullException(nameof(defaultContentType));
             }
 
             this.DefaultContentType = defaultContentType;

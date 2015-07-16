@@ -2014,7 +2014,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
         }
 
         [Fact]
-        public void MutlipleDeclarationsOnType()
+        public void MultipleDeclarationsOnType()
         {
             TestSpan(
 @"class C

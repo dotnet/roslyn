@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var oldGroup = (GroupClauseSyntax)oldLambda;
                     var newGroup = (GroupClauseSyntax)newLambda;
                     Debug.Assert(oldGroup.GroupExpression == oldBody || oldGroup.ByExpression == oldBody);
-                    return (oldGroup.GroupExpression == oldBody) ? 
+                    return (oldGroup.GroupExpression == oldBody) ?
                         (IsReducedSelectOrGroupByClause(newGroup, newGroup.GroupExpression) ? null : newGroup.GroupExpression) : newGroup.ByExpression;
 
                 case SyntaxKind.LocalFunctionStatement:
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.GroupClause:
                     var groupClause = (GroupClauseSyntax)parent;
-                    return (groupClause.GroupExpression == node && (allowReducedLambdas || !IsReducedSelectOrGroupByClause(groupClause, groupClause.GroupExpression))) || 
+                    return (groupClause.GroupExpression == node && (allowReducedLambdas || !IsReducedSelectOrGroupByClause(groupClause, groupClause.GroupExpression))) ||
                            groupClause.ByExpression == node;
             }
 

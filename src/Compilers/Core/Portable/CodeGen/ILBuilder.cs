@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             {
                 // if branch is blocked by a finally, then should branch to corresponding 
                 // BlockedBranchDestination instead. Original label may not be reachable.
-                // if there are no blocking finallies, then BlockedBranchDestination returns null
+                // if there are no blocking finally blocks, then BlockedBranchDestination returns null
                 // and we just visit the target.
                 var blockedDest = BlockedBranchDestination(block, branchBlock);
                 if (blockedDest == null)
@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 destHandlerScope = destHandler.ContainingExceptionScope;
             }
 
-            // go from the source out until we no longer crossing any finallies 
+            // go from the source out until no longer crossing any finally blocks
             // between source and destination
-            // if any finallies found in the process, check if they are blocking
+            // if any finally blocks found in the process, check if they are blocking
             while (srcHandler != destHandler)
             {
                 // branches within same ContainingExceptionScope do not go through finally.
@@ -864,8 +864,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var realizedIlBitStream = Cci.MemoryStream.GetInstance();
-            var writer = new Cci.BinaryWriter(realizedIlBitStream);
+            var writer = Cci.BlobWriter.GetInstance();
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {
@@ -878,12 +877,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     for (int i = blockFirstMarker; i <= blockLastMarker; i++)
                     {
                         int blockOffset = _allocatedILMarkers[i].BlockOffset;
-                        int absoluteOffset = (int)realizedIlBitStream.Position + blockOffset;
+                        int absoluteOffset = writer.Position + blockOffset;
                         _allocatedILMarkers[i] = new ILMarker() { BlockOffset = blockOffset, AbsoluteOffset = absoluteOffset };
                     }
                 }
 
-                block.RegularInstructions?.WriteTo(realizedIlBitStream);
+                block.RegularInstructions?.WriteTo(writer);
 
                 switch (block.BranchCode)
                 {
@@ -897,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         WriteOpCode(writer, ILOpCode.Switch);
 
                         var switchBlock = (SwitchBlock)block;
-                        writer.WriteUint(switchBlock.BranchesCount);
+                        writer.WriteUInt32(switchBlock.BranchesCount);
 
                         int switchBlockEnd = switchBlock.Start + switchBlock.TotalSize;
 
@@ -906,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                         foreach (var branchBlock in blockBuilder)
                         {
-                            writer.WriteInt(branchBlock.Start - switchBlockEnd);
+                            writer.WriteInt32(branchBlock.Start - switchBlockEnd);
                         }
 
                         blockBuilder.Free();
@@ -926,11 +925,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             {
                                 sbyte btOffset = (sbyte)offset;
                                 Debug.Assert(btOffset == offset);
-                                writer.WriteSbyte(btOffset);
+                                writer.WriteSByte(btOffset);
                             }
                             else
                             {
-                                writer.WriteInt(offset);
+                                writer.WriteInt32(offset);
                             }
                         }
 
@@ -938,8 +937,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            this.RealizedIL = realizedIlBitStream.ToArray();
-            realizedIlBitStream.Free();
+            this.RealizedIL = writer.ToArray();
+            writer.Free();
 
             RealizeSequencePoints();
 

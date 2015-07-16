@@ -1125,7 +1125,7 @@ class Class : ContainsStatic
             comp.VerifyDiagnostics();
         }
         [Fact]
-        public void MultilevelPropertyImplementation()
+        public void MultiLevelPropertyImplementation()
         {
             var text = @"
 interface I1

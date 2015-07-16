@@ -945,8 +945,8 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub M() \n Dim Prop As TypeOfIsNotDerived = Nothing \n If TypeOf Prop IsNot TypeOfIsNotDerived Then \n End If \n End Sub \n End Module"),
 index:=3)
         End Sub
-	
-	 <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)>
         Public Sub TestGenerateVariableFromLambda()
             Test(
 NewLines("Class [Class] \n Private Sub Method(i As Integer) \n [|foo|] = Function() \n Return 2 \n End Function \n End Sub \n End Class"),

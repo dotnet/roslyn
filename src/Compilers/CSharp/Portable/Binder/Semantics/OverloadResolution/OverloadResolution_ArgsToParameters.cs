@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     are ignored if they are applicable only in their expanded form, or if one or more of their
             //     optional parameters do not have a corresponding parameter in the targeted delegate type.
             //   
-            // Therefore, no parameters are optional when performining method group conversion.  Alternatively,
+            // Therefore, no parameters are optional when performing method group conversion.  Alternatively,
             // we could eliminate methods based on the number of arguments, but then we wouldn't be able to
             // fall back on them if no other candidates were available.
 

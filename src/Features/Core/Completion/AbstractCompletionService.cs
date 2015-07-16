@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly List<string> _committedItems = new List<string>(MruSize);
         private readonly object _mruGate = new object();
 
-        private void CompletionItemComitted(CompletionItem item)
+        private void CompletionItemCommitted(CompletionItem item)
         {
             lock (_mruGate)
             {
@@ -149,45 +149,41 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return SpecializedCollections.SingletonEnumerable(firstExclusiveGroup.Group);
             }
-            else
+
+            // If no exclusive providers provided anything, then go through the remaining
+            // triggered list and see if any provide items.
+            var nonExclusiveGroups = providersAndGroups.Where(t => !t.Group.IsExclusive).ToList();
+
+            // If we still don't have any items, then we're definitely done.
+            if (!nonExclusiveGroups.Any(g => g.Group.Items.Any()))
             {
-                // If no exclusive providers provided anything, then go through the remaining
-                // triggered list and see if any provide items.
-                var nonExclusiveGroups = providersAndGroups.Where(t => !t.Group.IsExclusive).ToList();
-
-                // If we still don't have any items, then we're definitely done.
-                if (!nonExclusiveGroups.Any(g => g.Group.Items.Any()))
-                {
-                    return null;
-                }
-
-                // If we do have items, then ask all the other (non exclusive providers) if they
-                // want to augment the items.
-                var augmentTriggerInfo = triggerInfo.WithIsAugment(true);
-
-                var usedProviders = nonExclusiveGroups.Select(g => g.Provider);
-                var nonUsedProviders = completionProviders.Except(usedProviders);
-                var nonUsedNonExclusiveProviders = new List<ProviderGroup>();
-                foreach (var p in nonUsedProviders)
-                {
-                    var g = await GetGroupAsync(p, documentOpt, text, position, augmentTriggerInfo, cancellationToken).ConfigureAwait(false);
-                    if (g != null && !g.IsExclusive)
-                    {
-                        nonUsedNonExclusiveProviders.Add(new ProviderGroup { Provider = p, Group = g });
-                    }
-                }
-
-                var allGroups = nonExclusiveGroups.Concat(nonUsedNonExclusiveProviders).ToList();
-                if (allGroups.Count == 0)
-                {
-                    return null;
-                }
-
-                // Providers are ordered, but we processed them in our own order.  Ensure that the
-                // groups are properly ordered based on the original providers.
-                allGroups.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
-                return allGroups.Select(g => g.Group);
+                return null;
             }
+
+            // If we do have items, then ask all the other (non exclusive providers) if they
+            // want to augment the items.
+            var usedProviders = nonExclusiveGroups.Select(g => g.Provider);
+            var nonUsedProviders = completionProviders.Except(usedProviders);
+            var nonUsedNonExclusiveProviders = new List<ProviderGroup>();
+            foreach (var p in nonUsedProviders)
+            {
+                var g = await GetGroupAsync(p, documentOpt, text, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                if (g != null && !g.IsExclusive)
+                {
+                    nonUsedNonExclusiveProviders.Add(new ProviderGroup { Provider = p, Group = g });
+                }
+            }
+
+            var allGroups = nonExclusiveGroups.Concat(nonUsedNonExclusiveProviders).ToList();
+            if (allGroups.Count == 0)
+            {
+                return null;
+            }
+
+            // Providers are ordered, but we processed them in our own order.  Ensure that the
+            // groups are properly ordered based on the original providers.
+            allGroups.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+            return allGroups.Select(g => g.Group);
         }
 
         private Dictionary<ICompletionProvider, int> GetCompletionProviderToIndex(IEnumerable<ICompletionProvider> completionProviders)

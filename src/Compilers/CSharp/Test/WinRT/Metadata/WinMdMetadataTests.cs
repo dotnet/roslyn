@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// to System.Uri
         /// </summary>
         [Fact]
-        public void TypeFowardingRenaming()
+        public void TypeForwardingRenaming()
         {
             var text = "public class A{};";
             var comp = CreateWinRtCompilation(text);
@@ -228,8 +228,8 @@ public class MyAttribute : System.Attribute
 }
 ";
             CompileAndVerify(
-                source, 
-                WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }), 
+                source,
+                WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
                 symbolValidator: m =>
             {
                 var module = (PEModuleSymbol)m;
@@ -241,6 +241,5 @@ public class MyAttribute : System.Attribute
                 Assert.Equal("C1, W, Version=255.255.255.255, Culture=neutral, PublicKeyToken=null, ContentType=WindowsRuntime", value);
             });
         }
-
     }
 }

@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.Editor
             if (preview == null)
             {
                 // Keep going if preview is null. Null preview indicates that although the preferred document was marked as changed, 
-                // there are no textual changes in the preferred document and so we can't create a diff preview for this docuement.
+                // there are no textual changes in the preferred document and so we can't create a diff preview for this document.
                 // This can happen in the case of the 'rename tracking' code fix - the document where the fix was triggered from (i.e.
-                // the preferred document) is always reported as changed (on account of difference in docuemnt version). However, if
+                // the preferred document) is always reported as changed (on account of difference in document version). However, if
                 // the renamed identifier is not referenced from any other location in this document, then there will be no text changes
                 // between the two versions. In such cases, We should keep going until we find a document with text changes that can be
                 // diffed and previewed.

@@ -1633,6 +1633,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim namespaceKeyword As KeywordSyntax = ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
 
+            If IsScript Then
+                namespaceKeyword = AddError(namespaceKeyword, ERRID.ERR_NamespaceNotAllowedInScript)
+            End If
+
             Dim unexpectedSyntax As SyntaxList(Of SyntaxToken) = Nothing
             Dim result As NamespaceStatementSyntax
 
@@ -2636,7 +2640,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return SyntaxFactory.NamedFieldInitializer(optionalKey, dot, SyntaxFactory.IdentifierName(id), equals, expression)
         End Function
 
-        ' TODO - davidsch - handle annonymous type initialization
         ' See Parser::ParseInitializerList and how it it used by the Parser::ParseNewExpression
 
         ' /*********************************************************************
@@ -2801,7 +2804,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Case SyntaxKind.GlobalKeyword,
                         SyntaxKind.IdentifierToken
                         ' AllowGlobalNameSpace
-                        ' Alow generic arguments
+                        ' Allow generic arguments
                         ' Don't disallow generic arguments on last qualified name
                         name = ParseName(
                             requireQualification:=False,
@@ -3354,7 +3357,7 @@ checkNullable:
                 ' While there is a ParseTypeName function, the old parser called ParseName.  For now
                 ' call ParseName and then break up the name to make a ImplementsClauseItem. The
                 ' parameters passed to ParseName guarantee that the name is qualified. The first
-                ' parameter ensures qualfication.  The last parameter ensures that it is not generic.
+                ' parameter ensures qualification.  The last parameter ensures that it is not generic.
 
                 ' AllowGlobalNameSpace
                 ' Allow generic arguments

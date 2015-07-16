@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (position == ctorSyntax.SpanStart)
             {
                 // Use a constant that is distinct from any other syntax offset.
-                // -1 works since a field initializer and a consturctor declaration header can't squeeze into a single character.
+                // -1 works since a field initializer and a constructor declaration header can't squeeze into a single character.
                 return -1;
             }
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return syntaxOffset;
             }
 
-            // we haven't found the contructor part that declares the variable:
+            // we haven't found the constructor part that declares the variable:
             throw ExceptionUtilities.Unreachable;
         }
     }

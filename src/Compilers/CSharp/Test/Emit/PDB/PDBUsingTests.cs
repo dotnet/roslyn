@@ -1810,7 +1810,7 @@ namespace @namespace
 class Test { static void Main() { } }
 ";
             var comp = CreateCompilationWithMscorlib(source);
-            
+
             // As in dev12, we drop all '@'s.
             comp.VerifyPdb("Test.Main", @"
 <symbols>
@@ -2112,14 +2112,14 @@ class C
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
 
-                Assert.Equal(new[] 
+                Assert.Equal(new[]
                 {
                     "mscorlib",
                     "System.Core",
                     "System.Data"
                 }, peAssembly.AssemblyReferences.Select(ai => ai.Name));
 
-                Assert.Equal(new[] 
+                Assert.Equal(new[]
                 {
                     "CompilationRelaxationsAttribute",
                     "RuntimeCompatibilityAttribute",
@@ -2255,7 +2255,7 @@ class C
                 // using ZBad = N.SBad;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using ZBad = N.SBad;"));
 
-            // Usings of embedded types are currently ommitted:
+            // Usings of embedded types are currently omitted:
             v.VerifyPdb("C.M", @"
 <symbols>
   <methods>

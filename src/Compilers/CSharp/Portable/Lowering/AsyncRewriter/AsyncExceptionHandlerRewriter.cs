@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Lower a block of code by performing local rewritings. 
         /// The goal is to not have exception handlers that contain awaits in them.
         /// 
-        /// 1) Await containing finallies:
+        /// 1) Await containing finally blocks:
         ///     The general strategy is to rewrite await containing handlers into synthetic handlers.
         ///     Synthetic handlers are not handlers in IL sense so it is ok to have awaits in them.
         ///     Since synthetic handlers are just blocks, we have to deal with pending exception/branch/return manually
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyses method body for Try blocks with awaits in finallies 
+        /// Analyses method body for Try blocks with awaits in finally blocks 
         /// Also collects labels that such blocks contain.
         /// </summary>
         private sealed class AwaitInFinallyAnalysis : LabelCollector

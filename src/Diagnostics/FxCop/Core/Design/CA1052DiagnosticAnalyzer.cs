@@ -44,20 +44,20 @@ namespace Microsoft.AnalyzerPowerPack.Design
     {
         public const string DiagnosticId = "CA1052";
 
-        private static readonly LocalizableString Title = new LocalizableResourceString(
+        private static readonly LocalizableString s_title = new LocalizableResourceString(
             nameof(AnalyzerPowerPackRulesResources.StaticHolderTypesShouldBeStaticOrNotInheritable),
             AnalyzerPowerPackRulesResources.ResourceManager,
             typeof(AnalyzerPowerPackRulesResources));
 
-        private static readonly LocalizableString MessageFormat = new LocalizableResourceString(
+        private static readonly LocalizableString s_messageFormat = new LocalizableResourceString(
             nameof(AnalyzerPowerPackRulesResources.StaticHolderTypeIsNotStatic),
             AnalyzerPowerPackRulesResources.ResourceManager,
             typeof(AnalyzerPowerPackRulesResources));
 
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             DiagnosticId,
-            Title,
-            MessageFormat,
+            s_title,
+            s_messageFormat,
             AnalyzerPowerPackDiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
@@ -166,7 +166,7 @@ namespace Microsoft.AnalyzerPowerPack.Design
             {
                 return true;
             }
-            
+
             // A type member does *not* disqualify a class from being considered a static
             // holder, because even though it is *not* static, it is nevertheless not
             // per-instance.

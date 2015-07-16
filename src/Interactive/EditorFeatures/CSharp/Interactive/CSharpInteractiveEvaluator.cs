@@ -75,11 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         protected override CommandLineParser CommandLineParser
         {
-#if SCRIPTING
             get { return CSharpCommandLineParser.Interactive; }
-#else
-            get { return CSharpCommandLineParser.Default; }
-#endif
         }
     }
 }

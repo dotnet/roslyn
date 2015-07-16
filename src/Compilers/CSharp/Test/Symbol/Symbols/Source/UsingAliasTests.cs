@@ -364,6 +364,5 @@ namespace NS
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
-
     }
 }

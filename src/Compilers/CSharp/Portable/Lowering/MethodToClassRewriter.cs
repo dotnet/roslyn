@@ -559,6 +559,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        private FieldSymbol VisitFieldSymbol(FieldSymbol field)
+        {
+            //  Property of a regular type
+            return ((FieldSymbol)field.OriginalDefinition)
+                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType));
+        }
+
+        public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
+        {
+            ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            TypeSymbol type = this.VisitType(node.Type);
+
+            var member = node.MemberSymbol;
+
+            switch (member.Kind)
+            {
+                case SymbolKind.Field:
+                    member = VisitFieldSymbol((FieldSymbol)member);
+                    break;
+                case SymbolKind.Property:
+                    member = VisitPropertySymbol((PropertySymbol)member);
+                    break;
+            }
+
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, type);
+        }
+
         private static bool BaseReferenceInReceiverWasRewritten(BoundExpression originalReceiver, BoundExpression rewrittenReceiver)
         {
             return originalReceiver != null && originalReceiver.Kind == BoundKind.BaseReference &&

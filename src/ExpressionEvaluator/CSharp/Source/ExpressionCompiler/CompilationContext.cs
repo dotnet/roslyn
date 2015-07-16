@@ -293,27 +293,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         // Pseudo-variables: $exception, $ReturnValue, etc.
                         if (aliases.Length > 0)
                         {
-	                        var sourceAssembly = Compilation.SourceAssembly;
-	                        var typeNameDecoder = new EETypeNameDecoder(Compilation, (PEModuleSymbol)_currentFrame.ContainingModule);
-	                        foreach (var alias in aliases)
-	                        {
-	                            var local = PlaceholderLocalSymbol.Create(
-	                                typeNameDecoder,
-	                                _currentFrame,
-	                                sourceAssembly,
-	                                alias);
-	                            var methodName = GetNextMethodName(methodBuilder);
-	                            var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-	                            var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
-	                            {
-	                                var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
-	                                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
-	                            });
-	                            var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
-	                            localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
-	                            methodBuilder.Add(aliasMethod);
-	                        }
-						}
+                            var sourceAssembly = Compilation.SourceAssembly;
+                            var typeNameDecoder = new EETypeNameDecoder(Compilation, (PEModuleSymbol)_currentFrame.ContainingModule);
+                            foreach (var alias in aliases)
+                            {
+                                var local = PlaceholderLocalSymbol.Create(
+                                    typeNameDecoder,
+                                    _currentFrame,
+                                    sourceAssembly,
+                                    alias);
+                                var methodName = GetNextMethodName(methodBuilder);
+                                var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
+                                var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
+                                {
+                                    var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                    return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                                });
+                                var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
+                                localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
+                                methodBuilder.Add(aliasMethod);
+                            }
+                        }
 
                         // "this" for non-static methods that are not display class methods or
                         // display class methods where the display class contains "<>4__this".
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             localBuilder.Add(new CSharpLocalAndMethod(
                                 ExpressionCompilerConstants.TypeVariablesLocalName,
                                 ExpressionCompilerConstants.TypeVariablesLocalName,
-                                method, 
+                                method,
                                 DkmClrCompilationResultFlags.ReadOnlyResult));
                             methodBuilder.Add(method);
                         }
@@ -791,8 +791,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Method locals and parameters shadow pseudo-variables.
                 var typeNameDecoder = new EETypeNameDecoder(binder.Compilation, (PEModuleSymbol)substitutedSourceMethod.ContainingModule);
                 binder = new PlaceholderLocalBinder(
-                    syntax, 
-                    aliases, 
+                    syntax,
+                    aliases,
                     method,
                     typeNameDecoder,
                     binder);
@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var field = (FieldSymbol)member;
                 var fieldName = field.Name;
 
-                REPARSE:
+            REPARSE:
 
                 DisplayClassVariableKind variableKind;
                 string variableName;

@@ -118,7 +118,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object(*,*)' because 
         End Sub
 
         <Fact>
-        Public Sub TestArrayInferenceNonullableElementError()
+        Public Sub TestArrayInferenceNonNullableElementError()
             Dim options = TestOptions.ReleaseDll.WithRootNamespace("Foo.Bar")
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(

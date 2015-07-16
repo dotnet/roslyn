@@ -5604,7 +5604,8 @@ class B : IA
     }
 }
 ";
-            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module =>
+            {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
                 var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
                 var m = (MethodSymbol)ia.GetMember("M");
@@ -5671,7 +5672,8 @@ class B : IA
     }
 }
 ";
-            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module => {
+            CompileAndVerify(csharp, additionalRefs: new MetadataReference[] { piaReference }, symbolValidator: module =>
+            {
                 ((PEModuleSymbol)module).Module.PretendThereArentNoPiaLocalTypes();
                 var ia = module.GlobalNamespace.GetMember<NamedTypeSymbol>("IA");
                 var m = (MethodSymbol)ia.GetMember("M");
@@ -5687,6 +5689,5 @@ class B : IA
                 });
             }).VerifyDiagnostics();
         }
-
     }
 }

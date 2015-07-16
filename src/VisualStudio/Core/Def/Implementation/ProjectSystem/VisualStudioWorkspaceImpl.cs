@@ -247,12 +247,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (analyzerReference == null)
             {
-                throw new ArgumentNullException("analyzerReference");
+                throw new ArgumentNullException(nameof(analyzerReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -272,12 +272,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (analyzerReference == null)
             {
-                throw new ArgumentNullException("analyzerReference");
+                throw new ArgumentNullException(nameof(analyzerReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -308,12 +308,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (metadataReference == null)
             {
-                throw new ArgumentNullException("metadataReference");
+                throw new ArgumentNullException(nameof(metadataReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -333,12 +333,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (metadataReference == null)
             {
-                throw new ArgumentNullException("metadataReference");
+                throw new ArgumentNullException(nameof(metadataReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -362,12 +362,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (projectReference == null)
             {
-                throw new ArgumentNullException("projectReference");
+                throw new ArgumentNullException(nameof(projectReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -388,12 +388,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (projectReference == null)
             {
-                throw new ArgumentNullException("projectReference");
+                throw new ArgumentNullException(nameof(projectReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -594,7 +594,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             var document = this.GetHostDocument(documentId);
@@ -669,7 +669,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             var document = this.GetHostDocument(documentId);
@@ -736,7 +736,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             if (this.IsDocumentOpen(documentId))

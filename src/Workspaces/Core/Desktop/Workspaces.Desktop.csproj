@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -53,9 +52,15 @@
     <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -77,9 +82,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>InternalUtilities\GacFileResolver.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\AssemblyIdentityExtensions.cs">
-      <Link>InternalUtilities\AssemblyIdentityExtensions.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
@@ -170,8 +172,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

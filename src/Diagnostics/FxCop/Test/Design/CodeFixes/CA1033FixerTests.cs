@@ -83,7 +83,7 @@ public class ImplementsGeneralThree : IGeneral
         }
     }
 }";
-        var expectedFixedCode = @"
+            var expectedFixedCode = @"
 using System;
 
 public interface IGeneral
@@ -198,7 +198,7 @@ public class ImplementsGeneral  : IGeneral
         }
 
         [WorkItem(2616, "https://github.com/dotnet/roslyn/issues/2616")]
-        [Fact(Skip ="2616"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact(Skip = "2616"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void CA1033SimpleDiagnosticCasesCSharp_Indexer()
         {
             var code = @"

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                                           ' TODO: make this API less ugly in the parser
                                           Dim variableDeclarator = TryCast(forEachStatement.ControlVariable, VariableDeclaratorSyntax)
                                           If variableDeclarator IsNot Nothing Then
-                                              ' TODO: unsuck this
+                                              ' TODO: improve this
                                               Return DirectCast(variableDeclarator.AsClause, SimpleAsClauseSyntax)
                                           Else
                                               Return Nothing

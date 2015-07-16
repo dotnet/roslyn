@@ -2,9 +2,18 @@
 
 namespace Microsoft.Cci
 {
+    // TODO: merge with System.Reflection.PortableExecutable.DirectoryEntry
     internal struct DirectoryEntry
     {
-        internal uint RelativeVirtualAddress;
-        internal uint Size;
+        public readonly int RelativeVirtualAddress;
+        public readonly int Size;
+
+        public DirectoryEntry(
+            int relativeVirtualAddress,
+            int size)
+        {
+            RelativeVirtualAddress = relativeVirtualAddress;
+            Size = size;
+        }
     }
 }

@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int codeCompare = xCode.CompareTo(yCode);
 
-            // ToString fails for a diagnostic with an error code that does not prevernt successful delegate conversion.
+            // ToString fails for a diagnostic with an error code that does not prevent successful delegate conversion.
             // Also, the order doesn't matter, since all such diagnostics will be dropped.
             if (!ErrorFacts.PreventsSuccessfulDelegateConversion(xCode) || !ErrorFacts.PreventsSuccessfulDelegateConversion(yCode))
             {

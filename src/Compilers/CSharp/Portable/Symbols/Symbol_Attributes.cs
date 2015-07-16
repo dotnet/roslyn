@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-        
+
         /// <summary>
         /// Method to merge attributes from the given attributesSyntaxLists and filter out attributes by attribute target.
         /// This is the first step in attribute binding.

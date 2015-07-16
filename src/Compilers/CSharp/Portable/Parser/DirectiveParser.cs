@@ -347,10 +347,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseReferenceDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)
         {
-            if (isActive && isFollowingToken)
+            if (isActive)
             {
-                keyword = this.AddError(keyword, ErrorCode.ERR_PPReferenceFollowsToken);
+                if (Options.Kind == SourceCodeKind.Regular)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_ReferenceDirectiveOnlyAllowedInScripts);
+                }
+                else if (isFollowingToken)
+                {
+                    keyword = this.AddError(keyword, ErrorCode.ERR_PPReferenceFollowsToken);
+                }
             }
+
 
             SyntaxToken file = this.EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_ExpectedPPFile, reportError: isActive);
 
@@ -382,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // whenever an unrecognized warning code was supplied in a #pragma directive
                             // (or via /nowarn /warnaserror flags on the command line).
                             // Going forward, we won't generate any warning in such cases. This will make
-                            // maintainance of backwards compatibility easier (we no longer need to worry
+                            // maintenance of backwards compatibility easier (we no longer need to worry
                             // about breaking existing projects / command lines if we deprecate / remove
                             // an old warning code).
                             id = this.EatToken();
@@ -394,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // to that inside #define directives except that very long identifiers inside #define
                             // are truncated to 128 characters to maintain backwards compatibility with previous
                             // versions of the compiler. (See TruncateIdentifier() below.)
-                            // Since support for identifiers inside #pragma warning directivess is new, 
+                            // Since support for identifiers inside #pragma warning directives is new, 
                             // we don't have any backwards compatibility constraints. So we can preserve the
                             // identifier exactly as it appears in source.
                             id = this.EatToken();
@@ -508,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             var skippedTokens = new SyntaxListBuilder<SyntaxToken>();
 
-            // Consume all extranous tokens as leading SkippedTokens trivia.
+            // Consume all extraneous tokens as leading SkippedTokens trivia.
             if (this.CurrentToken.Kind != SyntaxKind.EndOfDirectiveToken &&
                 this.CurrentToken.Kind != SyntaxKind.EndOfFileToken)
             {
