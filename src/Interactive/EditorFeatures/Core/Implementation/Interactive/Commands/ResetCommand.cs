@@ -48,11 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         {
             get
             {
-                return new ReadOnlyCollection<KeyValuePair<string, string>>(new[]
-                {
-                    // TODO: Needs localization...
-                    new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.")
-                });
+                // TODO: Needs localization...
+                yield return new KeyValuePair<string, string>(NoConfigParameterName, "Reset to a clean environment (only mscorlib referenced), do not run initialization script.");
             }
         }
 
