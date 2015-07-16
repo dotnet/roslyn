@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
     [ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.CSharp)]
     internal class ReplCommandCompletionProvider : AbstractCompletionProvider
     {
-        private async Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, System.Threading.CancellationToken cancellationToken)
+        private async Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return CompletionUtilities.GetTextChangeSpan(text, position);
@@ -87,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                                 {
                                     foreach (var commandName in command.Names)
                                     {
-                                        list.Add(new CSharpCompletionItem(
-                                            workspace, this, commandName, textChangeSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
+                                        list.Add(new CompletionItem(
+                                            this, commandName, textChangeSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
                                     }
                                 }
                             }

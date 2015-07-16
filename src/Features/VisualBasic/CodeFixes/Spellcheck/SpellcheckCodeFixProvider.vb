@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                 Return Nothing
             End If
 
-            Dim completionRules = completionService.GetDefaultCompletionRules()
+            Dim completionRules = completionService.GetCompletionRules()
             Dim onlyConsiderGenerics = TryCast(identifierName, GenericNameSyntax) IsNot Nothing
 
             Dim results = New List(Of SpellcheckResult)()

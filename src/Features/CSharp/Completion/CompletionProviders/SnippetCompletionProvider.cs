@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return snippets.Select(snippet => new CSharpCompletionItem(
-                workspace,
+            return snippets.Select(snippet => new CompletionItem(
                 this,
                 displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                 sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,

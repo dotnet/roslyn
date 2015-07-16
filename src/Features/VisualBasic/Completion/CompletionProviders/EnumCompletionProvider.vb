@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class EnumCompletionProvider
+    Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
         Protected Overrides Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
@@ -130,11 +130,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 symbols(0).GetGlyph(),
                 preselect:=preselect,
                 supportedPlatforms:=supportedPlatformData,
-                rules:=EnumCompletionItemRules.Instance)
+                rules:=ItemRules.Instance)
         End Function
 
         Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return EnumCompletionItemRules.Instance
+            Return ItemRules.Instance
         End Function
 
     End Class

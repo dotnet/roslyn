@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
-    internal class ReferenceDirectiveCompletionProvider : AbstractCompletionProvider
+    internal partial class ReferenceDirectiveCompletionProvider : AbstractCompletionProvider
     {
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             var documentPath = document.Project.IsSubmission ? null : document.FilePath;
             var textChangeSpan = this.GetTextChangeSpan(stringLiteral, position);
 
-            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: ReferenceDirectiveCompletionItemRules.Instance);
+            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: ItemRules.Instance);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot == null)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                 searchPaths: metadataFileResolver.SearchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
                 exclude: path => path.Contains(","),
-                itemRules: ReferenceDirectiveCompletionItemRules.Instance);
+                itemRules: ItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(stringLiteral, position);
             return gacHelper.GetItems(pathThroughLastSlash, documentPath).Concat(

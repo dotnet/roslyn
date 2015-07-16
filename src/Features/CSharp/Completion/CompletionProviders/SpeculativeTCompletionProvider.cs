@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 const string T = "T";
                 return SpecializedCollections.SingletonEnumerable(
-                    new CSharpCompletionItem(document.Project.Solution.Workspace, this, T, textChangeSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
+                    new CompletionItem(this, T, textChangeSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();

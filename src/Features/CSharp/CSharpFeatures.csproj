@@ -139,7 +139,7 @@
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.Item.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.ItemRules.cs" />
@@ -152,11 +152,10 @@
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\SymbolCompletionItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CSharpCompletionRules.cs" />
     <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
-    <Compile Include="Completion\CSharpCompletionItem.cs" />
     <Compile Include="Completion\CSharpCompletionOptions.cs" />
     <Compile Include="Completion\CSharpCompletionOptionsProvider.cs" />
     <Compile Include="Completion\CSharpCompletionService.cs" />

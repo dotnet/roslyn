@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var service = document.Project.LanguageServices.GetService<ICompletionService>();
                 if (service != null)
                 {
-                    return service.GetDefaultCompletionRules();
+                    return service.GetCompletionRules();
                 }
             }
 

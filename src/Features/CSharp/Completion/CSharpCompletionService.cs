@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             return false;
         }
 
-        public override CompletionRules GetDefaultCompletionRules()
+        public override CompletionRules GetCompletionRules()
         {
             return new CSharpCompletionRules(this);
         }

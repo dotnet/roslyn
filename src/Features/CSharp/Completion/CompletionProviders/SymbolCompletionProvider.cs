@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class SymbolCompletionProvider : AbstractSymbolCompletionProvider
+    internal partial class SymbolCompletionProvider : AbstractSymbolCompletionProvider
     {
         protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
         {
-            var insertionText = SymbolCompletionItemRules.GetInsertionText(symbol, context);
+            var insertionText = ItemRules.GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
 
             return ValueTuple.Create(displayText, insertionText);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override CompletionItemRules GetCompletionItemRules()
         {
-            return SymbolCompletionItemRules.Instance;
+            return ItemRules.Instance;
         }
     }
 }

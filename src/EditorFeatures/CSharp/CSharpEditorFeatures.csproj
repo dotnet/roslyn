@@ -97,7 +97,7 @@
     <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelper.cs" />
     <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionProvider.cs" />

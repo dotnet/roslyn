@@ -575,7 +575,7 @@ class d
                 var item = completionList.Items.First();
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetDefaultCompletionRules();
+                var completionRules = completionService.GetCompletionRules();
 
                 Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
             }

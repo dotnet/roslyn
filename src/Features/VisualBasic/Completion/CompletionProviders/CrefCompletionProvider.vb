@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class CrefCompletionProvider
+    Partial Friend Class CrefCompletionProvider
         Inherits AbstractCompletionProvider
 
         Private ReadOnly _crefFormat2 As SymbolDisplayFormat =
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                                       Return New CompletionItem(Me, displayString, span, glyph:=s.GetGlyph(),
                                                                 descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s),
-                                                                rules:=CrefCompletionItemRules.Instance)
+                                                                rules:=ItemRules.Instance)
                                   End Function)
         End Function
 

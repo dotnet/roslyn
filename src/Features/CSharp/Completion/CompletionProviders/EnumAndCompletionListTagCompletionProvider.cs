@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class EnumAndCompletionListTagCompletionProvider : AbstractCompletionProvider
+    internal partial class EnumAndCompletionListTagCompletionProvider : AbstractCompletionProvider
     {
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
                 glyph: (alias ?? type).GetGlyph(),
                 preselect: true,
-                rules: EnumAndCompletionListTagCompletionItemRules.Instance);
+                rules: ItemRules.Instance);
 
             return SpecializedCollections.SingletonEnumerable(item);
         }

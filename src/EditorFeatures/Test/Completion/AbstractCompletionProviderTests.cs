@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal static CompletionRules GetCompletionRules(Document document)
         {
-            return GetCompletionService(document).GetDefaultCompletionRules();
+            return GetCompletionService(document).GetCompletionRules();
         }
 
         internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo)

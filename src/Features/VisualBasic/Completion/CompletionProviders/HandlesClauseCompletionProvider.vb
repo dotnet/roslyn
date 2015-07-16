@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class HandlesClauseCompletionProvider
+    Partial Friend Class HandlesClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
         Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                             span,
                                             position,
                                             {symbol}.ToList(),
-                                            context, rules:=SymbolCompletionItemRules.Instance)
+                                            context, rules:=ItemRules.Instance)
         End Function
 
         Private Function IsWithEvents(s As ISymbol) As Boolean
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return SymbolCompletionItemRules.Instance
+            Return ItemRules.Instance
         End Function
     End Class
 End Namespace

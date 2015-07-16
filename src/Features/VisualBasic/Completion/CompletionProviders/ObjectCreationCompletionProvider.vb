@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class ObjectCreationCompletionProvider
+    Partial Friend Class ObjectCreationCompletionProvider
         Inherits AbstractObjectCreationCompletionProvider
 
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return ObjectCreationCompletionItemRules.Instance
+            Return ItemRules.Instance
         End Function
     End Class
 End Namespace

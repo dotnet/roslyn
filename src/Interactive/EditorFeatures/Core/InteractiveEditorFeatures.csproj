@@ -163,7 +163,7 @@
     <Compile Include="Implementation\Interactive\InteractiveGlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveWorkspace.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionItemRules.cs" />
+    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.ItemRules.cs" />
     <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.cs" />
   </ItemGroup>
   <ItemGroup>

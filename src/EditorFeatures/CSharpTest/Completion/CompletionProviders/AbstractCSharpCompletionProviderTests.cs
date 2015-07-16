@@ -141,7 +141,7 @@ text;
                 optionService.SetOptions(options);
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetDefaultCompletionRules();
+                var completionRules = completionService.GetCompletionRules();
 
                 Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));
             }
@@ -205,7 +205,7 @@ text;
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetDefaultCompletionRules();
+                var completionRules = completionService.GetCompletionRules();
 
                 foreach (var ch in validChars)
                 {

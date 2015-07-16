@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Completion
         IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
 
         /// <summary>
-        /// Returns the default set of completion rules for this completion service.
+        /// Returns the set of completion rules for this completion service.
         /// </summary>
-        CompletionRules GetDefaultCompletionRules();
+        CompletionRules GetCompletionRules();
 
         /// <summary>
         /// Clears the most-recently-used cache used by completion.

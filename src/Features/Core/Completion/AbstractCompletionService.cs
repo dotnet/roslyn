@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             completionProviders = completionProviders ?? this.GetDefaultCompletionProviders();
             var completionProviderToIndex = GetCompletionProviderToIndex(completionProviders);
-            var completionRules = GetDefaultCompletionRules();
+            var completionRules = GetCompletionRules();
 
             IEnumerable<CompletionListProvider> triggeredProviders;
             switch (triggerInfo.TriggerReason)
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public abstract Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken);
 
-        public virtual CompletionRules GetDefaultCompletionRules()
+        public virtual CompletionRules GetCompletionRules()
         {
             return new CompletionRules(this);
         }
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public Task<string> GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem completionItem, Workspace workspace)
         {
-            var insertionText = GetDefaultCompletionRules().GetTextChange(completionItem, '\t').NewText;
+            var insertionText = GetCompletionRules().GetTextChange(completionItem, '\t').NewText;
 
             var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
             if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))

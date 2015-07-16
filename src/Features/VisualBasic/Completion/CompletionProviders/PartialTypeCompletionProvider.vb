@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class PartialTypeCompletionProvider
+    Partial Friend Class PartialTypeCompletionProvider
         Inherits AbstractCompletionProvider
 
         Private ReadOnly _partialNameFormat As SymbolDisplayFormat =
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 position,
                 {DirectCast(symbol, ISymbol)}.ToList(),
                 context,
-                rules:=PartialTypeCompletionItemRules.Instance)
+                rules:=ItemRules.Instance)
         End Function
 
         Private Function NotNewDeclaredMember(s As INamedTypeSymbol, token As SyntaxToken) As Boolean

@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal partial class CompletionItemRules
     {
-        public static CompletionItemRules Default = new CompletionItemRules();
+        public static CompletionItemRules DefaultRules = new CompletionItemRules();
 
         /// <summary>
         /// The text change that will be made when this item is committed.  The text change includes

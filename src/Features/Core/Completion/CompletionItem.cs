@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.ShowsWarningIcon = showsWarningIcon;
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
             this.HasAsyncDescription = hasAsyncDescription;
-            this.Rules = rules ?? CompletionItemRules.Default;
+            this.Rules = rules ?? CompletionItemRules.DefaultRules;
 
             if (descriptionFactory != null)
             {

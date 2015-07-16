@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
-    Friend Class SymbolCompletionProvider
+    Partial Friend Class SymbolCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
         Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return SymbolCompletionItemRules.Instance
+            Return ItemRules.Instance
         End Function
 
     End Class

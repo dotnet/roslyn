@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("LoadCommandCompletionProvider", InteractiveLanguageNames.InteractiveCommand)]
-    internal class LoadCommandCompletionProvider : TextCompletionProvider
+    internal partial class LoadCommandCompletionProvider : TextCompletionProvider
     {
+        private const string NetworkPath = "\\\\";
         private static readonly Regex s_directiveRegex = new Regex(@"#load\s+(""[^""]*""?)", RegexOptions.Compiled);
 
         public override CompletionList GetCompletionList(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 Glyph.CSharpFile,
                 searchPaths: searchPaths,
                 allowableExtensions: new[] { ".csx" },
-                itemRules: LoadCommandCompletionItemRules.Instance);
+                itemRules: ItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);
 

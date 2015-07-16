@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
-                Dim completionRules = completionService.GetDefaultCompletionRules()
+                Dim completionRules = completionService.GetCompletionRules()
 
                 Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
             End Using
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim item = completionList.Items.First()
 
                 Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
-                Dim completionRules = completionService.GetDefaultCompletionRules()
+                Dim completionRules = completionService.GetCompletionRules()
 
                 For Each ch In chars
                     Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
