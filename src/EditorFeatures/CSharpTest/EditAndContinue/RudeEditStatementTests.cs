@@ -6601,7 +6601,29 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
-                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.AwaitExpression));
+                Diagnostic(RudeEditKind.Delete, "=> F(1)", CSharpFeaturesResources.AwaitExpression),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "static Task<int> F()", FeaturesResources.Method));
+        }
+
+        [Fact]
+        public void Await_Delete6()
+        {
+            var src1 = @"
+class C
+{
+    static async void F() => F();
+}
+";
+            var src2 = @"
+class C
+{
+    static void F() => F();
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+                Diagnostic(RudeEditKind.ModifiersUpdate, "static void F()", "method"));
         }
 
         [Fact]
