@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             if (firstEntryToFlush != null)
             {
-                _window.UIThread(() => _window.AppendOutput(GetEntries(firstEntryToFlush), flushLength));
+                _window.AppendOutput(GetEntries(firstEntryToFlush), flushLength);
             }
         }
 

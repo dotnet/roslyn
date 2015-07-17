@@ -13,14 +13,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
@@ -33,51 +30,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
+    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations
     {
         private bool _adornmentToMinimize;
 
-        private State _DO_NOT_USE_stateBackingField;
-        private State _state
-        {
-            get
-            {
-                // Reads can happen on the UI thread via the
-                // public API, but the contract does not
-                // guarantee consistency in such cases.
-                return _DO_NOT_USE_stateBackingField;
-            }
-            set
-            {
-                // All state transitions happen on the UI
-                // thread so we don't have to worry about.
-                AssertOnUIThread();
-                _DO_NOT_USE_stateBackingField = value;
-            }
-        }
-
-        private Task<ExecutionResult> _DO_NOT_USE_currentTask;
-        private Task<ExecutionResult> _currentTask
-        {
-            get
-            {
-                AssertOnUIThread();
-                return _DO_NOT_USE_currentTask;
-            }
-            set
-            {
-                AssertOnUIThread();
-                _DO_NOT_USE_currentTask = value;
-            }
-        }
-
-        private DispatcherTimer _executionTimer;
-        private Cursor _oldCursor;
-
         private readonly IWpfTextView _textView;
-        private readonly IEditorOperations _editorOperations;
         private readonly History _history;
-        private readonly TaskScheduler _uiScheduler;
 
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
@@ -85,10 +43,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         //// Services
         //// 
 
-        private readonly IInteractiveWindowEditorFactoryService _host;
-        private readonly IContentTypeRegistryService _contentTypeRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactory;
-        private readonly ITextEditorFactoryService _editorFactory;
         private readonly IIntellisenseSessionStackMapService _intellisenseSessionStackMap;
         private readonly ISmartIndentationService _smartIndenterService;
 
@@ -102,29 +56,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         ////
         //// Buffer composition.
         //// 
-        private readonly ITextBufferFactoryService _bufferFactory;                          // Factory for creating output, std input, prompt and language buffers.
-        private readonly IProjectionBufferFactoryService _projectionBufferFactory;
         private readonly ITextBuffer _outputBuffer;
         private readonly IProjectionBuffer _projectionBuffer;
-        private readonly ITextBuffer _stdInputBuffer;
+        private readonly ITextBuffer _standardInputBuffer;
 
         private ITextBuffer _currentLanguageBuffer;
         private string _historySearch;
 
-        // Read-only regions protecting initial span of the corresponding buffers:
-        private readonly IReadOnlyRegion[] _stdInputProtection = new IReadOnlyRegion[2];
-        private readonly IReadOnlyRegion[] _outputProtection = new IReadOnlyRegion[2];
-
         // List of projection buffer spans - the projection buffer doesn't allow us to enumerate spans so we need to track them manually:
         private readonly List<ReplSpan> _projectionSpans = new List<ReplSpan>();
         private readonly PromptLineMapping _promptLineMapping = new PromptLineMapping();
-
-        ////
-        //// Submissions.
-        ////
-
-        // Pending submissions to be processed whenever the REPL is ready to accept submissions.
-        private readonly Queue<PendingSubmission> _pendingSubmissions = new Queue<PendingSubmission>();
 
         ////
         //// Standard input.
@@ -133,7 +74,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         // non-null if reading from stdin - position in the _inputBuffer where we map stdin
         private int? _stdInputStart; // TODO (tomat): this variable is not used in thread-safe manner
         private SnapshotSpan? _inputValue;
-        private string _uncommittedInput;
         private readonly AutoResetEvent _inputEvent = new AutoResetEvent(false);
 
         //// 
@@ -143,136 +83,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly OutputBuffer _buffer;
         private readonly TextWriter _outputWriter;
         private readonly InteractiveWindowWriter _errorOutputWriter;
-        private int _currentOutputProjectionSpan;
-        private int _outputTrackingCaretPosition;
 
         private readonly ReplSpan _lineBreakOutputSpan;
-        private readonly ReplSpan _emptySubmissionSpan;
 
-        private static readonly char[] s_whitespaceChars = new[] { '\r', '\n', ' ', '\t' };
         private const string BoxSelectionCutCopyTag = "MSDEVColumnSelect";
-
-        #region Initialization
-
-        public InteractiveWindow(
-            IInteractiveWindowEditorFactoryService host,
-            IContentTypeRegistryService contentTypeRegistry,
-            ITextBufferFactoryService bufferFactory,
-            IProjectionBufferFactoryService projectionBufferFactory,
-            IEditorOperationsFactoryService editorOperationsFactory,
-            ITextEditorFactoryService editorFactory,
-            IIntellisenseSessionStackMapService intellisenseSessionStackMap,
-            ISmartIndentationService smartIndenterService,
-            IInteractiveEvaluator evaluator)
-        {
-            if (evaluator == null)
-            {
-                throw new ArgumentNullException(nameof(evaluator));
-            }
-
-            _host = host;
-            this.Properties = new PropertyCollection();
-            _history = new History();
-
-            _projectionBufferFactory = projectionBufferFactory;
-            _bufferFactory = bufferFactory;
-            _editorFactory = editorFactory;
-            _contentTypeRegistry = contentTypeRegistry;
-            _editorOperationsFactory = editorOperationsFactory;
-            _intellisenseSessionStackMap = intellisenseSessionStackMap;
-            _smartIndenterService = smartIndenterService;
-
-            var textContentType = contentTypeRegistry.GetContentType("text");
-            var replContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName);
-            var replOutputContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveOutputContentTypeName);
-
-            _outputBuffer = bufferFactory.CreateTextBuffer(replOutputContentType);
-            _stdInputBuffer = bufferFactory.CreateTextBuffer();
-
-            var projBuffer = projectionBufferFactory.CreateProjectionBuffer(
-                new EditResolver(this),
-                Array.Empty<object>(),
-                ProjectionBufferOptions.None,
-                replContentType);
-
-            // we need to set IReplPromptProvider property before TextViewHost is instantiated so that ReplPromptTaggerProvider can bind to it 
-            projBuffer.Properties.AddProperty(typeof(InteractiveWindow), this);
-
-            _projectionBuffer = projBuffer;
-            AppendNewOutputProjectionBuffer();
-            projBuffer.Changed += new EventHandler<TextContentChangedEventArgs>(ProjectionBufferChanged);
-
-            _textView = host.CreateTextView(this, projBuffer, CreateRoleSet());
-
-            _textView.Caret.PositionChanged += CaretPositionChanged;
-
-            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
-            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineNumberMarginId, false);
-            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.OutliningMarginId, false);
-            _textView.Options.SetOptionValue(DefaultTextViewHostOptions.GlyphMarginId, false);
-            _textView.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.WordWrap);
-
-            string lineBreak = _textView.Options.GetNewLineCharacter();
-            _lineBreakOutputSpan = new ReplSpan(lineBreak, ReplSpanKind.Output);
-            _emptySubmissionSpan = new ReplSpan(lineBreak, ReplSpanKind.Language);
-            _editorOperations = editorOperationsFactory.GetEditorOperations(_textView);
-            _uiScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-
-            _outputTrackingCaretPosition = -1;
-            _buffer = new OutputBuffer(this);
-            _outputWriter = new InteractiveWindowWriter(this, spans: null);
-
-            SortedSpans errorSpans = new SortedSpans();
-            _errorOutputWriter = new InteractiveWindowWriter(this, errorSpans);
-            OutputClassifierProvider.AttachToBuffer(_outputBuffer, errorSpans);
-
-            RequiresUIThread();
-            evaluator.CurrentWindow = this;
-            _evaluator = evaluator;
-        }
-
-        async Task<ExecutionResult> IInteractiveWindow.InitializeAsync()
-        {
-            RequiresUIThread();
-
-            if (_state != State.Starting)
-            {
-                throw new InvalidOperationException(InteractiveWindowResources.AlreadyInitialized);
-            }
-
-            _state = State.Initializing;
-
-            // Anything that reads options should wait until after this call so the evaluator can set the options first
-            ExecutionResult result = await _evaluator.InitializeAsync().ConfigureAwait(continueOnCapturedContext: true);
-
-            AssertOnUIThread();
-
-            if (result.IsSuccessful)
-            {
-                PrepareForInput();
-            }
-
-            return result;
-        }
-
-        private ITextViewRoleSet CreateRoleSet()
-        {
-            return _editorFactory.CreateTextViewRoleSet(
-                PredefinedTextViewRoles.Analyzable,
-                PredefinedTextViewRoles.Editable,
-                PredefinedTextViewRoles.Interactive,
-                PredefinedTextViewRoles.Zoomable,
-                PredefinedInteractiveTextViewRoles.InteractiveTextViewRole);
-        }
 
         void IInteractiveWindow.Close()
         {
             Caret.PositionChanged -= CaretPositionChanged;
 
-            _textView.Close();
+            UIThread(uiOnly => _textView.Close());
         }
-
-        #endregion
 
         #region Misc Helpers
 
@@ -293,17 +114,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private ITextBuffer TextBuffer => _textView.TextBuffer;
 
-        private ITextSnapshot CurrentSnapshot => TextBuffer.CurrentSnapshot;
-
         public ITextBuffer CurrentLanguageBuffer => _currentLanguageBuffer;
-
-        private void RequiresLanguageBuffer()
-        {
-            if (_currentLanguageBuffer == null)
-            {
-                Environment.FailFast("Language buffer not available");
-            }
-        }
 
         void IDisposable.Dispose()
         {
@@ -336,101 +147,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         IInteractiveEvaluator IInteractiveWindow.Evaluator => _evaluator;
 
-        void IInteractiveWindowOperations.ClearHistory()
-        {
-            UIThread(() => _history.Clear());
-        }
-
-        void IInteractiveWindowOperations.ClearView()
-        {
-            UIThread(() => ClearViewInternal());
-        }
-
-        private void ClearViewInternal()
-        {
-            AssertOnUIThread();
-
-            if (_stdInputStart != null)
-            {
-                CancelStandardInput();
-            }
-
-            _adornmentToMinimize = false;
-            InlineAdornmentProvider.RemoveAllAdornments(_textView);
-
-            // remove all the spans except our initial span from the projection buffer
-            _promptLineMapping.Clear();
-            _uncommittedInput = null;
-
-            // Clear the projection and buffers last as this might trigger events that might access other state of the REPL window:
-            RemoveProtection(_outputBuffer, _outputProtection);
-            RemoveProtection(_stdInputBuffer, _stdInputProtection);
-
-            using (var edit = _outputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
-            {
-                edit.Delete(0, _outputBuffer.CurrentSnapshot.Length);
-                edit.Apply();
-            }
-
-            _buffer.Reset();
-            OutputClassifierProvider.ClearSpans(_outputBuffer);
-            _outputTrackingCaretPosition = 0;
-
-            using (var edit = _stdInputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
-            {
-                edit.Delete(0, _stdInputBuffer.CurrentSnapshot.Length);
-                edit.Apply();
-            }
-
-            RemoveProjectionSpans(0, _projectionSpans.Count);
-
-            // Insert an empty output buffer.
-            // We do it for two reasons: 
-            // 1) When output is written to asynchronously we need a buffer to store it.
-            //    This may happen when clearing screen while background thread is writing to the console.
-            // 2) We need at least one non-inert span due to bugs in projection buffer.
-            AppendNewOutputProjectionBuffer();
-
-            _history.ForgetOriginalBuffers();
-
-            // If we were waiting for input, we need to restore the prompt that we just cleared.
-            // If we are in any other state, then we'll let normal transitions trigger the next prompt.
-            if (_state == State.WaitingForInput)
-            {
-                PrepareForInput();
-            }
-        }
-
-        public void InsertCode(string text)
-        {
-            if (!OnUIThread())
-            {
-                Dispatcher.BeginInvoke(new Action(() => InsertCode(text)));
-                return;
-            }
-
-            AssertOnUIThread();
-
-            if (_stdInputStart == null)
-            {
-                return;
-            }
-
-            if (_state == State.ExecutingInput)
-            {
-                AppendUncommittedInput(text);
-            }
-            else
-            {
-                if (!_textView.Selection.IsEmpty)
-                {
-                    CutOrDeleteSelection(isCut: false);
-                }
-
-                _editorOperations.InsertText(text);
-            }
-        }
-
         Task IInteractiveWindow.SubmitAsync(IEnumerable<string> inputs)
         {
             var completion = new TaskCompletionSource<object>();
@@ -449,32 +165,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            Submit(pendingSubmissions);
+            UIThread(uiOnly => uiOnly.Submit(pendingSubmissions));
             return completion.Task;
-        }
-
-        private void Submit(PendingSubmission[] pendingSubmissions)
-        {
-            if (!OnUIThread())
-            {
-                Dispatcher.BeginInvoke(new Action(() => Submit(pendingSubmissions)));
-                return;
-            }
-
-            AssertOnUIThread();
-            if (_stdInputStart == null)
-            {
-                if (_state == State.WaitingForInput && _currentLanguageBuffer != null)
-                {
-                    StoreUncommittedInput();
-                    PendSubmissions(pendingSubmissions);
-                    ProcessPendingSubmissions();
-                }
-                else
-                {
-                    PendSubmissions(pendingSubmissions);
-                }
-            }
         }
 
         private class PendingSubmission
@@ -490,65 +182,64 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private void PendSubmissions(IEnumerable<PendingSubmission> inputs)
-        {
-            foreach (var input in inputs)
-            {
-                _pendingSubmissions.Enqueue(input);
-            }
-        }
-
         void IInteractiveWindow.AddInput(string command)
         {
-            // TODO (acasey): ui thread?
-            if (_state == State.ExecutingInput || _currentLanguageBuffer == null)
-            {
-                AddLanguageBuffer();
-                _currentLanguageBuffer.Insert(0, command);
-            }
-            else
-            {
-                StoreUncommittedInput();
-                SetActiveCode(command);
-            }
-
-            FinishCurrentSubmissionInput();
-            _history.Add(_currentLanguageBuffer.CurrentSnapshot.GetExtent());
-        }
-
-        public Task<ExecutionResult> ResetAsync(bool initialize = true)
-        {
-            if (!OnUIThread())
-            {
-                return UIThread(() => ResetAsync(initialize));
-            }
-
-            AssertOnUIThread();
-            Debug.Assert(_state != State.Resetting, "The button should have been disabled.");
-
-            if (_stdInputStart != null)
-            {
-                CancelStandardInput();
-            }
-
-            _buffer.Flush();
-
-            // replace the task being interrupted by a "reset" task:
-            _state = State.Resetting;
-            _currentTask = _evaluator.ResetAsync(initialize);
-            _currentTask.ContinueWith(FinishExecute, _uiScheduler);
-
-            return _currentTask;
+            UIThread(uiOnly => uiOnly.AddInput(command));
         }
 
         void IInteractiveWindow.FlushOutput()
         {
-            _buffer.Flush();
+            // Flush can only be called on the UI thread.
+            UIThread(uiOnly => _buffer.Flush());
+        }
+
+        void IInteractiveWindow.InsertCode(string text)
+        {
+            UIThread(uiOnly => uiOnly.InsertCode(text));
         }
 
         #endregion
 
         #region Commands
+
+        Task<ExecutionResult> IInteractiveWindowOperations.ResetAsync(bool initialize)
+        {
+            return UIThread(uiOnly => uiOnly.ResetAsync(initialize));
+        }
+
+        void IInteractiveWindowOperations.ClearHistory()
+        {
+            UIThread(uiOnly => _history.Clear());
+        }
+
+        void IInteractiveWindowOperations.ClearView()
+        {
+            UIThread(uiOnly => uiOnly.ClearView());
+        }
+
+        /// <summary>
+        /// Pastes from the clipboard into the text view
+        /// </summary>
+        bool IInteractiveWindowOperations.Paste()
+        {
+            return UIThread(uiOnly => uiOnly.Paste());
+        }
+
+        void IInteractiveWindowOperations.ExecuteInput()
+        {
+            UIThread(uiOnly => uiOnly.ExecuteInput());
+        }
+
+        /// <summary>
+        /// Appends text to the output buffer and updates projection buffer to include it.
+        /// WARNING: this has to be the only method that writes to the output buffer so that 
+        /// the output buffering counters are kept in sync.
+        /// </summary>
+        internal void AppendOutput(IEnumerable<string> output, int outputLength)
+        {
+            RequiresUIThread();
+            _dangerous_uiOnly.AppendOutput(output, outputLength);
+        }
 
         /// <summary>
         /// Clears the current input
@@ -556,8 +247,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         void IInteractiveWindowOperations.Cancel()
         {
             ClearInput();
-            _editorOperations.MoveToEndOfDocument(false);
-            _uncommittedInput = null;
+            UIThread(uiOnly =>
+            {
+                uiOnly.EditorOperations.MoveToEndOfDocument(false);
+                uiOnly.UncommittedInput = null;
+            });
             _historySearch = null;
         }
 
@@ -578,7 +272,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 SetActiveCodeToHistory(previous);
-                _editorOperations.MoveToEndOfDocument(false);
+                UIThread(uiOnly => uiOnly.EditorOperations.MoveToEndOfDocument(false));
             }
         }
 
@@ -599,7 +293,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 SetActiveCodeToHistory(next);
-                _editorOperations.MoveToEndOfDocument(false);
+                UIThread(uiOnly => uiOnly.EditorOperations.MoveToEndOfDocument(false));
             }
             else
             {
@@ -608,7 +302,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 if (!string.IsNullOrEmpty(code))
                 {
                     SetActiveCode(code);
-                    _editorOperations.MoveToEndOfDocument(false);
+                    UIThread(uiOnly => uiOnly.EditorOperations.MoveToEndOfDocument(false));
                 }
             }
         }
@@ -745,7 +439,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 span = new SnapshotSpan(TextBuffer.CurrentSnapshot, new Span(0, TextBuffer.CurrentSnapshot.Length));
             }
 
-            _textView.Selection.Select(span.Value, isReversed: false);
+            UIThread(uiOnly => _textView.Selection.Select(span.Value, isReversed: false));
         }
 
         /// <summary>
@@ -819,33 +513,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         }
 
         /// <summary>
-        /// Pastes from the clipboard into the text view
-        /// </summary>
-        bool IInteractiveWindowOperations.Paste()
-        {
-            return UIThread(() =>
-            {
-                MoveCaretToClosestEditableBuffer();
-
-                string format = _evaluator.FormatClipboard();
-                if (format != null)
-                {
-                    InsertCode(format);
-                }
-                else if (Clipboard.ContainsText())
-                {
-                    InsertCode(Clipboard.GetText());
-                }
-                else
-                {
-                    return false;
-                }
-
-                return true;
-            });
-        }
-
-        /// <summary>
         /// Indents the line where the caret is currently located.
         /// </summary>
         /// <remarks>
@@ -876,7 +543,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
 
                     // insert whitespace indentation:
-                    string whitespace = GetWhiteSpaceForVirtualSpace(indentation.Value);
+                    var options = _textView.Options;
+                    string whitespace = GetWhiteSpaceForVirtualSpace(indentation.Value, options.IsConvertTabsToSpacesEnabled() ? default(int?) : options.GetTabSize());
                     _currentLanguageBuffer.Insert(langCaret.Value, whitespace);
                 }
             }
@@ -890,8 +558,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private SnapshotPoint? GetPositionInStdInputBuffer(SnapshotPoint point)
         {
-            Debug.Assert(_stdInputBuffer != null);
-            return GetPositionInBuffer(point, _stdInputBuffer);
+            Debug.Assert(_standardInputBuffer != null);
+            return GetPositionInBuffer(point, _standardInputBuffer);
         }
 
         private SnapshotPoint? GetPositionInBuffer(SnapshotPoint point, ITextBuffer buffer)
@@ -904,17 +572,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         }
 
         // Mimics EditorOperations.GetWhiteSpaceForPositionAndVirtualSpace.
-        private string GetWhiteSpaceForVirtualSpace(int virtualSpaces)
+        private static string GetWhiteSpaceForVirtualSpace(int virtualSpaces, int? tabSize)
         {
             string textToInsert;
-            if (!_textView.Options.IsConvertTabsToSpacesEnabled())
+            if (tabSize.HasValue)
             {
-                int tabSize = _textView.Options.GetTabSize();
+                int tabSizeInt = tabSize.GetValueOrDefault();
 
-                int spacesAfterPreviousTabStop = virtualSpaces % tabSize;
+                int spacesAfterPreviousTabStop = virtualSpaces % tabSizeInt;
                 int columnOfPreviousTabStop = virtualSpaces - spacesAfterPreviousTabStop;
 
-                int requiredTabs = (columnOfPreviousTabStop + tabSize - 1) / tabSize;
+                int requiredTabs = (columnOfPreviousTabStop + tabSizeInt - 1) / tabSizeInt;
 
                 if (requiredTabs > 0)
                 {
@@ -960,9 +628,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             point.Value.Snapshot.TextBuffer.Delete(new Span(point.Value.Position - characterSize, characterSize));
 
-            // scroll to the line being edited:
-            SnapshotPoint caretPosition = _textView.Caret.Position.BufferPosition;
-            _textView.ViewScroller.EnsureSpanVisible(new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0));
+            UIThread(uiOnly =>
+            {
+                // scroll to the line being edited:
+                SnapshotPoint caretPosition = _textView.Caret.Position.BufferPosition;
+                _textView.ViewScroller.EnsureSpanVisible(new SnapshotSpan(caretPosition.Snapshot, caretPosition, 0));
+            });
         }
 
         private void CutOrDeleteCurrentLine(bool isCut)
@@ -994,7 +665,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             StringBuilder deletedText = null;
 
             // split into multiple deletes that only affect the language/input buffer:
-            ITextBuffer affectedBuffer = (_stdInputStart != null) ? _stdInputBuffer : _currentLanguageBuffer;
+            ITextBuffer affectedBuffer = (_stdInputStart != null) ? _standardInputBuffer : _currentLanguageBuffer;
             using (var edit = affectedBuffer.CreateEdit())
             {
                 foreach (var projectionSpan in projectionSpans)
@@ -1150,13 +821,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region Keyboard Commands
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsRunning => _state != State.WaitingForInput;
+        bool IInteractiveWindow.IsRunning => _dangerous_uiOnly.State != State.WaitingForInput;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsResetting => _state == State.Resetting;
+        bool IInteractiveWindow.IsResetting => _dangerous_uiOnly.State == State.Resetting;
 
         /// <remarks>Only consistent on the UI thread.</remarks>
-        bool IInteractiveWindow.IsInitializing => _state == State.Starting || _state == State.Initializing;
+        bool IInteractiveWindow.IsInitializing => _dangerous_uiOnly.State == State.Starting || _dangerous_uiOnly.State == State.Initializing;
 
         IInteractiveWindowOperations IInteractiveWindow.Operations => this;
 
@@ -1255,7 +926,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // note that caret might be located in virtual space behind the current buffer end:
                 if (trySubmit && caretPosition >= _currentLanguageBuffer.CurrentSnapshot.Length && CanExecuteActiveCode())
                 {
-                    Submit();
+                    UIThread(uiOnly => uiOnly.SubmitAsync());
                     return true;
                 }
 
@@ -1312,36 +983,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         private ITextCaret Caret => _textView.Caret;
 
-        private bool CaretAtEnd => Caret.Position.BufferPosition.Position == CurrentSnapshot.Length;
-
-        private bool CaretInActiveCodeRegion
-        {
-            get
-            {
-                if (_currentLanguageBuffer == null)
-                {
-                    return false;
-                }
-
-                var point = GetPositionInLanguageBuffer(Caret.Position.BufferPosition);
-                return point != null;
-            }
-        }
-
-        private bool CaretInStandardInputRegion
-        {
-            get
-            {
-                if (_stdInputBuffer == null)
-                {
-                    return false;
-                }
-
-                var point = GetPositionInStdInputBuffer(Caret.Position.BufferPosition);
-                return point != null;
-            }
-        }
-
         private void MoveCaretToClosestEditableBuffer()
         {
             SnapshotPoint currentPosition = _textView.Caret.Position.BufferPosition;
@@ -1357,7 +998,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// </summary>
         private SnapshotPoint GetClosestEditablePoint(SnapshotPoint projectionPoint)
         {
-            ITextBuffer editableBuffer = (_stdInputStart != null) ? _stdInputBuffer : _currentLanguageBuffer;
+            ITextBuffer editableBuffer = (_stdInputStart != null) ? _standardInputBuffer : _currentLanguageBuffer;
 
             if (editableBuffer == null)
             {
@@ -1412,60 +1053,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return result;
             }
 
-            if (_stdInputBuffer != null)
+            if (_standardInputBuffer != null)
             {
                 result = GetPositionInStdInputBuffer(projectionPoint);
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Returns the language or command text buffer that the specified point belongs to.
-        /// If the point lays in a prompt returns the buffer corresponding to the prompt.
-        /// </summary>
-        /// <returns>The language or command buffer or null if the point doesn't belong to any.</returns>
-        private ITextBuffer GetLanguageBuffer(SnapshotPoint point)
-        {
-            int primaryPromptIndex;
-            ReplSpan projectionSpan = GetClosestPrecedingInputSpan(point, out primaryPromptIndex);
-            if (projectionSpan == null || projectionSpan.Kind != ReplSpanKind.Language)
-            {
-                return null;
-            }
-
-            var inputBuffer = projectionSpan.TrackingSpan.TextBuffer;
-            var inputSnapshot = inputBuffer.CurrentSnapshot;
-
-            var projectedSnapshot = _textView.BufferGraph.MapUpToBuffer(
-                new SnapshotSpan(inputSnapshot, 0, inputSnapshot.Length),
-                SpanTrackingMode.EdgePositive,
-                _projectionBuffer);
-
-            Debug.Assert(projectedSnapshot.Count > 0);
-            var projectedSnapshotStart = projectedSnapshot.First().Start;
-            var projectedSnapshotEnd = projectedSnapshot.Last().End;
-
-            if (point < projectedSnapshotStart.GetContainingLine().Start)
-            {
-                return null;
-            }
-
-            // If the buffer is the current buffer, the cursor might be in a virtual space behind the buffer
-            // but logically it belongs to the current submission. Since the current language buffer is the last buffer in the 
-            // projection we don't need to check for its end.
-            if (inputBuffer == _currentLanguageBuffer)
-            {
-                return inputBuffer;
-            }
-
-            // if the point is at the end of the buffer it might be on the next line that doesn't logically belong to the input region:
-            if (point > projectedSnapshotEnd || (point == projectedSnapshotEnd && projectedSnapshotEnd.GetContainingLine().LineBreakLength != 0))
-            {
-                return null;
-            }
-
-            return inputBuffer;
         }
 
         /// <summary>
@@ -1489,50 +1082,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             return _currentLanguageBuffer.CurrentSnapshot.Length;
-        }
-
-        private void ResetCursor()
-        {
-            if (_executionTimer != null)
-            {
-                _executionTimer.Stop();
-            }
-
-            if (_oldCursor != null)
-            {
-                ((ContentControl)_textView).Cursor = _oldCursor;
-            }
-
-            _oldCursor = null;
-            _executionTimer = null;
-        }
-
-        private void StartCursorTimer()
-        {
-            var timer = new DispatcherTimer();
-            timer.Tick += SetRunningCursor;
-            timer.Interval = TimeSpan.FromMilliseconds(250);
-            _executionTimer = timer;
-            timer.Start();
-        }
-
-        private void SetRunningCursor(object sender, EventArgs e)
-        {
-            var view = (ContentControl)_textView;
-
-            // Save the old value of the cursor so it can be restored
-            // after execution has finished
-            _oldCursor = view.Cursor;
-
-            // TODO: Design work to come up with the correct cursor to use
-            // Set the repl's cursor to the "executing" cursor
-            view.Cursor = Cursors.Wait;
-
-            // Stop the timer so it doesn't fire again
-            if (_executionTimer != null)
-            {
-                _executionTimer.Stop();
-            }
         }
 
         private void CaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
@@ -1625,38 +1174,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             SetActiveCode(entry.Text);
         }
 
-        /// <summary>
-        /// Appends given text to the last input span (standard input or active code input).
-        /// </summary>
-        private void AppendInput(string text)
-        {
-            AssertOnUIThread();
-
-            var inputSpan = _projectionSpans[_projectionSpans.Count - 1];
-            Debug.Assert(inputSpan.Kind == ReplSpanKind.Language || inputSpan.Kind == ReplSpanKind.StandardInput);
-            Debug.Assert(inputSpan.TrackingSpan.TrackingMode == SpanTrackingMode.Custom);
-
-            var buffer = inputSpan.TrackingSpan.TextBuffer;
-            var span = inputSpan.TrackingSpan.GetSpan(buffer.CurrentSnapshot);
-            using (var edit = buffer.CreateEdit())
-            {
-                edit.Insert(edit.Snapshot.Length, text);
-                edit.Apply();
-            }
-
-            var replSpan = new ReplSpan(
-                new CustomTrackingSpan(
-                    buffer.CurrentSnapshot,
-                    new Span(span.Start, span.Length + text.Length),
-                    PointTrackingMode.Negative,
-                    PointTrackingMode.Positive),
-                inputSpan.Kind);
-
-            ReplaceProjectionSpan(_projectionSpans.Count - 1, replSpan);
-
-            Caret.EnsureVisible();
-        }
-
         private void ClearInput()
         {
             Debug.Assert(_projectionSpans.Count > 0);
@@ -1684,162 +1201,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 else
                 {
                     Debug.Assert(_stdInputStart != null);
-                    _stdInputBuffer.Delete(Span.FromBounds(_stdInputStart.Value, _stdInputBuffer.CurrentSnapshot.Length));
+                    _standardInputBuffer.Delete(Span.FromBounds(_stdInputStart.Value, _standardInputBuffer.CurrentSnapshot.Length));
                 }
-            }
-        }
-
-        private void PrepareForInput()
-        {
-            AssertOnUIThread();
-
-            _buffer.Flush();
-
-            AddLanguageBuffer();
-
-            // we are prepared for processing any postponed submissions there might have been:
-            ProcessPendingSubmissions();
-        }
-
-        private void ProcessPendingSubmissions()
-        {
-            Debug.Assert(_currentLanguageBuffer != null);
-
-            if (_pendingSubmissions.Count == 0)
-            {
-                RestoreUncommittedInput();
-
-                // move to the end (it might have been in virtual space):
-                Caret.MoveTo(GetLastLine().End);
-                Caret.EnsureVisible();
-
-                _state = State.WaitingForInput;
-
-                var ready = ReadyForInput;
-                if (ready != null)
-                {
-                    ready();
-                }
-
-                return;
-            }
-
-            var submission = _pendingSubmissions.Dequeue();
-
-            // queue new work item:
-            Dispatcher.Invoke(new Action(() =>
-            {
-                SetActiveCode(submission.Input);
-                var taskDone = Submit();
-                if (submission.Completion != null)
-                {
-                    taskDone.ContinueWith(x => submission.Completion.SetResult(null), TaskScheduler.Current);
-                }
-            }));
-        }
-
-        private Task Submit()
-        {
-            AssertOnUIThread();
-            RequiresLanguageBuffer();
-
-            // TODO: queue submission
-            // Ensure that the REPL doesn't try to execute if it is already
-            // executing.  If this invariant can no longer be maintained more of
-            // the code in this method will need to be bullet-proofed
-            if (_state == State.ExecutingInput)
-            {
-                return Task.FromResult<object>(null);
-            }
-
-            FinishCurrentSubmissionInput();
-
-            _history.UncommittedInput = null;
-
-            var snapshotSpan = _currentLanguageBuffer.CurrentSnapshot.GetExtent();
-            var trimmedSpan = snapshotSpan.TrimEnd();
-
-            if (trimmedSpan.Length == 0)
-            {
-                // TODO: reuse the current language buffer
-                PrepareForInput();
-                return Task.FromResult<object>(null);
-            }
-            else
-            {
-                _history.Add(trimmedSpan);
-                _state = State.ExecutingInput;
-
-                StartCursorTimer();
-
-                Debug.Assert(_currentTask == null, "Shouldn't be either executing or resetting");
-                _currentTask = _evaluator.ExecuteCodeAsync(snapshotSpan.GetText());
-                return _currentTask.ContinueWith(FinishExecute, _uiScheduler);
-            }
-        }
-
-        private void FinishCurrentSubmissionInput()
-        {
-            AssertOnUIThread();
-
-            AppendLineNoPromptInjection(_currentLanguageBuffer);
-            ApplyProtection(_currentLanguageBuffer, regions: null);
-
-            if (_adornmentToMinimize)
-            {
-                // TODO (tomat): remember the index of the adornment(s) in the current output and minimize those instead of the last one 
-                InlineAdornmentProvider.MinimizeLastInlineAdornment(_textView);
-                _adornmentToMinimize = false;
-            }
-
-            NewOutputBuffer();
-        }
-
-        private void NewOutputBuffer()
-        {
-            // Stop growing the current output projection span.
-            Debug.Assert(_projectionSpans[_currentOutputProjectionSpan].Kind == ReplSpanKind.Output);
-            var nonGrowingSpan = _projectionSpans[_currentOutputProjectionSpan].WithEndTrackingMode(PointTrackingMode.Negative);
-            ReplaceProjectionSpan(_currentOutputProjectionSpan, nonGrowingSpan);
-
-            AppendNewOutputProjectionBuffer();
-            _outputTrackingCaretPosition = _textView.Caret.Position.BufferPosition;
-        }
-
-        private void StoreUncommittedInput()
-        {
-            if (_uncommittedInput == null)
-            {
-                string activeCode = GetActiveCode();
-                if (!string.IsNullOrEmpty(activeCode))
-                {
-                    _uncommittedInput = activeCode;
-                }
-            }
-        }
-
-        private void AppendUncommittedInput(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                // Do nothing.
-            }   
-            else if (string.IsNullOrEmpty(_uncommittedInput))
-            {
-                _uncommittedInput = text;
-            }
-            else
-            {
-                _uncommittedInput += text;
-            }
-        }
-
-        private void RestoreUncommittedInput()
-        {
-            if (_uncommittedInput != null)
-            {
-                SetActiveCode(_uncommittedInput);
-                _uncommittedInput = null;
             }
         }
 
@@ -1850,59 +1213,59 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             RequiresNonUIThread();
 
             State previousState = default(State); // Compiler doesn't know these lambdas run sequentially.
-            UIThread(() =>
+            UIThread(uiOnly =>
             {
-                previousState = _state;
+                previousState = uiOnly.State;
 
-                _state = State.ReadingStandardInput;
+                uiOnly.State = State.ReadingStandardInput;
 
                 _buffer.Flush();
 
                 if (previousState == State.WaitingForInput && _projectionSpans.Count > 0 && _projectionSpans[_projectionSpans.Count - 1].Kind == ReplSpanKind.Language)
                 {
                     // we need to remove our input prompt.
-                    RemoveLastInputPrompt();
+                    uiOnly.RemoveLastInputPrompt();
                 }
 
                 AddStandardInputSpan();
 
                 Caret.EnsureVisible();
-                ResetCursor();
+                uiOnly.ResetCursor();
 
-                _uncommittedInput = null;
-                _stdInputStart = _stdInputBuffer.CurrentSnapshot.Length;
+                uiOnly.UncommittedInput = null;
+                _stdInputStart = _standardInputBuffer.CurrentSnapshot.Length;
             });
 
             _inputEvent.WaitOne();
             _stdInputStart = null;
 
-            UIThread(() =>
+            UIThread(uiOnly =>
             {
                 // if the user cleared the screen we cancelled the input, so we won't have our span here.
                 // We can also have an interleaving output span, so we'll search back for the last input span.
-                int i = IndexOfLastStandardInputSpan();
+                int i = uiOnly.IndexOfLastStandardInputSpan();
                 if (i != -1)
                 {
-                    RemoveProtection(_stdInputBuffer, _stdInputProtection);
+                    uiOnly.RemoveProtection(_standardInputBuffer, uiOnly.StandardInputProtection);
 
                     // replace previous span w/ a span that won't grow...
                     var newSpan = new ReplSpan(
                         _projectionSpans[i].TrackingSpan.WithEndTrackingMode(PointTrackingMode.Negative),
                         ReplSpanKind.StandardInput);
 
-                    ReplaceProjectionSpan(i, newSpan);
-                    ApplyProtection(_stdInputBuffer, _stdInputProtection, allowAppend: true);
+                    uiOnly.ReplaceProjectionSpan(i, newSpan);
+                    uiOnly.ApplyProtection(_standardInputBuffer, uiOnly.StandardInputProtection, allowAppend: true);
 
-                    NewOutputBuffer();
+                    uiOnly.NewOutputBuffer();
 
                     // TODO: Do we need to restore the state if reading is cancelled? (https://github.com/dotnet/roslyn/issues/3984)
                     if (previousState == State.WaitingForInput)
                     {
-                        PrepareForInput(); // Will update _state.
+                        uiOnly.PrepareForInput(); // Will update _uiOnly.State.
                     }
                     else
                     {
-                        _state = previousState;
+                        uiOnly.State = previousState;
                     }
                 }
             });
@@ -1919,19 +1282,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private int IndexOfLastStandardInputSpan()
-        {
-            for (int i = _projectionSpans.Count - 1; i >= 0; i--)
-            {
-                if (_projectionSpans[i].Kind == ReplSpanKind.StandardInput)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         private bool InStandardInputRegion(SnapshotPoint point)
         {
             if (_stdInputStart == null)
@@ -1943,19 +1293,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return stdInputPoint != null && stdInputPoint.Value.Position >= _stdInputStart.Value;
         }
 
-        // TODO: Ensure that callers handle the fact that cleanup will not have happened by
-        // the time this method returns. (https://github.com/dotnet/roslyn/issues/3984)
-        private void CancelStandardInput()
-        {
-            AppendLineNoPromptInjection(_stdInputBuffer);
-            _inputValue = null;
-            _inputEvent.Set();
-        }
-
         private void SubmitStandardInput()
         {
-            AppendLineNoPromptInjection(_stdInputBuffer);
-            _inputValue = new SnapshotSpan(_stdInputBuffer.CurrentSnapshot, Span.FromBounds(_stdInputStart.Value, _stdInputBuffer.CurrentSnapshot.Length));
+            AppendLineNoPromptInjection(_standardInputBuffer);
+            _inputValue = new SnapshotSpan(_standardInputBuffer.CurrentSnapshot, Span.FromBounds(_stdInputStart.Value, _standardInputBuffer.CurrentSnapshot.Length));
             _inputEvent.Set();
         }
 
@@ -2002,161 +1343,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             _buffer.Flush();
             InlineAdornmentProvider.AddInlineAdornment(_textView, element, OnAdornmentLoaded);
-            _adornmentToMinimize = true;
+            _adornmentToMinimize = true; // TODO (https://github.com/dotnet/roslyn/issues/4044): probably ui only
             WriteLine(string.Empty);
             WriteLine(string.Empty);
-        }
-
-        /// <summary>
-        /// Appends text to the output buffer and updates projection buffer to include it.
-        /// WARNING: this has to be the only method that writes to the output buffer so that 
-        /// the output buffering counters are kept in sync.
-        /// </summary>
-        internal void AppendOutput(IEnumerable<string> output, int outputLength)
-        {
-            AssertOnUIThread();
-            Debug.Assert(output.Any());
-
-            // we maintain this invariant so that projections don't split "\r\n" in half 
-            // (the editor isn't happy about it and out line counting also gets simpler):
-            Debug.Assert(!_outputBuffer.CurrentSnapshot.EndsWith('\r'));
-
-            Debug.Assert(_projectionSpans[_currentOutputProjectionSpan].Kind == ReplSpanKind.Output);
-
-            int lineBreakProjectionSpanIndex = _currentOutputProjectionSpan + 1;
-
-            // insert line break projection span if there is none and the output doesn't end with a line break:
-            bool hasLineBreakProjection = lineBreakProjectionSpanIndex < _projectionSpans.Count &&
-                                          ReferenceEquals(_projectionSpans[lineBreakProjectionSpanIndex], _lineBreakOutputSpan);
-
-            bool endsWithLineBreak;
-            int newLineBreaks = CountOutputLineBreaks(output, out endsWithLineBreak);
-
-            bool insertLineBreak = !endsWithLineBreak && !hasLineBreakProjection;
-            bool removeLineBreak = endsWithLineBreak && hasLineBreakProjection;
-
-            int lineBreakProjectionSpansDelta = (insertLineBreak ? 1 : 0) - (removeLineBreak ? 1 : 0);
-            int lineCountDelta = newLineBreaks + lineBreakProjectionSpansDelta;
-
-            // Update line to projection span index mapping for all prompts following the output span.
-            if (_promptLineMapping.Count > 0 && (lineCountDelta != 0 || lineBreakProjectionSpansDelta != 0))
-            {
-                int i = _promptLineMapping.Count - 1;
-                while (i >= 0 && _promptLineMapping[i].Value > _currentOutputProjectionSpan)
-                {
-                    _promptLineMapping[i] = new KeyValuePair<int, int>(
-                        _promptLineMapping[i].Key + lineCountDelta,
-                        _promptLineMapping[i].Value + lineBreakProjectionSpansDelta);
-
-                    i--;
-                }
-            }
-
-            // do not use the mapping until projection span is updated below:
-            _promptLineMapping.IsInconsistentWithProjections = removeLineBreak || insertLineBreak;
-
-            // insert text to the subject buffer.
-            // WARNING: Prompt line mapping needs to be updated before this edit is applied
-            // since it might trigger events that use the mapping. 
-            int oldBufferLength = _outputBuffer.CurrentSnapshot.Length;
-            InsertOutput(output, oldBufferLength);
-
-            // mapping becomes consistent as soon as projection spans are updated:
-            _promptLineMapping.IsInconsistentWithProjections = false;
-
-            if (removeLineBreak)
-            {
-                RemoveProjectionSpans(lineBreakProjectionSpanIndex, 1);
-            }
-            else if (insertLineBreak)
-            {
-                InsertProjectionSpan(lineBreakProjectionSpanIndex, _lineBreakOutputSpan);
-            }
-
-            // projection spans and prompts are in sync now:
-            CheckPromptLineMappingConsistency(_currentOutputProjectionSpan);
-
-            // caret didn't move since last time we moved it to track output:
-            if (_outputTrackingCaretPosition == _textView.Caret.Position.BufferPosition)
-            {
-                _textView.Caret.EnsureVisible();
-                _outputTrackingCaretPosition = _textView.Caret.Position.BufferPosition;
-            }
-        }
-
-        internal void CheckPromptLineMappingConsistency(int minAffectedSpan)
-        {
-            if (_promptLineMapping.Count > 0)
-            {
-                int i = _promptLineMapping.Count - 1;
-                while (i >= 0 && _promptLineMapping[i].Value > minAffectedSpan)
-                {
-                    Debug.Assert(
-                        _projectionSpans[_promptLineMapping[i].Value].Kind == ReplSpanKind.Prompt ||
-                        _projectionSpans[_promptLineMapping[i].Value].Kind == ReplSpanKind.StandardInputPrompt);
-
-                    i--;
-                }
-            }
-        }
-
-        internal void InsertOutput(IEnumerable<string> output, int position)
-        {
-            RemoveProtection(_outputBuffer, _outputProtection);
-
-            // append the text to output buffer and make sure it ends with a line break:
-            using (var edit = _outputBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag))
-            {
-                foreach (string text in output)
-                {
-                    edit.Insert(position, text);
-                }
-
-                edit.Apply();
-            }
-
-            ApplyProtection(_outputBuffer, _outputProtection);
-        }
-
-        /// <summary>
-        /// Counts the number of line breaks in the text appended to the given snapshot.
-        /// </summary>
-        private static int CountOutputLineBreaks(IEnumerable<string> output, out bool endsWithLineBreak)
-        {
-            int result = 0;
-
-            // note that we rely here upon the fact that previous snapshot doesn't end with '\r':
-            bool lastWasCR = false;
-
-            string lastStr = null;
-            foreach (string str in output)
-            {
-                foreach (char c in str)
-                {
-                    if (c == '\r')
-                    {
-                        result++;
-                        lastWasCR = true;
-                    }
-                    else if (c == '\n' && !lastWasCR)
-                    {
-                        // if the last characters was \r we don't count \n as a new line break
-
-                        result++;
-                        lastWasCR = false;
-                    }
-                    else
-                    {
-                        lastWasCR = false;
-                    }
-                }
-
-                lastStr = str;
-            }
-
-            Debug.Assert(lastStr.Last() != '\r');
-            endsWithLineBreak = lastStr.Last() == '\n';
-            return result;
         }
 
         private void OnAdornmentLoaded(object source, EventArgs e)
@@ -2194,63 +1383,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return _evaluator.CanExecuteCode(input);
         }
 
-        private void FinishExecute(Task<ExecutionResult> result)
-        {
-            AssertOnUIThread();
-
-            // The finished task has been replaced by another task (e.g. reset).
-            // Do not perform any task finalization, it will be done by the replacement task.
-            if (_currentTask != result)
-            {
-                return;
-            }
-
-            _currentTask = null;
-            ResetCursor();
-
-            if (result.Exception != null || !result.Result.IsSuccessful)
-            {
-                if (_history.Last != null)
-                {
-                    _history.Last.Failed = true;
-                }
-            }
-
-            PrepareForInput();
-        }
-
-        void IInteractiveWindowOperations.ExecuteInput()
-        {
-            AssertOnUIThread();
-
-            ITextBuffer languageBuffer = GetLanguageBuffer(Caret.Position.BufferPosition);
-            if (languageBuffer == null)
-            {
-                return;
-            }
-
-            if (languageBuffer == _currentLanguageBuffer)
-            {
-                // TODO (tomat): this should rather send an abstract "finish" command that various features
-                // can implement as needed (IntelliSense, inline rename would commit, etc.).
-                // For now, commit IntelliSense:
-                var completionSession = this.SessionStack.TopSession as ICompletionSession;
-                if (completionSession != null)
-                {
-                    completionSession.Commit();
-                }
-
-                Submit();
-            }
-            else
-            {
-                // append text of the target buffer to the current language buffer:
-                string text = TrimTrailingEmptyLines(languageBuffer.CurrentSnapshot);
-                _currentLanguageBuffer.Replace(new Span(_currentLanguageBuffer.CurrentSnapshot.Length, 0), text);
-                _editorOperations.MoveToEndOfDocument(false);
-            }
-        }
-
         #endregion
 
         #region Buffers, Spans and Prompts
@@ -2274,105 +1406,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return new ReplSpan(prompt, promptKind);
         }
 
-        private void RemoveLastInputPrompt()
-        {
-            var prompt = _projectionSpans[_projectionSpans.Count - SpansPerLineOfInput];
-            Debug.Assert(prompt.Kind.IsPrompt());
-            if (prompt.Kind == ReplSpanKind.Prompt || prompt.Kind == ReplSpanKind.StandardInputPrompt)
-            {
-                _promptLineMapping.RemoveLast();
-            }
-
-            // projection buffer update must be the last operation as it might trigger event that accesses prompt line mapping:
-            RemoveProjectionSpans(_projectionSpans.Count - SpansPerLineOfInput, SpansPerLineOfInput);
-        }
-
         private ReplSpan CreateSecondaryPrompt()
         {
             // TODO (crwilcox) format prompt used to get a blank here but now gets "> " from get prompt.
             return CreatePrompt(_evaluator.GetPrompt(), ReplSpanKind.SecondaryPrompt);
-        }
-
-        /// <summary>
-        /// Enumerates input prompts that overlap given span. 
-        /// Returns an empty set if we are in the middle of operation changing the mapping and/or projection buffer.
-        /// </summary>
-        internal IEnumerable<KeyValuePair<ReplSpanKind, SnapshotPoint>> GetOverlappingPrompts(SnapshotSpan span)
-        {
-            if (_projectionSpans.Count == 0 || _promptLineMapping.Count == 0 || _promptLineMapping.IsInconsistentWithProjections)
-            {
-                yield break;
-            }
-
-            var currentSnapshotSpan = span.TranslateTo(CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-            var startLine = currentSnapshotSpan.Start.GetContainingLine();
-            var endLine = currentSnapshotSpan.End.GetContainingLine();
-
-            var promptMappingIndex = _promptLineMapping.GetMappingIndexByLineNumber(startLine.LineNumber);
-
-            do
-            {
-                int lineNumber = _promptLineMapping[promptMappingIndex].Key;
-                int promptIndex = _promptLineMapping[promptMappingIndex].Value;
-
-                // no overlapping prompts will be found beyond the last line of the span:
-                if (lineNumber > endLine.LineNumber)
-                {
-                    break;
-                }
-
-                // enumerate all prompts of the input block (primary and secondary):
-                do
-                {
-                    var line = CurrentSnapshot.GetLineFromLineNumber(lineNumber);
-                    ReplSpan projectionSpan = _projectionSpans[promptIndex];
-                    Debug.Assert(projectionSpan.Kind.IsPrompt());
-
-                    if (line.Start.Position >= currentSnapshotSpan.Span.Start || line.Start.Position < currentSnapshotSpan.Span.End)
-                    {
-                        yield return new KeyValuePair<ReplSpanKind, SnapshotPoint>(
-                            projectionSpan.Kind,
-                            new SnapshotPoint(CurrentSnapshot, line.Start));
-                    }
-
-                    promptIndex += SpansPerLineOfInput;
-                    lineNumber++;
-                }
-                while (promptIndex < _projectionSpans.Count && _projectionSpans[promptIndex].Kind == ReplSpanKind.SecondaryPrompt);
-
-                // next input block:
-                promptMappingIndex++;
-            }
-            while (promptMappingIndex < _promptLineMapping.Count);
-        }
-
-        private void IndexOfLastPrompt(out int lastPrimary, out int last)
-        {
-            last = -1;
-            lastPrimary = -1;
-            for (int i = _projectionSpans.Count - 1; i >= 0; i--)
-            {
-                switch (_projectionSpans[i].Kind)
-                {
-                    case ReplSpanKind.Prompt:
-                        lastPrimary = i;
-                        if (last == -1)
-                        {
-                            last = i;
-                        }
-
-                        return;
-
-                    case ReplSpanKind.SecondaryPrompt:
-                    case ReplSpanKind.StandardInputPrompt:
-                        if (last == -1)
-                        {
-                            last = i;
-                        }
-
-                        break;
-                }
-            }
         }
 
         /// <summary>
@@ -2411,31 +1448,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         }
 
         /// <summary>
-        /// Creates and adds a new language buffer to the projection buffer.
-        /// </summary>
-        private void AddLanguageBuffer()
-        {
-            ITextBuffer buffer = _host.CreateAndActivateBuffer(this);
-
-            buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), _evaluator);
-            buffer.Properties.AddProperty(typeof(InteractiveWindow), this);
-
-            _currentLanguageBuffer = buffer;
-            var bufferAdded = SubmissionBufferAdded;
-            if (bufferAdded != null)
-            {
-                bufferAdded(this, new SubmissionBufferAddedEventArgs(buffer));
-            }
-
-            // add the whole buffer to the projection buffer and set it up to expand to the right as text is appended
-            ReplSpan promptSpan = CreatePrimaryPrompt();
-            ReplSpan languageSpan = new ReplSpan(CreateLanguageTrackingSpan(new Span(0, 0)), ReplSpanKind.Language);
-
-            // projection buffer update must be the last operation as it might trigger event that accesses prompt line mapping:
-            AppendProjectionSpans(promptSpan, languageSpan);
-        }
-
-        /// <summary>
         /// Creates the language span for the last line of the active input.  This span
         /// is effectively edge inclusive so it will grow as the user types at the end.
         /// </summary>
@@ -2470,61 +1482,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ReplSpan promptSpan = CreateStandardInputPrompt();
 
             var stdInputSpan = new CustomTrackingSpan(
-                _stdInputBuffer.CurrentSnapshot,
-                new Span(_stdInputBuffer.CurrentSnapshot.Length, 0),
+                _standardInputBuffer.CurrentSnapshot,
+                new Span(_standardInputBuffer.CurrentSnapshot.Length, 0),
                 PointTrackingMode.Negative,
                 PointTrackingMode.Positive);
 
             ReplSpan inputSpan = new ReplSpan(stdInputSpan, ReplSpanKind.StandardInput);
 
             AppendProjectionSpans(promptSpan, inputSpan);
-        }
-
-        /// <summary>
-        /// Marks the entire buffer as read-only.
-        /// </summary>
-        private static void ApplyProtection(ITextBuffer buffer, IReadOnlyRegion[] regions, bool allowAppend = false)
-        {
-            using (var readonlyEdit = buffer.CreateReadOnlyRegionEdit())
-            {
-                int end = buffer.CurrentSnapshot.Length;
-                Span span = new Span(0, end);
-
-                var region0 = allowAppend ?
-                    readonlyEdit.CreateReadOnlyRegion(span, SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Allow) :
-                    readonlyEdit.CreateReadOnlyRegion(span, SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Deny);
-
-                // Create a second read-only region to prevent insert at start of buffer.
-                var region1 = (end > 0) ? readonlyEdit.CreateReadOnlyRegion(new Span(0, 0), SpanTrackingMode.EdgeExclusive, EdgeInsertionMode.Deny) : null;
-
-                readonlyEdit.Apply();
-
-                if (regions != null)
-                {
-                    regions[0] = region0;
-                    regions[1] = region1;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Removes read-only region from buffer.
-        /// </summary>
-        private static void RemoveProtection(ITextBuffer buffer, IReadOnlyRegion[] regions)
-        {
-            if (regions[0] != null)
-            {
-                Debug.Assert(regions[1] != null);
-
-                foreach (var region in regions)
-                {
-                    using (var readonlyEdit = buffer.CreateReadOnlyRegionEdit())
-                    {
-                        readonlyEdit.RemoveReadOnlyRegion(region);
-                        readonlyEdit.Apply();
-                    }
-                }
-            }
         }
 
         private const int SpansPerLineOfInput = 2;
@@ -2754,24 +1719,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         // then projection buffer, since the projection buffer update might trigger events that might 
         // access the projection spans.
 
-        private void AppendNewOutputProjectionBuffer()
-        {
-            var trackingSpan = new CustomTrackingSpan(
-                _outputBuffer.CurrentSnapshot,
-                new Span(_outputBuffer.CurrentSnapshot.Length, 0),
-                PointTrackingMode.Negative,
-                PointTrackingMode.Positive);
-
-            _currentOutputProjectionSpan = AppendProjectionSpan(new ReplSpan(trackingSpan, ReplSpanKind.Output));
-        }
-
-        private int AppendProjectionSpan(ReplSpan span)
-        {
-            int index = _projectionSpans.Count;
-            InsertProjectionSpan(index, span);
-            return index;
-        }
-
         private int AppendProjectionSpans(ReplSpan span1, ReplSpan span2)
         {
             int index = _projectionSpans.Count;
@@ -2779,23 +1726,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return index;
         }
 
-        private void InsertProjectionSpan(int index, ReplSpan span)
-        {
-            _projectionSpans.Insert(index, span);
-            _projectionBuffer.ReplaceSpans(index, 0, new[] { span.Span }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
-        }
-
         private void InsertProjectionSpans(int index, ReplSpan span1, ReplSpan span2)
         {
             _projectionSpans.Insert(index, span1);
             _projectionSpans.Insert(index + 1, span2);
             _projectionBuffer.ReplaceSpans(index, 0, new[] { span1.Span, span2.Span }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
-        }
-
-        private void ReplaceProjectionSpan(int spanToReplace, ReplSpan newSpan)
-        {
-            _projectionSpans[spanToReplace] = newSpan;
-            _projectionBuffer.ReplaceSpans(spanToReplace, 1, new[] { newSpan.Span }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
         }
 
         private void ReplaceProjectionSpans(int position, int count, IList<ReplSpan> newSpans)
@@ -2812,29 +1747,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _projectionBuffer.ReplaceSpans(position, count, trackingSpans, EditOptions.None, s_suppressPromptInjectionTag);
         }
 
-        private void RemoveProjectionSpans(int index, int count)
-        {
-            _projectionSpans.RemoveRange(index, count);
-            _projectionBuffer.ReplaceSpans(index, count, Array.Empty<object>(), EditOptions.None, s_suppressPromptInjectionTag);
-        }
-
         #endregion
 
         #region Editor Helpers
 
         private ITextSnapshotLine GetLastLine()
         {
-            return GetLastLine(CurrentSnapshot);
+            return GetLastLine(TextBuffer.CurrentSnapshot);
         }
 
         private static ITextSnapshotLine GetLastLine(ITextSnapshot snapshot)
         {
             return snapshot.GetLineFromLineNumber(snapshot.LineCount - 1);
-        }
-
-        private static ITextSnapshotLine GetPreviousLine(ITextSnapshotLine line)
-        {
-            return line.LineNumber > 0 ? line.Snapshot.GetLineFromLineNumber(line.LineNumber - 1) : null;
         }
 
         private static int IndexOfNonWhiteSpaceCharacter(ITextSnapshotLine line)
@@ -2851,22 +1775,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             return -1;
-        }
-
-        private static string TrimTrailingEmptyLines(ITextSnapshot snapshot)
-        {
-            var line = GetLastLine(snapshot);
-            while (line != null && line.Length == 0)
-            {
-                line = GetPreviousLine(line);
-            }
-
-            if (line == null)
-            {
-                return string.Empty;
-            }
-
-            return line.Snapshot.GetText(0, line.Extent.End.Position);
         }
 
         private sealed class EditResolver : IProjectionEditResolver
@@ -2918,7 +1826,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
                 {
                     var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._stdInputBuffer)
+                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
                     {
                         return i;
                     }
@@ -2932,7 +1840,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 for (int i = sourceInsertionPoints.Count - 1; i >= 0; i--)
                 {
                     var insertionBuffer = sourceInsertionPoints[i].Snapshot.TextBuffer;
-                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._stdInputBuffer)
+                    if (insertionBuffer == _window._currentLanguageBuffer || insertionBuffer == _window._standardInputBuffer)
                     {
                         return i;
                     }
@@ -2953,31 +1861,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return Dispatcher.CheckAccess();
         }
 
-        private T UIThread<T>(Func<T> func)
+        private T UIThread<T>(Func<UIThreadOnly, T> func)
         {
             if (!OnUIThread())
             {
-                return (T)Dispatcher.Invoke(func);
+                return (T)Dispatcher.Invoke(func, _dangerous_uiOnly); // Safe because of dispatch.
             }
 
-            return func();
+            return func(_dangerous_uiOnly); // Safe because of check.
         }
 
-        internal void UIThread(Action action)
+        private void UIThread(Action<UIThreadOnly> action)
         {
             if (!OnUIThread())
             {
-                Dispatcher.Invoke(action);
+                Dispatcher.Invoke(action, _dangerous_uiOnly); // Safe because of dispatch.
                 return;
             }
 
-            action();
-        }
-
-        [Conditional("DEBUG")]
-        private void AssertOnUIThread()
-        {
-            Debug.Assert(OnUIThread());
+            action(_dangerous_uiOnly); // Safe because of check.
         }
 
         private void RequiresUIThread()
@@ -3013,51 +1915,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal List<ReplSpan> ProjectionSpans => _projectionSpans;
 
-        #endregion
+        internal event Action<State> StateChanged;
 
-        private enum State
-        {
-            /// <summary>
-            /// Initial state.  <see cref="IInteractiveWindow.InitializeAsync"/> hasn't been called.
-            /// Transition to <see cref="Initializing"/> when <see cref="IInteractiveWindow.InitializeAsync"/> is called.
-            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
-            /// </summary>
-            Starting,
-            /// <summary>
-            /// In the process of calling <see cref="IInteractiveWindow.InitializeAsync"/>.
-            /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
-            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
-            /// </summary>
-            Initializing,
-            /// <summary>
-            /// In the process of calling <see cref="ResetAsync"/>.
-            /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
-            /// Note: Should not see <see cref="ResetAsync"/> calls while in this state.
-            /// </summary>
-            Resetting,
-            /// <summary>
-            /// Prompt has been displayed - waiting for the user to make the next submission.
-            /// Transition to <see cref="ExecutingInput"/> when <see cref="IInteractiveWindowOperations.ExecuteInput"/> is called.
-            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
-            /// </summary>
-            WaitingForInput,
-            /// <summary>
-            /// Executing the user's submission.
-            /// Transition to <see cref="WaitingForInput"/> when finished (in <see cref="ProcessPendingSubmissions"/>).
-            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
-            /// </summary>
-            ExecutingInput,
-            /// <summary>
-            /// In the process of calling <see cref="IInteractiveWindow.ReadStandardInput"/>.
-            /// Return to preceding state when finished.
-            /// Transition to <see cref="Resetting"/> when <see cref="ResetAsync"/> is called.
-            /// </summary>
-            /// <remarks>
-            /// TODO: When we clean up <see cref="IInteractiveWindow.ReadStandardInput"/> (https://github.com/dotnet/roslyn/issues/3984)
-            /// we should try to eliminate the "preceding state", since it substantially
-            /// increases the complexity of the state machine.
-            /// </remarks>
-            ReadingStandardInput,
-        }
+        #endregion
     }
 }
