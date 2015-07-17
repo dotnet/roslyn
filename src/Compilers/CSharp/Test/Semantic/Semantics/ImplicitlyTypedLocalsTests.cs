@@ -53,8 +53,7 @@ var array = { 1, 2 };
             CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
                 // var array = { 1, 2 };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "array = { 1, 2 }")
-                );
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "array = { 1, 2 }"));
         }
 
         [Fact]
@@ -69,7 +68,7 @@ class Program
         var y = x.Foo(y);
     }
 }";
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,23): error CS0841: Cannot use local variable 'x' before it is declared
                 //         var x = y.Foo(x);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x"),
@@ -81,8 +80,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y"),
                 // (6,23): error CS0165: Use of unassigned local variable 'x'
                 //         var x = y.Foo(x);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x")
-                );
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
         }
 
         [WorkItem(545612, "DevDiv")]

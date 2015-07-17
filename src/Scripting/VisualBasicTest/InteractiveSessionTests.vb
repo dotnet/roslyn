@@ -6,12 +6,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
-Imports Microsoft.CodeAnalysis.Scripting
-Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
 Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Roslyn.Test.Utilities
 Imports Xunit
-
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
@@ -32,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
         <Fact()>
         Public Sub ChainingAnonymousTypeTemplates()
-            Dim references As IEnumerable(Of MetadataReference) =
-                    {MscorlibRef, MsvbRef, SystemCoreRef}
+            Dim references = LatestReferences
 
             Dim s0 = VisualBasicCompilation.CreateSubmission("s0.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
@@ -91,7 +87,7 @@ End Class
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             Dim typeSyntax = DirectCast(DirectCast(tree.GetCompilationUnitRoot().Members(0), ClassBlockSyntax).Members(0), FieldDeclarationSyntax).Declarators(0).AsClause.Type
 
@@ -110,7 +106,7 @@ System.Console.WriteLine(1+1)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             CompileAndVerify(c, expectedOutput:="2")
         End Sub
@@ -135,9 +131,11 @@ Return Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
-            c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Return Foo").WithArguments("Return"))
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ReturnFromNonFunction, "Return Foo").WithLocation(2, 1),
+                Diagnostic(ERRID.ERR_NameNotDeclared1, "Foo").WithArguments("Foo").WithLocation(2, 8))
         End Sub
 
         <Fact()>
@@ -155,7 +153,7 @@ Me.Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Me").WithArguments("Me"),
                                 Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "Me").WithArguments("Me"))
@@ -176,7 +174,7 @@ MyBase.Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             c.VerifyDiagnostics(Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "MyClass").WithArguments("MyClass"),
                                 Diagnostic(ERRID.ERR_KeywordNotAllowedInScript, "MyBase").WithArguments("MyBase"))
@@ -193,7 +191,7 @@ Foo
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             CompileAndVerify(c, expectedOutput:="2")
         End Sub
@@ -223,7 +221,7 @@ System.Console.WriteLine(Foo)
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             CompileAndVerify(c, expectedOutput:="3")
         End Sub
@@ -237,7 +235,7 @@ Next
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, {MscorlibRef})
+            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestReferences)
 
             CompileAndVerify(c, expectedOutput:="012")
         End Sub

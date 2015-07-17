@@ -73,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "1").WithArguments("System.Object").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Object' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Threading.Tasks.Task`1' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Threading.Tasks.Task`1").WithLocation(1, 1),
                 // error CS0400: The type or namespace name 'System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' could not be found in the global namespace (are you missing an assembly reference?)
                 Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound).WithArguments("System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1),
                 // (1,1): error CS0518: Predefined type 'System.Int32' is not defined or imported
@@ -170,7 +172,7 @@ G();
                 if (cls.IsScriptClass)
                 {
                     Assert.False(cls.IsImplicitClass);
-                    AssertEx.SetEqual(new[] { "<Initialize>", "G", ".ctor" }, methods.Select(m => m.Name));
+                    AssertEx.SetEqual(new[] { "<Initialize>", "G", ".ctor", "<Main>" }, methods.Select(m => m.Name));
                 }
                 else
                 {
@@ -418,7 +420,7 @@ Console.WriteLine(o.ToString());
                 CSharpCompilation.Create(
                     assemblyName: "Test",
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef },
+                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
                     syntaxTrees: new[] { tree }),
                 expectedOutput: "{ a = 1 }"
             );
@@ -438,7 +440,7 @@ Console.WriteLine(o.ToString());
                 CSharpCompilation.Create(
                     assemblyName: "Test",
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef },
+                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
                     syntaxTrees: new[] { tree }),
                 expectedOutput: "{ a = 1 }"
             );
@@ -457,7 +459,7 @@ Console.WriteLine(new { a = 1 }.ToString());
                 CSharpCompilation.Create(
                     assemblyName: "Test",
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef },
+                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
                     syntaxTrees: new[] { tree }),
                 expectedOutput: "{ a = 1 }"
             );
@@ -573,7 +575,7 @@ new CLS().M();
                 CSharpCompilation.Create(
                     assemblyName: "Test",
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef },
+                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
                     syntaxTrees: new[] { tree }),
                 expectedOutput: "{ a = 1 }"
             );
@@ -1241,7 +1243,7 @@ Process.GetCurrentProcess()");
         [Fact]
         public void CompilationChain_AnonymousTypeTemplates()
         {
-            MetadataReference[] references = { MscorlibRef, SystemCoreRef };
+            MetadataReference[] references = { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
 
             var parseOptions = TestOptions.Interactive;
             var s0 = CSharpCompilation.CreateSubmission("s0.dll",
@@ -2718,7 +2720,7 @@ this[1]
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
-            // No await. The return value is Task<int> rather than Task<object>.
+            // No await. The return value is Task<int> rather than int.
             var result = (Task<int>)session.Execute("System.Threading.Tasks.Task.FromResult(1)");
             Assert.Equal(1, result.Result);
         }
@@ -2731,8 +2733,8 @@ this[1]
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
-            var result = (Task<object>)session.Execute("await System.Threading.Tasks.Task.FromResult(2)");
-            Assert.Equal(2, result.Result);
+            var result = session.Execute("await System.Threading.Tasks.Task.FromResult(2)");
+            Assert.Equal(2, result);
         }
 
         /// <summary>
@@ -2743,8 +2745,18 @@ this[1]
         {
             var engine = new CSharpScriptEngine();
             var session = engine.CreateSession();
-            var result = (Task<object>)session.Execute("0 + await System.Threading.Tasks.Task.FromResult(3)");
-            Assert.Equal(3, result.Result);
+            var result = session.Execute("0 + await System.Threading.Tasks.Task.FromResult(3)");
+            Assert.Equal(3, result);
+        }
+
+        [Fact]
+        public void AwaitVoid()
+        {
+            var engine = new CSharpScriptEngine();
+            var session = engine.CreateSession();
+            var task = session.ExecuteAsync<object>("await System.Threading.Tasks.Task.Run(() => { })");
+            Assert.Equal(null, task.Result);
+            Assert.Equal(TaskStatus.RanToCompletion, task.Status);
         }
 
         /// <summary>
