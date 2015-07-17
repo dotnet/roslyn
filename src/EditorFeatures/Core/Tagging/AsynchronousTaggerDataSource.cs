@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         public virtual IEqualityComparer<TTag> TagComparer => null;
         public virtual TaggerDelay? UIUpdateDelay => null;
+        public virtual bool IgnoreCaretMovementToExistingTag => false;
         public virtual bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
         public virtual IEnumerable<Option<bool>> Options => null;
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;

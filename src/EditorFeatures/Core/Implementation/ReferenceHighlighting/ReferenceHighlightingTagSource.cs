@@ -40,19 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             _textView = textView;
         }
 
-        protected override IList<SnapshotSpan> GetInitialSpansToTag()
-        {
-            return _textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
-                           .Select(b => b.CurrentSnapshot.GetFullSpan())
-                           .ToList();
-        }
-
         protected override SnapshotPoint? GetCaretPoint()
         {
             return _textView.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
         }
 
-        protected override void RecalculateTagsOnChanged(TaggerEventArgs e)
+        protected override void RecalculateTagsOnChangedCore(TaggerEventArgs e)
         {
             var cancellationToken = this.WorkQueue.CancellationToken;
 
@@ -69,17 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     return;
                 }
 
-                // called because of caret change
-                if (e.Kind == PredefinedChangedEventKinds.CaretPositionChanged)
-                {
-                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
-                    if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Any())
-                    {
-                        // we are already inside of a tag. nothing to do.
-                        return;
-                    }
-                }
-
                 var spansToTag = TryGetSpansAndDocumentsToTag(e.Kind);
                 if (spansToTag != null)
                 {
@@ -91,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         ClearTags(spansToTag, cancellationToken);
                     }
 
-                    base.RecalculateTagsOnChanged(e);
+                    base.RecalculateTagsOnChangedCore(e);
                 }
             }, delay: TaggerConstants.NearImmediateDelay, cancellationToken: cancellationToken);
         }

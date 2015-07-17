@@ -412,7 +412,6 @@
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />
-    <Compile Include="Implementation\KeywordHighlighting\HighlightingTagSource.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightTag.cs" />
     <Compile Include="Implementation\AutomaticCompletion\IEditorBraceCompletionSessionFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameReplacementInfo.cs" />
