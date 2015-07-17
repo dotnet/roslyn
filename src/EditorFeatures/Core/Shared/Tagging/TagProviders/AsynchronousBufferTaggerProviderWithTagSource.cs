@@ -39,21 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return this.GetOrCreateTagger<T>(null, subjectBuffer);
         }
 
-        public ITagProducer<TTag> CreateTagProducer()
-        {
-            return _dataSource.CreateTagProducer();
-        }
-
-        public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return _dataSource.CreateEventSource(textViewOpt, subjectBuffer);
-        }
-
-        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return _dataSource.GetSpansToTag(textViewOpt, subjectBuffer);
-        }
-
         protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var tagSource = _createTagSource == null ? null : _createTagSource(textViewOpt, subjectBuffer, AsyncListener, NotificationService);
