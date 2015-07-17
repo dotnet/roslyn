@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected static T NextOrDefault<T>(IEnumerator<T> enumerator)
+        private static T NextOrDefault<T>(IEnumerator<T> enumerator)
         {
             return enumerator.MoveNext() ? enumerator.Current : default(T);
         }
