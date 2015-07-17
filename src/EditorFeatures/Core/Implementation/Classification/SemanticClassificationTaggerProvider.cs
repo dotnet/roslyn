@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class SemanticClassificationTaggerProvider :
         ForegroundThreadAffinitizedObject,
         ITaggerProvider,
