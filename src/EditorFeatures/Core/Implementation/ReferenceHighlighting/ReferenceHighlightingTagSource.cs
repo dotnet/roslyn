@@ -40,13 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             _textView = textView;
         }
 
-        protected override IList<SnapshotSpan> GetInitialSpansToTag()
-        {
-            return _textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
-                           .Select(b => b.CurrentSnapshot.GetFullSpan())
-                           .ToList();
-        }
-
         protected override SnapshotPoint? GetCaretPoint()
         {
             return _textView.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);

@@ -102,16 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             AttachEventHandlersAndStart();
         }
 
-        /// <summary>
-        /// Can be overridden by derived types to return a list of initial snapshot spans to tag.
-        /// </summary>
-        /// <remarks>Called on the foreground thread.</remarks>
-        protected virtual IList<SnapshotSpan> GetInitialSpansToTag()
-        {
-            // For a standard tagger, the spans to tag is the span of the entire snapshot.
-            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
-        }
-
         private IEqualityComparer<TTag> TagComparer => 
             _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
 
@@ -378,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // TODO: Update to tag spans from all related documents.
 
             var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
-            var spansToTag = _dataSource.GetSpansToTag(TextViewOpt, SubjectBuffer) ?? this.GetInitialSpansToTag();
+            var spansToTag = _dataSource.GetSpansToTag(TextViewOpt, SubjectBuffer) ?? this.GetFullBufferSpan();
             var spansAndDocumentsToTag = spansToTag.Select(span =>
             {
                 Document document = null;
@@ -395,6 +385,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }).ToList();
 
             return spansAndDocumentsToTag;
+        }
+
+        private IList<SnapshotSpan> GetFullBufferSpan()
+        {
+            // For a standard tagger, the spans to tag is the span of the entire snapshot.
+            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
         }
 
         [Conditional("DEBUG")]
