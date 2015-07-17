@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 
@@ -47,6 +48,19 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             _itemsBuilder.Add(item);
+        }
+
+        public void AddItems(IEnumerable<CompletionItem> items)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException(nameof(items));
+            }
+
+            foreach (var item in items)
+            {
+                AddItem(item);
+            }
         }
 
         public ImmutableArray<CompletionItem> GetItems()
