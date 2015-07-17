@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Public Class MetadataFileReferenceCompilationTests
     Inherits BasicTestBase
@@ -52,7 +51,7 @@ BC31007: Unable to load module file 'Foo.dll': Image is too small.
     <WorkItem(545062, "DevDiv")>
     <Fact>
     Public Sub DuplicateReferences()
-        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib)
+        Dim mscorlibMetadata = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib)
 
         Dim mscorlib1 = mscorlibMetadata.GetReference(filePath:="lib1.dll")
         Dim mscorlib2 = mscorlibMetadata.GetReference(filePath:="lib1.dll")

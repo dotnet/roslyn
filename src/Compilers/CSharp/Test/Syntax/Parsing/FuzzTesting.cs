@@ -2,7 +2,6 @@
 
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
