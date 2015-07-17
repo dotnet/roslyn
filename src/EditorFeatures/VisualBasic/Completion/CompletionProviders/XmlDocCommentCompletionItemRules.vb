@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
 
         Public Shared ReadOnly Property Instance As New XmlDocCommentCompletionItemRules
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Result(Of Boolean)
+        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean?
             If (ch = """"c OrElse ch = " "c) AndAlso
                 completionItem.DisplayText.Contains(ch) Then
                 Return False

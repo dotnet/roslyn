@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Public Shared ReadOnly Property Instance As ItemRules = New ItemRules()
 
-            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Result(Of Boolean)
+            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean?
                 Return s_commitChars.Contains(ch)
             End Function
 

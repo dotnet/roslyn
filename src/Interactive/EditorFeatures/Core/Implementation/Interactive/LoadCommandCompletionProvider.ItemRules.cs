@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         {
             public static ItemRules Instance = new ItemRules();
 
-            public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+            public override TextChange? GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
             {
                 // When we commit "\\" when the user types \ we have to adjust for the fact that the
                 // controller will automatically append \ after we commit.  Because of that, we don't
@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return base.GetTextChange(selectedItem, ch, textTypedSoFar);
             }
 
-            public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
             }
 
-            public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 // If they've typed '\\', then we do not consider \ to be a filter character.  We want to
                 // just commit at this point.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return PathCompletionUtilities.IsFilterCharacter(completionItem, ch, textTypedSoFar);
             }
 
-            public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+            public override bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
             {
                 return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
             }

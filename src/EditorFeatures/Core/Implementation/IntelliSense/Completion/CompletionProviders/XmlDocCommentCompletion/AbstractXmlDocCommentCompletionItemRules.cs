@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 {
     internal abstract class AbstractXmlDocCommentCompletionItemRules : CompletionItemRules
     {
-        public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        public override bool? IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
             if (ch == '!' || ch == '-' || ch == '[')
             {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             return base.IsFilterCharacter(completionItem, ch, textTypedSoFar);
         }
 
-        public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        public override bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;
         }

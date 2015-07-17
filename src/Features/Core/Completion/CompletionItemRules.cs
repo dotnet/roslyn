@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// automatically by the completion engine to fit on the current text using "EdgeInclusive"
         /// semantics.
         /// </summary>
-        public virtual Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
+        public virtual TextChange? GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
         {
-            return Result<TextChange>.Default;
+            return null;
         }
 
         /// <summary>
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// to see if it should commit that item.  If it does neither, then completion will be
         /// dismissed.
         /// </summary>
-        public virtual Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        public virtual bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
-            return Result<bool>.Default;
+            return null;
         }
 
         /// <summary>
@@ -38,18 +38,18 @@ namespace Microsoft.CodeAnalysis.Completion
         /// checked to see if it should commit that item.  If it does neither, then completion will
         /// be dismissed.
         /// </summary>
-        public virtual Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        public virtual bool? IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
-            return Result<bool>.Default;
+            return null;
         }
 
         /// <summary>
         /// Returns true if the enter key that was typed should also be sent through to the editor
         /// after committing the provided completion item.
         /// </summary>
-        public virtual Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        public virtual bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
-            return Result<bool>.Default;
+            return null;
         }
     }
 }

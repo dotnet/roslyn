@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         public static MemberInsertingCompletionItemRules Instance { get; } = new MemberInsertingCompletionItemRules();
 
-        public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+        public override TextChange? GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
         {
             return default(TextChange);
         }
 
-        public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
             // Commit on tab, enter and (
             return ch == '(';
         }
 
-        public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        public override bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;
         }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return GetInsertionText(symbol, context);
             }
 
-            public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 var symbolItem = completionItem as SymbolCompletionItem;
                 if (symbolItem != null && symbolItem.Context.IsInImportsDirective)

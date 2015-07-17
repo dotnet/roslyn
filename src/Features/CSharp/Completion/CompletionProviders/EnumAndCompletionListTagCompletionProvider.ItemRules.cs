@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             public static readonly ItemRules Instance = new ItemRules();
 
-            public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 // Only commit on dot.
                 return ch == '.';

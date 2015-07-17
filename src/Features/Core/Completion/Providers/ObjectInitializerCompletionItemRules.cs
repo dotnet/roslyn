@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static ObjectInitializerCompletionItemRules Instance { get; } = new ObjectInitializerCompletionItemRules();
 
-        public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        public override bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;
         }

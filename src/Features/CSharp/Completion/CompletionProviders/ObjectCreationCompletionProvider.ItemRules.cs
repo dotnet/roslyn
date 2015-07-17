@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             public static ItemRules Instance { get; } = new ItemRules();
 
-            public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 // TODO(cyrusn): We could just allow the standard list of completion characters.
                 // However, i'd like to see what the experience is like really filtering down to the set

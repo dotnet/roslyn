@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Public Shared ReadOnly Property Instance As New ItemRules()
 
-            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Result(Of Boolean)
+            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean?
                 If ch = "("c AndAlso completionItem.DisplayText.IndexOf("("c) <> -1 Then
                     Return False
                 End If
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return MyBase.IsCommitCharacter(completionItem, ch, textTypedSoFar)
             End Function
 
-            Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String, options As OptionSet) As Result(Of Boolean)
+            Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String, options As OptionSet) As Boolean?
                 Return False
             End Function
         End Class

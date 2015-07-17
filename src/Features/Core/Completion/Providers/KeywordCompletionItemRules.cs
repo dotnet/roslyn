@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         public static KeywordCompletionItemRules Instance { get; } = new KeywordCompletionItemRules();
 
-        public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+        public override TextChange? GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
         {
             var insertionText = selectedItem.DisplayText;
             if (ch == ' ' && textTypedSoFar != null)

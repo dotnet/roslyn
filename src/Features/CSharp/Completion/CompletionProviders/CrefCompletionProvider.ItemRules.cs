@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             public static ItemRules Instance { get; } = new ItemRules();
 
-            public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+            public override TextChange? GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
             {
                 return new TextChange(selectedItem.FilterSpan, ((Item)selectedItem).InsertionText);
             }
 
-            public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 if (ch == '{' && completionItem.DisplayText.Contains('{'))
                 {

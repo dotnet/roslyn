@@ -173,12 +173,9 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var result = selectedItem.Rules.GetTextChange(selectedItem, ch, textTypedSoFar);
 
-            if (result.UseDefault)
-            {
-                return GetTextChangeCore(selectedItem, ch, textTypedSoFar);
-            }
-
-            return (TextChange)result;
+            return result.HasValue
+                ? result.Value
+                : GetTextChangeCore(selectedItem, ch, textTypedSoFar);
         }
 
         protected virtual bool IsCommitCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)
@@ -196,12 +193,9 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var result = completionItem.Rules.IsCommitCharacter(completionItem, ch, textTypedSoFar);
 
-            if (result.UseDefault)
-            {
-                return IsCommitCharacterCore(completionItem, ch, textTypedSoFar);
-            }
-
-            return (bool)result;
+            return result.HasValue
+                ? result.Value
+                : IsCommitCharacterCore(completionItem, ch, textTypedSoFar);
         }
 
         protected virtual bool IsFilterCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)
@@ -219,12 +213,9 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var result = completionItem.Rules.IsFilterCharacter(completionItem, ch, textTypedSoFar);
 
-            if (result.UseDefault)
-            {
-                return IsFilterCharacterCore(completionItem, ch, textTypedSoFar);
-            }
-
-            return (bool)result;
+            return result.HasValue
+                ? result.Value
+                : IsFilterCharacterCore(completionItem, ch, textTypedSoFar);
         }
 
         protected virtual bool SendEnterThroughToEditorCore(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
@@ -240,12 +231,9 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var result = completionItem.Rules.SendEnterThroughToEditor(completionItem, textTypedSoFar, options);
 
-            if (result.UseDefault)
-            {
-                return SendEnterThroughToEditorCore(completionItem, textTypedSoFar, options);
-            }
-
-            return (bool)result;
+            return result.HasValue
+                ? result.Value
+                : SendEnterThroughToEditorCore(completionItem, textTypedSoFar, options);
         }
     }
 }

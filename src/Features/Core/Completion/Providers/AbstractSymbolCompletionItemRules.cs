@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractSymbolCompletionItemRules : CompletionItemRules
     {
-        public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+        public override TextChange? GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
         {
             var symbolItem = (SymbolCompletionItem)selectedItem;
             var insertionText = ch == null

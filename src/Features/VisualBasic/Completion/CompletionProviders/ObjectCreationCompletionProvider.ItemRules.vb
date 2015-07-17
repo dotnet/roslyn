@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Public Shared ReadOnly Property Instance As New ItemRules()
 
-            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Result(Of Boolean)
+            Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean?
                 Return ch = " "c OrElse ch = "("c
             End Function
 

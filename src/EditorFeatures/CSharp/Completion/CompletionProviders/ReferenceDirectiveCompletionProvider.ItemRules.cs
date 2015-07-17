@@ -12,17 +12,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
         {
             public static ItemRules Instance = new ItemRules();
 
-            public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
             }
 
-            public override Result<bool> IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+            public override bool? IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
             {
                 return PathCompletionUtilities.IsFilterCharacter(completionItem, ch, textTypedSoFar);
             }
 
-            public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+            public override bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
             {
                 return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
             }

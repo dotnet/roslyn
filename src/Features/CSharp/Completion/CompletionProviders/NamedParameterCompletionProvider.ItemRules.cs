@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             public static ItemRules Instance { get; } = new ItemRules();
 
-            public override Result<TextChange> GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
+            public override TextChange? GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null)
             {
                 return new TextChange(
                     selectedItem.FilterSpan,

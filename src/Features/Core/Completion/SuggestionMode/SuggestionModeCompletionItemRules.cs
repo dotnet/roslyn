@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
     {
         public static SuggestionModeCompletionItemRules Instance { get; } = new SuggestionModeCompletionItemRules();
 
-        public override Result<bool> SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
+        public override bool? SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar, OptionSet options)
         {
             return false;
         }

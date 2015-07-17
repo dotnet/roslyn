@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Public Shared ReadOnly Property Instance As New ItemRules()
 
-            Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As Result(Of TextChange)
+            Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange?
                 Return New TextChange(selectedItem.FilterSpan, DirectCast(selectedItem, SymbolCompletionItem).InsertionText)
             End Function
 

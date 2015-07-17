@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
     {
         public static XmlDocCommentCompletionItemRules Instance { get; } = new XmlDocCommentCompletionItemRules();
 
-        public override Result<bool> IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
+        public override bool? IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
             if ((ch == '"' || ch == ' ')
                 && completionItem.DisplayText.Contains(ch))

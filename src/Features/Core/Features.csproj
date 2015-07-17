@@ -156,7 +156,6 @@
     <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
     <Compile Include="Completion\CompletionItemRules.cs" />
-    <Compile Include="Completion\CompletionItemRules.Result.cs" />
     <Compile Include="Completion\CompletionList.cs" />
     <Compile Include="Completion\CompletionListContext.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
