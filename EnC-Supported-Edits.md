@@ -21,6 +21,7 @@
 | Modify lambda expressions | The following rules guarantee that the structure of the emitted closure tree will not change--thus ensuring that lambdas in the new body are mapped to the corresponding generated CLR methods that implemented their previous versions: <ul><li>Lambda signatures cannot be modified (this includes names, types, ref-ness of parameters, and return types)</li><li>The set of variables captured by the lambda expression cannot be modified (a variable that has not been captured before cannot be captured after modification and vice versa)</li><li>The scope of captured variables cannot be modified</li><li>The set of captured variables accessed by the lambda expression cannot be modified</li></ul> |
 | Add LINQ expressions | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
 | Modify LINQ expressions | LINQ expressions contain implicitly-declared anonymous functions. This means the edit rules for lambdas and LINQ will be the same. |
+| Modifying async lambda and LINQ expressions in combination | You can edit various nested expressions provided that they otherwise satisfy the EnC rules | 
 
 ### Not Supported Edits
 | Edit operation | Planned? | Additional Info |
