@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Called by derived types to enqueue tags re-calculation request
         /// </summary>
-        protected virtual void RecalculateTagsOnChanged(TaggerEventArgs e)
+        protected void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
             if (_ignoreCaretMovementToExistingTag && e.Kind == PredefinedChangedEventKinds.CaretPositionChanged)
             {
@@ -110,6 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 }
             }
 
+            RecalculateTagsOnChangedCore(e);
+        }
+
+        protected virtual void RecalculateTagsOnChangedCore(TaggerEventArgs e)
+        {
             RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
         }
 

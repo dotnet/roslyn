@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return _textView.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
         }
 
-        protected override void RecalculateTagsOnChanged(TaggerEventArgs e)
+        protected override void RecalculateTagsOnChangedCore(TaggerEventArgs e)
         {
             var cancellationToken = this.WorkQueue.CancellationToken;
 
@@ -67,17 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 {
                     ClearTags(cancellationToken);
                     return;
-                }
-
-                // called because of caret change
-                if (e.Kind == PredefinedChangedEventKinds.CaretPositionChanged)
-                {
-                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
-                    if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Any())
-                    {
-                        // we are already inside of a tag. nothing to do.
-                        return;
-                    }
                 }
 
                 var spansToTag = TryGetSpansAndDocumentsToTag(e.Kind);

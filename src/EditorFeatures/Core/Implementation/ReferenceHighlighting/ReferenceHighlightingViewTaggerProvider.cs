@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         public bool RemoveTagsThatIntersectEdits => true;
         public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-        public bool IgnoreCaretMovementToExistingTag => false;
+        public bool IgnoreCaretMovementToExistingTag => true;
         public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
         public IEqualityComparer<AbstractNavigatableReferenceHighlightingTag> TagComparer => null;
         public IEnumerable<Option<bool>> Options => null;

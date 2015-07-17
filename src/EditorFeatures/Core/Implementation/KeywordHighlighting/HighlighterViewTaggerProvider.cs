@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<HighlightTag>
     {
         private readonly IHighlightingService _highlighterService;
-        private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
         public override bool RemoveTagsThatIntersectEdits => true;
         public override bool IgnoreCaretMovementToExistingTag => true;
