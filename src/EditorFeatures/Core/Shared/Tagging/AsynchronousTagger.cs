@@ -54,9 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             Contract.ThrowIfNull(subjectBuffer);
 
             _subjectBuffer = subjectBuffer;
-            _uiUpdateDelayInMS = (uiUpdateDelay ?? TaggerDelay.Medium).ComputeTimeDelayMS();
+            var delay = uiUpdateDelay ?? TaggerDelay.Medium;
+            _uiUpdateDelayInMS = delay.ComputeTimeDelayMS();
 
-            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
+            // In order to make sure the batch change notifier doesn't add too much overhead,
+            // we cap the delay it incurs at TaggerDelay.Short.
+            var batchDelay = delay < TaggerDelay.Short ? delay: TaggerDelay.Short;
+            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan, batchDelay);
 
             _tagSource = tagSource;
 
