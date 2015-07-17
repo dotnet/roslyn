@@ -740,7 +740,7 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerConstants.cs" />
     <Compile Include="Tagging\TaggerDelay.cs" />
     <Compile Include="Tagging\TaggerEventArgs.cs" />
-    <Compile Include="Shared\Tagging\EventSources\TaggerEventSource.DiagnosticsChangedEventSource.cs" />
+    <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.DiagnosticsChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.CaretPositionChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.CompletionClosedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.CompositionEventSource.cs" />
