@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         ClearTags(spansToTag, cancellationToken);
                     }
 
-                    base.RecalculateTagsOnChanged(e);
+                    base.RecalculateTagsOnChangedCore(e);
                 }
             }, delay: TaggerConstants.NearImmediateDelay, cancellationToken: cancellationToken);
         }
