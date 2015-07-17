@@ -4641,4 +4641,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
+  <data name="ERR_LoadDirectiveOnlyAllowedInScripts" xml:space="preserve">
+    <value>#load is only allowed in scripts</value>
+  </data>
+  <data name="ERR_PPLoadFollowsToken" xml:space="preserve">
+    <value>Cannot use #load after first token in file</value>
+  </data>
 </root>

@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-//test
-
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     #region Local types for verification
@@ -3807,6 +3805,68 @@ static void Main() { }
             VerifyDirectives(node, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
                 SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia,
                 SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia, SyntaxKind.ReferenceDirectiveTrivia);
+        }
+
+        #endregion
+
+        #region #load
+
+        [Fact]
+        public void TestLoad()
+        {
+            var text = "#load \"bogus\"";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
+        }
+
+        [Fact]
+        public void TestLoadWithoutFile()
+        {
+            var text = "#load";
+            var node = Parse(text, SourceCodeKind.Interactive);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+            });
+            Assert.True(node.GetLoadDirectives().Single().File.IsMissing);
+        }
+
+        [Fact]
+        public void TestLoadWithSemicolon()
+        {
+            var text = "#load \"\";";
+            var node = Parse(text, SourceCodeKind.Interactive);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = ""
+            });
+        }
+
+        [Fact]
+        public void TestLoadWithComment()
+        {
+            var text = "#load \"bogus\" // comment";
+            var node = Parse(text, SourceCodeKind.Script);
+            TestRoundTripping(node, text);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.LoadDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "bogus"
+            });
         }
 
         #endregion

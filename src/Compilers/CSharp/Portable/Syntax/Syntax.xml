@@ -3979,4 +3979,20 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
+  <Node Name="LoadDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="LoadDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LoadKeyword" Type="SyntaxToken">
+      <Kind Name="LoadKeyword"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
 </Tree>
