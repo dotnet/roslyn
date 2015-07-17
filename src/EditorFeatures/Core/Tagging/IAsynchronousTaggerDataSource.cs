@@ -37,6 +37,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted { get; }
 
         /// <summary>
+        /// <code>true</code> if the tagger infrastructure can avoid recomputing tags when the 
+        /// user's caret moves to an already existing tag.  This is useful to avoid work for
+        /// features like Highlighting if the user is navigating between highlight tags.
+        /// </summary>
+        bool IgnoreCaretMovementToExistingTag { get; }
+
+        /// <summary>
         /// Options controlling this tagger.  The tagger infrastructure will check this option
         /// against the buffer it is associated with to see if it should tag or not.
         /// 

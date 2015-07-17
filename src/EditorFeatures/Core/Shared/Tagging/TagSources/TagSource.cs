@@ -3,10 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
@@ -17,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// to participate in async tagger framework</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal abstract partial class TagSource<TTag>
+    internal abstract partial class TagSource<TTag> : 
+        ForegroundThreadAffinitizedObject
         where TTag : ITag
     {
         #region Fields that can be accessed from either thread
@@ -31,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         internal readonly AsynchronousSerialWorkQueue WorkQueue;
 
+        protected readonly ITextView TextViewOpt;
         protected readonly ITextBuffer SubjectBuffer;
 
         /// <summary>
@@ -42,15 +47,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// foreground notification service
         /// </summary>
         private readonly IForegroundNotificationService _notificationService;
+        private readonly bool _ignoreCaretMovementToExistingTag;
 
         #endregion
 
         protected TagSource(
+            ITextView textViewOpt,
             ITextBuffer subjectBuffer,
+            bool ignoreCaretMovementToExistingTag,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListener asyncListener)
         {
+            TextViewOpt = textViewOpt;
             this.SubjectBuffer = subjectBuffer;
+            _ignoreCaretMovementToExistingTag = ignoreCaretMovementToExistingTag;
             _notificationService = notificationService;
 
             this.Listener = asyncListener;
@@ -84,7 +94,32 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         protected virtual void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
+            if (_ignoreCaretMovementToExistingTag && e.Kind == PredefinedChangedEventKinds.CaretPositionChanged)
+            {
+                this.AssertIsForeground();
+
+                var caret = GetCaretPoint();
+                if (caret.HasValue)
+                {
+                    // If it changed position and we're still in a tag, there's nothing more to do
+                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
+                    if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Count > 0)
+                    {
+                        return;
+                    }
+                }
+            }
+
             RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
+        }
+
+        /// <summary>
+        /// Implemented by derived types to return the caret position.
+        /// </summary>
+        /// <remarks>Called on the foreground thread.</remarks>
+        protected virtual SnapshotPoint? GetCaretPoint()
+        {
+            return TextViewOpt?.GetCaretPoint(SubjectBuffer);
         }
 
         protected virtual void Disconnect()
