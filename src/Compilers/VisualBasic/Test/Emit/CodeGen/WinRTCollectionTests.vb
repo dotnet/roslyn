@@ -3,7 +3,6 @@
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
     Public Class WinRTCollectionTests
@@ -17,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGen
                     Dim listRefs = New List(Of MetadataReference)(WinRtRefs.Length + 2)
                     listRefs.AddRange(WinRtRefs)
                     listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows_Languages_WinRTTest).GetReference(display:="WinRTTest"))
-                    listRefs.Add(AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display:="SystemCore"))
+                    listRefs.Add(AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Core).GetReference(display:="SystemCore"))
                     _legacyRefs = listRefs.ToArray()
                 End If
                 Return _legacyRefs
