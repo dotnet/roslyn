@@ -2291,6 +2291,7 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.SelectKeyword = 8428 -> Microsoft.CodeA
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SemicolonToken = 8212 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SetAccessorDeclaration = 8897 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SetKeyword = 8418 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShebangCommentTrivia = 8922 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShortKeyword = 8307 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SimpleAssignmentExpression = 8714 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SimpleBaseType = 8865 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
