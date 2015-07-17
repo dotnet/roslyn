@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -24,10 +25,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
 
         Private Function ProduceTags(workspace As TestWorkspace, buffer As ITextBuffer, position As Integer) As IEnumerable(Of ITagSpan(Of BraceHighlightTag))
             Dim view As New Mock(Of ITextView)
-            Dim producer = New BraceHighlightingTagProducer(workspace.GetService(Of IBraceMatchingService))
+            Dim producer = New BraceHighlightingViewTaggerProvider(
+                workspace.GetService(Of IBraceMatchingService),
+                workspace.GetService(Of IForegroundNotificationService),
+                AggregateAsynchronousOperationListener.EmptyListeners)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
-            Return producer.ProduceTagsAsync(doc, buffer.CurrentSnapshot, position, CancellationToken.None).Result
+            Dim result = New List(Of ITagSpan(Of BraceHighlightTag))
+            producer.ProduceTagsAsync(doc, buffer.CurrentSnapshot, position, AddressOf result.Add, CancellationToken.None).Wait()
+            Return result
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>

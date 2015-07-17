@@ -324,7 +324,6 @@
     <Compile Include="Implementation\AutomaticCompletion\Sessions\AbstractTokenBraceCompletionSession.cs" />
     <Compile Include="Implementation\BraceMatching\AbstractBraceMatcher.cs" />
     <Compile Include="Implementation\BraceMatching\BraceCharacterAndKind.cs" />
-    <Compile Include="Implementation\BraceMatching\BraceHighlightingTagProducer.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightingViewTaggerProvider.cs" />
     <Compile Include="Implementation\BraceMatching\BraceHighlightTag.cs" />
     <Compile Include="Implementation\BraceMatching\BraceMatchingService.cs" />
@@ -348,7 +347,6 @@
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationTaggerProvider.cs" />
-    <Compile Include="Implementation\Classification\SemanticClassificationTaggerProvider.TagProducer.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.LastLineCache.cs" />
@@ -412,7 +410,6 @@
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
     <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
-    <Compile Include="Implementation\KeywordHighlighting\HighlighterTagProducer.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingTagSource.cs" />
@@ -560,7 +557,6 @@
     <Compile Include="Implementation\LineSeparators\LineSeparatorAdornmentManagerProvider.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorTag.cs" />
     <Compile Include="Implementation\LineSeparators\LineSeparatorTaggerProvider.cs" />
-    <Compile Include="Implementation\LineSeparators\LineSeparatorTaggerProvider.TagProducer.cs" />
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceFileService.cs" />
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceGeneratedFileInfo.cs" />
     <Compile Include="Implementation\MetadataAsSource\MetadataAsSourceWorkspace.cs" />
@@ -595,7 +591,6 @@
     <Compile Include="Implementation\Outlining\OutliningSpan.cs" />
     <Compile Include="Implementation\Outlining\OutliningTaggerProvider.cs" />
     <Compile Include="Implementation\Outlining\OutliningTaggerProvider.Tag.cs" />
-    <Compile Include="Implementation\Outlining\OutliningTaggerProvider.TagProducer.cs" />
     <Compile Include="Implementation\Outlining\RegionCollector.cs" />
     <Compile Include="Implementation\Peek\DefinitionPeekableItem.cs" />
     <Compile Include="Implementation\Peek\ExternalFilePeekableItem.cs" />
@@ -625,7 +620,6 @@
     <Compile Include="Implementation\ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.StartComparer.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingViewTaggerProvider.cs" />
-    <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingViewTaggerProvider.TagProducer.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightTag.cs" />
     <Compile Include="Implementation\RenameTracking\AbstractRenameTrackingCodeFixProvider.cs" />
     <Compile Include="Implementation\RenameTracking\RenameTrackingDiagnosticAnalyzer.cs" />
@@ -677,6 +671,8 @@
     <Compile Include="Tagging\AsynchronousTaggerDataSource.cs" />
     <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
     <Compile Include="Tagging\AsynchronousViewTaggerProvider.cs" />
+    <Compile Include="Tagging\TaggerContext.cs" />
+    <Compile Include="Tagging\TaggerUtilities.cs" />
     <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
     <Compile Include="Undo\EditorSourceTextUndoService.cs" />
     <Compile Include="Undo\ISourceTextUndoTransaction.cs" />
@@ -757,8 +753,6 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SelectionChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SemanticChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.TextChangedEventSource.cs" />
-    <Compile Include="Shared\Tagging\TagProducers\AbstractSingleDocumentTagProducer.cs" />
-    <Compile Include="Tagging\ITagProducer.cs" />
     <Compile Include="Shared\Tagging\TagProviders\AsynchronousBufferTaggerProviderWithTagSource.cs" />
     <Compile Include="Shared\Tagging\TagProviders\AsynchronousViewTaggerProviderWithTagSource.cs" />
     <Compile Include="Shared\Tagging\TagProviders\AbstractAsynchronousTaggerProvider.cs" />

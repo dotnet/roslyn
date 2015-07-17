@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -70,23 +73,32 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Creates the <see cref="ITagProducer{TTag}"/> which will be used by the 
-        /// <see cref="AsynchronousTaggerProvider{TTag}"/> to produce tags asynchronously.
-        /// </summary>
-        ITagProducer<TTag> CreateTagProducer();
-
-        /// <summary>
         /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to determine
         /// the set of spans that it should asynchronously tag.  This will be called in response to
         /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
         /// will only be called from the UI thread.  The tagger infrastructure will then determine
         /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
-        /// and will asycnhronously call into the <see cref="ITagProducer{TTag}"/> at some point in
+        /// and will asycnhronously call into <see cref="ProduceTagsAsync"/> at some point in
         /// the future to produce tags for these spans.
         /// 
         /// Return <code>null</code> to get the default set of spans tagged.  This will normally be 
         /// the span of the entire text buffer.
         /// </summary>
         IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer);
+
+        /// <summary>
+        /// Produce tags for the given spans.
+        /// </summary>
+        /// <param name="snapshotSpans">A list of SnapshotSpans and their corresponding documents
+        /// that tags should be computed for. It is guaranteed to contain at least one element. In
+        /// some scenarios, snapshotSpans may contain spans for snapshots that correspond to
+        /// different buffers entirely. It is guaranteed, however, that there were not be multiple
+        /// spans from different snapshots from the same buffer.</param>
+        /// <param name="caretPosition">The caret position, if a caret position exists in one of the
+        /// buffers included in snapshotSpans.</param>
+        /// <param name="addTag">Callback to invoke when a new tag has been produced.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A list of tag spans</returns>
+        Task ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<TTag>> addTag, CancellationToken cancellationToken);
     }
 }

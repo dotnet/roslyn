@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
@@ -31,6 +35,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
 
         public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
-        public abstract ITagProducer<TTag> CreateTagProducer();
+
+        public virtual Task ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<TTag>> addTag, CancellationToken cancellationToken)
+        {
+            return TaggerUtilities.Delegate(snapshotSpans, caretPosition, addTag, ProduceTagsAsync, cancellationToken);
+        }
+
+        public virtual Task ProduceTagsAsync(DocumentSnapshotSpan snapshotSpan, int? caretPosition, Action<ITagSpan<TTag>> addTag, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyTask;
+        }
     }
 }

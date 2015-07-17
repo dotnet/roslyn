@@ -3,10 +3,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -42,9 +47,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.LineSeparator, TaggerDelay.NearImmediate));
         }
 
-        public override ITagProducer<LineSeparatorTag> CreateTagProducer()
+        public override async Task ProduceTagsAsync(DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, Action<ITagSpan<LineSeparatorTag>> addTag, CancellationToken cancellationToken)
         {
-            return new TagProducer();
+            var document = documentSnapshotSpan.Document;
+            if (document == null)
+            {
+                return;
+            }
+
+            var options = document.Project.Solution.Workspace.Options;
+            if (!options.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
+            {
+                return;
+            }
+
+            // note: we are not directly using the syntax tree root here, we are holding onto it so that the 
+            // line separator service won't block trying to get it.
+
+            using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
+            {
+                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+                var lineSeparatorService = document.Project.LanguageServices.GetService<ILineSeparatorService>();
+                var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                foreach (var span in lineSeparatorSpans)
+                {
+                    addTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), LineSeparatorTag.Instance));
+                }
+            }
         }
     }
 }

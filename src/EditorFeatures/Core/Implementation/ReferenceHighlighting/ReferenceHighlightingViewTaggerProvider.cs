@@ -2,14 +2,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -58,11 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
         }
 
-        public ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
-        {
-            return new TagProducer();
-        }
-
         public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // PERF: use a longer delay for OnTextChanged to minimize the impact of GCs while typing
@@ -86,5 +88,122 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             return null;
         }
+
+        public Task ProduceTagsAsync(
+            IEnumerable<DocumentSnapshotSpan> snapshotSpans,
+            SnapshotPoint? caretPosition, 
+            Action<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> addTag,
+            CancellationToken cancellationToken)
+        {
+            // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
+            // asked about.  However, we want to produce all tags here so that the user can actually
+            // navigate between all of them using the appropriate tag navigation commands.  If we
+            // don't generate all the tags then the user will cycle through an incorrect subset.
+            if (caretPosition == null)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            var position = caretPosition.Value;
+
+            Workspace workspace;
+            if (!Workspace.TryGetWorkspace(position.Snapshot.AsText().Container, out workspace))
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            var document = snapshotSpans.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
+            if (document == null)
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            return ProduceTagsAsync(snapshotSpans, position, workspace, document, addTag, cancellationToken);
+        }
+
+        internal async Task ProduceTagsAsync(
+            IEnumerable<DocumentSnapshotSpan> snapshotSpans,
+            SnapshotPoint position,
+            Workspace workspace,
+            Document document,
+            Action<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> addTag,
+            CancellationToken cancellationToken)
+        {
+            // Don't produce tags if the feature is not enabled.
+            if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
+            {
+                return;
+            }
+
+            var solution = document.Project.Solution;
+
+            using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
+            {
+                var result = new List<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>();
+
+                if (document != null)
+                {
+                    var documentHighlightsService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
+                    if (documentHighlightsService != null)
+                    {
+                        // We only want to search inside documents that correspond to the snapshots
+                        // we're looking at
+                        var documentsToSearch = ImmutableHashSet.CreateRange(snapshotSpans.Select(vt => vt.Document).WhereNotNull());
+                        var documentHighlightsList = await documentHighlightsService.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                        if (documentHighlightsList != null)
+                        {
+                            foreach (var documentHighlights in documentHighlightsList)
+                            {
+                                await AddTagSpansAsync(solution, result, documentHighlights, addTag, cancellationToken).ConfigureAwait(false);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task AddTagSpansAsync(
+            Solution solution,
+            List<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> tags,
+            DocumentHighlights documentHighlights,
+            Action<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> addTag,
+            CancellationToken cancellationToken)
+        {
+            var document = documentHighlights.Document;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+            if (textSnapshot == null)
+            {
+                // There is no longer an editor snapshot for this document, so we can't care about the
+                // results.
+                return;
+            }
+
+            foreach (var span in documentHighlights.HighlightSpans)
+            {
+                var tag = GetTag(span);
+                addTag(new TagSpan<AbstractNavigatableReferenceHighlightingTag>(
+                    textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
+            }
+        }
+
+        private static AbstractNavigatableReferenceHighlightingTag GetTag(HighlightSpan span)
+        {
+            switch (span.Kind)
+            {
+                case HighlightSpanKind.WrittenReference:
+                    return WrittenReferenceHighlightTag.Instance;
+
+                case HighlightSpanKind.Definition:
+                    return DefinitionHighlightTag.Instance;
+
+                case HighlightSpanKind.Reference:
+                case HighlightSpanKind.None:
+                default:
+                    return ReferenceHighlightTag.Instance;
+            }
+        }
+
     }
 }

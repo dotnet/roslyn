@@ -3,11 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -44,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
         public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
+        private IEditorClassificationService _classificationService;
+
         [ImportingConstructor]
         public SemanticClassificationTaggerProvider(
             IForegroundNotificationService notificationService,
@@ -73,11 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return new SemanticBufferTagSource<IClassificationTag>(subjectBuffer, this, asyncListener, notificationService);
         }
 
-        public ITagProducer<IClassificationTag> CreateTagProducer()
-        {
-            return new TagProducer(_typeMap);
-        }
-
         public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
@@ -89,6 +92,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return null;
+        }
+
+        public Task ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<IClassificationTag>> addTag, CancellationToken cancellationToken)
+        {
+            return TaggerUtilities.Delegate(snapshotSpans, caretPosition, addTag, ProduceTagsWorkerAsync, cancellationToken);
+        }
+
+        private async Task ProduceTagsWorkerAsync(
+            DocumentSnapshotSpan documentSnapshotSpan,
+            int? caretPosition,
+            Action<ITagSpan<IClassificationTag>> addTag,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var document = documentSnapshotSpan.Document;
+                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+                var snapshot = snapshotSpan.Snapshot;
+                if (document == null)
+                {
+                    return;
+                }
+
+                if (_classificationService == null)
+                {
+                    _classificationService = document.Project.LanguageServices.GetService<IEditorClassificationService>();
+                }
+
+                if (_classificationService == null)
+                {
+                    return;
+                }
+
+                // we don't directly reference the semantic model here, we just keep it alive so 
+                // the classification service does not need to block to produce it.
+                using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
+                {
+                    var textSpan = snapshotSpan.Span.ToTextSpan();
+                    var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
+
+                    var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+
+                    await _classificationService.AddSemanticClassificationsAsync(
+                        document, textSpan, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                    ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, addTag);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }

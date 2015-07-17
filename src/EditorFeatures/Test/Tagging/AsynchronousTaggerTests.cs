@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
@@ -51,11 +52,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
     }
 }"))
             {
-                var tagProducer = new TestTagProducer(
-                    (span, cancellationToken) =>
+                Callback tagProducer = (span, cancellationToken) =>
                     {
                         return new List<ITagSpan<TestTag>>() { new TagSpan<TestTag>(span, new TestTag()) };
-                    });
+                    };
                 var asyncListener = new TaggerOperationListener();
 
                 var notificationService = workspace.GetService<IForegroundNotificationService>();
@@ -140,26 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             }
         }
 
-        private sealed class TestTagProducer : AbstractSingleDocumentTagProducer<TestTag>
-        {
-            public delegate List<ITagSpan<TestTag>> Callback(SnapshotSpan span, CancellationToken cancellationToken);
-
-            private readonly Callback _produceTags;
-
-            public TestTagProducer(Callback produceTags)
-            {
-                _produceTags = produceTags;
-            }
-
-            public override Task<IEnumerable<ITagSpan<TestTag>>> ProduceTagsAsync(Document document, SnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
-            {
-                return Task.FromResult<IEnumerable<ITagSpan<TestTag>>>(_produceTags(snapshotSpan, cancellationToken));
-            }
-        }
+        private delegate List<ITagSpan<TestTag>> Callback(SnapshotSpan span, CancellationToken cancellationToken);
 
         private sealed class TestTaggerProvider : AsynchronousTaggerProvider<TestTag>
         {
-            private readonly TestTagProducer _tagProducer;
+            private readonly Callback _callback;
             private readonly ITaggerEventSource _eventSource;
             private readonly Workspace _workspace;
             private readonly bool _disableCancellation;
@@ -168,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
             public TestTaggerProvider(
-                TestTagProducer tagProducer,
+                Callback callback,
                 ITaggerEventSource eventSource,
                 Workspace workspace,
                 IAsynchronousOperationListener asyncListener,
@@ -176,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 bool disableCancellation = false)
                     : base(asyncListener, notificationService)
             {
-                _tagProducer = tagProducer;
+                _callback = callback;
                 _eventSource = eventSource;
                 _workspace = workspace;
                 _disableCancellation = disableCancellation;
@@ -187,9 +172,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 return _eventSource;
             }
 
-            public override ITagProducer<TestTag> CreateTagProducer()
+            public override Task ProduceTagsAsync(DocumentSnapshotSpan snapshotSpan, int? caretPosition, Action<ITagSpan<TestTag>> addTag, CancellationToken cancellationToken)
             {
-                return _tagProducer;
+                var tags = _callback(snapshotSpan.SnapshotSpan, cancellationToken);
+                if (tags != null)
+                {
+                    foreach (var tag in tags)
+                    {
+                        addTag(tag);
+                    }
+                }
+
+                return SpecializedTasks.EmptyTask;
             }
         }
 

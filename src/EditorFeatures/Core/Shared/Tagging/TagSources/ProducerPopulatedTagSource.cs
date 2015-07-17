@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
     /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous
-    /// tagging infrastructure. It is the coordinator between  <see cref="ITagProducer{TTag}"/>s,
+    /// tagging infrastructure. It is the coordinator between <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
     /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the
     /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
-    /// the tag source starts the computation and calls the <see cref="ITagProducer{TTag}"/> to build
+    /// the tag source starts the computation and calls <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/> to build
     /// the new list of tags. When that's done, the tags are stored in <see cref="_cachedTags"/>. The 
     /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
     /// <see cref="_cachedTags"/></para>
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTags;
 
         private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
-        private readonly ITagProducer<TTag> _tagProducer;
 
         private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
 
@@ -95,7 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _textViewOpt = textViewOpt;
             _subjectBuffer = subjectBuffer;
             _dataSource = dataSource;
-            _tagProducer = dataSource.CreateTagProducer();
 
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
             _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
@@ -583,11 +581,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var tagSpans = spansToCompute.IsEmpty() ?
-                SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>() :
-                await _tagProducer.ProduceTagsAsync(spansToCompute, caretPosition, cancellationToken).ConfigureAwait(false);
+            var builder = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
+            if (!spansToCompute.IsEmpty())
+            {
+                await _dataSource.ProduceTagsAsync(spansToCompute, caretPosition, builder.Add, cancellationToken).ConfigureAwait(false);
+            }
 
-            var map = ConvertToTagTree(tagSpans, spansToCompute);
+            var map = ConvertToTagTree(builder, spansToCompute);
 
             ProcessNewTags(spansToCompute, textChangeRange, map);
         }
@@ -686,9 +686,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
                     var spansToCompute = GetSpansAndDocumentsToTag();
 
+                    // TODO(cyrusn): Should we do this under a threaded wait dialog.  That way the
+                    // use can cancel out if this takes a long time.
+
+                    var builder = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
+                    _dataSource.ProduceTagsAsync(spansToCompute, GetCaretPoint(), builder.Add, CancellationToken.None).Wait();
+
                     // We shall synchronously compute tags.
-                    var producedTags = ConvertToTagTree(
-                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), CancellationToken.None).WaitAndGetResult(CancellationToken.None));
+                    var producedTags = ConvertToTagTree(builder);
 
                     ProcessNewTags(spansToCompute, null, producedTags);
 
