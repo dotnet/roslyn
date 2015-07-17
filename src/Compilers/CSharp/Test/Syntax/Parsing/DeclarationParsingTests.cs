@@ -5227,5 +5227,47 @@ unsafe struct s
             var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
+
+        [Fact]
+        public void TupleArgument01()
+        {
+            var text = @"
+class C1
+{
+    static (T, T) Test1<T>(int a, (byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+
+    static (T, T) Test2<T>(ref (byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+}
+";
+            var file = this.ParseFile(text);
+            Assert.Equal(0, file.Errors().Length);
+        }
+
+        [Fact]
+        public void TupleArgument02()
+        {
+            var text = @"
+class C1
+{
+    static (T, T) Test3<T>((byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+
+    (T, T) Test3<T>((byte a, byte b)[] arg0)
+    {
+        return default((T, T));
+    }
+}
+";
+            var file = this.ParseFile(text);
+            Assert.Equal(0, file.Errors().Length);
+        }
     }
 }

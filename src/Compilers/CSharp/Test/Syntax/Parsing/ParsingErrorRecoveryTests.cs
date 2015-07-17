@@ -5277,12 +5277,10 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(4, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -5341,13 +5339,11 @@ class C
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(5, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, file.Errors()[0].Code);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[2].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[3].Code);
-            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[4].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
         }
 
         [Fact]

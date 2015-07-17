@@ -528,5 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringText = 8919,
         InterpolationAlignmentClause = 8920,
         InterpolationFormatClause = 8921,
+
+        TupleType = 8925,
+        TupleElement = 8926,
+        TupleExpression = 8927,
     }
 }

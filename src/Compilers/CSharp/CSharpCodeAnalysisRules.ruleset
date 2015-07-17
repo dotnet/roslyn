@@ -1,11 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Diagnostic rules for the CSharpCodeAnalysis (Portable and Desktop) projects" Description="Enables rules specific to these projects." ToolsVersion="14.0">
-  <!-- Include default rules -->
-  <Include Path="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Rulesets\Roslyn.ruleset" Action="Default" />
-  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
-    <Rule Id="RS0013" Action="Warning" />
+  <Include Path="..\..\tools\microsoft.codeanalysis.toolset.open\rulesets\roslyn.ruleset" Action="Default" />
+  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers" RuleNamespace="Roslyn.Diagnostics.Analyzers">
+    <Rule Id="RS0016" Action="None" />
   </Rules>
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
+    <Rule Id="RS0013" Action="Warning" />
+    <Rule Id="RS0016" Action="None" />
     <Rule Id="RS0018" Action="Error" />
   </Rules>
 </RuleSet>

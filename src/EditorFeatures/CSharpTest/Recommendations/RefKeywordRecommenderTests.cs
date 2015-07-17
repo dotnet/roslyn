@@ -367,7 +367,7 @@ $$");
         public void InLambdaDeclaration2()
         {
             VerifyKeyword(AddInsideMethod(
-@"var q = (a, $$"));
+@"var q = (a, $$)=>a"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

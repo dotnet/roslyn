@@ -1333,6 +1333,47 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTupleWithTwoArguments()
+        {
+            var text = "(a, a2)";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var tuple = (TupleExpressionSyntax)expr;
+            Assert.NotNull(tuple.OpenParenToken);
+            Assert.NotNull(tuple.CloseParenToken);
+            Assert.False(tuple.OpenParenToken.IsMissing);
+            Assert.False(tuple.CloseParenToken.IsMissing);
+            Assert.Equal(2, tuple.Arguments.Count);
+            Assert.Equal(SyntaxKind.IdentifierName, tuple.Arguments[0].Expression.Kind());
+            Assert.Null(tuple.Arguments[1].NameColon);
+        }
+
+        [Fact]
+        public void TestTupleWithTwoNamedArguments()
+        {
+            var text = "(arg1: (a, a2), arg2: a2)";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var tuple = (TupleExpressionSyntax)expr;
+            Assert.NotNull(tuple.OpenParenToken);
+            Assert.NotNull(tuple.CloseParenToken);
+            Assert.False(tuple.OpenParenToken.IsMissing);
+            Assert.False(tuple.CloseParenToken.IsMissing);
+            Assert.Equal(2, tuple.Arguments.Count);
+            Assert.Equal(SyntaxKind.TupleExpression, tuple.Arguments[0].Expression.Kind());
+            Assert.NotNull(tuple.Arguments[0].NameColon.Name);
+            Assert.Equal("arg2", tuple.Arguments[1].NameColon.Name.ToString());
+        }
+
+        [Fact]
         public void TestFromSelect()
         {
             var text = "from a in A select b";
