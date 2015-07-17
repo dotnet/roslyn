@@ -1835,5 +1835,19 @@ End Class
 
             Test(markup, expectedOrderedItems)
         End Sub
+
+        <WorkItem(3537, "https://github.com/dotnet/roslyn/issues/3537")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestEscapedIdentifiers()
+            Dim markup = "
+Class C
+    Sub [Next]()
+        Dim x As New C
+        x.Next($$)
+    End Sub
+End Class
+"
+            Test(markup, SpecializedCollections.SingletonEnumerable(New SignatureHelpTestItem("C.Next()", String.Empty)))
+        End Sub
     End Class
 End Namespace
