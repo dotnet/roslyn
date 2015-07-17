@@ -18,11 +18,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    internal sealed class SemanticBufferTagSource<TTag> : ProducerPopulatedTagSource<TTag> where TTag : ITag
+    internal sealed class SemanticClassificationTagSource<TTag> : ProducerPopulatedTagSource<TTag> where TTag : ITag
     {
         private VersionStamp _lastSemanticVersion;
 
-        public SemanticBufferTagSource(
+        public SemanticClassificationTagSource(
             ITextBuffer subjectBuffer,
             IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,

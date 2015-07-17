@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             ITextView textViewOpt, ITextBuffer subjectBuffer,
             IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService)
         {
-            return new SemanticBufferTagSource<IClassificationTag>(subjectBuffer, this, asyncListener, notificationService);
+            return new SemanticClassificationTagSource<IClassificationTag>(subjectBuffer, this, asyncListener, notificationService);
         }
 
         public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
