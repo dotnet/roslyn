@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
 
-        public override bool RemoveTagsThatIntersectEdits => true;
+        public override bool RemoveTagsThatIntersectEdits => false;
         public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public override bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted =>
             _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;

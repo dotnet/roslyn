@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     {
         private readonly IBraceMatchingService _braceMatcherService;
 
-        public override bool RemoveTagsThatIntersectEdits => true;
+        public override bool RemoveTagsThatIntersectEdits => false;
         public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 

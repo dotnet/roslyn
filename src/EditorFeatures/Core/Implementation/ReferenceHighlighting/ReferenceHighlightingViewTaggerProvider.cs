@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
-        public bool RemoveTagsThatIntersectEdits => true;
+        public bool RemoveTagsThatIntersectEdits => false;
         public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public bool IgnoreCaretMovementToExistingTag => true;

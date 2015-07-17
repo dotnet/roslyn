@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -24,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// tag.  Removing may be appropriate if it is undesirable for stale tag data to be 
         /// presented to the user.  However, removal may also lead to a more noticeable tagging 
         /// experience for the user if tags quickly get removed and re-added.
+        /// 
+        /// Note: if you want tags to be removed that intersect edits, you must pass 'true' for
+        /// the <code>reportChangedSpans</code> parameter of your
+        /// <see cref="TaggerEventSources.OnTextChanged(ITextBuffer, TaggerDelay, bool)"/> event
+        /// source.  Otherwise, the tagger infrastructure will know know which text ranges have
+        /// been affected, and thus which tags to remove.
         /// </summary>
         bool RemoveTagsThatIntersectEdits { get; }
 
