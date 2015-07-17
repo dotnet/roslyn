@@ -752,8 +752,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// Given a point in projection buffer calculate a span that includes the point and comprises of 
         /// subsequent projection spans forming a region, i.e. a sequence of output spans in between two subsequent submissions,
         /// a language input block, or standard input block.
-        /// 
-        /// Internal for testing.
         /// </summary>
         private SnapshotSpan? GetContainingRegion(SnapshotPoint point)
         {
@@ -1826,7 +1824,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 // Do nothing.
             }   
-            if (string.IsNullOrEmpty(_uncommittedInput))
+            else if (string.IsNullOrEmpty(_uncommittedInput))
             {
                 _uncommittedInput = text;
             }
@@ -2986,7 +2984,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         {
             if (!OnUIThread())
             {
-                throw new InvalidOperationException("Must be called on UI thread.");
+                throw new InvalidOperationException(InteractiveWindowResources.RequireUIThread);
             }
         }
 

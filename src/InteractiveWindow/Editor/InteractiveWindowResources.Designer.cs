@@ -95,5 +95,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
                 return ResourceManager.GetString("RequireNonUIThread", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This method may only be called on the UI thread..
+        /// </summary>
+        internal static string RequireUIThread {
+            get {
+                return ResourceManager.GetString("RequireUIThread", resourceCulture);
+            }
+        }
     }
 }
