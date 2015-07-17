@@ -760,7 +760,7 @@
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
     <Compile Include="Implementation\ReferenceHighlighting\ReferenceHighlightingTagSource.cs" />
-    <Compile Include="Shared\Tagging\TagSources\SemanticBufferTagSource.cs" />
+    <Compile Include="Implementation\Classification\SemanticBufferTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\ProducerPopulatedTagSource.cs" />
     <Compile Include="Shared\Tagging\TagSources\TagSource_ReferenceCounting.cs" />
     <Compile Include="Shared\Tagging\Utilities\BatchChangeNotifier.cs" />
