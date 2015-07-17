@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return ImmutableArray<CompletionItem>.Empty;
             }
 
-            var fileSystem = PathCompletionUtilities.GetCurrentWorkingDirectoryDiscoveryService(snapshot);
+            var fileSystem = CurrentWorkingDirectoryDiscoveryService.GetService(snapshot);
 
-            var searchPaths = ImmutableArray.Create<string>(fileSystem.CurrentDirectory);
+            var searchPaths = ImmutableArray.Create(fileSystem.CurrentDirectory);
 
             var helper = new FileSystemCompletionHelper(
                 this,

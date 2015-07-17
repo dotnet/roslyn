@@ -170,12 +170,8 @@
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectInitializerCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractSymbolCompletionProvider.cs" />
-    <Compile Include="Completion\Providers\CurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Completion\Providers\FileSystemCompletionHelper.cs" />
     <Compile Include="Completion\CompletionListProvider.cs" />
-    <Compile Include="Completion\Providers\ICurrentWorkingDirectoryDiscoveryService.cs" />
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
-    <Compile Include="Completion\Providers\IOUtilities.cs" />
     <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItemRules.cs" />
     <Compile Include="Completion\Providers\ObjectInitializerCompletionItemRules.cs" />

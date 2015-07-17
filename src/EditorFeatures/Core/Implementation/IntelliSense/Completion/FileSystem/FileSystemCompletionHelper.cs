@@ -7,11 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem
 {
     internal sealed class FileSystemCompletionHelper
     {
