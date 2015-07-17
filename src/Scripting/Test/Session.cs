@@ -143,13 +143,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         public T Execute<T>(string code)
         {
             var value = this.ExecuteAsync<T>(code, CancellationToken.None);
-            if (value == null)
-            {
-                // ReturnValue will be null if there are errors or
-                // if there is no executable code in submission.
-                return default(T);
-            }
-
             return value.Result;
         }
 

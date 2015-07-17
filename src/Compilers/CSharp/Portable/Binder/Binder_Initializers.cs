@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var collisionDetector = new LocalScopeBinder(parentBinder);
-                        boundInitializer = BindGlobalStatement(collisionDetector, (StatementSyntax)initializerNode, diagnostics,
+                        boundInitializer = BindGlobalStatement(collisionDetector, scriptInitializer, (StatementSyntax)initializerNode, diagnostics,
                             isLast: i == initializers.Length - 1 && j == siblingInitializers.Length - 1);
                     }
 
@@ -196,7 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundInitializer BindGlobalStatement(Binder binder, StatementSyntax statementNode, DiagnosticBag diagnostics, bool isLast)
+        private static BoundInitializer BindGlobalStatement(
+            Binder binder,
+            SynthesizedInteractiveInitializerMethod scriptInitializer,
+            StatementSyntax statementNode,
+            DiagnosticBag diagnostics,
+            bool isLast)
         {
             BoundStatement boundStatement = binder.BindStatement(statementNode, diagnostics);
 
@@ -207,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = ((BoundExpressionStatement)boundStatement).Expression;
                 if ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void)
                 {
-                    var submissionResultType = binder.Compilation.GetSubmissionInitializer().ResultType;
+                    var submissionResultType = scriptInitializer.ResultType;
                     expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
                     boundStatement = new BoundExpressionStatement(boundStatement.Syntax, expression, expression.HasErrors);
                 }

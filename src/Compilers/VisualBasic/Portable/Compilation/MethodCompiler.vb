@@ -267,30 +267,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(Not entryPointAndDiagnostics.Diagnostics.IsDefault)
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics)
 
-            Dim entryPoint = TryCast(entryPointAndDiagnostics.MethodSymbol, SynthesizedEntryPointSymbol)
-            If entryPoint IsNot Nothing Then
-                If moduleBeingBuilt IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
-                    Dim compilationState = New TypeCompilationState(compilation, moduleBeingBuilt, initializeComponentOpt:=Nothing)
-                    Dim body = entryPoint.CreateBody()
-
-                    Dim emittedBody = GenerateMethodBody(moduleBeingBuilt,
-                                                     entryPoint,
-                                                     methodOrdinal:=DebugId.UndefinedOrdinal,
-                                                     block:=body,
-                                                     lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                                     closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                                     stateMachineTypeOpt:=Nothing,
-                                                     variableSlotAllocatorOpt:=Nothing,
-                                                     debugDocumentProvider:=Nothing,
-                                                     diagnostics:=diagnostics,
-                                                     emittingPdb:=False)
-                    moduleBeingBuilt.SetMethodBody(entryPoint, emittedBody)
-                End If
-
+            Dim entryPoint = entryPointAndDiagnostics.MethodSymbol
+            Dim synthesizedEntryPoint = TryCast(entryPoint, SynthesizedEntryPointSymbol)
+            If synthesizedEntryPoint IsNot Nothing AndAlso
+                moduleBeingBuilt IsNot Nothing AndAlso
+                Not diagnostics.HasAnyErrors Then
+                Dim compilationState = New TypeCompilationState(compilation, moduleBeingBuilt, initializeComponentOpt:=Nothing)
+                Dim body = synthesizedEntryPoint.CreateBody()
+                Dim emittedBody = GenerateMethodBody(moduleBeingBuilt,
+                                                 synthesizedEntryPoint,
+                                                 methodOrdinal:=DebugId.UndefinedOrdinal,
+                                                 block:=body,
+                                                 lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                 closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                                 stateMachineTypeOpt:=Nothing,
+                                                 variableSlotAllocatorOpt:=Nothing,
+                                                 debugDocumentProvider:=Nothing,
+                                                 diagnostics:=diagnostics,
+                                                 emittingPdb:=False)
+                moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody)
             End If
 
-            Debug.Assert(entryPointAndDiagnostics.MethodSymbol IsNot Nothing OrElse entryPointAndDiagnostics.Diagnostics.HasAnyErrors() OrElse Not compilation.Options.Errors.IsDefaultOrEmpty)
-            Return entryPointAndDiagnostics.MethodSymbol
+            Debug.Assert(entryPoint IsNot Nothing OrElse entryPointAndDiagnostics.Diagnostics.HasAnyErrors() OrElse Not compilation.Options.Errors.IsDefaultOrEmpty)
+            Return entryPoint
         End Function
 
         Private Sub WaitForWorkers()
