@@ -17,15 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// </summary>
     internal abstract class AsynchronousTaggerDataSource<TTag> : IAsynchronousTaggerDataSource<TTag> where TTag : ITag
     {
-        public virtual IEqualityComparer<TTag> TagComparer => null;
         public virtual TaggerDelay? UIUpdateDelay => null;
+        public virtual bool RemoveTagsThatIntersectEdits => false;
         public virtual bool IgnoreCaretMovementToExistingTag => false;
+        public virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public virtual bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+
+        public virtual IEqualityComparer<TTag> TagComparer => null;
+
         public virtual IEnumerable<Option<bool>> Options => null;
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
-
-        public abstract bool RemoveTagsThatIntersectEdits { get; }
-        public abstract SpanTrackingMode SpanTrackingMode { get; }
 
         protected AsynchronousTaggerDataSource() { }
 

@@ -29,9 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
-        public override bool RemoveTagsThatIntersectEdits => false;
-        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
             IForegroundNotificationService notificationService,

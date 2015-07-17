@@ -149,9 +149,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             private readonly Workspace _workspace;
             private readonly bool _disableCancellation;
 
-            public override bool RemoveTagsThatIntersectEdits => true;
-            public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
             public TestTaggerProvider(
                 Callback callback,
                 ITaggerEventSource eventSource,

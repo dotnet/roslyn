@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
         public override bool RemoveTagsThatIntersectEdits => true;
         public override bool IgnoreCaretMovementToExistingTag => true;
-        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
 
         [ImportingConstructor]
