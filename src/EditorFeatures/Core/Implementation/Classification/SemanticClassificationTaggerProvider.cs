@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         document, textSpan, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, addTag);
+                    ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
