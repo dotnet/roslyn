@@ -21,9 +21,9 @@ namespace Microsoft.Cci
         // index in _stringIndexToHeapPositionMap
         public readonly int MapIndex;
 
-        internal StringIdx(int virtIdx)
+        internal StringIdx(int mapIndex)
         {
-            MapIndex = virtIdx;
+            MapIndex = mapIndex;
         }
 
         public bool Equals(StringIdx other)
@@ -103,7 +103,7 @@ namespace Microsoft.Cci
 
         // #String heap
         private Dictionary<string, StringIdx> _strings = new Dictionary<string, StringIdx>(128);
-        private int[] _stringIndexToHeapPositionMap;
+        private int[] _stringIndexToResolvedOffsetMap;
         private BlobBuilder _stringWriter;
         private readonly int _stringHeapStartOffset;
 
@@ -124,10 +124,11 @@ namespace Microsoft.Cci
             int blobHeapStartOffset = 0,
             int guidHeapStartOffset = 0)
         {
-            // Add zero-th entry to heaps. 
-            // Full metadata represent empty blob/string at heap index 0.
-            // Delta metadata requires these to avoid nil generation-relative handles, 
-            // which are technically viable but confusing.
+            // Add zero-th entry to all heaps, even in EnC delta.
+            // We don't want generation-relative handles to ever be IsNil.
+            // In both full and delta metadata all nil heap handles should have zero value.
+            // There should be no blob handle that references the 0 byte added at the 
+            // beginning of the delta blob.
             _userStringWriter.WriteByte(0);
 
             _blobs.Add(ImmutableArray<byte>.Empty, new BlobIdx(0));
@@ -254,12 +255,12 @@ namespace Microsoft.Cci
 
         public int ResolveStringIndex(StringIdx index)
         {
-            return _stringHeapStartOffset + _stringIndexToHeapPositionMap[index.MapIndex];
+            return _stringIndexToResolvedOffsetMap[index.MapIndex];
         }
 
         public int ResolveBlobIndex(BlobIdx index)
         {
-            return _blobHeapStartOffset + index.HeapPosition;
+            return (index.HeapPosition == 0) ? 0 : _blobHeapStartOffset + index.HeapPosition;
         }
 
         public int GetUserStringToken(string str)
@@ -364,26 +365,26 @@ namespace Microsoft.Cci
             _stringWriter = new BlobBuilder(1024);
 
             // Create VirtIdx to Idx map and add entry for empty string
-            _stringIndexToHeapPositionMap = new int[sorted.Count + 1];
+            _stringIndexToResolvedOffsetMap = new int[sorted.Count + 1];
 
-            _stringIndexToHeapPositionMap[0] = 0;
+            _stringIndexToResolvedOffsetMap[0] = 0;
             _stringWriter.WriteByte(0);
 
             // Find strings that can be folded
             string prev = string.Empty;
             foreach (KeyValuePair<string, StringIdx> entry in sorted)
             {
-                int position = _stringWriter.Position;
-
+                int position = _stringHeapStartOffset + _stringWriter.Position;
+                
                 // It is important to use ordinal comparison otherwise we'll use the current culture!
                 if (prev.EndsWith(entry.Key, StringComparison.Ordinal))
                 {
                     // Map over the tail of prev string. Watch for null-terminator of prev string.
-                    _stringIndexToHeapPositionMap[entry.Value.MapIndex] = position - (s_utf8Encoding.GetByteCount(entry.Key) + 1);
+                    _stringIndexToResolvedOffsetMap[entry.Value.MapIndex] = position - (s_utf8Encoding.GetByteCount(entry.Key) + 1);
                 }
                 else
                 {
-                    _stringIndexToHeapPositionMap[entry.Value.MapIndex] = position;
+                    _stringIndexToResolvedOffsetMap[entry.Value.MapIndex] = position;
                     _stringWriter.WriteString(entry.Key, s_utf8Encoding);
                     _stringWriter.WriteByte(0);
                 }
