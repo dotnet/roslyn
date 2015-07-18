@@ -983,7 +983,7 @@ Class C
     End Sub
 End Class
 "
-            Test(markup, usePreviousCharAsTrigger:=True, expectSuccess:=False)
+            Test(markup, Enumerable.Empty(Of SignatureHelpTestItem)(), usePreviousCharAsTrigger:=True)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
@@ -995,7 +995,7 @@ Class C
     End Sub
 End Class
 "
-            Test(markup, usePreviousCharAsTrigger:=True, expectSuccess:=False)
+            Test(markup, Enumerable.Empty(Of SignatureHelpTestItem)(), usePreviousCharAsTrigger:=True)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>

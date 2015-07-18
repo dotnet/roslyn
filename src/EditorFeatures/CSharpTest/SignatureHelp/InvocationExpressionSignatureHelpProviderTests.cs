@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
 {
@@ -918,7 +919,7 @@ class C
         Foo(/*,$$*/);
     }
 }";
-            Test(markup, usePreviousCharAsTrigger: true, expectSuccess: false);
+            Test(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -933,7 +934,7 @@ class C
             );
     }
 }";
-            Test(markup, usePreviousCharAsTrigger: true, expectSuccess: false);
+            Test(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -947,7 +948,7 @@ class C
         Foo("",$$"");
     }
 }";
-            Test(markup, usePreviousCharAsTrigger: true, expectSuccess: false);
+            Test(markup, Enumerable.Empty<SignatureHelpTestItem>(), usePreviousCharAsTrigger: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
