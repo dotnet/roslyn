@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,9 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
         }
 
         protected override async Task RecomputeTagsAsync(
-            SnapshotPoint? caret, TextChangeRange? range, IEnumerable<DocumentSnapshotSpan> spansToCompute, CancellationToken cancellationToken)
+            SnapshotPoint? caret,
+            TextChangeRange? range,
+            IEnumerable<DocumentSnapshotSpan> spansToCompute,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, 
+            CancellationToken cancellationToken)
         {
             this.WorkQueue.AssertIsBackground();
+
+            Debug.Assert(caret == null);
 
             // we should have only one
             var tuple = spansToCompute.Single();
@@ -58,21 +66,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             if (document == null)
             {
                 // given span is not part of our workspace, let base tag source handle this case.
-                await base.RecomputeTagsAsync(caret, range, spansToCompute, cancellationToken).ConfigureAwait(false);
+                await base.RecomputeTagsAsync(caret, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var newVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            await RecomputeTagsAsync(range, spansToCompute, document, span.Snapshot, _lastSemanticVersion, newVersion, cancellationToken).ConfigureAwait(false);
+            await RecomputeTagsAsync(range, spansToCompute, oldTagTrees, document, span.Snapshot, _lastSemanticVersion, newVersion, cancellationToken).ConfigureAwait(false);
 
             // this is only place where the version is updated
             _lastSemanticVersion = newVersion;
         }
 
         private async Task RecomputeTagsAsync(
-            TextChangeRange? range, IEnumerable<DocumentSnapshotSpan> spansToCompute,
-            Document document, ITextSnapshot snapshot,
+            TextChangeRange? range,
+            IEnumerable<DocumentSnapshotSpan> spansToCompute,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+            Document document,
+            ITextSnapshot snapshot,
             VersionStamp oldVersion, VersionStamp newVersion, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -88,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
                 if (newVersion != oldVersion)
                 {
                     // we didn't report this yet
-                    await base.RecomputeTagsAsync(null, range, spansToCompute, cancellationToken).ConfigureAwait(false);
+                    await base.RecomputeTagsAsync(null, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 }
 
                 return;
@@ -99,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             if (service == null || newVersion != oldVersion)
             {
                 // we have newer version, refresh whole buffer
-                await base.RecomputeTagsAsync(null, range, spansToCompute, cancellationToken).ConfigureAwait(false);
+                await base.RecomputeTagsAsync(null, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -111,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             if (member == null || !member.FullSpan.Contains(changedSpan))
             {
                 // no top level edit, but out side a member has changed. for now, just re-colorize whole file
-                await base.RecomputeTagsAsync(null, range, spansToCompute, cancellationToken).ConfigureAwait(false);
+                await base.RecomputeTagsAsync(null, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -126,7 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
 
             // re-colorize only a member
             await base.RecomputeTagsAsync(
-                null, range, SpecializedCollections.SingletonEnumerable(new DocumentSnapshotSpan(document, rangeToRecompute)), cancellationToken).ConfigureAwait(false);
+                null, range, SpecializedCollections.SingletonEnumerable(new DocumentSnapshotSpan(document, rangeToRecompute)),
+                oldTagTrees, cancellationToken).ConfigureAwait(false);
         }
     }
 }
