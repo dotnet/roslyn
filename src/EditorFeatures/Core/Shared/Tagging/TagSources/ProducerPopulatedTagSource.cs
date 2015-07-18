@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             IEnumerable<ITagSpan<TTag>> newTagSpans,
-            IEnumerable<DocumentSnapshotSpan> spansToCompute = null)
+            IEnumerable<DocumentSnapshotSpan> spansToCompute)
         {
             // NOTE: we assume that the following list is already realized and is _not_ lazily
             // computed. It's not clear what the contract is of this API.
@@ -621,19 +621,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected virtual async Task RecomputeTagsAsync(
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
-            IEnumerable<DocumentSnapshotSpan> spansToCompute,
+            IEnumerable<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var tagSpans = spansToCompute.IsEmpty() ?
+            var tagSpans = spansToTag.IsEmpty() ?
                 SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>() :
-                await _tagProducer.ProduceTagsAsync(spansToCompute, caretPosition, cancellationToken).ConfigureAwait(false);
+                await _tagProducer.ProduceTagsAsync(spansToTag, caretPosition, cancellationToken).ConfigureAwait(false);
 
-            var newTagTrees = ConvertToTagTree(oldTagTrees, tagSpans, spansToCompute);
+            var newTagTrees = ConvertToTagTree(oldTagTrees, tagSpans, spansToTag);
 
-            ProcessNewTagTrees(spansToCompute, textChangeRange, oldTagTrees, newTagTrees, cancellationToken);
+            ProcessNewTagTrees(spansToTag, textChangeRange, oldTagTrees, newTagTrees, cancellationToken);
         }
 
         protected virtual void ProcessNewTagTrees(
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // We can cancel any background computations currently happening
                     this.WorkQueue.CancelCurrentWork();
 
-                    var spansToCompute = GetSpansAndDocumentsToTag();
+                    var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Safe to access _cachedTagTrees here.  We're on the UI thread.
                     var oldTagTrees = this.CachedTagTrees;
@@ -745,9 +745,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // We shall synchronously compute tags.
                     var newTagTrees = ConvertToTagTree(
                         oldTagTrees,
-                        _tagProducer.ProduceTagsAsync(spansToCompute, GetCaretPoint(), CancellationToken.None).WaitAndGetResult(CancellationToken.None));
+                        _tagProducer.ProduceTagsAsync(spansToTag, GetCaretPoint(), CancellationToken.None).WaitAndGetResult(CancellationToken.None),
+                        spansToTag);
 
-                    ProcessNewTagTrees(spansToCompute, null, oldTagTrees, newTagTrees, CancellationToken.None);
+                    ProcessNewTagTrees(spansToTag, null, oldTagTrees, newTagTrees, CancellationToken.None);
 
                     newTagTrees.TryGetValue(buffer, out tags);
                 }
