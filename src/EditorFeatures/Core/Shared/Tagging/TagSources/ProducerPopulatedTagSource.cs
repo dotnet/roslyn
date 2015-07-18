@@ -23,11 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// the coordinator between <see cref="ITagProducer{TTag}"/>s, <see cref="ITaggerEventSource"/>s, and
     /// <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the list of cached tags. When an
-    /// <see cref="ITaggerEventSource"/> says tags need to be recomputed, the tag source starts the computation
-    /// and calls the <see cref="ITagProducer{TTag}"/> to build the new list of tags. When that's done,
-    /// the tags are stored in <see cref="_cachedTags"/>. The tagger, when asked for tags from the editor, then returns
-    /// the tags that are stored in <see cref="_cachedTags"/></para>
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the 
+    /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be recomputed,
+    /// the tag source starts the computation and calls the <see cref="ITagProducer{TTag}"/> to build 
+    /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. 
+    /// The tagger, when asked for tags from the editor, then returns the tags that are stored in 
+    /// <see cref="CachedTagTrees"/></para>
     /// 
     /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s and <see cref="ITagger{T}"/>s.
     /// Taggers that tag the buffer and don't care about a view (think classification) have one <see cref="BufferTagSource{TTag}"/>
