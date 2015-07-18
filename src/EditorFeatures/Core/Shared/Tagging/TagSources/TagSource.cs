@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _notificationService.RegisterNotification(action, delay, this.Listener.BeginAsyncOperation("TagSource"), cancellationToken);
         }
 
-        public event EventHandler<TagsChangedForBufferEventArgs> TagsChangedForBuffer;
+        public event Action<ICollection<KeyValuePair<ITextBuffer,NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
 
         public event EventHandler Paused;
         public event EventHandler Resumed;
@@ -99,27 +100,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             RecalculateTagsOnChanged(new TaggerEventArgs(PredefinedChangedEventKinds.TaggerCreated, TaggerDelay.Short));
         }
 
-        protected bool HasTagsChangedListener
+        protected void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
         {
-            get
-            {
-                return TagsChangedForBuffer != null;
-            }
-        }
-
-        protected void RaiseTagsChanged(
-            ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
-        {
-            // nothing changed.
             if (difference.Count == 0)
             {
+                // nothing changed.
                 return;
             }
 
+            RaiseTagsChanged(SpecializedCollections.SingletonCollection(
+                new KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>(buffer, difference)));
+        }
+
+        protected void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
+        {
             var tagsChangedForBuffer = TagsChangedForBuffer;
             if (tagsChangedForBuffer != null)
             {
-                tagsChangedForBuffer(this, new TagsChangedForBufferEventArgs(buffer, difference));
+                tagsChangedForBuffer(collection);
             }
         }
 

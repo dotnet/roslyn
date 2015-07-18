@@ -703,10 +703,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
             // to a file, it will colaesce them into one large change to keep chattyness with
             // the editor down.
-            foreach (var kvp in bufferToChanges)
-            {
-                RaiseTagsChanged(kvp.Key, kvp.Value);
-            }
+            RaiseTagsChanged(bufferToChanges);
         }
 
         private NormalizedSnapshotSpanCollection ComputeDifference(
