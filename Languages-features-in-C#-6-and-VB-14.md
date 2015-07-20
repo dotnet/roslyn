@@ -13,9 +13,9 @@ Please note that everything is still subject to change - this is a preview after
 | Feature | Example | C# | VB |
 |:-----------|:------------|:------------:|:------------:|
 | Auto-property initializers | `public int X { get; set; } = x;` | Added | Exists |
-| Getter-only auto-properties | `public int Y { get; } = y;` | Added | Added |
+| Read-only auto-properties | `public int Y { get; } = y;` | Added | Added |
 | Ctor assignment to getter-only autoprops | `Y = 15` | Added | Added |
-| Using static members | `using static System.Console; … Write(4);` | Added | Exists |
+| Static imports | `using static System.Console; … Write(4);` | Added | Exists |
 | Index initializer | `new JObject { ["x"] = 3 }` | Added | No |
 | Await in catch/finally | `try … catch { await … } finally { await … }` | Added | No |
 | Exception filters | `catch(E e) when (e.Count > 5) { … }` | Added | Exists |
@@ -23,16 +23,16 @@ Please note that everything is still subject to change - this is a preview after
 | Partial interfaces | `Partial Interface I1` | Exists | Added |
 | Multiline string literals | `"Hello<newline>World"` | Exists | Added |
 | Year-first date literals | `Dim d = #2014-04-03#` | N/A | Added |
-| Line continuation comments | `Dim addrs = From c in Customers ' comment` | N/A | Added |
-| TypeOf IsNot | `If TypeOf x IsNot Customer Then …` | N/A | Added |
+| Comments after implicit line continuation | `Dim addrs = From c in Customers ' comment` | N/A | Added |
+| TypeOf ... IsNot ... | `If TypeOf x IsNot Customer Then …` | N/A | Added |
 | Expression-bodied members | `public double Dist => Sqrt(X * X + Y * Y);` | Added | No |
 | Null-conditional operators | `customer?.Orders?[5]` | Added | Added |
 | String interpolation | `$"{p.Name} is {p.Age} years old."` | Added | Added |
 | nameof operator | `string s = nameof(Console.Write);` | Added | Added |
 | #pragma | `#Disable Warning BC40008` | Added | Added |
 | Smart name resolution |    | N/A | Added | 
-| ReadWrite props can implement ReadOnly |   | Exists | Added |
-| #region inside methods |    | Exists | Added |
+| Read-write props can implement read-only interface properties |   | Exists | Added |
+| #Region inside methods |    | Exists | Added |
 | Overloads inferred from Overrides |    | N/A | Added |
 | CObj in attributes |   | Exists | Added |
 | CRef and parameter name |    | Exists | Added |
