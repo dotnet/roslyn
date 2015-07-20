@@ -35,13 +35,10 @@ namespace Microsoft.CodeAnalysis.Completion.SuggestionMode
                 displayText: displayText ?? string.Empty,
                 filterSpan: GetFilterSpan(text, position),
                 description: description != null ? description.ToSymbolDisplayParts() : default(ImmutableArray<SymbolDisplayPart>),
-                isBuilder: true);
+                isBuilder: true,
+                rules: SuggestionModeCompletionItemRules.Instance);
         }
 
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char?), string textTypedSoFar = null) => new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
-        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar) => false;
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options) => false;
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar) => false;
     }
 }

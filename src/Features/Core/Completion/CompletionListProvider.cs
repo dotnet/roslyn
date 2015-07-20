@@ -22,42 +22,5 @@ namespace Microsoft.CodeAnalysis.Completion
         /// only do minimal textual checks to determine if they should be presented.
         /// </summary>
         public abstract bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options);
-
-        /// <summary>
-        /// Returns true if the character typed should be used to filter the specified completion
-        /// item.  A character will be checked to see if it should filter an item.  If not, it will be
-        /// checked to see if it should commit that item.  If it does neither, then completion will
-        /// be dismissed.
-        /// </summary>
-        public virtual bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return false;
-        }
-
-        /// <summary>
-        /// Returns true if the character is one that can commit the specified completion item. A
-        /// character will be checked to see if it should filter an item.  If not, it will be checked
-        /// to see if it should commit that item.  If it does neither, then completion will be
-        /// dismissed.
-        /// </summary>
-        public abstract bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar);
-
-        /// <summary>
-        /// Returns true if the enter key that was typed should also be sent through to the editor
-        /// after committing the provided completion item.
-        /// </summary>
-        public abstract bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar);
-
-        /// <summary>
-        /// The text change that will be made when this item is committed.  The text change includes
-        /// both the span of text to replace (respective to the original document text when this
-        /// completion item was created) and the text to replace it with.  The span will be adjusted
-        /// automatically by the completion engine to fit on the current text using "EdgeInclusive"
-        /// semantics.
-        /// </summary>
-        public virtual TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
-        }
     }
 }

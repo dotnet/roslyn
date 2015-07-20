@@ -23,19 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.GetTextChangeSpan(text, position);
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -96,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 const string T = "T";
                 return SpecializedCollections.SingletonEnumerable(
-                    new CSharpCompletionItem(document.Project.Solution.Workspace, this, T, textChangeSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
+                    new CompletionItem(this, T, textChangeSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();

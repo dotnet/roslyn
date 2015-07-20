@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -62,6 +63,40 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     Assert.Equal(reader1.GetUserString(us), "");
                 }
             }
+        }
+
+        [Fact]
+        public void Delta_AssemblyDefTable()
+        {
+            var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
+            var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
+
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+
+            var reader1 = diff1.GetMetadata().Reader;
+
+            var assemblyDef = reader1.GetAssemblyDefinition();
+            Assert.False(assemblyDef.Name.IsNil);
+            Assert.Equal(0, assemblyDef.Version.Major);
+            Assert.Equal(0, assemblyDef.Version.Minor);
+            Assert.Equal(0, assemblyDef.Version.Revision);
+            Assert.Equal(0, assemblyDef.Version.Build);
+            Assert.True(assemblyDef.PublicKey.IsNil);
+            Assert.True(assemblyDef.Culture.IsNil);
+            Assert.Equal((AssemblyFlags)0, assemblyDef.Flags);
+            Assert.Equal(AssemblyHashAlgorithm.Sha1, assemblyDef.HashAlgorithm);
         }
 
         [Fact]
