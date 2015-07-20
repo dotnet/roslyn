@@ -11,7 +11,6 @@
        use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
-    <RoslynSolution Condition="'$(PublicBuild)' == 'true'">$(MSBuildThisFileDirectory)RoslynLight.sln</RoslynSolution>
     <CscCoreProj>$(MSBuildThisFileDirectory)\src\Compilers\CSharp\CscCore\CscCore.csproj</CscCoreProj>
     <VbcCoreProj>$(MSBuildThisFileDirectory)\src\Compilers\VisualBasic\VbcCore\VbcCore.csproj</VbcCoreProj>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
