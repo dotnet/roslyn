@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Sub BindFieldAndPropertyInitializers(
             symbol As SourceMemberContainerTypeSymbol,
             initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
-            scriptInitializerOpt As MethodSymbol,
+            scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
             ByRef processedFieldInitializers As ProcessedFieldOrPropertyInitializers,
             diagnostics As DiagnosticBag
         )
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initializer.FieldsOrProperty.IsDefault Then
                         ' use the binder of the Script class for global statements
                         Dim isLast = (i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
-                        boundInitializers.Add(parentBinder.BindGlobalStatement(DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
+                        boundInitializers.Add(parentBinder.BindGlobalStatement(scriptInitializerOpt, DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
                         Continue For
                     End If
 
@@ -195,14 +195,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitializers.ToImmutableAndFree())
         End Sub
 
-        Private Function BindGlobalStatement(statementNode As StatementSyntax, diagnostics As DiagnosticBag, isLast As Boolean) As BoundInitializer
+        Private Function BindGlobalStatement(
+            scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
+            statementNode As StatementSyntax,
+            diagnostics As DiagnosticBag,
+            isLast As Boolean) As BoundInitializer
+
             Dim boundStatement As BoundStatement = Me.BindStatement(statementNode, diagnostics)
 
             If Me.Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
                 ' insert an implicit conversion to the submission return type (if needed):
                 Dim expression = (DirectCast(boundStatement, BoundExpressionStatement)).Expression
                 If expression.Type Is Nothing OrElse expression.Type.SpecialType <> SpecialType.System_Void Then
-                    Dim submissionReturnType = Compilation.GetSubmissionInitializer().ResultType
+                    Dim submissionReturnType = scriptInitializerOpt.ResultType
                     expression = ApplyImplicitConversion(expression.Syntax, submissionReturnType, expression, diagnostics)
                     boundStatement = New BoundExpressionStatement(boundStatement.Syntax, expression, expression.HasErrors)
                 End If

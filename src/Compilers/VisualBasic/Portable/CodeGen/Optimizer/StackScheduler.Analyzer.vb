@@ -1202,7 +1202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return
                 End If
 
-                Debug.Assert(_locals.ContainsKey(local), $"{_container}, {local.GetType().FullName}, {local.Name}")
+                Debug.Assert(_locals.ContainsKey(local), $"{_container}, {local.GetType().FullName}, {local.Name}, {local.Kind}, {local.SynthesizedKind}")
 
                 Dim locInfo = _locals(local)
                 If locInfo.CannotSchedule Then

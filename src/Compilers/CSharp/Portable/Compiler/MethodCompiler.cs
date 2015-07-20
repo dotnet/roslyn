@@ -194,33 +194,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
 
-            var entryPoint = entryPointAndDiagnostics.MethodSymbol as SynthesizedEntryPointSymbol;
-            if ((object)entryPoint != null)
+            var entryPoint = entryPointAndDiagnostics.MethodSymbol;
+            var synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+            if (((object)synthesizedEntryPoint != null) &&
+                (moduleBeingBuilt != null) &&
+                !hasDeclarationErrors &&
+                !diagnostics.HasAnyErrors())
             {
-                if (moduleBeingBuilt != null && !hasDeclarationErrors && !diagnostics.HasAnyErrors())
-                {
-                    var body = entryPoint.CreateBody();
-                    const int methodOrdinal = -1;
-
-                    var emittedBody = GenerateMethodBody(
-                        moduleBeingBuilt,
-                        entryPoint,
-                        methodOrdinal,
-                        body,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
-                        stateMachineTypeOpt: null,
-                        variableSlotAllocatorOpt: null,
-                        diagnostics: diagnostics,
-                        debugDocumentProvider: null,
-                        importChainOpt: null,
-                        emittingPdb: false);
-                    moduleBeingBuilt.SetMethodBody(entryPoint, emittedBody);
-                }
+                var body = synthesizedEntryPoint.CreateBody();
+                const int methodOrdinal = -1;
+                var emittedBody = GenerateMethodBody(
+                    moduleBeingBuilt,
+                    synthesizedEntryPoint,
+                    methodOrdinal,
+                    body,
+                    ImmutableArray<LambdaDebugInfo>.Empty,
+                    ImmutableArray<ClosureDebugInfo>.Empty,
+                    stateMachineTypeOpt: null,
+                    variableSlotAllocatorOpt: null,
+                    diagnostics: diagnostics,
+                    debugDocumentProvider: null,
+                    importChainOpt: null,
+                    emittingPdb: false);
+                moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            Debug.Assert((object)entryPointAndDiagnostics.MethodSymbol != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
-            return entryPointAndDiagnostics.MethodSymbol;
+            Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+            return entryPoint;
         }
 
         private void WaitForWorkers()
