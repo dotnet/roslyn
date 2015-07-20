@@ -973,6 +973,21 @@ void Foo<T1>()
 Foo<int>();
 ";
             var verify = VerifyOutputInMain(source, "4", "System");
+            var foo = verify.FindLocalFunction("Foo");
+            var bar = verify.FindLocalFunction("Bar");
+            Assert.Equal(1, foo.Parameters.Length);
+            Assert.Equal(2, bar.Parameters.Length);
+            Assert.Equal(RefKind.Ref, foo.Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, bar.Parameters[0].RefKind);
+            Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
+            Assert.True(foo.Parameters[0].Type.IsValueType);
+            Assert.True(bar.Parameters[0].Type.IsValueType);
+            Assert.True(bar.Parameters[1].Type.IsValueType);
+            Assert.Equal(foo.Parameters[0].Type.OriginalDefinition, bar.Parameters[0].Type.OriginalDefinition);
+            var fooFrame = (INamedTypeSymbol)foo.Parameters[0].Type;
+            var barFrame = (INamedTypeSymbol)bar.Parameters[1].Type;
+            Assert.Equal(0, fooFrame.Arity);
+            Assert.Equal(1, barFrame.Arity);
         }
 
         [Fact]

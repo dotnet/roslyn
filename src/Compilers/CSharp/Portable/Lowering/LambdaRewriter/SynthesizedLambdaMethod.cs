@@ -37,31 +37,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                        | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
             _topLevelMethod = topLevelMethod;
-            _structClosures = structClosures;
 
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
+            ImmutableArray<TypeParameterSymbol> constructedFromTypeParameters;
             LambdaFrame lambdaFrame;
 
             lambdaFrame = this.ContainingType as LambdaFrame;
             switch (closureKind)
             {
                 case ClosureKind.Singleton: // all type parameters on method (except the top level method's)
+                case ClosureKind.General: // only lambda's type parameters on method (rest on class)
                     Debug.Assert(lambdaFrame != null);
-                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.ContainingMethod);
+                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, out constructedFromTypeParameters, lambdaFrame.ContainingMethod);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
                 case ClosureKind.Static:
                     Debug.Assert(lambdaFrame == null);
-                    typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, null);
-                    break;
-                case ClosureKind.General: // only lambda's type parameters on method (rest on class)
-                    Debug.Assert(lambdaFrame != null);
-                    typeMap = lambdaFrame.TypeMap.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, lambdaFrame.ContainingMethod);
+                    typeMap = TypeMap.Empty.WithConcatAlphaRename(lambdaNode.Symbol, this, out typeParameters, out constructedFromTypeParameters, null);
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
+
+            if (!structClosures.IsDefaultOrEmpty && typeParameters.Length != 0)
+            {
+                var constructedStructClosures = ArrayBuilder<TypeSymbol>.GetInstance();
+                foreach (var closure in structClosures)
+                {
+                    var frame = (LambdaFrame)closure;
+                    NamedTypeSymbol constructed;
+                    if (frame.Arity == 0)
+                    {
+                        constructed = frame;
+                    }
+                    else
+                    {
+                        var originals = frame.ConstructedFromTypeParameters;
+                        var newArgs = typeMap.SubstituteTypeParameters(originals);
+                        constructed = frame.Construct(newArgs);
+                    }
+                    constructedStructClosures.Add(constructed);
+                }
+                structClosures = constructedStructClosures.ToImmutableAndFree();
+            }
+            _structClosures = structClosures;
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
         }

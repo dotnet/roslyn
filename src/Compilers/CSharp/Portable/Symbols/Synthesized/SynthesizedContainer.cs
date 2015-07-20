@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly string _name;
         private readonly TypeMap _typeMap;
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+        private readonly ImmutableArray<TypeParameterSymbol> _constructedFromTypeParameters;
 
         protected SynthesizedContainer(string name, int parameterCount, bool returnsVoid)
         {
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _name = name;
             _typeMap = TypeMap.Empty;
             _typeParameters = CreateTypeParameters(parameterCount, returnsVoid);
+            _constructedFromTypeParameters = default(ImmutableArray<TypeParameterSymbol>);
         }
 
         protected SynthesizedContainer(string name, MethodSymbol containingMethod)
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _typeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, out _typeParameters);
+                _typeMap = TypeMap.Empty.WithConcatAlphaRename(containingMethod, this, out _typeParameters, out _constructedFromTypeParameters);
             }
         }
 
@@ -101,6 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+        }
+
+        /// <summary>
+        /// Note: Can be default if this SynthesizedContainer was constructed with <see cref="SynthesizedContainer(string, int, bool)"/>
+        /// </summary>
+        internal ImmutableArray<TypeParameterSymbol> ConstructedFromTypeParameters
+        {
+            get { return _constructedFromTypeParameters; }
         }
 
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters

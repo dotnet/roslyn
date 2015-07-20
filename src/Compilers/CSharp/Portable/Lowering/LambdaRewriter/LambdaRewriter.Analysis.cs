@@ -252,31 +252,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Finds all generic methods and forces them to be classes. TODO: We should be able to handle this, but for this prototype it's too complicated.
-            /// </summary>
-            private void MarkGenericMethodsAsClass()
-            {
-                foreach (var scope in this.LambdaScopes)
-                {
-                    var isGeneric = false;
-                    var method = scope.Key;
-                    while (method != null && !isGeneric)
-                    {
-                        isGeneric = method.Arity != 0;
-                        method = method.ContainingSymbol as MethodSymbol;
-                    }
-                    if (isGeneric)
-                    {
-                        var node = scope.Value;
-                        do
-                        {
-                            ScopesThatCantBeStructs.Add(node);
-                        } while (this.ScopeParent.TryGetValue(node, out node));
-                    }
-                }
-            }
-
-            /// <summary>
             /// Create the optimized plan for the location of lambda methods and whether scopes need access to parent scopes
             ///  </summary>
             internal void ComputeLambdaScopesAndFrameCaptures()
@@ -357,8 +332,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-
-                MarkGenericMethodsAsClass();
             }
 
             /// <summary>

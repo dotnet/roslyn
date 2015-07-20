@@ -126,7 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 
-        internal TypeMap WithConcatAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters, MethodSymbol stopAt = null)
+        internal TypeMap WithConcatAlphaRename(
+            MethodSymbol oldOwner,
+            Symbol newOwner,
+            out ImmutableArray<TypeParameterSymbol> newTypeParameters,
+            out ImmutableArray<TypeParameterSymbol> oldTypeParameters,
+            MethodSymbol stopAt = null)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
             Debug.Assert(stopAt == null || stopAt.ConstructedFrom == stopAt);
@@ -161,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If not provided, both should be null (if stopAt != null && oldOwner == null, then it wasn't in the chain)
             Debug.Assert(stopAt == oldOwner);
 
-            return WithAlphaRename(parameters.ToImmutableAndFree(), newOwner, out newTypeParameters);
+            oldTypeParameters = parameters.ToImmutableAndFree();
+            return WithAlphaRename(oldTypeParameters, newOwner, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to)

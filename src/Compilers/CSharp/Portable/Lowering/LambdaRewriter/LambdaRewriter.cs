@@ -774,8 +774,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var start = lambda.ParameterCount - frameCount;
                 for (int i = start; i < lambda.ParameterCount; i++)
                 {
-                    // will always be a NamedTypeSymbol, it's always a closure class
-                    var frame = FrameOfType(syntax, (NamedTypeSymbol)lambda.Parameters[i].Type);
+                    // will always be a LambdaFrame, it's always a closure class
+                    var frameType = (NamedTypeSymbol)lambda.Parameters[i].Type.OriginalDefinition;
+                    if (frameType.IsGenericType)
+                    {
+                        var typeParameters = ((LambdaFrame)frameType).ConstructedFromTypeParameters;
+                        var subst = this.TypeMap.SubstituteTypeParameters(typeParameters);
+                        frameType = frameType.Construct(subst);
+                    }
+                    var frame = FrameOfType(syntax, frameType);
                     builder.Add(frame);
                 }
                 parameters = builder.ToImmutableAndFree();
@@ -1210,16 +1217,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 while (containerAsFrame != null && containerAsFrame.IsValueType)
                 {
                     structClosureParamBuilder.Add(containerAsFrame);
-                    if (this._analysis.NeedsParentFrame.Contains(lambdaScope) && this._analysis.ScopeParent.TryGetValue(lambdaScope, out lambdaScope))
+                    if (this._analysis.NeedsParentFrame.Contains(lambdaScope))
                     {
-                        containerAsFrame = _frames[lambdaScope];
+                        var found = false;
+                        while (this._analysis.ScopeParent.TryGetValue(lambdaScope, out lambdaScope))
+                        {
+                            if (_frames.TryGetValue(lambdaScope, out containerAsFrame))
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found)
+                        {
+                            continue;
+                        }
                     }
-                    else
-                    {
-                        // can happen when scope no longer needs parent frame, or we're at the outermost level and the "parent frame" is top level "this".
-                        lambdaScope = null;
-                        containerAsFrame = null;
-                    }
+                    // can happen when scope no longer needs parent frame, or we're at the outermost level and the "parent frame" is top level "this".
+                    lambdaScope = null;
+                    containerAsFrame = null;
                 }
                 // Reverse it because we're going from inner to outer, and parameters are in order of outer to inner
                 structClosureParamBuilder.ReverseContents();
@@ -1306,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _framePointers.TryGetValue(translatedLambdaContainer, out _innermostFramePointer);
             }
 
-            _currentTypeParameters = translatedLambdaContainer?.TypeParameters.Concat(synthesizedMethod.TypeParameters) ?? synthesizedMethod.TypeParameters;
+            _currentTypeParameters = containerAsFrame?.TypeParameters.Concat(synthesizedMethod.TypeParameters) ?? synthesizedMethod.TypeParameters;
             _currentLambdaBodyTypeMap = synthesizedMethod.TypeMap;
 
             var body = AddStatementsIfNeeded((BoundStatement)VisitBlock(node.Body));
