@@ -8,7 +8,7 @@ Please note that everything is still subject to change - this is a preview after
 
 [Visual Studio 2015 RC](http://visualstudio.com/en-us/downloads/visual-studio-2015-ctp-vs) has the following features. For a description of each feature see:
 * [New Language Features in C# 6](https://github.com/dotnet/roslyn/wiki/New-Language-Features-in-C%23-6)
-* [Visual Basic feature descriptions](http://roslyn.codeplex.com/discussions/571884)
+* [New Language Features in VB 14](https://github.com/dotnet/roslyn/wiki/New-Language-Features-in-VB-14)
 
 | Feature | Example | C# | VB |
 |:-----------|:------------|:------------:|:------------:|
