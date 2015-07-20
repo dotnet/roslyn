@@ -17,18 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class ExplicitInterfaceCompletionProvider : AbstractCompletionProvider
+    internal partial class ExplicitInterfaceCompletionProvider : AbstractCompletionProvider
     {
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return text[characterPosition] == '.';
@@ -125,20 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     filterSpan: textChangeSpan,
                     position: position,
                     symbols: new List<ISymbol> { member },
-                    context: context));
+                    context: context,
+                    rules: ItemRules.Instance));
             }
 
             return completions;
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = default(char), string textTypedSoFar = null)
-        {
-            if (ch.HasValue && ch.Value == '(')
-            {
-                return new TextChange(selectedItem.FilterSpan, ((SymbolCompletionItem)selectedItem).Symbols[0].Name);
-            }
-
-            return new TextChange(selectedItem.FilterSpan, selectedItem.DisplayText);
         }
     }
 }

@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
-    Friend Class SymbolCompletionProvider
+    Partial Friend Class SymbolCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
         Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
@@ -22,17 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
             Return CompletionUtilities.GetTextChangeSpan(text, position)
-        End Function
-
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Dim symbolItem = TryCast(completionItem, SymbolCompletionItem)
-            If symbolItem IsNot Nothing AndAlso symbolItem.Context.IsInImportsDirective Then
-                ' If the user is writing "Imports S" then the only commit character is <dot>
-                ' as they might be typing an Imports alias.
-                Return ch = "."c
-            End If
-
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
         End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -77,17 +66,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return True
         End Function
 
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar)
-        End Function
-
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
-
             Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context.IsAttributeNameContext, context.IsRightOfNameSeparator, DirectCast(context, VisualBasicSyntaxContext).WithinAsyncMethod, context.GetLanguageService(Of ISyntaxFactsService))
-        End Function
-
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
@@ -103,5 +83,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return MyBase.GetFilterText(symbol, displayText, context)
         End Function
+
+        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
+            Return ItemRules.Instance
+        End Function
+
     End Class
 End Namespace

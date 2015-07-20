@@ -88,11 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
                 Return Nothing
             End If
 
-            ' We may encounter a case where we would like to suggest an identifier that could be escaped,
-            ' like if the user types "intege" when Integer and [Integer] are both available. To handle this case,
-            ' group completion items by their unescaped display text and use that text in the 
-            ' edit distance algorithm.
-
+            Dim completionRules = completionService.GetCompletionRules()
             Dim onlyConsiderGenerics = TryCast(identifierName, GenericNameSyntax) IsNot Nothing
 
             Dim results = New List(Of SpellcheckResult)()
@@ -128,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
 
                 ' If it's within tolerances, keep it.
                 If editDistancePercentage <= s_maximumEditDistancePercentage AndAlso longestCommonPercentage >= s_minimumLongestCommonSubsequencePercentage Then
-                    results.Add(New SpellcheckResult(name, GetReasonableName(item.CompletionProvider.GetTextChange(item).NewText), goodness))
+                    results.Add(New SpellcheckResult(name, GetReasonableName(completionRules.GetTextChange(item).NewText), goodness))
                 End If
             Next
 

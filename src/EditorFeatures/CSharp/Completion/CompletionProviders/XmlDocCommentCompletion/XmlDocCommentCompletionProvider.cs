@@ -21,25 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
     [ExportCompletionProvider("DocCommentCompletionProvider", LanguageNames.CSharp)]
     internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider
     {
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            if ((ch == '"' || ch == ' ')
-                && completionItem.DisplayText.Contains(ch))
-            {
-                return false;
-            }
-
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar) || ch == '>' || ch == '\t';
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return text[characterPosition] == '<';
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return false;
         }
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -196,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, "typeparam"));
 
-            items.AddRange(typeParameters.Select(t => new XmlItem(this,
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this,
                 filterSpan,
-                FormatParameter("typeparam", t))));
+                FormatParameter("typeparam", t), GetCompletionItemRules())));
             return items;
         }
 
@@ -228,8 +212,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, "typeparam"));
 
-            items.AddRange(typeParameters.Select(t => new XmlItem(this, filterSpan, "typeparam", "name", t)));
-            items.Add(new XmlItem(this, filterSpan, "value"));
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, "typeparam", "name", t, GetCompletionItemRules())));
+            items.Add(new XmlDocCommentCompletionItem(this, filterSpan, "value", GetCompletionItemRules()));
             return items;
         }
 
@@ -255,11 +239,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 // We're writing the name of a paramref or typeparamref
                 if (parentElementName == "paramref")
                 {
-                    items.AddRange(parameters.Select(p => new XmlItem(this, filterSpan, p)));
+                    items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, p, GetCompletionItemRules())));
                 }
                 else if (parentElementName == "typeparamref")
                 {
-                    items.AddRange(typeParameters.Select(t => new XmlItem(this, filterSpan, t)));
+                    items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, t, GetCompletionItemRules())));
                 }
 
                 return items;
@@ -285,15 +269,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 }
             }
 
-            items.AddRange(parameters.Select(p => new XmlItem(this, filterSpan, FormatParameter("param", p))));
-            items.AddRange(typeParameters.Select(t => new XmlItem(this, filterSpan, FormatParameter("typeparam", t))));
+            items.AddRange(parameters.Select(p => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("param", p), GetCompletionItemRules())));
+            items.AddRange(typeParameters.Select(t => new XmlDocCommentCompletionItem(this, filterSpan, FormatParameter("typeparam", t), GetCompletionItemRules())));
 
             if (returns && !symbol.ReturnsVoid)
             {
-                items.Add(new XmlItem(this, filterSpan, "returns"));
+                items.Add(new XmlDocCommentCompletionItem(this, filterSpan, "returns", GetCompletionItemRules()));
             }
 
             return items;
+        }
+
+        protected override AbstractXmlDocCommentCompletionItemRules GetCompletionItemRules()
+        {
+            return XmlDocCommentCompletionItemRules.Instance;
         }
     }
 }

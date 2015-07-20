@@ -19,30 +19,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class NamedParameterCompletionProvider : AbstractCompletionProvider, IEqualityComparer<IParameterSymbol>
+    internal partial class NamedParameterCompletionProvider : AbstractCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
-
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
 
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return new TextChange(
-                selectedItem.FilterSpan,
-                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length));
         }
 
         protected override async Task<bool> IsExclusiveAsync(Document document, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
@@ -103,15 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     // exact match.
                     var workspace = document.Project.Solution.Workspace;
                     var escaped = p.Name.ToIdentifierToken().ToString();
-                    return new CSharpCompletionItem(
-                        workspace,
+                    return new CompletionItem(
                         this,
                         escaped + ColonString,
                         CompletionUtilities.GetTextChangeSpan(text, position),
                         CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
                         p.GetGlyph(),
                         sortText: p.Name,
-                        filterText: escaped);
+                        filterText: escaped,
+                        rules: ItemRules.Instance);
                 });
         }
 

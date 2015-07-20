@@ -536,13 +536,49 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestCommitCharacter()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "v");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestEnter()
         {
-            Assert.False(CompletionProvider.SendEnterThroughToEditor(null, null), "Expected false from SendEnterThroughToEditor()");
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            {
+                var hostDocument = workspace.Documents.Single();
+                var position = hostDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var item = completionList.Items.First();
+
+                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
+                var completionRules = completionService.GetCompletionRules();
+
+                Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

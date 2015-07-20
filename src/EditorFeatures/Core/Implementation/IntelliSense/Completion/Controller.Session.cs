@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Completion.Rules;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             #region Fields that can be accessed from either thread
 
-            private readonly ICompletionRules _completionRules;
+            private readonly CompletionRules _completionRules;
 
             // When we issue filter tasks, provide them with a (monotonically increasing) id.  That
             // way, when they run we can bail on computation if they've been superceded by another
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             #endregion
 
-            public Session(Controller controller, ModelComputation<Model> computation, ICompletionRules completionRules, ICompletionPresenterSession presenterSession)
+            public Session(Controller controller, ModelComputation<Model> computation, CompletionRules completionRules, ICompletionPresenterSession presenterSession)
                 : base(controller, computation, presenterSession)
             {
                 _completionRules = completionRules;

@@ -84,16 +84,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
+            var completionRules = GetCompletionRules();
+
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
                 var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
-                sendThrough = selectedItem.CompletionProvider.SendEnterThroughToEditor(selectedItem, textTypedSoFar);
+
+                var options = GetOptions();
+                if (options != null)
+                {
+                    sendThrough = completionRules.SendEnterThroughToEditor(selectedItem, textTypedSoFar, options);
+                }
             }
 
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+            var textChange = completionRules.GetTextChange(selectedItem);
             this.Commit(selectedItem, textChange, model, null);
             committed = true;
         }

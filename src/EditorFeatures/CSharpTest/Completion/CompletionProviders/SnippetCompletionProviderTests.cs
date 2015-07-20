@@ -119,11 +119,11 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitWithEnterObeysOption()
         {
-            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: true, expected: false);
-            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: true, expected: true);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
 
-            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
         private class MockSnippetInfoService : ISnippetInfoService

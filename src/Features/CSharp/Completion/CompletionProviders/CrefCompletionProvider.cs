@@ -30,26 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            if (ch == '{' && completionItem.DisplayText.Contains('{'))
-            {
-                return false;
-            }
-
-            if (ch == '(' && completionItem.DisplayText.Contains('('))
-            {
-                return false;
-            }
-
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
@@ -205,8 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .Replace("()", "");
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new CrefCompletionItem(
-                workspace,
+            return new Item(
                 completionProvider: this,
                 displayText: insertionText,
                 insertionText: insertionText,
@@ -228,11 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private string CreateParameters(IEnumerable<ITypeSymbol> arguments, SemanticModel semanticModel, int position)
         {
             return string.Join(", ", arguments.Select(t => t.ToMinimalDisplayString(semanticModel, position)));
-        }
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            return new TextChange(selectedItem.FilterSpan, ((CrefCompletionItem)selectedItem).InsertionText);
         }
     }
 }

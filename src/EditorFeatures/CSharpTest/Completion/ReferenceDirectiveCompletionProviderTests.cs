@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         public void IsCommitCharacterTest()
         {
             var commitCharacters = new[] { '"', '\\', ',' };
-            TestCommitCharacters(commitCharacters);
+            VerifyCommitCharacters("#r \"$$", textTypedSoFar: "", validChars: commitCharacters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("System", "System", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("System", "System", sendThroughEnterEnabled: true, expected: false);
+            VerifySendEnterThroughToEnter("#r \"System$$", "System", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("#r \"System$$", "System", sendThroughEnterEnabled: true, expected: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

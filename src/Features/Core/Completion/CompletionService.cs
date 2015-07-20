@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -15,9 +14,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return document.GetLanguageService<ICompletionService>().GetDefaultCompletionProviders();
         }
 
-        public static ICompletionRules GetDefaultCompletionRules(Document document)
+        public static CompletionRules GetCompletionRules(Document document)
         {
-            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionRules();
+            return document.GetLanguageService<ICompletionService>().GetCompletionRules();
         }
 
         /// <summary>

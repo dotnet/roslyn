@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -10,24 +9,26 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders.XmlDocCommentCompletion
 {
-    internal class XmlItem : CompletionItem
+    internal class XmlDocCommentCompletionItem : CompletionItem
     {
         private readonly string _beforeCaretText;
         private readonly string _afterCaretText;
 
-        public XmlItem(CompletionListProvider provider,
+        public XmlDocCommentCompletionItem(CompletionListProvider provider,
             TextSpan filterSpan,
-            string displayText)
-            : this(provider, filterSpan, displayText, displayText, string.Empty)
+            string displayText,
+            CompletionItemRules rules)
+            : this(provider, filterSpan, displayText, displayText, string.Empty, rules)
         {
         }
 
-        public XmlItem(CompletionListProvider provider,
+        public XmlDocCommentCompletionItem(CompletionListProvider provider,
             TextSpan filterSpan,
             string displayText,
             string beforeCaretText,
-            string afterCaretText)
-            : base(provider, displayText, filterSpan, glyph: CodeAnalysis.Glyph.Keyword)
+            string afterCaretText,
+            CompletionItemRules rules)
+            : base(provider, displayText, filterSpan, glyph: CodeAnalysis.Glyph.Keyword, rules: rules)
         {
             _beforeCaretText = beforeCaretText;
             _afterCaretText = afterCaretText;
