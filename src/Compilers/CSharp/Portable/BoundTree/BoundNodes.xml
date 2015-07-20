@@ -653,6 +653,7 @@
     
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>    
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
     <!-- Well-known member populated during lowering -->

@@ -1138,7 +1138,7 @@ Foo(0);
             Assert.Equal(RefKind.Ref, bar.Parameters[1].RefKind);
             Assert.Equal(RefKind.Ref, bar.Parameters[2].RefKind);
             Assert.True(foo.Parameters[1].Type.IsValueType);
-            Assert.True(bar.Parameters[2].Type.IsValueType);
+            Assert.True(bar.Parameters[1].Type.IsValueType);
             Assert.True(bar.Parameters[2].Type.IsValueType);
         }
 
@@ -3144,6 +3144,35 @@ class Program
         }
 
         [Fact]
+        public void BadNotUsedSwitch()
+        {
+            var source = @"
+class Program
+{
+    static void A()
+    {
+        switch (0)
+        {
+        case 0:
+            void Local()
+            {
+            }
+            break;
+        }
+    }
+    static void Main(string[] args)
+    {
+        A();
+    }
+}";
+            VerifyDiagnostics(source,
+    // (9,18): warning CS0168: The variable 'Local' is declared but never used
+    //             void Local()
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(9, 18)
+    );
+        }
+
+        [Fact]
         public void BadByRefClosure()
         {
             var source = @"
@@ -3660,6 +3689,38 @@ class Program
     // (8,27): error CS0841: Cannot use local variable 'Local' before it is declared
     //         Console.WriteLine(Local());
     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "Local").WithArguments("Local").WithLocation(8, 27)
+    );
+        }
+
+        [Fact]
+        public void OtherSwitchBlock()
+        {
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = int.Parse(Console.ReadLine());
+        switch (x)
+        {
+        case 0:
+            void Local()
+            {
+            }
+            break;
+        default:
+            Local();
+            break;
+        }
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (17,13): error CS0165: Use of unassigned local variable 'Local'
+    //             Local();
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "Local()").WithArguments("Local").WithLocation(17, 13)
     );
         }
 

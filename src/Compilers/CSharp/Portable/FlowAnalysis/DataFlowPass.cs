@@ -1302,6 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.InnerLocals);
             var result = base.VisitSwitchStatement(node);
             ReportUnusedVariables(node.InnerLocals);
+            ReportUnusedVariables(node.InnerLocalFunctions);
             return result;
         }
 

@@ -8,7 +8,7 @@
 	- [ ] Tests
 	- [x] IDE integration
 	- Works alongside lambdas and behaves very similarly
-	- Partially implemented zero-allocation closures on functions never converted to a delegate (nested zero-alloc closures are disabled)
+	- Implemented zero-allocation closures on functions never converted to a delegate
 - [x] Standard parameter features
 	- params
 	- ref/out
