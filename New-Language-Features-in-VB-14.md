@@ -236,7 +236,7 @@ Dim addresses = From i In invitees      ' go through list
                 Select i, address
 ```
 
-#Disable Warning and #Enable Warning directives
+ #Disable Warning and #Enable Warning directives
 ==========================
 VB14 now lets you disable / enable warnings for regions within a file:
 
@@ -331,9 +331,9 @@ End Class
 
 Previously, if you were implementing the read-only property `I.P`, then you had to implement it with a read-only property as well. This was unfortunate since implementing a contract which only requires readability restricted you from fulfilling that contract with a property which elsewhere in your code was fine to write to. Now that restriction has been relaxed: you can implement it with a read/write property if you want. This example happens to implement it with a read/write auto-prop, but you can also use an expanded property with a getter and setter.
 
-#Region is now allowed inside of methods
+ #Region is now allowed inside of methods
 ----------------------------------------
-#Region is now allowed within method bodies and can cross method bodies. For instance:
+ #Region is now allowed within method bodies and can cross method bodies. For instance:
 
 ``` VB.NET
 Function Range(min As Integer, max As Integer) As IEnumerable(Of Integer)
