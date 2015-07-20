@@ -1,23 +1,23 @@
 This document describes the new language features in Visual Basic 14, the next version of VB. All of these are implemented and available in Visual Studio 2015 but can also be used when targeting older versions of the .NET Framework (such as .NET 2.0) from within Visual Studio 2015.
 
-* [String interpolation](#String-interpolation)
-* [Null-conditional operators](#Null-conditional-operators)
-* [NameOf operator](#NameOf operator)
-* [Read-only auto-properties](#Read-only-auto-properties)
-* [Multiline string literals](#Multiline-string-literals)
-* [Year-first Date literals](#Year-first-Date-literals)
-* [Comments before implicit line continuation](#Comments-before-implicit-line-continuation)
-* [#Disable Warning and #Enable Warning directives](##Disable-Warning-and-#Enable-Warning-directives)
-* [Partial Modules and Interfaces](##Partial-Modules-and-Interfaces)
-* [TypeOf <_expression_> IsNot <_type_> operator](#TypeOf-expression-IsNot-type-operator)
-* [XML documentation comment improvements](#XML-documentation-comment-improvements)
-* [Minor features and fixes](#Minor-features-and-fixes)
- * [Smart name resolution](#Smart-name-resolution)
- * [Read-only interface properties can now be implemented by read-write properties](#Read-only-interface-properties-can-now-be-implemented-by-read-write-properties)
- * [#Region is now allowed inside of methods](##Region-is-now-allowed-inside-of-methods)
- * [Overrides methods not implicitly include the Overloads modifier in metadata](#Overrides-methods-now-implicitly-include-the-Overloads-modifier-in-metadata)
- * [CObj is now permitted inside attribute arguments](#CObj-is-now-permitted-inside-attribute-arguments)
- * [Declaration and consumption of ambiguous methods from unrelated interfaces](#Declaration-and-consumption-of-ambiguous-methods-from-unrelated-interfaces)
+* [String interpolation](#string-interpolation)
+* [Null-conditional operators](#null-conditional-operators)
+* [NameOf operator](#nameof-operator)
+* [Read-only auto-properties](#read-only-auto-properties)
+* [Multiline string literals](#multiline-string-literals)
+* [Year-first Date literals](#year-first-date-literals)
+* [Comments before implicit line continuation](#comments-before-implicit-line-continuation)
+* [#Disable Warning and #Enable Warning directives](#disable-warning-and-enable-warning-directives)
+* [Partial Modules and Interfaces](#partial-modules-and-interfaces)
+* [TypeOf <_expression_> IsNot <_type_> operator](#typeof-expression-isnot-type-operator)
+* [XML documentation comment improvements](#xml-documentation-comment-improvements)
+* [Minor features and fixes](#minor-features-and-fixes)
+ * [Smart name resolution](#smart-name-resolution)
+ * [Read-only interface properties can now be implemented by read-write properties](#read-only-interface-properties-can-now-be-implemented-by-read-write-properties)
+ * [#Region is now allowed inside of methods](#region-is-now-allowed-inside-of-methods)
+ * [Overrides methods not implicitly include the Overloads modifier in metadata](#overrides-methods-now-implicitly-include-the-overloads-modifier-in-metadata)
+ * [CObj is now permitted inside attribute arguments](#cobj-is-now-permitted-inside-attribute-arguments)
+ * [Declaration and consumption of ambiguous methods from unrelated interfaces](#declaration-and-consumption-of-ambiguous-methods-from-unrelated-interfaces)
 
 String interpolation
 ====================
@@ -350,7 +350,7 @@ Private Iterator Function Helper(min As Integer, max As Integer) As IEnumerable(
 End Function
 ```
 
-Overrides methods not implicitly include the Overloads modifier in metadata
+Overrides methods now implicitly include the Overloads modifier in metadata
 ---------------------------------------------------------------------------
 Previously, VB libraries had to write both modifiers Overrides Overloads to play nice with C# users. Now, 'Override' members are also implicitly 'Overloads'.
 
