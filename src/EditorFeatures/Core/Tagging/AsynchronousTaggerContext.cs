@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
         {
-            if (spansTagged != null)
-            {
-                throw new InvalidOperationException("'spansTagged' has already been set.");
-            }
-
             this.spansTagged = spansTagged;
         }
     }
