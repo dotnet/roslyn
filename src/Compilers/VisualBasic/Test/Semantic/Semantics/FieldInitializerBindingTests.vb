@@ -1571,14 +1571,13 @@ String
 
         Private Shared Function BindInitializersWithoutDiagnostics(typeSymbol As SourceNamedTypeSymbol, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of BoundInitializer)
             Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Dim processedFieldInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
-            Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, processedFieldInitializers, diagnostics)
+            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, diagnostics)
             Dim sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
             For Each d In sealedDiagnostics
                 Console.WriteLine(d)
             Next
             Assert.False(sealedDiagnostics.Any())
-            Return processedFieldInitializers.BoundInitializers
+            Return processedFieldInitializers
         End Function
 
         Public Class ExpectedInitializer

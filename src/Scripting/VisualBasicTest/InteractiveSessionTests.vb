@@ -105,7 +105,7 @@ End Function")
                     End Function").WithLocation(1, 3))
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/4003")>
+        <Fact>
         Public Sub AnonymousTypes_TopLevel_MultipleSubmissions()
             Dim engine = New VisualBasicScriptEngine()
             Dim session = engine.CreateSession()

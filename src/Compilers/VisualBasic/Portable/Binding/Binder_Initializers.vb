@@ -30,12 +30,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
                 Set(value As ImmutableArray(Of BoundStatement))
                     Debug.Assert(Not value.IsDefault)
-                    ImmutableInterlocked.InterlockedInitialize(_loweredInitializers, value)
+                    Debug.Assert(_loweredInitializers.IsDefault)
+                    _loweredInitializers = value
                 End Set
             End Property
 
-            Friend Shared ReadOnly Empty As ProcessedFieldOrPropertyInitializers =
-                New ProcessedFieldOrPropertyInitializers(ImmutableArray(Of BoundInitializer).Empty)
+            Friend Shared ReadOnly Empty As ProcessedFieldOrPropertyInitializers = New ProcessedFieldOrPropertyInitializers()
+
+            Private Sub New()
+                Me.BoundInitializers = ImmutableArray(Of BoundInitializer).Empty
+                Me.HasAnyErrors = False
+                Me._loweredInitializers = ImmutableArray(Of BoundStatement).Empty
+            End Sub
 
             Friend Sub New(boundInitializers As ImmutableArray(Of BoundInitializer))
                 Debug.Assert(Not boundInitializers.IsDefault)
@@ -71,19 +77,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="scriptInitializerOpt">Script initializer or Nothing if not binding top-level statements.</param>
         ''' <param name="initializers">The initializers itself. For each partial type declaration there is an array of 
         ''' field initializers</param>
-        ''' <param name="processedFieldInitializers">The structure storing the list of processed field initializers.</param>
         ''' <param name="diagnostics">The diagnostics.</param>
-        Friend Shared Sub BindFieldAndPropertyInitializers(
+        Friend Shared Function BindFieldAndPropertyInitializers(
             symbol As SourceMemberContainerTypeSymbol,
             initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
             scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
-            ByRef processedFieldInitializers As ProcessedFieldOrPropertyInitializers,
             diagnostics As DiagnosticBag
-        )
+        ) As ImmutableArray(Of BoundInitializer)
             Debug.Assert((scriptInitializerOpt IsNot Nothing) = symbol.IsScriptClass)
 
             If initializers.IsDefaultOrEmpty Then
-                Return
+                Return ImmutableArray(Of BoundInitializer).Empty
             End If
 
             Dim moduleSymbol = DirectCast(symbol.ContainingModule, SourceModuleSymbol)
@@ -191,9 +195,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             Next
 
-            processedFieldInitializers = New ProcessedFieldOrPropertyInitializers(
-                boundInitializers.ToImmutableAndFree())
-        End Sub
+            Return boundInitializers.ToImmutableAndFree()
+        End Function
 
         Private Function BindGlobalStatement(
             scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
