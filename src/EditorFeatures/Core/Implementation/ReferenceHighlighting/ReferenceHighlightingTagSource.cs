@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         private void ClearTags(CancellationToken cancellationToken)
         {
+            this.WorkQueue.AssertIsForeground();
             ClearTags(spansToTag: null, cancellationToken: cancellationToken);
         }
 
@@ -102,7 +103,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
 
             spansToTag = spansToTag ?? GetSpansAndDocumentsToTag();
-            this.WorkQueue.EnqueueBackgroundTask(c => this.ClearTagsAsync(spansToTag, c), "NoTags", cancellationToken);
+
+            // Save to access CachedTagTrees here because we're on the foreground thread.
+            var oldTagsTrees = this.CachedTagTrees;
+
+            this.WorkQueue.EnqueueBackgroundTask(
+                c => this.ClearTagsAsync(spansToTag, oldTagsTrees, c), "ClearTags", cancellationToken);
         }
 
         private List<DocumentSnapshotSpan> TryGetSpansAndDocumentsToTag(string kind)
@@ -135,26 +141,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return spansToTag;
         }
 
-        private Task ClearTagsAsync(List<DocumentSnapshotSpan> spansToTag, CancellationToken cancellationToken)
+        private Task ClearTagsAsync(
+            List<DocumentSnapshotSpan> spansToTag, 
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<AbstractNavigatableReferenceHighlightingTag>> oldTagTrees,
+            CancellationToken cancellationToken)
         {
+            this.WorkQueue.AssertIsBackground();
             cancellationToken.ThrowIfCancellationRequested();
 
             var tagSpans = SpecializedCollections.EmptyEnumerable<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>();
 
-            var map = ConvertToTagTree(tagSpans, spansToTag);
+            var newTagTrees = ConvertToTagTree(oldTagTrees, tagSpans, spansToTag);
 
             // here we call base.ProcessNewTags so that we can clear tags without setting last solution version
             // clear tags is a special update mechanism where it represents clearing tags not updating tags.
 
             // we don't care about accumulated text change, so give it null
-            base.ProcessNewTags(spansToTag, oldTextChangeRange: null, newTags: map);
+            base.ProcessNewTagTrees(spansToTag, oldTextChangeRange: null, oldTagTrees: oldTagTrees, newTagTrees: newTagTrees, cancellationToken: cancellationToken);
 
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override void ProcessNewTags(IEnumerable<DocumentSnapshotSpan> spansToCompute, TextChangeRange? oldTextChangeRange, ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<AbstractNavigatableReferenceHighlightingTag>> newTags)
+        protected override void ProcessNewTagTrees(
+            IEnumerable<DocumentSnapshotSpan> spansToCompute,
+            TextChangeRange? oldTextChangeRange,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<AbstractNavigatableReferenceHighlightingTag>> oldTagTrees,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<AbstractNavigatableReferenceHighlightingTag>> newTags,
+            CancellationToken cancellationToken)
         {
-            base.ProcessNewTags(spansToCompute, oldTextChangeRange, newTags);
+            base.ProcessNewTagTrees(spansToCompute, oldTextChangeRange, oldTagTrees, newTags, cancellationToken);
 
             // remember last solution version we updated the tags
             var document = spansToCompute.First().Document;
