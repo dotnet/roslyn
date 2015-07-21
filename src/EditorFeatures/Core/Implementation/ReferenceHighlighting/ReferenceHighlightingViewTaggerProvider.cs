@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 return SpecializedTasks.EmptyTask;
             }
 
-            var document = context.SnapshotSpans.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
+            var document = context.SpansToTag.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
             if (document == null)
             {
                 return SpecializedTasks.EmptyTask;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     {
                         // We only want to search inside documents that correspond to the snapshots
                         // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SnapshotSpans.Select(vt => vt.Document).WhereNotNull());
+                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
                         var documentHighlightsList = await documentHighlightsService.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
                         if (documentHighlightsList != null)
                         {

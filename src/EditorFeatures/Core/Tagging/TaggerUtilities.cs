@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             AsynchronousTaggerContext<TTag,TState> context,
             Func<AsynchronousTaggerContext<TTag, TState>, DocumentSnapshotSpan, int?, Task> delegatee) where TTag : ITag
         {
-            foreach (var snapshotSpan in context.SnapshotSpans)
+            foreach (var spanToTag in context.SpansToTag)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
-                await delegatee(context, snapshotSpan, GetCaretPosition(context.CaretPosition, snapshotSpan.SnapshotSpan)).ConfigureAwait(false);
+                await delegatee(context, spanToTag, GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan)).ConfigureAwait(false);
             }
         }
 

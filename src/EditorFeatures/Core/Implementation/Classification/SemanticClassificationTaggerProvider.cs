@@ -101,13 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return TaggerUtilities.Delegate(context, ProduceTagsAsync);
         }
 
-        private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             try
             {
                 var cancellationToken = context.CancellationToken;
-                var document = documentSnapshotSpan.Document;
-                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+                var document = spanToTag.Document;
+                var snapshotSpan = spanToTag.SnapshotSpan;
                 var snapshot = snapshotSpan.Snapshot;
                 if (document == null)
                 {

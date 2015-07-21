@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             return TaggerUtilities.Delegate(context, ProduceTagsAsync);
         }
 
-        public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag, TState> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
+        public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag, TState> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
         }
