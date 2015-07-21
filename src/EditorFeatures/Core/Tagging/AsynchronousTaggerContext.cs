@@ -13,45 +13,41 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal class AsynchronousTaggerContext<TTag, TState> where TTag : ITag
+    internal class AsynchronousTaggerContext<TTag> where TTag : ITag
     {
         private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
         internal IEnumerable<DocumentSnapshotSpan> _spansTagged;
         internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
 
-        public TState State { get; set; }
         public IEnumerable<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
 
         /// <summary>
         /// The text that has changed between the last successfull tagging and this new request to
         /// produce tags.  In order to be passed this value, <see cref="TaggerTextChangeBehavior.TrackTextChanges"/> 
-        /// must be specified in <see cref="IAsynchronousTaggerDataSource{TTag, TState}.TextChangeBehavior"/>.
+        /// must be specified in <see cref="IAsynchronousTaggerDataSource{TTag}.TextChangeBehavior"/>.
         /// </summary>
         public TextChangeRange? TextChangeRange { get; }
         public CancellationToken CancellationToken { get; }
 
         // For testing only.
         internal AsynchronousTaggerContext(
-            TState state,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             CancellationToken cancellationToken) 
-            : this(state, spansToTag, caretPosition, textChangeRange, null, cancellationToken)
+            : this(spansToTag, caretPosition, textChangeRange, null, cancellationToken)
         {
         }
 
         internal AsynchronousTaggerContext(
-            TState state,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
             CancellationToken cancellationToken)
         {
-            this.State = state;
             this.SpansToTag = spansToTag;
             this.CaretPosition = caretPosition;
             this.TextChangeRange = textChangeRange;

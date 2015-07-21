@@ -21,14 +21,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
-    using Context = AsynchronousTaggerContext<HighlightTag, object>;
+    using Context = AsynchronousTaggerContext<HighlightTag>;
 
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(HighlightTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<HighlightTag, object>
+    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<HighlightTag>
     {
         private readonly IHighlightingService _highlightingService;
 

@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
         private delegate List<ITagSpan<TestTag>> Callback(SnapshotSpan span, CancellationToken cancellationToken);
 
-        private sealed class TestTaggerProvider : AsynchronousTaggerProvider<TestTag, object>
+        private sealed class TestTaggerProvider : AsynchronousTaggerProvider<TestTag>
         {
             private readonly Callback _callback;
             private readonly ITaggerEventSource _eventSource;
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 return _eventSource;
             }
 
-            public override Task ProduceTagsAsync(AsynchronousTaggerContext<TestTag, object> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
+            public override Task ProduceTagsAsync(AsynchronousTaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             {
                 var tags = _callback(snapshotSpan.SnapshotSpan, context.CancellationToken);
                 if (tags != null)

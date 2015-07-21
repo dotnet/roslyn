@@ -28,13 +28,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    using Context = AsynchronousTaggerContext<IClassificationTag, object>;
+    using Context = AsynchronousTaggerContext<IClassificationTag>;
 
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class SemanticClassificationTaggerProvider : AsynchronousTaggerProvider<IClassificationTag, object>
+    internal partial class SemanticClassificationTaggerProvider : AsynchronousTaggerProvider<IClassificationTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // there was top level edit, check whether that edit updated top level element
             var document = spanToTag.Document;
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var oldVersion = context.State;
             if (service == null)
             {
                 return false;

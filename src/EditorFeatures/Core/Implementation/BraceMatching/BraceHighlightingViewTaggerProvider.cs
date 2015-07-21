@@ -20,12 +20,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
-    using Context = AsynchronousTaggerContext<BraceHighlightTag, object>;
+    using Context = AsynchronousTaggerContext<BraceHighlightTag>;
 
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
-    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag, object>
+    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag>
     {
         private readonly IBraceMatchingService _braceMatcherService;
 

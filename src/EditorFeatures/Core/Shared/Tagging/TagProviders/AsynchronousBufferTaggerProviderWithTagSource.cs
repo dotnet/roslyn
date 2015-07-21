@@ -10,19 +10,19 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
-    internal sealed class AsynchronousBufferTaggerProviderWithTagSource<TTag, TState> :
-        AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag, TState>, TTag>,
+    internal sealed class AsynchronousBufferTaggerProviderWithTagSource<TTag> :
+        AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>,
         ITaggerProvider
         where TTag : ITag
     {
-        private readonly IAsynchronousTaggerDataSource<TTag, TState> _dataSource;
-        private readonly CreateTagSource<ProducerPopulatedTagSource<TTag, TState>, TTag> _createTagSource;
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
+        private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> _createTagSource;
 
         public AsynchronousBufferTaggerProviderWithTagSource(
-            IAsynchronousTaggerDataSource<TTag, TState> dataSource,
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,
-            CreateTagSource<ProducerPopulatedTagSource<TTag, TState>, TTag> createTagSource)
+            CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource)
             : base(asyncListener, notificationService)
         {
             this._dataSource = dataSource;
@@ -39,18 +39,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return this.GetOrCreateTagger<T>(null, subjectBuffer);
         }
 
-        protected override ProducerPopulatedTagSource<TTag, TState> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var tagSource = _createTagSource == null ? null : _createTagSource(textViewOpt, subjectBuffer, AsyncListener, NotificationService);
-            return tagSource ?? new ProducerPopulatedTagSource<TTag, TState>(textViewOpt, subjectBuffer, _dataSource, AsyncListener, NotificationService);
+            return tagSource ?? new ProducerPopulatedTagSource<TTag>(textViewOpt, subjectBuffer, _dataSource, AsyncListener, NotificationService);
         }
 
-        protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag, TState> tagSource)
+        protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag> tagSource)
         {
             return subjectBuffer.Properties.TryGetProperty(UniqueKey, out tagSource);
         }
 
-        protected sealed override void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, ProducerPopulatedTagSource<TTag, TState> tagSource)
+        protected sealed override void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, ProducerPopulatedTagSource<TTag> tagSource)
         {
             subjectBuffer.Properties.AddProperty(UniqueKey, tagSource);
         }

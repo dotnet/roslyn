@@ -21,28 +21,27 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag, TState}"/> is the core part of our asynchronous
-    /// tagging infrastructure. It is the coordinator between <see cref="IAsynchronousTaggerDataSource{TTag, TState}.ProduceTagsAsync"/>s,
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous
+    /// tagging infrastructure. It is the coordinator between <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag, TState}"/> is the type that actually owns the
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the
     /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
-    /// the tag source starts the computation and calls <see cref="IAsynchronousTaggerDataSource{TTag, TState}.ProduceTagsAsync"/> to build
+    /// the tag source starts the computation and calls <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/> to build
     /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
     /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
     /// <see cref="CachedTagTrees"/></para>
     /// 
-    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag, TState}"/>s
+    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s
     /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
     /// subject buffers at once) have their own providers and tag source derivations.</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    /// <typeparam name="TState">The type of state.</typeparam>
-    internal partial class ProducerPopulatedTagSource<TTag, TState> : TagSource<TTag>
+    internal partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
         where TTag : ITag
     {
         #region Fields that can be accessed from either thread
-        private readonly IAsynchronousTaggerDataSource<TTag, TState> _dataSource;
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
 
         private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
         #endregion
@@ -67,13 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
-        private TState _state_doNotAccessDirectly;
         #endregion
 
         public ProducerPopulatedTagSource(
             ITextView textViewOpt,
             ITextBuffer subjectBuffer,
-            IAsynchronousTaggerDataSource<TTag, TState> dataSource,
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
                 : base(subjectBuffer, notificationService, asyncListener)
@@ -110,21 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 this.WorkQueue.AssertIsForeground();
                 _accumulatedTextChanges_doNotAccessDirectly = value;
-            }
-        }
-
-        private TState State
-        {
-            get
-            {
-                this.WorkQueue.AssertIsForeground();
-                return _state_doNotAccessDirectly;
-            }
-
-            set
-            {
-                this.WorkQueue.AssertIsForeground();
-                _state_doNotAccessDirectly = value;
             }
         }
 
@@ -456,10 +439,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var caretPosition = this.GetCaretPoint();
                 var textChangeRange = this.AccumulatedTextChanges;
                 var oldTagTrees = this.CachedTagTrees;
-                var oldState = this.State;
 
                 this.WorkQueue.EnqueueBackgroundTask(
-                    ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, oldState, spansToTag, oldTagTrees, ct),
+                    ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
                     GetType().Name + ".RecomputeTags", cancellationToken);
             }
         }
@@ -715,7 +697,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected virtual async Task RecomputeTagsAsync(
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
-            TState oldState,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             CancellationToken cancellationToken)
@@ -724,8 +705,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var newTagSpans = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
-            var context = new AsynchronousTaggerContext<TTag, TState>(
-                oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
+            var context = new AsynchronousTaggerContext<TTag>(
+                spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
             await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
 
             ProcessContext(oldTagTrees, context);
@@ -733,12 +714,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ProcessContext(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, 
-            AsynchronousTaggerContext<TTag, TState> context)
+            AsynchronousTaggerContext<TTag> context)
         {
             var spansTagged = context._spansTagged;
             var newTagTrees = ConvertToTagTrees(oldTagTrees, context.tagSpans, spansTagged);
 
-            ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
+            ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.CancellationToken);
 
             return newTagTrees;
         }
@@ -747,7 +728,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IEnumerable<DocumentSnapshotSpan> spansTagged,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-            TState newState,
             CancellationToken cancellationToken)
         {
             var bufferToChanges = new Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection>();
@@ -782,12 +762,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
 
-            RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, newState, bufferToChanges), 0, cancellationToken);
+            RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges), 0, cancellationToken);
         }
 
         private void UpdateStateAndReportChanges(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-            TState newState,
             Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges)
         {
             this.WorkQueue.AssertIsForeground();
@@ -806,7 +785,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // and whatnot.
             this.CachedTagTrees = newTagTrees;
             this.AccumulatedTextChanges = null;
-            this.State = newState;
 
             // Note: we're raising changes here on the UI thread.  However, this doesn't actually
             // mean we'll be notifying the editor.  Instead, these will be batched up in the 
@@ -855,8 +833,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // TODO(cyrusn): Should we do this under a threaded wait dialog.  That way the
                     // use can cancel out if this takes a long time.
 
-                    var context = new AsynchronousTaggerContext<TTag, TState>(
-                        this.State, spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, oldTagTrees, CancellationToken.None);
+                    var context = new AsynchronousTaggerContext<TTag>(
+                        spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, oldTagTrees, CancellationToken.None);
                     _dataSource.ProduceTagsAsync(context).Wait();
 
                     var newTagTrees = ProcessContext(oldTagTrees, context);

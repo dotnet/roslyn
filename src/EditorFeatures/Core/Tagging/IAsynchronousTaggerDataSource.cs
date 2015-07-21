@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     }
 
     /// <summary>
-    /// Data source for the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>.  This type tells the
-    /// <see cref="AsynchronousTaggerProvider{TTag, TState}"/> when tags need to be recomputed, as well
+    /// Data source for the <see cref="AsynchronousTaggerProvider{TTag}"/>.  This type tells the
+    /// <see cref="AsynchronousTaggerProvider{TTag}"/> when tags need to be recomputed, as well
     /// as producing the tags when requested.
     /// </summary>
-    internal interface IAsynchronousTaggerDataSource<TTag, TState> where TTag : ITag
+    internal interface IAsynchronousTaggerDataSource<TTag> where TTag : ITag
     {
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
         /// 
         /// If this is specified the tagger engine will track text changes and pass them along as
-        /// <see cref="AsynchronousTaggerContext{TTag, TState}.TextChangeRange"/> when calling 
+        /// <see cref="AsynchronousTaggerContext{TTag}.TextChangeRange"/> when calling 
         /// <see cref="ProduceTagsAsync"/>.
         /// </summary>
         TaggerTextChangeBehavior TextChangeBehavior { get; }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         /// <summary>
         /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
-        /// the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> to determine if a previous set of
+        /// the <see cref="AsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
         /// computed tags and a current set of computed tags should be considered the same or not.
         /// If they are the same, then the UI will not be updated.  If they are different then
         /// the UI will be updated for sets of tags that have been removed or added.
@@ -87,15 +87,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IEqualityComparer<TTag> TagComparer { get; }
 
         /// <summary>
-        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>
+        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
         ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Called by the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> infrastructure to 
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to 
         /// determine the caret position.  This value will be passed in as the value to 
-        /// <see cref="AsynchronousTaggerContext{TTag, TState}.CaretPosition"/> in the call to
+        /// <see cref="AsynchronousTaggerContext{TTag}.CaretPosition"/> in the call to
         /// <see cref="ProduceTagsAsync"/>.
         /// 
         /// Return <code>null</code> to get the default tagger behavior.  This will the caret
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Called by the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> infrastructure to determine
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to determine
         /// the set of spans that it should asynchronously tag.  This will be called in response to
         /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
         /// will only be called from the UI thread.  The tagger infrastructure will then determine
@@ -120,6 +120,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// Produce tags for the given context.
         /// </summary>
-        Task ProduceTagsAsync(AsynchronousTaggerContext<TTag,TState> context);
+        Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context);
     }
 }

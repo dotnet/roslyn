@@ -23,13 +23,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
-    using Context = AsynchronousTaggerContext<AbstractNavigatableReferenceHighlightingTag, object>;
+    using Context = AsynchronousTaggerContext<AbstractNavigatableReferenceHighlightingTag>;
 
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag, object>
+    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
 

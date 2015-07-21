@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
-    using Context = AsynchronousTaggerContext<LineSeparatorTag, object>;
+    using Context = AsynchronousTaggerContext<LineSeparatorTag>;
 
     /// <summary>
     /// This factory is called to create taggers that provide information about where line
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [TagType(typeof(LineSeparatorTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag, object>
+    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(

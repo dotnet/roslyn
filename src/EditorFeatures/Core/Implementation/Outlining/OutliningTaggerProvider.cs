@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
-    using Context = AsynchronousTaggerContext<IOutliningRegionTag, object>;
+    using Context = AsynchronousTaggerContext<IOutliningRegionTag>;
 
     /// <summary>
     /// Shared implementation of the outliner tagger provider.
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     [Export(typeof(OutliningTaggerProvider))]
     [TagType(typeof(IOutliningRegionTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag, object>,
+    internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag>,
         IEqualityComparer<IOutliningRegionTag>
     {
         public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
