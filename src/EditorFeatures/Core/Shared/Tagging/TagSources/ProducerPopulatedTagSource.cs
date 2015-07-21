@@ -736,11 +736,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     var context = new AsynchronousTaggerContext<TTag, TState>(
                         this.State, spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, CancellationToken.None);
                     _dataSource.ProduceTagsAsync(context).Wait();
+
                     var newTagSpans = context.tagSpans;
+                    var spansTagged = context.spansTagged;
 
-                    var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansToTag);
+                    var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansTagged);
 
-                    ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, CancellationToken.None);
+                    ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.State, CancellationToken.None);
 
                     newTagTrees.TryGetValue(buffer, out tags);
                 }
