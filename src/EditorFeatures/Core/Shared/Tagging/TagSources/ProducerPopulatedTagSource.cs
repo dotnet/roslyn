@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // NOTE: we assume that the following list is already realized and is _not_ lazily
             // computed. It's not clear what the contract is of this API.
 
-            // common case where there is only one buffer 
+            // common case where we only tagged a single range of a document.
             if (spansTagged.IsSingle())
             {
                 return ConvertToTagTree(oldTagTrees, newTagSpans, spansTagged.Single().SnapshotSpan);
@@ -454,8 +454,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var newTagsByBuffer = newTagSpans.ToLookup(t => t.Span.Snapshot.TextBuffer);
             var spansToInvalidateByBuffer = spansTagged.Select(ss => ss.SnapshotSpan).ToLookup(ss => ss.Snapshot.TextBuffer);
 
-            var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
-
             var buffers = oldTagTrees.Keys.Concat(newTagsByBuffer.Select(g => g.Key))
                                           .Concat(spansTagged.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer))
                                           .Distinct();
@@ -464,12 +462,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // for that buffer.  In general this will work by keeping around old tags that
             // weren't in the range that was re-tagged, and merging them with the new tags
             // produced for the range that was re-tagged.
+            var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
             foreach (var buffer in buffers)
             {
-                var newTags = newTagsByBuffer[buffer];
-                var spansToInvalidate = spansToInvalidateByBuffer[buffer];
-
-                var newTagTree = ComputeNewTagTree(buffer, newTags, spansToInvalidate, oldTagTrees);
+                var newTagTree = ComputeNewTagTree(oldTagTrees, buffer, newTagsByBuffer[buffer], spansToInvalidateByBuffer[buffer]);
                 if (newTagTree != null)
                 {
                     newTagTrees = newTagTrees.Add(buffer, newTagTree);
@@ -480,10 +476,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         private TagSpanIntervalTree<TTag> ComputeNewTagTree(
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ITextBuffer textBuffer,
             IEnumerable<ITagSpan<TTag>> newTags,
-            IEnumerable<SnapshotSpan> spansToInvalidate,
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees)
+            IEnumerable<SnapshotSpan> spansToInvalidate)
         {
             var noNewTags = newTags.IsEmpty();
             var noSpansToInvalidate = spansToInvalidate.IsEmpty();
@@ -540,15 +536,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             SnapshotSpan spanTagged)
         {
             var newTagsByBuffer = newTagSpans.ToLookup(t => t.Span.Snapshot.TextBuffer);
-            var bufferTagged = spanTagged.Snapshot.TextBuffer;
-            var allBuffers = oldTagTrees.Keys.Concat(newTagsByBuffer.Select(g => g.Key)).Concat(bufferTagged).Distinct();
+            var allBuffers = oldTagTrees.Keys.Concat(newTagsByBuffer.Select(g => g.Key))
+                                             .Concat(spanTagged.Snapshot.TextBuffer).Distinct();
 
             var newTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
             foreach (var buffer in allBuffers)
             {
-                var newTags = newTagsByBuffer[buffer];
-
-                var newTagTree = ComputeNewTagTree(buffer, newTags, spanTagged, oldTagTrees);
+                var newTagTree = ComputeNewTagTree(spanTagged, oldTagTrees, buffer, newTagsByBuffer[buffer]);
                 if (newTagTree != null)
                 {
                     newTagTrees = newTagTrees.Add(buffer, newTagTree);
@@ -559,10 +553,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         private TagSpanIntervalTree<TTag> ComputeNewTagTree(
-            ITextBuffer textBuffer,
-            IEnumerable<ITagSpan<TTag>> newTags,
             SnapshotSpan spanToInvalidate,
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees)
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+            ITextBuffer textBuffer,
+            IEnumerable<ITagSpan<TTag>> newTags)
         {
             TagSpanIntervalTree<TTag> oldTagTree;
             oldTagTrees.TryGetValue(textBuffer, out oldTagTree);
