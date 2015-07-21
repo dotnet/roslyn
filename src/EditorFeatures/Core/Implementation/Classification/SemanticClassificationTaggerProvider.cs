@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan spanToTag)
         {
-            if (await TryProduceTagsSpecializedAsync(context, spanToTag).ConfigureAwait(false))
+            if (await TryClassifyContainingMemberSpan(context, spanToTag).ConfigureAwait(false))
             {
                 return;
             }
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             await ClassifySpansAsync(context, spanToTag).ConfigureAwait(false);
         }
 
-        private async Task<bool> TryProduceTagsSpecializedAsync(Context context, DocumentSnapshotSpan spanToTag)
+        private async Task<bool> TryClassifyContainingMemberSpan(Context context, DocumentSnapshotSpan spanToTag)
         {
             var range = context.TextChangeRange;
             if (range == null)
