@@ -274,60 +274,52 @@ class A
 
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (4,11): error CS1031: Type expected
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate"),
-                // (4,11): error CS1001: Identifier expected
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "delegate"),
-                // (4,11): error CS0145: A const field requires a value to be provided
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_ConstValueRequired, "delegate"),
-                // (4,11): error CS1002: ; expected
-                //     const delegate void D(); 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate"),
-                // (5,37): error CS1002: ; expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "const"),
-                // (5,43): error CS1031: Type expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "("),
-                // (5,43): error CS1001: Identifier expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
-                // (5,43): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "() { "),
-                // (5,43): error CS1003: Syntax error, '[' expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "("),
-                // (5,44): error CS1525: Invalid expression term ')'
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")"),
-                // (5,46): error CS1003: Syntax error, ',' expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{"),
-                // (5,48): error CS1003: Syntax error, ']' expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]", "}"),
-                // (5,48): error CS1002: ; expected
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}"),
-                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}"),
-                // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual"),
-                // (5,43): error CS0102: The type 'A' already contains a definition for ''
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", ""),
-                // (5,23): error CS0670: Field cannot have void type
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
-                // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
-                //     protected virtual void Finalize const () { }
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", ""));
+    // (4,11): error CS1031: Type expected
+    //     const delegate void D(); 
+    Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),
+    // (4,11): error CS1001: Identifier expected
+    //     const delegate void D(); 
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "delegate").WithLocation(4, 11),
+    // (4,11): error CS0145: A const field requires a value to be provided
+    //     const delegate void D(); 
+    Diagnostic(ErrorCode.ERR_ConstValueRequired, "delegate").WithLocation(4, 11),
+    // (4,11): error CS1002: ; expected
+    //     const delegate void D(); 
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(4, 11),
+    // (5,37): error CS1002: ; expected
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "const").WithLocation(5, 37),
+    // (5,43): error CS8096: Tuple must contain at least two elements.
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 43),
+    // (5,46): error CS1001: Identifier expected
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 46),
+    // (5,46): error CS0145: A const field requires a value to be provided
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_ConstValueRequired, "{").WithLocation(5, 46),
+    // (5,46): error CS1003: Syntax error, ',' expected
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(5, 46),
+    // (5,48): error CS1002: ; expected
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(5, 48),
+    // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+    // }
+    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1),
+    // (5,28): error CS0106: The modifier 'virtual' is not valid for this item
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_BadMemberFlag, "Finalize").WithArguments("virtual").WithLocation(5, 28),
+    // (5,46): error CS0102: The type 'A' already contains a definition for ''
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("A", "").WithLocation(5, 46),
+    // (5,23): error CS0670: Field cannot have void type
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 23),
+    // (5,28): warning CS0649: Field 'A.Finalize' is never assigned to, and will always have its default value 
+    //     protected virtual void Finalize const () { }
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Finalize").WithArguments("A.Finalize", "").WithLocation(5, 28)
+    );
         }
 
         [WorkItem(543791, "DevDiv")]

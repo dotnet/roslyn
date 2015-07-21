@@ -555,7 +555,7 @@ $$");
         {
             VerifyKeyword(
 @"class C {
-   unsafe operator int ++(C c) {
+   unsafe operator ++(C c) {
      $$");
         }
 

@@ -1052,26 +1052,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberDeclaration = node as MemberDeclarationSyntax;
             if (memberDeclaration != null)
             {
-                var nameToken = memberDeclaration.GetNameToken();
-                if (nameToken == default(SyntaxToken))
+                if (memberDeclaration.Kind() == SyntaxKind.ConversionOperatorDeclaration)
                 {
-                    Debug.Assert(memberDeclaration.Kind() == SyntaxKind.ConversionOperatorDeclaration);
                     name = (memberDeclaration as ConversionOperatorDeclarationSyntax)?.Type.ToString();
                 }
                 else
                 {
-                    name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
-                    if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
+                    var nameToken = memberDeclaration.GetNameToken();
+                    if (nameToken != default(SyntaxToken))
                     {
-                        name = "~" + name;
+                        name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
+                        if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
+                        {
+                            name = "~" + name;
+                        }
+                        if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
+                        {
+                            var pooled = PooledStringBuilder.GetInstance();
+                            var builder = pooled.Builder;
+                            builder.Append(name);
+                            AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList());
+                            name = pooled.ToStringAndFree();
+                        }
                     }
-                    if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
+                    else
                     {
-                        var pooled = PooledStringBuilder.GetInstance();
-                        var builder = pooled.Builder;
-                        builder.Append(name);
-                        AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList());
-                        name = pooled.ToStringAndFree();
+                        Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
+                        name = "?";
                     }
                 }
             }

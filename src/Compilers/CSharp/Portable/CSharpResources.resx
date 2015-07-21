@@ -4638,4 +4638,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
 </root>

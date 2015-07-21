@@ -239,6 +239,45 @@
       <summary>Creates an NullableTypeSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="TupleTypeSyntax" Base="TypeSyntax">
+    <Kind Name="TupleType"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Elements" Type="SeparatedSyntaxList&lt;TupleElementSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for tuple type.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an TupleTypeSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="TupleElementSyntax" Base="CSharpSyntaxNode">
+    <TypeComment>
+      <summary>Tuple type element.</summary>
+    </TypeComment>
+    <Kind Name="TupleElement"/>
+    <Field Name="Type" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the type of the tuple element.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Name" Type="IdentifierNameSyntax" Optional="true">
+      <PropertyComment>
+        <summary>Gets the name of the tuple element.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierName"/>
+    </Field>
+  </Node>
   <Node Name="OmittedTypeArgumentSyntax" Base="TypeSyntax">
     <Kind Name="OmittedTypeArgument"/>
     <Field Name="OmittedTypeArgumentToken" Type="SyntaxToken">
@@ -284,6 +323,32 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates an ParenthesizedExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="TupleExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="TupleExpression"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Arguments" Type="SeparatedSyntaxList&lt;ArgumentSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ArgumentSyntax representing the list of arguments.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close parenthesis.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for tuple expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an TupleExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="PrefixUnaryExpressionSyntax" Base="ExpressionSyntax">

@@ -7053,7 +7053,7 @@ public class MyList<T>
         [Fact, WorkItem(536863, "DevDiv")]
         public void CS0201ERR_IllegalStatement2()
         {
-            var test = @"
+            var text = @"
 class A
 {
     public static int Main()
@@ -7066,14 +7066,32 @@ class A
         x + y; x == 1;
     }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
-                new ErrorDescription[] {
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 6, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 7, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 9 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_IllegalStatement, Line = 11, Column = 16 },
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_ReturnExpected, Line = 4, Column = 23 }
-                });
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (7,16): error CS1001: Identifier expected
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
+    // (7,16): error CS1003: Syntax error, ',' expected
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(7, 16),
+    // (7,18): error CS1002: ; expected
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 18),
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         (a) => a;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
+    // (7,10): error CS0246: The type or namespace name 'a' could not be found (are you missing a using directive or an assembly reference?)
+    //         (a, b) =>
+    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "a").WithArguments("a").WithLocation(7, 10),
+    // (11,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(11, 9),
+    // (11,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    //         x + y; x == 1;
+    Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(11, 16),
+    // (4,23): error CS0161: 'A.Main()': not all code paths return a value
+    //     public static int Main()
+    Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("A.Main()").WithLocation(4, 23)
+    );
         }
 
         [Fact()]
