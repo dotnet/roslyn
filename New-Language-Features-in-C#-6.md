@@ -228,7 +228,7 @@ Occasionally you need to provide a string that names some program element: when 
 Using string literals for this purpose is simple, but error prone. You may spell it wrong, or a refactoring may leave it stale. nameof expressions are essentially a fancy kind of string literal where the compiler checks that you have something of the given name, and Visual Studio knows what it refers to, so navigation and refactoring will work:
 
 ``` c#
-(if x == null) throw new ArgumentNullException(nameof(x));
+if (x == null) throw new ArgumentNullException(nameof(x));
 ```
 
 You can put more elaborate dotted names in a nameof expression, but that’s just to tell the compiler where to look: only the final identifier will be used:
