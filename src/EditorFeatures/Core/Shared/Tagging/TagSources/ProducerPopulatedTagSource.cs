@@ -445,46 +445,111 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // computed. It's not clear what the contract is of this API.
 
             // common case where there is only one buffer 
-            if (spansTagged != null && spansTagged.IsSingle())
+            if (spansTagged.IsSingle())
             {
                 return ConvertToTagTree(oldTagTrees, newTagSpans, spansTagged.Single().SnapshotSpan);
             }
 
-            // heavy generic case 
-            var tagsByBuffer = newTagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
-            var tagsToKeepByBuffer = GetTagsToKeepByBuffer(oldTagTrees, spansTagged);
+            // heavy linq case 
+            var newTagsByBuffer = newTagSpans.ToLookup(t => t.Span.Snapshot.TextBuffer);
+            var spansToInvalidateByBuffer = spansTagged.Select(ss => ss.SnapshotSpan).ToLookup(ss => ss.Snapshot.TextBuffer);
 
-            var map = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
-            foreach (var tagsInBuffer in tagsByBuffer)
+            var result = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
+
+            var buffers = oldTagTrees.Keys.Concat(newTagSpans.Select(ts => ts.Span.Snapshot.TextBuffer))
+                                          .Concat(spansTagged.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer))
+                                          .Distinct();
+
+            // Walk through each relevant buffer and decide what the interval tree should be
+            // for that buffer.  In general this will work by keeping around old tags that
+            // weren't in the range that was re-tagged, and merging them with the new tags
+            // produced for the range that was re-tagged.
+            foreach (var buffer in buffers)
             {
-                IEnumerable<ITagSpan<TTag>> tags;
-                if (tagsToKeepByBuffer.TryGetValue(tagsInBuffer.Key, out tags))
-                {
-                    tags = tagsInBuffer.Concat(tags);
-                }
-                else
-                {
-                    tags = tagsInBuffer;
-                }
+                var newTags = newTagsByBuffer[buffer];
+                var spansToInvalidate = spansToInvalidateByBuffer[buffer];
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _dataSource.SpanTrackingMode, tags));
+                var newTagTree = ComputeNewTagTree(buffer, newTags, spansToInvalidate, oldTagTrees);
+                if (newTagTree != null)
+                {
+                    result = result.Add(buffer, newTagTree);
+                }
             }
 
-            foreach (var kv in tagsToKeepByBuffer)
-            {
-                if (!map.ContainsKey(kv.Key) && kv.Value.Any())
-                {
-                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _dataSource.SpanTrackingMode, kv.Value));
-                }
-            }
+            return result;
+        }
 
-            return map;
+        private TagSpanIntervalTree<TTag> ComputeNewTagTree(
+            ITextBuffer textBuffer,
+            IEnumerable<ITagSpan<TTag>> newTags,
+            IEnumerable<SnapshotSpan> spansToInvalidate,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees)
+        {
+            var noNewTags = newTags.IsEmpty();
+            var noSpansToInvalidate = spansToInvalidate.IsEmpty();
+
+            TagSpanIntervalTree<TTag> oldTagTree;
+            oldTagTrees.TryGetValue(textBuffer, out oldTagTree);
+
+            if (noNewTags)
+            {
+                if (oldTagTree == null)
+                {
+                    // We have no new tags, and no old tags either.  No need to store anything
+                    // for this buffer.
+                    return null;
+                }
+
+                // We have  no new tags, but we do have old tags. Keep any that don't intersect 
+                // spansToInvalidate.
+                if (noSpansToInvalidate)
+                {
+                    // There was nothing to invalidate, we can just keep all the old tags as is.
+                    return oldTagTree;
+                }
+
+                var oldTagsToKeep = GetNonIntersectingTagSpans(spansToInvalidate, oldTagTree);
+
+                return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode,
+                    oldTagsToKeep);
+            }
+            else
+            {
+                // We have new tags.  Merge them with any old tags we're keeping.
+                if (oldTagTree == null)
+                {
+                    // If we don't have any old tags, no need to merge anything.
+                    return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode, newTags);
+                }
+
+                // Determine the old tags we want to kepe.  If we're not invalidating anything,
+                // then we keep all old tags.  Otherwise, we keep the set that doesn't intersect
+                // with the spans we're invalidating.
+                var snapshot = newTags.First().Span.Snapshot;
+                var oldTagsToKeep = noSpansToInvalidate
+                    ? oldTagTree.GetSpans(snapshot)
+                    : GetNonIntersectingTagSpans(spansToInvalidate, oldTagTree);
+
+                return new TagSpanIntervalTree<TTag>(textBuffer, _dataSource.SpanTrackingMode,
+                    newTags.Concat(oldTagsToKeep));
+            }
+        }
+
+        private IEnumerable<ITagSpan<TTag>> GetNonIntersectingTagSpans(IEnumerable<SnapshotSpan> spansToInvalidate, TagSpanIntervalTree<TTag> oldTagTree)
+        {
+            var snapshot = spansToInvalidate.First().Snapshot;
+
+            var tagSpansToInvalidate = new List<ITagSpan<TTag>>(
+                spansToInvalidate.SelectMany(ss => oldTagTree.GetIntersectingSpans(ss)));
+
+            var oldTagsToKeep = oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, _tagSpanComparer);
+            return oldTagsToKeep;
         }
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-            IEnumerable<ITagSpan<TTag>> newTagSpans,
-            SnapshotSpan spanTagged)
+                ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+                IEnumerable<ITagSpan<TTag>> newTagSpans,
+                SnapshotSpan spanTagged)
         {
             var tagsByBuffer = newTagSpans.GroupBy(t => t.Span.Snapshot.TextBuffer);
 
@@ -534,44 +599,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return newTagTrees;
-        }
-
-        private ImmutableDictionary<ITextBuffer, IEnumerable<ITagSpan<TTag>>> GetTagsToKeepByBuffer(
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-            IEnumerable<DocumentSnapshotSpan> spansTagged)
-        {
-            var map = ImmutableDictionary.Create<ITextBuffer, IEnumerable<ITagSpan<TTag>>>();
-
-            if (spansTagged == null)
-            {
-                return map;
-            }
-
-            var spansToInvalidateByBuffer = spansTagged.Select(t => t.SnapshotSpan).GroupBy(s => s.Snapshot.TextBuffer);
-
-            foreach (var grouping in spansToInvalidateByBuffer)
-            {
-                var buffer = grouping.Key;
-
-                TagSpanIntervalTree<TTag> treeForBuffer;
-                if (!oldTagTrees.TryGetValue(buffer, out treeForBuffer))
-                {
-                    continue;
-                }
-
-                var invalidSpans = new List<ITagSpan<TTag>>();
-                ITextSnapshot snapshot = null;
-                foreach (var spanToInvalidate in grouping)
-                {
-                    snapshot = spanToInvalidate.Snapshot;
-                    invalidSpans.AddRange(treeForBuffer.GetIntersectingSpans(spanToInvalidate));
-                }
-
-                Debug.Assert(snapshot != null);
-                map = map.Add(buffer, treeForBuffer.GetSpans(snapshot).Except(invalidSpans, _tagSpanComparer));
-            }
-
-            return map;
         }
 
         /// <summary>
