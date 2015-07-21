@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             s_spanCache.Enqueue(list);
         }
 
-        public static void Convert(
-            ClassificationTypeMap typeMap, ITextSnapshot snapshot, List<ClassifiedSpan> list,
-            Action<ITagSpan<IClassificationTag>> addTag)
+        public static void Convert(ClassificationTypeMap typeMap, ITextSnapshot snapshot, List<ClassifiedSpan> list, Action<ITagSpan<IClassificationTag>> addTag)
         {
             foreach (var classifiedSpan in list)
             {

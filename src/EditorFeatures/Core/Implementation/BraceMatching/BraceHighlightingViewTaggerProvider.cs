@@ -68,12 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             }
         }
 
-        private async Task ProduceTagsForBracesAsync(
-            Context context,
-            Document document,
-            ITextSnapshot snapshot,
-            int position,
-            bool rightBrace)
+        private async Task ProduceTagsForBracesAsync(Context context, Document document, ITextSnapshot snapshot, int position, bool rightBrace)
         {
             if (position >= 0 && position < snapshot.Length)
             {

@@ -526,8 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var tagSpansToInvalidate = new List<ITagSpan<TTag>>(
                 spansToInvalidate.SelectMany(ss => oldTagTree.GetIntersectingSpans(ss)));
 
-            var oldTagsToKeep = oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, _tagSpanComparer);
-            return oldTagsToKeep;
+            return oldTagTree.GetSpans(snapshot).Except(tagSpansToInvalidate, _tagSpanComparer);
         }
 
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTree(
@@ -552,6 +551,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return newTagTrees;
         }
 
+        /// <summary>
+        /// This is the same as <see cref="ComputeNewTagTree(ImmutableDictionary{ITextBuffer, TagSpanIntervalTree{TTag}}, ITextBuffer, IEnumerable{ITagSpan{TTag}}, IEnumerable{SnapshotSpan})"/>,
+        /// just optimized for the case where we were tagging a single snapshot span.
+        /// </summary>
         private TagSpanIntervalTree<TTag> ComputeNewTagTree(
             SnapshotSpan spanToInvalidate,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,

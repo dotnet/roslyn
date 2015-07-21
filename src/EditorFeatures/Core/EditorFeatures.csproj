@@ -673,7 +673,6 @@
     <Compile Include="Tagging\AsynchronousTaggerDataSource.cs" />
     <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
     <Compile Include="Tagging\AsynchronousViewTaggerProvider.cs" />
-    <Compile Include="Tagging\TaggerUtilities.cs" />
     <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
     <Compile Include="Undo\EditorSourceTextUndoService.cs" />
     <Compile Include="Undo\ISourceTextUndoTransaction.cs" />

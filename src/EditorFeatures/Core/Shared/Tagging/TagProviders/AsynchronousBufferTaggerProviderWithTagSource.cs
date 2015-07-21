@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             if (subjectBuffer == null)
             {
-                throw new ArgumentNullException("subjectBuffer");
+                throw new ArgumentNullException(nameof(subjectBuffer));
             }
 
             return this.GetOrCreateTagger<T>(null, subjectBuffer);

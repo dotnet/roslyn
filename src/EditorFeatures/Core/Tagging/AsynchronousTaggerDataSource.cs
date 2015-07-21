@@ -37,9 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag,TState> context)
+        public virtual async Task ProduceTagsAsync(AsynchronousTaggerContext<TTag,TState> context)
         {
-            return TaggerUtilities.Delegate(context, ProduceTagsAsync);
+            foreach (var spanToTag in context.SpansToTag)
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+                await ProduceTagsAsync(context, spanToTag, GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan)).ConfigureAwait(false);
+            }
+        }
+
+        private static int? GetCaretPosition(SnapshotPoint? caretPosition, SnapshotSpan snapshotSpan)
+        {
+            return caretPosition.HasValue && caretPosition.Value.Snapshot == snapshotSpan.Snapshot
+                ? caretPosition.Value.Position : (int?)null;
         }
 
         public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag, TState> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
