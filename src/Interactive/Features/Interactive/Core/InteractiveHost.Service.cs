@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return new ObjectHandle(ExecuteInner(Compile(text)));
             }
 
-            private Script Compile(string text, string path = null)
+            private Script<object> Compile(string text, string path = null)
             {
                 // note that the actual submission execution runs on the UI thread, not under this lock:
                 lock (_sessionGuard)
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         LoadReference(reference.FilePath, suppressWarnings: false, addReference: false);
                     }
 
-                    return script;
+                    return (Script<object>)script;
                 }
             }
 
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 // TODO (tomat): engine.CompileSubmission shouldn't throw
-                Script script;
+                Script<object> script;
                 try
                 {
                     script = Compile(content, fullPath);
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// </remarks>
             private bool Execute(string text)
             {
-                Script script;
+                Script<object> script;
                 try
                 {
                     script = Compile(text);
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private bool ExecuteOnUIThread(Script script, out object result)
+            private bool ExecuteOnUIThread(Script<object> script, out object result)
             {
                 result = s_ui.Invoke(new Func<object>(() =>
                 {
@@ -801,12 +801,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private object ExecuteInner(Script script)
+            private object ExecuteInner(Script<object> script)
             {
                 var globals = _lastResult != null ? (object)_lastResult : (object)_hostObject;
-                var result = script.Run(globals);
+                var result = script.RunAsync(globals, CancellationToken.None); // TODO
                 _lastResult = result;
-                return result.ReturnValue;
+                var task = result.ReturnValue;
+                return task.Result; // For now, submissions are assumed to be synchronous.
             }
 
             private void DisplayInteractiveErrors(ImmutableArray<Diagnostic> diagnostics, TextWriter output)

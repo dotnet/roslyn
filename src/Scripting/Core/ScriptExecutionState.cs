@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading;
-using Roslyn.Utilities;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Run's the submission with this state. Submission's state get added to this as a side-effect.
         /// </summary>
-        public object RunSubmission(Func<object[], object> submissionRunner)
+        public T RunSubmission<T>(Func<object[], T> submissionRunner)
         {
             if (_frozen != 0)
             {

@@ -415,10 +415,10 @@ Public MustInherit Class BasicTestBaseBase
         End Get
     End Property
 
-    Private _lazyDefaultReferences As MetadataReference()
-    Private _lazyLatestReferences As MetadataReference()
+    Private Shared _lazyDefaultReferences As MetadataReference()
+    Private Shared _lazyLatestReferences As MetadataReference()
 
-    Protected ReadOnly Property DefaultReferences As MetadataReference()
+    Friend Shared ReadOnly Property DefaultReferences As MetadataReference()
         Get
             If _lazyDefaultReferences Is Nothing Then
                 _lazyDefaultReferences = {MscorlibRef, SystemRef, SystemCoreRef, MsvbRef}
@@ -428,7 +428,7 @@ Public MustInherit Class BasicTestBaseBase
         End Get
     End Property
 
-    Protected ReadOnly Property LatestReferences As MetadataReference()
+    Friend Shared ReadOnly Property LatestReferences As MetadataReference()
         Get
             If _lazyLatestReferences Is Nothing Then
                 _lazyLatestReferences = {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929}

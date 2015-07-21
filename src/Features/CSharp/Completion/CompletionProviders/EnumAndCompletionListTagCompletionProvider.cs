@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,20 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class EnumAndCompletionListTagCompletionProvider : AbstractCompletionProvider
+    internal partial class EnumAndCompletionListTagCompletionProvider : AbstractCompletionProvider
     {
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            // Only commit on dot.
-            return ch == '.';
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            // Standard enter behavior.
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             // Bring up on space or at the start of a word, or after a ( or [.
@@ -108,14 +95,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textChangeSpan = CompletionUtilities.GetTextChangeSpan(text, position);
 
-            var item = new CSharpCompletionItem(
-                workspace,
+            var item = new CompletionItem(
                 this,
                 displayText: displayText,
                 filterSpan: textChangeSpan,
                 descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
                 glyph: (alias ?? type).GetGlyph(),
-                preselect: true);
+                preselect: true,
+                rules: ItemRules.Instance);
+
             return SpecializedCollections.SingletonEnumerable(item);
         }
 

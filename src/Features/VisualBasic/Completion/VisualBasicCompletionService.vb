@@ -5,7 +5,6 @@ Imports System.Composition
 Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Rules
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return _completionProviders
         End Function
 
-        Public Overrides Function GetDefaultCompletionRules() As ICompletionRules
+        Public Overrides Function GetCompletionRules() As CompletionRules
             Return New VisualBasicCompletionRules(Me)
         End Function
 

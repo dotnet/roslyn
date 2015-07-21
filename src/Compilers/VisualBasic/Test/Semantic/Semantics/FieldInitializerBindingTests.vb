@@ -1527,7 +1527,7 @@ String
 
         Private Shared Sub CheckBoundInitializers(expectedInitializers As IEnumerable(Of ExpectedInitializer), syntaxTree As SyntaxTree, boundInitializers As ImmutableArray(Of BoundInitializer), isStatic As Boolean)
             If expectedInitializers Is Nothing Then
-                Assert.[True](boundInitializers.IsDefault)
+                Assert.[True](boundInitializers.IsEmpty)
             Else
                 Assert.[True](Not boundInitializers.IsDefault)
                 Dim numInitializers As Integer = expectedInitializers.Count()

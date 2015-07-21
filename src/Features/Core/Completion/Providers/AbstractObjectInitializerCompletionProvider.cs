@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.IsWriteableFieldOrProperty();
         }
 
-        protected virtual CompletionItem CreateItem(
+        protected CompletionItem CreateItem(
             Workspace workspace,
             string displayText,
             TextSpan textSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
             Glyph? glyph)
         {
-            return new CompletionItem(this, displayText, textSpan, descriptionFactory, glyph);
+            return new CompletionItem(this, displayText, textSpan, descriptionFactory, glyph, rules: ObjectInitializerCompletionItemRules.Instance);
         }
 
         protected virtual bool IsInitializable(ISymbol member, INamedTypeSymbol containingType)

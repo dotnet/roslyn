@@ -2812,7 +2812,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsScriptClass)
             {
-                members.Add(new SynthesizedInteractiveInitializerMethod(this, diagnostics));
+                var scriptInitializer = new SynthesizedInteractiveInitializerMethod(this, diagnostics);
+                members.Add(scriptInitializer);
+                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(this, scriptInitializer.ReturnType, diagnostics);
+                members.Add(scriptEntryPoint);
             }
         }
 

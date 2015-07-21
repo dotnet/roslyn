@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Used to store the bound field and property initializers and the associated list of
         ''' bound assignment statements because they are reused for multiple constructors
         ''' </summary>
-        Friend Class ProcessedFieldOrPropertyInitializers
+        Friend NotInheritable Class ProcessedFieldOrPropertyInitializers
             Friend ReadOnly BoundInitializers As ImmutableArray(Of BoundInitializer)
 
             ''' <summary> 
@@ -23,48 +23,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Friend ReadOnly HasAnyErrors As Boolean
 
-            Private _LoweredInitializers As ImmutableArray(Of BoundStatement)
+            Private _loweredInitializers As ImmutableArray(Of BoundStatement)
             Friend Property InitializerStatements As ImmutableArray(Of BoundStatement)
                 Get
-                    Return _LoweredInitializers
+                    Return _loweredInitializers
                 End Get
                 Set(value As ImmutableArray(Of BoundStatement))
-                    Debug.Assert(value.IsEmpty OrElse Not BoundInitializers.IsEmpty)
-                    _LoweredInitializers = value
+                    Debug.Assert(Not value.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(_loweredInitializers, value)
                 End Set
             End Property
 
             Friend Shared ReadOnly Empty As ProcessedFieldOrPropertyInitializers =
-                New ProcessedFieldOrPropertyInitializers(Nothing)
+                New ProcessedFieldOrPropertyInitializers(ImmutableArray(Of BoundInitializer).Empty)
 
             Friend Sub New(boundInitializers As ImmutableArray(Of BoundInitializer))
+                Debug.Assert(Not boundInitializers.IsDefault)
                 Me.BoundInitializers = boundInitializers
-
-                If Not boundInitializers.IsDefaultOrEmpty Then
-                    For Each initializer In boundInitializers
-                        If initializer.HasErrors Then
-                            HasAnyErrors = True
-                            Exit For
-                        End If
-                    Next
-                End If
+                Me.HasAnyErrors = boundInitializers.Any(Function(i) i.HasErrors)
             End Sub
 
             Private _analyzed As Boolean = False
-            Friend Sub EnsureInitializersAnalyzed(constructor As MethodSymbol, diagnostics As DiagnosticBag)
-                Debug.Assert(constructor IsNot Nothing)
-                Debug.Assert(constructor.MethodKind = MethodKind.Constructor OrElse constructor.MethodKind = MethodKind.SharedConstructor)
+            Friend Sub EnsureInitializersAnalyzed(method As MethodSymbol, diagnostics As DiagnosticBag)
+                Debug.Assert(method IsNot Nothing)
 
                 If Not _analyzed Then
-                    If Not Me.BoundInitializers.IsDefaultOrEmpty Then
+                    If Not Me.BoundInitializers.IsEmpty Then
                         ' Create a dummy block
                         Dim block As New BoundBlock(Me.BoundInitializers(0).Syntax,
                                                     Nothing,
                                                     ImmutableArray(Of LocalSymbol).Empty,
                                                     StaticCast(Of BoundStatement).From(Me.BoundInitializers))
 
-                        Analyzer.AnalyzeMethodBody(constructor, block, diagnostics)
-                        DiagnosticsPass.IssueDiagnostics(block, diagnostics, constructor)
+                        Analyzer.AnalyzeMethodBody(method, block, diagnostics)
+                        DiagnosticsPass.IssueDiagnostics(block, diagnostics, method)
                     End If
 
                     _analyzed = True
@@ -76,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Binds all field initializers of a <see cref="SourceNamedTypeSymbol"/>.
         ''' </summary>
         ''' <param name="symbol">The named type symbol where the field initializers are declared.</param>
-        ''' <param name="scriptCtorOpt">Script constructor or Nothing if not binding top-level statements.</param>
+        ''' <param name="scriptInitializerOpt">Script initializer or Nothing if not binding top-level statements.</param>
         ''' <param name="initializers">The initializers itself. For each partial type declaration there is an array of 
         ''' field initializers</param>
         ''' <param name="processedFieldInitializers">The structure storing the list of processed field initializers.</param>
@@ -84,11 +76,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Sub BindFieldAndPropertyInitializers(
             symbol As SourceMemberContainerTypeSymbol,
             initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)),
-            scriptCtorOpt As MethodSymbol,
+            scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
             ByRef processedFieldInitializers As ProcessedFieldOrPropertyInitializers,
             diagnostics As DiagnosticBag
         )
-            Debug.Assert((scriptCtorOpt IsNot Nothing) = symbol.IsScriptClass)
+            Debug.Assert((scriptInitializerOpt IsNot Nothing) = symbol.IsScriptClass)
 
             If initializers.IsDefaultOrEmpty Then
                 Return
@@ -120,8 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' use binder for type, not ctor - no access to ctor parameters
                         parentBinder = BinderBuilder.CreateBinderForType(moduleSymbol, syntaxTree, symbol)
 
-                        If scriptCtorOpt IsNot Nothing Then
-                            parentBinder = New TopLevelCodeBinder(scriptCtorOpt, parentBinder)
+                        If scriptInitializerOpt IsNot Nothing Then
+                            parentBinder = New TopLevelCodeBinder(scriptInitializerOpt, parentBinder)
                         End If
                     Else
                         Debug.Assert(parentBinder.SyntaxTree Is syntaxTree, "sibling initializer array contains initializers from two different syntax trees.")
@@ -130,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initializer.FieldsOrProperty.IsDefault Then
                         ' use the binder of the Script class for global statements
                         Dim isLast = (i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
-                        boundInitializers.Add(parentBinder.BindGlobalStatement(DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
+                        boundInitializers.Add(parentBinder.BindGlobalStatement(scriptInitializerOpt, DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
                         Continue For
                     End If
 
@@ -203,15 +195,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitializers.ToImmutableAndFree())
         End Sub
 
-        Private Function BindGlobalStatement(statementNode As StatementSyntax, diagnostics As DiagnosticBag, isLast As Boolean) As BoundInitializer
+        Private Function BindGlobalStatement(
+            scriptInitializerOpt As SynthesizedInteractiveInitializerMethod,
+            statementNode As StatementSyntax,
+            diagnostics As DiagnosticBag,
+            isLast As Boolean) As BoundInitializer
+
             Dim boundStatement As BoundStatement = Me.BindStatement(statementNode, diagnostics)
 
             If Me.Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
-                Dim submissionReturnType = Me.Compilation.GetSubmissionReturnType()
-
                 ' insert an implicit conversion to the submission return type (if needed):
                 Dim expression = (DirectCast(boundStatement, BoundExpressionStatement)).Expression
                 If expression.Type Is Nothing OrElse expression.Type.SpecialType <> SpecialType.System_Void Then
+                    Dim submissionReturnType = scriptInitializerOpt.ResultType
                     expression = ApplyImplicitConversion(expression.Syntax, submissionReturnType, expression, diagnostics)
                     boundStatement = New BoundExpressionStatement(boundStatement.Syntax, expression, expression.HasErrors)
                 End If

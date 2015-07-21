@@ -69,7 +69,7 @@ From an `AdditionalText` instance, you can access the path to the file or the co
 ``` C#
 AdditionText additionalFile = ...;
 string path = additionalFile.Path;
-SourceText contents = additionaFile.GetText();
+SourceText contents = additionalFile.GetText();
 ```
 
 Samples

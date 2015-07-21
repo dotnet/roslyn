@@ -409,6 +409,8 @@
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionCommandHandler.cs" />
     <Compile Include="Implementation\GoToDefinition\GoToDefinitionHelpers.cs" />
     <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\MemberInsertingCompletionItemRules.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\AbstractXmlDocCommentCompletionItemRules.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />
@@ -468,7 +470,7 @@
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\AbstractPartialCompletionProvider.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\MemberInsertingCompletionItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\AbstractDocCommentCompletionProvider.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\XmlItem.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Controller.Session_ComputeModel.cs" />

@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly List<string> _committedItems = new List<string>(MruSize);
         private readonly object _mruGate = new object();
 
-        private void CompletionItemCommitted(CompletionItem item)
+        internal void CompletionItemCommitted(CompletionItem item)
         {
             lock (_mruGate)
             {
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        protected int GetMRUIndex(CompletionItem item)
+        internal int GetMRUIndex(CompletionItem item)
         {
             lock (_mruGate)
             {
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             completionProviders = completionProviders ?? this.GetDefaultCompletionProviders();
             var completionProviderToIndex = GetCompletionProviderToIndex(completionProviders);
-            var completionRules = GetDefaultCompletionRules();
+            var completionRules = GetCompletionRules();
 
             IEnumerable<CompletionListProvider> triggeredProviders;
             switch (triggerInfo.TriggerReason)
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return MergeAndPruneCompletionLists(allProvidersAndLists.Select(g => g.List), completionRules);
         }
 
-        private static CompletionList MergeAndPruneCompletionLists(IEnumerable<CompletionList> completionLists, ICompletionRules completionRules)
+        private static CompletionList MergeAndPruneCompletionLists(IEnumerable<CompletionList> completionLists, CompletionRules completionRules)
         {
             var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
             CompletionItem builder = null;
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private static void ReplaceExistingItem(
             CompletionItem item,
             Dictionary<string, List<CompletionItem>> displayNameToItemsMap,
-            ICompletionRules completionRules)
+            CompletionRules completionRules)
         {
             // See if we have an item with 
             var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.DisplayText, s_createList);
@@ -238,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 Contract.Assert(item.DisplayText == existingItem.DisplayText);
 
-                if (completionRules.ItemsMatch(item, existingItem).Value)
+                if (completionRules.ItemsMatch(item, existingItem))
                 {
                     sameNamedItems[i] = Disambiguate(item, existingItem);
                     return;
@@ -330,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public abstract Task<TextSpan> GetDefaultTrackingSpanAsync(Document document, int position, CancellationToken cancellationToken);
 
-        public virtual ICompletionRules GetDefaultCompletionRules()
+        public virtual CompletionRules GetCompletionRules()
         {
             return new CompletionRules(this);
         }
@@ -342,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public Task<string> GetSnippetExpansionNoteForCompletionItemAsync(CompletionItem completionItem, Workspace workspace)
         {
-            var insertionText = completionItem.CompletionProvider.GetTextChange(completionItem, '\t').NewText;
+            var insertionText = GetCompletionRules().GetTextChange(completionItem, '\t').NewText;
 
             var snippetInfoService = workspace.Services.GetLanguageServices(GetLanguageName()).GetService<ISnippetInfoService>();
             if (snippetInfoService != null && snippetInfoService.SnippetShortcutExists_NonBlocking(insertionText))

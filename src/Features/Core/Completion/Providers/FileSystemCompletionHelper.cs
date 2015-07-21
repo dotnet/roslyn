@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly Lazy<string[]> _lazyGetDrives;
         private readonly CompletionListProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
+        private readonly CompletionItemRules _itemRules;
 
         public FileSystemCompletionHelper(
             CompletionListProvider completionProvider,
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph fileGlyph,
             ImmutableArray<string> searchPaths,
             IEnumerable<string> allowableExtensions,
-            Func<string, bool> exclude = null)
+            Func<string, bool> exclude = null,
+            CompletionItemRules itemRules = null)
         {
             Debug.Assert(searchPaths.All(path => PathUtilities.IsAbsolute(path)));
 
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _folderGlyph = folderGlyph;
             _fileGlyph = fileGlyph;
             _exclude = exclude;
+            _itemRules = itemRules;
 
             _lazyGetDrives = new Lazy<string[]>(() =>
                 IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
@@ -66,17 +69,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private CompletionItem CreateCurrentDirectoryItem()
         {
-            return new CompletionItem(_completionProvider, ".", _textChangeSpan);
+            return new CompletionItem(_completionProvider, ".", _textChangeSpan, rules: _itemRules);
         }
 
         private CompletionItem CreateParentDirectoryItem()
         {
-            return new CompletionItem(_completionProvider, "..", _textChangeSpan);
+            return new CompletionItem(_completionProvider, "..", _textChangeSpan, rules: _itemRules);
         }
 
         private CompletionItem CreateNetworkRoot(TextSpan textChangeSpan)
         {
-            return new CompletionItem(_completionProvider, "\\\\", textChangeSpan);
+            return new CompletionItem(_completionProvider, "\\\\", textChangeSpan, rules: _itemRules);
         }
 
         private ImmutableArray<CompletionItem> GetFilesAndDirectories(string path, string basePath)
@@ -192,7 +195,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 child.Name,
                 _textChangeSpan,
                 glyph: child is DirectoryInfo ? _folderGlyph : _fileGlyph,
-                description: child.FullName.ToSymbolDisplayParts());
+                description: child.FullName.ToSymbolDisplayParts(),
+                rules: _itemRules);
         }
 
         private bool ShouldShow(FileSystemInfo child)
@@ -270,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return from d in _lazyGetDrives.Value
                    where d.Length > 0 && (d.Last() == Path.DirectorySeparatorChar || d.Last() == Path.AltDirectorySeparatorChar)
                    let text = d.Substring(0, d.Length - 1)
-                   select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: _folderGlyph);
+                   select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: _folderGlyph, rules: _itemRules);
         }
 
         private static FileSystemInfo[] GetFileSystemInfos(DirectoryInfo directoryInfo)

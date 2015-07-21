@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {

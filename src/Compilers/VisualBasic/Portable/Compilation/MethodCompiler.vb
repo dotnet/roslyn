@@ -254,64 +254,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Shared Function GetEntryPoint(compilation As VisualBasicCompilation,
+        Private Shared Function GetEntryPoint(compilation As VisualBasicCompilation,
                                              moduleBeingBuilt As PEModuleBuilder,
                                              diagnostics As DiagnosticBag,
                                              cancellationToken As CancellationToken) As MethodSymbol
 
-            Dim options As VisualBasicCompilationOptions = compilation.Options
-            If Not options.OutputKind.IsApplication() Then
-                Debug.Assert(compilation.GetEntryPointAndDiagnostics(Nothing) Is Nothing)
-
-                If compilation.IsSubmission Then
-                    Dim submissionReturnType As TypeSymbol = compilation.GetSubmissionReturnType()
-                    Return DefineScriptEntryPoint(compilation, moduleBeingBuilt, submissionReturnType, diagnostics)
-                End If
-
+            Dim entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken)
+            If entryPointAndDiagnostics Is Nothing Then
                 Return Nothing
             End If
 
-            Debug.Assert(Not compilation.IsSubmission)
-            Debug.Assert(options.OutputKind.IsApplication())
-
-            Dim entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken)
-            Debug.Assert(entryPointAndDiagnostics IsNot Nothing)
             Debug.Assert(Not entryPointAndDiagnostics.Diagnostics.IsDefault)
-
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics)
 
-            If compilation.ScriptClass IsNot Nothing Then
-                Debug.Assert(entryPointAndDiagnostics.MethodSymbol Is Nothing)
-                Return DefineScriptEntryPoint(compilation, moduleBeingBuilt, compilation.GetSpecialType(SpecialType.System_Void), diagnostics)
-            End If
-
-            Debug.Assert(entryPointAndDiagnostics.MethodSymbol IsNot Nothing OrElse entryPointAndDiagnostics.Diagnostics.HasAnyErrors() OrElse Not compilation.Options.Errors.IsDefaultOrEmpty)
-            Return entryPointAndDiagnostics.MethodSymbol
-        End Function
-
-        Friend Shared Function DefineScriptEntryPoint(compilation As VisualBasicCompilation, moduleBeingBuilt As PEModuleBuilder, returnType As TypeSymbol, diagnostics As DiagnosticBag) As MethodSymbol
-            Dim scriptEntryPoint = New SynthesizedEntryPointSymbol(compilation.ScriptClass, returnType)
-            If moduleBeingBuilt IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
+            Dim entryPoint = entryPointAndDiagnostics.MethodSymbol
+            Dim synthesizedEntryPoint = TryCast(entryPoint, SynthesizedEntryPointSymbol)
+            If synthesizedEntryPoint IsNot Nothing AndAlso
+                moduleBeingBuilt IsNot Nothing AndAlso
+                Not diagnostics.HasAnyErrors Then
                 Dim compilationState = New TypeCompilationState(compilation, moduleBeingBuilt, initializeComponentOpt:=Nothing)
-                Dim body = scriptEntryPoint.CreateBody()
-
+                Dim body = synthesizedEntryPoint.CreateBody()
                 Dim emittedBody = GenerateMethodBody(moduleBeingBuilt,
-                                                     scriptEntryPoint,
-                                                     methodOrdinal:=DebugId.UndefinedOrdinal,
-                                                     block:=body,
-                                                     lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
-                                                     closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
-                                                     stateMachineTypeOpt:=Nothing,
-                                                     variableSlotAllocatorOpt:=Nothing,
-                                                     debugDocumentProvider:=Nothing,
-                                                     diagnostics:=diagnostics,
-                                                     emittingPdb:=False)
-
-                moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody)
-                moduleBeingBuilt.AddSynthesizedDefinition(compilation.ScriptClass, scriptEntryPoint)
+                                                 synthesizedEntryPoint,
+                                                 methodOrdinal:=DebugId.UndefinedOrdinal,
+                                                 block:=body,
+                                                 lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                                 closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
+                                                 stateMachineTypeOpt:=Nothing,
+                                                 variableSlotAllocatorOpt:=Nothing,
+                                                 debugDocumentProvider:=Nothing,
+                                                 diagnostics:=diagnostics,
+                                                 emittingPdb:=False)
+                moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody)
             End If
 
-            Return scriptEntryPoint
+            Debug.Assert(entryPoint IsNot Nothing OrElse entryPointAndDiagnostics.Diagnostics.HasAnyErrors() OrElse Not compilation.Options.Errors.IsDefaultOrEmpty)
+            Return entryPoint
         End Function
 
         Private Sub WaitForWorkers()
@@ -520,26 +498,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._cancellationToken)
         End Function
 
-        Private Sub CompileNamedType(symbol As NamedTypeSymbol, filter As Predicate(Of Symbol))
-            If symbol.IsEmbedded Then
+        Private Sub CompileNamedType(containingType As NamedTypeSymbol, filter As Predicate(Of Symbol))
+            If containingType.IsEmbedded Then
                 ' Don't process embedded types
                 Return
             End If
 
             ' Find the constructor of a script class.
-            Dim scriptCtor As MethodSymbol = Nothing
-            Dim submissionCtorOrdinal = -1
-            If symbol.IsScriptClass Then
-                scriptCtor = symbol.InstanceConstructors(0)
+            Dim scriptCtor As SynthesizedConstructorBase = Nothing
+            Dim scriptInitializer As SynthesizedInteractiveInitializerMethod = Nothing
+            Dim scriptEntryPoint As SynthesizedEntryPointSymbol = Nothing
+            Dim scriptCtorOrdinal = -1
+            If containingType.IsScriptClass Then
+                scriptCtor = containingType.GetScriptConstructor()
+                scriptInitializer = containingType.GetScriptInitializer()
+                scriptEntryPoint = containingType.GetScriptEntryPoint()
                 Debug.Assert(scriptCtor IsNot Nothing)
+                Debug.Assert(scriptInitializer IsNot Nothing)
             End If
 
             Dim processedStaticInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
             Dim processedInstanceInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
-            Dim synthesizedSubmissionFields = If(symbol.IsSubmissionClass, New SynthesizedSubmissionFields(_compilation, symbol), Nothing)
+            Dim synthesizedSubmissionFields = If(containingType.IsSubmissionClass, New SynthesizedSubmissionFields(_compilation, containingType), Nothing)
 
             ' if this is a type symbol from source we'll try to bind the field initializers as well
-            Dim sourceTypeSymbol = TryCast(symbol, SourceMemberContainerTypeSymbol)
+            Dim sourceTypeSymbol = TryCast(containingType, SourceMemberContainerTypeSymbol)
             Dim initializeComponent As MethodSymbol = Nothing
 
             If sourceTypeSymbol IsNot Nothing AndAlso DoEmitPhase Then
@@ -563,13 +546,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
                                                         sourceTypeSymbol.StaticInitializers,
-                                                        scriptCtor,
+                                                        scriptInitializer,
                                                         processedStaticInitializers,
                                                         _diagnostics)
 
                 Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
                                                         sourceTypeSymbol.InstanceInitializers,
-                                                        scriptCtor,
+                                                        scriptInitializer,
                                                         processedInstanceInitializers,
                                                         _diagnostics)
 
@@ -608,7 +591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Constructor --> Constructor calls to be used in cycles detection
             Dim constructorCallMap As Dictionary(Of MethodSymbol, MethodSymbol) = Nothing
-            Dim members = symbol.GetMembers()
+            Dim members = containingType.GetMembers()
 
             ' Unique ids assigned to synthesized overrides of WithEvents properties.
             Dim withEventPropertyIdDispenser = 0
@@ -629,9 +612,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case SymbolKind.Method
                         Dim method = DirectCast(member, MethodSymbol)
-                        If method.IsSubmissionConstructor Then
-                            Debug.Assert(submissionCtorOrdinal = -1)
-                            submissionCtorOrdinal = memberOrdinal
+                        If method.IsScriptConstructor Then
+                            Debug.Assert(scriptCtorOrdinal = -1)
+                            Debug.Assert(scriptCtor Is method)
+                            scriptCtorOrdinal = memberOrdinal
+                            Continue For
+                        End If
+
+                        If method Is scriptEntryPoint Then
                             Continue For
                         End If
 
@@ -656,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If method.MethodKind = MethodKind.SharedConstructor Then
                             processedInitializers = processedStaticInitializers
-                        ElseIf method.MethodKind = MethodKind.Constructor Then
+                        ElseIf method.MethodKind = MethodKind.Constructor OrElse method.IsScriptInitializer Then
                             processedInitializers = processedInstanceInitializers
                         End If
 
@@ -679,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If referencedConstructor IsNot Nothing Then
 
                             '  If base class constructor is called, the constructor cannot be part of a cycle
-                            If referencedConstructor.ContainingType.Equals(symbol) Then
+                            If referencedConstructor.ContainingType.Equals(containingType) Then
                                 If constructorCallMap Is Nothing Then
                                     constructorCallMap = New Dictionary(Of MethodSymbol, MethodSymbol)
                                 End If
@@ -695,7 +683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             Next
 
-            Debug.Assert(symbol.TypeKind <> TypeKind.Submission OrElse (scriptCtor IsNot Nothing AndAlso scriptCtor.IsSubmissionConstructor))
+            Debug.Assert(containingType.IsScriptClass = (scriptCtorOrdinal >= 0))
 
             ' Detect and report cycles in constructor calls
             If constructorCallMap IsNot Nothing Then
@@ -703,25 +691,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Compile submission constructor last so that synthesized submission fields are collected from all script methods:
-            If scriptCtor IsNot Nothing AndAlso scriptCtor.IsSubmissionConstructor Then
+            If scriptCtor IsNot Nothing Then
+                Debug.Assert(scriptCtorOrdinal >= 0)
                 CompileMethod(scriptCtor,
-                              submissionCtorOrdinal,
+                              scriptCtorOrdinal,
                               withEventPropertyIdDispenser,
                               delegateRelaxationIdDispenser,
                               filter,
                               compilationState,
-                              processedInstanceInitializers,
+                              Binder.ProcessedFieldOrPropertyInitializers.Empty,
                               sourceTypeBinder,
                               synthesizedSubmissionFields)
 
                 If synthesizedSubmissionFields IsNot Nothing AndAlso _moduleBeingBuiltOpt IsNot Nothing Then
-                    synthesizedSubmissionFields.AddToType(symbol, _moduleBeingBuiltOpt)
+                    synthesizedSubmissionFields.AddToType(containingType, _moduleBeingBuiltOpt)
                 End If
             End If
 
             ' Report warnings for constructors that do not call InitializeComponent
             If initializeComponent IsNot Nothing Then
-                For Each member In symbol.GetMembers()
+                For Each member In containingType.GetMembers()
                     If member.IsShared OrElse Not member.IsFromCompilation(_compilation) OrElse member.Kind <> SymbolKind.Method Then
                         Continue For
                     End If
@@ -1175,17 +1164,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim injectConstructorCall As Boolean
             Dim block = BindAndAnalyzeMethodBody(method, compilationState, diagsForCurrentMethod, containingTypeBinder, referencedConstructor, injectConstructorCall, methodBinderOpt)
 
-            If method.MethodKind = MethodKind.Constructor OrElse method.MethodKind = MethodKind.SharedConstructor Then
-                ' If this is a constructor and we do have initializers they need to be flow-analyzed for 
-                ' warnings like 'Function '??' doesn't return a value on all code paths' or unreferenced variables. 
-
-                ' Because if there are any initializers they will eventually get to one or more constructors
-                ' it does not matter which constructor is being used as a method symbol for their analysis, 
-                ' so we don't perform any analysis of which constructor symbol to pass to EnsureInitializersAnalyzed,
-                ' but call this method for on all constructor symbols making sure instance/static initializers 
-                ' are analyzed on the first instance/static constructor processed
-                processedInitializers.EnsureInitializersAnalyzed(method, diagsForCurrentMethod)
-            End If
+            ' Initializers need to be flow-analyzed for warnings like 'Function '??' doesn't
+            ' return a value on all code paths' or unreferenced variables. 
+            ' Because if there are any initializers they will eventually get to one or more constructors
+            ' it does not matter which constructor is being used as a method symbol for their analysis, 
+            ' so we don't perform any analysis of which constructor symbol to pass to EnsureInitializersAnalyzed,
+            ' but call this method for on all constructor symbols making sure instance/static initializers 
+            ' are analyzed on the first instance/static constructor processed
+            processedInitializers.EnsureInitializersAnalyzed(method, diagsForCurrentMethod)
 
             Dim hasErrors = _hasDeclarationErrors OrElse diagsForCurrentMethod.HasAnyErrors() OrElse processedInitializers.HasAnyErrors OrElse block.HasErrors
             SetGlobalErrorIfTrue(hasErrors)
@@ -1370,12 +1356,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim body As BoundBlock
             If method.MethodKind = MethodKind.Constructor OrElse method.MethodKind = MethodKind.SharedConstructor Then
-                ' Turns field initializers into bound assignment statements and top-level script statements into bound statements in the beginning the body. 
-                ' For submission constructor, the body only includes bound initializers and a return statement. The rest is filled in later.
-                body = InitializerRewriter.BuildConstructorBody(
-                    compilationState,
-                    method,
-                    If(method.IsSubmissionConstructor, Nothing, constructorInitializerOpt), processedInitializers, block)
+                If method.IsScriptConstructor Then
+                    body = block
+                Else
+                    ' Turns field initializers into bound assignment statements and top-level script statements into bound statements in the beginning the body. 
+                    body = InitializerRewriter.BuildConstructorBody(compilationState, method, constructorInitializerOpt, processedInitializers, block)
+                End If
+            ElseIf method.IsScriptInitializer Then
+                ' The body only includes bound initializers and a return statement. The rest is filled in later in this method.
+                body = InitializerRewriter.BuildScriptInitializerBody(DirectCast(method, SynthesizedInteractiveInitializerMethod), processedInitializers, block)
             Else
                 body = block
             End If
@@ -1409,13 +1398,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    isBodySynthesized:=False)
 
             ' The submission initializer has to be constructed after the body is rewritten (all previous submission references are visited):
-            Dim submissionInitialization As ImmutableArray(Of BoundStatement)
-            If method.IsSubmissionConstructor Then
-                submissionInitialization = SynthesizedSubmissionConstructorSymbol.MakeSubmissionInitialization(block.Syntax, method, previousSubmissionFields, _compilation, diagnostics)
-            Else
-                submissionInitialization = Nothing
-            End If
-
+            Dim submissionInitialization = If(method.IsSubmissionConstructor,
+                SynthesizedSubmissionConstructorSymbol.MakeSubmissionInitialization(block.Syntax, method, previousSubmissionFields, _compilation, diagnostics),
+                ImmutableArray(Of BoundStatement).Empty)
             Dim hasErrors = body.HasErrors OrElse diagsForCurrentMethod.HasAnyErrors OrElse (diagnostics IsNot diagsForCurrentMethod AndAlso diagnostics.HasAnyErrors)
             SetGlobalErrorIfTrue(hasErrors)
 
@@ -1430,10 +1415,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' now we have everything we need to build complete submission
-            If method.IsSubmissionConstructor Then
-                Debug.Assert(previousSubmissionFields IsNot Nothing)
-
-                Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance(1 + submissionInitialization.Length + 1)
+            If method.IsScriptConstructor Then
+                Dim boundStatements = ArrayBuilder(Of BoundStatement).GetInstance()
                 boundStatements.Add(constructorInitializerOpt)
                 boundStatements.AddRange(submissionInitialization)
                 boundStatements.Add(body)
@@ -1623,7 +1606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             awaiterSlots = awaiters.ToImmutableAndFree()
         End Sub
 
-        Friend Shared Function BindAndAnalyzeMethodBody(method As MethodSymbol,
+        Private Shared Function BindAndAnalyzeMethodBody(method As MethodSymbol,
                                                        compilationState As TypeCompilationState,
                                                        diagnostics As DiagnosticBag,
                                                        containingTypeBinder As Binder,
