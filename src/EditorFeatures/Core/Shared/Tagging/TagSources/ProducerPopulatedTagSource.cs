@@ -619,12 +619,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var spansTagged = context.spansTagged;
             var newTagTrees = ConvertToTagTree(oldTagTrees, context.tagSpans, spansTagged);
 
-            ProcessNewTagTrees(spansTagged, textChangeRange, oldTagTrees, newTagTrees, context.State, cancellationToken);
+            ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.State, cancellationToken);
         }
 
         protected virtual void ProcessNewTagTrees(
             IEnumerable<DocumentSnapshotSpan> spansTagged,
-            TextChangeRange? oldTextChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
             TState newState,
@@ -741,7 +740,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
                     var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansToTag);
 
-                    ProcessNewTagTrees(spansToTag, null, oldTagTrees, newTagTrees, context.State, CancellationToken.None);
+                    ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, CancellationToken.None);
 
                     newTagTrees.TryGetValue(buffer, out tags);
                 }
