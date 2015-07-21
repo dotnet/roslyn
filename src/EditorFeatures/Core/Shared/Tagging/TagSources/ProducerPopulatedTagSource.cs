@@ -616,10 +616,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var context = new AsynchronousTaggerContext<TTag, TState>(oldState, spansToTag, caretPosition, textChangeRange, cancellationToken);
             await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
 
+            ProcessContext(oldTagTrees, context);
+        }
+
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ProcessContext(
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, 
+            AsynchronousTaggerContext<TTag, TState> context)
+        {
             var spansTagged = context.spansTagged;
             var newTagTrees = ConvertToTagTree(oldTagTrees, context.tagSpans, spansTagged);
 
-            ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.State, cancellationToken);
+            ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
+
+            return newTagTrees;
         }
 
         protected virtual void ProcessNewTagTrees(
@@ -630,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             CancellationToken cancellationToken)
         {
             var bufferToChanges = new Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection>();
-            using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, CancellationToken.None))
+            using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
             {
                 foreach (var latestBuffer in newTagTrees.Keys)
                 {
@@ -659,6 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     }
                 }
             }
+
 
             RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, newState, bufferToChanges), 0, cancellationToken);
         }
@@ -737,12 +747,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                         this.State, spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, CancellationToken.None);
                     _dataSource.ProduceTagsAsync(context).Wait();
 
-                    var newTagSpans = context.tagSpans;
-                    var spansTagged = context.spansTagged;
-
-                    var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansTagged);
-
-                    ProcessNewTagTrees(spansTagged, oldTagTrees, newTagTrees, context.State, CancellationToken.None);
+                    var newTagTrees = ProcessContext(oldTagTrees, context);
 
                     newTagTrees.TryGetValue(buffer, out tags);
                 }
