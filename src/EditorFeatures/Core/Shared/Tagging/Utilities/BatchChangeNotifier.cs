@@ -65,21 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private int _lastPausedTime;
 
         private readonly Action<SnapshotSpan> _reportChangedSpan;
-        private readonly TaggerDelay _throttleDelay;
 
         public BatchChangeNotifier(
             ITextBuffer subjectBuffer,
             IAsynchronousOperationListener listener,
             IForegroundNotificationService notificationService,
-            Action<SnapshotSpan> reportChangedSpan,
-            TaggerDelay throttleDelay)
+            Action<SnapshotSpan> reportChangedSpan)
         {
             Contract.ThrowIfNull(reportChangedSpan);
             _subjectBuffer = subjectBuffer;
             _listener = listener;
             _notificationService = notificationService;
             _reportChangedSpan = reportChangedSpan;
-            _throttleDelay = throttleDelay;
         }
 
         public void Pause()
@@ -111,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var allSpans = NormalizedSnapshotSpanCollection.Union(currentSpans, changedSpans);
             _snapshotVersionToSpansMap[version] = allSpans;
 
-            EnqueueNotificationRequest(_throttleDelay);
+            EnqueueNotificationRequest(TaggerDelay.NearImmediate);
         }
 
         // We may get a flurry of 'Notify' calls if we've enqueued a lot of work and it's now just
@@ -130,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             var currentTick = Environment.TickCount;
-            if (Math.Abs(currentTick - _lastReportTick) > _throttleDelay.ComputeTimeDelayMS(_subjectBuffer))
+            if (Math.Abs(currentTick - _lastReportTick) > TaggerDelay.NearImmediate.ComputeTimeDelayMS(_subjectBuffer))
             {
                 _lastReportTick = currentTick;
                 this.NotifyEditor();

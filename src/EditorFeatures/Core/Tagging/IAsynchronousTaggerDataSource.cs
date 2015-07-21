@@ -65,12 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IEnumerable<PerLanguageOption<bool>> PerLanguageOptions { get; }
 
         /// <summary>
-        /// The amount of time the tagger engine will wait after tags are computed before updating
-        /// the UI.  Return 'null' to get the default delay.
-        /// </summary>
-        TaggerDelay? UIUpdateDelay { get; }
-
-        /// <summary>
         /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
         /// the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> to determine if a previous set of
         /// computed tags and a current set of computed tags should be considered the same or not.

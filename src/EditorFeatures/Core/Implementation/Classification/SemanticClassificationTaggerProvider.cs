@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         // cause flashing when a edit touches the edge of a classified symbol without
         // changing it.  For example, if you have "Console." and you remove the <dot>,
         // then you don't want to remove the classification for 'Console'.
-        public TaggerDelay? UIUpdateDelay => null;
         public bool IgnoreCaretMovementToExistingTag => false;
         public bool RemoveTagsThatIntersectEdits => false;
         public IEqualityComparer<IClassificationTag> TagComparer => null;

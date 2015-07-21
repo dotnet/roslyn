@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private readonly ITextBuffer _subjectBuffer;
         private readonly TagSource<TTag> _tagSource;
-        private readonly int _uiUpdateDelayInMS;
 
         #endregion
 
@@ -48,19 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener listener,
             IForegroundNotificationService notificationService,
             TagSource<TTag> tagSource,
-            ITextBuffer subjectBuffer,
-            TaggerDelay? uiUpdateDelay)
+            ITextBuffer subjectBuffer)
         {
             Contract.ThrowIfNull(subjectBuffer);
 
             _subjectBuffer = subjectBuffer;
-            var delay = uiUpdateDelay ?? TaggerDelay.Medium;
-            _uiUpdateDelayInMS = delay.ComputeTimeDelayMS();
-
-            // In order to make sure the batch change notifier doesn't add too much overhead,
-            // we cap the delay it incurs at TaggerDelay.Short.
-            var batchDelay = delay < TaggerDelay.Short ? delay: TaggerDelay.Short;
-            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan, batchDelay);
+            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
 
             _tagSource = tagSource;
 
@@ -119,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     _batchChangeNotifier.EnqueueChanges(spansChanged.First().Snapshot, spansChanged);
                 }
 
-            }, _uiUpdateDelayInMS, CancellationToken.None);
+            }, TaggerDelay.NearImmediate.ComputeTimeDelayMS(), CancellationToken.None);
         }
 
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)

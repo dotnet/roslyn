@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
         public bool RemoveTagsThatIntersectEdits => false;
-        public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public bool IgnoreCaretMovementToExistingTag => true;
         public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;

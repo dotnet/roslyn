@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// </summary>
     internal abstract class AsynchronousTaggerDataSource<TTag, TState> : IAsynchronousTaggerDataSource<TTag, TState> where TTag : ITag
     {
-        public virtual TaggerDelay? UIUpdateDelay => null;
         public virtual bool RemoveTagsThatIntersectEdits => false;
         public virtual bool IgnoreCaretMovementToExistingTag => false;
         public virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;

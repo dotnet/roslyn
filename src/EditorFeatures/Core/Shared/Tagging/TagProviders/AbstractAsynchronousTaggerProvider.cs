@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         public virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
-        public virtual TaggerDelay? UIUpdateDelay => null;
 
         protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TTagSource tagSource);
         protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TTagSource tagSource);
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
             return tagSource == null
                 ? null
-                : new AsynchronousTagger<TTag>(this.AsyncListener, this.NotificationService, tagSource, subjectBuffer, this.UIUpdateDelay) as ITagger<T>;
+                : new AsynchronousTagger<TTag>(this.AsyncListener, this.NotificationService, tagSource, subjectBuffer) as ITagger<T>;
         }
 
         protected TTagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
