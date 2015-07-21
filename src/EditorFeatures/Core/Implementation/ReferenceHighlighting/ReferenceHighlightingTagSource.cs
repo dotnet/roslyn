@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             // clear tags is a special update mechanism where it represents clearing tags not updating tags.
 
             // we don't care about accumulated text change, so give it null
-            base.ProcessNewTagTrees(spansToTag, oldTextChangeRange: null, oldTagTrees: oldTagTrees, newTagTrees: newTagTrees, cancellationToken: cancellationToken);
+            base.ProcessNewTagTrees(spansToTag, oldTextChangeRange: null, oldTagTrees: oldTagTrees, newTagTrees: newTagTrees, newState: null, cancellationToken: cancellationToken);
 
             return SpecializedTasks.EmptyTask;
         }
@@ -167,9 +167,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             TextChangeRange? oldTextChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<AbstractNavigatableReferenceHighlightingTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<AbstractNavigatableReferenceHighlightingTag>> newTags,
+            object newState,
             CancellationToken cancellationToken)
         {
-            base.ProcessNewTagTrees(spansToCompute, oldTextChangeRange, oldTagTrees, newTags, cancellationToken);
+            base.ProcessNewTagTrees(spansToCompute, oldTextChangeRange, oldTagTrees, newTags, newState, cancellationToken);
 
             // remember last solution version we updated the tags
             var document = spansToCompute.First().Document;

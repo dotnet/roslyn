@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         protected override async Task RecomputeTagsAsync(
             SnapshotPoint? caret,
             TextChangeRange? range,
+            object oldState,
             IEnumerable<DocumentSnapshotSpan> spansToCompute,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<IClassificationTag>> oldTagTrees, 
             CancellationToken cancellationToken)
@@ -54,13 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (document == null)
             {
                 // given span is not part of our workspace, let base tag source handle this case.
-                await base.RecomputeTagsAsync(caret, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
+                await base.RecomputeTagsAsync(caret, range, oldState, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             var newVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-            await RecomputeTagsAsync(range, spansToCompute, oldTagTrees, document, span.Snapshot, _lastSemanticVersion, newVersion, cancellationToken).ConfigureAwait(false);
+            await RecomputeTagsAsync(range, oldState, spansToCompute, oldTagTrees, document, span.Snapshot, _lastSemanticVersion, newVersion, cancellationToken).ConfigureAwait(false);
 
             // this is only place where the version is updated
             _lastSemanticVersion = newVersion;
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         private async Task RecomputeTagsAsync(
             TextChangeRange? range,
+            object oldState,
             IEnumerable<DocumentSnapshotSpan> spansToCompute,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<IClassificationTag>> oldTagTrees,
             Document document,
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (newVersion != oldVersion)
                 {
                     // we didn't report this yet
-                    await base.RecomputeTagsAsync(null, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
+                    await base.RecomputeTagsAsync(null, range, oldState, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 }
 
                 return;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (service == null || newVersion != oldVersion)
             {
                 // we have newer version, refresh whole buffer
-                await base.RecomputeTagsAsync(null, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
+                await base.RecomputeTagsAsync(null, range, oldState, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (member == null || !member.FullSpan.Contains(changedSpan))
             {
                 // no top level edit, but out side a member has changed. for now, just re-colorize whole file
-                await base.RecomputeTagsAsync(null, range, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
+                await base.RecomputeTagsAsync(null, range, oldState, spansToCompute, oldTagTrees, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // re-colorize only a member
             await base.RecomputeTagsAsync(
-                null, range, SpecializedCollections.SingletonEnumerable(new DocumentSnapshotSpan(document, rangeToRecompute)),
+                null, range, oldState,SpecializedCollections.SingletonEnumerable(new DocumentSnapshotSpan(document, rangeToRecompute)),
                 oldTagTrees, cancellationToken).ConfigureAwait(false);
         }
     }

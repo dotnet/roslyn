@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
+        private TState _state_doNotAccessDirectly;
         #endregion
 
         public ProducerPopulatedTagSource(
@@ -107,6 +108,21 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 this.WorkQueue.AssertIsForeground();
                 _accumulatedTextChanges_doNotAccessDirectly = value;
+            }
+        }
+
+        private TState State
+        {
+            get
+            {
+                this.WorkQueue.AssertIsForeground();
+                return _state_doNotAccessDirectly;
+            }
+
+            set
+            {
+                this.WorkQueue.AssertIsForeground();
+                _state_doNotAccessDirectly = value;
             }
         }
 
@@ -367,9 +383,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var caretPosition = this.GetCaretPoint();
                 var textChangeRange = this.AccumulatedTextChanges;
                 var oldTagTrees = this.CachedTagTrees;
+                var oldState = this.State;
 
                 this.WorkQueue.EnqueueBackgroundTask(
-                    ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
+                    ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, oldState, spansToTag, oldTagTrees, ct),
                     GetType().Name + ".RecomputeTags", cancellationToken);
             }
         }
@@ -582,6 +599,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         protected virtual async Task RecomputeTagsAsync(
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
+            TState oldState,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             CancellationToken cancellationToken)
@@ -589,16 +607,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             cancellationToken.ThrowIfCancellationRequested();
 
             var newTagSpans = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
-            if (!spansToTag.IsEmpty())
-            {
-                var context = new AsynchronousTaggerContext<TTag, TState>(default(TState), spansToTag, caretPosition, cancellationToken);
-                await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
-                newTagSpans = context.tagSpans;
-            }
-            
-            var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansToTag);
 
-            ProcessNewTagTrees(spansToTag, textChangeRange, oldTagTrees, newTagTrees, cancellationToken);
+            var context = new AsynchronousTaggerContext<TTag, TState>(oldState, spansToTag, caretPosition, cancellationToken);
+            await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
+            
+            var newTagTrees = ConvertToTagTree(oldTagTrees, context.tagSpans, spansToTag);
+
+            ProcessNewTagTrees(spansToTag, textChangeRange, oldTagTrees, newTagTrees, context.State, cancellationToken);
         }
 
         protected virtual void ProcessNewTagTrees(
@@ -606,6 +621,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TextChangeRange? oldTextChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
+            TState newState,
             CancellationToken cancellationToken)
         {
             var bufferToChanges = new Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection>();
@@ -639,11 +655,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 }
             }
 
-            RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges), 0, cancellationToken);
+            RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, newState, bufferToChanges), 0, cancellationToken);
         }
 
         private void UpdateStateAndReportChanges(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
+            TState newState,
             Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges)
         {
             this.WorkQueue.AssertIsForeground();
@@ -662,6 +679,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // and whatnot.
             this.CachedTagTrees = newTagTrees;
             this.AccumulatedTextChanges = null;
+            this.State = newState;
 
             // Note: we're raising changes here on the UI thread.  However, this doesn't actually
             // mean we'll be notifying the editor.  Instead, these will be batched up in the 
@@ -711,13 +729,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // use can cancel out if this takes a long time.
 
                     var context = new AsynchronousTaggerContext<TTag, TState>(
-                        default(TState), spansToTag, GetCaretPoint(), CancellationToken.None);
+                        this.State, spansToTag, GetCaretPoint(), CancellationToken.None);
                     _dataSource.ProduceTagsAsync(context).Wait();
                     var newTagSpans = context.tagSpans;
 
                     var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansToTag);
 
-                    ProcessNewTagTrees(spansToTag, null, oldTagTrees, newTagTrees, CancellationToken.None);
+                    ProcessNewTagTrees(spansToTag, null, oldTagTrees, newTagTrees, context.State, CancellationToken.None);
 
                     newTagTrees.TryGetValue(buffer, out tags);
                 }
