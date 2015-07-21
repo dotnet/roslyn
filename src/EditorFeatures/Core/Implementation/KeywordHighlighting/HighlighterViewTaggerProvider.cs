@@ -21,12 +21,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
+    using Context = AsynchronousTaggerContext<HighlightTag, object>;
+
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(HighlightTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<HighlightTag>
+    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<HighlightTag, object>
     {
         private readonly IHighlightingService _highlightingService;
 
@@ -53,12 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         }
 
         // Internal for testing purposes
-        public override async Task ProduceTagsAsync(
-            DocumentSnapshotSpan documentSnapshotSpan,
-            int? caretPosition,
-            Action<ITagSpan<HighlightTag>> addTag,
-            CancellationToken cancellationToken)
+        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
+            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
             if (document == null)
             {
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                     var spans = _highlightingService.GetHighlights(root, position, cancellationToken);
                     foreach (var span in spans)
                     {
-                        addTag(new TagSpan<HighlightTag>(span.ToSnapshotSpan(snapshot), HighlightTag.Instance));
+                        context.AddTag(new TagSpan<HighlightTag>(span.ToSnapshotSpan(snapshot), HighlightTag.Instance));
                     }
                 }
             }

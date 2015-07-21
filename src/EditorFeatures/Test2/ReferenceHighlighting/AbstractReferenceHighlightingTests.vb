@@ -1,11 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
+Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Shared.Extensions
@@ -33,15 +35,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim tagSpans = New List(Of ITagSpan(Of AbstractNavigatableReferenceHighlightingTag))
-                tagProducer.ProduceTagsAsync(
-                    {New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length))},
-                    New SnapshotPoint(snapshot, caretPosition),
-                    workspace, document,
-                    AddressOf tagSpans.Add,
-                    cancellationToken:=Nothing).Wait()
+                Dim snapshotSpans = {New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length))}
+                Dim context = New AsynchronousTaggerContext(Of AbstractNavigatableReferenceHighlightingTag, Object)(
+                    Nothing, snapshotSpans, New SnapshotPoint(snapshot, caretPosition), CancellationToken.None)
+                tagProducer.ProduceTagsAsync(context).Wait()
 
-                Dim producedTags = From tag In tagSpans
+                Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start
                                    Let spanType = If(tag.Tag.Type = DefinitionHighlightTag.TagId, "Definition",
                                        If(tag.Tag.Type = WrittenReferenceHighlightTag.TagId, "WrittenReference", "Reference"))

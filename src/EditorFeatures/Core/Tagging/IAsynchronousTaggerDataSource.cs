@@ -13,14 +13,14 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// Data source for the <see cref="AsynchronousTaggerProvider{TTag}"/>.  This type tells the
-    /// <see cref="AsynchronousTaggerProvider{TTag}"/> when tags need to be recomputed, as well
+    /// Data source for the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>.  This type tells the
+    /// <see cref="AsynchronousTaggerProvider{TTag, TState}"/> when tags need to be recomputed, as well
     /// as producing the tags when requested.
     /// </summary>
-    internal interface IAsynchronousTaggerDataSource<TTag> where TTag : ITag
+    internal interface IAsynchronousTaggerDataSource<TTag, TState> where TTag : ITag
     {
         /// <summary>
-        /// Whether or not the <see cref="AsynchronousTaggerProvider{TTag}"/> should remove a tag
+        /// Whether or not the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> should remove a tag
         /// from the user interface if the user makes an edit that intersects with the span of the
         /// tag.  Removing may be appropriate if it is undesirable for stale tag data to be 
         /// presented to the user.  However, removal may also lead to a more noticeable tagging 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         /// <summary>
         /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
-        /// the <see cref="AsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
+        /// the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> to determine if a previous set of
         /// computed tags and a current set of computed tags should be considered the same or not.
         /// If they are the same, then the UI will not be updated.  If they are different then
         /// the UI will be updated for sets of tags that have been removed or added.
@@ -81,13 +81,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IEqualityComparer<TTag> TagComparer { get; }
 
         /// <summary>
-        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
+        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
         ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to determine
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> infrastructure to determine
         /// the set of spans that it should asynchronously tag.  This will be called in response to
         /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
         /// will only be called from the UI thread.  The tagger infrastructure will then determine
@@ -101,18 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Produce tags for the given spans.
+        /// Produce tags for the given context.
         /// </summary>
-        /// <param name="snapshotSpans">A list of SnapshotSpans and their corresponding documents
-        /// that tags should be computed for. It is guaranteed to contain at least one element. In
-        /// some scenarios, snapshotSpans may contain spans for snapshots that correspond to
-        /// different buffers entirely. It is guaranteed, however, that there were not be multiple
-        /// spans from different snapshots from the same buffer.</param>
-        /// <param name="caretPosition">The caret position, if a caret position exists in one of the
-        /// buffers included in snapshotSpans.</param>
-        /// <param name="addTag">Callback to invoke when a new tag has been produced.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>A list of tag spans</returns>
-        Task ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<TTag>> addTag, CancellationToken cancellationToken);
+        Task ProduceTagsAsync(AsynchronousTaggerContext<TTag,TState> context);
     }
 }

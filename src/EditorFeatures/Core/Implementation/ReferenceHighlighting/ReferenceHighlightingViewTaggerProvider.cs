@@ -25,6 +25,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
+    using Context = AsynchronousTaggerContext<AbstractNavigatableReferenceHighlightingTag, object>;
+
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     internal partial class ReferenceHighlightingViewTaggerProvider :
         ForegroundThreadAffinitizedObject,
         IViewTaggerProvider,
-        IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag>
+        IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag, object>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
-                new AsynchronousViewTaggerProviderWithTagSource<AbstractNavigatableReferenceHighlightingTag>(
+                new AsynchronousViewTaggerProviderWithTagSource<AbstractNavigatableReferenceHighlightingTag, object>(
                     this,
                     new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting),
                     notificationService,
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ReferenceHighlighting, TaggerDelay.NearImmediate));
         }
 
-        private ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag> CreateTagSource(
+        private ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag, object> CreateTagSource(
             ITextView textViewOpt, ITextBuffer subjectBuffer,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
@@ -92,22 +94,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                               .ToList();
         }
 
-        public Task ProduceTagsAsync(
-            IEnumerable<DocumentSnapshotSpan> snapshotSpans,
-            SnapshotPoint? caretPosition, 
-            Action<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> addTag,
-            CancellationToken cancellationToken)
+        public Task ProduceTagsAsync(Context context)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually
             // navigate between all of them using the appropriate tag navigation commands.  If we
             // don't generate all the tags then the user will cycle through an incorrect subset.
-            if (caretPosition == null)
+            if (context.CaretPosition == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            var position = caretPosition.Value;
+            var position = context.CaretPosition.Value;
 
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(position.Snapshot.AsText().Container, out workspace))
@@ -115,23 +113,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 return SpecializedTasks.EmptyTask;
             }
 
-            var document = snapshotSpans.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
+            var document = context.SnapshotSpans.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
             if (document == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            return ProduceTagsAsync(snapshotSpans, position, workspace, document, addTag, cancellationToken);
+            return ProduceTagsAsync(context, position, workspace, document);
         }
 
         internal async Task ProduceTagsAsync(
-            IEnumerable<DocumentSnapshotSpan> snapshotSpans,
+            Context context,
             SnapshotPoint position,
             Workspace workspace,
-            Document document,
-            Action<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> addTag,
-            CancellationToken cancellationToken)
+            Document document)
         {
+            var cancellationToken = context.CancellationToken;
             // Don't produce tags if the feature is not enabled.
             if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
             {
@@ -151,13 +148,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     {
                         // We only want to search inside documents that correspond to the snapshots
                         // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(snapshotSpans.Select(vt => vt.Document).WhereNotNull());
+                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SnapshotSpans.Select(vt => vt.Document).WhereNotNull());
                         var documentHighlightsList = await documentHighlightsService.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
                         if (documentHighlightsList != null)
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(solution, result, documentHighlights, addTag, cancellationToken).ConfigureAwait(false);
+                                await AddTagSpansAsync(context, solution, result, documentHighlights).ConfigureAwait(false);
                             }
                         }
                     }
@@ -166,12 +163,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         }
 
         private async Task AddTagSpansAsync(
+            Context context,
             Solution solution,
             List<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> tags,
-            DocumentHighlights documentHighlights,
-            Action<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> addTag,
-            CancellationToken cancellationToken)
+            DocumentHighlights documentHighlights)
         {
+            var cancellationToken = context.CancellationToken;
             var document = documentHighlights.Document;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -186,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             foreach (var span in documentHighlights.HighlightSpans)
             {
                 var tag = GetTag(span);
-                addTag(new TagSpan<AbstractNavigatableReferenceHighlightingTag>(
+                context.AddTag(new TagSpan<AbstractNavigatableReferenceHighlightingTag>(
                     textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
             }
         }

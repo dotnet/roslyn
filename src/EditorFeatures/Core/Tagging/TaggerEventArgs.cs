@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// Information provided to the <see cref="AsynchronousTaggerProvider{TTag}"/> when 
+    /// Information provided to the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> when 
     /// <see cref="ITaggerEventSource.Changed"/> fires.
     /// </summary>
     internal class TaggerEventArgs : EventArgs
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         internal string Kind { get; }
 
         /// <summary>
-        /// They amount of time to wait before the <see cref="AsynchronousTaggerProvider{TTag}"/>
+        /// They amount of time to wait before the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>
         /// checks for new tags and updates the user interface.
         /// </summary>
         public TaggerDelay Delay { get; }

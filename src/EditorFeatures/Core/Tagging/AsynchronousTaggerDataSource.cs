@@ -11,11 +11,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// Helper class that provides a default implementation for most of the <see cref="IAsynchronousTaggerDataSource{TTag}"/>
-    /// interface.  Useful for when you only need to augment a small set of functionality.
-    /// need to 
+    /// Helper class that provides a default implementation for most of the 
+    /// <see cref="IAsynchronousTaggerDataSource{TTag, TState}"/> interface.  Useful for when you 
+    /// only need to augment a small set of functionality.
     /// </summary>
-    internal abstract class AsynchronousTaggerDataSource<TTag> : IAsynchronousTaggerDataSource<TTag> where TTag : ITag
+    internal abstract class AsynchronousTaggerDataSource<TTag, TState> : IAsynchronousTaggerDataSource<TTag, TState> where TTag : ITag
     {
         public virtual TaggerDelay? UIUpdateDelay => null;
         public virtual bool RemoveTagsThatIntersectEdits => false;
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        public virtual Task ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<TTag>> addTag, CancellationToken cancellationToken)
+        public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag,TState> context)
         {
-            return TaggerUtilities.Delegate(snapshotSpans, caretPosition, addTag, ProduceTagsAsync, cancellationToken);
+            return TaggerUtilities.Delegate(context, ProduceTagsAsync);
         }
 
-        public virtual Task ProduceTagsAsync(DocumentSnapshotSpan snapshotSpan, int? caretPosition, Action<ITagSpan<TTag>> addTag, CancellationToken cancellationToken)
+        public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag, TState> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
         }

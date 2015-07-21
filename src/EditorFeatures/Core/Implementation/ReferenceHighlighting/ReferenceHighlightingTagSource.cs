@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
-    internal partial class ReferenceHighlightingTagSource : ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag>
+    internal partial class ReferenceHighlightingTagSource : ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag, object>
     {
         private const int VoidVersion = -1;
 
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         public ReferenceHighlightingTagSource(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag> dataSource,
+            ReferenceHighlightingViewTaggerProvider taggerProvider,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
-            : base(textView, subjectBuffer, dataSource, asyncListener, notificationService)
+            : base(textView, subjectBuffer, taggerProvider, asyncListener, notificationService)
         {
             _textView = textView;
         }

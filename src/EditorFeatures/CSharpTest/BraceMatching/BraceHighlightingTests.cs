@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -36,10 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
                 AggregateAsynchronousOperationListener.EmptyListeners);
 
             var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
-            var result = new List<ITagSpan<BraceHighlightTag>>();
-            producer.ProduceTagsAsync(document, buffer.CurrentSnapshot, position, result.Add, CancellationToken.None).Wait();
+            var context = new AsynchronousTaggerContext<BraceHighlightTag, object>(
+                null, new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(buffer.CurrentSnapshot, new Span(0, buffer.CurrentSnapshot.Length))) },
+                new SnapshotPoint(buffer.CurrentSnapshot, position), CancellationToken.None);
+            producer.ProduceTagsAsync(context).Wait();
 
-            return result;
+            return context.tagSpans;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]

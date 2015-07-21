@@ -5,9 +5,9 @@ using System;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// The events that the <see cref="AsynchronousTaggerProvider{TTag}"/> listens to to know when 
+    /// The events that the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> listens to to know when 
     /// to request more tags.  For example, an <see cref="ITaggerEventSource"/> may listen to text 
-    /// buffer changes, and can tell the <see cref="AsynchronousTaggerProvider{TTag}"/> that it needs
+    /// buffer changes, and can tell the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> that it needs
     /// to recompute tags.
     /// </summary>
     internal interface ITaggerEventSource

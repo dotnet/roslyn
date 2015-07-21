@@ -21,27 +21,28 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous
-    /// tagging infrastructure. It is the coordinator between <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/>s,
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag, TState}"/> is the core part of our asynchronous
+    /// tagging infrastructure. It is the coordinator between <see cref="IAsynchronousTaggerDataSource{TTag, TState}.ProduceTagsAsync"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag, TState}"/> is the type that actually owns the
     /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
-    /// the tag source starts the computation and calls <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/> to build
+    /// the tag source starts the computation and calls <see cref="IAsynchronousTaggerDataSource{TTag, TState}.ProduceTagsAsync"/> to build
     /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
     /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
     /// <see cref="CachedTagTrees"/></para>
     /// 
-    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s
+    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag, TState}"/>s
     /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
     /// subject buffers at once) have their own providers and tag source derivations.</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
+    /// <typeparam name="TState">The type of state.</typeparam>
+    internal partial class ProducerPopulatedTagSource<TTag, TState> : TagSource<TTag>
         where TTag : ITag
     {
         #region Fields that can be accessed from either thread
-        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
+        private readonly IAsynchronousTaggerDataSource<TTag, TState> _dataSource;
 
         private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
         #endregion
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public ProducerPopulatedTagSource(
             ITextView textViewOpt,
             ITextBuffer subjectBuffer,
-            IAsynchronousTaggerDataSource<TTag> dataSource,
+            IAsynchronousTaggerDataSource<TTag, TState> dataSource,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
                 : base(textViewOpt, subjectBuffer, dataSource.IgnoreCaretMovementToExistingTag, notificationService, asyncListener)
@@ -587,12 +588,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var newTagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
+            var newTagSpans = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
             if (!spansToTag.IsEmpty())
             {
-                await _dataSource.ProduceTagsAsync(spansToTag, caretPosition, newTagSpans.Add, cancellationToken).ConfigureAwait(false);
+                var context = new AsynchronousTaggerContext<TTag, TState>(default(TState), spansToTag, caretPosition, cancellationToken);
+                await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
+                newTagSpans = context.tagSpans;
             }
-
+            
             var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansToTag);
 
             ProcessNewTagTrees(spansToTag, textChangeRange, oldTagTrees, newTagTrees, cancellationToken);
@@ -707,8 +710,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // TODO(cyrusn): Should we do this under a threaded wait dialog.  That way the
                     // use can cancel out if this takes a long time.
 
-                    var newTagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
-                    _dataSource.ProduceTagsAsync(spansToTag, GetCaretPoint(), newTagSpans.Add, CancellationToken.None).Wait();
+                    var context = new AsynchronousTaggerContext<TTag, TState>(
+                        default(TState), spansToTag, GetCaretPoint(), CancellationToken.None);
+                    _dataSource.ProduceTagsAsync(context).Wait();
+                    var newTagSpans = context.tagSpans;
 
                     var newTagTrees = ConvertToTagTree(oldTagTrees, newTagSpans, spansToTag);
 

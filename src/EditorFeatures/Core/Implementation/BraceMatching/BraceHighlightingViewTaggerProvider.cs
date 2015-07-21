@@ -20,10 +20,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
+    using Context = AsynchronousTaggerContext<BraceHighlightTag, object>;
+
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
-    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag>
+    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag, object>
     {
         private readonly IBraceMatchingService _braceMatcherService;
 
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate));
         }
 
-        public override Task ProduceTagsAsync(DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, Action<ITagSpan<BraceHighlightTag>> addTag, CancellationToken cancellationToken)
+        public override Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
@@ -54,41 +56,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return SpecializedTasks.EmptyTask;
             }
 
-            return ProduceTagsAsync(document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, addTag, cancellationToken);
+            return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);
         }
 
-        internal async Task ProduceTagsAsync(
-            Document document,
-            ITextSnapshot snapshot,
-            int position,
-            Action<ITagSpan<BraceHighlightTag>> addTag,
-            CancellationToken cancellationToken)
+        internal async Task ProduceTagsAsync(Context context, Document document, ITextSnapshot snapshot, int position)
         {
-            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, context.CancellationToken))
             {
-                await ProduceTagsForBracesAsync(document, snapshot, position, addTag, rightBrace: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                await ProduceTagsForBracesAsync(document, snapshot, position - 1, addTag, rightBrace: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                await ProduceTagsForBracesAsync(context, document, snapshot, position, rightBrace: false).ConfigureAwait(false);
+                await ProduceTagsForBracesAsync(context, document, snapshot, position - 1, rightBrace: true).ConfigureAwait(false);
             }
         }
 
         private async Task ProduceTagsForBracesAsync(
+            Context context,
             Document document,
             ITextSnapshot snapshot,
             int position,
-            Action<ITagSpan<BraceHighlightTag>> addTag,
-            bool rightBrace,
-            CancellationToken cancellationToken)
+            bool rightBrace)
         {
             if (position >= 0 && position < snapshot.Length)
             {
-                var braces = await _braceMatcherService.GetMatchingBracesAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var braces = await _braceMatcherService.GetMatchingBracesAsync(document, position, context.CancellationToken).ConfigureAwait(false);
                 if (braces.HasValue)
                 {
                     if ((!rightBrace && braces.Value.LeftSpan.Start == position) ||
                         (rightBrace && braces.Value.RightSpan.Start == position))
                     {
-                        addTag(snapshot.GetTagSpan(braces.Value.LeftSpan.ToSpan(), BraceHighlightTag.StartTag));
-                        addTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
+                        context.AddTag(snapshot.GetTagSpan(braces.Value.LeftSpan.ToSpan(), BraceHighlightTag.StartTag));
+                        context.AddTag(snapshot.GetTagSpan(braces.Value.RightSpan.ToSpan(), BraceHighlightTag.EndTag));
                     }
                 }
             }

@@ -1,9 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -32,14 +34,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     workspace.GetService(Of IForegroundNotificationService),
                     AggregateAsynchronousOperationListener.EmptyListeners)
 
-                Dim tagSpans = New List(Of ITagSpan(Of HighlightTag))
-                tagProducer.ProduceTagsAsync(
-                    New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length)),
-                    New SnapshotPoint(snapshot, caretPosition),
-                    AddressOf tagSpans.Add,
-                    cancellationToken:=Nothing).Wait()
+                Dim snapshotSpans = {New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length))}
+                Dim context = New AsynchronousTaggerContext(Of HighlightTag, Object)(
+                    Nothing, snapshotSpans, New SnapshotPoint(snapshot, caretPosition), CancellationToken.None)
+                tagProducer.ProduceTagsAsync(context).Wait()
 
-                Dim producedTags = From tag In tagSpans
+                Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start
                                    Select (tag.Span.Span.ToTextSpan().ToString())
 

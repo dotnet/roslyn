@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
+Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -31,9 +32,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
                 AggregateAsynchronousOperationListener.EmptyListeners)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
-            Dim result = New List(Of ITagSpan(Of BraceHighlightTag))
-            producer.ProduceTagsAsync(doc, buffer.CurrentSnapshot, position, AddressOf result.Add, CancellationToken.None).Wait()
-            Return result
+            Dim context = New AsynchronousTaggerContext(Of BraceHighlightTag, Object)(
+                Nothing, {New DocumentSnapshotSpan(doc, New SnapshotSpan(buffer.CurrentSnapshot, New Span(0, buffer.CurrentSnapshot.Length)))},
+                New SnapshotPoint(buffer.CurrentSnapshot, position), CancellationToken.None)
+            producer.ProduceTagsAsync(context).Wait()
+            Return context.tagSpans
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>

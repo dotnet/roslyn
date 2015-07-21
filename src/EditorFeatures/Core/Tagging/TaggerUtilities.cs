@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal static class TaggerUtilities
     {
-        internal static async Task Delegate<TTag>(
-            IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<TTag>> addTag,
-            Func<DocumentSnapshotSpan, int?, Action<ITagSpan<TTag>>, CancellationToken, Task> delegatee, CancellationToken cancellationToken) where TTag : ITag
+        internal static async Task Delegate<TTag, TState>(
+            AsynchronousTaggerContext<TTag,TState> context,
+            Func<AsynchronousTaggerContext<TTag, TState>, DocumentSnapshotSpan, int?, Task> delegatee) where TTag : ITag
         {
-            foreach (var snapshotSpan in snapshotSpans)
+            foreach (var snapshotSpan in context.SnapshotSpans)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                await delegatee(snapshotSpan, GetCaretPosition(caretPosition, snapshotSpan.SnapshotSpan), addTag, cancellationToken).ConfigureAwait(false);
+                context.CancellationToken.ThrowIfCancellationRequested();
+                await delegatee(context, snapshotSpan, GetCaretPosition(context.CaretPosition, snapshotSpan.SnapshotSpan)).ConfigureAwait(false);
             }
         }
 

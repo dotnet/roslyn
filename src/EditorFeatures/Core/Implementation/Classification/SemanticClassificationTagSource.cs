@@ -20,16 +20,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    internal sealed class SemanticClassificationTagSource<TTag> : ProducerPopulatedTagSource<TTag> where TTag : ITag
+    internal sealed class SemanticClassificationTagSource : ProducerPopulatedTagSource<IClassificationTag, object>
     {
         private VersionStamp _lastSemanticVersion;
 
         public SemanticClassificationTagSource(
             ITextBuffer subjectBuffer,
-            IAsynchronousTaggerDataSource<TTag> dataSource,
+            SemanticClassificationTaggerProvider taggerProvider,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
-                : base(/*textViewOpt:*/ null, subjectBuffer, dataSource, asyncListener, notificationService)
+                : base(/*textViewOpt:*/ null, subjectBuffer, taggerProvider, asyncListener, notificationService)
         {
             _lastSemanticVersion = VersionStamp.Default;
         }
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             SnapshotPoint? caret,
             TextChangeRange? range,
             IEnumerable<DocumentSnapshotSpan> spansToCompute,
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, 
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<IClassificationTag>> oldTagTrees, 
             CancellationToken cancellationToken)
         {
             this.WorkQueue.AssertIsBackground();
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private async Task RecomputeTagsAsync(
             TextChangeRange? range,
             IEnumerable<DocumentSnapshotSpan> spansToCompute,
-            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<IClassificationTag>> oldTagTrees,
             Document document,
             ITextSnapshot snapshot,
             VersionStamp oldVersion, VersionStamp newVersion, CancellationToken cancellationToken)

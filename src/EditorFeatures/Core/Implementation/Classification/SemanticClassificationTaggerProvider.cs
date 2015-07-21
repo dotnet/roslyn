@@ -24,6 +24,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
+    using Context = AsynchronousTaggerContext<IClassificationTag, object>;
+
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     internal partial class SemanticClassificationTaggerProvider :
         ForegroundThreadAffinitizedObject,
         ITaggerProvider,
-        IAsynchronousTaggerDataSource<IClassificationTag>
+        IAsynchronousTaggerDataSource<IClassificationTag, object>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _semanticChangeNotificationService = semanticChangeNotificationService;
             _typeMap = typeMap;
             _asynchronousTaggerProvider = new Lazy<ITaggerProvider>(() =>
-                new AsynchronousBufferTaggerProviderWithTagSource<IClassificationTag>(
+                new AsynchronousBufferTaggerProviderWithTagSource<IClassificationTag, object>(
                     this,
                     new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification),
                     notificationService,
@@ -75,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return _asynchronousTaggerProvider.Value.CreateTagger<T>(buffer);
         }
 
-        private ProducerPopulatedTagSource<IClassificationTag> CreateTagSource(
+        private ProducerPopulatedTagSource<IClassificationTag, object> CreateTagSource(
             ITextView textViewOpt, ITextBuffer subjectBuffer,
             IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService)
         {
-            return new SemanticClassificationTagSource<IClassificationTag>(subjectBuffer, this, asyncListener, notificationService);
+            return new SemanticClassificationTagSource(subjectBuffer, this, asyncListener, notificationService);
         }
 
         public ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -95,19 +97,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return null;
         }
 
-        public Task ProduceTagsAsync(IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, Action<ITagSpan<IClassificationTag>> addTag, CancellationToken cancellationToken)
+        public Task ProduceTagsAsync(Context context)
         {
-            return TaggerUtilities.Delegate(snapshotSpans, caretPosition, addTag, ProduceTagsWorkerAsync, cancellationToken);
+            return TaggerUtilities.Delegate(context, ProduceTagsAsync);
         }
 
-        private async Task ProduceTagsWorkerAsync(
-            DocumentSnapshotSpan documentSnapshotSpan,
-            int? caretPosition,
-            Action<ITagSpan<IClassificationTag>> addTag,
-            CancellationToken cancellationToken)
+        private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
+                var cancellationToken = context.CancellationToken;
                 var document = documentSnapshotSpan.Document;
                 var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
                 var snapshot = snapshotSpan.Snapshot;
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     await _classificationService.AddSemanticClassificationsAsync(
                         document, textSpan, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, addTag);
+                    ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
                 }
             }

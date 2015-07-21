@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// Convenience class that provides a default implementation for most of what is required to
     /// be an <see cref="IViewTaggerProvider"/> that operates in an asynchronous fashion.
     /// </summary>
-    internal abstract class AsynchronousViewTaggerProvider<TTag> :
-        AsynchronousTaggerDataSource<TTag>, IViewTaggerProvider
+    internal abstract class AsynchronousViewTaggerProvider<TTag, TState> :
+        AsynchronousTaggerDataSource<TTag, TState>, IViewTaggerProvider
         where TTag : ITag
     {
         private readonly IViewTaggerProvider _underlyingTagger;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
-            _underlyingTagger = new AsynchronousViewTaggerProviderWithTagSource<TTag>(
+            _underlyingTagger = new AsynchronousViewTaggerProviderWithTagSource<TTag, TState>(
                 this, asyncListener, notificationService, createTagSource: null);
         }
 

@@ -19,6 +19,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
+    using Context = AsynchronousTaggerContext<LineSeparatorTag, object>;
+
     /// <summary>
     /// This factory is called to create taggers that provide information about where line
     /// separators go.
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [TagType(typeof(LineSeparatorTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
+    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag, object>
     {
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
@@ -44,8 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.LineSeparator, TaggerDelay.NearImmediate));
         }
 
-        public override async Task ProduceTagsAsync(DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, Action<ITagSpan<LineSeparatorTag>> addTag, CancellationToken cancellationToken)
+        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
+            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
             if (document == null)
             {
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
                 foreach (var span in lineSeparatorSpans)
                 {
-                    addTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), LineSeparatorTag.Instance));
+                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), LineSeparatorTag.Instance));
                 }
             }
         }

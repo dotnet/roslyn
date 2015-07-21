@@ -21,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
+    using Context = AsynchronousTaggerContext<IOutliningRegionTag, object>;
+
     /// <summary>
     /// Shared implementation of the outliner tagger provider.
     /// 
@@ -34,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     [Export(typeof(OutliningTaggerProvider))]
     [TagType(typeof(IOutliningRegionTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag>,
+    internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag, object>,
         IEqualityComparer<IOutliningRegionTag>
     {
         public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
@@ -107,14 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
-        public override async Task ProduceTagsAsync(
-            DocumentSnapshotSpan documentSnapshotSpan,
-            int? caretPosition,
-            Action<ITagSpan<IOutliningRegionTag>> addTag,
-            CancellationToken cancellationToken)
+        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
+                var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_Outlining_TagProducer_ProduceTags, cancellationToken))
                 {
                     var document = documentSnapshotSpan.Document;
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 
                                 foreach (var tagSpan in tagSpans)
                                 {
-                                    addTag(tagSpan);
+                                    context.AddTag(tagSpan);
                                 }
                             }
                         }
