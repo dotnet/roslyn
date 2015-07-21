@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         private SynchronizedStringWriter _synchronizedErrorOutput;
         private int[] _outputReadPosition = new int[] { 0, 0 };
 
-        internal readonly InteractiveHost Host;
+        private readonly InteractiveHost Host;
 
         public InteractiveHostTests()
         {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        internal void RedirectOutput()
+        private void RedirectOutput()
         {
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
@@ -89,19 +89,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Host.ErrorOutput = _synchronizedErrorOutput;
         }
 
-        internal AssemblyLoadResult LoadReference(string reference)
+        private AssemblyLoadResult LoadReference(string reference)
         {
             return Host.TryGetService().LoadReferenceThrowing(reference, addReference: true);
         }
 
-        internal bool Execute(string code)
+        private bool Execute(string code)
         {
             var task = Host.ExecuteAsync(code);
             task.Wait();
             return task.Result.Success;
         }
 
-        internal bool IsShadowCopy(string path)
+        private bool IsShadowCopy(string path)
         {
             return Host.TryGetService().IsShadowCopy(path);
         }
@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             }
         }
 
-        internal class CompiledFile
+        private class CompiledFile
         {
             public string Path;
             public ImmutableArray<byte> Image;
         }
 
-        internal CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
+        private CompiledFile CompileLibrary(TempDirectory dir, string fileName, string assemblyName, string source, params MetadataReference[] references)
         {
             const string Prefix = "RoslynTestFile_";
 
@@ -467,8 +467,9 @@ WriteLine(5);
             Assert.True(LoadReference("System.Data").IsSuccessful);
             Assert.True(LoadReference("System").IsSuccessful);
             Assert.True(LoadReference("System.Xml").IsSuccessful);
-            var version = (Version)Host.TryGetService().ExecuteAndWrap("new System.Data.DataSet().GetType().Assembly.GetName().Version").Unwrap();
-            Assert.True(version >= new Version(4, 0, 0, 0), "Actual:" + version.ToString());
+            Execute(@"new System.Data.DataSet().GetType().Assembly.GetName().Version");
+            var output = ReadOutputToEnd();
+            Assert.Equal("[4.0.0.0]\r\n", output);
         }
 
         [Fact]
@@ -803,7 +804,7 @@ new D().Y
         [Fact]
         public void ReferenceDirectives()
         {
-            var task = Host.ExecuteAsync(@"
+            Execute(@"
 #r ""System.Numerics""
 #r """ + typeof(System.Linq.Expressions.Expression).Assembly.Location + @"""
 
@@ -813,7 +814,6 @@ using System.Numerics;
 WriteLine(Expression.Constant(1));
 WriteLine(new Complex(2, 6).Real);
 ");
-            task.Wait();
 
             var output = ReadOutputToEnd();
             Assert.Equal("1\r\n2\r\n", output);
@@ -822,7 +822,7 @@ WriteLine(new Complex(2, 6).Real);
         [Fact]
         public void ExecutesOnStaThread()
         {
-            var task = Host.ExecuteAsync(@"
+            Execute(@"
 #r ""System""
 #r ""System.Xaml""
 #r ""WindowsBase""
@@ -832,13 +832,27 @@ WriteLine(new Complex(2, 6).Real);
 new System.Windows.Window();
 System.Console.WriteLine(""OK"");
 ");
-            task.Wait();
-
             var error = ReadErrorOutputToEnd();
             Assert.Equal("", error);
 
             var output = ReadOutputToEnd();
             Assert.Equal("OK\r\n", output);
+        }
+
+        /// <summary>
+        /// Execution of expressions should be
+        /// sequential, even await expressions.
+        /// </summary>
+        [Fact]
+        public void ExecuteSequentially()
+        {
+            Execute(@"using System;
+using System.Threading.Tasks;");
+            Execute(@"await Task.Delay(1000).ContinueWith(t => 1)");
+            Execute(@"await Task.Delay(500).ContinueWith(t => 2)");
+            Execute(@"3");
+            var output = ReadOutputToEnd();
+            Assert.Equal("1\r\n2\r\n3\r\n", output);
         }
 
         [Fact]
@@ -849,12 +863,11 @@ System.Console.WriteLine(""OK"");
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
 
-            var task = Host.ExecuteAsync(@"
+            Execute(@"
 #r """ + dll.Path + @"""
 
 new object[] { new Class1(), new Class2(), new Class3() }
 ");
-            task.Wait();
 
             var error = ReadErrorOutputToEnd();
             Assert.Equal("", error);
@@ -926,7 +939,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Throws<FileNotFoundException>(() => LoadReference(typeof(string).Assembly.Location + " " + typeof(string).Assembly.Location));
         }
 
-        #region Submission result printing - null/void/value.
+#region Submission result printing - null/void/value.
 
         [Fact]
         public void SubmissionResult_PrintingNull()
@@ -958,6 +971,6 @@ foo()
             Assert.Equal("<void>\r\n", output);
         }
 
-        #endregion
+#endregion
     }
 }
