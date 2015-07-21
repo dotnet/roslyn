@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     {
         private const int VoidVersion = -1;
 
-        private readonly ITextView _textView;
-
         // last solution version we used to update tags
         // * NOTE * here unfortunately, we only hold onto version without caret position since
         //          it is not easy to pass through it. for now, we will void the last version whenever
@@ -39,12 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             IForegroundNotificationService notificationService)
             : base(textView, subjectBuffer, taggerProvider, asyncListener, notificationService)
         {
-            _textView = textView;
         }
 
         protected override SnapshotPoint? GetCaretPoint()
         {
-            return _textView.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
+            return this.TextViewOpt.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
         }
 
         protected override void RecalculateTagsOnChangedCore(TaggerEventArgs e)
@@ -97,12 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private void ClearTags(List<DocumentSnapshotSpan> spansToTag, CancellationToken cancellationToken)
         {
             this.WorkQueue.AssertIsForeground();
-
-            if (_textView == null)
-            {
-                // we are called by base constructor before we are properly setup
-                return;
-            }
 
             spansToTag = spansToTag ?? GetSpansAndDocumentsToTag();
 
