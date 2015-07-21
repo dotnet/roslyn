@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public TState State { get; set; }
         public IEnumerable<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
+        public TextChangeRange? TextChangeRange { get; }
         public CancellationToken CancellationToken { get; }
 
         internal IEnumerable<DocumentSnapshotSpan> spansTagged;
@@ -24,11 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             TState state,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
+            TextChangeRange? textChangeRange,
             CancellationToken cancellationToken)
         {
             this.State = state;
             this.SpansToTag = spansToTag;
             this.CaretPosition = caretPosition;
+            this.TextChangeRange = textChangeRange;
             this.CancellationToken = cancellationToken;
 
             this.spansTagged = spansToTag;

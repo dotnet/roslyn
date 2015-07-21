@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var newTagSpans = SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
 
-            var context = new AsynchronousTaggerContext<TTag, TState>(oldState, spansToTag, caretPosition, cancellationToken);
+            var context = new AsynchronousTaggerContext<TTag, TState>(oldState, spansToTag, caretPosition, textChangeRange, cancellationToken);
             await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
 
             var spansTagged = context.spansTagged;
@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // use can cancel out if this takes a long time.
 
                     var context = new AsynchronousTaggerContext<TTag, TState>(
-                        this.State, spansToTag, GetCaretPoint(), CancellationToken.None);
+                        this.State, spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, CancellationToken.None);
                     _dataSource.ProduceTagsAsync(context).Wait();
                     var newTagSpans = context.tagSpans;
 

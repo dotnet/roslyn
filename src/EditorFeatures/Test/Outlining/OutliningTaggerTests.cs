@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var snapshotSpans = new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)) };
 
             var context = new AsynchronousTaggerContext<IOutliningRegionTag, object>(
-                null, snapshotSpans, null, CancellationToken.None);
+                null, snapshotSpans, null, null, CancellationToken.None);
             provider.ProduceTagsAsync(context).Wait();
             
             return context.tagSpans.Select(x => x.Tag).ToList();
