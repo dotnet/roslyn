@@ -36,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         internal readonly AsynchronousSerialWorkQueue WorkQueue;
 
-        protected readonly ITextView TextViewOpt;
         protected readonly ITextBuffer SubjectBuffer;
 
         /// <summary>
@@ -48,20 +47,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// foreground notification service
         /// </summary>
         private readonly IForegroundNotificationService _notificationService;
-        private readonly bool _ignoreCaretMovementToExistingTag;
 
         #endregion
 
         protected TagSource(
-            ITextView textViewOpt,
             ITextBuffer subjectBuffer,
-            bool ignoreCaretMovementToExistingTag,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListener asyncListener)
         {
-            TextViewOpt = textViewOpt;
             this.SubjectBuffer = subjectBuffer;
-            _ignoreCaretMovementToExistingTag = ignoreCaretMovementToExistingTag;
             _notificationService = notificationService;
 
             this.Listener = asyncListener;
@@ -95,37 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         protected void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
-            if (_ignoreCaretMovementToExistingTag && e.Kind == PredefinedChangedEventKinds.CaretPositionChanged)
-            {
-                this.AssertIsForeground();
-
-                var caret = GetCaretPoint();
-                if (caret.HasValue)
-                {
-                    // If it changed position and we're still in a tag, there's nothing more to do
-                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
-                    if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Count > 0)
-                    {
-                        return;
-                    }
-                }
-            }
-
-            RecalculateTagsOnChangedCore(e);
-        }
-
-        protected virtual void RecalculateTagsOnChangedCore(TaggerEventArgs e)
-        {
             RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
-        }
-
-        /// <summary>
-        /// Implemented by derived types to return the caret position.
-        /// </summary>
-        /// <remarks>Called on the foreground thread.</remarks>
-        protected virtual SnapshotPoint? GetCaretPoint()
-        {
-            return TextViewOpt?.GetCaretPoint(SubjectBuffer);
         }
 
         protected virtual void Disconnect()

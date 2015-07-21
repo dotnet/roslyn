@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract class AsynchronousTaggerDataSource<TTag, TState> : IAsynchronousTaggerDataSource<TTag, TState> where TTag : ITag
     {
         public virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
-        public virtual bool IgnoreCaretMovementToExistingTag => false;
+        public virtual TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.None;
         public virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public virtual bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
 
@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
         protected AsynchronousTaggerDataSource() { }
+
+        public virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            // Use 'null' to indicate that the tagger should get the default caret position.
+            return null;
+        }
 
         public virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {

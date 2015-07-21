@@ -5,14 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     internal class AsynchronousTaggerContext<TTag, TState> where TTag : ITag
     {
+        private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
+
+        internal IEnumerable<DocumentSnapshotSpan> _spansTagged;
+        internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
+
         public TState State { get; set; }
         public IEnumerable<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
@@ -25,14 +32,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public TextChangeRange? TextChangeRange { get; }
         public CancellationToken CancellationToken { get; }
 
-        internal IEnumerable<DocumentSnapshotSpan> spansTagged;
-        internal ImmutableArray<ITagSpan<TTag>>.Builder tagSpans = ImmutableArray.CreateBuilder<ITagSpan<TTag>>();
+        // For testing only.
+        internal AsynchronousTaggerContext(
+            TState state,
+            IEnumerable<DocumentSnapshotSpan> spansToTag,
+            SnapshotPoint? caretPosition,
+            TextChangeRange? textChangeRange,
+            CancellationToken cancellationToken) 
+            : this(state, spansToTag, caretPosition, textChangeRange, null, cancellationToken)
+        {
+        }
 
         internal AsynchronousTaggerContext(
             TState state,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
+            ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
             CancellationToken cancellationToken)
         {
             this.State = state;
@@ -41,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this.TextChangeRange = textChangeRange;
             this.CancellationToken = cancellationToken;
 
-            this.spansTagged = spansToTag;
+            _spansTagged = spansToTag;
+            _existingTags = existingTags;
         }
 
         public void AddTag(ITagSpan<TTag> tag)
@@ -62,7 +79,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 throw new ArgumentNullException(nameof(spansTagged));
             }
 
-            this.spansTagged = spansTagged;
+            this._spansTagged = spansTagged;
+        }
+
+        public IEnumerable<ITagSpan<TTag>> GetExistingTags(SnapshotSpan span)
+        {
+            TagSpanIntervalTree<TTag> tree;
+            return _existingTags.TryGetValue(span.Snapshot.TextBuffer, out tree)
+                ? tree.GetIntersectingSpans(span)
+                : SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
         }
     }
 }

@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         // Whenever any text change happens, we want to immediately remove any highlights that 
         // touch the edit.
         public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
-        public override bool IgnoreCaretMovementToExistingTag => true;
         public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
 
         [ImportingConstructor]

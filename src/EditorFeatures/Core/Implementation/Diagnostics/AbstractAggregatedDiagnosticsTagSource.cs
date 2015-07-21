@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IForegroundNotificationService notificationService,
             DiagnosticService service,
             IAsynchronousOperationListener asyncListener)
-                : base(textViewOpt: null, subjectBuffer: subjectBuffer, ignoreCaretMovementToExistingTag: false, notificationService: notificationService, asyncListener: asyncListener)
+                : base(subjectBuffer, notificationService, asyncListener)
         {
             _service = service;
             _mode = GetMode(subjectBuffer);

@@ -5,11 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -31,43 +29,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal partial class ReferenceHighlightingViewTaggerProvider :
-        ForegroundThreadAffinitizedObject,
-        IViewTaggerProvider,
-        IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag, object>
+    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag, object>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
-        private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
-        public TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
-        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-        public bool IgnoreCaretMovementToExistingTag => true;
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
-        public IEqualityComparer<AbstractNavigatableReferenceHighlightingTag> TagComparer => null;
-        public IEnumerable<Option<bool>> Options => null;
-        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
+        public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag; 
+        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
         public ReferenceHighlightingViewTaggerProvider(
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting), notificationService)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
-            _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
-                new AsynchronousViewTaggerProviderWithTagSource<AbstractNavigatableReferenceHighlightingTag, object>(
-                    this,
-                    new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting),
-                    notificationService,
-                    this.CreateTagSource));
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
-        {
-            return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
-        }
-
-        public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
             // reported by OnSemanticChanged.
@@ -78,22 +57,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ReferenceHighlighting, TaggerDelay.NearImmediate));
         }
 
-        private ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag, object> CreateTagSource(
-            ITextView textViewOpt, ITextBuffer subjectBuffer,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
+        public override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return new ReferenceHighlightingTagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
+            return textViewOpt.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
         }
 
-        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        public override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return textViewOpt.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                               .Select(b => b.CurrentSnapshot.GetFullSpan())
                               .ToList();
         }
 
-        public Task ProduceTagsAsync(Context context)
+        public override Task ProduceTagsAsync(Context context)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually
@@ -104,21 +80,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 return SpecializedTasks.EmptyTask;
             }
 
-            var position = context.CaretPosition.Value;
+            var caretPosition = context.CaretPosition.Value;
 
             Workspace workspace;
-            if (!Workspace.TryGetWorkspace(position.Snapshot.AsText().Container, out workspace))
+            if (!Workspace.TryGetWorkspace(caretPosition.Snapshot.AsText().Container, out workspace))
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            var document = context.SpansToTag.First(vt => vt.SnapshotSpan.Snapshot == position.Snapshot).Document;
+            var document = context.SpansToTag.First(vt => vt.SnapshotSpan.Snapshot == caretPosition.Snapshot).Document;
             if (document == null)
             {
                 return SpecializedTasks.EmptyTask;
             }
 
-            return ProduceTagsAsync(context, position, workspace, document);
+            // Don't produce tags if the feature is not enabled.
+            if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
+            {
+                return SpecializedTasks.EmptyTask;
+            }
+
+            var existingTags = context.GetExistingTags(new SnapshotSpan(caretPosition, 0));
+            if (!existingTags.IsEmpty())
+            {
+                // We already have a tag at this position.  So the user is moving from one highlight
+                // tag to another.  In this case we don't want to recompute anything.  Let our caller
+                // know that we should preserve all tags.
+                context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
+                return SpecializedTasks.EmptyTask;
+            }
+
+            // Otherwise, we need to go produce all tags.
+            return ProduceTagsAsync(context, caretPosition, workspace, document);
         }
 
         internal async Task ProduceTagsAsync(
@@ -128,11 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             Document document)
         {
             var cancellationToken = context.CancellationToken;
-            // Don't produce tags if the feature is not enabled.
-            if (!workspace.Options.GetOption(FeatureOnOffOptions.ReferenceHighlighting, document.Project.Language))
-            {
-                return;
-            }
 
             var solution = document.Project.Solution;
 

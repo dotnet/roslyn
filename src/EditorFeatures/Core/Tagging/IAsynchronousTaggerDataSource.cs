@@ -13,6 +13,23 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
+    /// Flags that affect how the tagger infrastructure responds to caret changes.
+    /// </summary>
+    [Flags]
+    internal enum TaggerCaretChangeBehavior
+    {
+        /// <summary>
+        /// No special caret change behavior.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// If the caret moves outside of a tag, immediately remove all existing tags.
+        /// </summary>
+        RemoveAllTagsOnCaretMoveOutsideOfTag = 1 << 0,
+    }
+
+    /// <summary>
     /// Data source for the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>.  This type tells the
     /// <see cref="AsynchronousTaggerProvider{TTag, TState}"/> when tags need to be recomputed, as well
     /// as producing the tags when requested.
@@ -32,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         TaggerTextChangeBehavior TextChangeBehavior { get; }
 
         /// <summary>
+        /// The bahavior the tagger will have when changes happen to the caret.
+        /// </summary>
+        TaggerCaretChangeBehavior CaretChangeBehavior { get; }
+
+        /// <summary>
         /// The behavior of tags that are created by the async tagger.  This will matter for tags
         /// created for a previous version of a document that are mapped forward by the async
         /// tagging architecture.  This value cannot be <see cref="SpanTrackingMode.Custom"/>.
@@ -42,13 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// Whether or not the the first set of tags for this tagger should be computed synchronously.
         /// </summary>
         bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted { get; }
-
-        /// <summary>
-        /// <code>true</code> if the tagger infrastructure can avoid recomputing tags when the 
-        /// user's caret moves to an already existing tag.  This is useful to avoid work for
-        /// features like Highlighting if the user is navigating between highlight tags.
-        /// </summary>
-        bool IgnoreCaretMovementToExistingTag { get; }
 
         /// <summary>
         /// Options controlling this tagger.  The tagger infrastructure will check this option
@@ -76,6 +91,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
         ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
+
+        /// <summary>
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> infrastructure to 
+        /// determine the caret position.  This value will be passed in as the value to 
+        /// <see cref="AsynchronousTaggerContext{TTag, TState}.CaretPosition"/> in the call to
+        /// <see cref="ProduceTagsAsync"/>.
+        /// 
+        /// Return <code>null</code> to get the default tagger behavior.  This will the caret
+        /// position in the subject buffer this tagger is attached to.
+        /// </summary>
+        SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
         /// Called by the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> infrastructure to determine
