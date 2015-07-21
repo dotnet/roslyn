@@ -13,6 +13,35 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
+    /// What the async tagger infrastructure should do in the presence of text edits.
+    /// </summary>
+    [Flags]
+    internal enum TaggerTextChangeBehavior
+    {
+        /// <summary>
+        /// The async tagger infrastructure will not track any text changes and will not do 
+        /// anything special in the presence of them.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// The async tagger infrastructure will track text changes to the subject buffer it is 
+        /// attached to.  The text changes will be provided to the <see cref="AsynchronousTaggerContext{TTag, TState}"/>
+        /// that is passed to <see cref="IAsynchronousTaggerDataSource{TTag, TState}.ProduceTagsAsync"/>.
+        /// </summary>
+        TrackTextChanges = 1 << 0,
+
+        /// <summary>
+        /// The async tagger infrastructure will not track text changes to the subject buffer it is 
+        /// attached to.  The text changes will be provided to the <see cref="AsynchronousTaggerContext{TTag, TState}"/>
+        /// that is passed to <see cref="IAsynchronousTaggerDataSource{TTag, TState}.ProduceTagsAsync"/>.
+        /// 
+        /// Tags that intersect the text change range will immediately removed.
+        /// </summary>
+        RemoveTagsThatIntersectEdits = TrackTextChanges | (1 << 1)
+    }
+
+    /// <summary>
     /// Data source for the <see cref="AsynchronousTaggerProvider{TTag, TState}"/>.  This type tells the
     /// <see cref="AsynchronousTaggerProvider{TTag, TState}"/> when tags need to be recomputed, as well
     /// as producing the tags when requested.
@@ -20,19 +49,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal interface IAsynchronousTaggerDataSource<TTag, TState> where TTag : ITag
     {
         /// <summary>
-        /// Whether or not the <see cref="AsynchronousTaggerProvider{TTag, TState}"/> should remove a tag
-        /// from the user interface if the user makes an edit that intersects with the span of the
-        /// tag.  Removing may be appropriate if it is undesirable for stale tag data to be 
-        /// presented to the user.  However, removal may also lead to a more noticeable tagging 
-        /// experience for the user if tags quickly get removed and re-added.
+        /// The behavior the tagger engine will have when text changes happen to the subject buffer
+        /// it is attached to.  Most taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>.
+        /// However, advanced taggers that want to perform specialized behavior depending on what has
+        /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
         /// 
-        /// Note: if you want tags to be removed that intersect edits, you must pass 'true' for
-        /// the <code>reportChangedSpans</code> parameter of your
-        /// <see cref="TaggerEventSources.OnTextChanged(ITextBuffer, TaggerDelay, bool)"/> event
-        /// source.  Otherwise, the tagger infrastructure will know know which text ranges have
-        /// been affected, and thus which tags to remove.
+        /// If this is specified the tagger engine will track text changes and pass them along as
+        /// <see cref="AsynchronousTaggerContext{TTag, TState}.TextChangeRange"/> when calling 
+        /// <see cref="ProduceTagsAsync"/>.
         /// </summary>
-        bool RemoveTagsThatIntersectEdits { get; }
+        TaggerTextChangeBehavior TextChangeBehavior { get; }
 
         /// <summary>
         /// The behavior of tags that are created by the async tagger.  This will matter for tags

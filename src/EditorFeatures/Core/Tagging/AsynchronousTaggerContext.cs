@@ -16,6 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public TState State { get; set; }
         public IEnumerable<DocumentSnapshotSpan> SpansToTag { get; }
         public SnapshotPoint? CaretPosition { get; }
+
+        /// <summary>
+        /// The text that has changed between the last successfull tagging and this new request to
+        /// produce tags.  In order to be passed this value, <see cref="TaggerTextChangeBehavior.TrackTextChanges"/> 
+        /// must be specified in <see cref="IAsynchronousTaggerDataSource{TTag, TState}.TextChangeBehavior"/>.
+        /// </summary>
         public TextChangeRange? TextChangeRange { get; }
         public CancellationToken CancellationToken { get; }
 

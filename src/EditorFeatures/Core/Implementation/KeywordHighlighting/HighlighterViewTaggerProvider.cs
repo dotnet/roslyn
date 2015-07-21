@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     {
         private readonly IHighlightingService _highlightingService;
 
-        public override bool RemoveTagsThatIntersectEdits => true;
+        // Whenever any text change happens, we want to immediately remove any highlights that 
+        // touch the edit.
+        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
         public override bool IgnoreCaretMovementToExistingTag => true;
         public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
 
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle, reportChangedSpans: true),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.KeywordHighlighting, TaggerDelay.NearImmediate));
         }

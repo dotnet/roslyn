@@ -149,6 +149,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
             _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
 
+            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+            {
+                this.SubjectBuffer.Changed += OnSubjectBufferChanged;
+            }
+
             // Tell the interaction object to start issuing events.
             _eventSource.Connect();
         }
@@ -161,6 +166,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             // Tell the interaction object to stop issuing events.
             _eventSource.Disconnect();
+
+            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+            {
+                this.SubjectBuffer.Changed -= OnSubjectBufferChanged;
+            }
 
             _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
             _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
@@ -183,6 +193,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             RaiseResumed();
         }
 
+        private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
+        {
+            this.WorkQueue.AssertIsForeground();
+            UpdateTagsForTextChange(e);
+            AccumulateTextChanges(e);
+        }
+
         private void OnChanged(object sender, TaggerEventArgs e)
         {
             using (var token = this.Listener.BeginAsyncOperation("OnChanged"))
@@ -193,15 +210,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
                 // We don't currently have a request issued to re-compute our tags. Issue it for some
                 // time in the future
-
-                // If we had a text buffer change, we might be able to do something smarter with the
-                // tags
-                if (e.TextChangeEventArgs != null)
-                {
-                    this.WorkQueue.AssertIsForeground();
-                    UpdateTagsForTextChange(e.TextChangeEventArgs);
-                    AccumulateTextChanges(e.TextChangeEventArgs);
-                }
 
                 RecalculateTagsOnChanged(e);
             }
@@ -247,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             this.WorkQueue.AssertIsForeground();
 
             // Don't bother going forward if we're not going adjust any tags based on edits.
-            if (!_dataSource.RemoveTagsThatIntersectEdits)
+            if (!_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits))
             {
                 return;
             }

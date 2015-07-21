@@ -28,17 +28,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    using Context = AsynchronousTaggerContext<IClassificationTag, VersionStamp?>;
+    using Context = AsynchronousTaggerContext<IClassificationTag, object>;
 
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class SemanticClassificationTaggerProvider : AsynchronousTaggerProvider<IClassificationTag, VersionStamp?>
+    internal partial class SemanticClassificationTaggerProvider : AsynchronousTaggerProvider<IClassificationTag, object>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly ClassificationTypeMap _typeMap;
 
+        // We want to track text changes so that we can try to only reclassify a method body if
+        // all edits were contained within one.
+        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
         public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         private IEditorClassificationService _classificationService;
@@ -57,10 +60,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
+            // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
+            // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.Short, _semanticChangeNotificationService),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.Short, reportChangedSpans: true));
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
         public override async Task ProduceTagsAsync(Context context)
@@ -87,16 +91,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             var cancellationToken = context.CancellationToken;
-            var newVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-            await ProduceTagsAsync(context, spanToTag, newVersion).ConfigureAwait(false);
-
-            context.State = newVersion;
+            await ProduceTagsAsync(context, spanToTag).ConfigureAwait(false);
         }
 
-        private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan spanToTag, VersionStamp newVersion)
+        private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan spanToTag)
         {
-            if (await TryProduceTagsSpecializedAsync(context, spanToTag, newVersion).ConfigureAwait(false))
+            if (await TryProduceTagsSpecializedAsync(context, spanToTag).ConfigureAwait(false))
             {
                 return;
             }
@@ -106,30 +106,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             await ClassifySpansAsync(context, spanToTag).ConfigureAwait(false);
         }
 
-        private Task<bool> TryProduceTagsSpecializedAsync(Context context, DocumentSnapshotSpan spanToTag, VersionStamp newVersion)
+        private async Task<bool> TryProduceTagsSpecializedAsync(Context context, DocumentSnapshotSpan spanToTag)
         {
             var range = context.TextChangeRange;
-
             if (range == null)
             {
-                return Task.FromResult(TryProduceTagsWithNoTextChange(context, newVersion));
+                // There was no text change range, we can't just reclassify a member body.
+                return false;
             }
-            else
-            {
-                return TryProduceTagsWithTextChange(context, spanToTag, newVersion, range);
-            }
-        }
 
-        private async Task<bool> TryProduceTagsWithTextChange(Context context, DocumentSnapshotSpan spanToTag, VersionStamp newVersion, TextChangeRange? range)
-        {
             // there was top level edit, check whether that edit updated top level element
             var document = spanToTag.Document;
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             var oldVersion = context.State;
-            if (service == null || newVersion != oldVersion)
+            if (service == null)
             {
-                // There's been a version change since the last time we were called.  Reclassify 
-                // everything.
                 return false;
             }
 
@@ -156,31 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(context, subSpanToTag).ConfigureAwait(false);
-            return true;
-        }
-
-        private static bool TryProduceTagsWithNoTextChange(Context context, VersionStamp newVersion)
-        {
-            var oldVersion = context.State;
-
-            // active file can be called twice for the same top level edit (the very last top
-            // level edit).  One from text edit event source and one from semantic change event
-            // source.  This make sure that when we are called to recompute due to semantic 
-            // change event source, we haven't already recompute it by text edits event source.
-            // for opened files that are not active, it should be called by semantic change 
-            // event source and recompute tags for whole file.
-            if (newVersion != oldVersion)
-            {
-                // There was no text change range specified.  And there was a version change,
-                // we have to reclassify everything.
-                return false;
-            }
-
-            // Mark that we didn't tag any spans.  That way we preserve all the old tags
-            // from the last time we were called.
-            context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
-
-            // Return true so we do not do any further classification.
             return true;
         }
 

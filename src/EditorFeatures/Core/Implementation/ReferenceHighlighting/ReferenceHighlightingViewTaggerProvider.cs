@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
         private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
 
-        public bool RemoveTagsThatIntersectEdits => false;
+        public TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
         public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
         public bool IgnoreCaretMovementToExistingTag => true;
         public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
-            // PERF: use a longer delay for OnTextChanged to minimize the impact of GCs while typing
+            // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
+            // reported by OnSemanticChanged.
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
                 TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.OnIdle, _semanticChangeNotificationService),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short),
