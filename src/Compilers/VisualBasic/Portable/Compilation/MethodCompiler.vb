@@ -544,17 +544,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         sourceTypeSymbol.Locations(0).PossiblyEmbeddedOrMySourceTree,
                                         sourceTypeSymbol)
 
-                Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
+                processedStaticInitializers = New Binder.ProcessedFieldOrPropertyInitializers(Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
                                                         sourceTypeSymbol.StaticInitializers,
                                                         scriptInitializer,
-                                                        processedStaticInitializers,
-                                                        _diagnostics)
+                                                        _diagnostics))
 
-                Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
+                processedInstanceInitializers = New Binder.ProcessedFieldOrPropertyInitializers(Binder.BindFieldAndPropertyInitializers(sourceTypeSymbol,
                                                         sourceTypeSymbol.InstanceInitializers,
                                                         scriptInitializer,
-                                                        processedInstanceInitializers,
-                                                        _diagnostics)
+                                                        _diagnostics))
 
                 ' TODO: any flow analysis for initializers?
 
