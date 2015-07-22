@@ -663,10 +663,10 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
-    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
-    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
-    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />
-    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ProduceTags.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.Tagger.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.TagSource.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.TagSource_ProduceTags.cs" />
     <Compile Include="Tagging\TaggerContext.cs" />
     <Compile Include="Tagging\TaggerCaretChangeBehavior.cs" />
     <Compile Include="Tagging\TaggerTextChangeBehavior.cs" />
@@ -747,7 +747,7 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SelectionChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SemanticChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.TextChangedEventSource.cs" />
-    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
     <Compile Include="Shared\Tagging\Tags\NavigableHighlightTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
