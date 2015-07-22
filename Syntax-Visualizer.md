@@ -10,9 +10,9 @@
 This document is an overview of the Syntax Visualizer tool that ships as part of the .NET Compiler Platform (“Roslyn”) SDK Preview. The Syntax Visualizer is a Visual Studio Extension that facilitates inspection and exploration of Roslyn syntax trees and can be used as a debugging aid when you develop your own applications atop the .NET Compiler Platform (“Roslyn”) APIs.
 
 ## Getting Started
-Let’s begin by getting a box set up with Visual Studio "14" CTP 3. Either install [Visual Studio "14" CTP 3](http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs.aspx) and the [Visual Studio "14" SDK](http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs.aspx), or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
+Let’s begin by getting a box set up with [Visual Studio 2015](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015).
 
-Then, download the [Syntax Visualizer VSIX package](http://visualstudiogallery.msdn.microsoft.com/70e184da-9b3a-402f-b210-d62a898e2887). You can also search for Syntax Visualizer within VS under Tools –> Extensions and Updates to install the package directly. This is useful when installing the Syntax Visualizer into the Roslyn hive of VS used to debug your diagnostics, code fixes and refactorings.
+The Syntax Visualizer is installed as part of the [.NET Compiler Platform SDK](https://visualstudiogallery.msdn.microsoft.com/2ddb7240-5249-4c8c-969e-5d05823bcb89).
 
 To understand the concepts presented in this document better, I would strongly recommend reading the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview). This document provides a very good overview of the .NET Compiler Platform (“Roslyn”) APIs including syntax trees, nodes, tokens, and trivia.
 
