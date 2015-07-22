@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this.NotificationService = notificationService;
         }
 
-        protected T GetOption<T>(ITextBuffer buffer, Option<T> option)
+        private T GetOption<T>(ITextBuffer buffer, Option<T> option)
         {
             return buffer.GetOption(option);
         }
 
-        protected T GetOption<T>(ITextBuffer buffer, PerLanguageOption<T> option)
+        private T GetOption<T>(ITextBuffer buffer, PerLanguageOption<T> option)
         {
             return buffer.GetOption(option);
         }
@@ -54,10 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             return new TagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
         }
-
-        protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource<TTag> tagSource);
-        protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TagSource<TTag> tagSource);
-        protected abstract void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         protected ITagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
@@ -88,6 +84,37 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             return tagSource;
+        }
+
+        private bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource<TTag> tagSource)
+        {
+            return textViewOpt != null
+                ? textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, UniqueKey, out tagSource)
+                : subjectBuffer.Properties.TryGetProperty(UniqueKey, out tagSource);
+        }
+
+        private void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            if (textViewOpt != null)
+            {
+                textViewOpt.RemovePerSubjectBufferProperty<TagSource<TTag>, ITextView>(subjectBuffer, UniqueKey);
+            }
+            else
+            {
+                subjectBuffer.Properties.RemoveProperty(UniqueKey);
+            }
+        }
+
+        private void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TagSource<TTag> tagSource)
+        {
+            if (textViewOpt != null)
+            {
+                textViewOpt.AddPerSubjectBufferProperty(subjectBuffer, UniqueKey, tagSource);
+            }
+            else
+            {
+                subjectBuffer.Properties.AddProperty(UniqueKey, tagSource);
+            }
         }
     }
 }
