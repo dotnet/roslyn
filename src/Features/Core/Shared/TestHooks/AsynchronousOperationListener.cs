@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -141,6 +142,19 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     return _activeDiagnosticTokens.ToImmutableArray();
                 }
             }
+        }
+
+        internal static IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> CreateListeners<T>(
+            params ValueTuple<string, T>[] pairs) where T : IAsynchronousOperationListener
+        {
+            return pairs.Select(CreateLazy).ToList();
+        }
+
+        private static Lazy<IAsynchronousOperationListener, FeatureMetadata> CreateLazy<T>(
+            ValueTuple<string, T> tuple) where T : IAsynchronousOperationListener
+        {
+            return new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                () => tuple.Item2, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", tuple.Item1 } }));
         }
     }
 }
