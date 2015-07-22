@@ -752,8 +752,8 @@
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
-    <Compile Include="Shared\Tagging\Utilities\BatchChangeNotifier.cs" />
-    <Compile Include="Shared\Tagging\Utilities\TagSpanComparer.cs" />
+    <Compile Include="Tagging\BatchChangeNotifier.cs" />
+    <Compile Include="Tagging\TagSpanComparer.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.IntervalIntrospector.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.TagNode.cs" />
