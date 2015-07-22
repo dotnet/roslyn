@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -184,47 +185,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class { }"))
             using (var previewWorkspace = new PreviewWorkspace(workspace.CurrentSolution))
             {
-                // set up to listen diagnostic changes so that we can wait until it happens
-                var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;
-                var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
-                diagnosticService.DiagnosticsUpdated += (s, a) => taskSource.TrySetResult(a);
-
-                // preview workspace and owner of the solution now share solution and its underlying text buffer
+                //// preview workspace and owner of the solution now share solution and its underlying text buffer
                 var hostDocument = workspace.Projects.First().Documents.First();
-                var buffer = hostDocument.GetTextBuffer();
 
-                // enable preview diagnostics
-                previewWorkspace.OpenDocument(hostDocument.Id);
+                //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var foregroundService = workspace.GetService<IForegroundNotificationService>();
-                var optionsService = workspace.Services.GetService<IOptionService>();
-                var squiggleWaiter = new ErrorSquiggleWaiter();
-
-                var listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, squiggleWaiter),
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, squiggleWaiter));
-
-                // create a tagger for preview workspace
-                var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-                var tagger = provider.CreateTagger<IErrorTag>(buffer);
-
-                // wait up to 20 seconds for diagnostic service
-                taskSource.Task.Wait(20000);
-                if (!taskSource.Task.IsCompleted)
-                {
-                    // something is wrong
-                    FatalError.Report(new System.Exception("not finished after 20 seconds"));
-                }
-
-                // wait for tagger
-                squiggleWaiter.CreateWaitTask().PumpingWait();
-
-                var snapshot = buffer.CurrentSnapshot;
-                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
-
-                ((IDisposable)tagger).Dispose();
-
+                var spans = SquiggleUtilities.GetErrorSpans(workspace);
                 Assert.Equal(1, spans.Count);
             }
         }

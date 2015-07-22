@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -20,9 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
-    public abstract class AbstractSquiggleProducerTests
+    public static class SquiggleUtilities
     {
-        protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(
+        internal static List<ITagSpan<IErrorTag>> GetErrorSpans(
             TestWorkspace workspace,
             ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
@@ -55,12 +54,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             diagnosticWaiter.CreateWaitTask().PumpingWait();
 
             var snapshot = buffer.CurrentSnapshot;
-            var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
+            var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
 
             ((IDisposable)tagger).Dispose();
             registrationService.Unregister(workspace);
 
             return spans;
+        }
+    }
+
+    public abstract class AbstractSquiggleProducerTests
+    {
+        protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(
+            TestWorkspace workspace,
+            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
+        {
+            return SquiggleUtilities.GetErrorSpans(workspace, analyzerMap);
         }
 
         internal static IList<ITagSpan<IErrorTag>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
@@ -117,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 return diagnostics;
             }
         }
-
-        private class DiagnosticServiceWaiter : AsynchronousOperationListener { }
     }
+
+    internal class DiagnosticServiceWaiter : AsynchronousOperationListener { }
 }
