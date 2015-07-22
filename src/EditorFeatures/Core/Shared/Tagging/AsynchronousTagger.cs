@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private readonly ITextBuffer _subjectBuffer;
 
-        // Internal for testing purposes.
-        internal readonly TagSource<TTag> TagSource;
+        private readonly TagSource<TTag> _tagSource;
 
         #endregion
 
@@ -58,20 +57,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _subjectBuffer = subjectBuffer;
             _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
 
-            TagSource = tagSource;
+            _tagSource = tagSource;
 
-            TagSource.OnTaggerAdded(this);
-            TagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
-            TagSource.Paused += OnPaused;
-            TagSource.Resumed += OnResumed;
+            _tagSource.OnTaggerAdded(this);
+            _tagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
+            _tagSource.Paused += OnPaused;
+            _tagSource.Resumed += OnResumed;
         }
 
         public void Dispose()
         {
-            TagSource.Resumed -= OnResumed;
-            TagSource.Paused -= OnPaused;
-            TagSource.TagsChangedForBuffer -= OnTagsChangedForBuffer;
-            TagSource.OnTaggerDisposed(this);
+            _tagSource.Resumed -= OnResumed;
+            _tagSource.Paused -= OnPaused;
+            _tagSource.TagsChangedForBuffer -= OnTagsChangedForBuffer;
+            _tagSource.OnTaggerDisposed(this);
         }
 
         private void ReportChangedSpan(SnapshotSpan changeSpan)
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // up in an inconsistent state between us and the editor where we have new tags but the
             // editor will never know.
 
-            TagSource.RegisterNotification(() =>
+            _tagSource.RegisterNotification(() =>
             {
                 foreach (var change in changes)
                 {
@@ -138,8 +137,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             var buffer = requestedSpans.First().Snapshot.TextBuffer;
             var tags = accurate
-                ? TagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken)
-                : TagSource.GetTagIntervalTreeForBuffer(buffer);
+                ? _tagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken)
+                : _tagSource.GetTagIntervalTreeForBuffer(buffer);
 
             if (tags == null)
             {
