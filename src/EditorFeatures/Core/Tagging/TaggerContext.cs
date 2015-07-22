@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal class AsynchronousTaggerContext<TTag> where TTag : ITag
+    internal class TaggerContext<TTag> where TTag : ITag
     {
         private readonly ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _existingTags;
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public CancellationToken CancellationToken { get; }
 
         // For testing only.
-        internal AsynchronousTaggerContext(
+        internal TaggerContext(
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
-        internal AsynchronousTaggerContext(
+        internal TaggerContext(
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,

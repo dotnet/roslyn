@@ -19,8 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
-    using Context = AsynchronousTaggerContext<HighlightTag>;
-
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(HighlightTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         }
 
         // Internal for testing purposes
-        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        public override async Task ProduceTagsAsync(TaggerContext<HighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;

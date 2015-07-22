@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 
             var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
 
-            var context = new AsynchronousTaggerContext<BraceHighlightTag>(
+            var context = new TaggerContext<BraceHighlightTag>(
                 new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(buffer.CurrentSnapshot, new Span(0, buffer.CurrentSnapshot.Length))) },
                 new SnapshotPoint(buffer.CurrentSnapshot, position), null, CancellationToken.None);
             producer.ProduceTagsAsync(context).Wait();

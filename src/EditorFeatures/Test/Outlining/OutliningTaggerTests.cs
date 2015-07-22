@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var snapshotSpans = new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)) };
 
-            var context = new AsynchronousTaggerContext<IOutliningRegionTag>(snapshotSpans, null, null, CancellationToken.None);
+            var context = new TaggerContext<IOutliningRegionTag>(snapshotSpans, null, null, CancellationToken.None);
             provider.ProduceTagsAsync(context).Wait();
             
             return context.tagSpans.Select(x => x.Tag).ToList();

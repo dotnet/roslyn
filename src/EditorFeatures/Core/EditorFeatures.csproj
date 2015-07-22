@@ -663,7 +663,7 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
-    <Compile Include="Tagging\AsynchronousTaggerContext.cs" />
+    <Compile Include="Tagging\TaggerContext.cs" />
     <Compile Include="Tagging\AsynchronousTaggerDataSource.cs" />
     <Compile Include="Tagging\TaggerCaretChangeBehavior.cs" />
     <Compile Include="Tagging\TaggerTextChangeBehavior.cs" />

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
         /// 
         /// If this is specified the tagger engine will track text changes and pass them along as
-        /// <see cref="AsynchronousTaggerContext{TTag}.TextChangeRange"/> when calling 
+        /// <see cref="TaggerContext{TTag}.TextChangeRange"/> when calling 
         /// <see cref="ProduceTagsAsync"/>.
         /// </summary>
         TaggerTextChangeBehavior TextChangeBehavior { get; }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to 
         /// determine the caret position.  This value will be passed in as the value to 
-        /// <see cref="AsynchronousTaggerContext{TTag}.CaretPosition"/> in the call to
+        /// <see cref="TaggerContext{TTag}.CaretPosition"/> in the call to
         /// <see cref="ProduceTagsAsync"/>.
         /// 
         /// Return <code>null</code> to get the default tagger behavior.  This will the caret
@@ -103,6 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// Produce tags for the given context.
         /// </summary>
-        Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context);
+        Task ProduceTagsAsync(TaggerContext<TTag> context);
     }
 }

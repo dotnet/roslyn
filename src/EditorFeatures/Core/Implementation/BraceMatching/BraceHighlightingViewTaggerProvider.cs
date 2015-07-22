@@ -20,8 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
-    using Context = AsynchronousTaggerContext<BraceHighlightTag>;
-
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate));
         }
 
-        public override Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        public override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             return ProduceTagsAsync(context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value);
         }
 
-        internal async Task ProduceTagsAsync(Context context, Document document, ITextSnapshot snapshot, int position)
+        internal async Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position)
         {
             using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, context.CancellationToken))
             {
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             }
         }
 
-        private async Task ProduceTagsForBracesAsync(Context context, Document document, ITextSnapshot snapshot, int position, bool rightBrace)
+        private async Task ProduceTagsForBracesAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position, bool rightBrace)
         {
             if (position >= 0 && position < snapshot.Length)
             {

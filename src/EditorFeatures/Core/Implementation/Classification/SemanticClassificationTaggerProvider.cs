@@ -28,8 +28,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    using Context = AsynchronousTaggerContext<IClassificationTag>;
-
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IClassificationTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
-        public override async Task ProduceTagsAsync(Context context)
+        public override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
             Debug.Assert(context.CaretPosition == null);
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             await ProduceTagsAsync(context, spanToTag).ConfigureAwait(false);
         }
 
-        private async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan spanToTag)
+        private async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag)
         {
             if (await TryClassifyContainingMemberSpan(context, spanToTag).ConfigureAwait(false))
             {
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             await ClassifySpansAsync(context, spanToTag).ConfigureAwait(false);
         }
 
-        private async Task<bool> TryClassifyContainingMemberSpan(Context context, DocumentSnapshotSpan spanToTag)
+        private async Task<bool> TryClassifyContainingMemberSpan(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag)
         {
             var range = context.TextChangeRange;
             if (range == null)
@@ -155,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return true;
         }
 
-        private async Task ClassifySpansAsync(Context context, DocumentSnapshotSpan spanToTag)
+        private async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag)
         {
             try
             {

@@ -19,8 +19,6 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
-    using Context = AsynchronousTaggerContext<LineSeparatorTag>;
-
     /// <summary>
     /// This factory is called to create taggers that provide information about where line
     /// separators go.
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.LineSeparator, TaggerDelay.NearImmediate));
         }
 
-        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        public override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;

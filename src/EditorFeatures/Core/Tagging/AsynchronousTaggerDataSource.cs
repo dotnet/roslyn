@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        public virtual async Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context)
+        public virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
         {
             foreach (var spanToTag in context.SpansToTag)
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ? caretPosition.Value.Position : (int?)null;
         }
 
-        public virtual Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        public virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
         }

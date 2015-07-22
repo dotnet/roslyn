@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 return _eventSource;
             }
 
-            public override Task ProduceTagsAsync(AsynchronousTaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
+            public override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             {
                 var tags = _callback(snapshotSpan.SnapshotSpan, context.CancellationToken);
                 if (tags != null)

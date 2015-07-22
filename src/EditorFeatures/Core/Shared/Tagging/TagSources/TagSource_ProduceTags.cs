@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var context = new AsynchronousTaggerContext<TTag>(
+            var context = new TaggerContext<TTag>(
                 spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
             await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
 
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ProcessContext(
             List<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees, 
-            AsynchronousTaggerContext<TTag> context)
+            TaggerContext<TTag> context)
         {
             var newTagTrees = ConvertToTagTrees(oldTagTrees, context.tagSpans, context._spansTagged);
             ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.CancellationToken);
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // TODO(cyrusn): Should we do this under a threaded wait dialog.  That way the
                     // use can cancel out if this takes a long time.
 
-                    var context = new AsynchronousTaggerContext<TTag>(
+                    var context = new TaggerContext<TTag>(
                         spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, oldTagTrees, CancellationToken.None);
                     _dataSource.ProduceTagsAsync(context).Wait();
 

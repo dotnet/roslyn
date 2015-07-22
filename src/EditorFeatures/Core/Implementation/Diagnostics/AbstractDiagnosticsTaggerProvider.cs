@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService, TaggerDelay.Medium));
         }
 
-        public override sealed Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        public override sealed Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             ProduceTags(context, spanToTag);
             return SpecializedTasks.EmptyTask;
         }
 
-        private void ProduceTags(AsynchronousTaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        private void ProduceTags(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
         {
             if (!IsEnabled)
             {

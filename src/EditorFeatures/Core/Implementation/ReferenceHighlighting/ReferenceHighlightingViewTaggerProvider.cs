@@ -23,8 +23,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
-    using Context = AsynchronousTaggerContext<AbstractNavigatableReferenceHighlightingTag>;
-
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                               .ToList();
         }
 
-        public override Task ProduceTagsAsync(Context context)
+        public override Task ProduceTagsAsync(TaggerContext<AbstractNavigatableReferenceHighlightingTag> context)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually
@@ -118,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         }
 
         internal async Task ProduceTagsAsync(
-            Context context,
+            TaggerContext<AbstractNavigatableReferenceHighlightingTag> context,
             SnapshotPoint position,
             Workspace workspace,
             Document document)
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         }
 
         private async Task AddTagSpansAsync(
-            Context context,
+            TaggerContext<AbstractNavigatableReferenceHighlightingTag> context,
             Solution solution,
             List<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> tags,
             DocumentHighlights documentHighlights)

@@ -21,8 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
-    using Context = AsynchronousTaggerContext<IOutliningRegionTag>;
-
     /// <summary>
     /// Shared implementation of the outliner tagger provider.
     /// 
@@ -109,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
-        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        public override async Task ProduceTagsAsync(TaggerContext<IOutliningRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
