@@ -365,16 +365,10 @@
     <Compile Include="Implementation\Debugging\DebugLocationInfo.cs" />
     <Compile Include="Implementation\Debugging\IBreakpointResolutionService.cs" />
     <Compile Include="Implementation\Debugging\ILanguageDebugInfoService.cs" />
-    <Compile Include="Implementation\Diagnostics\AbstractAggregatedDiagnosticsTagSource.InteractiveMode.cs" />
-    <Compile Include="Implementation\Diagnostics\AbstractAggregatedDiagnosticsTagSource.ReadOnlyMode.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\AbstractAggregatedDiagnosticsTagSource.cs" />
-    <Compile Include="Implementation\Diagnostics\AbstractAggregatedDiagnosticsTagSource.DiagnosticsTagSource.cs" />
     <Compile Include="Implementation\Diagnostics\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.TagSource.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.TagSource.cs" />
     <Compile Include="Implementation\Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractDocumentationCommentCommandHandler.cs" />
     <Compile Include="Implementation\DocumentationComments\AbstractXmlTagCompletionCommandHandler.cs" />
