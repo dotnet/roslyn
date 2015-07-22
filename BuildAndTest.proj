@@ -4,7 +4,7 @@
   ToolsVersion="12.0">
 
   <UsingTask
-    AssemblyFile="packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.runner.msbuild.dll"
+    AssemblyFile="packages\xunit.runner.msbuild.2.0.0\build\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.runner.msbuild.dll"
     TaskName="Xunit.Runner.MSBuild.xunit" />
 
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
@@ -23,7 +23,8 @@
   </PropertyGroup>
 
   <Target Name="RestorePackages">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runner.console -version 2.0.0 -outputdirectory packages"/>
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runner.msbuild -version 2.0.0 -outputdirectory packages"/>
     <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
   </Target>
 
@@ -97,7 +98,7 @@
         Binaries\$(Configuration)\Roslyn.Services.Editor.CSharp.UnitTests.dll;" />
     </ItemGroup>
 
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runner.console.2.0.0\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 
