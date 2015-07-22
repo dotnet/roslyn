@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private readonly ITaggerProvider _underlyingTagger;
 
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
-
         protected AsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
