@@ -2,7 +2,6 @@
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-
     /// <summary>
     /// Flags that affect how the tagger infrastructure responds to caret changes.
     /// </summary>
