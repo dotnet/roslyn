@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
-    internal abstract class AbstractAsynchronousTaggerProvider<TTag>
+    internal abstract class AbstractAsynchronousTaggerProvider<TTag> : AsynchronousTaggerDataSource<TTag>
         where TTag : ITag
     {
         protected readonly object UniqueKey = new object();
@@ -43,27 +43,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return buffer.GetOption(option);
         }
 
-        protected abstract TagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer);
-
         private TagSource<TTag> CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var options = this.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
             var perLanguageOptions = this.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
-            if (options.Any((option) => !this.GetOption(subjectBuffer, option)) ||
-                perLanguageOptions.Any((option) => !this.GetOption(subjectBuffer, option)))
+            if (options.Any(option => !this.GetOption(subjectBuffer, option)) ||
+                perLanguageOptions.Any(option => !this.GetOption(subjectBuffer, option)))
             {
                 return null;
             }
 
-            return CreateTagSourceCore(textViewOpt, subjectBuffer);
+            return new TagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
         }
-
-        /// <summary>
-        /// Feature on/off options.
-        /// </summary>
-        public virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
-        public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
         protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource<TTag> tagSource);
         protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TagSource<TTag> tagSource);

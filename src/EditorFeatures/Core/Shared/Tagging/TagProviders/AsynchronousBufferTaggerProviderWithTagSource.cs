@@ -2,28 +2,24 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal sealed class AsynchronousBufferTaggerProviderWithTagSource<TTag> :
-        AbstractAsynchronousTaggerProvider<TTag>,
+    internal abstract class AsynchronousTaggerProvider<TTag> : AbstractAsynchronousTaggerProvider<TTag>,
         ITaggerProvider
         where TTag : ITag
     {
-        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
-
-        public AsynchronousBufferTaggerProviderWithTagSource(
-            IAsynchronousTaggerDataSource<TTag> dataSource,
+        public AsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
             : base(asyncListener, notificationService)
         {
-            this._dataSource = dataSource;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
@@ -34,11 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return this.GetOrCreateTagger<T>(null, subjectBuffer);
-        }
-
-        protected override TagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return new TagSource<TTag>(textViewOpt, subjectBuffer, _dataSource, AsyncListener, NotificationService);
         }
 
         protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource<TTag> tagSource)

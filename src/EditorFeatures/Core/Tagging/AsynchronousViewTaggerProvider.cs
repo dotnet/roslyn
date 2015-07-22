@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -31,3 +32,4 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         }
     }
 }
+#endif
