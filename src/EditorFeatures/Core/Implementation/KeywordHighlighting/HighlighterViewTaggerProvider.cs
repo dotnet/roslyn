@@ -3,11 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -32,9 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     {
         private readonly IHighlightingService _highlightingService;
 
-        // Whenever any text change happens, we want to immediately remove any highlights that 
-        // touch the edit.
-        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveTagsThatIntersectEdits;
+        // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
+        // highlights if the caret stays within an existing tag.
+        public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
+        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
         public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
 
         [ImportingConstructor]
@@ -71,21 +70,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            if (caretPosition.HasValue)
+            if (!caretPosition.HasValue)
             {
-                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-                var position = caretPosition.Value;
-                var snapshot = snapshotSpan.Snapshot;
+                return;
+            }
 
-                using (Logger.LogBlock(FunctionId.Tagger_Highlighter_TagProducer_ProduceTags, cancellationToken))
+            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+            var position = caretPosition.Value;
+            var snapshot = snapshotSpan.Snapshot;
+
+            var existingTags = context.GetExistingTags(new SnapshotSpan(snapshot, position, 0));
+            if (!existingTags.IsEmpty())
+            {
+                // We already have a tag at this position.  So the user is moving from one highlight
+                // tag to another.  In this case we don't want to recompute anything.  Let our caller
+                // know that we should preserve all tags.
+                context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
+                return;
+            }
+
+            using (Logger.LogBlock(FunctionId.Tagger_Highlighter_TagProducer_ProduceTags, cancellationToken))
+            {
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                var spans = _highlightingService.GetHighlights(root, position, cancellationToken);
+                foreach (var span in spans)
                 {
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                    var spans = _highlightingService.GetHighlights(root, position, cancellationToken);
-                    foreach (var span in spans)
-                    {
-                        context.AddTag(new TagSpan<HighlightTag>(span.ToSnapshotSpan(snapshot), HighlightTag.Instance));
-                    }
+                    context.AddTag(new TagSpan<HighlightTag>(span.ToSnapshotSpan(snapshot), HighlightTag.Instance));
                 }
             }
         }

@@ -33,7 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
 
-        public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag; 
+        // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
+        // highlights if the caret stays within an existing tag.
+        public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
+        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
         public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
