@@ -29,13 +29,9 @@ class 123 { }
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 Dim diagnosticWaiter = New DiagnosticServiceWaiter()
-                Dim listeners = {
-                    New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
-                        Function() diagnosticWaiter,
-                        New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.DiagnosticService}})),
-                    New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
-                        Function() diagnosticWaiter,
-                        New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.ErrorSquiggles}}))}
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, diagnosticWaiter),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, diagnosticWaiter))
 
                 Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listeners)
 
@@ -45,8 +41,7 @@ class 123 { }
 
                 Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
                 Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
-                Dim tagger = DirectCast(provider.CreateTagger(Of IErrorTag)(buffer), AsynchronousTagger(Of IErrorTag))
-                Dim taggerSource = tagger.TagSource
+                Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
@@ -54,13 +49,12 @@ class 123 { }
                 diagnosticWaiter.CreateWaitTask().PumpingWait()
 
                 Dim snapshot = buffer.CurrentSnapshot
-                Dim intervalTree = taggerSource.GetTagIntervalTreeForBuffer(buffer)
-                Dim spans = intervalTree.GetIntersectingSpans(New SnapshotSpan(snapshot, 0, snapshot.Length)).ToImmutableArray()
+                Dim spans = tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray()
 
                 Assert.True(spans.Count() > 0)
                 Assert.True(spans.All(Function(s) s.Span.Length > 0))
 
-                taggerSource.TestOnly_Dispose()
+                DirectCast(tagger, IDisposable).Dispose()
             End Using
         End Sub
 
