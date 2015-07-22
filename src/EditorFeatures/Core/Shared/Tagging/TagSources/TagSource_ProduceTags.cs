@@ -39,98 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// <typeparam name="TTag">The type of tag.</typeparam>
     internal partial class TagSource<TTag>
     {
-        #region Fields that can be accessed from either thread
-        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
-
-        private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
-        #endregion
-
-        #region Fields that can only be accessed from the foreground thread
-
-        private readonly ITextView _textViewOpt;
-
-        /// <summary>
-        /// Our tagger event source that lets us know when we should call into the tag producer for
-        /// new tags.
-        /// </summary>
-        private readonly ITaggerEventSource _eventSource;
-
-        /// <summary>
-        /// During the time that we are paused from updating the UI, we will use these tags instead.
-        /// </summary>
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _previousCachedTagTrees;
-
-        /// <summary>
-        /// accumulated text changes since last tag calculation
-        /// </summary>
-        private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
-        #endregion
-
-        private IEqualityComparer<TTag> TagComparer =>
-            _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
-
-        private TextChangeRange? AccumulatedTextChanges
-        {
-            get
-            {
-                this.WorkQueue.AssertIsForeground();
-                return _accumulatedTextChanges_doNotAccessDirectly;
-            }
-
-            set
-            {
-                this.WorkQueue.AssertIsForeground();
-                _accumulatedTextChanges_doNotAccessDirectly = value;
-            }
-        }
-
-        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
-        {
-            get
-            {
-                this.WorkQueue.AssertIsForeground();
-                return _cachedTagTrees_doNotAccessDirectly;
-            }
-
-            set
-            {
-                this.WorkQueue.AssertIsForeground();
-                _cachedTagTrees_doNotAccessDirectly = value;
-            }
-        }
-
-        private void AttachEventHandlersAndStart()
-        {
-            this.WorkQueue.AssertIsForeground();
-
-            _eventSource.Changed += OnChanged;
-            _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
-            _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
-
-            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-            {
-                this._subjectBuffer.Changed += OnSubjectBufferChanged;
-            }
-
-            if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
-            {
-                if (_textViewOpt == null)
-                {
-                    throw new ArgumentException(
-                        nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
-                }
-
-                _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
-            }
-
-            // Tell the interaction object to start issuing events.
-            _eventSource.Connect();
-        }
-
         private void OnUIUpdatesPaused(object sender, EventArgs e)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
             _previousCachedTagTrees = CachedTagTrees;
 
             RaisePaused();
@@ -138,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private void OnUIUpdatesResumed(object sender, EventArgs e)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
             _previousCachedTagTrees = null;
 
             RaiseResumed();
@@ -150,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
-                this.WorkQueue.CancelCurrentWork();
+                this._workQueue.CancelCurrentWork();
 
                 // We don't currently have a request issued to re-compute our tags. Issue it for some
                 // time in the future.
@@ -202,14 +113,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
             UpdateTagsForTextChange(e);
             AccumulateTextChanges(e);
         }
 
         private void AccumulateTextChanges(TextContentChangedEventArgs contentChanged)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
             var contentChanges = contentChanged.Changes;
             var count = contentChanges.Count;
 
@@ -244,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private void UpdateTagsForTextChange(TextContentChangedEventArgs e)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
 
             if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.RemoveAllTags))
             {
@@ -373,13 +284,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private void RecomputeTagsForeground()
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
 
             using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, CancellationToken.None))
             {
                 // Stop any existing work we're currently engaged in
-                this.WorkQueue.CancelCurrentWork();
-                var cancellationToken = this.WorkQueue.CancellationToken;
+                this._workQueue.CancelCurrentWork();
+                var cancellationToken = this._workQueue.CancellationToken;
 
                 var spansToTag = GetSpansAndDocumentsToTag();
 
@@ -390,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var textChangeRange = this.AccumulatedTextChanges;
                 var oldTagTrees = this.CachedTagTrees;
 
-                this.WorkQueue.EnqueueBackgroundTask(
+                this._workQueue.EnqueueBackgroundTask(
                     ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
                     GetType().Name + ".RecomputeTags", cancellationToken);
             }
@@ -398,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
 
             // TODO: Update to tag spans from all related documents.
 
@@ -720,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
             Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
 
             // Now that we're back on the UI thread, we can safely update our state with
             // what we've computed.  There is no concern with race conditions now.  For 
@@ -760,7 +671,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         public ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
 
             // If we're currently pausing updates to the UI, then just use the tags we had before we
             // were paused so that nothing changes.  
@@ -774,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 if (_dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted && _previousCachedTagTrees == null)
                 {
                     // We can cancel any background computations currently happening
-                    this.WorkQueue.CancelCurrentWork();
+                    this._workQueue.CancelCurrentWork();
 
                     var spansToTag = GetSpansAndDocumentsToTag();
 

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,9 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// sync with it. As such, we allow cancellation of our tasks *until* we update our state.
         /// From that point on, we must proceed and execute the tasks.
         /// </summary>
-        internal readonly AsynchronousSerialWorkQueue WorkQueue;
+        private readonly AsynchronousSerialWorkQueue _workQueue;
 
-        private readonly ITextBuffer _subjectBuffer;
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
+
+        private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
 
         /// <summary>
         /// async operation notifier
@@ -43,6 +46,35 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private readonly IForegroundNotificationService _notificationService;
 
         #endregion
+
+        #region Fields that can only be accessed from the foreground thread
+
+        private readonly ITextView _textViewOpt;
+        private readonly ITextBuffer _subjectBuffer;
+
+        /// <summary>
+        /// Our tagger event source that lets us know when we should call into the tag producer for
+        /// new tags.
+        /// </summary>
+        private readonly ITaggerEventSource _eventSource;
+
+        /// <summary>
+        /// During the time that we are paused from updating the UI, we will use these tags instead.
+        /// </summary>
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _previousCachedTagTrees;
+
+        /// <summary>
+        /// accumulated text changes since last tag calculation
+        /// </summary>
+        private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
+
+        #endregion
+
+        public event Action<ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
+
+        public event EventHandler Paused;
+        public event EventHandler Resumed;
 
         public TagSource(
             ITextView textViewOpt,
@@ -63,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _notificationService = notificationService;
             _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
 
-            this.WorkQueue = new AsynchronousSerialWorkQueue(asyncListener);
+            this._workQueue = new AsynchronousSerialWorkQueue(asyncListener);
             this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
             StartInitialRefresh();
@@ -73,28 +105,84 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             AttachEventHandlersAndStart();
         }
 
+        private void AttachEventHandlersAndStart()
+        {
+            this._workQueue.AssertIsForeground();
+
+            _eventSource.Changed += OnChanged;
+            _eventSource.UIUpdatesResumed += OnUIUpdatesResumed;
+            _eventSource.UIUpdatesPaused += OnUIUpdatesPaused;
+
+            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+            {
+                this._subjectBuffer.Changed += OnSubjectBufferChanged;
+            }
+
+            if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
+            {
+                if (_textViewOpt == null)
+                {
+                    throw new ArgumentException(
+                        nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
+                }
+
+                _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
+            }
+
+            // Tell the interaction object to start issuing events.
+            _eventSource.Connect();
+        }
+
+        private IEqualityComparer<TTag> TagComparer =>
+            _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
+
+        private TextChangeRange? AccumulatedTextChanges
+        {
+            get
+            {
+                this._workQueue.AssertIsForeground();
+                return _accumulatedTextChanges_doNotAccessDirectly;
+            }
+
+            set
+            {
+                this._workQueue.AssertIsForeground();
+                _accumulatedTextChanges_doNotAccessDirectly = value;
+            }
+        }
+
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
+        {
+            get
+            {
+                this._workQueue.AssertIsForeground();
+                return _cachedTagTrees_doNotAccessDirectly;
+            }
+
+            set
+            {
+                this._workQueue.AssertIsForeground();
+                _cachedTagTrees_doNotAccessDirectly = value;
+            }
+        }
+
         public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
         {
             _notificationService.RegisterNotification(action, delay, this._asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
         }
-
-        public event Action<ICollection<KeyValuePair<ITextBuffer,NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
-
-        public event EventHandler Paused;
-        public event EventHandler Resumed;
 
         /// <summary>
         /// Called by derived types to enqueue tags re-calculation request
         /// </summary>
         private void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
-            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this._subjectBuffer), this.WorkQueue.CancellationToken);
+            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this._subjectBuffer), this._workQueue.CancellationToken);
         }
 
         public void Disconnect()
         {
-            this.WorkQueue.AssertIsForeground();
-            this.WorkQueue.CancelCurrentWork();
+            this._workQueue.AssertIsForeground();
+            this._workQueue.CancelCurrentWork();
 
             // Tell the interaction object to stop issuing events.
             _eventSource.Disconnect();
@@ -116,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private void StartInitialRefresh()
         {
-            this.WorkQueue.AssertIsForeground();
+            this._workQueue.AssertIsForeground();
 
             RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
         }

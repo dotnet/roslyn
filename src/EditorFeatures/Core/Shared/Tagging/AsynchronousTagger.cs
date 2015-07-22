@@ -100,8 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             TagSource.RegisterNotification(() =>
             {
-                TagSource.WorkQueue.AssertIsForeground();
-
                 foreach (var change in changes)
                 {
                     if (change.Key != _subjectBuffer)
