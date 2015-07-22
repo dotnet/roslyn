@@ -1473,14 +1473,14 @@ End Class
     </file>
 </compilation>,
 verify:=False,
-expectedOutput:="Initializing for System.Int64
+expectedOutput:=<![CDATA[Initializing for System.Int64
 Initializing for System.Int32
 
 Int64
 Initializing for System.String
 
 String
-")
+]]>)
         End Sub
 
 #Region "Helpers"
