@@ -3011,15 +3011,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override void ReportOtherRudeEditsAroundActiveStatement(
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
-            SyntaxNode oldBody,
-            SyntaxNode newBody,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
-            ReportRudeEditsForStateMachineMethod(diagnostics, oldBody, newBody, oldActiveStatement, newActiveStatement);
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3132,19 +3129,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return true;
         }
 
-        private void ReportRudeEditsForStateMachineMethod(
+        internal override void ReportRudeEditsForStateMachineMethod(
             List<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldBody,
-            SyntaxNode newBody,
-            SyntaxNode oldActiveStatement,
-            SyntaxNode newActiveStatement)
+            SyntaxNode newBody)
         {
-            var isInLambdaBody = FindEnclosingLambdaBody(oldBody, oldActiveStatement);
-            if (isInLambdaBody != null)
-            {
-                return;
-            }
-
             // It is allow to update a regular method to an async method or an iterator.
             // The only restriction is a presence of an active statement in the method body
             // since the debugger does not support remapping active statements to a different method.

@@ -1898,16 +1898,32 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_AsyncModifier()
+        Public Sub MethodUpdate_AsyncModifier1()
+            Dim src1 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Function F() As Task(Of String) : End Function]@11 -> [Async Function F() As Task(Of String) : End Function]@11",
+                "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_AsyncModifier2()
             Dim src1 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
             Dim src2 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
+                "Update [Async Function F() As Task(Of String) : End Function]@11 -> [Function F() As Task(Of String) : End Function]@11",
                 "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
 
-            edits.VerifyRudeDiagnostics()
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Function F()", FeaturesResources.Method))
         End Sub
 
         <Fact>

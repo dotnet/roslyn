@@ -2594,6 +2594,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex)
                 End If
 
+                ' 'async' keyword is allowed to add, but not to remove
+                If oldAsyncIndex >= 0 AndAlso newAsyncIndex < 0 Then
+                    Return False
+                End If
+
                 Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
                 Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
 
@@ -2603,6 +2608,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 If newIteratorIndex >= 0 Then
                     newModifiers = newModifiers.RemoveAt(newIteratorIndex)
+                End If
+
+                ' 'iterator' keyword is allowed to add, but not to remove
+                If oldIteratorIndex >= 0 AndAlso newIteratorIndex < 0 Then
+                    Return False
                 End If
 
                 Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
@@ -3091,8 +3101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As List(Of RudeEditDiagnostic),
                                                                        match As Match(Of SyntaxNode),
-                                                                       oldBody As SyntaxNode,
-                                                                       newBody As SyntaxNode,
                                                                        oldActiveStatement As SyntaxNode,
                                                                        newActiveStatement As SyntaxNode,
                                                                        isLeaf As Boolean)
@@ -3154,6 +3162,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
+
+        Friend Overrides Sub ReportRudeEditsForStateMachineMethod(diagnostics As List(Of RudeEditDiagnostic),
+                                                                  oldBody As SyntaxNode,
+                                                                  newBody As SyntaxNode)
+            ' It Is allow to update a regular method to an async method Or an iterator.
+            ' The only restriction Is a presence of an active statement in the method body
+            ' since the debugger does Not support remapping active statements to a different method.
+            Dim IsAsyncAdded = Not SyntaxUtilities.IsAsyncMethodOrLambda(oldBody) AndAlso SyntaxUtilities.IsAsyncMethodOrLambda(newBody)
+            Dim IsIteratorAdded = Not SyntaxUtilities.IsIteratorMethodOrLambda(oldBody) AndAlso SyntaxUtilities.IsIteratorMethodOrLambda(newBody)
+            If IsAsyncAdded OrElse IsIteratorAdded Then
+                diagnostics.Add(New RudeEditDiagnostic(
+                    RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
+                    GetDiagnosticSpan(newBody, EditKind.Update)))
+            End If
+        End Sub
+
 #End Region
     End Class
 End Namespace
