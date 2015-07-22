@@ -201,18 +201,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var optionsService = workspace.Services.GetService<IOptionService>();
                 var squiggleWaiter = new ErrorSquiggleWaiter();
 
-                var listeners = new[] {
-                    new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => squiggleWaiter,
-                        new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.ErrorSquiggles } })),
-                    new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                        () => squiggleWaiter,
-                        new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.DiagnosticService } })) };
+                var listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, squiggleWaiter),
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, squiggleWaiter));
 
                 // create a tagger for preview workspace
                 var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
-                var tagger = (AsynchronousTagger<IErrorTag>)provider.CreateTagger<IErrorTag>(buffer);
-                var taggerSource = tagger.TagSource;
+                var tagger = provider.CreateTagger<IErrorTag>(buffer);
 
                 // wait up to 20 seconds for diagnostic service
                 taskSource.Task.Wait(20000);
@@ -226,10 +221,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 squiggleWaiter.CreateWaitTask().PumpingWait();
 
                 var snapshot = buffer.CurrentSnapshot;
-                var intervalTree = taggerSource.GetTagIntervalTreeForBuffer(buffer);
-                var spans = intervalTree.GetIntersectingSpans(new SnapshotSpan(snapshot, 0, snapshot.Length));
+                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
 
-                taggerSource.TestOnly_Dispose();
+                ((IDisposable)tagger).Dispose();
 
                 Assert.Equal(1, spans.Count);
             }
@@ -273,21 +267,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 // set up tagger for both buffers
                 var leftBuffer = diffView.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
                 var leftWaiter = new ErrorSquiggleWaiter();
-                var leftListeners = SpecializedCollections.SingletonEnumerable(new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                    () => leftWaiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.ErrorSquiggles } })));
+                var leftListeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, leftWaiter);
 
                 var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, leftListeners);
-                var leftTagger = (AsynchronousTagger<IErrorTag>)leftProvider.CreateTagger<IErrorTag>(leftBuffer);
-                var leftTaggerSource = leftTagger.TagSource;
+                var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
 
                 var rightBuffer = diffView.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
                 var rightWaiter = new ErrorSquiggleWaiter();
-                var rightListeners = SpecializedCollections.SingletonEnumerable(new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                    () => rightWaiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.ErrorSquiggles } })));
+                var rightListeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, rightWaiter);
 
                 var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, rightListeners);
-                var rightTagger = (AsynchronousTagger<IErrorTag>)rightProvider.CreateTagger<IErrorTag>(rightBuffer);
-                var rightTaggerSource = rightTagger.TagSource;
+                var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
 
                 // wait up to 20 seconds for diagnostics
                 taskSource.Task.Wait(20000);
@@ -303,18 +293,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
                 // check left buffer
                 var leftSnapshot = leftBuffer.CurrentSnapshot;
-                var leftIntervalTree = leftTaggerSource.GetTagIntervalTreeForBuffer(leftBuffer);
-                var leftSpans = leftIntervalTree.GetIntersectingSpans(new SnapshotSpan(leftSnapshot, 0, leftSnapshot.Length));
+                var leftSpans = leftTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(leftSnapshot, 0, leftSnapshot.Length))).ToList();
 
-                leftTaggerSource.TestOnly_Dispose();
                 Assert.Equal(1, leftSpans.Count);
 
                 // check right buffer
                 var rightSnapshot = rightBuffer.CurrentSnapshot;
-                var rightIntervalTree = rightTaggerSource.GetTagIntervalTreeForBuffer(rightBuffer);
-                Assert.Null(rightIntervalTree);
+                var rightSpans = rightTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(rightSnapshot, 0, rightSnapshot.Length))).ToList();
+                Assert.Equal(0, rightSpans.Count);
 
-                rightTaggerSource.TestOnly_Dispose();
+                ((IDisposable)leftTagger).Dispose();
+                ((IDisposable)rightTagger).Dispose();
             }
         }
 
