@@ -724,7 +724,6 @@
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />
-    <Compile Include="Shared\Tagging\TagSources\TagsChangedForBufferEventArgs.cs" />
     <Compile Include="Shared\Tagging\TagSources\TagSource.cs" />
     <Compile Include="Shared\Tagging\Utilities\ITagSpanIntervalTree.cs" />
     <Compile Include="Shared\Utilities\BrushToColorConverter.cs" />
