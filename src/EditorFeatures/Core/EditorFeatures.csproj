@@ -665,6 +665,7 @@
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Tagging\AsynchronousTaggerContext.cs" />
     <Compile Include="Tagging\AsynchronousTaggerDataSource.cs" />
+    <Compile Include="Tagging\TaggerCaretChangeBehavior.cs" />
     <Compile Include="Tagging\TaggerTextChangeBehavior.cs" />
     <Compile Include="Undo\DefaultSourceTextUndoService.cs" />
     <Compile Include="Undo\EditorSourceTextUndoService.cs" />
@@ -746,8 +747,8 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SelectionChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SemanticChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.TextChangedEventSource.cs" />
-    <Compile Include="Tagging\AsynchronousBufferTaggerProviderWithTagSource.cs" />
-    <Compile Include="Tagging\AsynchronousViewTaggerProviderWithTagSource.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
+    <Compile Include="Tagging\AsynchronousViewTaggerProvider.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.cs" />
     <Compile Include="Shared\Tagging\Tags\AbstractNavigatableReferenceHighlightingTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />

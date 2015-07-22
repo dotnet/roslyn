@@ -13,23 +13,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// Flags that affect how the tagger infrastructure responds to caret changes.
-    /// </summary>
-    [Flags]
-    internal enum TaggerCaretChangeBehavior
-    {
-        /// <summary>
-        /// No special caret change behavior.
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// If the caret moves outside of a tag, immediately remove all existing tags.
-        /// </summary>
-        RemoveAllTagsOnCaretMoveOutsideOfTag = 1 << 0,
-    }
-
-    /// <summary>
     /// Data source for the <see cref="AsynchronousTaggerProvider{TTag}"/>.  This type tells the
     /// <see cref="AsynchronousTaggerProvider{TTag}"/> when tags need to be recomputed, as well
     /// as producing the tags when requested.
