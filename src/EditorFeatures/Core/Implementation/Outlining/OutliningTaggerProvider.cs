@@ -46,11 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
 
-        public override bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted =>
-            _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-
-        private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-
         [ImportingConstructor]
         public OutliningTaggerProvider(
             IForegroundNotificationService notificationService,
@@ -63,11 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             _textEditorFactoryService = textEditorFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-        }
-
-        public void SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(bool value)
-        {
-            _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = value;
         }
 
         public override IEqualityComparer<IOutliningRegionTag> TagComparer => this;

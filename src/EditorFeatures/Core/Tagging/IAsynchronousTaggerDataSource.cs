@@ -44,11 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         SpanTrackingMode SpanTrackingMode { get; }
 
         /// <summary>
-        /// Whether or not the the first set of tags for this tagger should be computed synchronously.
-        /// </summary>
-        bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted { get; }
-
-        /// <summary>
         /// Options controlling this tagger.  The tagger infrastructure will check this option
         /// against the buffer it is associated with to see if it should tag or not.
         /// 

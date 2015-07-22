@@ -107,10 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                 using (var disposable = (IDisposable)tagger)
                 {
-                    tagProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(true);
-
                     // The very first all to get tags should return the single outlining span.
-                    var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
+                    var tags = tagger.GetAllTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()), CancellationToken.None);
                     Assert.Equal(1, tags.Count());
                 }
             }

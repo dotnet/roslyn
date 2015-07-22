@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
         public virtual TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.None;
         public virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-        public virtual bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
 
         public virtual IEqualityComparer<TTag> TagComparer => null;
 
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             return new TagSource<TTag>(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
 
-        protected ITagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        protected IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetOption(EditorComponentOnOffOptions.Tagger))
             {
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
             return tagSource == null
                 ? null
-                : new AsynchronousTagger<TTag>(this.asyncListener, this.notificationService, tagSource, subjectBuffer) as ITagger<T>;
+                : new AsynchronousTagger<TTag>(this.asyncListener, this.notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         protected TagSource<TTag> GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)

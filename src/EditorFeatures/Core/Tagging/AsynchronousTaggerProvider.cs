@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
+        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
         {
             if (subjectBuffer == null)
             {
@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             return this.GetOrCreateTagger<T>(null, subjectBuffer);
+        }
+
+        ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        {
+            return CreateTagger<T>(buffer);
         }
     }
 }

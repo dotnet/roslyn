@@ -136,28 +136,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     // We need to get our outlining tag source to notify it to start blocking
                     var outliningTaggerProvider = this.Package.ComponentModel.GetService<OutliningTaggerProvider>();
-                    outliningTaggerProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(true);
 
-                    try
+                    // If this file is a metadata-from-source file, we want to force-collapse
+                    if (isOpenMetadataAsSource)
                     {
-                        // If this file is a metadata-from-source file, we want to force-collapse
-                        if (isOpenMetadataAsSource)
-                        {
-                            outliningManager.CollapseAll(new SnapshotSpan(wpfTextView.TextBuffer.CurrentSnapshot,
-                                                                          start: 0,
-                                                                          length: wpfTextView.TextBuffer.CurrentSnapshot.Length),
-                                                         c => c.Tag.IsImplementation);
-                        }
-                        else
-                        {
-                            // Set the initial outlining state by reading from the suo file, this operation requires
-                            // us to synchronously compute the outlining region tags.
-                            viewEx.PersistOutliningState();
-                        }
+                        outliningManager.CollapseAll(new SnapshotSpan(wpfTextView.TextBuffer.CurrentSnapshot,
+                                                                      start: 0,
+                                                                      length: wpfTextView.TextBuffer.CurrentSnapshot.Length),
+                                                     c => c.Tag.IsImplementation);
                     }
-                    finally
+                    else
                     {
-                        outliningTaggerProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(false);
+                        // Set the initial outlining state by reading from the suo file, this operation requires
+                        // us to synchronously compute the outlining region tags.
+                        viewEx.PersistOutliningState();
                     }
                 }
             }

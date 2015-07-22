@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     /// It's responsibility is on interaction between host and tagger. TagSource has responsibility 
     /// on how to provide information for this tagger.
     /// </summary>
-    internal sealed partial class AsynchronousTagger<TTag> : ITagger<TTag>, IDisposable
+    internal sealed partial class AsynchronousTagger<TTag> : IAccurateTagger<TTag>, IDisposable
         where TTag : ITag
     {
         private const int MaxNumberOfRequestedSpans = 100;
@@ -118,13 +118,28 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
         {
+            return GetTagsWorker(requestedSpans, accurate: false, cancellationToken: CancellationToken.None);
+        }
+
+        public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection requestedSpans, CancellationToken cancellationToken)
+        {
+            return GetTagsWorker(requestedSpans, accurate: true, cancellationToken: cancellationToken);
+        }
+
+        private IEnumerable<ITagSpan<TTag>> GetTagsWorker(
+            NormalizedSnapshotSpanCollection requestedSpans,
+            bool accurate,
+            CancellationToken cancellationToken)
+        {
             if (requestedSpans.Count == 0)
             {
                 return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
             }
 
             var buffer = requestedSpans.First().Snapshot.TextBuffer;
-            var tags = TagSource.GetTagIntervalTreeForBuffer(buffer);
+            var tags = accurate
+                ? TagSource.GetAccurateTagIntervalTreeForBuffer(buffer, cancellationToken)
+                : TagSource.GetTagIntervalTreeForBuffer(buffer);
 
             if (tags == null)
             {
