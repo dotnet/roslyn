@@ -746,9 +746,9 @@
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SelectionChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.SemanticChangedEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.TextChangedEventSource.cs" />
-    <Compile Include="Shared\Tagging\TagProviders\AsynchronousBufferTaggerProviderWithTagSource.cs" />
-    <Compile Include="Shared\Tagging\TagProviders\AsynchronousViewTaggerProviderWithTagSource.cs" />
-    <Compile Include="Shared\Tagging\TagProviders\AbstractAsynchronousTaggerProvider.cs" />
+    <Compile Include="Tagging\AsynchronousBufferTaggerProviderWithTagSource.cs" />
+    <Compile Include="Tagging\AsynchronousViewTaggerProviderWithTagSource.cs" />
+    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.cs" />
     <Compile Include="Shared\Tagging\Tags\AbstractNavigatableReferenceHighlightingTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
