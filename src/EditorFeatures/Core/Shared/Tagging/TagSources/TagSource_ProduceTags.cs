@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> previousSpans)
         {
             return new NormalizedSnapshotSpanCollection(
-                Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), new DiffSpanComparer(this.TagComparer)));
+                Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), this.TagComparer));
         }
 
         /// <summary>
@@ -795,31 +795,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return tags;
-        }
-
-        private class DiffSpanComparer : IDiffSpanComparer<ITagSpan<TTag>>
-        {
-            private readonly IEqualityComparer<TTag> _comparer;
-
-            public DiffSpanComparer(IEqualityComparer<TTag> comparer)
-            {
-                _comparer = comparer;
-            }
-
-            public bool IsDefault(ITagSpan<TTag> tagSpan)
-            {
-                return tagSpan == null;
-            }
-
-            public SnapshotSpan GetSpan(ITagSpan<TTag> tagSpan)
-            {
-                return tagSpan.Span;
-            }
-
-            public bool Equals(ITagSpan<TTag> tagSpan1, ITagSpan<TTag> tagSpan2)
-            {
-                return _comparer.Equals(tagSpan1.Tag, tagSpan2.Tag);
-            }
         }
     }
 }

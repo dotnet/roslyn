@@ -168,7 +168,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".
         /// </summary>
-        private static IEnumerable<SnapshotSpan> Difference<T>(IEnumerable<T> latestSpans, IEnumerable<T> previousSpans, IDiffSpanComparer<T> diffComparer)
+        private static IEnumerable<SnapshotSpan> Difference<T>(IEnumerable<ITagSpan<T>> latestSpans, IEnumerable<ITagSpan<T>> previousSpans, IEqualityComparer<T> comparer)
+            where T : ITag
         {
             var latestEnumerator = latestSpans.GetEnumerator();
             var previousEnumerator = previousSpans.GetEnumerator();
@@ -177,10 +178,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var latest = NextOrDefault(latestEnumerator);
                 var previous = NextOrDefault(previousEnumerator);
 
-                while (!diffComparer.IsDefault(latest) && !diffComparer.IsDefault(previous))
+                while (latest != null && previous != null)
                 {
-                    var latestSpan = diffComparer.GetSpan(latest);
-                    var previousSpan = diffComparer.GetSpan(previous);
+                    var latestSpan = latest.Span;
+                    var previousSpan = previous.Span;
 
                     if (latestSpan.Start < previousSpan.Start)
                     {
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                         }
                         else
                         {
-                            if (!diffComparer.Equals(latest, previous))
+                            if (!comparer.Equals(latest.Tag, previous.Tag))
                             {
                                 yield return latestSpan;
                             }
@@ -219,15 +220,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     }
                 }
 
-                while (!diffComparer.IsDefault(latest))
+                while (latest != null)
                 {
-                    yield return diffComparer.GetSpan(latest);
+                    yield return latest.Span;
                     latest = NextOrDefault(latestEnumerator);
                 }
 
-                while (!diffComparer.IsDefault(previous))
+                while (previous != null)
                 {
-                    yield return diffComparer.GetSpan(previous);
+                    yield return previous.Span;
                     previous = NextOrDefault(previousEnumerator);
                 }
             }
@@ -236,13 +237,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 latestEnumerator.Dispose();
                 previousEnumerator.Dispose();
             }
-        }
-
-        private interface IDiffSpanComparer<T>
-        {
-            bool IsDefault(T t);
-            SnapshotSpan GetSpan(T t);
-            bool Equals(T t1, T t2);
         }
     }
 }
