@@ -31,23 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this.notificationService = notificationService;
         }
 
-        private T GetOption<T>(ITextBuffer buffer, Option<T> option)
-        {
-            return buffer.GetOption(option);
-        }
-
-        private T GetOption<T>(ITextBuffer buffer, PerLanguageOption<T> option)
-        {
-            return buffer.GetOption(option);
-        }
-
         private TagSource<TTag> CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var options = this.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
             var perLanguageOptions = this.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
-            if (options.Any(option => !this.GetOption(subjectBuffer, option)) ||
-                perLanguageOptions.Any(option => !this.GetOption(subjectBuffer, option)))
+            if (options.Any(option => !subjectBuffer.GetOption(option)) ||
+                perLanguageOptions.Any(option => !subjectBuffer.GetOption(option)))
             {
                 return null;
             }
@@ -57,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         protected ITagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
-            if (!this.GetOption(subjectBuffer, EditorComponentOnOffOptions.Tagger))
+            if (!subjectBuffer.GetOption(EditorComponentOnOffOptions.Tagger))
             {
                 return null;
             }
