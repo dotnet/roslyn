@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         internal readonly AsynchronousSerialWorkQueue WorkQueue;
 
-        private readonly ITextBuffer SubjectBuffer;
+        private readonly ITextBuffer _subjectBuffer;
 
         /// <summary>
         /// async operation notifier
         /// </summary>
-        private readonly IAsynchronousOperationListener Listener;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>
         /// foreground notification service
@@ -52,25 +52,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
-            this.SubjectBuffer = subjectBuffer;
-            _textViewOpt = textViewOpt;
-            _dataSource = dataSource;
-
-            _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
-
-            this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-
-            _notificationService = notificationService;
-
-            this.Listener = asyncListener;
-            this.WorkQueue = new AsynchronousSerialWorkQueue(asyncListener);
-
-            StartInitialRefresh();
-
             if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
             {
                 throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
             }
+
+            _subjectBuffer = subjectBuffer;
+            _textViewOpt = textViewOpt;
+            _dataSource = dataSource;
+            _asyncListener = asyncListener;
+            _notificationService = notificationService;
+            _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
+
+            this.WorkQueue = new AsynchronousSerialWorkQueue(asyncListener);
+            this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+
+            StartInitialRefresh();
 
             _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
 
@@ -79,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
         {
-            _notificationService.RegisterNotification(action, delay, this.Listener.BeginAsyncOperation("TagSource"), cancellationToken);
+            _notificationService.RegisterNotification(action, delay, this._asyncListener.BeginAsyncOperation("TagSource"), cancellationToken);
         }
 
         public event Action<ICollection<KeyValuePair<ITextBuffer,NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
@@ -92,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
-            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
+            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this._subjectBuffer), this.WorkQueue.CancellationToken);
         }
 
         public void Disconnect()
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
             {
-                this.SubjectBuffer.Changed -= OnSubjectBufferChanged;
+                this._subjectBuffer.Changed -= OnSubjectBufferChanged;
             }
 
             _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;

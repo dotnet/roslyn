@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
             {
-                this.SubjectBuffer.Changed += OnSubjectBufferChanged;
+                this._subjectBuffer.Changed += OnSubjectBufferChanged;
             }
 
             if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private void OnChanged(object sender, TaggerEventArgs e)
         {
-            using (var token = this.Listener.BeginAsyncOperation("OnChanged"))
+            using (var token = this._asyncListener.BeginAsyncOperation("OnChanged"))
             {
                 // First, cancel any previous requests (either still queued, or started).  We no longer
                 // want to continue it if new changes have come in.
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var oldTagTrees = this.CachedTagTrees;
             this.CachedTagTrees = ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>>.Empty;
 
-            var snapshot = this.SubjectBuffer.CurrentSnapshot;
+            var snapshot = this._subjectBuffer.CurrentSnapshot;
             var oldTagTree = GetTagTree(snapshot, oldTagTrees);
             var newTagTree = GetTagTree(snapshot, this.CachedTagTrees);
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private SnapshotPoint? GetCaretPoint()
         {
             this.AssertIsForeground();
-            return _dataSource.GetCaretPoint(_textViewOpt, SubjectBuffer) ?? _textViewOpt?.GetCaretPoint(SubjectBuffer);
+            return _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer) ?? _textViewOpt?.GetCaretPoint(_subjectBuffer);
         }
 
         private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // TODO: Update to tag spans from all related documents.
 
             var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
-            var dataSourceSpans = _dataSource.GetSpansToTag(_textViewOpt, SubjectBuffer)?.ToList();
+            var dataSourceSpans = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer)?.ToList();
             var spansToTag = dataSourceSpans == null || dataSourceSpans.Count == 0
                 ? this.GetFullBufferSpan()
                 : dataSourceSpans;
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private IList<SnapshotSpan> GetFullBufferSpan()
         {
             // For a standard tagger, the spans to tag is the span of the entire snapshot.
-            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
+            return new[] { _subjectBuffer.CurrentSnapshot.GetFullSpan() };
         }
 
         [Conditional("DEBUG")]
