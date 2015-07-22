@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
     {
+#if false
         [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void ErrorTagGeneratedForError()
         {
@@ -226,5 +227,6 @@ class Program
                 return GetErrorSpans(workspace);
             }
         }
+#endif
     }
 }

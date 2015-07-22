@@ -139,6 +139,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             var subTextSpan = service.GetMemberBodySpanForSpeculativeBinding(member);
+            if (subTextSpan.IsEmpty)
+            {
+                // Wasn't a member we could reclassify indepdently.
+                return false;
+            }
+
             var subSpan = subTextSpan.Contains(changedSpan) ? subTextSpan.ToSpan() : member.FullSpan.ToSpan();
 
             var subSpanToTag = new DocumentSnapshotSpan(spanToTag.Document,

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public class DiagnosticTagSourceTests
     {
+#if false
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void Test_TagSourceDiffer()
         {
@@ -87,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var optionsService = workspace.Services.GetService<IOptionService>();
             taggerSource = new DiagnosticsSquiggleTaggerProvider.TagSource(buffer, foregroundService, diagnosticService, optionsService, squiggleWaiter);
         }
+#endif
 
         private class Analyzer : DiagnosticAnalyzer
         {

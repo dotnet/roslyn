@@ -1,53 +1,85 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
-    internal abstract class AbstractDiagnosticsTaggerProvider<TTag> :
-        AbstractAsynchronousTaggerProvider<AbstractAggregatedDiagnosticsTagSource<TTag>, TTag>, ITaggerProvider
-        where TTag : ITag
+    internal abstract class AbstractDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag> where TTag : ITag
     {
-        protected readonly DiagnosticService DiagnosticService;
+        private readonly IDiagnosticService _diagnosticService;
 
-        public AbstractDiagnosticsTaggerProvider(
+        protected AbstractDiagnosticsTaggerProvider(
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListener listener)
             : base(listener, notificationService)
         {
-            this.DiagnosticService = diagnosticService as DiagnosticService;
+            _diagnosticService = diagnosticService;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
+        protected abstract bool IsEnabled { get; }
+        protected abstract bool IncludeDiagnostic(DiagnosticData data);
+        protected abstract ITagSpan<TTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data);
+
+        public override sealed ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            if (subjectBuffer == null)
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService, TaggerDelay.Medium));
+        }
+
+        public override sealed Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        {
+            ProduceTags(context, spanToTag);
+            return SpecializedTasks.EmptyTask;
+        }
+
+        private void ProduceTags(AsynchronousTaggerContext<TTag> context, DocumentSnapshotSpan spanToTag)
+        {
+            if (!IsEnabled)
             {
-                throw new ArgumentNullException(nameof(subjectBuffer));
+                return;
             }
 
-            return this.GetOrCreateTagger<T>(null, subjectBuffer);
-        }
+            var document = spanToTag.Document;
+            if (document == null)
+            {
+                return;
+            }
 
-        protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out AbstractAggregatedDiagnosticsTagSource<TTag> tagSource)
-        {
-            return subjectBuffer.Properties.TryGetProperty(UniqueKey, out tagSource);
-        }
+            var project = document.Project;
+            var diagnostics = _diagnosticService.GetDiagnostics(
+                project.Solution.Workspace, project.Id, document.Id, id: null, cancellationToken: context.CancellationToken);
 
-        protected sealed override void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, AbstractAggregatedDiagnosticsTagSource<TTag> tagSource)
-        {
-            subjectBuffer.Properties.AddProperty(UniqueKey, tagSource);
-        }
-
-        protected sealed override void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            subjectBuffer.Properties.RemoveProperty(UniqueKey);
+            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+            var sourceText = snapshot.AsText();
+            var requestedSpan = spanToTag.SnapshotSpan.Span.ToTextSpan();
+            foreach (var diagnosticData in diagnostics)
+            {
+                if (IncludeDiagnostic(diagnosticData))
+                {
+                    var actualSpan = diagnosticData.GetExistingOrCalculatedTextSpan(sourceText);
+                    if (actualSpan.IntersectsWith(requestedSpan))
+                    {
+                        var tagSpan = CreateTagSpan(actualSpan.ToSnapshotSpan(snapshot), diagnosticData);
+                        if (tagSpan != null)
+                        {
+                            context.AddTag(tagSpan);
+                        }
+                    }
+                }
+            }
         }
     }
 }

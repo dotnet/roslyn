@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
     public abstract class AbstractSquiggleProducerTests
     {
+#if false
         protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(TestWorkspace workspace, ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
             var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
@@ -99,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             return spans;
         }
+#endif
 
         internal static DiagnosticData CreateDiagnosticData(TestWorkspace workspace, TestHostDocument document, TextSpan span)
         {

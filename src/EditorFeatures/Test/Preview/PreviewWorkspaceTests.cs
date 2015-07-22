@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
+#if false
         [Fact]
         public void TestPreviewDiagnosticTagger()
         {
@@ -294,6 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 Assert.Equal(0, rightSpans == null ? 0 : rightSpans.Count);
             }
         }
+#endif
 
         private class ErrorSquiggleWaiter : AsynchronousOperationListener { }
     }
