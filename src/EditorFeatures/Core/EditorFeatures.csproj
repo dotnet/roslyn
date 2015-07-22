@@ -726,7 +726,6 @@
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />
-    <Compile Include="Shared\Tagging\Utilities\ITagSpanIntervalTree.cs" />
     <Compile Include="Shared\Utilities\BrushToColorConverter.cs" />
     <Compile Include="Shared\Utilities\CodeAnalysisColors.cs" />
     <Compile Include="Shared\Utilities\HighContrastChecker.cs" />
@@ -752,8 +751,8 @@
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
-    <Compile Include="Tagging\BatchChangeNotifier.cs" />
-    <Compile Include="Tagging\TagSpanComparer.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.BatchChangeNotifier.cs" />
+    <Compile Include="Tagging\AsynchronousTaggerProvider.TagSpanComparer.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.IntervalIntrospector.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.TagNode.cs" />

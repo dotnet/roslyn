@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
             /// exist for the buffer at all, null is returned.
             /// </summary>
-            public ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            public TagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 this._workQueue.AssertIsForeground();
 
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return tags;
             }
 
-            public ITagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
+            public TagSpanIntervalTree<TTag> GetAccurateTagIntervalTreeForBuffer(ITextBuffer buffer, CancellationToken cancellationToken)
             {
                 this._workQueue.AssertIsForeground();
 

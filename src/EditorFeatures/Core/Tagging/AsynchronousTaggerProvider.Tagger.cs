@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return result;
             }
 
-            private static IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans, ITagSpanIntervalTree<TTag> tags)
+            private static IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans, TagSpanIntervalTree<TTag> tags)
             {
                 // Special case the case where there is only one requested span.  In that case, we don't
                 // need to allocate any intermediate collections
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private static IEnumerable<ITagSpan<TTag>> GetTagsForSmallNumberOfSpans(
                 NormalizedSnapshotSpanCollection requestedSpans,
-                ITagSpanIntervalTree<TTag> tags)
+                TagSpanIntervalTree<TTag> tags)
             {
                 var result = new List<ITagSpan<TTag>>();
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private static IEnumerable<ITagSpan<TTag>> GetTagsForLargeNumberOfSpans(
                 NormalizedSnapshotSpanCollection requestedSpans,
-                ITagSpanIntervalTree<TTag> tags)
+                TagSpanIntervalTree<TTag> tags)
             {
                 // we are asked with bunch of spans. rather than asking same question again and again, ask once with big span
                 // which will return superset of what we want. and then filter them out in O(m+n) cost. 
