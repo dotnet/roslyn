@@ -1,4 +1,5 @@
 # Supported Edits in Edit & Continue (EnC)
+Edit & Continue lets you modify/add to your source code in break-mode while debugging without ever having to restart your debugging session. 
 
 **Definitions**
 * [Variable Capturing](http://blogs.msdn.com/b/matt/archive/2008/03/01/understanding-variable-capturing-in-c.aspx) is the mechanism in which the lambda/delegate which is defined inline is able to hold on to any variables within its lexical scope
