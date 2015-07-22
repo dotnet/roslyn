@@ -53,16 +53,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected override ITagSpan<IErrorTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateErrorTag(data);
-            return errorTag == null
-                ? null
-                : new TagSpan<IErrorTag>(AdjustSnapshotSpan(span), errorTag);
+            if (errorTag == null)
+            {
+                return null;
+            }
+
+            // Error squiggles have to be at least 1 character long.
+            var minimumLength = 1;
+            var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
+            if (adjustedSpan.Length == 0)
+            {
+                return null;
+            }
+
+            return new TagSpan<IErrorTag>(adjustedSpan, errorTag);
         }
 
-        private static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span)
+        private static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
         {
-            // Error squiggles have to be at least 1 character long.
             var snapshot = span.Snapshot;
-            var minimumLength = 1;
 
             // new length
             var length = Math.Max(span.Length, minimumLength);

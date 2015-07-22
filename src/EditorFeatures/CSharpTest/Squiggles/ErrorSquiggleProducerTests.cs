@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
 {
     public class ErrorSquiggleProducerTests : AbstractSquiggleProducerTests
     {
-#if false
         [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public void ErrorTagGeneratedForError()
         {
@@ -171,10 +170,10 @@ class Program
 
                 var spans = GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
-                Assert.Equal(1, spans.Count());
-                var first = spans.First();
-
-                Assert.Equal(1, first.Span.Span.Length);
+                // Make sure the diagnostic span has been appropriately widened.
+                Assert.Equal(2, spans.Count());
+                Assert.Equal(1, spans[0].Span.Span.Length);
+                Assert.Equal(1, spans[1].Span.Span.Length);
             }
         }
 
@@ -227,6 +226,5 @@ class Program
                 return GetErrorSpans(workspace);
             }
         }
-#endif
     }
 }

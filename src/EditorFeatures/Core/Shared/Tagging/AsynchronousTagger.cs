@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         #region Fields that can be accessed from either thread
 
         private readonly ITextBuffer _subjectBuffer;
-        private readonly TagSource<TTag> _tagSource;
+
+        // Internal for testing purposes.
+        internal readonly TagSource<TTag> TagSource;
 
         #endregion
 
@@ -54,20 +56,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _subjectBuffer = subjectBuffer;
             _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
 
-            _tagSource = tagSource;
+            TagSource = tagSource;
 
-            _tagSource.OnTaggerAdded(this);
-            _tagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
-            _tagSource.Paused += OnPaused;
-            _tagSource.Resumed += OnResumed;
+            TagSource.OnTaggerAdded(this);
+            TagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
+            TagSource.Paused += OnPaused;
+            TagSource.Resumed += OnResumed;
         }
 
         public void Dispose()
         {
-            _tagSource.Resumed -= OnResumed;
-            _tagSource.Paused -= OnPaused;
-            _tagSource.TagsChangedForBuffer -= OnTagsChangedForBuffer;
-            _tagSource.OnTaggerDisposed(this);
+            TagSource.Resumed -= OnResumed;
+            TagSource.Paused -= OnPaused;
+            TagSource.TagsChangedForBuffer -= OnTagsChangedForBuffer;
+            TagSource.OnTaggerDisposed(this);
         }
 
         private void ReportChangedSpan(SnapshotSpan changeSpan)
@@ -96,9 +98,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             // up in an inconsistent state between us and the editor where we have new tags but the
             // editor will never know.
 
-            _tagSource.RegisterNotification(() =>
+            TagSource.RegisterNotification(() =>
             {
-                _tagSource.WorkQueue.AssertIsForeground();
+                TagSource.WorkQueue.AssertIsForeground();
 
                 foreach (var change in changes)
                 {
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             var buffer = requestedSpans.First().Snapshot.TextBuffer;
-            var tags = _tagSource.GetTagIntervalTreeForBuffer(buffer);
+            var tags = TagSource.GetTagIntervalTreeForBuffer(buffer);
 
             if (tags == null)
             {

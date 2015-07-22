@@ -4,19 +4,21 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MiscDiagnosticUpdateSourceTests
-#If False Then
         <Fact>
         Public Sub TestMiscSquiggles()
             Dim code = <code>
@@ -27,25 +29,29 @@ class 123 { }
                 Assert.False(miscService.SupportGetDiagnostics)
 
                 Dim diagnosticWaiter = New DiagnosticServiceWaiter()
-                Dim listener = SpecializedCollections.SingletonEnumerable(New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
-                    Function() diagnosticWaiter,
-                    New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.DiagnosticService}})))
+                Dim listeners = {
+                    New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
+                        Function() diagnosticWaiter,
+                        New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.DiagnosticService}})),
+                    New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
+                        Function() diagnosticWaiter,
+                        New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.ErrorSquiggles}}))}
 
-                Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listener)
+                Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listeners)
 
                 Dim optionsService = workspace.Services.GetService(Of IOptionService)()
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                Dim squiggleWaiter = New ErrorSquiggleWaiter()
-                Dim foregroundService = New TestForegroundNotificationService()
-                Dim taggerSource = New DiagnosticsSquiggleTaggerProvider.TagSource(buffer, foregroundService, diagnosticService, optionsService, squiggleWaiter)
+                Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
+                Dim tagger = DirectCast(provider.CreateTagger(Of IErrorTag)(buffer), AsynchronousTagger(Of IErrorTag))
+                Dim taggerSource = tagger.TagSource
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
                 diagnosticWaiter.CreateWaitTask().PumpingWait()
-                squiggleWaiter.CreateWaitTask().PumpingWait()
 
                 Dim snapshot = buffer.CurrentSnapshot
                 Dim intervalTree = taggerSource.GetTagIntervalTreeForBuffer(buffer)
@@ -57,7 +63,6 @@ class 123 { }
                 taggerSource.TestOnly_Dispose()
             End Using
         End Sub
-#End If
 
         <Fact>
         Public Sub TestMiscCSharpErrorSource()
@@ -103,6 +108,5 @@ End Class
         End Sub
 
         Private Class DiagnosticServiceWaiter : Inherits AsynchronousOperationListener : End Class
-        Private Class ErrorSquiggleWaiter : Inherits AsynchronousOperationListener : End Class
     End Class
 End Namespace

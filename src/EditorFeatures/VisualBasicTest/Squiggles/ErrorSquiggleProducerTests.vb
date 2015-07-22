@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
         Inherits AbstractSquiggleProducerTests
 
-#If False Then
         Private Function ProduceSquiggles(ParamArray lines As String()) As IEnumerable(Of ITagSpan(Of IErrorTag))
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(lines)
                 Return GetErrorSpans(workspace)
@@ -106,6 +105,5 @@ End Class").OrderBy(Function(s) s.Span.Span.Start).ToImmutableArray()
             Assert.Equal(221, second.Span.Start)
             Assert.Equal(5, second.Span.Length)
         End Sub
-#End If
     End Class
 End Namespace

@@ -7,12 +7,14 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -21,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public class DiagnosticTagSourceTests
     {
-#if false
         [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void Test_TagSourceDiffer()
         {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 Analyzer analyzer;
                 DiagnosticAnalyzerService analyzerService;
-                DiagnosticsSquiggleTaggerProvider.TagSource taggerSource;
+                TagSource<IErrorTag> taggerSource;
                 GetTagSource(workspace, diagnosticWaiter, squiggleWaiter, out analyzer, out analyzerService, out taggerSource);
 
                 taggerSource.TagsChangedForBuffer += c =>
@@ -70,25 +71,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private static void GetTagSource(TestWorkspace workspace, DiagnosticServiceWaiter diagnosticWaiter, ErrorSquiggleWaiter squiggleWaiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out DiagnosticsSquiggleTaggerProvider.TagSource taggerSource)
+        private static void GetTagSource(TestWorkspace workspace, DiagnosticServiceWaiter diagnosticWaiter, ErrorSquiggleWaiter squiggleWaiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out TagSource<IErrorTag> taggerSource)
         {
             analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>() { { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) } };
             analyzerService = new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary());
 
-            var diagnosticListeners = SpecializedCollections.SingletonEnumerable(new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                    () => diagnosticWaiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.DiagnosticService } })));
+            var listeners = new[] {
+                new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                    () => diagnosticWaiter,
+                    new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.DiagnosticService } })),
+                new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                    () => diagnosticWaiter,
+                    new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.ErrorSquiggles } })) };
 
-            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), diagnosticListeners);
+            var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
 
             var document = workspace.Documents.First();
             var buffer = document.GetTextBuffer();
 
-            var foregroundService = new TestForegroundNotificationService();
+            var notificationService = workspace.GetService<IForegroundNotificationService>(); // new TestForegroundNotificationService();
             var optionsService = workspace.Services.GetService<IOptionService>();
-            taggerSource = new DiagnosticsSquiggleTaggerProvider.TagSource(buffer, foregroundService, diagnosticService, optionsService, squiggleWaiter);
+            var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, notificationService, listeners);
+            var tagger = (AsynchronousTagger<IErrorTag>)provider.CreateTagger<IErrorTag>(buffer);
+            taggerSource = tagger.TagSource;
         }
-#endif
 
         private class Analyzer : DiagnosticAnalyzer
         {
