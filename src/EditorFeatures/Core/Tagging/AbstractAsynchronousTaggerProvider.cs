@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
-    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : IAsynchronousTaggerDataSource<TTag>
+    internal abstract partial class AsynchronousTaggerProvider<TTag> : IAsynchronousTaggerDataSource<TTag>, ITaggerProvider, IViewTaggerProvider
         where TTag : ITag
     {
         private readonly object uniqueKey = new object();
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public virtual IEnumerable<Option<bool>> Options => null;
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
-        protected AbstractAsynchronousTaggerProvider(
+        protected AsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
@@ -150,6 +151,41 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
+        }
+
+        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
+        {
+            if (subjectBuffer == null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffer));
+            }
+
+            return this.GetOrCreateTagger<T>(null, subjectBuffer);
+        }
+
+        ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        {
+            return CreateTagger<T>(buffer);
+        }
+
+        public IAccurateTagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
+        {
+            if (textView == null)
+            {
+                throw new ArgumentNullException(nameof(textView));
+            }
+
+            if (subjectBuffer == null)
+            {
+                throw new ArgumentNullException(nameof(subjectBuffer));
+            }
+
+            return this.GetOrCreateTagger<T>(textView, subjectBuffer);
+        }
+
+        ITagger<T> IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
+        {
+            return this.CreateTagger<T>(textView, buffer);
         }
     }
 }

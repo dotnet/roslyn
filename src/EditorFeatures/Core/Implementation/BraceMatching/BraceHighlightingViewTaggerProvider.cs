@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
-    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag>
+    internal class BraceHighlightingViewTaggerProvider : AsynchronousTaggerProvider<BraceHighlightTag>
     {
         private readonly IBraceMatchingService _braceMatcherService;
 

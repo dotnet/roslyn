@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal partial class AbstractAsynchronousTaggerProvider<TTag>
+    internal partial class AsynchronousTaggerProvider<TTag>
     {
         /// <summary>
         /// <para>The <see cref="TagSource"/> is the core part of our asynchronous
