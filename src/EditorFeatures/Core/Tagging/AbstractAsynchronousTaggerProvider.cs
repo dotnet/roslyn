@@ -19,16 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract class AbstractAsynchronousTaggerProvider<TTag> : AsynchronousTaggerDataSource<TTag>
         where TTag : ITag
     {
-        private readonly object UniqueKey = new object();
-        private readonly IAsynchronousOperationListener AsyncListener;
-        private readonly IForegroundNotificationService NotificationService;
+        private readonly object uniqueKey = new object();
+        private readonly IAsynchronousOperationListener asyncListener;
+        private readonly IForegroundNotificationService notificationService;
 
         public AbstractAsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
-            this.AsyncListener = asyncListener;
-            this.NotificationService = notificationService;
+            this.asyncListener = asyncListener;
+            this.notificationService = notificationService;
         }
 
         private T GetOption<T>(ITextBuffer buffer, Option<T> option)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return null;
             }
 
-            return new TagSource<TTag>(textViewOpt, subjectBuffer, this, AsyncListener, NotificationService);
+            return new TagSource<TTag>(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
 
         protected ITagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
             return tagSource == null
                 ? null
-                : new AsynchronousTagger<TTag>(this.AsyncListener, this.NotificationService, tagSource, subjectBuffer) as ITagger<T>;
+                : new AsynchronousTagger<TTag>(this.asyncListener, this.notificationService, tagSource, subjectBuffer) as ITagger<T>;
         }
 
         protected TagSource<TTag> GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -89,19 +89,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource<TTag> tagSource)
         {
             return textViewOpt != null
-                ? textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, UniqueKey, out tagSource)
-                : subjectBuffer.Properties.TryGetProperty(UniqueKey, out tagSource);
+                ? textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, uniqueKey, out tagSource)
+                : subjectBuffer.Properties.TryGetProperty(uniqueKey, out tagSource);
         }
 
         private void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             if (textViewOpt != null)
             {
-                textViewOpt.RemovePerSubjectBufferProperty<TagSource<TTag>, ITextView>(subjectBuffer, UniqueKey);
+                textViewOpt.RemovePerSubjectBufferProperty<TagSource<TTag>, ITextView>(subjectBuffer, uniqueKey);
             }
             else
             {
-                subjectBuffer.Properties.RemoveProperty(UniqueKey);
+                subjectBuffer.Properties.RemoveProperty(uniqueKey);
             }
         }
 
@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (textViewOpt != null)
             {
-                textViewOpt.AddPerSubjectBufferProperty(subjectBuffer, UniqueKey, tagSource);
+                textViewOpt.AddPerSubjectBufferProperty(subjectBuffer, uniqueKey, tagSource);
             }
             else
             {
-                subjectBuffer.Properties.AddProperty(UniqueKey, tagSource);
+                subjectBuffer.Properties.AddProperty(uniqueKey, tagSource);
             }
         }
     }
