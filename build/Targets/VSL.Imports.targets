@@ -51,8 +51,8 @@
 
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TestCoreClr)' != 'True'" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TestCoreClr)' != 'True'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
   <PropertyGroup>
@@ -125,9 +125,9 @@
     </ItemGroup>
   </Target>
 
-  <PropertyGroup Condition="'$(TestCoreClr)' == 'true'">
+  <PropertyGroup Condition="'$(TargetCoreClr)' == 'True'">
 
-    <BuildToolsVersion>1.0.25-prerelease-00056</BuildToolsVersion>
+    <BuildToolsVersion>1.0.25-prerelease-00063</BuildToolsVersion>
 
     <!-- fix this to be not hacky -->
     <BuildToolsDir>$(NuGetPackagesPath)\Microsoft.DotNet.BuildTools.$(BuildToolsVersion)\lib\</BuildToolsDir>
@@ -165,7 +165,7 @@
 
  </PropertyGroup>
 
-  <Import Condition="'$(TestCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
+  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
 
   <!-- ====================================================================================
 
