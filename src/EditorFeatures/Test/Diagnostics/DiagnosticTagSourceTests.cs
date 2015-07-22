@@ -31,13 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);
 
-                var diagnosticWaiter = new DiagnosticServiceWaiter();
-                var squiggleWaiter = new ErrorSquiggleWaiter();
+                var waiter = new DiagnosticServiceWaiter();
 
                 Analyzer analyzer;
                 DiagnosticAnalyzerService analyzerService;
                 ITagger<IErrorTag> tagger;
-                GetTagger(workspace, diagnosticWaiter, squiggleWaiter, out analyzer, out analyzerService, out tagger);
+                GetTagger(workspace, waiter, out analyzer, out analyzerService, out tagger);
 
                 var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                 var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
@@ -45,8 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // test first update
                 service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
-                diagnosticWaiter.CreateWaitTask().PumpingWait();
-                squiggleWaiter.CreateWaitTask().PumpingWait();
+                waiter.CreateWaitTask().PumpingWait();
 
                 var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                 var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
@@ -61,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
 
-                diagnosticWaiter.CreateWaitTask().PumpingWait();
-                squiggleWaiter.CreateWaitTask().PumpingWait();
+                waiter.CreateWaitTask().PumpingWait();
 
                 snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                 spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
@@ -73,15 +70,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private static void GetTagger(TestWorkspace workspace, DiagnosticServiceWaiter diagnosticWaiter, ErrorSquiggleWaiter squiggleWaiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out ITagger<IErrorTag> tagger)
+        private static void GetTagger(TestWorkspace workspace, DiagnosticServiceWaiter waiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out ITagger<IErrorTag> tagger)
         {
             analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>() { { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) } };
             analyzerService = new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary());
 
             var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, diagnosticWaiter),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, diagnosticWaiter));
+                ValueTuple.Create(FeatureAttribute.DiagnosticService, waiter),
+                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, waiter));
 
             var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
 
@@ -121,6 +118,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         }
 
         private class DiagnosticServiceWaiter : AsynchronousOperationListener { }
-        private class ErrorSquiggleWaiter : AsynchronousOperationListener { }
     }
 }
