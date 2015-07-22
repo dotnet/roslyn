@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
@@ -15,13 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
-    /// <summary>
-    /// <para>this is a bare minimum base implementation of TagSource where you can provide your own 
-    /// implementation that doesn't rely on any other framework such as event source, event producer
-    /// to participate in async tagger framework</para>
-    /// </summary>
-    /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal abstract partial class TagSource<TTag> : 
+    internal sealed partial class TagSource<TTag> : 
         ForegroundThreadAffinitizedObject
         where TTag : ITag
     {
@@ -36,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         internal readonly AsynchronousSerialWorkQueue WorkQueue;
 
-        protected readonly ITextBuffer SubjectBuffer;
+        private readonly ITextBuffer SubjectBuffer;
 
         /// <summary>
         /// async operation notifier
         /// </summary>
-        protected readonly IAsynchronousOperationListener Listener;
+        private readonly IAsynchronousOperationListener Listener;
 
         /// <summary>
         /// foreground notification service
@@ -50,18 +45,36 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         #endregion
 
-        protected TagSource(
+        public TagSource(
+            ITextView textViewOpt,
             ITextBuffer subjectBuffer,
-            IForegroundNotificationService notificationService,
-            IAsynchronousOperationListener asyncListener)
+            IAsynchronousTaggerDataSource<TTag> dataSource,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService)
         {
             this.SubjectBuffer = subjectBuffer;
+            _textViewOpt = textViewOpt;
+            _dataSource = dataSource;
+
+            _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
+
+            this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+
             _notificationService = notificationService;
 
             this.Listener = asyncListener;
             this.WorkQueue = new AsynchronousSerialWorkQueue(asyncListener);
 
             StartInitialRefresh();
+
+            if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
+            {
+                throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
+            }
+
+            _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
+
+            AttachEventHandlersAndStart();
         }
 
         public void RegisterNotification(Action action, int delay, CancellationToken cancellationToken)
@@ -75,27 +88,34 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public event EventHandler Resumed;
 
         /// <summary>
-        /// implemented by derived types to return interval tree associated with the buffer
-        /// </summary>
-        public abstract ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer);
-
-        /// <summary>
-        /// Implemented by derived types to start recalculate tags
-        /// </summary>
-        protected abstract void RecomputeTagsForeground();
-
-        /// <summary>
         /// Called by derived types to enqueue tags re-calculation request
         /// </summary>
-        protected void RecalculateTagsOnChanged(TaggerEventArgs e)
+        private void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
             RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
         }
 
-        protected virtual void Disconnect()
+        public void Disconnect()
         {
             this.WorkQueue.AssertIsForeground();
             this.WorkQueue.CancelCurrentWork();
+
+            // Tell the interaction object to stop issuing events.
+            _eventSource.Disconnect();
+
+            if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
+            {
+                this._textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+            }
+
+            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
+            {
+                this.SubjectBuffer.Changed -= OnSubjectBufferChanged;
+            }
+
+            _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
+            _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
+            _eventSource.Changed -= OnChanged;
         }
 
         private void StartInitialRefresh()
@@ -105,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             RecalculateTagsOnChanged(new TaggerEventArgs(PredefinedChangedEventKinds.TaggerCreated, TaggerDelay.Short));
         }
 
-        protected void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
+        private void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
         {
             if (difference.Count == 0)
             {
@@ -117,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 new KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>(buffer, difference)));
         }
 
-        protected void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
+        private void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
         {
             var tagsChangedForBuffer = TagsChangedForBuffer;
             if (tagsChangedForBuffer != null)
@@ -126,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected void RaisePaused()
+        private void RaisePaused()
         {
             var paused = this.Paused;
             if (paused != null)
@@ -135,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected void RaiseResumed()
+        private void RaiseResumed()
         {
             var resumed = this.Resumed;
             if (resumed != null)
@@ -152,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Return all the spans that appear in only one of "latestSpans" or "previousSpans".
         /// </summary>
-        protected static IEnumerable<SnapshotSpan> Difference<T>(IEnumerable<T> latestSpans, IEnumerable<T> previousSpans, IDiffSpanComparer<T> diffComparer)
+        private static IEnumerable<SnapshotSpan> Difference<T>(IEnumerable<T> latestSpans, IEnumerable<T> previousSpans, IDiffSpanComparer<T> diffComparer)
         {
             var latestEnumerator = latestSpans.GetEnumerator();
             var previousEnumerator = previousSpans.GetEnumerator();
@@ -222,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected interface IDiffSpanComparer<T>
+        private interface IDiffSpanComparer<T>
         {
             bool IsDefault(T t);
             SnapshotSpan GetSpan(T t);

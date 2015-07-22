@@ -21,24 +21,23 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous
+    /// <para>The <see cref="TagSource{TTag}"/> is the core part of our asynchronous
     /// tagging infrastructure. It is the coordinator between <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/>s,
     /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the
+    /// <para>The <see cref="TagSource{TTag}"/> is the type that actually owns the
     /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
     /// the tag source starts the computation and calls <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/> to build
     /// the new list of tags. When that's done, the tags are stored in <see cref="CachedTagTrees"/>. The 
     /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
     /// <see cref="CachedTagTrees"/></para>
     /// 
-    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s
+    /// <para>There is a one-to-many relationship between <see cref="TagSource{TTag}"/>s
     /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
     /// subject buffers at once) have their own providers and tag source derivations.</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
-        where TTag : ITag
+    internal partial class TagSource<TTag>
     {
         #region Fields that can be accessed from either thread
         private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
@@ -68,35 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
         #endregion
 
-        public ProducerPopulatedTagSource(
-            ITextView textViewOpt,
-            ITextBuffer subjectBuffer,
-            IAsynchronousTaggerDataSource<TTag> dataSource,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(subjectBuffer, notificationService, asyncListener)
-        {
-            if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
-            {
-                throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
-            }
-
-            _textViewOpt = textViewOpt;
-            _dataSource = dataSource;
-
-            _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
-
-            this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
-
-            _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
-
-            AttachEventHandlersAndStart();
-        }
-
         private IEqualityComparer<TTag> TagComparer =>
             _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
 
-        protected TextChangeRange? AccumulatedTextChanges
+        private TextChangeRange? AccumulatedTextChanges
         {
             get
             {
@@ -111,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> CachedTagTrees
         {
             get
             {
@@ -152,30 +126,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             // Tell the interaction object to start issuing events.
             _eventSource.Connect();
-        }
-
-        protected override void Disconnect()
-        {
-            this.WorkQueue.AssertIsForeground();
-
-            base.Disconnect();
-
-            // Tell the interaction object to stop issuing events.
-            _eventSource.Disconnect();
-
-            if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
-            {
-                this._textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
-            }
-
-            if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
-            {
-                this.SubjectBuffer.Changed -= OnSubjectBufferChanged;
-            }
-
-            _eventSource.UIUpdatesPaused -= OnUIUpdatesPaused;
-            _eventSource.UIUpdatesResumed -= OnUIUpdatesResumed;
-            _eventSource.Changed -= OnChanged;
         }
 
         private void OnUIUpdatesPaused(object sender, EventArgs e)
@@ -244,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             RaiseTagsChanged(snapshot.TextBuffer, difference);
         }
 
-        protected SnapshotPoint? GetCaretPoint()
+        private SnapshotPoint? GetCaretPoint()
         {
             this.AssertIsForeground();
             return _dataSource.GetCaretPoint(_textViewOpt, SubjectBuffer) ?? _textViewOpt?.GetCaretPoint(SubjectBuffer);
@@ -421,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Called on the foreground thread.
         /// </summary>
-        protected override void RecomputeTagsForeground()
+        private void RecomputeTagsForeground()
         {
             this.WorkQueue.AssertIsForeground();
 
@@ -446,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
+        private List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
         {
             this.WorkQueue.AssertIsForeground();
 
@@ -496,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTrees(
+        private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> ConvertToTagTrees(
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             IEnumerable<ITagSpan<TTag>> newTagSpans,
             IEnumerable<DocumentSnapshotSpan> spansTagged)
@@ -699,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             treeForBuffer.GetNonIntersectingSpans(spanTagged, beforeTags, afterTags);
         }
 
-        protected virtual async Task RecomputeTagsAsync(
+        private async Task RecomputeTagsAsync(
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             List<DocumentSnapshotSpan> spansToTag,
@@ -726,7 +676,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return newTagTrees;
         }
 
-        protected virtual void ProcessNewTagTrees(
+        private void ProcessNewTagTrees(
             List<DocumentSnapshotSpan> spansToTag,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
@@ -808,7 +758,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
         /// exist for the buffer at all, null is returned.
         /// </summary>
-        public override ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+        public ITagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
         {
             this.WorkQueue.AssertIsForeground();
 

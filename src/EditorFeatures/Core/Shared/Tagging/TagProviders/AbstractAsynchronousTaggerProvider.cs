@@ -15,16 +15,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
-    internal delegate TTagSource CreateTagSource<TTagSource, TTag>(
-        ITextView textView, ITextBuffer subjectBuffer,
-        IAsynchronousOperationListener asyncListener,
-        IForegroundNotificationService notificationService) where TTagSource : TagSource<TTag> where TTag : ITag;
-
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
-    internal abstract class AbstractAsynchronousTaggerProvider<TTagSource, TTag>
-        where TTagSource : TagSource<TTag>
+    internal abstract class AbstractAsynchronousTaggerProvider<TTag>
         where TTag : ITag
     {
         protected readonly object UniqueKey = new object();
@@ -49,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return buffer.GetOption(option);
         }
 
-        protected abstract TTagSource CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer);
+        protected abstract TagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        private TTagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private TagSource<TTag> CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             var options = this.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
             var perLanguageOptions = this.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
@@ -71,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         public virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
         public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
-        protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TTagSource tagSource);
-        protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TTagSource tagSource);
+        protected abstract bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource<TTag> tagSource);
+        protected abstract void StoreTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, TagSource<TTag> tagSource);
         protected abstract void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         protected ITagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
@@ -88,9 +82,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 : new AsynchronousTagger<TTag>(this.AsyncListener, this.NotificationService, tagSource, subjectBuffer) as ITagger<T>;
         }
 
-        protected TTagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected TagSource<TTag> GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            TTagSource tagSource;
+            TagSource<TTag> tagSource;
             if (!this.TryRetrieveTagSource(textViewOpt, subjectBuffer, out tagSource))
             {
                 tagSource = this.CreateTagSource(textViewOpt, subjectBuffer);

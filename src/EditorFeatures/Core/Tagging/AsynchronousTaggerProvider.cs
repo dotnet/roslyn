@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             IForegroundNotificationService notificationService)
         {
             _underlyingTagger = new AsynchronousBufferTaggerProviderWithTagSource<TTag>(
-                this, asyncListener, notificationService, createTagSource: null);
+                this, asyncListener, notificationService);
         }
 
         public virtual ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
