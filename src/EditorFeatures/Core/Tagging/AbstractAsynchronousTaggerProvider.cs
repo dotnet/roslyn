@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal abstract class AbstractAsynchronousTaggerProvider<TTag> : AsynchronousTaggerDataSource<TTag>
         where TTag : ITag
     {
-        protected readonly object UniqueKey = new object();
-        protected readonly IAsynchronousOperationListener AsyncListener;
-        protected readonly IForegroundNotificationService NotificationService;
+        private readonly object UniqueKey = new object();
+        private readonly IAsynchronousOperationListener AsyncListener;
+        private readonly IForegroundNotificationService NotificationService;
 
         public AbstractAsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
