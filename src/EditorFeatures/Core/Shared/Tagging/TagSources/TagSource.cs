@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             this.WorkQueue.AssertIsForeground();
 
-            RecalculateTagsOnChanged(new TaggerEventArgs(PredefinedChangedEventKinds.TaggerCreated, TaggerDelay.Short));
+            RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
         }
 
         private void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)

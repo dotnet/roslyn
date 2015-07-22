@@ -730,7 +730,6 @@
     <Compile Include="Shared\Utilities\CodeAnalysisColors.cs" />
     <Compile Include="Shared\Utilities\HighContrastChecker.cs" />
     <Compile Include="Tagging\ITaggerEventSource.cs" />
-    <Compile Include="Shared\Tagging\EventSources\PredefinedChangedEventKinds.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerConstants.cs" />
     <Compile Include="Tagging\TaggerDelay.cs" />
     <Compile Include="Tagging\TaggerEventArgs.cs" />

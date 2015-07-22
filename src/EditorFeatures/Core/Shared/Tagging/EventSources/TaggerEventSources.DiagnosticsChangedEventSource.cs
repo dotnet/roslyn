@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _service = service;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.DiagnosticsChanged;
-                }
-            }
-
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();

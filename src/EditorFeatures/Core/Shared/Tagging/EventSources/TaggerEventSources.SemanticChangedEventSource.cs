@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _notificationService = notificationService;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.SemanticsChanged;
-                }
-            }
-
             public override void Connect()
             {
                 base.Connect();

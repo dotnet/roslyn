@@ -191,14 +191,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             {
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return "Test";
-                }
-            }
-
             public void SendUpdateEvent()
             {
                 this.RaiseChanged();
