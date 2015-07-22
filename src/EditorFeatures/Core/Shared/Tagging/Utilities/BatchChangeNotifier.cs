@@ -98,10 +98,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _ => new NormalizedSnapshotSpanCollection();
 
         internal void EnqueueChanges(
-            ITextSnapshot snapshot,
             NormalizedSnapshotSpanCollection changedSpans)
         {
             AssertIsForeground();
+            if (changedSpans.Count == 0)
+            {
+                return;
+            }
+
+            var snapshot = changedSpans.First().Snapshot;
 
             var version = snapshot.Version.VersionNumber;
             var currentSpans = _snapshotVersionToSpansMap.GetOrAdd(version, s_addFunction);

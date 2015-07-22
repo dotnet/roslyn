@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             _batchChangeNotifier.Resume();
         }
+
         private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer,NormalizedSnapshotSpanCollection>> changes)
         {
             // Note: This operation is uncancellable. Once we've been notified here, our cached tags
@@ -107,8 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     }
 
                     // Now report them back to the UI on the main thread.
-                    var spansChanged = change.Value;
-                    _batchChangeNotifier.EnqueueChanges(spansChanged.First().Snapshot, spansChanged);
+                    _batchChangeNotifier.EnqueueChanges(change.Value);
                 }
 
             }, TaggerDelay.NearImmediate.ComputeTimeDelayMS(), CancellationToken.None);
