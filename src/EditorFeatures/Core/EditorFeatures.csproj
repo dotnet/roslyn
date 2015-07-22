@@ -663,6 +663,10 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
+    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
+    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />
+    <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ProduceTags.cs" />
     <Compile Include="Tagging\TaggerContext.cs" />
     <Compile Include="Tagging\TaggerCaretChangeBehavior.cs" />
     <Compile Include="Tagging\TaggerTextChangeBehavior.cs" />
@@ -723,7 +727,6 @@
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />
-    <Compile Include="Shared\Tagging\TagSources\TagSource.cs" />
     <Compile Include="Shared\Tagging\Utilities\ITagSpanIntervalTree.cs" />
     <Compile Include="Shared\Utilities\BrushToColorConverter.cs" />
     <Compile Include="Shared\Utilities\CodeAnalysisColors.cs" />
@@ -752,8 +755,6 @@
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTagDefinition.cs" />
-    <Compile Include="Shared\Tagging\TagSources\TagSource_ProduceTags.cs" />
-    <Compile Include="Shared\Tagging\TagSources\TagSource_ReferenceCounting.cs" />
     <Compile Include="Shared\Tagging\Utilities\BatchChangeNotifier.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanComparer.cs" />
     <Compile Include="Shared\Tagging\Utilities\TagSpanIntervalTree.cs" />
