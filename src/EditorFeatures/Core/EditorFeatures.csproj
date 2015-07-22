@@ -747,7 +747,7 @@
     <Compile Include="Tagging\AsynchronousTaggerProvider.cs" />
     <Compile Include="Tagging\AsynchronousViewTaggerProvider.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.cs" />
-    <Compile Include="Shared\Tagging\Tags\AbstractNavigatableReferenceHighlightingTag.cs" />
+    <Compile Include="Shared\Tagging\Tags\NavigableHighlightTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTag.cs" />
     <Compile Include="Shared\Tagging\Tags\ConflictTagDefinition.cs" />
     <Compile Include="Shared\Tagging\Tags\PreviewWarningTag.cs" />

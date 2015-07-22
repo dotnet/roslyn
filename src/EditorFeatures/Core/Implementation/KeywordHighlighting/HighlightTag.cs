@@ -4,13 +4,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
-    internal class HighlightTag : AbstractNavigatableReferenceHighlightingTag
+    internal class KeywordHighlightTag : NavigableHighlightTag
     {
         internal const string TagId = "MarkerFormatDefinition/HighlightedReference";
 
-        public static readonly HighlightTag Instance = new HighlightTag();
+        public static readonly KeywordHighlightTag Instance = new KeywordHighlightTag();
 
-        private HighlightTag()
+        private KeywordHighlightTag()
             : base(TagId)
         {
         }

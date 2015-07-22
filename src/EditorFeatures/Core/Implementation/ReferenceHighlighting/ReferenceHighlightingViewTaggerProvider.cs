@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
+    [TagType(typeof(NavigableHighlightTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag>
+    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                               .ToList();
         }
 
-        public override Task ProduceTagsAsync(TaggerContext<AbstractNavigatableReferenceHighlightingTag> context)
+        public override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         }
 
         internal async Task ProduceTagsAsync(
-            TaggerContext<AbstractNavigatableReferenceHighlightingTag> context,
+            TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Workspace workspace,
             Document document)
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
             using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
             {
-                var result = new List<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>();
+                var result = new List<ITagSpan<NavigableHighlightTag>>();
 
                 if (document != null)
                 {
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         }
 
         private async Task AddTagSpansAsync(
-            TaggerContext<AbstractNavigatableReferenceHighlightingTag> context,
+            TaggerContext<NavigableHighlightTag> context,
             Solution solution,
-            List<ITagSpan<AbstractNavigatableReferenceHighlightingTag>> tags,
+            List<ITagSpan<NavigableHighlightTag>> tags,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
@@ -171,12 +171,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             foreach (var span in documentHighlights.HighlightSpans)
             {
                 var tag = GetTag(span);
-                context.AddTag(new TagSpan<AbstractNavigatableReferenceHighlightingTag>(
+                context.AddTag(new TagSpan<NavigableHighlightTag>(
                     textSnapshot.GetSpan(Span.FromBounds(span.TextSpan.Start, span.TextSpan.End)), tag));
             }
         }
 
-        private static AbstractNavigatableReferenceHighlightingTag GetTag(HighlightSpan span)
+        private static NavigableHighlightTag GetTag(HighlightSpan span)
         {
             switch (span.Kind)
             {
