@@ -36,13 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 Analyzer analyzer;
                 DiagnosticAnalyzerService analyzerService;
-                TagSource<IErrorTag> taggerSource;
-                GetTagSource(workspace, diagnosticWaiter, squiggleWaiter, out analyzer, out analyzerService, out taggerSource);
-
-                taggerSource.TagsChangedForBuffer += c =>
-                {
-                    Assert.True(c.First().Value.First().Span.Contains(new Span(0, 1)));
-                };
+                ITagger<IErrorTag> tagger;
+                GetTagger(workspace, diagnosticWaiter, squiggleWaiter, out analyzer, out analyzerService, out tagger);
 
                 var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
                 var incrementalAnalyzers = ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace));
@@ -52,6 +47,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 diagnosticWaiter.CreateWaitTask().PumpingWait();
                 squiggleWaiter.CreateWaitTask().PumpingWait();
+
+                var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                Assert.True(spans.First().Span.Contains(new Span(0, 1)));
 
                 // test second update
                 analyzer.ChangeSeverity();
@@ -65,25 +64,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 diagnosticWaiter.CreateWaitTask().PumpingWait();
                 squiggleWaiter.CreateWaitTask().PumpingWait();
 
-                taggerSource.TestOnly_Dispose();
+                snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+                spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
+                Assert.True(spans.First().Span.Contains(new Span(0, 1)));
 
+                ((IDisposable)tagger).Dispose();
                 registrationService.Unregister(workspace);
             }
         }
 
-        private static void GetTagSource(TestWorkspace workspace, DiagnosticServiceWaiter diagnosticWaiter, ErrorSquiggleWaiter squiggleWaiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out TagSource<IErrorTag> taggerSource)
+        private static void GetTagger(TestWorkspace workspace, DiagnosticServiceWaiter diagnosticWaiter, ErrorSquiggleWaiter squiggleWaiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out ITagger<IErrorTag> tagger)
         {
             analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>() { { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) } };
             analyzerService = new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary());
 
-            var listeners = new[] {
-                new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                    () => diagnosticWaiter,
-                    new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.DiagnosticService } })),
-                new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
-                    () => diagnosticWaiter,
-                    new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.ErrorSquiggles } })) };
+            var listeners = AsynchronousOperationListener.CreateListeners(
+                ValueTuple.Create(FeatureAttribute.DiagnosticService, diagnosticWaiter),
+                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, diagnosticWaiter));
 
             var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
 
@@ -93,8 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var notificationService = workspace.GetService<IForegroundNotificationService>(); // new TestForegroundNotificationService();
             var optionsService = workspace.Services.GetService<IOptionService>();
             var provider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, notificationService, listeners);
-            var tagger = (AsynchronousTagger<IErrorTag>)provider.CreateTagger<IErrorTag>(buffer);
-            taggerSource = tagger.TagSource;
+            tagger = provider.CreateTagger<IErrorTag>(buffer);
         }
 
         private class Analyzer : DiagnosticAnalyzer
