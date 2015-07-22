@@ -15,10 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
     /// Async thin tagger implementation.
-    /// 
-    /// Actual tag information is stored in TagSource and shared between multiple taggers created for same views or buffers.
-    /// 
-    /// It's responsibility is on interaction between host and tagger. TagSource has responsibility on how to provide information for this tagger.
+    ///
+    /// Actual tag information is stored in TagSource and shared between multiple taggers created 
+    /// for same views or buffers.
+    ///
+    /// It's responsibility is on interaction between host and tagger. TagSource has responsibility 
+    /// on how to provide information for this tagger.
     /// </summary>
     internal sealed partial class AsynchronousTagger<TTag> : ITagger<TTag>, IDisposable
         where TTag : ITag
