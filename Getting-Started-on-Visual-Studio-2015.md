@@ -1,6 +1,5 @@
 ## Step 1:
-Set up a box with Visual Studio 2015. Install either the Community or Enterprise versions of  
-[Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx).
+Set up a box with [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx).
 
 ## Step 2:
 Be sure to select "Custom" when installing 
@@ -8,7 +7,7 @@ Be sure to select "Custom" when installing
 ![](http://i.imgur.com/YINeLkG.png)
 
 ## Step 3:
-Install "Common Tools for Visual C++ 2015" and the "Visual Studio Extensibility tools" 
+Install "Visual Studio Extensibility tools" 
 
 ![](http://i.imgur.com/WWcO4e3.png)
 
