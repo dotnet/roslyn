@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         // For testing only.
         internal TaggerContext(
-            IEnumerable<DocumentSnapshotSpan> spansToTag,
-            SnapshotPoint? caretPosition,
-            TextChangeRange? textChangeRange,
-            CancellationToken cancellationToken) 
-            : this(spansToTag, caretPosition, textChangeRange, null, cancellationToken)
+            Document document, ITextSnapshot snapshot,
+            SnapshotPoint? caretPosition = null,
+            TextChangeRange? textChangeRange = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+            : this(new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(snapshot, 0, snapshot.Length)) }, 
+                  caretPosition, textChangeRange, null, cancellationToken)
         {
         }
 

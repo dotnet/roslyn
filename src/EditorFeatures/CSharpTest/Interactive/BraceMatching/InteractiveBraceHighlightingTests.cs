@@ -39,11 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
                 workspace.GetService<IForegroundNotificationService>(),
                 AggregateAsynchronousOperationListener.EmptyListeners);
 
-            var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
-
             var context = new TaggerContext<BraceHighlightTag>(
-                new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(buffer.CurrentSnapshot, new Span(0, buffer.CurrentSnapshot.Length))) },
-                new SnapshotPoint(buffer.CurrentSnapshot, position), null, CancellationToken.None);
+                buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),
+                buffer.CurrentSnapshot, new SnapshotPoint(buffer.CurrentSnapshot, position));
             producer.ProduceTagsAsync(context).Wait();
 
             return context.tagSpans;

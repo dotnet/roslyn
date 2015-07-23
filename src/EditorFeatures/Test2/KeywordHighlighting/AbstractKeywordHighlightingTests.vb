@@ -34,9 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     workspace.GetService(Of IForegroundNotificationService),
                     AggregateAsynchronousOperationListener.EmptyListeners)
 
-                Dim snapshotSpans = {New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length))}
-                Dim context = New TaggerContext(Of KeywordHighlightTag)(
-                    snapshotSpans, New SnapshotPoint(snapshot, caretPosition), Nothing, CancellationToken.None)
+                Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
                 tagProducer.ProduceTagsAsync(context).Wait()
 
                 Dim producedTags = From tag In context.tagSpans

@@ -35,9 +35,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.ReferenceHighlighting, hostDocument.Project.Language, optionIsEnabled)
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim snapshotSpans = {New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length))}
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
-                    snapshotSpans, New SnapshotPoint(snapshot, caretPosition), Nothing, CancellationToken.None)
+                    document, snapshot, New SnapshotPoint(snapshot, caretPosition))
                 tagProducer.ProduceTagsAsync(context).Wait()
 
                 Dim producedTags = From tag In context.tagSpans
