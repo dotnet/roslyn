@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             return new TagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
 
-        protected IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
+        private IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
         {
             if (!subjectBuffer.GetOption(EditorComponentOnOffOptions.Tagger))
             {
