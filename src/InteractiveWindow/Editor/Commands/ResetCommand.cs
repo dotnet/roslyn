@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 return ExecutionResult.Failed;
             }
 
-            return ((InteractiveWindow)window).ResetAsync(initialize: noConfigStart > -1);
+            return window.Operations.ResetAsync(initialize: noConfigStart > -1);
         }
 
         internal static string BuildCommandLine(bool initialize)
