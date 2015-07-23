@@ -231,19 +231,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 var foregroundService = workspace.GetService<IForegroundNotificationService>();
                 var optionsService = workspace.Services.GetService<IOptionService>();
 
+                var waiter = new ErrorSquiggleWaiter();
+                var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
+
                 // set up tagger for both buffers
                 var leftBuffer = diffView.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                var leftWaiter = new ErrorSquiggleWaiter();
-                var leftListeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, leftWaiter);
-
-                var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, leftListeners);
+                var leftProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
                 var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
 
                 var rightBuffer = diffView.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                var rightWaiter = new ErrorSquiggleWaiter();
-                var rightListeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, rightWaiter);
-
-                var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, rightListeners);
+                var rightProvider = new DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners);
                 var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
 
                 // wait up to 20 seconds for diagnostics
@@ -255,13 +252,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 }
 
                 // wait taggers
-                leftWaiter.CreateWaitTask().PumpingWait();
-                rightWaiter.CreateWaitTask().PumpingWait();
+                waiter.CreateWaitTask().PumpingWait();
 
                 // check left buffer
                 var leftSnapshot = leftBuffer.CurrentSnapshot;
                 var leftSpans = leftTagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(leftSnapshot, 0, leftSnapshot.Length))).ToList();
-
                 Assert.Equal(1, leftSpans.Count);
 
                 // check right buffer
