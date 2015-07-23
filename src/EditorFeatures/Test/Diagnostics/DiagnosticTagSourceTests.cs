@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
                 registrationService.Register(workspace);
 
-                var waiter = new DiagnosticServiceWaiter();
+                var waiter = new AsynchronousOperationListener();
 
                 Analyzer analyzer;
                 DiagnosticAnalyzerService analyzerService;
@@ -70,15 +70,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private static void GetTagger(TestWorkspace workspace, DiagnosticServiceWaiter waiter, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out ITagger<IErrorTag> tagger)
+        private static void GetTagger(TestWorkspace workspace, AsynchronousOperationListener listener, out Analyzer analyzer, out DiagnosticAnalyzerService analyzerService, out ITagger<IErrorTag> tagger)
         {
             analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>() { { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(analyzer) } };
             analyzerService = new TestDiagnosticAnalyzerService(analyzerMap.ToImmutableDictionary());
 
             var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, waiter),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, waiter));
+                ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
 
             var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(analyzerService), listeners);
 
@@ -116,7 +116,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _rule = new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Warning, true);
             }
         }
-
-        private class DiagnosticServiceWaiter : AsynchronousOperationListener { }
     }
 }

@@ -28,10 +28,10 @@ class 123 { }
                 Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                Dim diagnosticWaiter = New DiagnosticServiceWaiter()
+                Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
-                    ValueTuple.Create(FeatureAttribute.DiagnosticService, diagnosticWaiter),
-                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, diagnosticWaiter))
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
 
                 Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listeners)
 
@@ -46,7 +46,7 @@ class 123 { }
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                 analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
 
-                diagnosticWaiter.CreateWaitTask().PumpingWait()
+                listener.CreateWaitTask().PumpingWait()
 
                 Dim snapshot = buffer.CurrentSnapshot
                 Dim spans = tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray()
@@ -100,7 +100,5 @@ End Class
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
         End Sub
-
-        Private Class DiagnosticServiceWaiter : Inherits AsynchronousOperationListener : End Class
     End Class
 End Namespace

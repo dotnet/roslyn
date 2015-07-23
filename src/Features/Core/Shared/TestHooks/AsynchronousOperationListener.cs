@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal abstract partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
+    internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
         private readonly object _gate = new object();
 

@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             registrationService.Register(workspace);
 
-            var diagnosticWaiter = new DiagnosticServiceWaiter();
+            var listener = new AsynchronousOperationListener();
             var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, diagnosticWaiter),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, diagnosticWaiter));
+                ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
 
             var optionsService = workspace.Services.GetService<IOptionService>();
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;
             service.WaitUntilCompletion_ForTestingPurposesOnly(workspace, ImmutableArray.Create(analyzerService.CreateIncrementalAnalyzer(workspace)));
 
-            diagnosticWaiter.CreateWaitTask().PumpingWait();
+            listener.CreateWaitTask().PumpingWait();
 
             var snapshot = buffer.CurrentSnapshot;
             var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToList();
@@ -76,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         {
             var source = new TestDiagnosticUpdateSource();
 
-            var diagnosticWaiter = new DiagnosticServiceWaiter();
+            var listener = new AsynchronousOperationListener();
             var listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, diagnosticWaiter),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, diagnosticWaiter));
+                ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener));
 
             var optionsService = workspace.Services.GetService<IOptionService>();
             var diagnosticService = new DiagnosticService(SpecializedCollections.SingletonEnumerable<IDiagnosticUpdateSource>(source), listeners);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             source.RaiseDiagnosticsUpdated(updateArgs);
 
-            diagnosticWaiter.CreateWaitTask().PumpingWait();
+            listener.CreateWaitTask().PumpingWait();
 
             var snapshot = buffer.CurrentSnapshot;
             var spans = tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(snapshot, 0, snapshot.Length))).ToImmutableArray();
@@ -127,6 +127,4 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             }
         }
     }
-
-    internal class DiagnosticServiceWaiter : AsynchronousOperationListener { }
 }
