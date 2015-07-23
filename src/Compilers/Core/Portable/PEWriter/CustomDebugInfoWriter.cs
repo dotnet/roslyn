@@ -134,29 +134,20 @@ namespace Microsoft.Cci
             cmw.WriteByte(kind);
             cmw.WriteByte(0);
 
-            // alignment size (will be patched)
-            int alignmentSizeAndLengthPosition = cmw.Position;
-            cmw.WriteByte(0);
-
-            // length (will be patched)
-            cmw.WriteUInt32(0);
+            // alignment size and length (will be patched)
+            var alignmentSizeAndLengthWriter = cmw.ReserveBytes(sizeof(byte) + sizeof(uint));
 
             data(cmw);
 
             int length = cmw.Position;
             int alignedLength = 4 * ((length + 3) / 4);
             byte alignmentSize = (byte)(alignedLength - length);
+            cmw.WriteBytes(0, alignmentSize);
 
-            for (int i = 0; i < alignmentSize; i++)
-            {
-                cmw.WriteByte(0);
-            }
+            // fill in alignment size and length:
+            alignmentSizeAndLengthWriter.WriteByte(alignmentSize);
+            alignmentSizeAndLengthWriter.WriteUInt32((uint)alignedLength);
 
-            cmw.SetPosition(alignmentSizeAndLengthPosition);
-            cmw.WriteByte(alignmentSize);
-            cmw.WriteUInt32((uint)alignedLength);
-
-            cmw.SetPosition(length);
             return cmw;
         }
 
@@ -314,17 +305,22 @@ namespace Microsoft.Cci
                 return null;
             }
 
-            BlobBuilder cmw = BlobBuilder.GetInstance();
+            var result = new byte[
+                sizeof(byte) +                  // version
+                sizeof(byte) +                  // record count
+                sizeof(ushort) +                // padding
+                recordWriters.Sum(w => w.Count) // records
+            ];
+
+            var cmw = new BlobWriter(result);
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte((byte)recordWriters.Count); // count
-            cmw.Align(4);
+            cmw.WriteInt16(0);
             foreach (BlobBuilder recordWriter in recordWriters)
             {
-                recordWriter.WriteTo(cmw);
+                cmw.WriteBytes(recordWriter);
             }
 
-            var result = cmw.ToArray();
-            cmw.Free();
             return result;
         }
 
@@ -366,7 +362,7 @@ namespace Microsoft.Cci
                 }
 
                 cmw.Align(4);
-                Debug.Assert(streamLength == cmw.Length);
+                Debug.Assert(streamLength == cmw.Count);
                 customDebugInfo.Add(cmw);
             }
 

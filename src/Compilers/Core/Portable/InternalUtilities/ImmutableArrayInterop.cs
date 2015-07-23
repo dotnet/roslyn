@@ -4,7 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
-namespace Roslyn.Test.Utilities
+namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayInterop
     {
@@ -15,11 +15,19 @@ namespace Roslyn.Test.Utilities
             return union.MutableArray;
         }
 
+        internal static ImmutableArray<byte> DangerousToImmutableArray(ref byte[] array)
+        {
+            var union = new ByteArrayUnion();
+            union.MutableArray = array;
+            array = null;
+            return union.ImmutableArray;
+        }
+
         [StructLayout(LayoutKind.Explicit)]
         private struct ByteArrayUnion
         {
             [FieldOffset(0)]
-            internal readonly byte[] MutableArray;
+            internal byte[] MutableArray;
 
             [FieldOffset(0)]
             internal ImmutableArray<byte> ImmutableArray;

@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //parent builder
             internal ILBuilder builder;
 
-            private Cci.BlobBuilder _lazyRegularInstructions;
-            public Cci.BlobBuilder Writer
+            private Cci.PooledBlobBuilder _lazyRegularInstructions;
+            public Cci.PooledBlobBuilder Writer
             {
                 get
                 {
                     if (_lazyRegularInstructions == null)
                     {
-                        _lazyRegularInstructions = Cci.BlobBuilder.GetInstance();
+                        _lazyRegularInstructions = Cci.PooledBlobBuilder.GetInstance();
                     }
 
                     return _lazyRegularInstructions;
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// </summary>
             public bool HasNoRegularInstructions => _lazyRegularInstructions == null;
 
-            public int RegularInstructionsLength => _lazyRegularInstructions?.Length ?? 0;
+            public int RegularInstructionsLength => _lazyRegularInstructions?.Count ?? 0;
 
             /// <summary>
             /// Updates position of the current block to account for shorter sizes of previous blocks.

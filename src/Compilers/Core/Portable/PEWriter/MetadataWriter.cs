@@ -769,10 +769,11 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = new BlobBuilder();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeCustomAttributeSignature(customAttribute, false, writer);
             result = heaps.GetBlobIndex(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
+            writer.Free();
             return result;
         }
 
@@ -885,7 +886,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeFieldSignature(fieldReference, writer);
             result = heaps.GetBlobIndex(writer);
             _fieldSignatureIndex.Add(fieldReference, result);
@@ -1145,7 +1146,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteByte(0x0A);
             writer.WriteCompressedInteger(methodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
             foreach (ITypeReference typeref in methodInstanceReference.GetGenericArguments(Context))
@@ -1167,7 +1168,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeMarshallingDescriptor(marshallingInformation, writer);
             result = heaps.GetBlobIndex(writer);
             _marshallingDescriptorIndex.Add(marshallingInformation, result);
@@ -1227,7 +1228,7 @@ namespace Microsoft.Cci
                 return existing.Key;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeSignature(methodReference, methodReference.GenericParameterCount, methodReference.ExtraParameters, writer);
 
             signatureBlob = writer.ToImmutableArray();
@@ -1239,7 +1240,7 @@ namespace Microsoft.Cci
 
         private BlobIdx GetGenericMethodInstanceIndex(IGenericMethodInstanceReference genericMethodInstanceReference)
         {
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
             BlobIdx result = heaps.GetBlobIndex(writer);
             writer.Free();
@@ -1310,7 +1311,7 @@ namespace Microsoft.Cci
 
         private BlobIdx GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             BlobIdx result;
             try
             {
@@ -1356,7 +1357,7 @@ namespace Microsoft.Cci
                 return existing.Key;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeSignature(propertyDef, 0, ImmutableArray<IParameterTypeInformation>.Empty, writer);
             var blob = writer.ToImmutableArray();
             var result = heaps.GetBlobIndex(blob);
@@ -1852,7 +1853,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeTypeReference(typeReference, writer, false, true);
             result = heaps.GetBlobIndex(writer);
             _typeSpecSignatureIndex.Add(typeReference, result);
@@ -2072,12 +2073,12 @@ namespace Microsoft.Cci
                 metadataSizes: out metadataSizes,
                 entryPointToken: out entryPointToken);
 
-            ilWriter.WriteTo(ilStream);
-            metadataWriter.WriteTo(metadataStream);
+            ilWriter.WriteContentTo(ilStream);
+            metadataWriter.WriteContentTo(metadataStream);
 
             Debug.Assert(entryPointToken == 0);
-            Debug.Assert(mappedFieldDataWriter.Length == 0);
-            Debug.Assert(managedResourceDataWriter.Length == 0);
+            Debug.Assert(mappedFieldDataWriter.Count == 0);
+            Debug.Assert(managedResourceDataWriter.Count == 0);
         }
 
         public void SerializeMetadataAndIL(
@@ -2134,9 +2135,9 @@ namespace Microsoft.Cci
             metadataSizes = new MetadataSizes(
                 rowCounts: tableRowCounts,
                 heapSizes: heaps.GetHeapSizes(),
-                ilStreamSize: ilWriter.Length,
-                mappedFieldDataSize: mappedFieldDataWriter.Length,
-                resourceDataSize: managedResourceDataWriter.Length,
+                ilStreamSize: ilWriter.Count,
+                mappedFieldDataSize: mappedFieldDataWriter.Count,
+                resourceDataSize: managedResourceDataWriter.Count,
                 strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
                 isMinimalDelta: IsMinimalDelta,
                 emitStandaloneDebugMetadata: EmitStandaloneDebugMetadata,
@@ -2204,11 +2205,8 @@ namespace Microsoft.Cci
             int entryPointToken,
             out int guidHeapStartOffset)
         {
-            int metadataStartOffset = metadataWriter.Position;
-
-            // Leave space for the metadata header. We need to fill in the sizes of all tables and heaps.
-            // It's easier to write it at the end then to precalculate the sizes.
-            metadataWriter.SetPosition(metadataStartOffset + metadataSizes.MetadataHeaderSize);
+            // header:
+            SerializeMetadataHeader(metadataWriter, metadataSizes);
 
             // #~ or #- stream:
             SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
@@ -2221,14 +2219,6 @@ namespace Microsoft.Cci
             {
                 SerializeStandalonePdbStream(metadataWriter, metadataSizes, entryPointToken);
             }
-
-            int metadataSize = metadataWriter.Position;
-
-            // write header at the start of the metadata stream:
-            metadataWriter.SetPosition(0);
-            SerializeMetadataHeader(metadataWriter, metadataSizes);
-
-            metadataWriter.SetPosition(metadataSize);
         }
 
         private int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
@@ -3354,7 +3344,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Length % ManagedResourcesDataAlignment) == 0);
+            Debug.Assert((resourceDataWriter.Count % ManagedResourcesDataAlignment) == 0);
         }
 
         private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
@@ -4322,7 +4312,7 @@ namespace Microsoft.Cci
                 return 0;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteByte(0x07);
             writer.WriteCompressedInteger((uint)localVariables.Length);
             foreach (ILocalDefinition local in localVariables)
@@ -4366,7 +4356,7 @@ namespace Microsoft.Cci
 
         internal int SerializeLocalConstantStandAloneSignature(ILocalDefinition localConstant)
         {
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteByte(0x06);
 
             foreach (ICustomModifier modifier in localConstant.CustomModifiers)
@@ -4457,12 +4447,12 @@ namespace Microsoft.Cci
             return _pseudoStringTokenToTokenMap[index];
         }
 
-        private void WriteMethodBodyIL(BlobBuilder writer, IMethodBody methodBody)
+        private void WriteMethodBodyIL(BlobBuilder builder, IMethodBody methodBody)
         {
             ImmutableArray<byte> methodBodyIL = methodBody.IL;
 
             // write the raw body first and then patch tokens:
-            int startPosition = writer.Position;
+            var writer = builder.ReserveBytes(methodBodyIL.Length);
             writer.WriteBytes(methodBodyIL);
 
             int offset = 0;
@@ -4475,13 +4465,13 @@ namespace Microsoft.Cci
                     case OperandType.InlineMethod:
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
-                        writer.SetPosition(startPosition + offset);
+                        writer.Offset = offset;
                         writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(ReadInt32(methodBodyIL, offset)));
                         offset += 4;
                         break;
 
                     case OperandType.InlineString:
-                        writer.SetPosition(startPosition + offset);
+                        writer.Offset = offset;
                         writer.WriteInt32(ResolveStringTokenFromPseudoStringToken(ReadInt32(methodBodyIL, offset)));
                         offset += 4;
                         break;
@@ -4521,8 +4511,6 @@ namespace Microsoft.Cci
                         throw ExceptionUtilities.UnexpectedValue(operandType);
                 }
             }
-
-            writer.SetPosition(startPosition + methodBodyIL.Length);
         }
 
         private void SerializeMethodBodyExceptionHandlerTable(IMethodBody methodBody, uint numberOfExceptionHandlers, BlobBuilder writer)
@@ -4954,10 +4942,11 @@ namespace Microsoft.Cci
                 }
 
                 writer.WriteSerializedString(typeName);
-                var customAttributeWriter = new BlobBuilder();
+                var customAttributeWriter = PooledBlobBuilder.GetInstance();
                 this.SerializeCustomAttributeSignature(customAttribute, true, customAttributeWriter);
-                writer.WriteCompressedInteger((uint)customAttributeWriter.Length);
-                customAttributeWriter.WriteTo(writer);
+                writer.WriteCompressedInteger((uint)customAttributeWriter.Count);
+                customAttributeWriter.WriteContentTo(writer);
+                customAttributeWriter.Free();
             }
             // TODO: xml for older platforms
         }
