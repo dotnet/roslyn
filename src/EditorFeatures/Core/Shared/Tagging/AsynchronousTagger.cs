@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -48,14 +49,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IForegroundNotificationService notificationService,
             TagSource<TTag> tagSource,
             ITextBuffer subjectBuffer,
-            TimeSpan uiUpdateDelay)
+            TaggerDelay? uiUpdateDelay)
         {
             Contract.ThrowIfNull(subjectBuffer);
 
             _subjectBuffer = subjectBuffer;
-            _uiUpdateDelayInMS = (int)uiUpdateDelay.TotalMilliseconds;
+            var delay = uiUpdateDelay ?? TaggerDelay.Medium;
+            _uiUpdateDelayInMS = delay.ComputeTimeDelayMS();
 
-            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
+            // In order to make sure the batch change notifier doesn't add too much overhead,
+            // we cap the delay it incurs at TaggerDelay.Short.
+            var batchDelay = delay < TaggerDelay.Short ? delay: TaggerDelay.Short;
+            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan, batchDelay);
 
             _tagSource = tagSource;
 

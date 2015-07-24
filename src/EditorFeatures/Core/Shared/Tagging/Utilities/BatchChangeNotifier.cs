@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener listener,
             IForegroundNotificationService notificationService,
             Action<SnapshotSpan> reportChangedSpan,
-            TaggerDelay throttleDelay = TaggerDelay.Short)
+            TaggerDelay throttleDelay)
         {
             Contract.ThrowIfNull(reportChangedSpan);
             _subjectBuffer = subjectBuffer;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             var currentTick = Environment.TickCount;
-            if (Math.Abs(currentTick - _lastReportTick) > _throttleDelay.ComputeTimeDelay(_subjectBuffer))
+            if (Math.Abs(currentTick - _lastReportTick) > _throttleDelay.ComputeTimeDelayMS(_subjectBuffer))
             {
                 _lastReportTick = currentTick;
                 this.NotifyEditor();
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     // to run at a later point.
                     _notificationRequestEnqueued = false;
                     this.NotifyEditor();
-                }, delay.ComputeTimeDelay(_subjectBuffer), _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
+                }, delay.ComputeTimeDelayMS(_subjectBuffer), _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
             }
         }
 

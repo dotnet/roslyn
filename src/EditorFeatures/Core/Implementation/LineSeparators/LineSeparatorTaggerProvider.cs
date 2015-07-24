@@ -22,29 +22,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [TagType(typeof(LineSeparatorTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class LineSeparatorTaggerProvider :
-        AbstractAsynchronousBufferTaggerProvider<LineSeparatorTag>
+    internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
+        public override bool RemoveTagsThatIntersectEdits => true;
+        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
             IForegroundNotificationService notificationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
+                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
         {
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
-
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.LineSeparator, TaggerDelay.NearImmediate));
         }
 
-        protected override ITagProducer<LineSeparatorTag> CreateTagProducer()
+        public override ITagProducer<LineSeparatorTag> CreateTagProducer()
         {
             return new TagProducer();
         }

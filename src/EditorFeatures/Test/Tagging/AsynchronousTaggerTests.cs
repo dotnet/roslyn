@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                 using (var disposable = (IDisposable)tagger)
                 {
-                    ProducerPopulatedTagSource<IOutliningRegionTag> tagSource = null;
-                    tagProvider.TryRetrieveTagSource(null, textBuffer, out tagSource);
-                    tagSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = true;
+                    tagProvider.SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(true);
 
                     // The very first all to get tags should return the single outlining span.
                     var tags = tagger.GetTags(new NormalizedSnapshotSpanCollection(textBuffer.CurrentSnapshot.GetFullSpan()));
@@ -159,12 +157,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             }
         }
 
-        private sealed class TestTaggerProvider : AbstractAsynchronousBufferTaggerProvider<TestTag>
+        private sealed class TestTaggerProvider : AsynchronousTaggerProvider<TestTag>
         {
             private readonly TestTagProducer _tagProducer;
             private readonly ITaggerEventSource _eventSource;
             private readonly Workspace _workspace;
             private readonly bool _disableCancellation;
+
+            public override bool RemoveTagsThatIntersectEdits => true;
+            public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
             public TestTaggerProvider(
                 TestTagProducer tagProducer,
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 IAsynchronousOperationListener asyncListener,
                 IForegroundNotificationService notificationService,
                 bool disableCancellation = false)
-                : base(asyncListener, notificationService)
+                    : base(asyncListener, notificationService)
             {
                 _tagProducer = tagProducer;
                 _eventSource = eventSource;
@@ -181,16 +182,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 _disableCancellation = disableCancellation;
             }
 
-            protected override bool RemoveTagsThatIntersectEdits => true;
-
-            protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-            protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+            public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {
                 return _eventSource;
             }
 
-            protected override ITagProducer<TestTag> CreateTagProducer()
+            public override ITagProducer<TestTag> CreateTagProducer()
             {
                 return _tagProducer;
             }

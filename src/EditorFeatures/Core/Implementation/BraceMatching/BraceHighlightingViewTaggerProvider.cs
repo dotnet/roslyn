@@ -19,42 +19,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
-    internal class BraceHighlightingViewTaggerProvider :
-        AbstractAsynchronousViewTaggerProvider<BraceHighlightTag>
+    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag>
     {
         private readonly IBraceMatchingService _braceMatcherService;
+
+        public override bool RemoveTagsThatIntersectEdits => true;
+        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 
         [ImportingConstructor]
         public BraceHighlightingViewTaggerProvider(
             IForegroundNotificationService notificationService,
             IBraceMatchingService braceMatcherService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.BraceHighlighting),
-                   notificationService)
+                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.BraceHighlighting), notificationService)
         {
             _braceMatcherService = braceMatcherService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
-
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        protected override IEnumerable<Option<bool>> TagSourceOptions
-        {
-            get
-            {
-                yield return InternalFeatureOnOffOptions.BraceMatching;
-            }
-        }
-
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
                 TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate));
         }
 
-        protected override ITagProducer<BraceHighlightTag> CreateTagProducer()
+        public override ITagProducer<BraceHighlightTag> CreateTagProducer()
         {
             return new BraceHighlightingTagProducer(_braceMatcherService);
         }

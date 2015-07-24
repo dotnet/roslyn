@@ -3,17 +3,20 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 {
@@ -22,46 +25,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     [TagType(typeof(AbstractNavigatableReferenceHighlightingTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal partial class ReferenceHighlightingViewTaggerProvider :
-        AbstractAsynchronousViewTaggerProvider<AbstractNavigatableReferenceHighlightingTag>
+        ForegroundThreadAffinitizedObject,
+        IViewTaggerProvider,
+        IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
+        private readonly Lazy<IViewTaggerProvider> _asynchronousTaggerProvider;
+
+        public bool RemoveTagsThatIntersectEdits => true;
+        public TaggerDelay? UIUpdateDelay => TaggerDelay.NearImmediate;
+        public SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public bool IgnoreCaretMovementToExistingTag => true;
+        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted => false;
+        public IEqualityComparer<AbstractNavigatableReferenceHighlightingTag> TagComparer => null;
+        public IEnumerable<Option<bool>> Options => null;
+        public IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
         public ReferenceHighlightingViewTaggerProvider(
             IForegroundNotificationService notificationService,
             ISemanticChangeNotificationService semanticChangeNotificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-            base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting), notificationService)
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _semanticChangeNotificationService = semanticChangeNotificationService;
+            _asynchronousTaggerProvider = new Lazy<IViewTaggerProvider>(() =>
+                new AsynchronousViewTaggerProviderWithTagSource<AbstractNavigatableReferenceHighlightingTag>(
+                    this,
+                    new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ReferenceHighlighting),
+                    notificationService,
+                    this.CreateTagSource));
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
-
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        protected override IEnumerable<PerLanguageOption<bool>> TagSourcePerLanguageOptions
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            get
-            {
-                yield return FeatureOnOffOptions.ReferenceHighlighting;
-            }
+            return _asynchronousTaggerProvider.Value.CreateTagger<T>(textView, buffer);
         }
 
-        protected override TimeSpan UIUpdateDelay
-        {
-            get
-            {
-                return TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay);
-            }
-        }
-
-        protected override ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
+        public ITagProducer<AbstractNavigatableReferenceHighlightingTag> CreateTagProducer()
         {
             return new TagProducer();
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // PERF: use a longer delay for OnTextChanged to minimize the impact of GCs while typing
             return TaggerEventSources.Compose(
@@ -72,17 +77,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ReferenceHighlighting, TaggerDelay.NearImmediate));
         }
 
-        protected override ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        private ProducerPopulatedTagSource<AbstractNavigatableReferenceHighlightingTag> CreateTagSource(
+            ITextView textViewOpt, ITextBuffer subjectBuffer,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService)
         {
-            return new ReferenceHighlightingTagSource(
-                textViewOpt,
-                subjectBuffer,
-                CreateTagProducer(),
-                CreateEventSource(textViewOpt, subjectBuffer),
-                AsyncListener,
-                NotificationService,
-                this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode);
+            return new ReferenceHighlightingTagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
+        }
+
+        public IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return textViewOpt.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                              .Select(b => b.CurrentSnapshot.GetFullSpan())
+                              .ToList();
         }
     }
 }

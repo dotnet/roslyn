@@ -13,27 +13,32 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         internal const int IdleDelay = 1500;
         internal const int NonFocusDelay = 3000;
 
-        internal static int ComputeTimeDelay(this TaggerDelay behavior, ITextBuffer textBufferOpt)
+        internal static int ComputeTimeDelayMS(this TaggerDelay behavior, ITextBuffer textBufferOpt)
         {
             if (TextBufferAssociatedViewService.AnyAssociatedViewHasFocus(textBufferOpt))
             {
                 // TODO : should we remove TaggerBehavior enum all together and put NearImmediateDelay
                 // const in Interaction?
-                switch (behavior)
-                {
-                    case TaggerDelay.NearImmediate:
-                        return NearImmediateDelay;
-                    case TaggerDelay.Short:
-                        return ShortDelay;
-                    case TaggerDelay.Medium:
-                        return MediumDelay;
-                    case TaggerDelay.OnIdle:
-                    default:
-                        return IdleDelay;
-                }
+                return ComputeTimeDelayMS(behavior);
             }
 
             return NonFocusDelay;
+        }
+
+        internal static int ComputeTimeDelayMS(this TaggerDelay behavior)
+        {
+            switch (behavior)
+            {
+                case TaggerDelay.NearImmediate:
+                    return NearImmediateDelay;
+                case TaggerDelay.Short:
+                    return ShortDelay;
+                case TaggerDelay.Medium:
+                    return MediumDelay;
+                case TaggerDelay.OnIdle:
+                default:
+                    return IdleDelay;
+            }
         }
     }
 }

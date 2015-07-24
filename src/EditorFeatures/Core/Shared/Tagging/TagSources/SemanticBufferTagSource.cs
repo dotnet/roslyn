@@ -23,25 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
 
         public SemanticBufferTagSource(
             ITextBuffer subjectBuffer,
-            ITagProducer<TTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
-                : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
+            IForegroundNotificationService notificationService)
+                : base(/*textViewOpt:*/ null, subjectBuffer, dataSource, asyncListener, notificationService)
         {
             _lastSemanticVersion = VersionStamp.Default;
-        }
-
-        protected override ICollection<SnapshotSpan> GetInitialSpansToTag()
-        {
-            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
-        }
-
-        protected override SnapshotPoint? GetCaretPoint()
-        {
-            return null;
         }
 
         protected override async Task RecomputeTagsAsync(

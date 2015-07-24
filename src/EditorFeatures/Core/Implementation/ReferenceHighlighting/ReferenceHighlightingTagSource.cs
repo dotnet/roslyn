@@ -32,22 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         public ReferenceHighlightingTagSource(
             ITextView textView,
             ITextBuffer subjectBuffer,
-            ITagProducer<AbstractNavigatableReferenceHighlightingTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<AbstractNavigatableReferenceHighlightingTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
-            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
+            IForegroundNotificationService notificationService)
+            : base(textView, subjectBuffer, dataSource, asyncListener, notificationService)
         {
             _textView = textView;
-        }
-
-        protected override ICollection<SnapshotSpan> GetInitialSpansToTag()
-        {
-            return _textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
-                           .Select(b => b.CurrentSnapshot.GetFullSpan())
-                           .ToList();
         }
 
         protected override SnapshotPoint? GetCaretPoint()
@@ -55,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return _textView.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
         }
 
-        protected override void RecalculateTagsOnChanged(TaggerEventArgs e)
+        protected override void RecalculateTagsOnChangedCore(TaggerEventArgs e)
         {
             var cancellationToken = this.WorkQueue.CancellationToken;
 
@@ -72,17 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     return;
                 }
 
-                // called because of caret change
-                if (e.Kind == PredefinedChangedEventKinds.CaretPositionChanged)
-                {
-                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
-                    if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Any())
-                    {
-                        // we are already inside of a tag. nothing to do.
-                        return;
-                    }
-                }
-
                 var spansToTag = TryGetSpansAndDocumentsToTag(e.Kind);
                 if (spansToTag != null)
                 {
@@ -94,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                         ClearTags(spansToTag, cancellationToken);
                     }
 
-                    base.RecalculateTagsOnChanged(e);
+                    base.RecalculateTagsOnChangedCore(e);
                 }
             }, delay: TaggerConstants.NearImmediateDelay, cancellationToken: cancellationToken);
         }
@@ -128,6 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         private List<DocumentSnapshotSpan> TryGetSpansAndDocumentsToTag(string kind)
         {
+            this.WorkQueue.AssertIsForeground();
+
             // TODO: tagger creates so much temporary objects. GetSpansAndDocumentsToTags creates handful of objects per events 
             //       (in this case, on every caret move or text change). at some point of time, we should either re-write tagger framework
             //       or do some audit to reduce memory allocations.

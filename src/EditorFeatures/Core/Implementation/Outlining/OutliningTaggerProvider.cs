@@ -27,15 +27,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     [Export(typeof(OutliningTaggerProvider))]
     [TagType(typeof(IOutliningRegionTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class OutliningTaggerProvider :
-        AbstractAsynchronousBufferTaggerProvider<IOutliningRegionTag>
+    internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag>,
+        IEqualityComparer<IOutliningRegionTag>
     {
+        public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
+
         private const int MaxPreviewText = 1000;
         private const string Ellipsis = "...";
 
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+
+        public override bool RemoveTagsThatIntersectEdits => true;
+        public override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public override bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted =>
+            _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
+
+        private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
 
         [ImportingConstructor]
         public OutliningTaggerProvider(
@@ -44,18 +53,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Outlining), notificationService)
+                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Outlining), notificationService)
         {
             _textEditorFactoryService = textEditorFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
+        public void SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(bool value)
+        {
+            _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = value;
+        }
 
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public override IEqualityComparer<IOutliningRegionTag> TagComparer => this;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        bool IEqualityComparer<IOutliningRegionTag>.Equals(IOutliningRegionTag x, IOutliningRegionTag y)
+        {
+            // This is only called if the spans for the tags were the same. In that case, we consider ourselves the same
+            // unless the CollapsedForm properties are different.
+            return object.Equals(x.CollapsedForm, y.CollapsedForm);
+        }
+
+        int IEqualityComparer<IOutliningRegionTag>.GetHashCode(IOutliningRegionTag obj)
+        {
+            // This will not result in lots of hash collisions as our caller will
+            // first be hashing spans, and then adding this value to that.
+            // The only collisions will be for outlining tags with the same span
+            // (which is what we want).
+            return 0;
+        }
+
+        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
             // 1) Text changes.  These can obviously affect outlining, so we need to recompute when
@@ -74,12 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
-        protected override ITagProducer<IOutliningRegionTag> CreateTagProducer()
-        {
-            return CreateConcreteTagProducer();
-        }
-
-        private TagProducer CreateConcreteTagProducer()
+        public override ITagProducer<IOutliningRegionTag> CreateTagProducer()
         {
             return new TagProducer(
                 _textEditorFactoryService,

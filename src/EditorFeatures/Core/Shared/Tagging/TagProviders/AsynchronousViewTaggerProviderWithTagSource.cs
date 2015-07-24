@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -11,22 +11,24 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
-    internal abstract class AbstractAsynchronousViewTaggerProvider<TTag> :
-        AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>, IViewTaggerProvider
+    internal sealed class AsynchronousViewTaggerProviderWithTagSource<TTag> :
+        AbstractAsynchronousTaggerProvider<ProducerPopulatedTagSource<TTag>, TTag>,
+        IViewTaggerProvider
         where TTag : ITag
     {
-        public AbstractAsynchronousViewTaggerProvider(
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
+        private readonly CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> _createTagSource;
+
+        public AsynchronousViewTaggerProviderWithTagSource(
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
+            IForegroundNotificationService notificationService,
+            CreateTagSource<ProducerPopulatedTagSource<TTag>, TTag> createTagSource)
             : base(asyncListener, notificationService)
         {
+            this._dataSource = dataSource;
+            this._createTagSource = createTagSource;
         }
-
-        protected abstract bool RemoveTagsThatIntersectEdits { get; }
-        protected abstract SpanTrackingMode SpanTrackingMode { get; }
-
-        protected abstract ITagProducer<TTag> CreateTagProducer();
-        protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer subjectBuffer) where T : ITag
         {
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return this.GetOrCreateTagger<T>(textView, subjectBuffer);
         }
 
-        internal sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag> tagSource)
+        protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out ProducerPopulatedTagSource<TTag> tagSource)
         {
             return textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, UniqueKey, out tagSource);
         }
@@ -60,15 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         protected override ProducerPopulatedTagSource<TTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return new ViewTagSource<TTag>(
-                textViewOpt,
-                subjectBuffer,
-                CreateTagProducer(),
-                CreateEventSource(textViewOpt, subjectBuffer),
-                AsyncListener,
-                NotificationService,
-                this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode);
+            var tagSource = _createTagSource == null ? null : _createTagSource(textViewOpt, subjectBuffer, this.AsyncListener, this.NotificationService);
+            return tagSource ?? new ProducerPopulatedTagSource<TTag>(textViewOpt, subjectBuffer, _dataSource, AsyncListener, NotificationService);
         }
     }
 }

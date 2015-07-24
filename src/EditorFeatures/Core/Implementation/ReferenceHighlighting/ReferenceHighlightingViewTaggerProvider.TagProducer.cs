@@ -23,18 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         // Internal for testing purposes.
         internal class TagProducer : ITagProducer<AbstractNavigatableReferenceHighlightingTag>
         {
-            public IEqualityComparer<AbstractNavigatableReferenceHighlightingTag> TagComparer
-            {
-                get
-                {
-                    return EqualityComparer<AbstractNavigatableReferenceHighlightingTag>.Default;
-                }
-            }
-
-            public void Dispose()
-            {
-            }
-
             public Task<IEnumerable<ITagSpan<AbstractNavigatableReferenceHighlightingTag>>> ProduceTagsAsync(
                 IEnumerable<DocumentSnapshotSpan> snapshotSpans, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
             {

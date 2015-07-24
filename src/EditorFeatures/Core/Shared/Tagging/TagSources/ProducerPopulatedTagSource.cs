@@ -7,38 +7,37 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous tagging infrastructure. It's
-    /// the coordinator between <see cref="ITagProducer{TTag}"/>s, <see cref="ITaggerEventSource"/>s, and
-    /// <see cref="ITagger{T}"/>s.</para>
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the core part of our asynchronous
+    /// tagging infrastructure. It is the coordinator between  <see cref="ITagProducer{TTag}"/>s,
+    /// <see cref="ITaggerEventSource"/>s, and <see cref="ITagger{T}"/>s.</para>
     /// 
-    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the list of cached tags. When an
-    /// <see cref="ITaggerEventSource"/> says tags need to be recomputed, the tag source starts the computation
-    /// and calls the <see cref="ITagProducer{TTag}"/> to build the new list of tags. When that's done,
-    /// the tags are stored in <see cref="_cachedTags"/>. The tagger, when asked for tags from the editor, then returns
-    /// the tags that are stored in <see cref="_cachedTags"/></para>
+    /// <para>The <see cref="ProducerPopulatedTagSource{TTag}"/> is the type that actually owns the
+    /// list of cached tags. When an <see cref="ITaggerEventSource"/> says tags need to be  recomputed,
+    /// the tag source starts the computation and calls the <see cref="ITagProducer{TTag}"/> to build
+    /// the new list of tags. When that's done, the tags are stored in <see cref="_cachedTags"/>. The 
+    /// tagger, when asked for tags from the editor, then returns the tags that are stored in 
+    /// <see cref="_cachedTags"/></para>
     /// 
-    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s and <see cref="ITagger{T}"/>s.
-    /// Taggers that tag the buffer and don't care about a view (think classification) have one <see cref="BufferTagSource{TTag}"/>
-    /// per subject buffer, the lifetime management provided by <see cref="AbstractAsynchronousBufferTaggerProvider{TTag}"/>.
-    /// Taggers that tag the buffer and care about the view (think keyword highlighting) have a <see cref="ViewTagSource{TTag}"/>
-    /// per subject buffer/view pair, and the lifetime management for that is provided by a <see cref="AbstractAsynchronousViewTaggerProvider{TTag}"/>.
-    /// Special cases, like reference highlighting (which processes multiple subject buffers at once) have their own
-    /// providers and tag source derivations.</para>
+    /// <para>There is a one-to-many relationship between <see cref="ProducerPopulatedTagSource{TTag}"/>s
+    /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
+    /// subject buffers at once) have their own providers and tag source derivations.</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal abstract partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
+    internal partial class ProducerPopulatedTagSource<TTag> : TagSource<TTag>
         where TTag : ITag
     {
         #region Fields that can be accessed from either thread
@@ -50,31 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private readonly object _cachedTagsGate = new object();
 
-        /// <summary>
-        /// True if edits should cause us to remove tags that intersect with edits.  Used to ensure
-        /// that squiggles are removed when the user types over them.
-        /// </summary>
-        private readonly bool _removeTagsThatIntersectEdits;
-
-        /// <summary>
-        /// The tracking mode we want to use for the tracking spans we create.
-        /// </summary>
-        private readonly SpanTrackingMode _spanTrackingMode;
-
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTags;
 
-        private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-
-        /// <summary>
-        /// A function that is provided to the producer of this tag source. May be null. In some
-        /// scenarios, such as restoring previous REPL history entries, we want to try to use the
-        /// cached tags we've already computed for the buffer, but those live in a different tag
-        /// source which we need some help to find.
-        /// </summary>
-        private readonly Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> _bufferToRelatedTagSource;
-
+        private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
         private readonly ITagProducer<TTag> _tagProducer;
-        private IEqualityComparer<ITagSpan<TTag>> _lazyTagSpanComparer;
+
+        private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
 
         /// <summary>
         /// accumulated text changes since last tag calculation
@@ -96,58 +76,34 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _previousCachedTags;
         #endregion
 
-        protected ProducerPopulatedTagSource(
+        public ProducerPopulatedTagSource(
+            ITextView textViewOpt,
             ITextBuffer subjectBuffer,
-            ITagProducer<TTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
-                : base(subjectBuffer, notificationService, asyncListener)
+            IForegroundNotificationService notificationService)
+                : base(textViewOpt, subjectBuffer, dataSource.IgnoreCaretMovementToExistingTag, notificationService, asyncListener)
         {
-            if (spanTrackingMode == SpanTrackingMode.Custom)
+            if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
             {
                 throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
             }
 
-            _tagProducer = tagProducer;
-            _removeTagsThatIntersectEdits = removeTagsThatIntersectEdits;
-            _spanTrackingMode = spanTrackingMode;
+            _dataSource = dataSource;
+            _tagProducer = dataSource.CreateTagProducer();
 
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
+            _tagSpanComparer = new TagSpanComparer<TTag>(this.TagComparer);
 
-            _eventSource = eventSource;
+            _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
 
             _accumulatedTextChanges = null;
 
             AttachEventHandlersAndStart();
         }
 
-        /// <summary>
-        /// Implemented by derived types to return a list of initial snapshot spans to tag.
-        /// </summary>
-        /// <remarks>Called on the foreground thread.</remarks>
-        protected abstract ICollection<SnapshotSpan> GetInitialSpansToTag();
-
-        /// <summary>
-        /// Implemented by derived types to return The caret position.
-        /// </summary>
-        /// <remarks>Called on the foreground thread.</remarks>
-        protected abstract SnapshotPoint? GetCaretPoint();
-
-        private IEqualityComparer<ITagSpan<TTag>> TagSpanComparer
-        {
-            get
-            {
-                if (_lazyTagSpanComparer == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyTagSpanComparer, new TagSpanComparer<TTag>(_tagProducer.TagComparer), null);
-                }
-
-                return _lazyTagSpanComparer;
-            }
-        }
+        private IEqualityComparer<TTag> TagComparer => 
+            _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
 
         private void AttachEventHandlersAndStart()
         {
@@ -166,9 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             this.WorkQueue.AssertIsForeground();
 
             base.Disconnect();
-
-            // Disconnect from the producer and the event source.
-            _tagProducer.Dispose();
 
             // Tell the interaction object to stop issuing events.
             _eventSource.Disconnect();
@@ -282,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return;
             }
 
-            if (!_removeTagsThatIntersectEdits)
+            if (!_dataSource.RemoveTagsThatIntersectEdits)
             {
                 return;
             }
@@ -297,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             var newTreeForBuffer = new TagSpanIntervalTree<TTag>(
                 buffer,
                 treeForBuffer.SpanTrackingMode,
-                allTags.Except(tagsToRemove, this.TagSpanComparer));
+                allTags.Except(tagsToRemove, _tagSpanComparer));
 
             UpdateCachedTagsForBuffer(e.After, newTreeForBuffer);
         }
@@ -316,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> oldCachedTagsForBuffer = null;
             if (!oldCachedTags.TryGetValue(snapshot.TextBuffer, out oldCachedTagsForBuffer))
             {
-                oldCachedTagsForBuffer = new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _spanTrackingMode);
+                oldCachedTagsForBuffer = new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
             var difference = ComputeDifference(snapshot, oldCachedTagsForBuffer, newTagsForBuffer);
@@ -410,10 +363,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         protected List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
         {
+            this.WorkQueue.AssertIsForeground();
+
             // TODO: Update to tag spans from all related documents.
 
             var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
-            var spansToTag = this.GetInitialSpansToTag().Select(span =>
+            var spansToTag = _dataSource.GetSpansToTag(TextViewOpt, SubjectBuffer) ?? this.GetFullBufferSpan();
+            var spansAndDocumentsToTag = spansToTag.Select(span =>
             {
                 Document document = null;
                 if (!snapshotToDocumentMap.TryGetValue(span.Snapshot, out document))
@@ -428,7 +384,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 return new DocumentSnapshotSpan(document, span);
             }).ToList();
 
-            return spansToTag;
+            return spansAndDocumentsToTag;
+        }
+
+        private IList<SnapshotSpan> GetFullBufferSpan()
+        {
+            // For a standard tagger, the spans to tag is the span of the entire snapshot.
+            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
         }
 
         [Conditional("DEBUG")]
@@ -473,14 +435,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     tags = tagsInBuffer;
                 }
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
+                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _dataSource.SpanTrackingMode, tags));
             }
 
             foreach (var kv in tagsToKeepByBuffer)
             {
                 if (!map.ContainsKey(kv.Key) && kv.Value.Any())
                 {
-                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _spanTrackingMode, kv.Value));
+                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _dataSource.SpanTrackingMode, kv.Value));
                 }
             }
 
@@ -521,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     tags = tagsInBuffer;
                 }
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
+                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _dataSource.SpanTrackingMode, tags));
             }
 
             // Check if we didn't produce any new tags for this buffer.  If we didn't, but we did 
@@ -532,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 var allTags = beforeTagsToKeep;
                 allTags.AddRange(afterTagsToKeep);
 
-                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, _spanTrackingMode, allTags));
+                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, _dataSource.SpanTrackingMode, allTags));
             }
 
             return map;
@@ -564,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     invalidSpans.AddRange(treeForBuffer.GetIntersectingSpans(spanToInvalidate));
                 }
 
-                map = map.Add(kv.Key, treeForBuffer.GetSpans(kv.Key.CurrentSnapshot).Except(invalidSpans, this.TagSpanComparer));
+                map = map.Add(kv.Key, treeForBuffer.GetSpans(kv.Key.CurrentSnapshot).Except(invalidSpans, _tagSpanComparer));
             }
 
             return map;
@@ -681,7 +643,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> previousSpans)
         {
             return new NormalizedSnapshotSpanCollection(
-                Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), new DiffSpanComparer(_tagProducer.TagComparer)));
+                Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), new DiffSpanComparer(this.TagComparer)));
         }
 
         /// <summary>
@@ -699,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> tags;
             if (!map.TryGetValue(buffer, out tags))
             {
-                if (ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted && _previousCachedTags == null)
+                if (_dataSource.ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted && _previousCachedTags == null)
                 {
                     // We can cancel any background computations currently happening
                     this.WorkQueue.CancelCurrentWork();
@@ -717,20 +679,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
 
             return tags;
-        }
-
-        public bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted
-        {
-            get
-            {
-                return _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
-            }
-
-            set
-            {
-                this.WorkQueue.AssertIsForeground();
-                _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = value;
-            }
         }
 
         private class DiffSpanComparer : IDiffSpanComparer<ITagSpan<TTag>>
