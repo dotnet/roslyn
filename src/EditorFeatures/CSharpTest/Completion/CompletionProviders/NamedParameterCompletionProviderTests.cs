@@ -18,14 +18,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("foo:", "foo:", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("foo:", "foo:", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

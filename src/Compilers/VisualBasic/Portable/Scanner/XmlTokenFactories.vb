@@ -162,7 +162,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End Select
 
             If contextualKind = SyntaxKind.XmlNameToken Then
-                contextualKind = TokenOfStringCached(text, SyntaxKind.XmlNameToken)
+                contextualKind = TokenOfStringCached(text)
+                If contextualKind = SyntaxKind.IdentifierToken Then
+                    contextualKind = SyntaxKind.XmlNameToken
+                End If
             End If
 
             Dim followingTrivia = ScanXmlWhitespace()

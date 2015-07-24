@@ -755,6 +755,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        Friend Function GetSubmissionInitializer() As SynthesizedInteractiveInitializerMethod
+            Return If(IsSubmission AndAlso ScriptClass IsNot Nothing,
+                ScriptClass.GetScriptInitializer(),
+                Nothing)
+        End Function
+
 #End Region
 
 #Region "Syntax Trees"
@@ -1354,11 +1360,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetEntryPointAndDiagnostics(cancellationToken As CancellationToken) As EntryPoint
-            If Not Me.Options.OutputKind.IsApplication() Then
+            If Not Me.Options.OutputKind.IsApplication() AndAlso ScriptClass Is Nothing Then
                 Return Nothing
             End If
-
-            Debug.Assert(Not Me.IsSubmission)
 
             If Me.Options.MainTypeName IsNot Nothing AndAlso Not Me.Options.MainTypeName.IsValidClrTypeName() Then
                 Debug.Assert(Not Me.Options.Errors.IsDefaultOrEmpty)
@@ -1366,23 +1370,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If _lazyEntryPoint Is Nothing Then
-                Dim entryPoint As MethodSymbol = Nothing
                 Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
-                FindEntryPoint(cancellationToken, entryPoint, diagnostics)
-
+                Dim entryPoint = FindEntryPoint(cancellationToken, diagnostics)
                 Interlocked.CompareExchange(_lazyEntryPoint, New EntryPoint(entryPoint, diagnostics), Nothing)
             End If
 
             Return _lazyEntryPoint
         End Function
 
-        Private Sub FindEntryPoint(cancellationToken As CancellationToken, ByRef entryPoint As MethodSymbol, ByRef sealedDiagnostics As ImmutableArray(Of Diagnostic))
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+        Private Function FindEntryPoint(cancellationToken As CancellationToken, ByRef sealedDiagnostics As ImmutableArray(Of Diagnostic)) As MethodSymbol
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
 
             Try
-                entryPoint = Nothing
-
-                Dim entryPointCandidates As ArrayBuilder(Of MethodSymbol)
                 Dim mainType As SourceMemberContainerTypeSymbol
 
                 Dim mainTypeName As String = Me.Options.MainTypeName
@@ -1392,29 +1392,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If mainTypeName IsNot Nothing Then
                     ' Global code is the entry point, ignore all other Mains.
-                    ' TODO: don't special case scripts (DevDiv #13119).
-                    If Me.ScriptClass IsNot Nothing Then
+                    If ScriptClass IsNot Nothing Then
                         ' CONSIDER: we could use the symbol instead of just the name.
                         diagnostics.Add(ERRID.WRN_MainIgnored, NoLocation.Singleton, mainTypeName)
-                        Return
+                        Return ScriptClass.GetScriptEntryPoint()
                     End If
 
                     Dim mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split("."c)).OfType(Of NamedTypeSymbol)().OfMinimalArity()
                     If mainTypeOrNamespace Is Nothing Then
                         diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainTypeName)
-                        Return
+                        Return Nothing
                     End If
 
                     mainType = TryCast(mainTypeOrNamespace, SourceMemberContainerTypeSymbol)
                     If mainType Is Nothing OrElse (mainType.TypeKind <> TypeKind.Class AndAlso mainType.TypeKind <> TypeKind.Structure AndAlso mainType.TypeKind <> TypeKind.Module) Then
                         diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
-                        Return
+                        Return Nothing
                     End If
 
                     ' Dev10 reports ERR_StartupCodeNotFound1 but that doesn't make much sense
                     If mainType.IsGenericType Then
                         diagnostics.Add(ERRID.ERR_GenericSubMainsFound1, NoLocation.Singleton, mainType)
-                        Return
+                        Return Nothing
                     End If
 
                     errorTarget = mainType
@@ -1433,10 +1432,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If (Not lookupResult.IsGoodOrAmbiguous) OrElse lookupResult.Symbols(0).Kind <> SymbolKind.Method Then
                         diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, mainType)
                         lookupResult.Free()
-                        Return
+                        Return Nothing
                     End If
 
-                    entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
                     For Each candidate In lookupResult.Symbols
                         ' The entrypoint cannot be in another assembly.
                         ' NOTE: filter these out here, rather than below, so that we
@@ -1448,38 +1446,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     lookupResult.Free()
 
-                    ' NOTE: Any return after this point must free entryPointCandidates.
                 Else
                     mainType = Nothing
 
                     errorTarget = Me.AssemblyName
 
-                    entryPointCandidates = ArrayBuilder(Of MethodSymbol).GetInstance()
                     EntryPointCandidateFinder.FindCandidatesInNamespace(globalNamespace, entryPointCandidates, cancellationToken)
 
-                    ' NOTE: Any return after this point must free entryPointCandidates.
-
                     ' Global code is the entry point, ignore all other Mains.
-                    If Me.ScriptClass IsNot Nothing Then
+                    If ScriptClass IsNot Nothing Then
                         For Each main In entryPointCandidates
                             diagnostics.Add(ERRID.WRN_MainIgnored, main.Locations.First(), main)
                         Next
-
-                        entryPointCandidates.Free()
-                        Return
+                        Return ScriptClass.GetScriptEntryPoint()
                     End If
                 End If
 
                 If entryPointCandidates.Count = 0 Then
                     diagnostics.Add(ERRID.ERR_StartupCodeNotFound1, NoLocation.Singleton, errorTarget)
-                    entryPointCandidates.Free()
-                    Return
+                    Return Nothing
                 End If
 
                 Dim hasViableGenericEntryPoints As Boolean = False
                 Dim viableEntryPoints = ArrayBuilder(Of MethodSymbol).GetInstance()
-
-                ' NOTE: Any return after this point must free viableEntryPoints (and entryPointCandidates).
 
                 For Each candidate In entryPointCandidates
                     If Not candidate.IsViableMainMethod Then
@@ -1493,6 +1482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Next
 
+                Dim entryPoint As MethodSymbol = Nothing
                 If viableEntryPoints.Count = 0 Then
                     If hasViableGenericEntryPoints Then
                         diagnostics.Add(ERRID.ERR_GenericSubMainsFound1, NoLocation.Singleton, errorTarget)
@@ -1528,13 +1518,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                entryPointCandidates.Free()
                 viableEntryPoints.Free()
+                Return entryPoint
 
             Finally
+                entryPointCandidates.Free()
                 sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
             End Try
-        End Sub
+        End Function
 
         Friend Class EntryPoint
             Public ReadOnly MethodSymbol As MethodSymbol
@@ -1750,14 +1741,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
         End Function
 
-        Friend Function GetSubmissionReturnType() As TypeSymbol
-            If IsSubmission AndAlso ScriptClass IsNot Nothing Then
-                Return (DirectCast(ScriptClass.GetMembers(WellKnownMemberNames.InstanceConstructorName)(0), MethodSymbol)).Parameters(1).Type
-            Else
-                Return Nothing
-            End If
-        End Function
-
         ''' <summary>
         ''' A symbol representing the implicit Script class. This is null if the class is not
         ''' defined in the compilation.
@@ -1804,6 +1787,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Shadows Function GetSpecialTypeMember(memberId As SpecialMember) As Symbol
             Return Assembly.GetSpecialTypeMember(memberId)
+        End Function
+
+        Friend Function GetTypeByReflectionType(type As Type, diagnostics As DiagnosticBag) As TypeSymbol
+            ' TODO: See CSharpCompilation.GetTypeByReflectionType
+            Return GetSpecialType(SpecialType.System_Object)
         End Function
 
         ''' <summary>

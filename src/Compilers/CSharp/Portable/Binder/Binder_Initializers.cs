@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -23,14 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedInteractiveInitializerMethod scriptInitializerOpt,
             ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
             DiagnosticBag diagnostics,
-            bool setReturnType, // Remove once static fields are errors in submissions.
             ref ProcessedFieldInitializers processedInitializers)
         {
-            if (setReturnType && ((object)scriptInitializerOpt != null))
-            {
-                SetScriptInitializerReturnType(compilation, scriptInitializerOpt, fieldInitializers, diagnostics);
-            }
-
             var diagsForInstanceInitializers = DiagnosticBag.GetInstance();
             ImportChain firstImportChain;
             processedInitializers.BoundInitializers = BindFieldInitializers(compilation, scriptInitializerOpt, fieldInitializers, diagsForInstanceInitializers, out firstImportChain);
@@ -63,71 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindScriptFieldInitializers(compilation, scriptInitializerOpt, initializers, boundInitializers, diagnostics, out firstImportChain);
             }
             return boundInitializers.ToImmutableAndFree();
-        }
-
-        private static void SetScriptInitializerReturnType(
-            CSharpCompilation compilation,
-            SynthesizedInteractiveInitializerMethod scriptInitializer,
-            ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> fieldInitializers,
-            DiagnosticBag diagnostics)
-        {
-            bool isAsync = scriptInitializer.IsSubmissionInitializer && fieldInitializers.Any(i => i.Any(ContainsAwaitsVisitor.ContainsAwait));
-            var resultType = scriptInitializer.ResultType;
-            TypeSymbol returnType;
-
-            if ((object)resultType == null)
-            {
-                Debug.Assert(!isAsync);
-                returnType = compilation.GetSpecialType(SpecialType.System_Void);
-            }
-            else if (!isAsync)
-            {
-                returnType = resultType;
-            }
-            else
-            {
-                var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-                var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
-                if (useSiteDiagnostic != null)
-                {
-                    diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);
-                }
-                returnType = taskT.Construct(resultType);
-            }
-
-            scriptInitializer.SetReturnType(isAsync, returnType);
-        }
-
-        private sealed class ContainsAwaitsVisitor : CSharpSyntaxWalker
-        {
-            private bool _containsAwait;
-
-            internal static bool ContainsAwait(FieldOrPropertyInitializer initializer)
-            {
-                var syntax = initializer.Syntax.GetSyntax();
-                var visitor = new ContainsAwaitsVisitor();
-                visitor.Visit(syntax);
-                return visitor._containsAwait;
-            }
-
-            public override void VisitAwaitExpression(AwaitExpressionSyntax node)
-            {
-                _containsAwait = true;
-            }
-
-            public override void DefaultVisit(SyntaxNode node)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                        // Do not walk into lambdas.
-                        break;
-                    default:
-                        base.DefaultVisit(node);
-                        break;
-                }
-            }
         }
 
         /// <summary>
@@ -259,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var collisionDetector = new LocalScopeBinder(parentBinder);
-                        boundInitializer = BindGlobalStatement(collisionDetector, (StatementSyntax)initializerNode, diagnostics,
+                        boundInitializer = BindGlobalStatement(collisionDetector, scriptInitializer, (StatementSyntax)initializerNode, diagnostics,
                             isLast: i == initializers.Length - 1 && j == siblingInitializers.Length - 1);
                     }
 
@@ -268,7 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundInitializer BindGlobalStatement(Binder binder, StatementSyntax statementNode, DiagnosticBag diagnostics, bool isLast)
+        private static BoundInitializer BindGlobalStatement(
+            Binder binder,
+            SynthesizedInteractiveInitializerMethod scriptInitializer,
+            StatementSyntax statementNode,
+            DiagnosticBag diagnostics,
+            bool isLast)
         {
             BoundStatement boundStatement = binder.BindStatement(statementNode, diagnostics);
 
@@ -279,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = ((BoundExpressionStatement)boundStatement).Expression;
                 if ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void)
                 {
-                    var submissionResultType = binder.Compilation.GetSubmissionInitializer().ResultType;
+                    var submissionResultType = scriptInitializer.ResultType;
                     expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
                     boundStatement = new BoundExpressionStatement(boundStatement.Syntax, expression, expression.HasErrors);
                 }

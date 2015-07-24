@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     var filterText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
-                    var matchesFilterText = this.MatchesFilterText(item, filterText, completionRules, model.TriggerInfo, filterReason);
+                    var matchesFilterText = completionRules.MatchesFilterText(item, filterText, model.TriggerInfo, filterReason);
 
                     if (matchesFilterText)
                     {
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // If we have no best match, or this match is better than the last match,
                         // then the current item is the best filter match.
                         if (bestFilterMatch == null ||
-                            this.IsBetterFilterMatch(item, GetCompletionItem(bestFilterMatch), filterText, completionRules, model.TriggerInfo, filterReason))
+                            completionRules.IsBetterFilterMatch(item, GetCompletionItem(bestFilterMatch), filterText, model.TriggerInfo, filterReason))
                         {
                             bestFilterMatch = currentItem;
                         }
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 CompletionItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
-                ICompletionRules completionRules,
+                CompletionRules completionRules,
                 CompletionTriggerInfo triggerInfo,
                 CompletionFilterReason reason)
             {
@@ -243,14 +242,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
                 var shouldSoftSelect = completionRules.ShouldSoftSelectItem(GetExternallyUsableCompletionItem(bestFilterMatch), fullFilterText, triggerInfo);
-                if (shouldSoftSelect == true)
+                if (shouldSoftSelect)
                 {
                     return false;
                 }
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!MatchesFilterText(bestFilterMatch, fullFilterText, completionRules, triggerInfo, reason))
+                if (!completionRules.MatchesFilterText(bestFilterMatch, fullFilterText, triggerInfo, reason))
                 {
                     return false;
                 }
@@ -258,27 +257,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // There was either filter text, or this was a preselect match.  In either case, we
                 // can hard select this.
                 return true;
-            }
-
-            private bool IsBetterFilterMatch(
-                CompletionItem item,
-                CompletionItem bestItem,
-                string filterText,
-                ICompletionRules completionRules,
-                CompletionTriggerInfo triggerInfo,
-                CompletionFilterReason filterReason)
-            {
-                return completionRules.IsBetterFilterMatch(item, bestItem, filterText, triggerInfo, filterReason) ?? false;
-            }
-
-            private bool MatchesFilterText(
-                CompletionItem item,
-                string filterText,
-                ICompletionRules completionRules,
-                CompletionTriggerInfo triggerInfo,
-                CompletionFilterReason reason)
-            {
-                return completionRules.MatchesFilterText(item, filterText, triggerInfo, reason) ?? false;
             }
         }
     }

@@ -1980,6 +1980,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Updating async or iterator modifier around an active statement will prevent the debug session from continuing..
+        /// </summary>
+        internal static string UpdatingStateMachineMethodAroundActive {
+            get {
+                return ResourceManager.GetString("UpdatingStateMachineMethodAroundActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating the alias of Declare Statement will prevent the debug session from continuing..
         /// </summary>
         internal static string UpdatingTheAliasOfDeclareStatement {

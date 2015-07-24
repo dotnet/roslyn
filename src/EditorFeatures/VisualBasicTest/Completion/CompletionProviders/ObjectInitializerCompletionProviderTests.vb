@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -367,7 +366,18 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            Const code = "
+Public Class C
+    Public bar as Integer
+End Class
+
+Class Program
+    Sub foo()
+        Dim a as C = new C With { .$$
+    End Sub
+End Program"
+
+            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -400,7 +410,18 @@ End Program</Document>
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SendEnterThroughToEditorTest()
-            Assert.False(CompletionProvider.SendEnterThroughToEditor(Nothing, Nothing), "Expected hardcoded false")
+            Const code = "
+Public Class C
+    Public bar as Integer
+End Class
+
+Class Program
+    Sub foo()
+        Dim a as C = new C With { .$$
+    End Sub
+End Program"
+
+            VerifySendEnterThroughToEditor(code, "bar", expected:=False)
         End Sub
 
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider

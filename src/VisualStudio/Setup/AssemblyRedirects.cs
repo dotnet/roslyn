@@ -170,8 +170,6 @@ using Microsoft.VisualStudio.Shell;
     PublicKeyToken = "b03f5f7f11d50a3a",
     GenerateCodeBase = false)]
 
-#if !OFFICIAL_BUILD
-
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.InteractiveWindow",
     OldVersionLowerBound = Constants.OldVersionLowerBound,
@@ -187,8 +185,6 @@ using Microsoft.VisualStudio.Shell;
     NewVersion = Constants.NewVersion,
     PublicKeyToken = Constants.PublicKeyToken,
     GenerateCodeBase = false)]
-
-#endif
 
 internal class Constants
 {

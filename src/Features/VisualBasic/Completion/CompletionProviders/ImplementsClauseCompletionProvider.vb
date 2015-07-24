@@ -14,16 +14,8 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class ImplementsClauseCompletionProvider
+    Partial Friend Class ImplementsClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
-
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
-
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar)
-        End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -247,16 +239,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ImplementsClause)
         End Function
 
-        Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
-            Dim symbolItem = TryCast(selectedItem, SymbolCompletionItem)
-
-            If symbolItem IsNot Nothing Then
-                Return CompletionUtilities.GetTextChange(symbolItem, ch, textTypedSoFar)
-            End If
-
-            Return New TextChange(selectedItem.FilterSpan, selectedItem.DisplayText)
-        End Function
-
         Protected Overrides Function GetDisplayAndInsertionText(symbol As ISymbol, context As AbstractSyntaxContext) As ValueTuple(Of String, String)
             If IsGlobal(symbol) Then
                 Return ValueTuple.Create("Global", "Global")
@@ -281,10 +263,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
-        End Function
-
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
@@ -292,6 +270,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+        End Function
+
+        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
+            Return ItemRules.Instance
         End Function
     End Class
 End Namespace

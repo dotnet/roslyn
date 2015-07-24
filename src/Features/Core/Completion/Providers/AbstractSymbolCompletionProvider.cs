@@ -33,18 +33,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context);
 
-        protected abstract string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch);
         protected abstract TextSpan GetTextChangeSpan(SourceText text, int position);
-
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            var symbolItem = (SymbolCompletionItem)selectedItem;
-            var insertionText = ch == null
-                ? symbolItem.InsertionText
-                : GetInsertionText(symbolItem, ch.Value);
-
-            return new TextChange(selectedItem.FilterSpan, insertionText);
-        }
+        protected abstract CompletionItemRules GetCompletionItemRules();
 
         /// <summary>
         /// Given a list of symbols, creates the list of completion items for them.
@@ -140,12 +130,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols,
                 context,
                 supportedPlatforms: supportedPlatformData,
-                preselect: preselect);
-        }
-
-        private string GetInsertionText(SymbolCompletionItem symbolItem, char ch)
-        {
-            return GetInsertionText(symbolItem.Symbols[0], symbolItem.Context, ch);
+                preselect: preselect,
+                rules: GetCompletionItemRules());
         }
 
         protected virtual string GetFilterText(ISymbol symbol, string displayText, AbstractSyntaxContext context)

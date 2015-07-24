@@ -1,90 +1,120 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
+Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
-    Public NotInheritable Class VisualBasicScript
-        Inherits Script
+    ''' <summary>
+    ''' A factory for creating and running Visual Basic scripts.
+    ''' </summary>
+    Public Module VisualBasicScript
 
-        Private Sub New(code As String, path As String, options As ScriptOptions, globalsType As Type, returnType As Type, builder As ScriptBuilder, previous As Script)
-            MyBase.New(code, path, options, globalsType, returnType, builder, previous)
+        ''' <summary>
+        ''' Create a new Visual Basic script.
+        ''' </summary>
+        Public Function Create(Of T)(code As String, options As ScriptOptions) As Script(Of T)
+            Return New VisualBasicScript(Of T)(code, Nothing, options, Nothing, Nothing, Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Create a new Visual Basic script.
+        ''' </summary>
+        Public Function Create(code As String, options As ScriptOptions) As Script(Of Object)
+            Return New VisualBasicScript(Of Object)(code, Nothing, options, Nothing, Nothing, Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Create a new Visual Basic script.
+        ''' </summary>
+        Public Function Create(code As String) As Script(Of Object)
+            Return New VisualBasicScript(Of Object)(code, Nothing, Nothing, Nothing, Nothing, Nothing)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script.
+        ''' </summary>
+        Public Function RunAsync(Of T)(code As String, options As ScriptOptions, globals As Object, Optional cancellationToken As CancellationToken = Nothing) As ScriptState(Of T)
+            Return Create(Of T)(code, options).RunAsync(globals, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script.
+        ''' </summary>
+        Public Function RunAsync(code As String, options As ScriptOptions, globals As Object, Optional cancellationToken As CancellationToken = Nothing) As ScriptState(Of Object)
+            Return RunAsync(Of Object)(code, options, globals, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script.
+        ''' </summary>
+        Public Function RunAsync(code As String, options As ScriptOptions, Optional cancellationToken As CancellationToken = Nothing) As ScriptState(Of Object)
+            Return RunAsync(Of Object)(code, options, Nothing, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script.
+        ''' </summary>
+        Public Function RunAsync(code As String, globals As Object, Optional cancellationToken As CancellationToken = Nothing) As ScriptState(Of Object)
+            Return RunAsync(Of Object)(code, Nothing, globals, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script.
+        ''' </summary>
+        Public Function RunAsync(code As String, Optional cancellationToken As CancellationToken = Nothing) As ScriptState(Of Object)
+            Return RunAsync(Of Object)(code, Nothing, Nothing, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script and return its resulting value.
+        ''' </summary>
+        Public Function EvaluateAsync(Of T)(code As String, options As ScriptOptions, globals As Object, Optional cancellationToken As CancellationToken = Nothing) As Task(Of T)
+            Return RunAsync(Of T)(code, options, globals, cancellationToken).ReturnValue
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script and return its resulting value.
+        ''' </summary>
+        Public Function EvaluateAsync(code As String, options As ScriptOptions, globals As Object, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Object)
+            Return EvaluateAsync(Of Object)(code, options, globals, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script and return its resulting value.
+        ''' </summary>
+        Public Function EvaluateAsync(code As String, options As ScriptOptions, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Object)
+            Return EvaluateAsync(Of Object)(code, options, Nothing, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script and return its resulting value.
+        ''' </summary>
+        Public Function EvaluateAsync(code As String, globals As Object, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Object)
+            Return EvaluateAsync(Of Object)(code, Nothing, globals, cancellationToken)
+        End Function
+
+        ''' <summary>
+        ''' Run a Visual Basic script and return its resulting value.
+        ''' </summary>
+        Public Function EvaluateAsync(code As String, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Object)
+            Return EvaluateAsync(Of Object)(code, Nothing, Nothing, cancellationToken)
+        End Function
+
+    End Module
+
+    Friend NotInheritable Class VisualBasicScript(Of T)
+        Inherits Script(Of T)
+
+        Friend Sub New(code As String, path As String, options As ScriptOptions, globalsType As Type, builder As ScriptBuilder, previous As Script)
+            MyBase.New(code, path, options, globalsType, builder, previous)
         End Sub
 
-        Friend Overrides Function Make(code As String, path As String, options As ScriptOptions, globalsType As Type, returnType As Type, builder As ScriptBuilder, previous As Script) As Script
-            Return New VisualBasicScript(code, path, options, globalsType, returnType, builder, previous)
-        End Function
-
-        ''' <summary>
-        ''' Create a new Visual Basic script.
-        ''' </summary>
-        Public Shared Function Create(code As String, options As ScriptOptions) As Script
-            Return New VisualBasicScript(code, Nothing, options, Nothing, Nothing, Nothing, Nothing)
-        End Function
-
-        ''' <summary>
-        ''' Create a new Visual Basic script.
-        ''' </summary>
-        Public Shared Function Create(code As String) As Script
-            Return New VisualBasicScript(code, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script.
-        ''' </summary>
-        Public Overloads Shared Function Run(code As String, options As ScriptOptions, globals As Object) As ScriptState
-            Return Create(code, options).Run(globals)
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script.
-        ''' </summary>
-        Public Overloads Shared Function Run(code As String, options As ScriptOptions) As ScriptState
-            Return Create(code, options).Run(Nothing)
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script.
-        ''' </summary>
-        Public Overloads Shared Function Run(code As String, globals As Object) As ScriptState
-            Return Create(code, Nothing).Run(globals)
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script.
-        ''' </summary>
-        Public Overloads Shared Function Run(code As String) As ScriptState
-            Return Create(code, Nothing).Run(Nothing)
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script and return its resulting value.
-        ''' </summary>
-        Public Shared Function Eval(code As String, options As ScriptOptions, globals As Object) As Object
-            Return Run(code, options, globals).ReturnValue
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script and return its resulting value.
-        ''' </summary>
-        Public Shared Function Eval(code As String, options As ScriptOptions) As Object
-            Return Run(code, options).ReturnValue
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script and return its resulting value.
-        ''' </summary>
-        Public Shared Function Eval(code As String, globals As Object) As Object
-            Return Run(code, globals).ReturnValue
-        End Function
-
-        ''' <summary>
-        ''' Run a Visual Basic script and return its resulting value.
-        ''' </summary>
-        Public Shared Function Eval(code As String) As Object
-            Return Run(code).ReturnValue
+        Friend Overrides Function Make(code As String, path As String, options As ScriptOptions, globalsType As Type, builder As ScriptBuilder, previous As Script) As Script(Of T)
+            Return New VisualBasicScript(Of T)(code, path, options, globalsType, builder, previous)
         End Function
 
 #Region "Compilation"

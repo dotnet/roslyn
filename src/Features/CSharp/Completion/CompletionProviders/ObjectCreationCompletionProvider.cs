@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -18,26 +17,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
+    internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
     {
         protected override TextSpan GetTextChangeSpan(SourceText text, int position)
         {
             // We can just defer to the standard text span algorithm.
             return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            // TODO(cyrusn): We could just allow the standard list of completion characters.
-            // However, i'd like to see what the experience is like really filtering down to the set
-            // of things that is allowable.
-            return ch == ' ' || ch == '(' || ch == '{' || ch == '[';
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            // Standard enter behavior.
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
         }
 
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
@@ -76,18 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
         }
 
-        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
-        {
-            if (symbol is IAliasSymbol)
-            {
-                return ((IAliasSymbol)symbol).Name;
-            }
-
-            var displayService = context.GetLanguageService<ISymbolDisplayService>();
-            var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return displayString;
-        }
-
         protected override async Task<IEnumerable<ISymbol>> GetPreselectedSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {
             var result = await base.GetPreselectedSymbolsWorker(context, position, options, cancellationToken).ConfigureAwait(false);
@@ -112,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return base.GetDisplayAndInsertionText(symbol, context);
+        }
+
+        protected override CompletionItemRules GetCompletionItemRules()
+        {
+            return ItemRules.Instance;
         }
     }
 }

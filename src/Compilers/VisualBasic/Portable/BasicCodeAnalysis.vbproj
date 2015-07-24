@@ -801,6 +801,7 @@
     <Compile Include="Symbols\Source\SynthesizedEventAccessorSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedEventBackingFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedFieldSymbol.vb" />
+    <Compile Include="Symbols\Source\SynthesizedInteractiveInitializerMethod.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaKind.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedMainTypeEntryPoint.vb" />

@@ -235,9 +235,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
 #If DEBUG Then
                 Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
-
+#End If
                 Dim result = MyBase.Visit(node)
-
+#If DEBUG Then
                 If result IsNot Nothing Then
                     If result Is node Then
                         result = result.MemberwiseClone(Of BoundNode)()
@@ -245,11 +245,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     _rewrittenNodes.Add(result)
                 End If
-
-                Return result
-#Else
-                Return MyBase.Visit(node)
 #End If
+                Return result
             End If
         End Function
 

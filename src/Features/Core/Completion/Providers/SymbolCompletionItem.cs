@@ -29,13 +29,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
             bool preselect = false,
-            SupportedPlatformData supportedPlatforms = null)
+            SupportedPlatformData supportedPlatforms = null,
+            CompletionItemRules rules = null)
             : this(completionProvider,
                   displayText,
                   insertionText,
                   filterText: displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name,
                   filterSpan: filterSpan,
-                  position: position, symbols: symbols, context: context, preselect: preselect, supportedPlatforms: supportedPlatforms)
+                  position: position, symbols: symbols, context: context, preselect: preselect, supportedPlatforms: supportedPlatforms, rules: rules)
         {
         }
 
@@ -49,10 +50,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             List<ISymbol> symbols,
             AbstractSyntaxContext context,
             bool preselect = false,
-            SupportedPlatformData supportedPlatforms = null)
+            SupportedPlatformData supportedPlatforms = null,
+            CompletionItemRules rules = null)
         : base(completionProvider, displayText, filterSpan,
            descriptionFactory: null, glyph: symbols[0].GetGlyph(),
-           sortText: symbols[0].Name, filterText: filterText, preselect: preselect, showsWarningIcon: supportedPlatforms != null)
+           sortText: symbols[0].Name, filterText: filterText, preselect: preselect, showsWarningIcon: supportedPlatforms != null, rules: rules)
         {
             this.InsertionText = insertionText;
             this.Position = position;
@@ -73,10 +75,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             AbstractSyntaxContext context,
             Glyph glyph,
             bool preselect = false,
-            SupportedPlatformData supportedPlatforms = null)
+            SupportedPlatformData supportedPlatforms = null,
+            CompletionItemRules rules = null)
         : base(completionProvider, displayText, filterSpan,
            descriptionFactory: null, glyph: glyph,
-           sortText: sortText, filterText: filterText, preselect: preselect, showsWarningIcon: supportedPlatforms != null)
+           sortText: sortText, filterText: filterText, preselect: preselect, showsWarningIcon: supportedPlatforms != null, rules: rules)
         {
             this.InsertionText = insertionText;
             this.Position = position;

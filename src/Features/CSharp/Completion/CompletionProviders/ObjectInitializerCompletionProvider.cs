@@ -83,16 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return false;
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
@@ -194,11 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return base.IsInitializable(member, containingType);
-        }
-
-        protected override CompletionItem CreateItem(Workspace workspace, string displayText, TextSpan textSpan, Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory, Glyph? glyph)
-        {
-            return new CSharpCompletionItem(workspace, this, displayText, textSpan, descriptionFactory, glyph);
         }
     }
 }
