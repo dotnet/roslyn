@@ -95,6 +95,7 @@
     <Compile Include="FusionAssemblyPortabilityPolicy.cs" />
     <Compile Include="InstructionOperandTypesTests.cs" />
     <Compile Include="MetadataReferenceTests.cs" />
+    <Compile Include="ModuleMetadataTests.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

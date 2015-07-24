@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ThrowsForMissingFile()
         {
-            var path = Path.Combine(Temp.CreateDirectory().Path, Path.GetRandomFileName() + ".dll");
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dll");
 
             var loader = new SimpleAnalyzerAssemblyLoader();
 
@@ -45,6 +45,42 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assembly alpha = loader.LoadFromPath(alphaDll.Path);
 
             Assert.NotNull(alpha);
+        }
+
+        [Fact]
+        public void AssemblyLoading()
+        {
+            StringBuilder sb = new StringBuilder();
+            var directory = Temp.CreateDirectory();
+
+            var alphaDll = Temp.CreateDirectory().CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            var betaDll = Temp.CreateDirectory().CreateFile("Beta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Beta);
+            var gammaDll = Temp.CreateDirectory().CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
+            var deltaDll = Temp.CreateDirectory().CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
+
+            var loader = new SimpleAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(alphaDll.Path);
+            loader.AddDependencyLocation(betaDll.Path);
+            loader.AddDependencyLocation(gammaDll.Path);
+            loader.AddDependencyLocation(deltaDll.Path);
+
+            Assembly alpha = loader.LoadFromPath(alphaDll.Path);
+
+            var a = alpha.CreateInstance("Alpha.A");
+            a.GetType().GetMethod("Write").Invoke(a, new object[] { sb, "Test A" });
+
+            Assembly beta = loader.LoadFromPath(betaDll.Path);
+
+            var b = beta.CreateInstance("Beta.B");
+            b.GetType().GetMethod("Write").Invoke(b, new object[] { sb, "Test B" });
+
+            var expected = @"Delta: Gamma: Alpha: Test A
+Delta: Gamma: Beta: Test B
+";
+
+            var actual = sb.ToString();
+
+            Assert.Equal(expected, actual);
         }
     }
 }
