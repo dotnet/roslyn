@@ -266,18 +266,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         // The REPL window might change content type to host command content type (when a host command is typed at the beginning of the buffer).
         private void LanguageBufferContentTypeChanged(object sender, ContentTypeChangedEventArgs e)
         {
+            // It's not clear whether this situation will ever happen, but just in case.
+            if (e.BeforeContentType == e.AfterContentType)
+            {
+                return;
+            }
+
             var buffer = e.Before.TextBuffer;
 
             var afterIsLanguage = e.AfterContentType.IsOfType(this.ContentType.TypeName);
             var afterIsInteractiveCommand = e.AfterContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
             var beforeIsLanguage = e.BeforeContentType.IsOfType(this.ContentType.TypeName);
             var beforeIsInteractiveCommand = e.BeforeContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-
-            if (afterIsLanguage == beforeIsLanguage ||
-                afterIsInteractiveCommand == beforeIsInteractiveCommand)
-            {
-                return;
-            }
 
             Debug.Assert((afterIsLanguage && beforeIsInteractiveCommand)
                       || (beforeIsLanguage && afterIsInteractiveCommand));
