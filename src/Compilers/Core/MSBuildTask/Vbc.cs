@@ -294,6 +294,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return;
             }
 
+            // Design-time builds should not have side effects.
+            if (this.HostObject != null)
+            {
+                using (var hostObject = new RCWForCurrentContext<IVbcHostObject>(this.HostObject as IVbcHostObject))
+                {
+                    IVbcHostObject vbcHostObject = hostObject.RCW;
+                    if ((vbcHostObject != null) && vbcHostObject.IsDesignTime())
+                    {
+                        return;
+                    }
+                }
+            }
+
             try
             {
                 string actualPdb = Path.ChangeExtension(outputAssembly, ".pdb"); // This is the pdb that the compiler generated
