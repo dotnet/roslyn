@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         SpanTrackingMode SpanTrackingMode { get; }
 
         /// <summary>
+        /// The amount of time the tagger engine will wait after tags are computed before updating
+        /// the UI. 
+        /// </summary>
+        TaggerDelay UIUpdateDelay { get; }
+
+        /// <summary>
         /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
