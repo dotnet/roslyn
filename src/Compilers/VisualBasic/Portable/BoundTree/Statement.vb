@@ -92,6 +92,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IClauses As ImmutableArray(Of ICaseClause) Implements ICase.Clauses
             Get
+                If Me.CaseStatement.CaseClauses.IsEmpty Then
+                    Return ImmutableArray.Create(CaseElseClause)
+                End If
+
                 Return Me.CaseStatement.CaseClauses.As(Of ICaseClause)()
             End Get
         End Property
@@ -99,6 +103,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Private Shared CaseElseClause As ICaseClause = New CaseElse
+
+        Private Class CaseElse
+            Implements ICaseClause
+
+            Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseClass
+                Get
+                    Return CaseKind.Default
+                End Get
+            End Property
+        End Class
+
     End Class
 
     Partial Class BoundCaseClause
@@ -112,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IEquality As RelationalOperatorCode Implements ISingleValueCaseClause.Equality
             Get
-                Dim caseValue As BoundExpression = Me.ValueOpt
+                Dim caseValue As BoundExpression = DirectCast(Me.IValue, BoundExpression)
                 If caseValue IsNot Nothing Then
                     Select Case caseValue.Type.SpecialType
                         Case SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UInt16, SpecialType.System_Int16, SpecialType.System_SByte, SpecialType.System_Byte, SpecialType.System_Char
@@ -136,13 +153,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IValue As IExpression Implements ISingleValueCaseClause.Value
             Get
-                Return Me.ValueOpt
+                If Me.ValueOpt IsNot Nothing Then
+                    Return Me.ValueOpt
+                End If
+
+                If Me.ConditionOpt IsNot Nothing AndAlso Me.ConditionOpt.Kind = BoundKind.BinaryOperator Then
+                    Dim value As BoundBinaryOperator = DirectCast(Me.ConditionOpt, BoundBinaryOperator)
+                    If value.OperatorKind = BinaryOperatorKind.Equals Then
+                        Return value.Right
+                    End If
+                End If
+
+                Return Nothing
             End Get
         End Property
 
         Protected Overrides ReadOnly Property ICaseClass As CaseKind
             Get
-                Return If(Me.ValueOpt IsNot Nothing, CaseKind.SingleValue, CaseKind.Default)
+                Return If(Me.IValue IsNot Nothing, CaseKind.SingleValue, CaseKind.Default)
             End Get
         End Property
     End Class
@@ -152,13 +180,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMaximumValue As IExpression Implements IRangeCaseClause.MaximumValue
             Get
-                Return Me.UpperBoundOpt
+                If Me.UpperBoundOpt IsNot Nothing Then
+                    Return Me.UpperBoundOpt
+                End If
+
+                If Me.UpperBoundConditionOpt IsNot Nothing AndAlso Me.UpperBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
+                    Dim upperBound As BoundBinaryOperator = DirectCast(Me.UpperBoundConditionOpt, BoundBinaryOperator)
+                    If upperBound.OperatorKind = BinaryOperatorKind.LessThanOrEqual Then
+                        Return upperBound.Right
+                    End If
+                End If
+
+                Return Nothing
             End Get
         End Property
 
         Private ReadOnly Property IMinimumValue As IExpression Implements IRangeCaseClause.MinimumValue
             Get
-                Return Me.LowerBoundOpt
+                If Me.LowerBoundOpt IsNot Nothing Then
+                    Return Me.LowerBoundOpt
+                End If
+
+                If Me.LowerBoundConditionOpt IsNot Nothing AndAlso Me.LowerBoundConditionOpt.Kind = BoundKind.BinaryOperator Then
+                    Dim lowerBound As BoundBinaryOperator = DirectCast(Me.LowerBoundConditionOpt, BoundBinaryOperator)
+                    If lowerBound.OperatorKind = BinaryOperatorKind.GreaterThanOrEqual Then
+                        Return lowerBound.Right
+                    End If
+                End If
+
+                Return Nothing
             End Get
         End Property
 
@@ -174,8 +224,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property Relation As RelationalOperatorCode Implements IRelationalCaseClause.Relation
             Get
-                If Me.OperandOpt IsNot Nothing Then
-                    Return DeriveRelationalOperatorCode(Me.OperatorKind, Me.OperandOpt)
+                If Me.Value IsNot Nothing Then
+                    Return DeriveRelationalOperatorCode(Me.OperatorKind, DirectCast(Me.Value, BoundExpression))
                 End If
 
                 Return RelationalOperatorCode.None
@@ -184,7 +234,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property Value As IExpression Implements IRelationalCaseClause.Value
             Get
-                Return Me.OperandOpt
+                If Me.OperandOpt IsNot Nothing Then
+                    Return Me.OperandOpt
+                End If
+
+                If Me.ConditionOpt IsNot Nothing AndAlso Me.ConditionOpt.Kind = BoundKind.BinaryOperator Then
+                    Return DirectCast(Me.ConditionOpt, BoundBinaryOperator).Right
+                End If
+
+                Return Nothing
             End Get
         End Property
 
