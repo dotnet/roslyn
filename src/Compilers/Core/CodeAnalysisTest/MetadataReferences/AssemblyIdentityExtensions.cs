@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             result.Version = identity.Version;
             result.Flags = identity.Flags;
             result.ContentType = identity.ContentType;
-            //result.CultureInfo = CultureInfo.GetCultureInfo(identity.CultureName);
 
             if (identity.PublicKey.Length > 0)
             {
