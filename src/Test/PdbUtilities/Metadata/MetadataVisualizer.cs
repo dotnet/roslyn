@@ -318,12 +318,12 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string Literal(StringHandle handle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => "'" + r.GetString((StringHandle)h) + "'");
+            return Literal(handle, BlobKind.None, (r, h) => "'" + StringUtilities.EscapeNonPrintableCharacters(r.GetString((StringHandle)h)) + "'");
         }
 
         private string Literal(NamespaceDefinitionHandle handle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => "'" + r.GetString((NamespaceDefinitionHandle)h) + "'");
+            return Literal(handle, BlobKind.None, (r, h) => "'" + StringUtilities.EscapeNonPrintableCharacters(r.GetString((NamespaceDefinitionHandle)h)) + "'");
         }
 
         private string Literal(GuidHandle handle)
@@ -1256,8 +1256,8 @@ namespace Roslyn.Test.MetadataUtilities
             var handle = MetadataTokens.UserStringHandle(0);
             do
             {
-                string value = _reader.GetUserString(handle);
-                _writer.WriteLine("  {0:x}: '{1}'", _reader.GetHeapOffset(handle), value);
+                string value = StringUtilities.EscapeNonPrintableCharacters(_reader.GetUserString(handle));
+                _writer.WriteLine($"  {_reader.GetHeapOffset(handle):x}: '{value}'");
                 handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);
@@ -1277,8 +1277,8 @@ namespace Roslyn.Test.MetadataUtilities
             var handle = MetadataTokens.StringHandle(0);
             do
             {
-                string value = _reader.GetString(handle);
-                _writer.WriteLine("  {0:x}: '{1}'", _reader.GetHeapOffset(handle), value);
+                string value = StringUtilities.EscapeNonPrintableCharacters(_reader.GetString(handle));
+                _writer.WriteLine($"  {_reader.GetHeapOffset(handle):x}: '{value}'");
                 handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);

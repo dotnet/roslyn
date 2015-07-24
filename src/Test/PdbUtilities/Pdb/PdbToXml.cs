@@ -969,7 +969,7 @@ namespace Roslyn.Test.PdbUtilities
                     string str = value as string;
                     if (str != null)
                     {
-                        _writer.WriteAttributeString("value", EscapeNonPrintableCharacters(str));
+                        _writer.WriteAttributeString("value", StringUtilities.EscapeNonPrintableCharacters(str));
                     }
                     else
                     {
@@ -1090,40 +1090,6 @@ namespace Roslyn.Test.PdbUtilities
                 var name = _reader.GetString(typeRef.Name);
                 return typeRef.Namespace.IsNil ? name : _reader.GetString(typeRef.Namespace) + "." + name;
             }
-        }
-
-        private static string EscapeNonPrintableCharacters(string str)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (char c in str)
-            {
-                bool escape;
-                switch (CharUnicodeInfo.GetUnicodeCategory(c))
-                {
-                    case UnicodeCategory.Control:
-                    case UnicodeCategory.OtherNotAssigned:
-                    case UnicodeCategory.ParagraphSeparator:
-                    case UnicodeCategory.Surrogate:
-                        escape = true;
-                        break;
-
-                    default:
-                        escape = c >= 0xFFFC;
-                        break;
-                }
-
-                if (escape)
-                {
-                    sb.AppendFormat("\\u{0:X4}", (int)c);
-                }
-                else
-                {
-                    sb.Append(c);
-                }
-            }
-
-            return sb.ToString();
         }
 
         private static Type GetConstantRuntimeType(ImmutableArray<byte> signature)

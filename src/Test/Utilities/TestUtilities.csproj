@@ -125,7 +125,6 @@
     <Compile Include="EnsureEnglishUICulture.cs" />
     <Compile Include="HostedRuntimeEnvironment.cs" />
     <Compile Include="ILBuilderVisualizer.cs" />
-    <Compile Include="ImmutableArrayInterop.cs" />
     <Compile Include="ImmutableArrayTestExtensions.cs" />
     <Compile Include="SourceWithMarkedNodes.cs" />
     <Compile Include="MarkupTestFile.cs" />

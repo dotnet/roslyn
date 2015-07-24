@@ -267,7 +267,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             NamedPipeClientStream pipeStream,
             CancellationToken cancellationToken)
         {
+            // Ignore this warning because the desktop projects don't target 4.6 yet
+#pragma warning disable RS0007 // Avoid zero-length array allocations.
             var buffer = new byte[0];
+#pragma warning restore RS0007 // Avoid zero-length array allocations.
 
             while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
             {
