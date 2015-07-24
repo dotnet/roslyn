@@ -20,14 +20,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
+        Protected Overrides Function GetRewriter(document As Document, root As SyntaxNode, spans As TextSpan(), workspace As Workspace, cancellationToken As CancellationToken) As AbstractTokensCodeCleanupProvider.Rewriter
             Return New ReduceTokensRewriter(spans, cancellationToken)
         End Function
 
         Private Class ReduceTokensRewriter
             Inherits AbstractTokensCodeCleanupProvider.Rewriter
 
-            Public Sub New(spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken)
+            Public Sub New(spans As TextSpan(), cancellationToken As CancellationToken)
                 MyBase.New(spans, cancellationToken)
             End Sub
 

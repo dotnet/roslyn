@@ -25,17 +25,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public TagSpanIntervalTree(ITextBuffer textBuffer,
             SpanTrackingMode trackingMode,
-            IEnumerable<ITagSpan<TTag>> values = null)
+            List<ITagSpan<TTag>> values = null)
         {
             _textBuffer = textBuffer;
             _spanTrackingMode = trackingMode;
 
-            var nodeValues = values == null
-                ? null
-                : values.Select(ts => new TagNode(ts, trackingMode));
+            _tree = IntervalTree.Create(
+                new IntervalIntrospector(textBuffer.CurrentSnapshot),
+                CreateTagNodes(trackingMode, values));
+        }
 
-            var introspector = new IntervalIntrospector(textBuffer.CurrentSnapshot);
-            _tree = IntervalTree.Create(introspector, nodeValues);
+        private static TagNode[] CreateTagNodes(SpanTrackingMode trackingMode, List<ITagSpan<TTag>> values)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            var length = values.Count;
+            var tagNodes = new TagNode[length];
+            for (var i = 0; i < length; i++)
+            {
+                tagNodes[i] = new TagNode(values[i], trackingMode);
+            }
+
+            return tagNodes;
         }
 
         public ITextBuffer Buffer
@@ -72,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return result ?? SpecializedCollections.EmptyList<ITagSpan<TTag>>();
         }
 
-        public void GetNonIntersectingSpans(SnapshotSpan snapshotSpan, List<ITagSpan<TTag>> beforeSpans, List<ITagSpan<TTag>> afterSpans)
+        public void AddNonIntersectingSpans(SnapshotSpan snapshotSpan, List<ITagSpan<TTag>> beforeSpans, List<ITagSpan<TTag>> afterSpans)
         {
             var snapshot = snapshotSpan.Snapshot;
             Contract.Requires(snapshot.TextBuffer == _textBuffer);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -30,11 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <see cref="IAsynchronousTaggerDataSource{TTag}"/> to determine when to compute tags 
         /// and to produce tags when appropriate.
         /// </summary>
-        public AsynchronousTaggerProvider(IAsynchronousTaggerDataSource<TTag> dataSource)
-            : this(null, null, dataSource)
-        {
-        }
-
         internal AsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,
@@ -57,7 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
 
-            public AsynchronousTaggerProviderImpl(IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService, IAsynchronousTaggerDataSource<TTag> dataSource)
+            public AsynchronousTaggerProviderImpl(
+                IAsynchronousOperationListener asyncListener,
+                IForegroundNotificationService notificationService,
+                IAsynchronousTaggerDataSource<TTag> dataSource)
                 : base(asyncListener, notificationService)
             {
                 _dataSource = dataSource;
@@ -66,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             protected override bool RemoveTagsThatIntersectEdits => _dataSource.RemoveTagsThatIntersectEdits;
 
             protected override SpanTrackingMode SpanTrackingMode => _dataSource.SpanTrackingMode;
+
+            protected override TaggerDelay UIUpdateDelay => _dataSource.UIUpdateDelay;
 
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {

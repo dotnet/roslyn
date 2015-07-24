@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken)
         {
-            var rewriter = new TriviaRewriter(this.TreeInfo.Root, SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, this.FormattedSpan), changeMap, cancellationToken);
+            var tree = SimpleIntervalTree.Create(TextSpanIntervalIntrospector.Instance, new TextSpan[] { this.FormattedSpan });
+            var rewriter = new TriviaRewriter(TreeInfo.Root, tree, changeMap, cancellationToken);
             return rewriter.Transform();
         }
     }

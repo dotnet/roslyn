@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -48,14 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IForegroundNotificationService notificationService,
             TagSource<TTag> tagSource,
             ITextBuffer subjectBuffer,
-            TimeSpan uiUpdateDelay)
+            TaggerDelay uiUpdateDelay)
         {
             Contract.ThrowIfNull(subjectBuffer);
 
             _subjectBuffer = subjectBuffer;
-            _uiUpdateDelayInMS = (int)uiUpdateDelay.TotalMilliseconds;
+            _uiUpdateDelayInMS = uiUpdateDelay.ToTimeDelay();
 
-            _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
+            _batchChangeNotifier = new BatchChangeNotifier(
+                subjectBuffer, listener, notificationService, ReportChangedSpan, GetBatchThrottleDelay(uiUpdateDelay));
 
             _tagSource = tagSource;
 
@@ -63,6 +65,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _tagSource.TagsChangedForBuffer += OnTagsChangedForBuffer;
             _tagSource.Paused += OnPaused;
             _tagSource.Resumed += OnResumed;
+        }
+
+        private TaggerDelay GetBatchThrottleDelay(TaggerDelay uiUpdateDelay)
+        {
+            // If the tagger is looking for near immediate UI updates, then we don't want to batch 
+            // changes for too long, otherwise the end-to-end tag time may be noticible.
+            if (uiUpdateDelay == TaggerDelay.NearImmediate)
+            {
+                return TaggerDelay.NearImmediate;
+            }
+
+            // Otherwise, batching for a quarter second is a nice way to space change notifications 
+            // out, while still appearing quickly to the user.
+            return TaggerDelay.Short;
         }
 
         public void Dispose()

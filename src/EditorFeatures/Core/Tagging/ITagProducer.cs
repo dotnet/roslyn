@@ -28,6 +28,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IEqualityComparer<TTag> TagComparer { get; }
 
         /// <summary>
+        /// When the asynchronous tagger infrastructure has a set of spans it would like to tag, it
+        /// will first call into this method to allow the ITagProducer to select a set of snapshot 
+        /// spans that should be tagged first and shown to the user right away.  After that set 
+        /// has been tagged, the tagger infrastructure will then call into the ITagProducer to tag 
+        /// the full set.
+        /// 
+        /// An ITagProducer can use this to prioritize tagging just a portion of one of these spans.
+        /// For example, the portion of the span that may be visible to the user in an editor.
+        /// 
+        /// An ITagProducer can return <code>null</code> to indicate that there are no snapshot 
+        /// spans that should have priority.
+        /// </summary>
+        IEnumerable<DocumentSnapshotSpan> GetPrioritySpans(IEnumerable<DocumentSnapshotSpan> snapshotSpans);
+
+        /// <summary>
         /// Produce tags for the given spans.
         /// </summary>
         /// <param name="snapshotSpans">A list of SnapshotSpans and their corresponding documents

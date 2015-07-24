@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
 
         private static IEnumerable<SimpleIntervalTree<Tuple<int, int, string>>> CreateTrees(IEnumerable<Tuple<int, int, string>> values)
         {
-            yield return SimpleIntervalTree.Create(new TupleIntrospector<string>(), values);
+            yield return SimpleIntervalTree.Create(new TupleIntrospector<string>(), values.ToArray());
         }
 
         [Fact]

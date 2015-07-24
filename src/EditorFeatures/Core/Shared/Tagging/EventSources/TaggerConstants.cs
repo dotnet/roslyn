@@ -19,21 +19,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
                 // TODO : should we remove TaggerBehavior enum all together and put NearImmediateDelay
                 // const in Interaction?
-                switch (behavior)
-                {
-                    case TaggerDelay.NearImmediate:
-                        return NearImmediateDelay;
-                    case TaggerDelay.Short:
-                        return ShortDelay;
-                    case TaggerDelay.Medium:
-                        return MediumDelay;
-                    case TaggerDelay.OnIdle:
-                    default:
-                        return IdleDelay;
-                }
+                return ToTimeDelay(behavior);
             }
 
             return NonFocusDelay;
+        }
+
+        public static int ToTimeDelay(this TaggerDelay behavior)
+        {
+            switch (behavior)
+            {
+                case TaggerDelay.NearImmediate:
+                    return NearImmediateDelay;
+                case TaggerDelay.Short:
+                    return ShortDelay;
+                case TaggerDelay.Medium:
+                    return MediumDelay;
+                case TaggerDelay.OnIdle:
+                default:
+                    return IdleDelay;
+            }
         }
     }
 }
