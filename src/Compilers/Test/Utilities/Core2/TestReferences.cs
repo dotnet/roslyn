@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 public static class TestReferences
 {
@@ -151,7 +150,7 @@ public static class TestReferences
                 {
                     if (s_system == null)
                     {
-                        s_system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll");
+                        s_system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll");
                     }
 
                     return s_system;
@@ -168,7 +167,7 @@ public static class TestReferences
                 {
                     if (s_mscorlib == null)
                     {
-                        s_mscorlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib).GetReference(display: "mscorlib.dll");
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(display: "mscorlib.dll");
                     }
 
                     return s_mscorlib;
@@ -185,7 +184,7 @@ public static class TestReferences
                 {
                     if (s_mscorlib == null)
                     {
-                        s_mscorlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib, v2.0.50727");
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib, v2.0.50727");
                     }
 
                     return s_mscorlib;
@@ -199,7 +198,7 @@ public static class TestReferences
                 {
                     if (s_system == null)
                     {
-                        s_system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.System).GetReference(display: "System.dll");
+                        s_system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.System).GetReference(display: "System.dll");
                     }
 
                     return s_system;
@@ -213,7 +212,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_VisualBasic == null)
                     {
-                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll");
+                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll");
                     }
 
                     return s_microsoft_VisualBasic;
@@ -230,7 +229,7 @@ public static class TestReferences
                 {
                     if (s_systemCore == null)
                     {
-                        s_systemCore = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v3_5_30729.System_Core_v3_5_30729.AsImmutableOrNull()).GetReference(display: "System.Core, v3.5.30729");
+                        s_systemCore = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v3_5_30729.System_Core_v3_5_30729.AsImmutableOrNull()).GetReference(display: "System.Core, v3.5.30729");
                     }
 
                     return s_systemCore;
@@ -247,7 +246,7 @@ public static class TestReferences
                 {
                     if (s_mscorlib == null)
                     {
-                        s_mscorlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll");
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll");
                     }
 
                     return s_mscorlib;
@@ -261,7 +260,7 @@ public static class TestReferences
                 {
                     if (s_system_Core == null)
                     {
-                        s_system_Core = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"R:\v4_0_30319\System.Core.dll");
+                        s_system_Core = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"R:\v4_0_30319\System.Core.dll");
                     }
 
                     return s_system_Core;
@@ -275,7 +274,7 @@ public static class TestReferences
                 {
                     if (s_system_Configuration == null)
                     {
-                        s_system_Configuration = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Configuration).GetReference(filePath: @"R:\v4_0_30319\System.Configuration.dll");
+                        s_system_Configuration = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Configuration).GetReference(filePath: @"R:\v4_0_30319\System.Configuration.dll");
                     }
 
                     return s_system_Configuration;
@@ -289,7 +288,7 @@ public static class TestReferences
                 {
                     if (s_system == null)
                     {
-                        s_system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System).GetReference(filePath: @"R:\v4_0_30319\System.dll", display: "System.dll");
+                        s_system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(filePath: @"R:\v4_0_30319\System.dll", display: "System.dll");
                     }
 
                     return s_system;
@@ -303,7 +302,7 @@ public static class TestReferences
                 {
                     if (s_system_Data == null)
                     {
-                        s_system_Data = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).GetReference(filePath: @"R:\v4_0_30319\System.Data.dll");
+                        s_system_Data = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Data).GetReference(filePath: @"R:\v4_0_30319\System.Data.dll");
                     }
 
                     return s_system_Data;
@@ -317,7 +316,7 @@ public static class TestReferences
                 {
                     if (s_system_Xml == null)
                     {
-                        s_system_Xml = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml).GetReference(filePath: @"R:\v4_0_30319\System.Xml.dll");
+                        s_system_Xml = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Xml).GetReference(filePath: @"R:\v4_0_30319\System.Xml.dll");
                     }
 
                     return s_system_Xml;
@@ -331,7 +330,7 @@ public static class TestReferences
                 {
                     if (s_system_Xml_Linq == null)
                     {
-                        s_system_Xml_Linq = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml_Linq).GetReference(filePath: @"R:\v4_0_30319\System.Xml.Linq.dll");
+                        s_system_Xml_Linq = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Xml_Linq).GetReference(filePath: @"R:\v4_0_30319\System.Xml.Linq.dll");
                     }
 
                     return s_system_Xml_Linq;
@@ -345,7 +344,7 @@ public static class TestReferences
                 {
                     if (s_system_Windows_Forms == null)
                     {
-                        s_system_Windows_Forms = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Windows_Forms).GetReference(filePath: @"R:\v4_0_30319\System.Windows.Forms.dll");
+                        s_system_Windows_Forms = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Windows_Forms).GetReference(filePath: @"R:\v4_0_30319\System.Windows.Forms.dll");
                     }
 
                     return s_system_Windows_Forms;
@@ -359,7 +358,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_CSharp == null)
                     {
-                        s_microsoft_CSharp = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(filePath: @"R:\v4_0_30319\Microsoft.CSharp.dll");
+                        s_microsoft_CSharp = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(filePath: @"R:\v4_0_30319\Microsoft.CSharp.dll");
                     }
 
                     return s_microsoft_CSharp;
@@ -373,7 +372,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_VisualBasic == null)
                     {
-                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_VisualBasic).GetReference(filePath: @"R:\v4_0_30319\Microsoft.VisualBasic.dll");
+                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_VisualBasic).GetReference(filePath: @"R:\v4_0_30319\Microsoft.VisualBasic.dll");
                     }
 
                     return s_microsoft_VisualBasic;
@@ -387,7 +386,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_JScript == null)
                     {
-                        s_microsoft_JScript = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_JScript).GetReference(display: "Microsoft.JScript.dll");
+                        s_microsoft_JScript = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_JScript).GetReference(display: "Microsoft.JScript.dll");
                     }
 
                     return s_microsoft_JScript;
@@ -401,7 +400,7 @@ public static class TestReferences
                 {
                     if (s_system_ComponentModel_Composition == null)
                     {
-                        s_system_ComponentModel_Composition = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_ComponentModel_Composition).GetReference(display: "System.ComponentModel.Composition.dll");
+                        s_system_ComponentModel_Composition = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_ComponentModel_Composition).GetReference(display: "System.ComponentModel.Composition.dll");
                     }
 
                     return s_system_ComponentModel_Composition;
@@ -415,7 +414,7 @@ public static class TestReferences
                 {
                     if (s_system_Web_Services == null)
                     {
-                        s_system_Web_Services = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Web_Services).GetReference(display: "System.Web.Services.dll");
+                        s_system_Web_Services = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Web_Services).GetReference(display: "System.Web.Services.dll");
                     }
 
                     return s_system_Web_Services;
@@ -432,7 +431,7 @@ public static class TestReferences
                     {
                         if (s_system_EnterpriseServices == null)
                         {
-                            s_system_EnterpriseServices = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_EnterpriseServices).GetReference(display: "System.EnterpriseServices.dll");
+                            s_system_EnterpriseServices = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_EnterpriseServices).GetReference(display: "System.EnterpriseServices.dll");
                         }
 
                         return s_system_EnterpriseServices;
@@ -447,7 +446,7 @@ public static class TestReferences
                 {
                     if (s_system_Runtime_Serialization == null)
                     {
-                        s_system_Runtime_Serialization = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization).GetReference(display: "System.Runtime.Serialization.dll");
+                        s_system_Runtime_Serialization = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization).GetReference(display: "System.Runtime.Serialization.dll");
                     }
 
                     return s_system_Runtime_Serialization;
@@ -1777,7 +1776,7 @@ public static class TestReferences
                 {
                     if (s_stdOle == null)
                     {
-                        s_stdOle = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.SymbolsTests.NoPia.stdole).GetReference(display: "stdole.dll");
+                        s_stdOle = AssemblyMetadata.CreateFromImage(TestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll");
                     }
 
                     return s_stdOle;

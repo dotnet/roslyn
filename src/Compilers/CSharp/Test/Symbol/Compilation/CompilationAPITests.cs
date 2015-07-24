@@ -1339,8 +1339,25 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
+        [WorkItem(3719)]
         [Fact]
         public void GetEntryPoint_Script()
+        {
+            var source = @"System.Console.WriteLine(1);";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics();
+
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
+            Assert.NotNull(scriptMethod);
+
+            var method = compilation.GetEntryPoint(default(CancellationToken));
+            Assert.Equal(method, scriptMethod);
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+        }
+
+        [Fact]
+        public void GetEntryPoint_Script_MainIgnored()
         {
             var source = @"
 class A
@@ -1349,14 +1366,43 @@ class A
 }
 ";
             var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
 
-            Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
+            Assert.NotNull(scriptMethod);
+
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void GetEntryPoint_Submission()
+        {
+            var source = @"1 + 1";
+            var compilation = CSharpCompilation.CreateSubmission("sub",
+                references: new[] { MscorlibRef },
+                syntaxTree: Parse(source, options: TestOptions.Interactive));
+            compilation.VerifyDiagnostics();
+
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
+            Assert.NotNull(scriptMethod);
+
+            var method = compilation.GetEntryPoint(default(CancellationToken));
+            Assert.Equal(method, scriptMethod);
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify();
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        public void GetEntryPoint_Submission_MainIgnored()
         {
             var source = @"
 class A
@@ -1367,13 +1413,22 @@ class A
             var compilation = CSharpCompilation.CreateSubmission("sub",
                 references: new[] { MscorlibRef },
                 syntaxTree: Parse(source, options: TestOptions.Interactive));
-
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
 
             Assert.True(compilation.IsSubmission);
 
-            Assert.Null(compilation.GetEntryPoint(default(CancellationToken)));
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)));
+            var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
+            Assert.NotNull(scriptMethod);
+
+            var entryPoint = compilation.GetEntryPointAndDiagnostics(default(CancellationToken));
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod);
+            entryPoint.Diagnostics.Verify(
+                // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
+                //     static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
         [Fact]

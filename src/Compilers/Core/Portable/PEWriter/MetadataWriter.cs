@@ -68,8 +68,8 @@ namespace Microsoft.Cci
         // If true, it is allowed to have methods not have bodies (for emitting metadata-only assembly)
         internal readonly bool allowMissingMethodBodies;
 
-        // A map of method body to RVA. Used for deduplication of small bodies.
-        private readonly Dictionary<byte[], int> _smallMethodBodies;
+        // A map of method body before token translation to RVA. Used for deduplication of small bodies.
+        private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
 
         protected MetadataWriter(
             MetadataHeapsBuilder heaps,
@@ -98,7 +98,7 @@ namespace Microsoft.Cci
 
             this.heaps = heaps;
             _debugHeapsOpt = debugHeapsOpt;
-            _smallMethodBodies = new Dictionary<byte[], int>(ByteSequenceComparer.Instance);
+            _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
         }
 
         private int NumberOfTypeDefsEstimate { get { return _numTypeDefsEstimate; } }
@@ -769,10 +769,11 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = new BlobBuilder();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeCustomAttributeSignature(customAttribute, false, writer);
             result = heaps.GetBlobIndex(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
+            writer.Free();
             return result;
         }
 
@@ -885,7 +886,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeFieldSignature(fieldReference, writer);
             result = heaps.GetBlobIndex(writer);
             _fieldSignatureIndex.Add(fieldReference, result);
@@ -1145,7 +1146,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteByte(0x0A);
             writer.WriteCompressedInteger(methodInstanceReference.GetGenericMethod(Context).GenericParameterCount);
             foreach (ITypeReference typeref in methodInstanceReference.GetGenericArguments(Context))
@@ -1167,7 +1168,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeMarshallingDescriptor(marshallingInformation, writer);
             result = heaps.GetBlobIndex(writer);
             _marshallingDescriptorIndex.Add(marshallingInformation, result);
@@ -1227,7 +1228,7 @@ namespace Microsoft.Cci
                 return existing.Key;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeSignature(methodReference, methodReference.GenericParameterCount, methodReference.ExtraParameters, writer);
 
             signatureBlob = writer.ToImmutableArray();
@@ -1239,7 +1240,7 @@ namespace Microsoft.Cci
 
         private BlobIdx GetGenericMethodInstanceIndex(IGenericMethodInstanceReference genericMethodInstanceReference)
         {
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeGenericMethodInstanceSignature(writer, genericMethodInstanceReference);
             BlobIdx result = heaps.GetBlobIndex(writer);
             writer.Free();
@@ -1310,7 +1311,7 @@ namespace Microsoft.Cci
 
         private BlobIdx GetPermissionSetIndex(ImmutableArray<ICustomAttribute> permissionSet)
         {
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             BlobIdx result;
             try
             {
@@ -1356,7 +1357,7 @@ namespace Microsoft.Cci
                 return existing.Key;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeSignature(propertyDef, 0, ImmutableArray<IParameterTypeInformation>.Empty, writer);
             var blob = writer.ToImmutableArray();
             var result = heaps.GetBlobIndex(blob);
@@ -1852,7 +1853,7 @@ namespace Microsoft.Cci
                 return result;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             this.SerializeTypeReference(typeReference, writer, false, true);
             result = heaps.GetBlobIndex(writer);
             _typeSpecSignatureIndex.Add(typeReference, result);
@@ -2072,12 +2073,12 @@ namespace Microsoft.Cci
                 metadataSizes: out metadataSizes,
                 entryPointToken: out entryPointToken);
 
-            ilWriter.WriteTo(ilStream);
-            metadataWriter.WriteTo(metadataStream);
+            ilWriter.WriteContentTo(ilStream);
+            metadataWriter.WriteContentTo(metadataStream);
 
             Debug.Assert(entryPointToken == 0);
-            Debug.Assert(mappedFieldDataWriter.Length == 0);
-            Debug.Assert(managedResourceDataWriter.Length == 0);
+            Debug.Assert(mappedFieldDataWriter.Count == 0);
+            Debug.Assert(managedResourceDataWriter.Count == 0);
         }
 
         public void SerializeMetadataAndIL(
@@ -2134,9 +2135,9 @@ namespace Microsoft.Cci
             metadataSizes = new MetadataSizes(
                 rowCounts: tableRowCounts,
                 heapSizes: heaps.GetHeapSizes(),
-                ilStreamSize: ilWriter.Length,
-                mappedFieldDataSize: mappedFieldDataWriter.Length,
-                resourceDataSize: managedResourceDataWriter.Length,
+                ilStreamSize: ilWriter.Count,
+                mappedFieldDataSize: mappedFieldDataWriter.Count,
+                resourceDataSize: managedResourceDataWriter.Count,
                 strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
                 isMinimalDelta: IsMinimalDelta,
                 emitStandaloneDebugMetadata: EmitStandaloneDebugMetadata,
@@ -2204,11 +2205,8 @@ namespace Microsoft.Cci
             int entryPointToken,
             out int guidHeapStartOffset)
         {
-            int metadataStartOffset = metadataWriter.Position;
-
-            // Leave space for the metadata header. We need to fill in the sizes of all tables and heaps.
-            // It's easier to write it at the end then to precalculate the sizes.
-            metadataWriter.SetPosition(metadataStartOffset + metadataSizes.MetadataHeaderSize);
+            // header:
+            SerializeMetadataHeader(metadataWriter, metadataSizes);
 
             // #~ or #- stream:
             SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
@@ -2221,14 +2219,6 @@ namespace Microsoft.Cci
             {
                 SerializeStandalonePdbStream(metadataWriter, metadataSizes, entryPointToken);
             }
-
-            int metadataSize = metadataWriter.Position;
-
-            // write header at the start of the metadata stream:
-            metadataWriter.SetPosition(0);
-            SerializeMetadataHeader(metadataWriter, metadataSizes);
-
-            metadataWriter.SetPosition(metadataSize);
         }
 
         private int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
@@ -3354,7 +3344,7 @@ namespace Microsoft.Cci
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Length % ManagedResourcesDataAlignment) == 0);
+            Debug.Assert((resourceDataWriter.Count % ManagedResourcesDataAlignment) == 0);
         }
 
         private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
@@ -4196,7 +4186,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private int[] SerializeMethodBodies(BlobBuilder writer, PdbWriter pdbWriterOpt)
+        private int[] SerializeMethodBodies(BlobBuilder ilWriter, PdbWriter pdbWriterOpt)
         {
             CustomDebugInfoWriter customDebugInfoWriter = (pdbWriterOpt != null) ? new CustomDebugInfoWriter(pdbWriterOpt) : null;
 
@@ -4222,7 +4212,7 @@ namespace Microsoft.Cci
                         uint localSignatureToken = (localSignatureRid != 0) ? (uint)(0x11000000 | localSignatureRid) : 0;
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        rva = this.SerializeMethodBody(body, writer, localSignatureToken);
+                        rva = this.SerializeMethodBody(body, ilWriter, localSignatureToken);
 
                         pdbWriterOpt?.SerializeDebugInfo(body, localSignatureToken, customDebugInfoWriter);
                     }
@@ -4253,35 +4243,34 @@ namespace Microsoft.Cci
             return rvas;
         }
 
-        private int SerializeMethodBody(IMethodBody methodBody, BlobBuilder writer, uint localSignatureToken)
+        private int SerializeMethodBody(IMethodBody methodBody, BlobBuilder ilWriter, uint localSignatureToken)
         {
             int ilLength = methodBody.IL.Length;
             uint numberOfExceptionHandlers = (uint)methodBody.ExceptionRegions.Length;
             bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureToken == 0 && numberOfExceptionHandlers == 0;
 
-            byte[] il = this.SerializeMethodBodyIL(methodBody);
-
-            // serialization only replaces fake tokens with real tokens, it doesn't remove/insert bytecodes:
-            Debug.Assert(il.Length == ilLength);
-
+            // Check if an identical method body has already been serialized. 
+            // If so, use the RVA of the already serialized one.
+            // Note that we don't need to rewrite the fake tokens in the body before looking it up.
             int bodyRva;
+            if (isSmallBody && _smallMethodBodies.TryGetValue(methodBody.IL, out bodyRva))
+            {
+                return bodyRva;
+            }
+
             if (isSmallBody)
             {
-                // Check if an identical method body has already been serialized. 
-                // If so, use the RVA of the already serialized one.
-                if (_smallMethodBodies.TryGetValue(il, out bodyRva))
-                {
-                    return bodyRva;
-                }
+                bodyRva = ilWriter.Position;
+                ilWriter.WriteByte((byte)((ilLength << 2) | 2));
 
-                bodyRva = writer.Position;
-                _smallMethodBodies.Add(il, bodyRva);
-                writer.WriteByte((byte)((ilLength << 2) | 2));
+                _smallMethodBodies.Add(methodBody.IL, bodyRva);
             }
             else
             {
-                writer.Align(4);
-                bodyRva = writer.Position;
+                ilWriter.Align(4);
+
+                bodyRva = ilWriter.Position;
+
                 ushort flags = (3 << 12) | 0x3;
                 if (numberOfExceptionHandlers > 0)
                 {
@@ -4293,16 +4282,17 @@ namespace Microsoft.Cci
                     flags |= 0x10;
                 }
 
-                writer.WriteUInt16(flags);
-                writer.WriteUInt16(methodBody.MaxStack);
-                writer.WriteUInt32((uint)ilLength);
-                writer.WriteUInt32(localSignatureToken);
+                ilWriter.WriteUInt16(flags);
+                ilWriter.WriteUInt16(methodBody.MaxStack);
+                ilWriter.WriteUInt32((uint)ilLength);
+                ilWriter.WriteUInt32(localSignatureToken);
             }
 
-            writer.WriteBytes(il);
+            WriteMethodBodyIL(ilWriter, methodBody);
+
             if (numberOfExceptionHandlers > 0)
             {
-                this.SerializeMethodBodyExceptionHandlerTable(methodBody, numberOfExceptionHandlers, writer);
+                SerializeMethodBodyExceptionHandlerTable(methodBody, numberOfExceptionHandlers, ilWriter);
             }
 
             return bodyRva;
@@ -4322,7 +4312,7 @@ namespace Microsoft.Cci
                 return 0;
             }
 
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteByte(0x07);
             writer.WriteCompressedInteger((uint)localVariables.Length);
             foreach (ILocalDefinition local in localVariables)
@@ -4366,7 +4356,7 @@ namespace Microsoft.Cci
 
         internal int SerializeLocalConstantStandAloneSignature(ILocalDefinition localConstant)
         {
-            var writer = BlobBuilder.GetInstance();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteByte(0x06);
 
             foreach (ICustomModifier modifier in localConstant.CustomModifiers)
@@ -4382,13 +4372,9 @@ namespace Microsoft.Cci
             return 0x11000000 | signatureIndex;
         }
 
-        private static uint ReadUint(byte[] buffer, int pos)
+        private static int ReadInt32(ImmutableArray<byte> buffer, int pos)
         {
-            uint result = buffer[pos];
-            result |= (uint)buffer[pos + 1] << 8;
-            result |= (uint)buffer[pos + 2] << 16;
-            result |= (uint)buffer[pos + 3] << 24;
-            return result;
+            return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
         }
 
         private static void WriteUint(byte[] buffer, uint value, int pos)
@@ -4461,75 +4447,70 @@ namespace Microsoft.Cci
             return _pseudoStringTokenToTokenMap[index];
         }
 
-        private byte[] SerializeMethodBodyIL(IMethodBody methodBody)
+        private void WriteMethodBodyIL(BlobBuilder builder, IMethodBody methodBody)
         {
-            // TODO: instead of writing into the byte[] on MethodBody we should write directly into MemoryStream
-            byte[] methodBodyIL = methodBody.IL;
+            ImmutableArray<byte> methodBodyIL = methodBody.IL;
 
-            int curIndex = 0;
-            while (curIndex < methodBodyIL.Length)
+            // write the raw body first and then patch tokens:
+            var writer = builder.ReserveBytes(methodBodyIL.Length);
+            writer.WriteBytes(methodBodyIL);
+
+            int offset = 0;
+            while (offset < methodBodyIL.Length)
             {
-                OperandType operandType = InstructionOperandTypes.ReadOperandType(methodBodyIL, ref curIndex);
+                var operandType = InstructionOperandTypes.ReadOperandType(methodBodyIL, ref offset);
                 switch (operandType)
                 {
                     case OperandType.InlineField:
                     case OperandType.InlineMethod:
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
-                        {
-                            uint currentToken = ReadUint(methodBodyIL, curIndex);
-                            int newToken = ResolveSymbolTokenFromPseudoSymbolToken((int)currentToken);
-                            WriteUint(methodBodyIL, (uint)newToken, curIndex);
-                            curIndex += 4;
-                        }
+                        writer.Offset = offset;
+                        writer.WriteInt32(ResolveSymbolTokenFromPseudoSymbolToken(ReadInt32(methodBodyIL, offset)));
+                        offset += 4;
                         break;
 
                     case OperandType.InlineString:
-                        {
-                            uint currentToken = ReadUint(methodBodyIL, curIndex);
-                            int newToken = ResolveStringTokenFromPseudoStringToken((int)currentToken);
-                            WriteUint(methodBodyIL, (uint)newToken, curIndex);
-                            curIndex += 4;
-                        }
+                        writer.Offset = offset;
+                        writer.WriteInt32(ResolveStringTokenFromPseudoStringToken(ReadInt32(methodBodyIL, offset)));
+                        offset += 4;
                         break;
 
-                    case OperandType.InlineSig: // Calli
+                    case OperandType.InlineSig: // calli
                     case OperandType.InlineBrTarget:
                     case OperandType.InlineI:
                     case OperandType.ShortInlineR:
-                        curIndex += 4;
+                        offset += 4;
                         break;
 
                     case OperandType.InlineSwitch:
-                        int argCount = (int)ReadUint(methodBodyIL, curIndex);
+                        int argCount = ReadInt32(methodBodyIL, offset);
                         // skip switch arguments count and arguments
-                        curIndex += (argCount + 1) * 4;
+                        offset += (argCount + 1) * 4;
                         break;
 
                     case OperandType.InlineI8:
                     case OperandType.InlineR:
-                        curIndex += 8;
+                        offset += 8;
                         break;
 
                     case OperandType.InlineNone:
                         break;
 
                     case OperandType.InlineVar:
-                        curIndex += 2;
+                        offset += 2;
                         break;
 
                     case OperandType.ShortInlineBrTarget:
                     case OperandType.ShortInlineI:
                     case OperandType.ShortInlineVar:
-                        curIndex += 1;
+                        offset += 1;
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(operandType);
                 }
             }
-
-            return methodBodyIL;
         }
 
         private void SerializeMethodBodyExceptionHandlerTable(IMethodBody methodBody, uint numberOfExceptionHandlers, BlobBuilder writer)
@@ -4961,10 +4942,11 @@ namespace Microsoft.Cci
                 }
 
                 writer.WriteSerializedString(typeName);
-                var customAttributeWriter = new BlobBuilder();
+                var customAttributeWriter = PooledBlobBuilder.GetInstance();
                 this.SerializeCustomAttributeSignature(customAttribute, true, customAttributeWriter);
-                writer.WriteCompressedInteger((uint)customAttributeWriter.Length);
-                customAttributeWriter.WriteTo(writer);
+                writer.WriteCompressedInteger((uint)customAttributeWriter.Count);
+                customAttributeWriter.WriteContentTo(writer);
+                customAttributeWriter.Free();
             }
             // TODO: xml for older platforms
         }

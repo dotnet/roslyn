@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            VerifyCommonCommitCharacters("class C { void M() { System.Console.$$", textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("foo", "foo", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("foo", "foo", sendThroughEnterEnabled: true, expected: true);
+            VerifySendEnterThroughToEnter("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

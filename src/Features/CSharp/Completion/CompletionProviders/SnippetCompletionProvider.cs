@@ -39,16 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
@@ -137,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return snippets.Select(snippet => new CSharpCompletionItem(
-                workspace,
+            return snippets.Select(snippet => new CompletionItem(
                 this,
                 displayText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,
                 sortText: isPreProcessorContext ? snippet.Shortcut.Substring(1) : snippet.Shortcut,

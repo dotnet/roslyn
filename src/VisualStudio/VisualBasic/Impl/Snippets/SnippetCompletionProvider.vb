@@ -18,7 +18,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ExportCompletionProvider("SnippetCompletionProvider", LanguageNames.VisualBasic)>
-    Friend Class SnippetCompletionProvider
+    Partial Friend Class SnippetCompletionProvider
         Inherits Extensibility.Completion.SnippetCompletionProvider
 
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
@@ -52,22 +52,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                                                   s.Shortcut,
                                                                   span,
                                                                   description:=s.Description.ToSymbolDisplayParts(),
-                                                                  glyph:=Glyph.Snippet))
-        End Function
-
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Dim commitChars = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
-
-            Return commitChars.Contains(ch)
+                                                                  glyph:=Glyph.Snippet,
+                                                                  rules:=ItemRules.Instance))
         End Function
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
-        End Function
-
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return True
         End Function
 
         Protected Overrides Function IsExclusiveAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)

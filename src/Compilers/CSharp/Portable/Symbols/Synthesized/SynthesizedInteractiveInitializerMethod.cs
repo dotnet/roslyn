@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -15,31 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SourceMemberContainerTypeSymbol _containingType;
         private readonly TypeSymbol _resultType;
-        private ReturnTypeState _lazyReturnType;
-
-        private sealed class ReturnTypeState
-        {
-            internal ReturnTypeState(bool isAsync, TypeSymbol returnType)
-            {
-                this.IsAsync = isAsync;
-                this.ReturnType = returnType;
-            }
-
-            internal readonly bool IsAsync;
-            internal readonly TypeSymbol ReturnType;
-        }
+        private readonly TypeSymbol _returnType;
 
         internal SynthesizedInteractiveInitializerMethod(SourceMemberContainerTypeSymbol containingType, DiagnosticBag diagnostics)
         {
             Debug.Assert(containingType.IsScriptClass);
 
             _containingType = containingType;
-
-            var compilation = containingType.DeclaringCompilation;
-            var submissionReturnType = compilation.SubmissionReturnType;
-            _resultType = (submissionReturnType == null) ?
-                null :
-                compilation.GetTypeByReflectionType(submissionReturnType, diagnostics);
+            CalculateReturnType(containingType.DeclaringCompilation, diagnostics, out _resultType, out _returnType);
         }
 
         public override string Name
@@ -89,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync
         {
-            get { return _lazyReturnType.IsAsync; }
+            get { return true; }
         }
 
         public override bool IsExtensionMethod
@@ -144,12 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return _returnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override TypeSymbol ReturnType
         {
-            get { return _lazyReturnType.ReturnType; }
+            get { return _returnType; }
         }
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
@@ -242,10 +224,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _resultType; }
         }
 
-        internal void SetReturnType(bool isAsync, TypeSymbol returnType)
+        private static void CalculateReturnType(
+            CSharpCompilation compilation,
+            DiagnosticBag diagnostics,
+            out TypeSymbol resultType,
+            out TypeSymbol returnType)
         {
-            Debug.Assert((_lazyReturnType == null) || (_lazyReturnType.ReturnType == returnType));
-            Interlocked.CompareExchange(ref _lazyReturnType, new ReturnTypeState(isAsync, returnType), null);
+            var submissionReturnType = compilation.SubmissionReturnType;
+            if (submissionReturnType == null)
+            {
+                resultType = null;
+                returnType = compilation.GetSpecialType(SpecialType.System_Void);
+            }
+            else
+            {
+                var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
+                if (useSiteDiagnostic != null)
+                {
+                    diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);
+                }
+                resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics);
+                returnType = taskT.Construct(resultType);
+            }
         }
     }
 }

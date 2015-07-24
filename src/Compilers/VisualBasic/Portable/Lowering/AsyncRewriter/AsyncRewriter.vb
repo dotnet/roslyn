@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' For all other symbols we assume that it should be a synthesized method 
             ' placed inside source named type or in one of its nested types
-            Debug.Assert(TypeOf method Is SynthesizedLambdaMethod)
+            Debug.Assert((TypeOf method Is SynthesizedLambdaMethod) OrElse (TypeOf method Is SynthesizedInteractiveInitializerMethod))
             Dim containingType As NamedTypeSymbol = method.ContainingType
             While containingType IsNot Nothing
                 Dim syntaxTree = containingType.Locations.FirstOrDefault()?.SourceTree

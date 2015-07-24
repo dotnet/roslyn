@@ -4,275 +4,326 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal unsafe sealed class BlobBuilder
+    // TODO: argument checking
+
+    internal unsafe struct BlobWriter
     {
-        private byte[] _buffer;
-        private int _length;
+        // writable slice:
+        private readonly byte[] _buffer;
+        private readonly int _start;
+        private readonly int _end;  // exclusive
+
+        // position in buffer relative to the beginning of the array:
         private int _position;
 
-        internal BlobBuilder(int initialSize = 64)
+        public BlobWriter(int size)
+            : this(new byte[size])
+        {
+        }
+
+        public BlobWriter(byte[] buffer)
+            : this(buffer, 0, buffer.Length)
+        {
+        }
+
+        internal bool IsDefault => _buffer == null;
+
+        public BlobWriter(byte[] buffer, int start, int count)
         {
             // the writer assumes little-endian architecture:
             Debug.Assert(BitConverter.IsLittleEndian);
+            Debug.Assert(buffer != null);
+            Debug.Assert(count >= 0);
+            Debug.Assert(count <= buffer.Length - start);
 
-            _buffer = new byte[initialSize];
-        }
-
-        internal BlobBuilder(ObjectPool<BlobBuilder> pool)
-            : this()
-        {
-            _pool = pool;
+            _buffer = buffer;
+            _start = start;
+            _position = start;
+            _end = start + count;
         }
 
         /// <summary>
         /// Compares the current content of this writer with another one.
         /// </summary>
-        public bool ContentEquals(BlobBuilder other)
+        public bool ContentEquals(BlobWriter other)
         {
-            return other != null && Length == other.Length && ByteSequenceComparer.Equals(_buffer, 0, other._buffer, 0, Length);
+            return Length == other.Length && ByteSequenceComparer.Equals(_buffer, _start, other._buffer, other._start, Length);
         }
 
-        public byte[] Buffer => _buffer;
-        public int Length => _length;
-
-        private void Resize(int capacity)
+        public int Offset
         {
-            Array.Resize(ref _buffer, Math.Max(Math.Min(_length, int.MaxValue / 2) * 2, capacity));
-        }
-
-        internal int Position => _position;
-
-        internal void SetPosition(int newPosition)
-        {
-            if (newPosition > _length)
+            get
             {
-                if (newPosition > _buffer.Length)
+                return _position - _start;
+            }
+            set
+            {
+                if (value < 0 || _start > _end - value)
                 {
-                    Resize(newPosition);
+                    ValueArgumentOutOfRange();
                 }
 
-                _length = newPosition;
+                _position = _start + value;
             }
+        }
 
-            _position = newPosition;
+        public int Length => _end - _start;
+        public int RemainingBytes => _end - _position;
+
+        public byte[] ToArray()
+        {
+            return ToArray(0, Offset);
+        }
+
+        /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the buffer content.</exception>
+        public byte[] ToArray(int start, int byteCount)
+        {
+            BlobUtilities.ValidateRange(Length, start, byteCount);
+
+            var result = new byte[byteCount];
+            Array.Copy(_buffer, _start + start, result, 0, byteCount);
+            return result;
+        }
+
+        public ImmutableArray<byte> ToImmutableArray()
+        {
+            return ToImmutableArray(0, Offset);
+        }
+
+        /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the buffer content.</exception>
+        public ImmutableArray<byte> ToImmutableArray(int start, int byteCount)
+        {
+            var array = ToArray(start, byteCount);
+            return ImmutableArrayInterop.DangerousToImmutableArray(ref array);
         }
 
         private int Advance(int value)
         {
+            Debug.Assert(value >= 0);
+
             int position = _position;
-            SetPosition(position + value);
+            if (position > _end - value)
+            {
+                ThrowOutOfBounds();
+            }
+
+            _position = position + value;
             return position;
         }
 
-        internal byte[] ToArray()
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
+        public void WriteBytes(byte value, int byteCount)
         {
-            return ToArray(0, _length);
-        }
-
-        internal byte[] ToArray(int start, int length)
-        {
-            if (_length == 0)
+            if (byteCount < 0)
             {
-                return SpecializedCollections.EmptyArray<byte>();
+                throw new ArgumentOutOfRangeException(nameof(byteCount));
             }
 
-            byte[] result = new byte[length];
-            Array.Copy(_buffer, start, result, 0, result.Length);
-            return result;
-        }
-
-        internal ImmutableArray<byte> ToImmutableArray()
-        {
-            return ToImmutableArray(0, _length);
-        }
-
-        internal ImmutableArray<byte> ToImmutableArray(int start, int length)
-        {
-            return ImmutableArray.Create(_buffer, start, length);
-        }
-
-        internal void WriteBytes(byte value, int count)
-        {
-            int start = Advance(count);
+            int start = Advance(byteCount);
             fixed (byte* buffer = _buffer)
             {
                 byte* ptr = buffer + start;
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < byteCount; i++)
                 {
                     ptr[i] = value;
                 }
             }
         }
 
-        internal void WriteBytes(byte[] buffer)
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
+        public unsafe void WriteBytes(byte* buffer, int byteCount)
         {
-            WriteBytes(buffer, 0, buffer.Length);
+            if (buffer == null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
+            if (byteCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(byteCount));
+            }
+
+            WriteBytesUnchecked(buffer, byteCount);
         }
 
-        internal void WriteBytes(byte[] buffer, int index, int length)
+        private unsafe void WriteBytesUnchecked(byte* buffer, int byteCount)
         {
-            int start = Advance(length);
-            System.Buffer.BlockCopy(buffer, index, _buffer, start, length);
+            int start = Advance(byteCount);
+            Marshal.Copy((IntPtr)buffer, _buffer, start, byteCount);
         }
 
-        internal void WriteBytes(ImmutableArray<byte> buffer)
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+        public void WriteBytes(BlobBuilder source)
         {
-            WriteBytes(buffer, 0, buffer.Length);
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            source.WriteContentTo(ref this);
         }
 
-        internal void WriteBytes(ImmutableArray<byte> buffer, int index, int length)
+        /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
+        public int WriteBytes(Stream source, int byteCount)
         {
-            int start = Advance(length);
-            buffer.CopyTo(index, _buffer, start, length);
-        }
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
 
-        internal void Write(Stream stream, int length)
-        {
-            int start = Advance(length);
-            int bytesRead = stream.Read(_buffer, start, length);
+            if (byteCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(byteCount));
+            }
+
+            int start = Advance(byteCount);
+            int bytesRead = source.Read(_buffer, start, byteCount);
             _position = start + bytesRead;
+            return bytesRead;
         }
 
-        internal void PadTo(int position)
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        public void WriteBytes(ImmutableArray<byte> buffer)
         {
-            WriteBytes(0, position - _position);
+            WriteBytes(buffer, 0, buffer.IsDefault ? 0 : buffer.Length);
         }
 
-        internal void Align(int alignment)
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the <paramref name="buffer"/>.</exception>
+        public void WriteBytes(ImmutableArray<byte> buffer, int start, int byteCount)
         {
-            int position = _position;
-            WriteBytes(0, BitArithmeticUtilities.Align(position, alignment) - position);
+            WriteBytes(ImmutableArrayInterop.DangerousGetUnderlyingArray(buffer), start, byteCount);
         }
 
-        internal void WriteBoolean(bool value)
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        public unsafe void WriteBytes(byte[] buffer)
+        {
+            WriteBytes(buffer, 0, buffer?.Length ?? 0);
+        }
+
+        /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Range specified by <paramref name="start"/> and <paramref name="byteCount"/> falls outside of the bounds of the <paramref name="buffer"/>.</exception>
+        public unsafe void WriteBytes(byte[] buffer, int start, int byteCount)
+        {
+            if (buffer == null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
+            BlobUtilities.ValidateRange(buffer.Length, start, byteCount);
+
+            // an empty array has no element pointer:
+            if (buffer.Length == 0)
+            {
+                return;
+            }
+
+            fixed (byte* ptr = buffer)
+            {
+                WriteBytes(ptr + start, byteCount);
+            }
+        }
+
+        public void PadTo(int offset)
+        {
+            WriteBytes(0, offset - Offset);
+        }
+
+        public void Align(int alignment)
+        {
+            int offset = Offset;
+            WriteBytes(0, BitArithmeticUtilities.Align(offset, alignment) - offset);
+        }
+
+        public void WriteBoolean(bool value)
         {
             WriteByte((byte)(value ? 1 : 0));
         }
 
-        internal void WriteByte(byte value)
+        public void WriteByte(byte value)
         {
             int start = Advance(sizeof(byte));
             _buffer[start] = value;
         }
 
-        internal void WriteSByte(sbyte value)
+        public void WriteSByte(sbyte value)
         {
             WriteByte(unchecked((byte)value));
         }
 
-        internal void WriteDouble(double value)
+        public void WriteDouble(double value)
         {
             int start = Advance(sizeof(double));
-            fixed (byte* ptr = _buffer)
-            {
-                *((double*)(ptr + start)) = value;
-            }
+            _buffer.WriteDouble(start, value);
         }
 
-        internal void WriteSingle(float value)
+        public void WriteSingle(float value)
         {
             int start = Advance(sizeof(float));
-            fixed (byte* ptr = _buffer)
-            {
-                *((float*)(ptr + start)) = value;
-            }
+            _buffer.WriteSingle(start, value);
         }
 
-        internal void WriteInt16(short value)
+        public void WriteInt16(short value)
         {
             WriteUInt16(unchecked((ushort)value));
         }
 
-        internal void WriteUInt16(ushort value)
+        public void WriteUInt16(ushort value)
         {
             int start = Advance(sizeof(ushort));
-            fixed (byte* ptr = _buffer)
-            {
-                *((ushort*)(ptr + start)) = value;
-            }
+            _buffer.WriteUInt16(start, value);
         }
 
-        private void WriteUInt16BE(ushort value)
+        internal void WriteUInt16BE(ushort value)
         {
             int start = Advance(sizeof(ushort));
-
-            fixed (byte* ptr = _buffer)
-            {
-                unchecked
-                {
-                    ptr[start] = (byte)(value >> 8);
-                    ptr[start + 1] = (byte)value;
-                }
-            }
+            _buffer.WriteUInt16BE(start, value);
         }
 
-        private void WriteUInt32BE(uint value)
+        internal void WriteUInt32BE(uint value)
         {
             int start = Advance(sizeof(uint));
-
-            fixed (byte* ptr = _buffer)
-            {
-                unchecked
-                {
-                    ptr[start] = (byte)(value >> 24);
-                    ptr[start + 1] = (byte)(value >> 16);
-                    ptr[start + 2] = (byte)(value >> 8);
-                    ptr[start + 3] = (byte)value;
-                }
-            }
+            _buffer.WriteUInt32BE(start, value);
         }
 
-        internal void WriteInt32(int value)
+        public void WriteInt32(int value)
         {
             WriteUInt32(unchecked((uint)value));
         }
 
-        internal void WriteUInt32(uint value)
+        public void WriteUInt32(uint value)
         {
             int start = Advance(sizeof(uint));
-            fixed (byte* ptr = _buffer)
-            {
-                *((uint*)(ptr + start)) = value;
-            }
+            _buffer.WriteUInt32(start, value);
         }
 
-        internal void WriteInt64(long value)
+        public void WriteInt64(long value)
         {
             WriteUInt64(unchecked((ulong)value));
         }
 
-        internal void WriteUInt64(ulong value)
+        public void WriteUInt64(ulong value)
         {
             int start = Advance(sizeof(ulong));
-            fixed (byte* ptr = _buffer)
-            {
-                *((ulong*)(ptr + start)) = value;
-            }
+            _buffer.WriteUInt64(start, value);
         }
 
-        internal void WriteDecimal(decimal value)
+        public void WriteDecimal(decimal value)
         {
-            bool isNegative;
-            byte scale;
-            uint low, mid, high;
-            value.GetBits(out isNegative, out scale, out low, out mid, out high);
-
-            WriteByte((byte)(scale | (isNegative ? 0x80 : 0x00)));
-            WriteUInt32(low);
-            WriteUInt32(mid);
-            WriteUInt32(high);
+            int start = Advance(BlobUtilities.SizeOfSerializedDecimal);
+            _buffer.WriteDecimal(start, value);
         }
 
-        internal void WriteDateTime(DateTime value)
+        public void WriteDateTime(DateTime value)
         {
             WriteInt64(value.Ticks);
         }
@@ -283,7 +334,7 @@ namespace Microsoft.Cci
         /// <remarks>
         /// References may be small (2B) or large (4B).
         /// </remarks>
-        internal void WriteReference(uint reference, int size)
+        public void WriteReference(uint reference, int size)
         {
             Debug.Assert(size == 2 || size == 4);
 
@@ -301,34 +352,39 @@ namespace Microsoft.Cci
         /// <summary>
         /// Writes UTF16 (little-endian) encoded string at the current position.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
         public void WriteUTF16(char[] value)
         {
             if (value == null)
             {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (value.Length == 0)
+            {
                 return;
             }
 
-            int size = value.Length * sizeof(char);
-            int start = Advance(size);
-            System.Buffer.BlockCopy(value, 0, _buffer, start, size);
+            fixed (char* ptr = value)
+            {
+                WriteBytesUnchecked((byte*)ptr, value.Length * sizeof(char));
+            }
         }
 
         /// <summary>
         /// Writes UTF16 (little-endian) encoded string at the current position.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
         public void WriteUTF16(string value)
         {
             if (value == null)
             {
-                return;
+                throw new ArgumentNullException(nameof(value));
             }
-
-            int size = value.Length * sizeof(char);
-            int start = Advance(size);
 
             fixed (char* ptr = value)
             {
-                Marshal.Copy((IntPtr)ptr, _buffer, start, size);
+                WriteBytesUnchecked((byte*)ptr, value.Length * sizeof(char));
             }
         }
 
@@ -345,135 +401,38 @@ namespace Microsoft.Cci
                 return;
             }
 
-            int byteCount = GetUTF8ByteCount(str);
-            WriteCompressedInteger((uint)byteCount);
-            WriteUTF8(str, byteCount);
-        }
-
-        internal void WriteString(string str, Encoding encoding)
-        {
-            int start = Advance(encoding.GetByteCount(str));
-            encoding.GetBytes(str, 0, str.Length, _buffer, start);
+            WriteUTF8(str, 0, str.Length, allowUnpairedSurrogates: true, prependSize: true);
         }
 
         /// <summary>
         /// Writes UTF8 encoded string at the current position.
         /// </summary>
-        public void WriteUTF8(string str)
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        public void WriteUTF8(string value, bool allowUnpairedSurrogates)
         {
-            WriteUTF8(str, GetUTF8ByteCount(str));
-        }
-
-        // TODO: Use UTF8Encoding https://github.com/dotnet/corefx/issues/2217
-        public void WriteUTF8(string str, int byteCount)
-        {
-            Debug.Assert(byteCount >= str.Length);
-
-            int start = Advance(byteCount);
-            fixed (byte* buffer = _buffer)
+            if (value == null)
             {
-                byte* ptr = buffer + start;
-
-                if (byteCount == str.Length)
-                {
-                    for (int j = 0; j < str.Length; j++)
-                    {
-                        Debug.Assert(str[j] <= 0x7f);
-                        *ptr++ = unchecked((byte)str[j]);
-                    }
-                }
-                else
-                {
-                    for (int j = 0; j < str.Length; j++)
-                    {
-                        if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, j))
-                        {
-                            // High surrogate character followed by a low surrogate character encoded specially.
-                            int highSurrogate = str[j++];
-                            int lowSurrogate = str[j];
-                            int codepoint = (((highSurrogate - 0xd800) << 10) + lowSurrogate - 0xdc00) + 0x10000;
-                            ptr[0] = (byte)(((codepoint >> 18) & 0x7) | 0xF0);
-                            ptr[1] = (byte)(((codepoint >> 12) & 0x3F) | 0x80);
-                            ptr[2] = (byte)(((codepoint >> 6) & 0x3F) | 0x80);
-                            ptr[3] = (byte)((codepoint & 0x3F) | 0x80);
-                            ptr += 4;
-                        }
-                        else
-                        {
-                            char ch = str[j];
-                            if (ch < 0x80)
-                            {
-                                *ptr++ = (byte)ch;
-                            }
-                            else if (ch < 0x800)
-                            {
-                                ptr[0] = (byte)(((ch >> 6) & 0x1F) | 0xC0);
-                                ptr[1] = (byte)((ch & 0x3F) | 0x80);
-                                ptr += 2;
-                            }
-                            else
-                            {
-                                ptr[0] = (byte)(((ch >> 12) & 0xF) | 0xE0);
-                                ptr[1] = (byte)(((ch >> 6) & 0x3F) | 0x80);
-                                ptr[2] = (byte)((ch & 0x3F) | 0x80);
-                                ptr += 3;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        internal static int GetUTF8ByteCount(string str)
-        {
-            int count = 0;
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (IsHighSurrogateCharFollowedByLowSurrogateChar(str, i))
-                {
-                    // High surrogate character followed by a Low surrogate character encoded specially.
-                    count += 4;
-                    i++;
-                }
-                else
-                {
-                    char ch = str[i];
-                    if (ch < 0x80)
-                    {
-                        count += 1;
-                    }
-                    else if (ch < 0x800)
-                    {
-                        count += 2;
-                    }
-                    else
-                    {
-                        count += 3;
-                    }
-                }
+                throw new ArgumentNullException(nameof(value));
             }
 
-            return count;
+            WriteUTF8(value, 0, value.Length, allowUnpairedSurrogates, prependSize: false);
         }
 
-        private static bool IsHighSurrogateCharFollowedByLowSurrogateChar(string str, int index)
+        private void WriteUTF8(string str, int start, int length, bool allowUnpairedSurrogates, bool prependSize)
         {
-            if (!IsHighSurrogateChar(str[index++]))
+            fixed (char* strPtr = str)
             {
-                return false;
+                char* charPtr = strPtr + start;
+                int byteCount = BlobUtilities.GetUTF8ByteCount(charPtr, length);
+
+                if (prependSize)
+                {
+                    WriteCompressedInteger((uint)byteCount);
+                }
+
+                int startOffset = Advance(byteCount);
+                _buffer.WriteUTF8(startOffset, charPtr, length, byteCount, allowUnpairedSurrogates);
             }
-
-            return index < str.Length && IsLowSurrogateChar(str[index]);
-        }
-
-        private static bool IsHighSurrogateChar(char ch)
-        {
-            return 0xD800 <= ch && ch <= 0xDBFF;
-        }
-
-        private static bool IsLowSurrogateChar(char ch)
-        {
-            return 0xDC00 <= ch && ch <= 0xDFFF;
         }
 
         /// <summary>
@@ -489,41 +448,11 @@ namespace Microsoft.Cci
         /// If the value lies between -268435456 (0xF000000) and 268435455 (0x0FFFFFFF), inclusive, encode as a four-byte integer: 
         /// 31 set, 30 set, bit 29 clear, value bits 27 through 0 held in bits 28 through 1, sign bit(value bit 31) in bit 0.
         /// </remarks>
-        internal void WriteCompressedSignedInteger(int value)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be represented as a compressed signed integer.</exception>
+        public void WriteCompressedSignedInteger(int value)
         {
-            unchecked
-            {
-                const int b6 = (1 << 6) - 1;
-                const int b13 = (1 << 13) - 1;
-                const int b28 = (1 << 28) - 1;
-
-                // 0xffffffff for negative value
-                // 0x00000000 for non-negative
-                int signMask = value >> 31;
-
-                if ((value & ~b6) == (signMask & ~b6))
-                {
-                    int n = ((value & b6) << 1) | (signMask & 1);
-                    WriteByte((byte)n);
-                }
-                else if ((value & ~b13) == (signMask & ~b13))
-                {
-                    int n = ((value & b13) << 1) | (signMask & 1);
-                    WriteUInt16BE((ushort)(0x8000 | n));
-                }
-                else
-                {
-                    Debug.Assert((value & ~b28) == (signMask & ~b28));
-
-                    int n = ((value & b28) << 1) | (signMask & 1);
-                    WriteUInt32BE(0xc0000000 | (uint)n);
-                }
-            }
+            BlobWriterImpl.WriteCompressedSignedInteger(ref this, value);
         }
-
-        private const int SingleByteCompressedIntegerMaxValue = 0x7f;
-        private const int TwoByteCompressedIntegerMaxValue = 0x3fff;
-        private const int MaxCompressedIntegerValue = 0x1fffffff;
 
         /// <summary>
         /// Implements compressed unsigned integer encoding as defined by ECMA-335-II chapter 23.2: Blobs and signatures.
@@ -537,183 +466,38 @@ namespace Microsoft.Cci
         /// 
         /// Otherwise, encode as a 4-byte integer, with bit 31 set, bit 30 set, bit 29 clear (value held in bits 28 through 0).
         /// </remarks>
-        internal void WriteCompressedInteger(uint val)
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="value"/> can't be represented as a compressed signed integer.</exception>
+        public void WriteCompressedInteger(uint value)
         {
-            Debug.Assert(val <= MaxCompressedIntegerValue);
-
-            unchecked
-            {
-                if (val <= SingleByteCompressedIntegerMaxValue)
-                {
-                    WriteByte((byte)val);
-                }
-                else if (val <= TwoByteCompressedIntegerMaxValue)
-                {
-                    WriteUInt16BE((ushort)(0x8000 | val));
-                }
-                else
-                {
-                    
-                    WriteUInt32BE(0xc0000000 | val);
-                }
-            }
-        }
-
-        internal static int GetCompressedIntegerSize(int value)
-        {
-            Debug.Assert(value <= MaxCompressedIntegerValue);
-
-            if (value <= SingleByteCompressedIntegerMaxValue)
-            {
-                return 1;
-            }
-
-            if (value <= TwoByteCompressedIntegerMaxValue)
-            {
-                return 2;
-            }
-
-            return 4;
+            BlobWriterImpl.WriteCompressedInteger(ref this, value);
         }
 
         /// <summary>
         /// Writes a constant value (see ECMA-335 Partition II section 22.9) at the current position.
         /// </summary>
+        /// <exception cref="ArgumentException"><paramref name="value"/> is not of a constant type.</exception>
         public void WriteConstant(object value)
         {
-            if (value == null)
-            {
-                // The encoding of Type for the nullref value for FieldInit is ELEMENT_TYPE_CLASS with a Value of a 32-bit.
-                WriteUInt32(0);
-                return;
-            }
-
-            var type = value.GetType();
-            if (type.GetTypeInfo().IsEnum)
-            {
-                type = Enum.GetUnderlyingType(type);
-            }
-
-            if (type == typeof(bool))
-            {
-                WriteBoolean((bool)value);
-            }
-            else if (type == typeof(int))
-            {
-                WriteInt32((int)value);
-            }
-            else if (type == typeof(string))
-            {
-                WriteUTF16((string)value);
-            }
-            else if (type == typeof(byte))
-            {
-                WriteByte((byte)value);
-            }
-            else if (type == typeof(char))
-            {
-                WriteUInt16((char)value);
-            }
-            else if (type == typeof(double))
-            {
-                WriteDouble((double)value);
-            }
-            else if (type == typeof(short))
-            {
-                WriteInt16((short)value);
-            }
-            else if (type == typeof(long))
-            {
-                WriteInt64((long)value);
-            }
-            else if (type == typeof(sbyte))
-            {
-                WriteSByte((sbyte)value);
-            }
-            else if (type == typeof(float))
-            {
-                WriteSingle((float)value);
-            }
-            else if (type == typeof(ushort))
-            {
-                WriteUInt16((ushort)value);
-            }
-            else if (type == typeof(uint))
-            {
-                WriteUInt32((uint)value);
-            }
-            else if (type == typeof(ulong))
-            {
-                WriteUInt64((ulong)value);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            BlobWriterImpl.WriteConstant(ref this, value);
         }
-
-        internal void WriteTo(BlobBuilder stream)
+        
+        public void Clear()
         {
-            stream.WriteBytes(_buffer, 0, _length);
+            _position = _start;
         }
+        
 
-        internal void WriteTo(Stream stream)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ThrowOutOfBounds()
         {
-            stream.Write(_buffer, 0, _length);
+            // TODO: error message
+            throw new InvalidOperationException();
         }
 
-        // Reset to zero-length, but don't reduce or free the array.
-        internal void Clear()
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        internal static void ValueArgumentOutOfRange()
         {
-            _position = 0;
-            _length = 0;
+            throw new ArgumentOutOfRangeException("value");
         }
-
-        #region Poolable
-
-        private readonly ObjectPool<BlobBuilder> _pool;
-
-        //
-        // To implement Poolable, you need two things:
-        // 1) Expose Freeing primitive. 
-        public void Free()
-        {
-            // Note that poolables are not finalizable. If one gets collected - no big deal.
-            Clear();
-            if (_pool != null)
-            {
-                if (_buffer.Length < 1024)
-                {
-                    _pool.Free(this);
-                }
-                else
-                {
-                    _pool.ForgetTrackedObject(this);
-                }
-            }
-        }
-
-        //2) Expose  the way to get an instance.
-        private static readonly ObjectPool<BlobBuilder> s_poolInstance = CreatePool();
-
-        public static BlobBuilder GetInstance()
-        {
-            var stream = s_poolInstance.Allocate();
-            return stream;
-        }
-
-        public static ObjectPool<BlobBuilder> CreatePool()
-        {
-            return CreatePool(32);
-        }
-
-        public static ObjectPool<BlobBuilder> CreatePool(int size)
-        {
-            ObjectPool<BlobBuilder> pool = null;
-            pool = new ObjectPool<BlobBuilder>(() => new BlobBuilder(pool), size);
-            return pool;
-        }
-
-        #endregion
     }
 }

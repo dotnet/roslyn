@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class EnumCompletionProvider
+    Partial Friend Class EnumCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
         Protected Overrides Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
@@ -60,20 +60,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(otherInstances.Concat(enumType))
         End Function
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
                 (text.Length > 2 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
                 SyntaxFacts.IsIdentifierStartCharacter(text(characterPosition)) AndAlso
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
-        End Function
-
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar)
         End Function
 
         Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)
@@ -115,17 +107,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return result
         End Function
 
-        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
-            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
-        End Function
-
         Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
-            Return Extensions.ContextQuery.VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
 
         Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
@@ -141,11 +129,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 context,
                 symbols(0).GetGlyph(),
                 preselect:=preselect,
-                supportedPlatforms:=supportedPlatformData)
+                supportedPlatforms:=supportedPlatformData,
+                rules:=ItemRules.Instance)
         End Function
 
-        Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
-            Return New TextChange(selectedItem.FilterSpan, DirectCast(selectedItem, SymbolCompletionItem).InsertionText)
+        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
+            Return ItemRules.Instance
         End Function
+
     End Class
 End Namespace

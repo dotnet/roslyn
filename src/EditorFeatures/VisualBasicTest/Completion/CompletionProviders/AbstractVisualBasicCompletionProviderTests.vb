@@ -1,25 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
-Imports System.Windows.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text
-Imports Moq
-Imports Roslyn.Test.EditorUtilities
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
@@ -115,19 +100,49 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return importsStatement & vbCrLf & vbCrLf & text
         End Function
 
-        Protected Sub TestCommonSendEnterThroughToEditor()
-            Assert.True(CompletionProvider.SendEnterThroughToEditor(Nothing, Nothing), "Expected hardcoded 'true' from SendEnterThroughToEditor")
+        Protected Sub VerifySendEnterThroughToEditor(initialMarkup As String, textTypedSoFar As String, expected As Boolean)
+            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup)
+                Dim hostDocument = workspace.DocumentWithCursor
+                Dim documentId = workspace.GetDocumentId(hostDocument)
+                Dim document = workspace.CurrentSolution.GetDocument(documentId)
+                Dim position = hostDocument.CursorPosition.Value
+
+                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
+
+                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
+                Dim completionRules = completionService.GetCompletionRules()
+
+                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
+            End Using
         End Sub
 
-        Protected Sub TestCommonIsCommitCharacter()
+        Protected Sub VerifyCommonCommitCharacters(initialMarkup As String, textTypedSoFar As String)
             Dim commitCharacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
+            VerifyCommitCharacters(initialMarkup, textTypedSoFar, commitCharacters)
+        End Sub
 
-            For Each ch In commitCharacters
-                Assert.True(CompletionProvider.IsCommitCharacter(Nothing, ch, Nothing), "Expected '" + ch + "' to be a commit character")
-            Next
+        Protected Sub VerifyCommitCharacters(initialMarkup As String, textTypedSoFar As String, ParamArray chars As Char())
+            Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(initialMarkup)
+                Dim hostDocument = workspace.DocumentWithCursor
+                Dim documentId = workspace.GetDocumentId(hostDocument)
+                Dim document = workspace.CurrentSolution.GetDocument(documentId)
+                Dim position = hostDocument.CursorPosition.Value
 
-            Dim chr = "x"c
-            Assert.False(CompletionProvider.IsCommitCharacter(Nothing, chr, Nothing), "Expected '" + chr + "' NOT to be a commit character")
+                Dim completionList = GetCompletionList(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim item = completionList.Items.First()
+
+                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
+                Dim completionRules = completionService.GetCompletionRules()
+
+                For Each ch In chars
+                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
+                Next
+
+                Dim chr = "x"c
+                Assert.False(completionRules.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
+            End Using
+
         End Sub
 
         Protected Sub TestCommonIsTextualTriggerCharacter()

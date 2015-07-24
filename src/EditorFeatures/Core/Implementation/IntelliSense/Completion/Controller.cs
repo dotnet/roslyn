@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return true;
         }
 
-        private ICompletionService CreateCompletionService()
+        private ICompletionService GetCompletionService()
         {
             AssertIsForeground();
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var textChange = item.CompletionProvider.GetTextChange(item);
+            var textChange = GetCompletionRules().GetTextChange(item);
             this.Commit(item, textChange, this.sessionOpt.Computation.InitialUnfilteredModel, null);
         }
 

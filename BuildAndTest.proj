@@ -11,9 +11,6 @@
        use a 2013 compatible solution. -->
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
-    <RoslynSolution Condition="'$(PublicBuild)' == 'true'">$(MSBuildThisFileDirectory)RoslynLight.sln</RoslynSolution>
-    <CscCoreProj>$(MSBuildThisFileDirectory)\src\Compilers\CSharp\CscCore\CscCore.csproj</CscCoreProj>
-    <VbcCoreProj>$(MSBuildThisFileDirectory)\src\Compilers\VisualBasic\VbcCore\VbcCore.csproj</VbcCoreProj>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs></RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
@@ -33,12 +30,6 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Build"/>
-    <MSBuild BuildInParallel="true"
-             Projects="$(CscCoreProj)"
-             Targets="Build" />
-    <MSBuild BuildInParallel="true"
-             Projects="$(VbcCoreProj)"
-             Targets="Build" />
   </Target>
 
   <Target Name="Clean">
@@ -46,12 +37,6 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Clean"/>
-    <MSBuild BuildInParallel="true"
-             Projects="$(CscCoreProj)"
-             Targets="Clean" />
-    <MSBuild BuildInParallel="true"
-             Projects="$(VbcCoreProj)"
-             Targets="Clean" />
   </Target>
 
   <Target Name="Rebuild">
@@ -59,12 +44,6 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Rebuild"/>
-    <MSBuild BuildInParallel="true"
-             Projects="$(CscCoreProj)"
-             Targets="Rebuild" />
-    <MSBuild BuildInParallel="true"
-             Projects="$(VbcCoreProj)"
-             Targets="Rebuild" />
   </Target>
 
   <Target Name="Test">

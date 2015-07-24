@@ -1,12 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.VisualStudio.Text.Classification
 Imports Microsoft.VisualStudio.Utilities
-Imports Microsoft.VisualStudio.InteractiveWindow
 Imports Microsoft.VisualStudio.InteractiveWindow.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
         Public Sub New(hostServices As HostServices,
                        classifierAggregator As IViewClassifierAggregatorService,
                        commandsFactory As IInteractiveWindowCommandsFactory,
-                       commands As IInteractiveWindowCommand(),
+                       commands As ImmutableArray(Of IInteractiveWindowCommand),
                        contentTypeRegistry As IContentTypeRegistryService,
                        responseFileDirectory As String,
                        initialWorkingDirectory As String)

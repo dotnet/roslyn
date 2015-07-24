@@ -3,7 +3,6 @@
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -13,14 +12,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact()>
         Public Sub Test1()
 
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.NetFX.v4_0_21006.mscorlib)
 
             TestBaseTypeResolutionHelper1(assembly)
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestResources.General.MDTestLib1,
                                      TestResources.General.MDTestLib2,
-                                     ProprietaryTestResources.NetFX.v4_0_21006.mscorlib})
+                                     TestResources.NetFX.v4_0_21006.mscorlib})
 
             TestBaseTypeResolutionHelper2(assemblies)
 

@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -25,15 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
     [ExportCompletionProvider("ReplCommandCompletionProvider", LanguageNames.CSharp)]
     internal class ReplCommandCompletionProvider : AbstractCompletionProvider
     {
-        private async Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, System.Threading.CancellationToken cancellationToken)
+        private async Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
         }
 
         // TODO (tomat): REPL commands should have their own providers:
@@ -64,11 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
 
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
-        }
-
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
             Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
@@ -97,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                                 {
                                     foreach (var commandName in command.Names)
                                     {
-                                        list.Add(new CSharpCompletionItem(
-                                            workspace, this, commandName, textChangeSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
+                                        list.Add(new CompletionItem(
+                                            this, commandName, textChangeSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
                                     }
                                 }
                             }

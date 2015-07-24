@@ -138,9 +138,8 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Invoke the underlying HashAlgorithm's TransformBlock operation on the provided data.
         /// </summary>
-        public void TransformBlock(byte[] inputBuffer, int inputCount)
+        public void TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            int inputOffset = 0;
             while (inputCount > 0)
             {
                 int written = (int)s_TransformBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
@@ -150,9 +149,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        public void TransformFinalBlock(byte[] inputBuffer, int inputCount)
+        public void TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            s_TransformFinalBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, 0, inputCount });
+            s_TransformFinalBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount });
         }
 
         public byte[] Hash => (byte[])s_Hash_PropertyGetter.Invoke(_hashInstance, new object[] { });

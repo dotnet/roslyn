@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -18,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Completion
         IEnumerable<CompletionListProvider> GetDefaultCompletionProviders();
 
         /// <summary>
-        /// Returns the default set of completion rules for this completion service.
+        /// Returns the set of completion rules for this completion service.
         /// </summary>
-        ICompletionRules GetDefaultCompletionRules();
+        CompletionRules GetCompletionRules();
 
         /// <summary>
         /// Clears the most-recently-used cache used by completion.

@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.AwaitStatementUpdate,
                 RudeEditKind.InsertFile,
                 RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
+                RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
             };
 
             var arg2 = new HashSet<RudeEditKind>()

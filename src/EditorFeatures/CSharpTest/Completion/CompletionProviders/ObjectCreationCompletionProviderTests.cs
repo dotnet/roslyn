@@ -99,25 +99,19 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
-            var validCharacters = new[]
-            {
-                ' ', '(', '{', '['
-            };
+            const string markup = @"
+using D = System.Globalization.DigitShapes; 
+class Program
+{
+    static void Main(string[] args)
+    {
+        D d = new $$
+    }
+}";
 
-            var invalidCharacters = new[]
-            {
-                'x', ',', '#'
-            };
-
-            foreach (var ch in validCharacters)
-            {
-                Assert.True(CompletionProvider.IsCommitCharacter(null, ch, null), "Expected '" + ch + "' to be a commit character");
-            }
-
-            foreach (var ch in invalidCharacters)
-            {
-                Assert.False(CompletionProvider.IsCommitCharacter(null, ch, null), "Expected '" + ch + "' to NOT be a commit character");
-            }
+            VerifyCommitCharacters(markup, textTypedSoFar: "",
+                validChars: new[] { ' ', '(', '{', '[' },
+                invalidChars: new[] { 'x', ',', '#' });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -133,8 +127,18 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("Foo", "Foo", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+using D = System.Globalization.DigitShapes; 
+class Program
+{
+    static void Main(string[] args)
+    {
+        D d = new $$
+    }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "D", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "D", sendThroughEnterEnabled: true, expected: true);
         }
 
         [WorkItem(828196)]

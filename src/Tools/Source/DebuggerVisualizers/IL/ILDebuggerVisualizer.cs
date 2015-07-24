@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -18,7 +19,7 @@ namespace Roslyn.DebuggerVisualizers
         {
             StringBuilder sb = new StringBuilder();
             var ilBytes = ((ILDelta)objectProvider.GetObject()).Value;
-            var viewer = new TextViewer(ilBytes.GetMethodIL(), "IL");
+            var viewer = new TextViewer(ImmutableArray.Create(ilBytes).GetMethodIL(), "IL");
             viewer.ShowDialog();
         }
     }
