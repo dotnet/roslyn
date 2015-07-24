@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -15,33 +16,20 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    internal sealed class SemanticBufferTagSource<TTag> : ProducerPopulatedTagSource<TTag> where TTag : ITag
+    internal sealed class SemanticClassificationTagSource<TTag> : ProducerPopulatedTagSource<TTag> where TTag : ITag
     {
         private VersionStamp _lastSemanticVersion;
 
-        public SemanticBufferTagSource(
+        public SemanticClassificationTagSource(
             ITextBuffer subjectBuffer,
-            ITagProducer<TTag> tagProducer,
-            ITaggerEventSource eventSource,
+            IAsynchronousTaggerDataSource<TTag> dataSource,
             IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits,
-            SpanTrackingMode spanTrackingMode)
-                : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
+            IForegroundNotificationService notificationService)
+                : base(/*textViewOpt:*/ null, subjectBuffer, dataSource, asyncListener, notificationService)
         {
             _lastSemanticVersion = VersionStamp.Default;
-        }
-
-        protected override ICollection<SnapshotSpan> GetInitialSpansToTag()
-        {
-            return new[] { SubjectBuffer.CurrentSnapshot.GetFullSpan() };
-        }
-
-        protected override SnapshotPoint? GetCaretPoint()
-        {
-            return null;
         }
 
         protected override async Task RecomputeTagsAsync(

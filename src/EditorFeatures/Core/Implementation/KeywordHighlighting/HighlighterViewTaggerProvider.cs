@@ -3,15 +3,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
@@ -20,34 +26,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class HighlighterViewTaggerProvider :
-        AbstractAsynchronousViewTaggerProvider<HighlightTag>
+    internal class HighlighterViewTaggerProvider : AsynchronousViewTaggerProvider<HighlightTag>
     {
-        private readonly IHighlightingService _highlighterService;
+        private readonly IHighlightingService _highlightingService;
+
+        public override bool RemoveTagsThatIntersectEdits => true;
+        public override bool IgnoreCaretMovementToExistingTag => true;
+        public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
+            IHighlightingService highlightingService,
             IForegroundNotificationService notificationService,
-            IHighlightingService highlighterService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
             : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.KeywordHighlighting), notificationService)
         {
-            _highlighterService = highlighterService;
+            _highlightingService = highlightingService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
-
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
-
-        protected override IEnumerable<Option<bool>> TagSourceOptions
-        {
-            get
-            {
-                yield return InternalFeatureOnOffOptions.KeywordHighlight;
-            }
-        }
-
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle, reportChangedSpans: true),
@@ -55,22 +52,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.KeywordHighlighting, TaggerDelay.NearImmediate));
         }
 
-        protected override ITagProducer<HighlightTag> CreateTagProducer()
+        // Internal for testing purposes
+        public override async Task ProduceTagsAsync(
+            DocumentSnapshotSpan documentSnapshotSpan,
+            int? caretPosition,
+            Action<ITagSpan<HighlightTag>> addTag,
+            CancellationToken cancellationToken)
         {
-            return new HighlighterTagProducer(_highlighterService);
-        }
+            var document = documentSnapshotSpan.Document;
+            if (document == null)
+            {
+                return;
+            }
 
-        protected override ProducerPopulatedTagSource<HighlightTag> CreateTagSourceCore(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return new HighlightingTagSource(
-                textViewOpt,
-                subjectBuffer,
-                CreateTagProducer(),
-                CreateEventSource(textViewOpt, subjectBuffer),
-                AsyncListener,
-                NotificationService,
-                this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode);
+            var options = document.Project.Solution.Workspace.Options;
+            if (!options.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
+            {
+                return;
+            }
+
+            if (caretPosition.HasValue)
+            {
+                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+                var position = caretPosition.Value;
+                var snapshot = snapshotSpan.Snapshot;
+
+                using (Logger.LogBlock(FunctionId.Tagger_Highlighter_TagProducer_ProduceTags, cancellationToken))
+                {
+                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    var spans = _highlightingService.GetHighlights(root, position, cancellationToken);
+                    foreach (var span in spans)
+                    {
+                        addTag(new TagSpan<HighlightTag>(span.ToSnapshotSpan(snapshot), HighlightTag.Instance));
+                    }
+                }
+            }
         }
     }
 }

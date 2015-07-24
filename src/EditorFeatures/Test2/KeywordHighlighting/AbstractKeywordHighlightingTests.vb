@@ -6,8 +6,10 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
@@ -25,12 +27,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
 
                 Dim highlightingService = workspace.GetService(Of IHighlightingService)()
-                Dim tagProducer = New HighlighterTagProducer(highlightingService)
+                Dim tagProducer = New HighlighterViewTaggerProvider(
+                    highlightingService,
+                    workspace.GetService(Of IForegroundNotificationService),
+                    AggregateAsynchronousOperationListener.EmptyListeners)
 
-                Dim producedTags = From tag In tagProducer.ProduceTagsAsync(document,
-                                                                            New SnapshotSpan(snapshot, 0, snapshot.Length),
-                                                                            New SnapshotPoint(snapshot, caretPosition),
-                                                                            cancellationToken:=Nothing).Result
+                Dim tagSpans = New List(Of ITagSpan(Of HighlightTag))
+                tagProducer.ProduceTagsAsync(
+                    New DocumentSnapshotSpan(document, New SnapshotSpan(snapshot, 0, snapshot.Length)),
+                    New SnapshotPoint(snapshot, caretPosition),
+                    AddressOf tagSpans.Add,
+                    cancellationToken:=Nothing).Wait()
+
+                Dim producedTags = From tag In tagSpans
                                    Order By tag.Span.Start
                                    Select (tag.Span.Span.ToTextSpan().ToString())
 

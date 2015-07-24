@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             _optionService = optionService;
         }
 
-        protected override IEnumerable<Option<bool>> TagSourceOptions
+        public override IEnumerable<Option<bool>> Options
         {
             get
             {

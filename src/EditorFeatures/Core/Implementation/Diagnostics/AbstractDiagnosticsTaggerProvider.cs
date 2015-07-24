@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return this.GetOrCreateTagger<T>(null, subjectBuffer);
         }
 
-        internal sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out AbstractAggregatedDiagnosticsTagSource<TTag> tagSource)
+        protected sealed override bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out AbstractAggregatedDiagnosticsTagSource<TTag> tagSource)
         {
             return subjectBuffer.Properties.TryGetProperty(UniqueKey, out tagSource);
         }
