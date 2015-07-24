@@ -109,6 +109,19 @@ VoidLocal();
         }
 
         [Fact]
+        public void EmptyStatementAfter()
+        {
+            var source = @"
+void Local()
+{
+    Console.Write(2);
+};
+Local();
+";
+            VerifyOutputInMain(source, "2", "System");
+        }
+
+        [Fact]
         public void Params()
         {
             var source = @"
@@ -2773,6 +2786,33 @@ class Program
         }
 
         [Fact]
+        public void NameConflictNestedTypeParameter()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        T Outer<T>()
+        {
+            T Inner<T>()
+            {
+                return default(T);
+            }
+            return Inner<T>();
+        }
+        System.Console.Write(Outer<int>());
+    }
+}
+";
+            VerifyDiagnostics(source,
+    // (8,21): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Outer<T>()'
+    //             T Inner<T>()
+    Diagnostic(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, "T").WithArguments("T", "Outer<T>()").WithLocation(8, 21)
+    );
+        }
+
+        [Fact]
         public void NameConflictLocalVarFirst()
         {
             var source = @"
@@ -2961,6 +3001,25 @@ class Program
     // (11,32): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
     //             Console.WriteLine(*&x);
     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(11, 32)
+    );
+        }
+
+        [Fact]
+        public void BadEmptyBody()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void Local(int x);
+        Local(2);
+    }
+}";
+            VerifyDiagnostics(source,
+    // (6,14): error CS0501: 'Local(int)' must declare a body because it is not marked abstract, extern, or partial
+    //         void Local(int x);
+    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Local").WithArguments("Local(int)").WithLocation(6, 14)
     );
         }
 
@@ -3464,13 +3523,25 @@ Console.Write(Local());
         public void InferredReturnVoid()
         {
             var source = @"
-var Local()
+using System;
+
+class Program
 {
-    Console.Write(2);
+    static void Main()
+    {
+        var Local()
+        {
+            Console.Write(2);
+        }
+        Local();
+    }
 }
-Local();
 ";
-            VerifyOutputInMain(source, "2", "System");
+            VerifyDiagnostics(source,
+    // (8,13): error CS8099: Cannot infer the type of 'Local()' as it does not return a value.
+    //         var Local()
+    Diagnostic(ErrorCode.ERR_CantInferVoid, "Local").WithArguments("Local()").WithLocation(8, 13)
+    );
         }
 
         [Fact]
@@ -3490,14 +3561,27 @@ Console.Write(Local().Result);
         public void InferredReturnTask()
         {
             var source = @"
-async var Local()
+using System;
+using System.Threading.Tasks;
+
+class Program
 {
-    await Task.Yield();
-    Console.WriteLine(2);
+    static void Main()
+    {
+        async var Local()
+        {
+            await Task.Yield();
+            Console.WriteLine(2);
+        }
+        Local().Wait();
+    }
 }
-Local().Wait();
 ";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            VerifyDiagnostics(source,
+    // (9,19): error CS8099: Cannot infer the type of 'Local()' as it does not return a value.
+    //         async var Local()
+    Diagnostic(ErrorCode.ERR_CantInferVoid, "Local").WithArguments("Local()").WithLocation(9, 19)
+    );
         }
 
         [Fact]
