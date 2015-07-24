@@ -67,8 +67,11 @@
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\NoOpAnalyzerAssemblyLoader.cs">
-      <Link>ConsoleUtil.cs</Link>
+    <Compile Include="..\..\Helpers\CoreClrAnalyzerAssemblyLoader.cs">
+      <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
     <Compile Include="Csc.cs" />
     <Compile Include="Program.cs" />

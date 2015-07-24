@@ -478,6 +478,19 @@
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
         }
       },
+      "System.Runtime.Loader/4.0.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Loader.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.Loader.dll": {}
+        }
+      },
       "System.Runtime.Serialization.Json/4.0.1-beta-23321": {
         "dependencies": {
           "System.Private.DataContractSerialization": "[4.0.1-beta-23321, )"
@@ -1389,6 +1402,19 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
+        }
+      },
+      "System.Runtime.Loader/4.0.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Loader.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.Loader.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23321": {
@@ -2464,6 +2490,19 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
+        }
+      },
+      "System.Runtime.Loader/4.0.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Loader.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.Loader.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23321": {
@@ -4581,6 +4620,18 @@
         "System.Runtime.InteropServices.nuspec"
       ]
     },
+    "System.Runtime.Loader/4.0.0-beta-23321": {
+      "sha512": "xyfQB/CKuzy/kaiMWtNgX16mMTsgt2ktdmG7COIXBFAkHUARSeBAjMOWkGdNWPzOWINYumqamA8JxGsQlPhuPQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Runtime.Loader.dll",
+        "package/services/metadata/core-properties/55d60ad8f5d24e06bf703dd426e1ec45.psmdcp",
+        "ref/dotnet/System.Runtime.Loader.dll",
+        "System.Runtime.Loader.nuspec"
+      ]
+    },
     "System.Runtime.Serialization.Json/4.0.1-beta-23321": {
       "sha512": "TWQRwFnriFMykVgsCyowKFI5eLWoceMtoIrrx9Wd2ZL+XAnsdiYe8OUVeL9Q0kLVs3Ew12sPiXtY2wvVDAYR3w==",
       "type": "Package",
@@ -5138,6 +5189,7 @@
       "System.Runtime.Extensions >= 4.0.11-beta-23321",
       "System.Runtime.Handles >= 4.0.1-beta-23321",
       "System.Runtime.InteropServices >= 4.0.21-beta-23321",
+      "System.Runtime.Loader >= 4.0.0-beta-23321",
       "System.Runtime.Serialization.Json >= 4.0.1-beta-23321",
       "System.Security.Cryptography.Hashing.Algorithms >= 4.0.0-beta-23311",
       "System.Text.Encoding >= 4.0.11-beta-23321",

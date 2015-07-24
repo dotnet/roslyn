@@ -58,6 +58,9 @@
     <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Helpers\AnalyzerAssemblyLoadUtils.cs">
+      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
     </Compile>
