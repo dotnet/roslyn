@@ -2979,14 +2979,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Function GetStateMachineSuspensionPoints(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKind)
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
-                Return SyntaxUtilities.GetAwaitExpressions(body)
-            Else
-                Return SyntaxUtilities.GetYieldStatements(body)
+                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
+                kind = StateMachineKind.Async
+                Return
+            ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
+                suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
+                kind = StateMachineKind.Iterator
+                Return
             End If
-        End Function
+
+            suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
+            kind = StateMachineKind.None
+        End Sub
 
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As List(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
@@ -3161,21 +3168,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
-        End Sub
-
-        Friend Overrides Sub ReportRudeEditsForStateMachineMethod(diagnostics As List(Of RudeEditDiagnostic),
-                                                                  oldBody As SyntaxNode,
-                                                                  newBody As SyntaxNode)
-            ' It Is allow to update a regular method to an async method Or an iterator.
-            ' The only restriction Is a presence of an active statement in the method body
-            ' since the debugger does Not support remapping active statements to a different method.
-            Dim IsAsyncAdded = Not SyntaxUtilities.IsAsyncMethodOrLambda(oldBody) AndAlso SyntaxUtilities.IsAsyncMethodOrLambda(newBody)
-            Dim IsIteratorAdded = Not SyntaxUtilities.IsIteratorMethodOrLambda(oldBody) AndAlso SyntaxUtilities.IsIteratorMethodOrLambda(newBody)
-            If IsAsyncAdded OrElse IsIteratorAdded Then
-                diagnostics.Add(New RudeEditDiagnostic(
-                    RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
-                    GetDiagnosticSpan(newBody, EditKind.Update)))
-            End If
         End Sub
 
 #End Region

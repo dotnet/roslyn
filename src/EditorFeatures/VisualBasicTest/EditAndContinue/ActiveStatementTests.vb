@@ -4890,8 +4890,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim a = Sub() <AS:1>Console.WriteLine(1)</AS:1>
-        <AS:0>a()</AS:0>
+        Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
         Return
     End Sub
 End Class
@@ -4901,8 +4900,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Async Sub F()
-        Dim a = Sub() <AS:1>Console.WriteLine(1)</AS:1>
-        <AS:0>a()</AS:0>
+        Dim a = Async Sub() <AS:0>Console.WriteLine(1)</AS:0>
         Return
     End Sub
 End Class
@@ -4911,7 +4909,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub F()"))
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub()"))
         End Sub
 
         <Fact>

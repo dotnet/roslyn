@@ -2863,16 +2863,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    SyntaxUtilities.IsIteratorMethod(declaration);
         }
 
-        protected override ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body)
+        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind)
         {
             if (SyntaxUtilities.IsAsyncMethodOrLambda(body.Parent))
             {
-                return SyntaxUtilities.GetAwaitExpressions(body);
+                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body);
+                kind = StateMachineKind.Async;
+                return;
             }
-            else
-            {
-                return SyntaxUtilities.GetYieldStatements(body);
-            }
+
+            suspensionPoints = SyntaxUtilities.GetYieldStatements(body);
+            kind = suspensionPoints.IsEmpty ? StateMachineKind.None : StateMachineKind.Iterator;
         }
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
@@ -3127,22 +3128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
-        }
-
-        internal override void ReportRudeEditsForStateMachineMethod(
-            List<RudeEditDiagnostic> diagnostics,
-            SyntaxNode oldBody,
-            SyntaxNode newBody)
-        {
-            // It is allow to update a regular method to an async method or an iterator.
-            // The only restriction is a presence of an active statement in the method body
-            // since the debugger does not support remapping active statements to a different method.
-            if (!SyntaxUtilities.IsAsyncMethodOrLambda(oldBody.Parent) && SyntaxUtilities.IsAsyncMethodOrLambda(newBody.Parent))
-            {
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
-                    GetDiagnosticSpan(newBody.Parent, EditKind.Update)));
-            }
         }
 
         #endregion
