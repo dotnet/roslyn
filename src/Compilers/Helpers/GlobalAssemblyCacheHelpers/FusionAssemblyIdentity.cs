@@ -312,11 +312,6 @@ namespace Microsoft.CodeAnalysis
             return (AssemblyContentType)(GetPropertyWord(nameObject, PropertyId.CONTENT_TYPE) ?? 0);
         }
 
-        internal static ProcessorArchitecture GetProcessorArchitecture(IAssemblyName nameObject)
-        {
-            return (ProcessorArchitecture)(GetPropertyWord(nameObject, PropertyId.ARCHITECTURE) ?? 0);
-        }
-
         internal static unsafe AssemblyNameFlags GetFlags(IAssemblyName nameObject)
         {
             AssemblyNameFlags result = 0;

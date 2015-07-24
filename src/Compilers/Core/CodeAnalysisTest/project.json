@@ -1,0 +1,25 @@
+﻿{
+  "dependencies": {
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-*",
+    "System.Collections": "4.0.10-beta-*",
+    "System.Diagnostics.Tools": "4.0.0-beta-*",
+    "System.IO.FileSystem": "4.0.0-beta-*",
+    "System.Globalization": "4.0.10-beta-*",
+    "System.Linq": "4.0.0-beta-*",
+    "System.Resources.ResourceManager": "4.0.0-beta-*",
+    "System.Runtime": "4.0.20-beta-*",
+    "System.Runtime.Extensions": "4.0.10-beta-*",
+    "System.Runtime.InteropServices": "4.0.20-beta-*",
+    "System.Text.Encoding": "4.0.10-beta-*",
+    "System.Text.Encoding.Extensions": "4.0.10-beta-*",
+    "System.Threading": "4.0.10-beta-*",
+    "System.Threading.Tasks": "4.0.10-beta-*",
+    "System.Threading.Tasks.Parallel": "4.0.0-beta-*",
+    "System.Xml.ReaderWriter": "4.0.10-beta-*",
+    "xunit": "2.1.0-beta3-*"
+  },
+  "frameworks": {
+    "dnxcore50": {}
+  }
+
+}

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void VerifyRuleSetError(string source, Func<string> messageFormatter, bool locSpecific = true, params string[] otherSources)
         {
-            CultureInfo saveUICulture = Thread.CurrentThread.CurrentUICulture;
+            CultureInfo saveUICulture = CultureInfo.CurrentUICulture;
 
             if (locSpecific)
             {
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 else
                 {
-                    Thread.CurrentThread.CurrentUICulture = preferred;
+                    CultureInfo.CurrentUICulture = preferred;
                 }
             }
 
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 if (locSpecific)
                 {
-                    Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                    CultureInfo.CurrentUICulture = saveUICulture;
                 }
             }
 

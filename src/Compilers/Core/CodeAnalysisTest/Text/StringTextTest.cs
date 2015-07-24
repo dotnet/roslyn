@@ -6,7 +6,6 @@ using Xunit;
 using System.Text;
 using System.IO;
 using Roslyn.Test.Utilities;
-using System.Security.Cryptography;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -226,7 +225,7 @@ bar baz";
         {
             var bytes = new byte[] { 0xef, 0xbb, 0xbf, 0x61, 0x62, 0x63 };
 
-            var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
+            var source = SourceText.From(new MemoryStream(bytes), Encoding.UTF8);
             Assert.Equal("abc", source.ToString());
 
             var checksum = source.GetChecksum();
@@ -241,7 +240,7 @@ bar baz";
             // should be derived from the original input.
             var bytes = new byte[] { 0x61, 0x62, 0x95 };
 
-            var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
+            var source = SourceText.From(new MemoryStream(bytes), Encoding.UTF8);
             Assert.Equal("ab?", source.ToString());
 
             var checksum = source.GetChecksum();
@@ -268,7 +267,7 @@ bar baz";
             var stream = new MemoryStream(bytes);
             stream.Seek(3, SeekOrigin.Begin);
 
-            var source = SourceText.From(stream, Encoding.ASCII);
+            var source = SourceText.From(stream, Encoding.UTF8);
             Assert.Equal("abc", source.ToString());
 
             var checksum = source.GetChecksum();
