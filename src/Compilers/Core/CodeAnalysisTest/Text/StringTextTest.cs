@@ -225,7 +225,7 @@ bar baz";
         {
             var bytes = new byte[] { 0xef, 0xbb, 0xbf, 0x61, 0x62, 0x63 };
 
-            var source = SourceText.From(new MemoryStream(bytes), Encoding.UTF8);
+            var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
             Assert.Equal("abc", source.ToString());
 
             var checksum = source.GetChecksum();
@@ -240,7 +240,7 @@ bar baz";
             // should be derived from the original input.
             var bytes = new byte[] { 0x61, 0x62, 0x95 };
 
-            var source = SourceText.From(new MemoryStream(bytes), Encoding.UTF8);
+            var source = SourceText.From(new MemoryStream(bytes), Encoding.ASCII);
             Assert.Equal("ab?", source.ToString());
 
             var checksum = source.GetChecksum();
@@ -267,7 +267,7 @@ bar baz";
             var stream = new MemoryStream(bytes);
             stream.Seek(3, SeekOrigin.Begin);
 
-            var source = SourceText.From(stream, Encoding.UTF8);
+            var source = SourceText.From(stream, Encoding.ASCII);
             Assert.Equal("abc", source.ToString());
 
             var checksum = source.GetChecksum();
