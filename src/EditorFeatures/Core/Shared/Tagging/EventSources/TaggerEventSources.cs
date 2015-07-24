@@ -32,13 +32,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             return new CompletionClosedEventSource(textView, sessionStack, delay);
         }
 
-        public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay, bool reportChangedSpans = false)
+        public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
         {
             Contract.ThrowIfNull(subjectBuffer);
 
-            return new TextChangedEventSource(subjectBuffer, delay, reportChangedSpans);
+            return new TextChangedEventSource(subjectBuffer, delay);
         }
 
+        /// <summary>
+        /// Reports an event any time the semantics have changed such that this subjectBuffer should
+        /// be retagged.  Semantics are considered changed for a buffer if an edit happens directly
+        /// in that buffer, or if a top level visible change happens in any sibling document or in 
+        /// any dependent documents.
+        /// </summary>
         public static ITaggerEventSource OnSemanticChanged(ITextBuffer subjectBuffer, TaggerDelay delay, ISemanticChangeNotificationService notificationService)
         {
             return new SemanticChangedEventSource(subjectBuffer, delay, notificationService);

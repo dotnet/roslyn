@@ -11,15 +11,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         private class TextChangedEventSource : AbstractTaggerEventSource
         {
             private readonly ITextBuffer _subjectBuffer;
-            private readonly bool _reportChangedSpans;
 
-            public TextChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay, bool reportChangedSpans)
+            public TextChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
                 : base(delay)
             {
                 Contract.ThrowIfNull(subjectBuffer);
 
                 _subjectBuffer = subjectBuffer;
-                _reportChangedSpans = reportChangedSpans;
             }
 
             public override string EventKind
@@ -47,14 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     return;
                 }
 
-                if (_reportChangedSpans)
-                {
-                    this.RaiseChanged(e);
-                }
-                else
-                {
-                    this.RaiseChanged();
-                }
+                this.RaiseChanged();
             }
         }
     }

@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 DiagnosticsSquiggleTaggerProvider.TagSource taggerSource;
                 GetTagSource(workspace, diagnosticWaiter, squiggleWaiter, out analyzer, out analyzerService, out taggerSource);
 
-                taggerSource.TagsChangedForBuffer += (o, arg) =>
+                taggerSource.TagsChangedForBuffer += c =>
                 {
-                    Assert.True(arg.Spans.First().Span.Contains(new Span(0, 1)));
+                    Assert.True(c.First().Value.First().Span.Contains(new Span(0, 1)));
                 };
 
                 var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>() as SolutionCrawlerRegistrationService;

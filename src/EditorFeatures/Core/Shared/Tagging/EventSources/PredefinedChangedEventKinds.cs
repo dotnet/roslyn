@@ -4,18 +4,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal static class PredefinedChangedEventKinds
     {
-        public const string CaretPositionChanged = "CaretPositionChanged";
-        public const string CompletionClosed = "CompletionClosed";
-        public const string DiagnosticsChanged = "DiagnosticsChanged";
-        public const string DocumentActiveContextChanged = "DocumentActiveContextChanged";
-        public const string OptionChanged = "OptionChanged";
-        public const string ParseOptionChanged = "ParseOptionChanged";
-        public const string ReadOnlyRegionsChanged = "ReadOnlyRegionsChanged";
-        public const string RenameSessionChanged = "RenameSessionChanged";
-        public const string SelectionChanged = "SelectionChanged";
-        public const string SemanticsChanged = "SemanticsChanged";
-        public const string TaggerCreated = "TaggerCreated";
-        public const string TextChanged = "TextChanged";
-        public const string WorkspaceRegistrationChanged = "WorkspaceRegistrationChanged";
+        public const string CaretPositionChanged = nameof(CaretPositionChanged);
+        public const string CompletionClosed = nameof(CompletionClosed);
+        public const string DiagnosticsChanged = nameof(DiagnosticsChanged);
+        public const string DocumentActiveContextChanged = nameof(DocumentActiveContextChanged);
+        public const string OptionChanged = nameof(OptionChanged);
+        public const string ParseOptionChanged = nameof(ParseOptionChanged);
+        public const string ReadOnlyRegionsChanged = nameof(ReadOnlyRegionsChanged);
+        public const string RenameSessionChanged = nameof(RenameSessionChanged);
+        public const string SelectionChanged = nameof(SelectionChanged);
+        public const string SemanticsChanged = nameof(SemanticsChanged);
+        public const string TaggerCreated = nameof(TaggerCreated);
+        public const string TextChanged = nameof(TextChanged);
+        public const string WorkspaceRegistrationChanged = nameof(WorkspaceRegistrationChanged);
     }
 }

@@ -2,16 +2,33 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
+    /// <summary>
+    /// Flags that affect how the tagger infrastructure responds to caret changes.
+    /// </summary>
+    [Flags]
+    internal enum TaggerCaretChangeBehavior
+    {
+        /// <summary>
+        /// No special caret change behavior.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// If the caret moves outside of a tag, immediately remove all existing tags.
+        /// </summary>
+        RemoveAllTagsOnCaretMoveOutsideOfTag = 1 << 0,
+    }
+
     /// <summary>
     /// Data source for the <see cref="AsynchronousTaggerProvider{TTag}"/>.  This type tells the
     /// <see cref="AsynchronousTaggerProvider{TTag}"/> when tags need to be recomputed, as well
@@ -20,13 +37,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     internal interface IAsynchronousTaggerDataSource<TTag> where TTag : ITag
     {
         /// <summary>
-        /// Whether or not the <see cref="AsynchronousTaggerProvider{TTag}"/> should remove a tag
-        /// from the user interface if the user makes an edit that intersects with the span of the
-        /// tag.  Removing may be appropriate if it is undesirable for stale tag data to be 
-        /// presented to the user.  However, removal may also lead to a more noticeable tagging 
-        /// experience for the user if tags quickly get removed and re-added.
+        /// The behavior the tagger engine will have when text changes happen to the subject buffer
+        /// it is attached to.  Most taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>.
+        /// However, advanced taggers that want to perform specialized behavior depending on what has
+        /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
+        /// 
+        /// If this is specified the tagger engine will track text changes and pass them along as
+        /// <see cref="AsynchronousTaggerContext{TTag}.TextChangeRange"/> when calling 
+        /// <see cref="ProduceTagsAsync"/>.
         /// </summary>
-        bool RemoveTagsThatIntersectEdits { get; }
+        TaggerTextChangeBehavior TextChangeBehavior { get; }
+
+        /// <summary>
+        /// The bahavior the tagger will have when changes happen to the caret.
+        /// </summary>
+        TaggerCaretChangeBehavior CaretChangeBehavior { get; }
 
         /// <summary>
         /// The behavior of tags that are created by the async tagger.  This will matter for tags
@@ -36,15 +61,65 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         SpanTrackingMode SpanTrackingMode { get; }
 
         /// <summary>
+        /// Whether or not the the first set of tags for this tagger should be computed synchronously.
+        /// </summary>
+        bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted { get; }
+
+        /// <summary>
+        /// Options controlling this tagger.  The tagger infrastructure will check this option
+        /// against the buffer it is associated with to see if it should tag or not.
+        /// 
+        /// An empty enumerable, or null, can be returned to indicate that this tagger should 
+        /// run unconditionally.
+        /// </summary>
+        IEnumerable<Option<bool>> Options { get; }
+
+        IEnumerable<PerLanguageOption<bool>> PerLanguageOptions { get; }
+
+        /// <summary>
+        /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
+        /// the <see cref="AsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
+        /// computed tags and a current set of computed tags should be considered the same or not.
+        /// If they are the same, then the UI will not be updated.  If they are different then
+        /// the UI will be updated for sets of tags that have been removed or added.
+        /// </summary>
+        /// <returns></returns>
+        IEqualityComparer<TTag> TagComparer { get; }
+
+        /// <summary>
         /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
         ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Creates the <see cref="ITagProducer{TTag}"/> which will be used by the 
-        /// <see cref="AsynchronousTaggerProvider{TTag}"/> to produce tags asynchronously.
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to 
+        /// determine the caret position.  This value will be passed in as the value to 
+        /// <see cref="AsynchronousTaggerContext{TTag}.CaretPosition"/> in the call to
+        /// <see cref="ProduceTagsAsync"/>.
+        /// 
+        /// Return <code>null</code> to get the default tagger behavior.  This will the caret
+        /// position in the subject buffer this tagger is attached to.
         /// </summary>
-        ITagProducer<TTag> CreateTagProducer();
+        SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer);
+
+        /// <summary>
+        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to determine
+        /// the set of spans that it should asynchronously tag.  This will be called in response to
+        /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
+        /// will only be called from the UI thread.  The tagger infrastructure will then determine
+        /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
+        /// and will asycnhronously call into <see cref="ProduceTagsAsync"/> at some point in
+        /// the future to produce tags for these spans.
+        /// 
+        /// Return <code>null</code> to get the default set of spans tagged.  This will normally be 
+        /// the span of the entire text buffer.
+        /// </summary>
+        IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer);
+
+        /// <summary>
+        /// Produce tags for the given context.
+        /// </summary>
+        Task ProduceTagsAsync(AsynchronousTaggerContext<TTag> context);
     }
 }

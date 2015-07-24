@@ -3,17 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
 {
+    using Context = AsynchronousTaggerContext<IOutliningRegionTag>;
+
     /// <summary>
     /// Shared implementation of the outliner tagger provider.
     /// 
@@ -27,15 +36,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
     [Export(typeof(OutliningTaggerProvider))]
     [TagType(typeof(IOutliningRegionTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class OutliningTaggerProvider :
-        AbstractAsynchronousBufferTaggerProvider<IOutliningRegionTag>
+    internal partial class OutliningTaggerProvider : AsynchronousTaggerProvider<IOutliningRegionTag>,
+        IEqualityComparer<IOutliningRegionTag>
     {
+        public const string OutliningRegionTextViewRole = nameof(OutliningRegionTextViewRole);
+
         private const int MaxPreviewText = 1000;
         private const string Ellipsis = "...";
 
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+
+        public override bool ComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted =>
+            _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
+
+        private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
 
         [ImportingConstructor]
         public OutliningTaggerProvider(
@@ -44,18 +60,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Outlining), notificationService)
+                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Outlining), notificationService)
         {
             _textEditorFactoryService = textEditorFactoryService;
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits => true;
+        public void SetComputeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted(bool value)
+        {
+            _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted = value;
+        }
 
-        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        public override IEqualityComparer<IOutliningRegionTag> TagComparer => this;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        bool IEqualityComparer<IOutliningRegionTag>.Equals(IOutliningRegionTag x, IOutliningRegionTag y)
+        {
+            // This is only called if the spans for the tags were the same. In that case, we consider ourselves the same
+            // unless the CollapsedForm properties are different.
+            return object.Equals(x.CollapsedForm, y.CollapsedForm);
+        }
+
+        int IEqualityComparer<IOutliningRegionTag>.GetHashCode(IOutliningRegionTag obj)
+        {
+            // This will not result in lots of hash collisions as our caller will
+            // first be hashing spans, and then adding this value to that.
+            // The only collisions will be for outlining tags with the same span
+            // (which is what we want).
+            return 0;
+        }
+
+        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
             // 1) Text changes.  These can obviously affect outlining, so we need to recompute when
@@ -74,17 +109,75 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
-        protected override ITagProducer<IOutliningRegionTag> CreateTagProducer()
+        public override async Task ProduceTagsAsync(Context context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
-            return CreateConcreteTagProducer();
+            try
+            {
+                var cancellationToken = context.CancellationToken;
+                using (Logger.LogBlock(FunctionId.Tagger_Outlining_TagProducer_ProduceTags, cancellationToken))
+                {
+                    var document = documentSnapshotSpan.Document;
+                    var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+                    var snapshot = snapshotSpan.Snapshot;
+
+                    if (document != null)
+                    {
+                        var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
+                        if (outliningService != null)
+                        {
+                            // TODO: change this to shared pool once Esent branch RI
+                            var regions = await outliningService.GetOutliningSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                            if (regions != null)
+                            {
+                                regions = GetMultiLineRegions(regions, snapshotSpan.Snapshot);
+
+                                // Create the outlining tags.
+                                var tagSpans =
+                                    from region in regions
+                                    let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
+                                    let hintSpan = new SnapshotSpan(snapshot, region.HintSpan.ToSpan())
+                                    let tag = new Tag(snapshot.TextBuffer,
+                                                      region.BannerText,
+                                                      hintSpan,
+                                                      region.AutoCollapse,
+                                                      _textEditorFactoryService,
+                                                      _projectionBufferFactoryService,
+                                                      _editorOptionsFactoryService)
+                                    select new TagSpan<IOutliningRegionTag>(spanToCollapse, tag);
+
+                                foreach (var tagSpan in tagSpans)
+                                {
+                                    context.AddTag(tagSpan);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
-        private TagProducer CreateConcreteTagProducer()
+        private IList<OutliningSpan> GetMultiLineRegions(IList<OutliningSpan> regions, ITextSnapshot snapshot)
         {
-            return new TagProducer(
-                _textEditorFactoryService,
-                _editorOptionsFactoryService,
-                _projectionBufferFactoryService);
+            // Remove any spans that aren't multiline.
+            var multiLineRegions = new List<OutliningSpan>(regions.Count);
+            foreach (var region in regions)
+            {
+                if (region != null && region.TextSpan.Length > 0)
+                {
+                    var startLine = snapshot.GetLineNumberFromPosition(region.TextSpan.Start);
+                    var endLine = snapshot.GetLineNumberFromPosition(region.TextSpan.End);
+                    if (startLine != endLine)
+                    {
+                        multiLineRegions.Add(region);
+                    }
+                }
+            }
+
+            return multiLineRegions;
         }
     }
 }

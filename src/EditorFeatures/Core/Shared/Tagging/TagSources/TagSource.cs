@@ -3,20 +3,26 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     /// <summary>
-    /// <para>this is a bare minimum base implementation of TagSource where you can provide your own implementation that
-    /// doesn't rely on any other framework such as event source, event producer to participate in async tagger framework</para>
+    /// <para>this is a bare minimum base implementation of TagSource where you can provide your own 
+    /// implementation that doesn't rely on any other framework such as event source, event producer
+    /// to participate in async tagger framework</para>
     /// </summary>
     /// <typeparam name="TTag">The type of tag.</typeparam>
-    internal abstract partial class TagSource<TTag>
+    internal abstract partial class TagSource<TTag> : 
+        ForegroundThreadAffinitizedObject
         where TTag : ITag
     {
         #region Fields that can be accessed from either thread
@@ -63,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _notificationService.RegisterNotification(action, delay, this.Listener.BeginAsyncOperation("TagSource"), cancellationToken);
         }
 
-        public event EventHandler<TagsChangedForBufferEventArgs> TagsChangedForBuffer;
+        public event Action<ICollection<KeyValuePair<ITextBuffer,NormalizedSnapshotSpanCollection>>> TagsChangedForBuffer;
 
         public event EventHandler Paused;
         public event EventHandler Resumed;
@@ -81,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// <summary>
         /// Called by derived types to enqueue tags re-calculation request
         /// </summary>
-        protected virtual void RecalculateTagsOnChanged(TaggerEventArgs e)
+        protected void RecalculateTagsOnChanged(TaggerEventArgs e)
         {
-            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelay(this.SubjectBuffer), this.WorkQueue.CancellationToken);
+            RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this.SubjectBuffer), this.WorkQueue.CancellationToken);
         }
 
         protected virtual void Disconnect()
@@ -99,27 +105,24 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             RecalculateTagsOnChanged(new TaggerEventArgs(PredefinedChangedEventKinds.TaggerCreated, TaggerDelay.Short));
         }
 
-        protected bool HasTagsChangedListener
+        protected void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
         {
-            get
-            {
-                return TagsChangedForBuffer != null;
-            }
-        }
-
-        protected void RaiseTagsChanged(
-            ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
-        {
-            // nothing changed.
             if (difference.Count == 0)
             {
+                // nothing changed.
                 return;
             }
 
+            RaiseTagsChanged(SpecializedCollections.SingletonCollection(
+                new KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>(buffer, difference)));
+        }
+
+        protected void RaiseTagsChanged(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> collection)
+        {
             var tagsChangedForBuffer = TagsChangedForBuffer;
             if (tagsChangedForBuffer != null)
             {
-                tagsChangedForBuffer(this, new TagsChangedForBufferEventArgs(buffer, difference));
+                tagsChangedForBuffer(collection);
             }
         }
 
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             }
         }
 
-        protected static T NextOrDefault<T>(IEnumerator<T> enumerator)
+        private static T NextOrDefault<T>(IEnumerator<T> enumerator)
         {
             return enumerator.MoveNext() ? enumerator.Current : default(T);
         }

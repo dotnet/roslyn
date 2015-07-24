@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         private readonly ITextBuffer _subjectBuffer;
         private readonly TagSource<TTag> _tagSource;
-        private readonly int _uiUpdateDelayInMS;
 
         #endregion
 
@@ -47,14 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener listener,
             IForegroundNotificationService notificationService,
             TagSource<TTag> tagSource,
-            ITextBuffer subjectBuffer,
-            TimeSpan uiUpdateDelay)
+            ITextBuffer subjectBuffer)
         {
             Contract.ThrowIfNull(subjectBuffer);
 
             _subjectBuffer = subjectBuffer;
-            _uiUpdateDelayInMS = (int)uiUpdateDelay.TotalMilliseconds;
-
             _batchChangeNotifier = new BatchChangeNotifier(subjectBuffer, listener, notificationService, ReportChangedSpan);
 
             _tagSource = tagSource;
@@ -92,26 +89,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             _batchChangeNotifier.Resume();
         }
 
-        private void OnTagsChangedForBuffer(object sender, TagsChangedForBufferEventArgs args)
+        private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer,NormalizedSnapshotSpanCollection>> changes)
         {
-            if (args.Buffer != _subjectBuffer)
-            {
-                return;
-            }
-
             // Note: This operation is uncancellable. Once we've been notified here, our cached tags
             // in the tag source are new. If we don't update the UI of the editor then we will end
             // up in an inconsistent state between us and the editor where we have new tags but the
             // editor will never know.
-            var spansChanged = args.Spans;
 
             _tagSource.RegisterNotification(() =>
             {
                 _tagSource.WorkQueue.AssertIsForeground();
 
-                // Now report them back to the UI on the main thread.
-                _batchChangeNotifier.EnqueueChanges(spansChanged.First().Snapshot, spansChanged);
-            }, _uiUpdateDelayInMS, CancellationToken.None);
+                foreach (var change in changes)
+                {
+                    if (change.Key != _subjectBuffer)
+                    {
+                        continue;
+                    }
+
+                    // Now report them back to the UI on the main thread.
+                    _batchChangeNotifier.EnqueueChanges(change.Value);
+                }
+
+            }, TaggerDelay.NearImmediate.ComputeTimeDelayMS(), CancellationToken.None);
         }
 
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
