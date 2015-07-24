@@ -8,8 +8,8 @@ using Roslyn.Diagnostics.Analyzers;
 
 namespace Microsoft.CodeAnalysis.Performance
 {
-    /// <summary>Analyzer used to test IOperation.</summary>
-    public class OperationTestAnalyzer : DiagnosticAnalyzer
+    /// <summary>Analyzer used to test for loop IOperations.</summary>
+    public class BigForTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
         private const string ReliabilityCategory = "Reliability";
@@ -30,16 +30,6 @@ namespace Microsoft.CodeAnalysis.Performance
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction((compilationContext) =>
-            {
-                INamedTypeSymbol booleanType = compilationContext.Compilation.GetSpecialType(SpecialType.System_Boolean);
-
-                if (booleanType != null)
-                {
-
-                }
-            });
-
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
@@ -163,12 +153,168 @@ namespace Microsoft.CodeAnalysis.Performance
                  OperationKind.LoopStatement);
         }
 
-        internal static int Abs(int value)
+        static int Abs(int value)
         {
             return value < 0 ? -value : value;
         }
 
-        internal void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
+        }
+    }
+
+    /// <summary>Analyzer used to test switch IOperations.</summary>
+    public class SparseSwitchTestAnalyzer : DiagnosticAnalyzer
+    {
+        /// <summary>Diagnostic category "Reliability".</summary>
+        private const string ReliabilityCategory = "Reliability";
+
+        internal static readonly DiagnosticDescriptor SparseSwitchDescriptor = new DiagnosticDescriptor(
+            "OTA2",
+            "Sparse switch",
+            "Switch has less than one percept density",
+            ReliabilityCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(SparseSwitchDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(
+                 (operationContext) =>
+                 {
+                     ISwitch switchOperation = (ISwitch)operationContext.Operation;
+                     long minCaseValue = long.MaxValue;
+                     long maxCaseValue = long.MinValue;
+                     long caseValueCount = 0;
+                     foreach (ICase switchCase in switchOperation.Cases)
+                     {
+                         foreach (ICaseClause clause in switchCase.Clauses)
+                         {
+                            switch (clause.CaseClass)
+                             {
+                                 case CaseKind.SingleValue:
+                                     {
+                                         ISingleValueCaseClause singleValueClause = (ISingleValueCaseClause)clause;
+                                         IExpression singleValueExpression = singleValueClause.Value;
+                                         if (singleValueExpression.ConstantValue != null &&
+                                             singleValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
+                                         {
+                                             int singleValue = (int)singleValueExpression.ConstantValue;
+                                             caseValueCount += IncludeClause(singleValue, singleValue, ref minCaseValue, ref maxCaseValue);
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+
+                                         break;
+                                     }
+                                 case CaseKind.Range:
+                                     {
+                                         IRangeCaseClause rangeClause = (IRangeCaseClause)clause;
+                                         IExpression rangeMinExpression = rangeClause.MinimumValue;
+                                         IExpression rangeMaxExpression = rangeClause.MaximumValue;
+                                         if (rangeMinExpression.ConstantValue != null &&
+                                             rangeMinExpression.ResultType.SpecialType == SpecialType.System_Int32 &&
+                                             rangeMaxExpression.ConstantValue != null &&
+                                             rangeMaxExpression.ResultType.SpecialType == SpecialType.System_Int32)
+                                         {
+                                             int rangeMinValue = (int)rangeMinExpression.ConstantValue;
+                                             int rangeMaxValue = (int)rangeMaxExpression.ConstantValue;
+                                             caseValueCount += IncludeClause(rangeMinValue, rangeMaxValue, ref minCaseValue, ref maxCaseValue);
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+
+                                         break;
+                                     }
+                                 case CaseKind.Relational:
+                                     {
+                                         IRelationalCaseClause relationalClause = (IRelationalCaseClause)clause;
+                                         IExpression relationalValueExpression = relationalClause.Value;
+                                         if (relationalValueExpression.ConstantValue != null &&
+                                             relationalValueExpression.ResultType.SpecialType == SpecialType.System_Int32)
+                                         {
+                                             int rangeMinValue = int.MaxValue;
+                                             int rangeMaxValue = int.MinValue;
+                                             int relationalValue = (int)relationalValueExpression.ConstantValue;
+                                             switch (relationalClause.Relation)
+                                             {
+                                                 case RelationalOperatorCode.IntegerEqual:
+                                                     rangeMinValue = relationalValue;
+                                                     rangeMaxValue = relationalValue;
+                                                     break;
+                                                 case RelationalOperatorCode.IntegerNotEqual:
+                                                     return;
+                                                 case RelationalOperatorCode.IntegerLess:
+                                                     rangeMinValue = int.MinValue;
+                                                     rangeMaxValue = relationalValue - 1;
+                                                     break;
+                                                 case RelationalOperatorCode.IntegerLessEqual:
+                                                     rangeMinValue = int.MinValue;
+                                                     rangeMaxValue = relationalValue;
+                                                     break;
+                                                 case RelationalOperatorCode.IntegerGreaterEqual:
+                                                     rangeMinValue = relationalValue;
+                                                     rangeMaxValue = int.MaxValue;
+                                                     break;
+                                                 case RelationalOperatorCode.IntegerGreater:
+                                                     rangeMinValue = relationalValue + 1;
+                                                     rangeMaxValue = int.MaxValue;
+                                                     break;
+                                             }
+
+                                             caseValueCount += IncludeClause(rangeMinValue, rangeMaxValue, ref minCaseValue, ref maxCaseValue);
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+
+                                         break;
+                                     }
+                                 case CaseKind.Default:
+                                     {
+                                         break;
+                                     }
+                             }
+                         }
+                     }
+
+                     long span = maxCaseValue - minCaseValue + 1;
+                     if (caseValueCount == 0 || span / caseValueCount > 100)
+                     {
+                         Report(operationContext, switchOperation.Syntax, SparseSwitchDescriptor);
+                     }
+                 },
+                 OperationKind.SwitchStatement);
+        }
+
+        static int IncludeClause(int clauseMinValue, int clauseMaxValue, ref long minCaseValue, ref long maxCaseValue)
+        {
+            if (clauseMinValue < minCaseValue)
+            {
+                minCaseValue = clauseMinValue;
+            }
+
+            if (clauseMaxValue > maxCaseValue)
+            {
+                maxCaseValue = clauseMaxValue;
+            }
+
+            return clauseMaxValue - clauseMinValue + 1;
+        }
+
+        void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
         {
             context.ReportDiagnostic(Diagnostic.Create(descriptor, syntax.GetLocation()));
         }
