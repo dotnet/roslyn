@@ -3,12 +3,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
+    /// <summary>
+    /// Root type for representing the abstract semantics of C# and VB statements and expressions.
+    /// </summary>
     public interface IOperation
     {
+        /// <summary>
+        /// Identifies the kind of the operation.
+        /// </summary>
         OperationKind Kind { get; }
+        /// <summary>
+        /// Syntax that was analyzed to produce the operation.
+        /// </summary>
         SyntaxNode Syntax { get; }
     }
 
+    /// <summary>
+    /// All of the kinds of operations, including statements and expressions.
+    /// </summary>
     public enum OperationKind
     {
         None,

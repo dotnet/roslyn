@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class CaseElse
             Implements ICaseClause
 
-            Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseClass
+            Private ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
                 Get
                     Return CaseKind.Default
                 End Get
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundCaseClause
         Implements ICaseClause
 
-        Protected MustOverride ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseClass
+        Protected MustOverride ReadOnly Property ICaseClass As CaseKind Implements ICaseClause.CaseKind
     End Class
 
     Partial Class BoundSimpleCaseClause
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopClass
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopKind
             Get
                 Return LoopKind.WhileUntil
             End Get
@@ -425,7 +425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopClass
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopKind
             Get
                 Return LoopKind.For
             End Get
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property LoopClass As LoopKind Implements ILoop.LoopClass
+        Private ReadOnly Property LoopClass As LoopKind Implements ILoop.LoopKind
             Get
                 Return LoopKind.ForEach
             End Get
@@ -669,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopClass
+        Private ReadOnly Property ILoopClass As LoopKind Implements ILoop.LoopKind
             Get
                 Return LoopKind.WhileUntil
             End Get

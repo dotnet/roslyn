@@ -1984,7 +1984,7 @@ Microsoft.CodeAnalysis.Semantics.ICase
 Microsoft.CodeAnalysis.Semantics.ICase.Clauses.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ICaseClause>
 Microsoft.CodeAnalysis.Semantics.ICase.Body.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IStatement>
 Microsoft.CodeAnalysis.Semantics.ICaseClause
-Microsoft.CodeAnalysis.Semantics.ICaseClause.CaseClass.get -> Microsoft.CodeAnalysis.Semantics.CaseKind
+Microsoft.CodeAnalysis.Semantics.ICaseClause.CaseKind.get -> Microsoft.CodeAnalysis.Semantics.CaseKind
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.ISingleValueCaseClause.Equality.get -> Microsoft.CodeAnalysis.Semantics.RelationalOperatorCode
@@ -2006,7 +2006,7 @@ Microsoft.CodeAnalysis.Semantics.IIfClause
 Microsoft.CodeAnalysis.Semantics.IIfClause.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IIfClause.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.ILoop
-Microsoft.CodeAnalysis.Semantics.ILoop.LoopClass.get -> Microsoft.CodeAnalysis.Semantics.LoopKind
+Microsoft.CodeAnalysis.Semantics.ILoop.LoopKind.get -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.ILoop.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.IForWhileUntil
 Microsoft.CodeAnalysis.Semantics.IForWhileUntil.Condition.get -> Microsoft.CodeAnalysis.Semantics.IExpression
@@ -2027,7 +2027,7 @@ Microsoft.CodeAnalysis.Semantics.LoopKind.ForEach = 2 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Semantics.ILabel
 Microsoft.CodeAnalysis.Semantics.ILabel.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Semantics.ILabeled
-Microsoft.CodeAnalysis.Semantics.ILabeled.Target.get -> Microsoft.CodeAnalysis.Semantics.IStatement
+Microsoft.CodeAnalysis.Semantics.ILabeled.Labeled.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.IBranch
 Microsoft.CodeAnalysis.Semantics.IBranch.Target.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Semantics.IThrow
