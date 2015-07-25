@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Condition; }
         }
 
-        LoopKind ILoop.LoopClass
+        LoopKind ILoop.LoopKind
         {
             get { return LoopKind.WhileUntil; }
         }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Condition; }
         }
 
-        LoopKind ILoop.LoopClass
+        LoopKind ILoop.LoopKind
         {
             get { return LoopKind.WhileUntil; }
         }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Condition; }
         }
 
-        LoopKind ILoop.LoopClass
+        LoopKind ILoop.LoopKind
         {
             get { return LoopKind.For; }
         }
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Expression; }
         }
 
-        LoopKind ILoop.LoopClass
+        LoopKind ILoop.LoopKind
         {
             get { return LoopKind.ForEach; }
         }
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        CaseKind ICaseClause.CaseClass
+        CaseKind ICaseClause.CaseKind
         {
             get { return this.ExpressionOpt != null ? CaseKind.SingleValue : CaseKind.Default; }
         }
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundLabeledStatement : ILabeled
     {
-        IStatement ILabeled.Target
+        IStatement ILabeled.Labeled
         {
             get { return this.Body; }
         }

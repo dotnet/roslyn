@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Performance
                  (operationContext) =>
                  {
                      ILoop loop = (ILoop)operationContext.Operation;
-                     if (loop.LoopClass == LoopKind.For)
+                     if (loop.LoopKind == LoopKind.For)
                      {
                          IFor forLoop = (IFor)loop;
                          IExpression forCondition = forLoop.Condition;
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Performance
                      {
                          foreach (ICaseClause clause in switchCase.Clauses)
                          {
-                            switch (clause.CaseClass)
+                            switch (clause.CaseKind)
                              {
                                  case CaseKind.SingleValue:
                                      {
