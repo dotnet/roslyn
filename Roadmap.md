@@ -26,6 +26,8 @@ There are two major categories of work that will happen here: active feature dev
 * Review and refine the design of the REPL window.
 * Review and refine the design of the scripting API.
 
+[Update 7/25/15] You can read our [Interactive Design Meeting notes](https://github.com/dotnet/roslyn/issues?q=label%3A%22Design+Notes%22+label%3AInteractive-Scripting) to learn more about what features we are planning for 1.1 and the scripting dialect.
+
 # IDE Support
 * Find All References performance
 * Rename conflict-detection improvements
