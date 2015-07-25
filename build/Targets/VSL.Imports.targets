@@ -147,8 +147,8 @@
     <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
 
     <DnxVersion>1.0.0-beta5-12101</DnxVersion>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'!='Unix'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OS)'=='Windows_NT'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OS)'!='Windows_NT'">dnx-mono.$(DnxVersion)</DnxPackageName>
 
     <NuGetToolPath Condition="'$(NuGetToolPath)' == ''">$(NuGetPackagesPath)\..\.nuget\</NuGetToolPath>
     <NuGetConfigCommandLine>-ConfigFile "$(NuGetConfigFile)"</NuGetConfigCommandLine>
