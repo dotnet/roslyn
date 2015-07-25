@@ -203,6 +203,9 @@ test_roslyn()
 # temporary work around.  
 echo Restoring NuGet packages
 run_nuget restore Roslyn.sln
+# Mark DNU restore tool as executable
+chmod +x packages/dnx-mono.1.0.0-beta5-12101/bin/dnu
+chmod +x packages/dnx-mono.1.0.0-beta5-12101/bin/dnx
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 set_mono_path
