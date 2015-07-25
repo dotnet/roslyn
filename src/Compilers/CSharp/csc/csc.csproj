@@ -93,6 +93,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="csc.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

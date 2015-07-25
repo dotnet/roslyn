@@ -93,6 +93,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="vbc.exe.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

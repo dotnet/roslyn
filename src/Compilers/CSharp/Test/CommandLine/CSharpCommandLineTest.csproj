@@ -104,6 +104,7 @@
     <None Include="..\..\csc\csc.rsp">
       <Link>csc.rsp</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

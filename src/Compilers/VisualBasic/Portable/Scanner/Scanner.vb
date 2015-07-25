@@ -1131,13 +1131,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "_"c
-                    If CanGet(1) AndAlso IsIdentifierPartCharacter(Peek(1)) Then
+                    If Peep(1, ch) AndAlso IsIdentifierPartCharacter(ch) Then
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
                     Dim err As ERRID = ERRID.ERR_ExpectedIdentifier
                     Dim len = GetWhitespaceLength(1)
-                    If Not CanGet(len) OrElse IsNewLine(Peek(len)) OrElse PeekStartComment(len) > 0 Then
+                    If Not Peep(len, ch) OrElse IsNewLine(ch) OrElse PeekStartComment(len) > 0 Then
                         err = ERRID.ERR_LineContWithCommentOrNoPrecSpace
                     End If
 

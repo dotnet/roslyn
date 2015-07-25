@@ -834,6 +834,7 @@
     <Compile Include="Syntax\CSharpSyntaxTree.Dummy.cs" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
+    <None Include="app.config" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
