@@ -123,6 +123,14 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
+        private static XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
+        {
+            Encoding = Encoding.UTF8,
+            Indent = true,
+            IndentChars = "  ",
+            NewLineChars = "\r\n",
+        };
+
         /// <summary>
         /// Load the PDB given the parameters at the ctor and spew it out to the XmlWriter specified
         /// at the ctor.
@@ -132,33 +140,15 @@ namespace Roslyn.Test.PdbUtilities
             Debug.Assert(pdbStream != null);
             Debug.Assert((options & PdbToXmlOptions.ResolveTokens) == 0 || metadataReaderOpt != null);
 
-            XmlDocument doc = new XmlDocument();
-            XmlWriter writer = doc.CreateNavigator().AppendChild();
-
-            using (SymReader symReader = new SymReader(pdbStream, metadataReaderOpt))
+            using (var writer = XmlWriter.Create(xmlWriter, s_xmlWriterSettings))
             {
-                var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
+                using (SymReader symReader = new SymReader(pdbStream, metadataReaderOpt))
+                {
+                    var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
 
-                converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
+                    converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
+                }
             }
-
-            writer.Close();
-
-            // Save xml to disk
-            doc.Save(xmlWriter);
-        }
-
-        private static byte[] GetImage(Stream stream)
-        {
-            MemoryStream memoryStream = stream as MemoryStream;
-            if (memoryStream == null)
-            {
-                memoryStream = new MemoryStream((int)stream.Length);
-                stream.Position = 0;
-                stream.CopyTo(memoryStream);
-            }
-
-            return memoryStream.GetBuffer();
         }
 
         private void WriteRoot(IEnumerable<MethodDefinitionHandle> methodHandles)
@@ -1442,12 +1432,6 @@ namespace Roslyn.Test.PdbUtilities
         internal static string CultureInvariantToString(int input)
         {
             return input.ToString(CultureInfo.InvariantCulture);
-        }
-
-        internal static void Error(string message)
-        {
-            Console.WriteLine("Error: {0}", message);
-            Debug.Assert(false, message);
         }
 
 #endregion
