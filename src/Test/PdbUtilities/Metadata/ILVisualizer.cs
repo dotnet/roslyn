@@ -26,7 +26,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             var typeOfOpCode = typeof(OpCode);
 
-            foreach (FieldInfo fi in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
+            foreach (FieldInfo fi in typeof(OpCodes).GetTypeInfo().DeclaredFields)
             {
                 if (fi.FieldType != typeOfOpCode)
                 {

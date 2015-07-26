@@ -52,19 +52,19 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="16" startColumn="5" endLine="16" endColumn="29" document="0"/>
-                <entry offset="0x1" startLine="18" startColumn="9" endLine="18" endColumn="101" document="0"/>
-                <entry offset="0x2" startLine="18" startColumn="15" endLine="18" endColumn="41" document="0"/>
-                <entry offset="0x8" startLine="18" startColumn="43" endLine="18" endColumn="69" document="0"/>
-                <entry offset="0xe" startLine="18" startColumn="71" endLine="18" endColumn="101" document="0"/>
-                <entry offset="0x10" startLine="19" startColumn="13" endLine="19" endColumn="47" document="0"/>
-                <entry offset="0x1b" hidden="true" document="0"/>
-                <entry offset="0x1d" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
-                <entry offset="0x29" hidden="true" document="0"/>
-                <entry offset="0x2b" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
-                <entry offset="0x37" hidden="true" document="0"/>
-                <entry offset="0x39" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
-                <entry offset="0x45" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="16" startColumn="5" endLine="16" endColumn="29"/>
+                <entry offset="0x1" startLine="18" startColumn="9" endLine="18" endColumn="101"/>
+                <entry offset="0x2" startLine="18" startColumn="15" endLine="18" endColumn="41"/>
+                <entry offset="0x8" startLine="18" startColumn="43" endLine="18" endColumn="69"/>
+                <entry offset="0xe" startLine="18" startColumn="71" endLine="18" endColumn="101"/>
+                <entry offset="0x10" startLine="19" startColumn="13" endLine="19" endColumn="47"/>
+                <entry offset="0x1b" hidden="true"/>
+                <entry offset="0x1d" startLine="20" startColumn="9" endLine="20" endColumn="18"/>
+                <entry offset="0x29" hidden="true"/>
+                <entry offset="0x2b" startLine="20" startColumn="9" endLine="20" endColumn="18"/>
+                <entry offset="0x37" hidden="true"/>
+                <entry offset="0x39" startLine="20" startColumn="9" endLine="20" endColumn="18"/>
+                <entry offset="0x45" startLine="21" startColumn="5" endLine="21" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x46">
                 <importsforward declaringType="MyDisposable" methodName="Dispose"/>
@@ -328,9 +328,9 @@ End Namespace
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23" document="0"/>
-                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="0"/>
-                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="0"/>
+                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23"/>
+                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33"/>
+                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4">
                 <defunct name="&amp;PIA"/>
@@ -340,8 +340,8 @@ End Namespace
         </method>
         <method containingType="N2.D" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="0"/>
-                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="0"/>
+                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23"/>
+                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <defunct name="&amp;PIA"/>

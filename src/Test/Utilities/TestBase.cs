@@ -748,7 +748,7 @@ namespace Roslyn.Test.Utilities
 
         public static string GetPdbXml(Compilation compilation, string qualifiedMethodName = "")
         {
-            return SharedCompilationUtils.GetPdbXml(compilation, qualifiedMethodName);
+            return SharedCompilationUtils.GetPdbXml(compilation, qualifiedMethodName: qualifiedMethodName);
         }
 
         public static Dictionary<int, string> GetMarkers(string pdbXml)
