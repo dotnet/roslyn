@@ -1075,15 +1075,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""0"" />
-        <entry offset=""0x1b"" hidden=""true"" document=""0"" />
-        <entry offset=""0x74"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""0"" />
-        <entry offset=""0x78"" hidden=""true"" document=""0"" />
-        <entry offset=""0x92"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x9a"" hidden=""true"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x7"" hidden=""true"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" />
+        <entry offset=""0x1b"" hidden=""true"" />
+        <entry offset=""0x74"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" />
+        <entry offset=""0x78"" hidden=""true"" />
+        <entry offset=""0x92"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x9a"" hidden=""true"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa8"">
         <namespace name=""System.Threading.Tasks"" />

@@ -1204,19 +1204,16 @@ namespace Roslyn.Test.PdbUtilities
 
                 int documentId;
                 string documentName = sequencePoint.Document.GetName();
-                if (documentName == "")
+                if (documentName.Length > 0)
                 {
-                    // TODO: remove (don't include document attribute)
-                    // The method is not associated with any document.
-                    _writer.WriteAttributeString("document", "0");
-                }
-                else if (documentIndex.TryGetValue(documentName, out documentId))
-                {
-                    _writer.WriteAttributeString("document", CultureInvariantToString(documentId));
-                }
-                else
-                {
-                    _writer.WriteAttributeString("document", "?");
+                    if (documentIndex.TryGetValue(documentName, out documentId))
+                    {
+                        _writer.WriteAttributeString("document", CultureInvariantToString(documentId));
+                    }
+                    else
+                    {
+                        _writer.WriteAttributeString("document", "?");
+                    }
                 }
 
                 _writer.WriteEndElement();
