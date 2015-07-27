@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                               .ToList();
         }
 
-        protected internal override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
+        protected override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually

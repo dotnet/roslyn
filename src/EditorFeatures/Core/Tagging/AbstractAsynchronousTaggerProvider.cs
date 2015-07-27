@@ -174,11 +174,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// </summary>
         protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
+        internal Task ProduceTagsAsync_ForTestingPurposesOnly(TaggerContext<TTag> context)
+        {
+            return ProduceTagsAsync(context);
+        }
+
         /// <summary>
         /// Produce tags for the given context.
         /// </summary>
-        // internal for testing purposes only.
-        protected internal virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
+        protected virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
         {
             foreach (var spanToTag in context.SpansToTag)
             {

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
-        protected internal override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
+        protected override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
             Debug.Assert(context.CaretPosition == null);

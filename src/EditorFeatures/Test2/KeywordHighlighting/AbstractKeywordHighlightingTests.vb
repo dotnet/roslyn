@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                     AggregateAsynchronousOperationListener.EmptyListeners)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                tagProducer.ProduceTagsAsync(context).Wait()
+                tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait()
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start

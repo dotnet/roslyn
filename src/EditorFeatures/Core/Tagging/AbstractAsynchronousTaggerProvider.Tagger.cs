@@ -133,14 +133,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
                 }
 
-                var result = GetTags(requestedSpans, tags);
+                var result = GetIntersectingTagSpans(requestedSpans, tags);
 
                 DebugVerifyTags(requestedSpans, result);
 
                 return result;
             }
 
-            private static IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans, TagSpanIntervalTree<TTag> tags)
+            private static IEnumerable<ITagSpan<TTag>> GetIntersectingTagSpans(NormalizedSnapshotSpanCollection requestedSpans, TagSpanIntervalTree<TTag> tags)
             {
                 // Special case the case where there is only one requested span.  In that case, we don't
                 // need to allocate any intermediate collections

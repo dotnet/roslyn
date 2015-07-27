@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
             var context = new TaggerContext<BraceHighlightTag>(
                 buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault(),
                 buffer.CurrentSnapshot, new SnapshotPoint(buffer.CurrentSnapshot, position));
-            producer.ProduceTagsAsync(context).Wait();
+            producer.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait();
 
             return context.tagSpans;
         }

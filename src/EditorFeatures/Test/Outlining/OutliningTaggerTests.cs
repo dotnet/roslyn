@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
             var context = new TaggerContext<IOutliningRegionTag>(document, view.TextSnapshot);
-            provider.ProduceTagsAsync(context).Wait();
+            provider.ProduceTagsAsync_ForTestingPurposesOnly(context).Wait();
 
             return context.tagSpans.Select(x => x.Tag).ToList();
         }
