@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
         public void AssertMembers(string str, params string[] expected)
         {
             int i = 0;
-            foreach (var line in str.Split(new[] { "\r\n  " }, StringSplitOptions.None))
+            foreach (var line in str.Split(new[] { Environment.NewLine + "  " }, StringSplitOptions.None))
             {
                 if (i == 0)
                 {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Scripting.UnitTests
                 }
                 else if (i == expected.Length - 1)
                 {
-                    Assert.Equal(expected[i] + "\r\n}\r\n", line);
+                    Assert.Equal(expected[i] + Environment.NewLine + "}" + Environment.NewLine, line);
                 }
                 else
                 {
