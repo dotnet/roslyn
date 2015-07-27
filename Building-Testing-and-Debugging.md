@@ -2,10 +2,7 @@
 
 ## Required Software
 
-The Roslyn source code targets the latest public build of Visual Studio 2015.  At this time that is RC.  In order to edit, build and test the source code both the latest public drop and the SDK will need to be installed:
-
-- [Visual Studio 2015 RC](https://www.visualstudio.com/products/visual-studio-2015-downloads-vs)
-- [Visual Studio 2015 SDK RC](http://go.microsoft.com/?linkid=9877247)
+The Roslyn source code targets the latest public build of Visual Studio 2015.  At this time that is RTM.  In order to edit, build and test the source code install [Visual Studio 2015](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015).
 
 ## Getting the code
 
