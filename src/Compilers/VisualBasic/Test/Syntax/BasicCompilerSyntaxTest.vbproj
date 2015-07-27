@@ -157,6 +157,7 @@
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Resources\VBAllInOne.vb" />
   </ItemGroup>
