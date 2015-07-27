@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.KeywordHighlighting, TaggerDelay.NearImmediate));
         }
 
-        // Internal for testing purposes
         public override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
