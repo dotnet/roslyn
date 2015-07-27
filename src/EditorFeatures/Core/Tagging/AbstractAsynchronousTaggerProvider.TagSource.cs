@@ -258,6 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void RaiseTagsChanged(ITextBuffer buffer, NormalizedSnapshotSpanCollection difference)
             {
+                this.AssertIsForeground();
                 if (difference.Count == 0)
                 {
                     // nothing changed.

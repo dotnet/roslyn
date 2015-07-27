@@ -84,25 +84,23 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void OnTagsChangedForBuffer(ICollection<KeyValuePair<ITextBuffer, NormalizedSnapshotSpanCollection>> changes)
             {
+                this._tagSource.AssertIsForeground();
+
                 // Note: This operation is uncancellable. Once we've been notified here, our cached tags
                 // in the tag source are new. If we don't update the UI of the editor then we will end
                 // up in an inconsistent state between us and the editor where we have new tags but the
                 // editor will never know.
 
-                _tagSource.RegisterNotification(() =>
+                foreach (var change in changes)
                 {
-                    foreach (var change in changes)
+                    if (change.Key != _subjectBuffer)
                     {
-                        if (change.Key != _subjectBuffer)
-                        {
-                            continue;
-                        }
-
-                        // Now report them back to the UI on the main thread.
-                        _batchChangeNotifier.EnqueueChanges(change.Value);
+                        continue;
                     }
 
-                }, (int)TaggerDelay.NearImmediate.ComputeTimeDelay().TotalMilliseconds, CancellationToken.None);
+                    // Now report them back to the UI on the main thread.
+                    _batchChangeNotifier.EnqueueChanges(change.Value);
+                }
             }
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)
