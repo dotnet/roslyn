@@ -161,8 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var snapshotSpan = spanToTag.SnapshotSpan;
                 var snapshot = snapshotSpan.Snapshot;
 
-                // we don't directly reference the semantic model here, we just keep it alive so 
-                // the classification service does not need to block to produce it.
                 var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
