@@ -125,17 +125,6 @@
     </ItemGroup>
   </Target>
 
-  <!-- list of nuget package sources passed to dnu -->
-  <ItemGroup>
-    <!-- Need to escape double forward slash (%2F) or MSBuild will normalize to one slash on Unix. -->
-    <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-core/" />
-    <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-coreclr/" />
-    <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-corefx/" />
-    <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-corefxtestdata/" />
-    <DnuSourceList Include="https:%2F%2Fwww.myget.org/F/dotnet-buildtools/" />
-    <DnuSourceList Include="https:%2F%2Fwww.nuget.org/api/v2/" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(TargetCoreClr)' == 'True'">
 
     <BuildToolsVersion>1.0.25-prerelease-00063</BuildToolsVersion>
@@ -162,11 +151,15 @@
     <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' == 'Windows_NT'">$(DnxPackageDir)\bin\dnu.cmd</DnuToolPath>
     <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' != 'Windows_NT'">$(DnxPackageDir)/bin/dnu</DnuToolPath>
 
-    <DnuRestoreSource>@(DnuSourceList -> '--source %(Identity)', ' ')</DnuRestoreSource>
-
     <DnuRestoreCommand>"$(DnuToolPath)"</DnuRestoreCommand>
     <DnuRestoreCommand>$(DnuRestoreCommand) restore</DnuRestoreCommand>
-    <DnuRestoreCommand>$(DnuRestoreCommand) --packages "$(PackagesDir.TrimEnd('/').TrimEnd('\\'))" $(DnuRestoreSource)</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --packages "$(PackagesDir.TrimEnd('/').TrimEnd('\\'))"</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-core/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-coreclr/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-corefx/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-corefxtestdata/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.myget.org/F/dotnet-buildtools/'</DnuRestoreCommand>
+    <DnuRestoreCommand>$(DnuRestoreCommand) --source 'https://www.nuget.org/api/v2/'</DnuRestoreCommand>
 
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 
