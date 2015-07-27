@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
-        public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
-        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
+        protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
+        protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.ReferenceHighlighting);
 
         [ImportingConstructor]
         public ReferenceHighlightingViewTaggerProvider(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             _semanticChangeNotificationService = semanticChangeNotificationService;
         }
 
-        public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
             // reported by OnSemanticChanged.
@@ -57,19 +57,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
-        public override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return textViewOpt.Caret.Position.Point.GetPoint(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType), PositionAffinity.Successor);
         }
 
-        public override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return textViewOpt.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                               .Select(b => b.CurrentSnapshot.GetFullSpan())
                               .ToList();
         }
 
-        public override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
+        protected internal override Task ProduceTagsAsync(TaggerContext<NavigableHighlightTag> context)
         {
             // NOTE(cyrusn): Normally we'd limit ourselves to producing tags in the span we were
             // asked about.  However, we want to produce all tags here so that the user can actually

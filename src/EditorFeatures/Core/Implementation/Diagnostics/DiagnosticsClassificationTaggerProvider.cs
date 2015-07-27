@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
 
-        public override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsClassificationTaggerProvider(

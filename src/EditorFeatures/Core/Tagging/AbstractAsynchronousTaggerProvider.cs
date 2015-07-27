@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -19,21 +17,54 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// <summary>
     /// Base type of all asynchronous tagger providers (<see cref="ITaggerProvider"/> and <see cref="IViewTaggerProvider"/>). 
     /// </summary>
-    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> : IAsynchronousTaggerDataSource<TTag>
-        where TTag : ITag
+    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where TTag : ITag
     {
         private readonly object uniqueKey = new object();
         private readonly IAsynchronousOperationListener asyncListener;
         private readonly IForegroundNotificationService notificationService;
 
-        public virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
-        public virtual TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.None;
-        public virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+        /// <summary>
+        /// The behavior the tagger engine will have when text changes happen to the subject buffer
+        /// it is attached to.  Most taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>.
+        /// However, advanced taggers that want to perform specialized behavior depending on what has
+        /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
+        /// 
+        /// If this is specified the tagger engine will track text changes and pass them along as
+        /// <see cref="TaggerContext{TTag}.TextChangeRange"/> when calling 
+        /// <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>.
+        /// </summary>
+        protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
-        public virtual IEqualityComparer<TTag> TagComparer => null;
+        /// <summary>
+        /// The bahavior the tagger will have when changes happen to the caret.
+        /// </summary>
+        protected virtual TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.None;
 
-        public virtual IEnumerable<Option<bool>> Options => null;
-        public virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+        /// <summary>
+        /// The behavior of tags that are created by the async tagger.  This will matter for tags
+        /// created for a previous version of a document that are mapped forward by the async
+        /// tagging architecture.  This value cannot be <see cref="SpanTrackingMode.Custom"/>.
+        /// </summary>
+        protected virtual SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
+
+        /// <summary>
+        /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
+        /// the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
+        /// computed tags and a current set of computed tags should be considered the same or not.
+        /// If they are the same, then the UI will not be updated.  If they are different then
+        /// the UI will be updated for sets of tags that have been removed or added.
+        /// </summary>
+        protected virtual IEqualityComparer<TTag> TagComparer => null;
+
+        /// <summary>
+        /// Options controlling this tagger.  The tagger infrastructure will check this option
+        /// against the buffer it is associated with to see if it should tag or not.
+        /// 
+        /// An empty enumerable, or null, can be returned to indicate that this tagger should 
+        /// run unconditionally.
+        /// </summary>
+        protected virtual IEnumerable<Option<bool>> Options => null;
+        protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
 
         protected AbstractAsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
@@ -110,21 +141,50 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
         }
 
-        public virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        /// <summary>
+        /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to 
+        /// determine the caret position.  This value will be passed in as the value to 
+        /// <see cref="TaggerContext{TTag}.CaretPosition"/> in the call to
+        /// <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>.
+        /// 
+        /// Return <code>null</code> to get the default tagger behavior.  This will the caret
+        /// position in the subject buffer this tagger is attached to.
+        /// </summary>
+        protected virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // Use 'null' to indicate that the tagger should get the default caret position.
             return null;
         }
 
-        public virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        /// <summary>
+        /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine
+        /// the set of spans that it should asynchronously tag.  This will be called in response to
+        /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
+        /// will only be called from the UI thread.  The tagger infrastructure will then determine
+        /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
+        /// and will asycnhronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> at some point in
+        /// the future to produce tags for these spans.
+        /// 
+        /// Return <code>null</code> to get the default set of spans tagged.  This will normally be 
+        /// the span of the entire text buffer.
+        /// </summary>
+        protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // Use 'null' to indicate that the tagger should tag the default set of spans.
             return null;
         }
 
-        public abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
+        /// <summary>
+        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/>
+        /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
+        /// </summary>
+        protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
-        public virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
+        /// <summary>
+        /// Produce tags for the given context.
+        /// </summary>
+        // internal for testing purposes only.
+        protected internal virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
         {
             foreach (var spanToTag in context.SpansToTag)
             {
@@ -139,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ? caretPosition.Value.Position : (int?)null;
         }
 
-        public virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
         }

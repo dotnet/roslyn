@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions = new[] { EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider };
         private readonly bool _blueSquiggleForBuildDiagnostic;
 
-        public override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsSquiggleTaggerProvider(

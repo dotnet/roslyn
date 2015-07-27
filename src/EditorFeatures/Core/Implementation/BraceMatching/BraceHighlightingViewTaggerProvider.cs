@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     {
         private readonly IBraceMatchingService _braceMatcherService;
 
-        public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
+        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.BraceMatching);
 
         [ImportingConstructor]
         public BraceHighlightingViewTaggerProvider(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             _braceMatcherService = braceMatcherService;
         }
 
-        public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
         }
 
-        public override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var document = documentSnapshotSpan.Document;
             if (!caretPosition.HasValue || document == null)

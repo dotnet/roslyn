@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly AsynchronousSerialWorkQueue _workQueue;
 
-            private readonly IAsynchronousTaggerDataSource<TTag> _dataSource;
+            private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
             private IEqualityComparer<ITagSpan<TTag>> _tagSpanComparer;
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             public TagSource(
                 ITextView textViewOpt,
                 ITextBuffer subjectBuffer,
-                IAsynchronousTaggerDataSource<TTag> dataSource,
+                AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener,
                 IForegroundNotificationService notificationService)
             {

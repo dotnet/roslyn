@@ -162,12 +162,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
                 _disableCancellation = disableCancellation;
             }
 
-            public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+            protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {
                 return _eventSource;
             }
 
-            public override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
+            protected override Task ProduceTagsAsync(TaggerContext<TestTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition)
             {
                 var tags = _callback(snapshotSpan.SnapshotSpan, context.CancellationToken);
                 if (tags != null)

@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 
         // Whenever an edit happens, clear all highlights.  When moving the caret, preserve 
         // highlights if the caret stays within an existing tag.
-        public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
-        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
+        protected override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
+        protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             _highlightingService = highlightingService;
         }
 
-        public override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
         }
 
-        public override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;

@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// <summary>
         /// The text that has changed between the last successfull tagging and this new request to
         /// produce tags.  In order to be passed this value, <see cref="TaggerTextChangeBehavior.TrackTextChanges"/> 
-        /// must be specified in <see cref="IAsynchronousTaggerDataSource{TTag}.TextChangeBehavior"/>.
+        /// must be specified in <see cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>.
         /// </summary>
         public TextChangeRange? TextChangeRange { get; }
         public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// The state of the tagger.  Taggers can use this to keep track of information across calls
-        /// to <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/>.  Note: state will
+        /// to <see cref="AbstractAsynchronousTaggerProvider{TTag}.ProduceTagsAsync(TaggerContext{TTag})"/>.  Note: state will
         /// only be preserved if the tagger infrastructure fully updates itself with the tags that 
         /// were produced.  i.e. if that tagging pass is canceled, then the state set here will not
         /// be preserved and the previous preserved state will be used the next time ProduceTagsAsync

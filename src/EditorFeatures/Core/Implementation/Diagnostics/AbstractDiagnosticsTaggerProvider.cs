@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         protected abstract bool IncludeDiagnostic(DiagnosticData data);
         protected abstract ITagSpan<TTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data);
 
-        public override sealed ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override sealed ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.Medium),
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService, TaggerDelay.Medium));
         }
 
-        public override sealed Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        protected override sealed Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             ProduceTags(context, spanToTag);
             return SpecializedTasks.EmptyTask;

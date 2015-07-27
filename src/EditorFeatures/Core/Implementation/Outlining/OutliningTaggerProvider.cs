@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             _projectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        public override IEqualityComparer<IOutliningRegionTag> TagComparer => this;
+        protected override IEqualityComparer<IOutliningRegionTag> TagComparer => this;
 
         bool IEqualityComparer<IOutliningRegionTag>.Equals(IOutliningRegionTag x, IOutliningRegionTag y)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             return EqualityComparer<object>.Default.GetHashCode(obj.CollapsedForm);
         }
 
-        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // We listen to the following events:
             // 1) Text changes.  These can obviously affect outlining, so we need to recompute when
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
-        public override async Task ProduceTagsAsync(TaggerContext<IOutliningRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<IOutliningRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {

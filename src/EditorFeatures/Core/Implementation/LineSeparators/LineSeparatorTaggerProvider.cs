@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
-        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
+        protected override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
 
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
         }
 
-        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
         }
 
-        public override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;

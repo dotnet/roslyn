@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
-        public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
+        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
         private IEditorClassificationService _classificationService;
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _typeMap = typeMap;
         }
 
-        public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
             // reported by OnSemanticChanged.
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
-        public override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
+        protected internal override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
             Debug.Assert(context.CaretPosition == null);
