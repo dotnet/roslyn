@@ -15,7 +15,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports CS = Microsoft.CodeAnalysis.CSharp
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -884,7 +883,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1277,9 +1276,24 @@ End Class
             Assert.Equal("ModuleAssemblyName", c.Assembly.Identity.Name)
         End Sub
 
-
+        <WorkItem(3719)>
         <Fact()>
         Public Sub GetEntryPoint_Script()
+            Dim source = <![CDATA[System.Console.WriteLine(1)]]>
+            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            compilation.VerifyDiagnostics()
+
+            Dim scriptMethod = compilation.GetMember("Script.<Main>")
+            Assert.NotNull(scriptMethod)
+
+            Dim method = compilation.GetEntryPoint(Nothing)
+            Assert.Equal(method, scriptMethod)
+            Dim entryPoint = compilation.GetEntryPointAndDiagnostics(Nothing)
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod)
+        End Sub
+
+        <Fact()>
+        Public Sub GetEntryPoint_Script_MainIgnored()
             Dim source = <![CDATA[
     Class A
         Shared Sub Main()
@@ -1287,14 +1301,37 @@ End Class
     End Class
     ]]>
             Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
-            compilation.VerifyDiagnostics()
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
-            Assert.Null(compilation.GetEntryPoint(Nothing))
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(Nothing))
+            Dim scriptMethod = compilation.GetMember("Script.<Main>")
+            Assert.NotNull(scriptMethod)
+
+            Dim entryPoint = compilation.GetEntryPointAndDiagnostics(Nothing)
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod)
+            entryPoint.Diagnostics.Verify(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
         End Sub
 
         <Fact()>
         Public Sub GetEntryPoint_Submission()
+            Dim source = <![CDATA[? 1 + 1]]>
+            Dim compilation = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateSubmission(
+                "sub",
+                references:={MscorlibRef},
+                syntaxTree:=Parse(source.Value, options:=TestOptions.Interactive))
+            compilation.VerifyDiagnostics()
+
+            Dim scriptMethod = compilation.GetMember("Script.<Factory>")
+            Assert.NotNull(scriptMethod)
+
+            Dim method = compilation.GetEntryPoint(Nothing)
+            Assert.Equal(method, scriptMethod)
+            Dim entryPoint = compilation.GetEntryPointAndDiagnostics(Nothing)
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod)
+            entryPoint.Diagnostics.Verify()
+        End Sub
+
+        <Fact()>
+        Public Sub GetEntryPoint_Submission_MainIgnored()
             Dim source = <![CDATA[
     Class A
         Shared Sub Main()
@@ -1305,12 +1342,14 @@ End Class
                 "sub",
                 references:={MscorlibRef},
                 syntaxTree:=Parse(source.Value, options:=TestOptions.Interactive))
-            compilation.VerifyDiagnostics()
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
-            Assert.True(compilation.IsSubmission)
+            Dim scriptMethod = compilation.GetMember("Script.<Factory>")
+            Assert.NotNull(scriptMethod)
 
-            Assert.Null(compilation.GetEntryPoint(Nothing))
-            Assert.Null(compilation.GetEntryPointAndDiagnostics(Nothing))
+            Dim entryPoint = compilation.GetEntryPointAndDiagnostics(Nothing)
+            Assert.Equal(entryPoint.MethodSymbol, scriptMethod)
+            entryPoint.Diagnostics.Verify(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
         End Sub
 
         <Fact()>

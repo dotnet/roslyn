@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Completion.Rules;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Extensibility.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -104,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var completionService = this.CreateCompletionService();
+            var completionService = this.GetCompletionService();
             if (completionService == null)
             {
                 return;
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
-        private ICompletionRules GetCompletionRules()
+        private CompletionRules GetCompletionRules()
         {
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
@@ -250,14 +248,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var service = document.Project.LanguageServices.GetService<ICompletionService>();
                 if (service != null)
                 {
-                    return service.GetDefaultCompletionRules();
+                    return service.GetCompletionRules();
                 }
             }
 
             return null;
         }
 
-        private IEnumerable<ICompletionProvider> GetCompletionProviders()
+        private IEnumerable<CompletionListProvider> GetCompletionProviders()
         {
             var defaultProviders = GetDefaultCompletionProviders();
 
@@ -267,13 +265,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
                     _allCompletionProviders, this.SubjectBuffer);
 
-                return defaultProviders.Concat(extensionProviders.Where(p => !(p is ISnippetCompletionProvider)));
+                return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionProvider)));
             }
 
             return defaultProviders;
         }
 
-        private IEnumerable<ICompletionProvider> GetSnippetCompletionProviders()
+        private IEnumerable<CompletionListProvider> GetSnippetCompletionProviders()
         {
             Workspace workspace;
             if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
@@ -281,13 +279,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
                     _allCompletionProviders, this.SubjectBuffer);
 
-                return extensionProviders.OfType<ISnippetCompletionProvider>();
+                return extensionProviders.OfType<SnippetCompletionProvider>();
             }
 
-            return SpecializedCollections.EmptyEnumerable<ICompletionProvider>();
+            return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
         }
 
-        private IEnumerable<ICompletionProvider> GetDefaultCompletionProviders()
+        private IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
@@ -299,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            return SpecializedCollections.EmptyEnumerable<ICompletionProvider>();
+            return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
         }
 
         private bool IsTextualTriggerCharacter(ICompletionService completionService, char ch, OptionSet options)
@@ -335,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterText = GetCurrentFilterText(model, selectedItem);
 
-            return selectedItem.CompletionProvider.IsCommitCharacter(selectedItem, ch, filterText);
+            return GetCompletionRules().IsCommitCharacter(selectedItem, ch, filterText);
         }
 
         private bool IsFilterCharacter(char ch)
@@ -357,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterText = GetCurrentFilterText(model, selectedItem);
 
-            return selectedItem.CompletionProvider.IsFilterCharacter(selectedItem, ch, filterText);
+            return GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText);
         }
 
         private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
@@ -394,7 +392,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // with "WriteLine(".  That way if they undo, they will end up with "WriteL" again.
 
             var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem, ch, GetCurrentFilterText(model, selectedItem));
+            var textChange = GetCompletionRules().GetTextChange(selectedItem, ch, GetCurrentFilterText(model, selectedItem));
             this.Commit(selectedItem, new TextChange(textChange.Span, textChange.NewText + ch), model, ch);
         }
     }

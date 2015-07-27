@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<PropertySymbol>.Empty :
                     ImmutableArray.Create(explicitlyImplementedProperty);
 
-            // get-only autoproperty should not override settable properties
+            // get-only auto property should not override settable properties
             if (_isAutoProperty && (object)_setMethod == null && !this.IsReadOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, location, this);
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// interface implementation is not an indexer because it will not cause the
         /// containing type to be emitted with a DefaultMemberAttribute (and even if
         /// there is another indexer, the name of the explicit implementation won't
-        /// match).  This is important for roundtripping.
+        /// match).  This is important for round-tripping.
         /// </remarks>
         public override bool IsIndexer
         {

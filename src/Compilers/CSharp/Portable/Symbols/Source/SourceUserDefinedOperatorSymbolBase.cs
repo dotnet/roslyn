@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Those are the easy ones. Now we come to:
 
             // SPEC: 
-            // Exluding user-defined conversions, a conversion does not exist from 
+            // Excluding user-defined conversions, a conversion does not exist from 
             // S to T or T to S. For the purposes of these rules, any type parameters
             // associated with S or T are considered to be unique types that have
             // no inheritance relationship with other types, and any constraints on

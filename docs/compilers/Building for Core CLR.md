@@ -9,9 +9,7 @@ with CoreCLR, there are two separate projects:
 
 To build these projects, first execute `powershell .nuget\NuGetRestore.ps1`
 from the root of your clone to restore NuGet packages, and then execute `msbuild`
-on the command line with the path to each of the projects. Note: do not open
-these projects in Visual Studio, as a bug in the DNX build tools will cause
-Visual Studio to hang (https://github.com/dotnet/buildtools/issues/191).
+on the command line with the path to each of the projects.
 
 When you build CscCore or VbcCore the binaries will be output to the core-clr
 subdirectory in the output directory. However, by default the executables will

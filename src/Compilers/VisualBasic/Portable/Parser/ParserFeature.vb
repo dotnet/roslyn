@@ -18,12 +18,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         NullPropagatingOperator
         NameOfExpressions
         InterpolatedStrings
+        DigitSeparators
+        BinaryLiterals
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
+                Case Feature.DigitSeparators
+                    Return "digitSeparators"
+
+                Case Feature.BinaryLiterals
+                    Return "binaryLiterals"
 
                 Case Else
                     Return Nothing
@@ -86,6 +93,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_NullPropagatingOperator
                 Case Feature.NameOfExpressions
                     Return ERRID.FEATURE_NameOfExpressions
+                Case Feature.DigitSeparators
+                    Return ERRID.FEATURE_DigitSeparators
+                Case Feature.BinaryLiterals
+                    Return ERRID.FEATURE_BinaryLiterals
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// It involves following steps:
         ///  1) Verifying that the specified file name resolves to a valid path.
         ///  2) Reading the contents of the file into a byte array.
-        ///  3) Convert each byte in the file content into two bytes containing hexa-decimal characters.
+        ///  3) Convert each byte in the file content into two bytes containing hexadecimal characters.
         ///  4) Replacing the 'File = fileName' named argument with 'Hex = hexFileContent' argument, where hexFileContent is the converted output from step 3) above.
         ///
         /// Step 1) is performed in this method, i.e. during binding.

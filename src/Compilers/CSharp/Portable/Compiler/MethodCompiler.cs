@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // CONSIDER: instead of storing a flag, we could track the first member symbol with an error (to improve the diagnostic).
 
         // NOTE: once the flag is set to true, it should never go back to false!!!
-        // Do not use this as a shortcircuiting for stages that might produce diagnostics.
+        // Do not use this as a short-circuiting for stages that might produce diagnostics.
         // That would make diagnostics to depend on the random order in which methods are compiled.
         private bool _globalHasErrors;
 
@@ -185,50 +185,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            CSharpCompilationOptions options = compilation.Options;
-            if (!options.OutputKind.IsApplication())
+            var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
+            if (entryPointAndDiagnostics == null)
             {
-                Debug.Assert(compilation.GetEntryPointAndDiagnostics(default(CancellationToken)) == null);
-                var submissionInitializer = compilation.GetSubmissionInitializer();
-                if ((object)submissionInitializer == null)
-                {
-                    return null;
-                }
-                var returnType = submissionInitializer.IsAsync ? submissionInitializer.ReturnType : compilation.GetSpecialType(SpecialType.System_Object);
-                return DefineScriptEntryPoint(compilation, moduleBeingBuilt, returnType, hasDeclarationErrors, diagnostics);
+                return null;
             }
 
-            Debug.Assert(!compilation.IsSubmission);
+            Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
+            diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
 
-            CSharpCompilation.EntryPoint entryPoint = compilation.GetEntryPointAndDiagnostics(cancellationToken);
-            Debug.Assert(entryPoint != null);
-            Debug.Assert(!entryPoint.Diagnostics.IsDefault);
-
-            diagnostics.AddRange(entryPoint.Diagnostics);
-
-            if ((object)compilation.ScriptClass != null)
+            var entryPoint = entryPointAndDiagnostics.MethodSymbol;
+            var synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+            if (((object)synthesizedEntryPoint != null) &&
+                (moduleBeingBuilt != null) &&
+                !hasDeclarationErrors &&
+                !diagnostics.HasAnyErrors())
             {
-                Debug.Assert((object)entryPoint.MethodSymbol == null);
-                return DefineScriptEntryPoint(compilation, moduleBeingBuilt, compilation.GetSpecialType(SpecialType.System_Void), hasDeclarationErrors, diagnostics);
-            }
-
-            Debug.Assert((object)entryPoint.MethodSymbol != null || entryPoint.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
-            return entryPoint.MethodSymbol;
-        }
-
-        private static MethodSymbol DefineScriptEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, TypeSymbol returnType, bool hasDeclarationErrors, DiagnosticBag diagnostics)
-        {
-            var scriptClass = compilation.ScriptClass;
-            var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptClass, returnType, diagnostics);
-            if (moduleBeingBuilt != null && !hasDeclarationErrors && !diagnostics.HasAnyErrors())
-            {
-                var body = scriptEntryPoint.CreateBody();
-
+                var body = synthesizedEntryPoint.CreateBody();
                 const int methodOrdinal = -1;
-
                 var emittedBody = GenerateMethodBody(
                     moduleBeingBuilt,
-                    scriptEntryPoint,
+                    synthesizedEntryPoint,
                     methodOrdinal,
                     body,
                     ImmutableArray<LambdaDebugInfo>.Empty,
@@ -239,12 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider: null,
                     importChainOpt: null,
                     emittingPdb: false);
-
-                moduleBeingBuilt.SetMethodBody(scriptEntryPoint, emittedBody);
-                moduleBeingBuilt.AddSynthesizedDefinition(scriptClass, scriptEntryPoint);
+                moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            return scriptEntryPoint;
+            Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+            return entryPoint;
         }
 
         private void WaitForWorkers()
@@ -361,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Find the constructor of a script class.
             SynthesizedInstanceConstructor scriptCtor = null;
             SynthesizedInteractiveInitializerMethod scriptInitializer = null;
+            SynthesizedEntryPointSymbol scriptEntryPoint = null;
             int scriptCtorOrdinal = -1;
             if (containingType.IsScriptClass)
             {
@@ -371,6 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the constructor - it will own the field initializers.
                 scriptCtor = containingType.GetScriptConstructor();
                 scriptInitializer = containingType.GetScriptInitializer();
+                scriptEntryPoint = containingType.GetScriptEntryPoint();
                 Debug.Assert((object)scriptCtor != null);
                 Debug.Assert((object)scriptInitializer != null);
             }
@@ -384,10 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)sourceTypeSymbol != null)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.StaticInitializers, _diagnostics, false, ref processedStaticInitializers);
+                Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.StaticInitializers, _diagnostics, ref processedStaticInitializers);
 
                 _cancellationToken.ThrowIfCancellationRequested();
-                Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.InstanceInitializers, _diagnostics, true, ref processedInstanceInitializers);
+                Binder.BindFieldInitializers(_compilation, scriptInitializer, sourceTypeSymbol.InstanceInitializers, _diagnostics, ref processedInstanceInitializers);
 
                 if (compilationState.Emitting)
                 {
@@ -422,7 +400,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (method.IsScriptConstructor)
                             {
                                 Debug.Assert(scriptCtorOrdinal == -1);
+                                Debug.Assert((object)scriptCtor == method);
                                 scriptCtorOrdinal = memberOrdinal;
+                                continue;
+                            }
+
+                            if ((object)method == scriptEntryPoint)
+                            {
                                 continue;
                             }
 
@@ -680,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void CompileSynthesizedExplicitImplementations(SourceMemberContainerTypeSymbol sourceTypeSymbol, TypeCompilationState compilationState)
         {
-            // we are not generating any observable diagnostics here so it is ok to shortcircuit on global errors.
+            // we are not generating any observable diagnostics here so it is ok to short-circuit on global errors.
             if (!_globalHasErrors)
             {
                 foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
@@ -699,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SynthesizedSealedPropertyAccessor synthesizedAccessor = sourceProperty.SynthesizedSealedAccessorOpt;
 
-            // we are not generating any observable diagnostics here so it is ok to shortcircuit on global errors.
+            // we are not generating any observable diagnostics here so it is ok to short-circuit on global errors.
             if ((object)synthesizedAccessor != null && !_globalHasErrors)
             {
                 Debug.Assert(synthesizedAccessor.SynthesizesLoweredBoundBody);
@@ -854,12 +838,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (methodSymbol.IsScriptInitializer)
                 {
                     // rewrite top-level statements and script variable declarations to a list of statements and assignments, respectively:
-                    var submissionResultType = ((SynthesizedInteractiveInitializerMethod)methodSymbol).ResultType;
-                    BoundTypeOrInstanceInitializers initializerStatements = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol, submissionResultType);
+                    var initializerStatements = InitializerRewriter.RewriteScriptInitializer(processedInitializers.BoundInitializers, (SynthesizedInteractiveInitializerMethod)methodSymbol);
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
                     includeInitializersInBody = false;
+
+                    var unusedDiagnostics = DiagnosticBag.GetInstance();
+                    DataFlowPass.Analyze(_compilation, methodSymbol, initializerStatements, unusedDiagnostics, requireOutParamsAssigned: false);
+                    DiagnosticsPass.IssueDiagnostics(_compilation, initializerStatements, unusedDiagnostics, methodSymbol);
+                    unusedDiagnostics.Free();
 
                     importChain = null;
                 }
@@ -877,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // appended to its body.
                     if (includeInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
-                        analyzedInitializers = InitializerRewriter.Rewrite(processedInitializers.BoundInitializers, methodSymbol, submissionResultTypeOpt: null);
+                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
                         if (body != null && methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor)

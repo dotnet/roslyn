@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void GenerateMoveNextAndDispose(BoundStatement body, SynthesizedImplementationMethod moveNextMethod, SynthesizedImplementationMethod disposeMethod)
         {
-            // scan body for yielding Trys
+            // scan body for yielding try blocks
             _yieldsInTryAnalysis = new YieldsInTryAnalysis(body);
             if (_yieldsInTryAnalysis.ContainsYieldsInTrys())
             {

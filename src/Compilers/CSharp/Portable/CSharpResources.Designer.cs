@@ -8856,6 +8856,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to binary literals.
+        /// </summary>
+        internal static string IDS_FeatureBinaryLiteral {
+            get {
+                return ResourceManager.GetString("IDS_FeatureBinaryLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to collection initializer.
         /// </summary>
         internal static string IDS_FeatureCollectionInitializer {
@@ -8888,6 +8897,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureDictionaryInitializer {
             get {
                 return ResourceManager.GetString("IDS_FeatureDictionaryInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to digit separators.
+        /// </summary>
+        internal static string IDS_FeatureDigitSeparator {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDigitSeparator", resourceCulture);
             }
         }
         

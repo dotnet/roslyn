@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Cci.BlobWriter writer, ILOpCode code)
+        private static void WriteOpCode(Cci.BlobBuilder writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Cci.BlobWriter GetCurrentWriter()
+        private Cci.BlobBuilder GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

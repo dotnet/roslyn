@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Then we make a frame, or compiler-generated class, represented by an instance of
     /// <see cref="LambdaFrame"/> for each scope with captured variables.  The generated frames are kept
     /// in <see cref="_frames"/>.  Each frame is given a single field for each captured
-    /// variable in the corresponding scope.  These are are maintained in <see cref="MethodToClassRewriter.proxies"/>.
+    /// variable in the corresponding scope.  These are maintained in <see cref="MethodToClassRewriter.proxies"/>.
     /// 
     /// Finally, we walk and rewrite the input bound tree, keeping track of the following:
     /// (1) The current set of active frame pointers, in <see cref="_framePointers"/>
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var containingMethod = isNonGeneric ? null : (_substitutedSourceMethod ?? _topLevelMethod);
                     _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, containingMethod, isStruct: false, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
-                    // nongeneric static lambdas can share the frame
+                    // non-generic static lambdas can share the frame
                     if (isNonGeneric)
                     {
                         CompilationState.staticLambdaFrame = _lazyStaticLambdaFrame;
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
                         frame.Constructor));
 
-                    // associate the frame with the the first lambda that caused it to exist. 
+                    // associate the frame with the first lambda that caused it to exist. 
                     // we need to associate this with some syntax.
                     // unfortunately either containing method or containing class could be synthetic
                     // therefore could have no syntax.
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
-            // To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffects.
+            // To ensure that, we will make exception variable a sequence that performs prologue as its side-effects.
             BoundExpression rewrittenExceptionSource = null;
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // static lambdas are emitted as instance methods on a singleton receiver
             // delegates invoke dispatch is optimized for instance delegates so 
-            // it is preferrable to emit lambdas as instance methods even when lambdas 
+            // it is preferable to emit lambdas as instance methods even when lambdas 
             // do not capture anything
             BoundExpression result = new BoundDelegateCreationExpression(
                 node.Syntax,

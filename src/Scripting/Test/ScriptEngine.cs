@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         public static readonly ImmutableArray<string> DefaultReferenceSearchPaths;
 
         // state captured by session at creation time:
-        private ScriptOptions _options = ScriptOptions.Default;
+        private ScriptOptions _options;
         private readonly ScriptBuilder _builder;
 
         static ScriptEngine()
@@ -28,8 +28,10 @@ namespace Microsoft.CodeAnalysis.Scripting
             DefaultReferenceSearchPaths = ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory());
         }
 
-        internal ScriptEngine(MetadataFileReferenceProvider metadataReferenceProvider)
+        internal ScriptEngine(ScriptOptions options, MetadataFileReferenceProvider metadataReferenceProvider)
         {
+            _options = options;
+
             if (metadataReferenceProvider == null)
             {
                 metadataReferenceProvider = _options.AssemblyResolver.Provider;
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
         }
 
-        internal abstract Script Create(string code, ScriptOptions options, Type globalsType, Type returnType);
+        internal abstract Script<T> Create<T>(string code, ScriptOptions options, Type globalsType);
 
         #region Session
 

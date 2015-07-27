@@ -2353,6 +2353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex);
                 }
 
+                // 'async' keyword is allowed to add, but not to remove.
+                if (oldAsyncIndex >= 0 && newAsyncIndex < 0)
+                {
+                    return false;
+                }
+
                 return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers);
             }
 
@@ -3012,12 +3018,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override void ReportOtherRudeEditsAroundActiveStatement(
             List<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
+            SyntaxNode oldBody,
+            SyntaxNode newBody,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+            ReportRudeEditsForStateMachineMethod(diagnostics, oldBody, newBody, oldActiveStatement, newActiveStatement);
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3058,7 +3067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static CheckedStatementSyntax TryGetCheckedStatementAncestor(SyntaxNode node)
         {
-            // Ignoring lambda boundaries since checked context flows thru.
+            // Ignoring lambda boundaries since checked context flows through.
 
             while (node != null)
             {
@@ -3128,6 +3137,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
+        }
+
+        private void ReportRudeEditsForStateMachineMethod(
+            List<RudeEditDiagnostic> diagnostics,
+            SyntaxNode oldBody,
+            SyntaxNode newBody,
+            SyntaxNode oldActiveStatement,
+            SyntaxNode newActiveStatement)
+        {
+            var isInLambdaBody = FindEnclosingLambdaBody(oldBody, oldActiveStatement);
+            if (isInLambdaBody != null)
+            {
+                return;
+            }
+
+            // It is allow to update a regular method to an async method or an iterator.
+            // The only restriction is a presence of an active statement in the method body
+            // since the debugger does not support remapping active statements to a different method.
+            if (!SyntaxUtilities.IsAsyncMethodOrLambda(oldBody.Parent) && SyntaxUtilities.IsAsyncMethodOrLambda(newBody.Parent))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
+                    GetDiagnosticSpan(newBody.Parent, EditKind.Update)));
+            }
         }
 
         #endregion

@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -13,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ObjectInitializerCompletionProvider();
         }
@@ -537,13 +536,49 @@ public class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestCommitCharacter()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "v");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestEnter()
         {
-            Assert.False(CompletionProvider.SendEnterThroughToEditor(null, null), "Expected false from SendEnterThroughToEditor()");
+            const string markup = @"
+class c { public int value {set; get; }}
+
+class d
+{
+    void foo()
+    {
+       c foo = new c { v$$
+    }
+}";
+
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
+            {
+                var hostDocument = workspace.Documents.Single();
+                var position = hostDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var item = completionList.Items.First();
+
+                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
+                var completionRules = completionService.GetCompletionRules();
+
+                Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -579,21 +614,18 @@ End Class";
 
         private void VerifyExclusive(string markup, bool exclusive)
         {
-            var provider = CreateCompletionProvider();
-
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(markup))
             {
-                var document = workspace.Documents.Single();
-                var position = document.CursorPosition.Value;
-                var actualDocument = workspace.CurrentSolution.GetDocument(document.Id);
-
+                var hostDocument = workspace.Documents.Single();
+                var position = hostDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
 
-                var group = provider.GetGroupAsync(actualDocument, position, triggerInfo, CancellationToken.None).Result;
+                var completionList = GetCompletionList(document, position, triggerInfo);
 
-                if (group != null)
+                if (completionList != null)
                 {
-                    Assert.True(exclusive == group.IsExclusive, "group.IsExclusive == " + group.IsExclusive);
+                    Assert.True(exclusive == completionList.IsExclusive, "group.IsExclusive == " + completionList.IsExclusive);
                 }
             }
         }

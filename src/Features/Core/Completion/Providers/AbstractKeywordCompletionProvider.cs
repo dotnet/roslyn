@@ -1,15 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -60,27 +57,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var unionKeywords = await document.GetUnionResultsFromDocumentAndLinks(s_comparer, async (doc, ct) => await RecommendKeywordsAsync(doc, position, ct).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var textChangeSpan = this.GetTextChangeSpan(text, position);
-                var completions = unionKeywords.Select(s => CreateItem(document.Project.Solution.Workspace, textChangeSpan, s)).ToList();
+                var completions = unionKeywords.Select(s => CreateItem(textChangeSpan, s)).ToList();
 
                 return completions;
             }
         }
 
-        public override TextChange GetTextChange(CompletionItem selectedItem, char? ch = null, string textTypedSoFar = null)
-        {
-            var insertionText = selectedItem.DisplayText;
-            if (ch == ' ' && textTypedSoFar != null)
-            {
-                if (insertionText.StartsWith(textTypedSoFar, StringComparison.OrdinalIgnoreCase))
-                {
-                    insertionText = insertionText.Substring(0, textTypedSoFar.Length - 1);
-                }
-            }
-
-            return new TextChange(selectedItem.FilterSpan, insertionText);
-        }
-
-        protected virtual CompletionItem CreateItem(Workspace workspace, TextSpan span, RecommendedKeyword keyword)
+        protected virtual CompletionItem CreateItem(TextSpan span, RecommendedKeyword keyword)
         {
             return new KeywordCompletionItem(
                 this,

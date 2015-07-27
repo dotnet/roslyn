@@ -3,7 +3,6 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -12,16 +11,16 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// </summary>
     internal sealed class Submission<T>
     {
-        private readonly Script _script;
-        private readonly Lazy<ScriptState> _lazyResult;
+        private readonly Script<T> _script;
+        private readonly Lazy<ScriptState<T>> _lazyResult;
 
-        internal Submission(Script script, Lazy<object> input)
+        internal Submission(Script<T> script, Lazy<object> input)
         {
             _script = script;
-            _lazyResult = new Lazy<ScriptState>(() => script.Run(input.Value));
+            _lazyResult = new Lazy<ScriptState<T>>(() => script.RunAsync(input.Value, CancellationToken.None));
         }
 
-        internal ScriptState Run()
+        internal ScriptState<T> Run()
         {
             var result = _lazyResult.Value;
             Debug.Assert(result.Script == _script, "Script does not match end state.");
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public T Execute()
         {
-            return (T)this.Run().ReturnValue;
+            return this.Run().ReturnValue.Result;
         }
 
         public Compilation Compilation

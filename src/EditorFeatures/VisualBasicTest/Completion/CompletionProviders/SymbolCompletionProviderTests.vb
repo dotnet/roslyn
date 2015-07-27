@@ -1,6 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Const s_unicodeEllipsis = ChrW(&H2026)
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New SymbolCompletionProvider()
         End Function
 
@@ -689,7 +689,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            Const code = "
+Imports System
+Class C
+    Sub M()
+        $$
+    End Sub
+End Class"
+
+            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -699,7 +707,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SendEnterThroughToEditorTest()
-            TestCommonSendEnterThroughToEditor()
+            Const code = "
+Imports System
+Class C
+    Sub M()
+        $$
+    End Sub
+End Class"
+
+            VerifySendEnterThroughToEditor(code, "Int32", expected:=True)
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

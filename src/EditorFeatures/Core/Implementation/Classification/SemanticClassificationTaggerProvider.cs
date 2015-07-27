@@ -63,16 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 AsyncListener,
                 NotificationService,
                 this.RemoveTagsThatIntersectEdits,
-                this.SpanTrackingMode,
-                GetRelatedTagSource);
-        }
-
-        protected override ProducerPopulatedTagSource<IClassificationTag> GetRelatedTagSource(ITextBuffer subjectBuffer)
-        {
-            // Steal tags from the other buffer if we have them
-            ProducerPopulatedTagSource<IClassificationTag> tagSource;
-            TryRetrieveTagSource(null, subjectBuffer, out tagSource);
-            return null;
+                this.SpanTrackingMode);
         }
 
         protected override ITagProducer<IClassificationTag> CreateTagProducer()

@@ -235,9 +235,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
 #If DEBUG Then
                 Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
-
+#End If
                 Dim result = MyBase.Visit(node)
-
+#If DEBUG Then
                 If result IsNot Nothing Then
                     If result Is node Then
                         result = result.MemberwiseClone(Of BoundNode)()
@@ -245,11 +245,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     _rewrittenNodes.Add(result)
                 End If
-
-                Return result
-#Else
-                Return MyBase.Visit(node)
 #End If
+                Return result
             End If
         End Function
 
@@ -754,19 +751,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Helper method to create a bound sequence to represent the idea:
         ''' "compute this value, and then compute this side effects while discarding results"
         '''
-        ''' A Bound sequence is generated for the provided expr and sideeffects, say {se1, se2, se3}, as follows:
+        ''' A Bound sequence is generated for the provided expr and side-effects, say {se1, se2, se3}, as follows:
         '''
         ''' If expr is of void type:
-        '''     BoundSequence { sideeffects: { expr, se1, se2, se3 }, valueOpt: Nothing }
+        '''     BoundSequence { side-effects: { expr, se1, se2, se3 }, valueOpt: Nothing }
         ''' 
         ''' ElseIf expr is a constant:
-        '''     BoundSequence { sideeffects: { se1, se2, se3 }, valueOpt: expr }
+        '''     BoundSequence { side-effects: { se1, se2, se3 }, valueOpt: expr }
         ''' 
         ''' Else
-        '''     BoundSequence { sideeffects: { tmp = expr, se1, se2, se3 }, valueOpt: tmp }
+        '''     BoundSequence { side-effects: { tmp = expr, se1, se2, se3 }, valueOpt: tmp }
         ''' </summary>
         ''' <remarks>
-        ''' NOTE: Supporting cases where sideeffects change the value (or to detects such cases)
+        ''' NOTE: Supporting cases where side-effects change the value (or to detect such cases)
         ''' NOTE: could be complicated. We do not support this currently and instead require
         ''' NOTE: value expr to be not LValue.
         ''' </remarks>

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // Mixed case where there are some initializers that are constants and
             // there is enough of them so that it makes sense to use block initialization
-            // followed by individual initialization of nonconstant elements
+            // followed by individual initialization of non-constant elements
             Mixed,
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// Assumes that we have newly created array on the stack.
         /// 
         /// inits could be an array of values for a single dimensional array
-        /// or an   array (of array)+  of values for a multidimensional case
+        /// or an array (of array)+ of values for a multidimensional case
         /// 
         /// in either case it is expected that number of leaf values will match number 
         /// of elements in the array and nesting level should match the rank of the array.
@@ -303,21 +303,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// Produces a serialized blob of all constant initializers.
-        /// Nonconstant initializers are matched with a zero of corresponding size.
+        /// Non-constant initializers are matched with a zero of corresponding size.
         /// </summary>
         private ImmutableArray<byte> GetRawData(ImmutableArray<BoundExpression> initializers)
         {
             // the initial size is a guess.
             // there is no point to be precise here as MemoryStream always has N + 1 storage 
             // and will need to be trimmed regardless
-            var writer = new Cci.BlobWriter(initializers.Length * 4);
+            var writer = new Cci.BlobBuilder(initializers.Length * 4);
 
             SerializeArrayRecursive(writer, initializers);
 
             return writer.ToImmutableArray();
         }
 
-        private void SerializeArrayRecursive(Cci.BlobWriter bw, ImmutableArray<BoundExpression> inits)
+        private void SerializeArrayRecursive(Cci.BlobBuilder bw, ImmutableArray<BoundExpression> inits)
         {
             if (inits.Length != 0)
             {

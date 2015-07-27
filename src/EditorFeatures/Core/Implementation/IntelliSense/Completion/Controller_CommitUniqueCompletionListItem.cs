@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             {
                 // User hit ctrl-space.  If there was no completion up then we want to trigger
                 // completion. 
-                var completionService = this.CreateCompletionService();
+                var completionService = this.GetCompletionService();
                 if (completionService == null)
                 {
                     return;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We had a unique item in the list.  Commit it and dismiss this session.
 
                 var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-                var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+                var textChange = GetCompletionRules().GetTextChange(selectedItem);
                 this.Commit(selectedItem, textChange, model, null);
             }
         }

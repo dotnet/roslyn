@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Roslyn.Test.Utilities;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new NamedParameterCompletionProvider();
         }
@@ -18,14 +18,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("foo:", "foo:", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("foo:", "foo:", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

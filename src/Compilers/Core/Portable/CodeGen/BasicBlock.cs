@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //parent builder
             internal ILBuilder builder;
 
-            private Cci.BlobWriter _lazyRegularInstructions;
-            public Cci.BlobWriter Writer
+            private Cci.PooledBlobBuilder _lazyRegularInstructions;
+            public Cci.PooledBlobBuilder Writer
             {
                 get
                 {
                     if (_lazyRegularInstructions == null)
                     {
-                        _lazyRegularInstructions = Cci.BlobWriter.GetInstance();
+                        _lazyRegularInstructions = Cci.PooledBlobBuilder.GetInstance();
                     }
 
                     return _lazyRegularInstructions;
@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Cci.BlobWriter RegularInstructions => _lazyRegularInstructions;
+            public Cci.BlobBuilder RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
             /// </summary>
             public bool HasNoRegularInstructions => _lazyRegularInstructions == null;
 
-            public int RegularInstructionsLength => _lazyRegularInstructions?.Length ?? 0;
+            public int RegularInstructionsLength => _lazyRegularInstructions?.Count ?? 0;
 
             /// <summary>
             /// Updates position of the current block to account for shorter sizes of previous blocks.
@@ -533,33 +533,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
             private static bool AreIdentical(BasicBlock one, BasicBlock another)
             {
                 if (one._branchCode == another._branchCode &&
-                     !one._branchCode.CanFallThrough() &&
-                     one._branchLabel == another._branchLabel)
+                    !one._branchCode.CanFallThrough() &&
+                    one._branchLabel == another._branchLabel)
                 {
                     var instr1 = one.RegularInstructions;
                     var instr2 = another.RegularInstructions;
-
-                    if (instr1 == instr2)
-                    {
-                        return true;
-                    }
-
-                    if (instr1 != null && instr2 != null && instr1.Length == instr2.Length)
-                    {
-                        for (int i = 0, l = (int)instr1.Length; i < l; i++)
-                        {
-                            if (instr1.Buffer[i] != instr2.Buffer[i])
-                            {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
+                    return instr1 == instr2 || instr1?.ContentEquals(instr2) == true;
                 }
 
                 return false;
             }
-
 
             /// <summary>
             /// Returns reversed branch operation for the current block.

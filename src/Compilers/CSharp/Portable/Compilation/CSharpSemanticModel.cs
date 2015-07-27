@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     type = boundExpr.Type;
 
-                    // Use of local befor declaration requires some additional fixup.
+                    // Use of local before declaration requires some additional fixup.
                     // Due to complications around implicit locals and type inference, we do not
                     // try to obtain a type of a local when it is used before declaration, we use
                     // a special error type symbol. However, semantic model should return the same
@@ -3123,7 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)typeOfThis == ErrorTypeSymbol.UnknownResultType)
                         {
-                            // in an instance member, but binder considered this/base unreferencable
+                            // in an instance member, but binder considered this/base unreferenceable
                             thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
                             resultKind = LookupResultKind.NotReferencable;
                         }
@@ -3329,7 +3329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // In cases where we are binding C in "[C(...)]", the bound nodes return the symbol for the type. However, we've
-        // decided that we want this case to return the constructor of the type intead. This affects attributes. 
+        // decided that we want this case to return the constructor of the type instead. This affects attributes. 
         // This method checks for this situation and adjusts the syntax and method or property group.
         private void AdjustSymbolsForObjectCreation(BoundExpression boundNode,
                                                     BoundNode boundNodeForSyntacticParent,

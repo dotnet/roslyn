@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (rewrittenOperand.ConstantValue != null)
                     {
-                        // No need to preserve any sideeffects from the operand. 
+                        // No need to preserve any side-effects from the operand. 
                         // We also can keep the "constant" notion of the result, which
                         // enables some optimizations down the road.
                         return result;

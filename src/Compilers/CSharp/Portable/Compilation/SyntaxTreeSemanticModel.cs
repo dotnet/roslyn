@@ -483,8 +483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            // TODO(cyrusn): Check arguments.  This is a public entrypoint, so we must do appropriate
-            // checks here.  However, no other methods in this type do any checking currently.  SO i'm
+            // TODO(cyrusn): Check arguments. This is a public entrypoint, so we must do appropriate
+            // checks here. However, no other methods in this type do any checking currently. So I'm
             // going to hold off on this until we do a full sweep of the API.
 
             var model = this.GetMemberModel(expression);
@@ -1983,7 +1983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.Compilation.ScriptClass;
                 }
 
-                // top-level type type in an explicitly declared namespace:
+                // top-level type in an explicitly declared namespace:
                 if (SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
                 {
                     return _compilation.Assembly.GlobalNamespace;

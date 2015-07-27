@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -13,6 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedEntryPointSymbol : MethodSymbol
     {
+        internal const string MainName = "<Main>";
+        internal const string FactoryName = "<Factory>";
+
         private readonly NamedTypeSymbol _containingType;
         private readonly TypeSymbol _returnType;
 
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
+            get { return _returnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override MethodKind MethodKind
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string Name
             {
-                get { return "<Main>"; }
+                get { return MainName; }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -297,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var initializer = _containingType.GetScriptInitializer();
                 Debug.Assert(initializer.ParameterCount == 0);
 
-                var submissionLocal = new BoundLocal(
+                var scriptLocal = new BoundLocal(
                     syntax,
                     new SynthesizedLocal(this, _containingType, SynthesizedLocalKind.LoweringTemp),
                     null,
@@ -305,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 return new BoundBlock(syntax,
-                    ImmutableArray.Create<LocalSymbol>(submissionLocal.LocalSymbol),
+                    ImmutableArray.Create<LocalSymbol>(scriptLocal.LocalSymbol),
                     ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         // var script = new Script();
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             syntax,
                             new BoundAssignmentOperator(
                                 syntax,
-                                submissionLocal,
+                                scriptLocal,
                                 new BoundObjectCreationExpression(
                                     syntax,
                                     ctor)
@@ -326,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             syntax,
                             new BoundCall(
                                 syntax,
-                                submissionLocal,
+                                scriptLocal,
                                 initializer,
                                 ImmutableArray<BoundExpression>.Empty,
                                 default(ImmutableArray<string>),
@@ -361,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string Name
             {
-                get { return "<Factory>"; }
+                get { return FactoryName; }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 // return submission.<Initialize>();
-                BoundExpression initializeResult = new BoundCall(
+                var initializeResult = new BoundCall(
                     syntax,
                     submissionLocal,
                     initializer,
@@ -429,11 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     resultKind: LookupResultKind.Viable,
                     type: initializer.ReturnType)
                 { WasCompilerGenerated = true };
-                if (initializeResult.Type.IsStructType() && (_returnType.SpecialType == SpecialType.System_Object))
-                {
-                    initializeResult = new BoundConversion(syntax, initializeResult, Conversion.Boxing, false, true, ConstantValue.NotAvailable, _returnType)
-                    { WasCompilerGenerated = true };
-                }
+                Debug.Assert(initializeResult.Type == _returnType);
                 var returnStatement = new BoundReturnStatement(
                     syntax,
                     initializeResult)

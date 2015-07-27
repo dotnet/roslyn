@@ -19,26 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
-    internal class ReferenceDirectiveCompletionProvider : AbstractCompletionProvider
+    internal partial class ReferenceDirectiveCompletionProvider : AbstractCompletionProvider
     {
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
-        }
-
-        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.IsFilterCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.IsCommitcharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return PathCompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar);
         }
 
         private ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
@@ -77,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             var documentPath = document.Project.IsSubmission ? null : document.FilePath;
             var textChangeSpan = this.GetTextChangeSpan(stringLiteral, position);
 
-            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan);
+            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: ItemRules.Instance);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot == null)
@@ -106,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                 Glyph.Assembly,
                 searchPaths: metadataFileResolver.SearchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
-                exclude: path => path.Contains(","));
+                exclude: path => path.Contains(","),
+                itemRules: ItemRules.Instance);
 
             var pathThroughLastSlash = this.GetPathThroughLastSlash(stringLiteral, position);
             return gacHelper.GetItems(pathThroughLastSlash, documentPath).Concat(

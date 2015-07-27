@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class PartialTypeCompletionProvider
+    Partial Friend Class PartialTypeCompletionProvider
         Inherits AbstractCompletionProvider
 
         Private ReadOnly _partialNameFormat As SymbolDisplayFormat =
@@ -26,21 +26,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
-        End Function
-
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.SendEnterThroughToEditor(completionItem, textTypedSoFar)
-        End Function
-
-        Public Overrides Function GetTextChange(selectedItem As CompletionItem, Optional ch As Char? = Nothing, Optional textTypedSoFar As String = Nothing) As TextChange
-            Dim symbolItem = DirectCast(selectedItem, SymbolCompletionItem)
-            Return New TextChange(symbolItem.FilterSpan, symbolItem.InsertionText)
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
@@ -83,10 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim context = VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
 
             Return semanticModel.LookupNamespacesAndTypes(position) _
-                                        .OfType(Of INamedTypeSymbol)() _
-                                        .Where(Function(s) NotNewDeclaredMember(s, token)) _
-                                        .Where(Function(s) MatchesTypeKind(s, token) AndAlso InSameProject(s, compilation)) _
-                                        .Select(Function(s) CreateCompletionItem(s, textSpan, displayService, token.SpanStart, context))
+                .OfType(Of INamedTypeSymbol)() _
+                .Where(Function(s) NotNewDeclaredMember(s, token)) _
+                .Where(Function(s) MatchesTypeKind(s, token) AndAlso InSameProject(s, compilation)) _
+                .Select(Function(s) CreateCompletionItem(s, textSpan, displayService, token.SpanStart, context))
         End Function
 
         Private Function MatchesTypeKind(symbol As INamedTypeSymbol, token As SyntaxToken) As Boolean
@@ -138,7 +125,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 textSpan,
                 position,
                 {DirectCast(symbol, ISymbol)}.ToList(),
-                context)
+                context,
+                rules:=ItemRules.Instance)
         End Function
 
         Private Function NotNewDeclaredMember(s As INamedTypeSymbol, token As SyntaxToken) As Boolean

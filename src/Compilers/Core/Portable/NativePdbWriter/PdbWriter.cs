@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly BlobWriter _logData;
+        private readonly PooledBlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,7 +57,7 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = BlobWriter.GetInstance();
+                _logData = PooledBlobBuilder.GetInstance();
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
@@ -70,9 +70,14 @@ namespace Microsoft.Cci
 
         private void MaybeFlush()
         {
-            if (_logData.Length >= bufferFlushLimit)
+            if (_logData.Count >= bufferFlushLimit)
             {
-                _hashAlgorithm.TransformBlock(_logData.Buffer, _logData.Position);
+                foreach (var blob in _logData.GetBlobs())
+                {
+                    var segment = blob.GetUnderlyingBuffer();
+                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
+                }
+
                 _logData.Clear();
             }
         }
@@ -80,7 +85,24 @@ namespace Microsoft.Cci
         internal ContentId ContentIdFromLog()
         {
             Debug.Assert(_logData != null);
-            _hashAlgorithm.TransformFinalBlock(_logData.Buffer, _logData.Position);
+
+            int remaining = _logData.Count;
+            foreach (var blob in _logData.GetBlobs())
+            {
+                var segment = blob.GetUnderlyingBuffer();
+                remaining -= segment.Count;
+                if (remaining == 0)
+                {
+                    _hashAlgorithm.TransformFinalBlock(segment.Array, segment.Offset, segment.Count);
+                }
+                else
+                {
+                   _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
+                }
+            }
+
+            Debug.Assert(remaining == 0);
+
             _logData.Clear();
             return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
         }
@@ -136,7 +158,7 @@ namespace Microsoft.Cci
 
         public void LogArgument(string data)
         {
-            _logData.WriteUTF8(data);
+            _logData.WriteUTF8(data, allowUnpairedSurrogates: true);
             MaybeFlush();
         }
 

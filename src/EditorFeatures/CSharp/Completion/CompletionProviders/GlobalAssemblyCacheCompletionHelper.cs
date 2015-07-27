@@ -16,13 +16,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
     {
         private static readonly Lazy<List<string>> s_lazyAssemblySimpleNames =
             new Lazy<List<string>>(() => GlobalAssemblyCache.GetAssemblySimpleNames().ToList());
-        private readonly ICompletionProvider _completionProvider;
+        private readonly CompletionListProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
+        private readonly CompletionItemRules _itemRules;
 
-        public GlobalAssemblyCacheCompletionHelper(ICompletionProvider completionProvider, TextSpan textChangeSpan)
+        public GlobalAssemblyCacheCompletionHelper(CompletionListProvider completionProvider, TextSpan textChangeSpan, CompletionItemRules itemRules = null)
         {
             _completionProvider = completionProvider;
             _textChangeSpan = textChangeSpan;
+            _itemRules = itemRules;
         }
 
         public IEnumerable<CompletionItem> GetItems(string pathSoFar, string documentPath)
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                 var path = pathSoFar.Substring(0, comma);
                 return from identity in GetAssemblyIdentities(path)
                        let text = identity.GetDisplayName()
-                       select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: Glyph.Assembly);
+                       select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: Glyph.Assembly, rules: _itemRules);
             }
             else
             {
@@ -53,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
                            _completionProvider,
                            displayName, _textChangeSpan,
                            descriptionFactory: c => Task.FromResult(GlobalAssemblyCache.ResolvePartialName(displayName).GetDisplayName().ToSymbolDisplayParts()),
-                           glyph: Glyph.Assembly);
+                           glyph: Glyph.Assembly,
+                           rules: _itemRules);
             }
         }
 

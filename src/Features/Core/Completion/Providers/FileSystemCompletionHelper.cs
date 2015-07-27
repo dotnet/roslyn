@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -27,18 +26,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly ISet<string> _allowableExtensions;
 
         private readonly Lazy<string[]> _lazyGetDrives;
-        private readonly ICompletionProvider _completionProvider;
+        private readonly CompletionListProvider _completionProvider;
         private readonly TextSpan _textChangeSpan;
+        private readonly CompletionItemRules _itemRules;
 
         public FileSystemCompletionHelper(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             TextSpan textChangeSpan,
             ICurrentWorkingDirectoryDiscoveryService fileSystemDiscoveryService,
             Glyph folderGlyph,
             Glyph fileGlyph,
             ImmutableArray<string> searchPaths,
             IEnumerable<string> allowableExtensions,
-            Func<string, bool> exclude = null)
+            Func<string, bool> exclude = null,
+            CompletionItemRules itemRules = null)
         {
             Debug.Assert(searchPaths.All(path => PathUtilities.IsAbsolute(path)));
 
@@ -50,39 +51,40 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             _folderGlyph = folderGlyph;
             _fileGlyph = fileGlyph;
             _exclude = exclude;
+            _itemRules = itemRules;
 
             _lazyGetDrives = new Lazy<string[]>(() =>
                 IOUtilities.PerformIO(Directory.GetLogicalDrives, SpecializedCollections.EmptyArray<string>()));
         }
 
-        public IEnumerable<CompletionItem> GetItems(string pathSoFar, string documentPath)
+        public ImmutableArray<CompletionItem> GetItems(string pathSoFar, string documentPath)
         {
             if (_exclude != null && _exclude(pathSoFar))
             {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                return ImmutableArray<CompletionItem>.Empty;
             }
 
-            return GetFilesAndDirectories(pathSoFar, documentPath).ToList();
+            return GetFilesAndDirectories(pathSoFar, documentPath);
         }
 
         private CompletionItem CreateCurrentDirectoryItem()
         {
-            return new CompletionItem(_completionProvider, ".", _textChangeSpan);
+            return new CompletionItem(_completionProvider, ".", _textChangeSpan, rules: _itemRules);
         }
 
         private CompletionItem CreateParentDirectoryItem()
         {
-            return new CompletionItem(_completionProvider, "..", _textChangeSpan);
+            return new CompletionItem(_completionProvider, "..", _textChangeSpan, rules: _itemRules);
         }
 
         private CompletionItem CreateNetworkRoot(TextSpan textChangeSpan)
         {
-            return new CompletionItem(_completionProvider, "\\\\", textChangeSpan);
+            return new CompletionItem(_completionProvider, "\\\\", textChangeSpan, rules: _itemRules);
         }
 
-        private IList<CompletionItem> GetFilesAndDirectories(string path, string basePath)
+        private ImmutableArray<CompletionItem> GetFilesAndDirectories(string path, string basePath)
         {
-            var result = new List<CompletionItem>();
+            var result = ImmutableArray.CreateBuilder<CompletionItem>();
             var pathKind = PathUtilities.GetPathKind(path);
             switch (pathKind)
             {
@@ -160,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     throw ExceptionUtilities.Unreachable;
             }
 
-            return result;
+            return result.AsImmutable();
         }
 
         private static bool IsDriveRoot(string fullPath)
@@ -193,7 +195,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 child.Name,
                 _textChangeSpan,
                 glyph: child is DirectoryInfo ? _folderGlyph : _fileGlyph,
-                description: child.FullName.ToSymbolDisplayParts());
+                description: child.FullName.ToSymbolDisplayParts(),
+                rules: _itemRules);
         }
 
         private bool ShouldShow(FileSystemInfo child)
@@ -271,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return from d in _lazyGetDrives.Value
                    where d.Length > 0 && (d.Last() == Path.DirectorySeparatorChar || d.Last() == Path.AltDirectorySeparatorChar)
                    let text = d.Substring(0, d.Length - 1)
-                   select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: _folderGlyph);
+                   select new CompletionItem(_completionProvider, text, _textChangeSpan, glyph: _folderGlyph, rules: _itemRules);
         }
 
         private static FileSystemInfo[] GetFileSystemInfos(DirectoryInfo directoryInfo)
