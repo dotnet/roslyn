@@ -10,7 +10,7 @@ The Roslyn source code targets the latest public build of Visual Studio 2015.  A
 ## Getting the code
 
 1. Clone https://github.com/dotnet/roslyn
-2. Change directory to `<clone dir>` and run `Src\.nuget\nuget restore Src\RoslynLight.sln`
+2. Change directory to `<clone dir>` and run `Src\.nuget\nuget restore Src\Roslyn.sln`
 3. Open Roslyn.sln 
 
 ## Running Unit Tests
