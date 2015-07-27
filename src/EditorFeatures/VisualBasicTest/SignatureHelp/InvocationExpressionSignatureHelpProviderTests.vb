@@ -1849,5 +1849,27 @@ End Class
 "
             Test(markup, SpecializedCollections.SingletonEnumerable(New SignatureHelpTestItem("C.Next()", String.Empty)))
         End Sub
+
+        <WorkItem(4144, "https://github.com/dotnet/roslyn/issues/4144")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Sub TestSigHelpIsVisibleOnInaccessibleItem()
+            Dim markup = "
+Imports System.Collections.Generic
+
+Class A
+    Dim args As List(Of Integer)
+End Class
+
+Class B
+    Inherits A
+
+    Sub M()
+        args.Add($$
+    End Sub
+End Class
+"
+
+            Test(markup, {New SignatureHelpTestItem("List(Of Integer).Add(item As Integer)")})
+        End Sub
     End Class
 End Namespace
