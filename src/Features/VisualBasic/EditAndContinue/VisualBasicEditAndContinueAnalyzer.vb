@@ -2594,6 +2594,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex)
                 End If
 
+                ' 'async' keyword is allowed to add, but not to remove
+                If oldAsyncIndex >= 0 AndAlso newAsyncIndex < 0 Then
+                    Return False
+                End If
+
                 Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
                 Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
 
@@ -2603,6 +2608,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 If newIteratorIndex >= 0 Then
                     newModifiers = newModifiers.RemoveAt(newIteratorIndex)
+                End If
+
+                ' 'iterator' keyword is allowed to add, but not to remove
+                If oldIteratorIndex >= 0 AndAlso newIteratorIndex < 0 Then
+                    Return False
                 End If
 
                 Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
@@ -2969,14 +2979,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Function GetStateMachineSuspensionPoints(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKind)
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
-                Return SyntaxUtilities.GetAwaitExpressions(body)
-            Else
-                Return SyntaxUtilities.GetYieldStatements(body)
+                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
+                kind = StateMachineKind.Async
+                Return
+            ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
+                suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
+                kind = StateMachineKind.Iterator
+                Return
             End If
-        End Function
+
+            suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
+            kind = StateMachineKind.None
+        End Sub
 
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As List(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
@@ -3091,8 +3108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As List(Of RudeEditDiagnostic),
                                                                        match As Match(Of SyntaxNode),
-                                                                       oldBody As SyntaxNode,
-                                                                       newBody As SyntaxNode,
                                                                        oldActiveStatement As SyntaxNode,
                                                                        newActiveStatement As SyntaxNode,
                                                                        isLeaf As Boolean)
@@ -3154,6 +3169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
+
 #End Region
     End Class
 End Namespace
