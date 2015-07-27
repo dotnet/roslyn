@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -464,8 +463,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         {
             using (NumberTag(GetTypeName(type)))
             {
-                // TODO(DustinCa): Add more unit tests to ensure that floats are correct.
-                EncodedText(Convert.ToString(value, CultureInfo.InvariantCulture));
+                if (value is double)
+                {
+                    // Note: use G17 for doubles to ensure that we roundtrip properly on 64-bit
+                    EncodedText(((double)value).ToString("G17", CultureInfo.InvariantCulture));
+                }
+                else if (value is float)
+                {
+                    EncodedText(((float)value).ToString("R", CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    EncodedText(Convert.ToString(value, CultureInfo.InvariantCulture));
+                }
             }
         }
 
