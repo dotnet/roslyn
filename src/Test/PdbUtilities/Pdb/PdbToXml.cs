@@ -139,11 +139,16 @@ namespace Roslyn.Test.PdbUtilities
 
             using (var writer = XmlWriter.Create(xmlWriter, s_xmlWriterSettings))
             {
-                using (SymReader symReader = new SymReader(pdbStream, metadataReaderOpt))
+                var symReader = SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt);
+
+                try
                 {
                     var converter = new PdbToXmlConverter(writer, symReader, metadataReaderOpt, options);
-
                     converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
+                }
+                finally
+                {
+                    ((ISymUnmanagedDispose)symReader).Destroy();
                 }
             }
         }
