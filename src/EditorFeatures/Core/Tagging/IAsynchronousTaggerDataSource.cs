@@ -13,8 +13,8 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// Data source for the <see cref="AsynchronousTaggerProvider{TTag}"/>.  This type tells the
-    /// <see cref="AsynchronousTaggerProvider{TTag}"/> when tags need to be recomputed, as well
+    /// Data source for the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/>.  This type tells the
+    /// <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> when tags need to be recomputed, as well
     /// as producing the tags when requested.
     /// </summary>
     internal interface IAsynchronousTaggerDataSource<TTag> where TTag : ITag
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         /// <summary>
         /// Comparer used to determine if two <see cref="ITag"/>s are the same.  This is used by
-        /// the <see cref="AsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
+        /// the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> to determine if a previous set of
         /// computed tags and a current set of computed tags should be considered the same or not.
         /// If they are the same, then the UI will not be updated.  If they are different then
         /// the UI will be updated for sets of tags that have been removed or added.
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         IEqualityComparer<TTag> TagComparer { get; }
 
         /// <summary>
-        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
+        /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>
         ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to 
+        /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to 
         /// determine the caret position.  This value will be passed in as the value to 
         /// <see cref="TaggerContext{TTag}.CaretPosition"/> in the call to
         /// <see cref="ProduceTagsAsync"/>.
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Called by the <see cref="AsynchronousTaggerProvider{TTag}"/> infrastructure to determine
+        /// Called by the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> infrastructure to determine
         /// the set of spans that it should asynchronously tag.  This will be called in response to
         /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
         /// will only be called from the UI thread.  The tagger infrastructure will then determine

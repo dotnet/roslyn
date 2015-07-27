@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal abstract partial class AsynchronousTaggerProvider<TTag>
+    internal abstract partial class AbstractAsynchronousTaggerProvider<TTag>
     {
         private class TagSpanComparer : IEqualityComparer<ITagSpan<TTag>>
         {

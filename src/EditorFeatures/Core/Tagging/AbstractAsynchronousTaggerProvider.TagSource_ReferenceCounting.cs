@@ -5,7 +5,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
-    internal partial class AsynchronousTaggerProvider<TTag>
+    internal partial class AbstractAsynchronousTaggerProvider<TTag>
     {
         private partial class TagSource
         {

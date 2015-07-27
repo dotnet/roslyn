@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(NavigableHighlightTag))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousTaggerProvider<NavigableHighlightTag>
+    internal partial class ReferenceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<NavigableHighlightTag>
     {
         private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
 

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TagType(typeof(BraceHighlightTag))]
-    internal class BraceHighlightingViewTaggerProvider : AsynchronousTaggerProvider<BraceHighlightTag>
+    internal class BraceHighlightingViewTaggerProvider : AsynchronousViewTaggerProvider<BraceHighlightTag>
     {
         private readonly IBraceMatchingService _braceMatcherService;
 
