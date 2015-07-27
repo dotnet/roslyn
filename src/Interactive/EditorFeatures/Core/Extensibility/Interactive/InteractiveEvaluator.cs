@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private ITextView _currentTextView;
         private ITextBuffer _currentSubmissionBuffer;
 
-        private readonly IList<ValueTuple<ITextView, ITextBuffer>> _submissionBuffers = new List<ValueTuple<ITextView, ITextBuffer>>();
+        private readonly ISet<ValueTuple<ITextView, ITextBuffer>> _submissionBuffers = new HashSet<ValueTuple<ITextView, ITextBuffer>>();
 
         private int _submissionCount = 0;
         private readonly EventHandler<ContentTypeChangedEventArgs> _contentTypeChangedHandler;
@@ -273,10 +273,11 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             var buffer = e.Before.TextBuffer;
+            var contentTypeName = this.ContentType.TypeName;
 
-            var afterIsLanguage = e.AfterContentType.IsOfType(this.ContentType.TypeName);
+            var afterIsLanguage = e.AfterContentType.IsOfType(contentTypeName);
             var afterIsInteractiveCommand = e.AfterContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
-            var beforeIsLanguage = e.BeforeContentType.IsOfType(this.ContentType.TypeName);
+            var beforeIsLanguage = e.BeforeContentType.IsOfType(contentTypeName);
             var beforeIsInteractiveCommand = e.BeforeContentType.IsOfType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
 
             Debug.Assert((afterIsLanguage && beforeIsInteractiveCommand)
