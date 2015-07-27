@@ -2984,15 +2984,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
                 suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
                 kind = StateMachineKind.Async
-                Return
             ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
                 suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
                 kind = StateMachineKind.Iterator
-                Return
+            Else
+                suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
+                kind = StateMachineKind.None
             End If
-
-            suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
-            kind = StateMachineKind.None
         End Sub
 
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As List(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
