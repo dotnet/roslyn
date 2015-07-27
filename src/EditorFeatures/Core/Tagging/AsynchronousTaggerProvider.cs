@@ -45,15 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         private TagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            var options = this.Options ?? SpecializedCollections.EmptyEnumerable<Option<bool>>();
-            var perLanguageOptions = this.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
-
-            if (options.Any(option => !subjectBuffer.GetOption(option)) ||
-                perLanguageOptions.Any(option => !subjectBuffer.GetOption(option)))
-            {
-                return null;
-            }
-
             return new TagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
         }
 

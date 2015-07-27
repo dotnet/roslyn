@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -98,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 this._workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
-                _eventSource = dataSource.CreateEventSource(textViewOpt, subjectBuffer);
+                _eventSource = CreateEventSource(); 
 
                 Connect();
 
@@ -108,6 +110,26 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private IEqualityComparer<TTag> TagComparer =>
                 _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
+
+            private ITaggerEventSource CreateEventSource()
+            {
+                var eventSource = _dataSource.CreateEventSource(_textViewOpt, _subjectBuffer);
+
+                // If there are any options specified for this tagger, then also hook up event
+                // notifications for when those options change.
+                var optionChangedEventSources =
+                    (_dataSource.Options ?? SpecializedCollections.EmptyEnumerable<IOption>()).Concat(
+                    (_dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<IOption>())).Select(
+                        o => TaggerEventSources.OnOptionChanged(_subjectBuffer, o, TaggerDelay.NearImmediate)).ToList();
+
+                if (optionChangedEventSources.Count == 0)
+                {
+                    return eventSource;
+                }
+                
+                optionChangedEventSources.Add(eventSource);
+                return TaggerEventSources.Compose(optionChangedEventSources);
+            }
 
             private TextChangeRange? AccumulatedTextChanges
             {

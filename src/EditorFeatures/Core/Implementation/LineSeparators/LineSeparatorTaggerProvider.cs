@@ -10,12 +10,14 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 {
@@ -29,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
     {
+        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.LineSeparator);
+
         [ImportingConstructor]
         public LineSeparatorTaggerProvider(
             IForegroundNotificationService notificationService,
@@ -39,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
         public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.LineSeparator, TaggerDelay.NearImmediate));
+            return TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate);
         }
 
         public override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)

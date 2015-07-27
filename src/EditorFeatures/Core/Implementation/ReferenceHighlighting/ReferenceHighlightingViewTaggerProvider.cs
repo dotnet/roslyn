@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnCaretPositionChanged(textView, textView.TextBuffer, TaggerDelay.Short),
                 TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.OnIdle, _semanticChangeNotificationService),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ReferenceHighlighting, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
         }
 
         public override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)

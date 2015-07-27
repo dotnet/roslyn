@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         // highlights if the caret stays within an existing tag.
         public override TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag;
         public override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.RemoveAllTags;
-        public override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.KeywordHighlight);
+        public override IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.KeywordHighlighting);
 
         [ImportingConstructor]
         public HighlighterViewTaggerProvider(
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
                 TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.KeywordHighlighting, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
         }
 
         public override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)

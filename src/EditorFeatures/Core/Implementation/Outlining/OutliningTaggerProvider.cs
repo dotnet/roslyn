@@ -109,7 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                         var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
                         if (outliningService != null)
                         {
-                            // TODO: change this to shared pool once Esent branch RI
                             var regions = await outliningService.GetOutliningSpansAsync(document, cancellationToken).ConfigureAwait(false);
                             if (regions != null)
                             {
