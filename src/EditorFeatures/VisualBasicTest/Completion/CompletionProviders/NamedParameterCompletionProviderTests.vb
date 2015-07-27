@@ -300,7 +300,7 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args:
+        Main(args:=
     End Sub
 End Module
 
@@ -323,7 +323,7 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args
+        Main(args:
     End Sub
 End Module
 
@@ -346,7 +346,7 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args:=
+        Main(args:= 
     End Sub
 End Module
 

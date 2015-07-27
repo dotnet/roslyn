@@ -2529,7 +2529,7 @@ End Class
 Imports System
 Class classattribute : Inherits Attribute
 End Class
-&lt;[class]
+&lt;[class](
 Class C
 End Class
 </Text>.Value
@@ -5141,7 +5141,7 @@ Class C
 Public Class [Inherits]
 End Class
 Class C
-    Inherits [Inherits]
+    Inherits [Inherits].
 "
 
             VerifyProviderCommit(markup, "Inherits", expected, "."c, "")
@@ -5345,7 +5345,7 @@ Class G
 End Class
 
 Class DG
-    Inherits G
+    Inherits G(
 End Class
 "
             VerifyProviderCommit(markup, "G", expected, "("c, "")
@@ -5547,10 +5547,10 @@ Class G(Of T)
 End Class
 
 Class DG
-    Function Bar() as G(Of
+    Function Bar() as G(
 End Class</code>.Value
 
-            VerifyProviderCommit(text, "G(Of …)", expected, Nothing, "")
+            VerifyProviderCommit(text, "G(Of …)", expected, "("c, "")
         End Sub
 
         <WorkItem(668159)>
@@ -5670,7 +5670,7 @@ End Class]]></code>.Value
 <code><![CDATA[
 Class Await
     Sub Foo()
-        Dim x = new [Await
+        Dim x = new [Await]
     End Sub
 End Class]]></code>.Value
 
