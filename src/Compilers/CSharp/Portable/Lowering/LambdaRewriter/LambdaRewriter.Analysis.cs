@@ -314,7 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         LambdaScopes.Add(kvp.Key, innermostScope);
 
-                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(kvp.Key);
+                        // Disable struct closures on methods converted to delegates, as well as on async and iterator methods.
+                        var markAsNoStruct = MethodsConvertedToDelegates.Contains(kvp.Key) || kvp.Key.IsAsync || kvp.Key.IsIterator;
                         if (markAsNoStruct)
                         {
                             ScopesThatCantBeStructs.Add(innermostScope);
@@ -329,22 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ScopesThatCantBeStructs.Add(innermostScope);
                             }
                         }
-                    }
-                }
-
-                // Note the following is temporary, if we do end up changing the signature of closures to take all
-                // parent frames as a parameter list (where structs are by ref) instead of a linked list of frames,
-                // then we no longer need to worry about double-nested struct closures not being passed by reference.
-
-                // It is illegal to have any parent of a scope be a struct (due to by-value parent fields).
-                // So, find the parent of every closure and check if it's a struct. If so, make it a class.
-                foreach (var kvp in LambdaScopes)
-                {
-                    var scope = kvp.Value;
-                    while (NeedsParentFrame.Contains(scope) && ScopeParent.TryGetValue(scope, out scope) && !ScopesThatCantBeStructs.Contains(scope))
-                    {
-                        // The parent is a struct. Mark it a class. Keep going along the tree.
-                        ScopesThatCantBeStructs.Add(scope);
                     }
                 }
             }
