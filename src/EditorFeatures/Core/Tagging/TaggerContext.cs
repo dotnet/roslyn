@@ -31,24 +31,36 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         public TextChangeRange? TextChangeRange { get; }
         public CancellationToken CancellationToken { get; }
 
+        /// <summary>
+        /// The state of the tagger.  Taggers can use this to keep track of information across calls
+        /// to <see cref="IAsynchronousTaggerDataSource{TTag}.ProduceTagsAsync"/>.  Note: state will
+        /// only be preserved if the tagger infrastructure fully updates itself with the tags that 
+        /// were produced.  i.e. if that tagging pass is canceled, then the state set here will not
+        /// be preserved and the previous preserved state will be used the next time ProduceTagsAsync
+        /// is called.
+        /// </summary>
+        public object State { get; set; }
+
         // For testing only.
         internal TaggerContext(
             Document document, ITextSnapshot snapshot,
             SnapshotPoint? caretPosition = null,
             TextChangeRange? textChangeRange = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            : this(new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(snapshot, 0, snapshot.Length)) }, 
+            : this(null, new[] { new DocumentSnapshotSpan(document, new SnapshotSpan(snapshot, 0, snapshot.Length)) }, 
                   caretPosition, textChangeRange, null, cancellationToken)
         {
         }
 
         internal TaggerContext(
+            object state,
             IEnumerable<DocumentSnapshotSpan> spansToTag,
             SnapshotPoint? caretPosition,
             TextChangeRange? textChangeRange,
             ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> existingTags,
             CancellationToken cancellationToken)
         {
+            this.State = state;
             this.SpansToTag = spansToTag;
             this.CaretPosition = caretPosition;
             this.TextChangeRange = textChangeRange;

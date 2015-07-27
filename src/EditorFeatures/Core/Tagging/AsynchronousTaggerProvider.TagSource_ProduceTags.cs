@@ -293,9 +293,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var caretPosition = this.GetCaretPoint();
                     var textChangeRange = this.AccumulatedTextChanges;
                     var oldTagTrees = this.CachedTagTrees;
+                    var oldState = this.State;
 
                     this._workQueue.EnqueueBackgroundTask(
-                        ct => this.RecomputeTagsAsync(caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
+                        ct => this.RecomputeTagsAsync(oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
                         GetType().Name + ".RecomputeTags", cancellationToken);
                 }
             }
@@ -554,6 +555,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private async Task RecomputeTagsAsync(
+                object oldState,
                 SnapshotPoint? caretPosition,
                 TextChangeRange? textChangeRange,
                 List<DocumentSnapshotSpan> spansToTag,
@@ -563,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var context = new TaggerContext<TTag>(
-                    spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
+                    oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                 await _dataSource.ProduceTagsAsync(context).ConfigureAwait(false);
 
                 ProcessContext(spansToTag, oldTagTrees, context);
@@ -575,13 +577,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 TaggerContext<TTag> context)
             {
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, context.tagSpans, context._spansTagged);
-                ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.CancellationToken);
+                ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
             }
 
             private void ProcessNewTagTrees(
                 List<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
+                object newState,
                 CancellationToken cancellationToken)
             {
                 var bufferToChanges = new Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection>();
@@ -618,19 +621,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (_workQueue.IsForeground())
                 {
                     // If we're on the foreground already, we can just update our internal state directly.
-                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges);
+                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState);
                 }
                 else
                 {
                     // Otherwise report back on the foreground asap to update the state and let our 
                     // clients know about the change.
-                    RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges), 0, cancellationToken);
+                    RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState), 0, cancellationToken);
                 }
             }
 
             private void UpdateStateAndReportChanges(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
-                Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges)
+                Dictionary<ITextBuffer, NormalizedSnapshotSpanCollection> bufferToChanges,
+                object newState)
             {
                 this._workQueue.AssertIsForeground();
 
@@ -648,6 +652,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // and whatnot.
                 this.CachedTagTrees = newTagTrees;
                 this.AccumulatedTextChanges = null;
+                this.State = newState;
 
                 // Mark that we're up to date.  If any accurate taggers come along, they can use our
                 // cached information.
@@ -713,7 +718,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldTagTrees = this.CachedTagTrees;
 
                     var context = new TaggerContext<TTag>(
-                        spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, oldTagTrees, cancellationToken);
+                        this.State, spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, oldTagTrees, cancellationToken);
                     _dataSource.ProduceTagsAsync(context).Wait();
 
                     ProcessContext(spansToTag, oldTagTrees, context);

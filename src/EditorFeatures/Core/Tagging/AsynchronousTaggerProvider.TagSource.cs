@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private TextChangeRange? _accumulatedTextChanges_doNotAccessDirectly;
             private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTagTrees_doNotAccessDirectly;
+            private object _state_doNotAccessDirecty;
             private bool _upToDate_doNotAccessDirectly = false;
 
             #endregion
@@ -135,6 +136,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     this._workQueue.AssertIsForeground();
                     _cachedTagTrees_doNotAccessDirectly = value;
+                }
+            }
+
+            private object State
+            {
+                get
+                {
+                    this._workQueue.AssertIsForeground();
+                    return _state_doNotAccessDirecty;
+                }
+
+                set
+                {
+                    this._workQueue.AssertIsForeground();
+                    _state_doNotAccessDirecty = value;
                 }
             }
 
