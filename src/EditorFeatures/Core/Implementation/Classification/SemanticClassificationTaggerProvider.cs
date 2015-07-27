@@ -107,13 +107,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // there was top level edit, check whether that edit updated top level element
             var document = spanToTag.Document;
+            var cancellationToken = context.CancellationToken;
+
+            var lastSemanticVersion = (VersionStamp?)context.State;
+            if (lastSemanticVersion != null)
+            {
+                var currentSemanticVersion = await document.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                if (lastSemanticVersion.Value != currentSemanticVersion)
+                {
+                    // A top level change was made.  We can't perform this optimization.
+                    return false;
+                }
+            }
+
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
             // perf optimization. Check whether all edits since the last update has happened within
             // a member. If it did, it will find the member that contains the changes and only refresh
             // that member.  If possible, try to get a speculative binder to make things even cheaper.
 
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var changedSpan = new TextSpan(range.Value.Span.Start, range.Value.NewLength);
@@ -162,8 +174,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
 
+                    var version = await document.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+
                     // Let the context know that this was the span we actually tried to tag.
                     context.SetSpansTagged(SpecializedCollections.SingletonEnumerable(spanToTag));
+                    context.State = version;
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
