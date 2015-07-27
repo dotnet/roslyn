@@ -167,6 +167,13 @@
 
   <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
 
+  <Target Name="MarkDnuExecutable"
+          Condition="'$(TargetCoreClr)' == 'True' and '$(OS)' != 'Windows_NT'"
+          AfterTargets="EnsureGlobalNugets">
+    <Exec Command="chmod a+x &quot;$(DnxPackageDir)bin/dnu&quot;" />
+    <Exec Command="chmod a+x &quot;$(DnxPackageDir)bin/dnx&quot;" />
+  </Target>
+
   <!-- ====================================================================================
 
          Generation of AssemblyVersion attributes from the BuildVersion property
