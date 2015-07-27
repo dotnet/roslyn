@@ -66,16 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
         {
             // This is only called if the spans for the tags were the same. In that case, we consider ourselves the same
             // unless the CollapsedForm properties are different.
-            return object.Equals(x.CollapsedForm, y.CollapsedForm);
+            return EqualityComparer<object>.Default.Equals(x.CollapsedForm, y.CollapsedForm);
         }
 
         int IEqualityComparer<IOutliningRegionTag>.GetHashCode(IOutliningRegionTag obj)
         {
-            // This will not result in lots of hash collisions as our caller will
-            // first be hashing spans, and then adding this value to that.
-            // The only collisions will be for outlining tags with the same span
-            // (which is what we want).
-            return 0;
+            return EqualityComparer<object>.Default.GetHashCode(obj.CollapsedForm);
         }
 
         public override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
