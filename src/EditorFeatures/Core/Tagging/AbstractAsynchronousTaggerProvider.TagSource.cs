@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
                 _notificationService = notificationService;
-                _tagSpanComparer = new TagSpanComparer(this.TagComparer);
+                _tagSpanComparer = new TagSpanComparer(_dataSource.TagComparer);
 
                 this._workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 this.CachedTagTrees = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
@@ -108,9 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
 
-            private IEqualityComparer<TTag> TagComparer =>
-                _dataSource.TagComparer ?? EqualityComparer<TTag>.Default;
-
             private ITaggerEventSource CreateEventSource()
             {
                 var eventSource = _dataSource.CreateEventSource(_textViewOpt, _subjectBuffer);
@@ -118,15 +115,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // If there are any options specified for this tagger, then also hook up event
                 // notifications for when those options change.
                 var optionChangedEventSources =
-                    (_dataSource.Options ?? SpecializedCollections.EmptyEnumerable<IOption>()).Concat(
-                    (_dataSource.PerLanguageOptions ?? SpecializedCollections.EmptyEnumerable<IOption>())).Select(
-                        o => TaggerEventSources.OnOptionChanged(_subjectBuffer, o, TaggerDelay.NearImmediate)).ToList();
+                    _dataSource.Options.Concat<IOption>(_dataSource.PerLanguageOptions)
+                        .Select(o => TaggerEventSources.OnOptionChanged(_subjectBuffer, o, TaggerDelay.NearImmediate)).ToList();
 
                 if (optionChangedEventSources.Count == 0)
                 {
+                    // No options specified for this tagger.  So just keep the event source as is.
                     return eventSource;
                 }
-                
+
                 optionChangedEventSources.Add(eventSource);
                 return TaggerEventSources.Compose(optionChangedEventSources);
             }

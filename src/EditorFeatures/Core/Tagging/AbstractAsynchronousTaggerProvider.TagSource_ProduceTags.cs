@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Debug.Assert(_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag));
 
-                var caret = GetCaretPoint();
+                var caret = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
                 if (caret.HasValue)
                 {
                     // If it changed position and we're still in a tag, there's nothing more to do
@@ -93,12 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var difference = ComputeDifference(snapshot, newTagTree, oldTagTree);
                 RaiseTagsChanged(snapshot.TextBuffer, difference);
-            }
-
-            private SnapshotPoint? GetCaretPoint()
-            {
-                this.AssertIsForeground();
-                return _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer) ?? _textViewOpt?.GetCaretPoint(_subjectBuffer);
             }
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -291,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Make a copy of all the data we need while we're on the foreground.  Then
                     // pass it along everywhere needed.  Finally, once new tags have been computed,
                     // then we update our state again on the foreground.
-                    var caretPosition = this.GetCaretPoint();
+                    var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
                     var textChangeRange = this.AccumulatedTextChanges;
                     var oldTagTrees = this.CachedTagTrees;
                     var oldState = this.State;
@@ -309,10 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // TODO: Update to tag spans from all related documents.
 
                 var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
-                var dataSourceSpans = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer)?.ToList();
-                var spansToTag = dataSourceSpans == null || dataSourceSpans.Count == 0
-                    ? this.GetFullBufferSpan()
-                    : dataSourceSpans;
+                var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
 
                 var spansAndDocumentsToTag = spansToTag.Select(span =>
                 {
@@ -331,12 +322,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Debug.Assert(spansAndDocumentsToTag.Count > 0);
                 return spansAndDocumentsToTag;
-            }
-
-            private IList<SnapshotSpan> GetFullBufferSpan()
-            {
-                // For a standard tagger, the spans to tag is the span of the entire snapshot.
-                return new[] { _subjectBuffer.CurrentSnapshot.GetFullSpan() };
             }
 
             [Conditional("DEBUG")]
@@ -688,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 TagSpanIntervalTree<TTag> previousSpans)
             {
                 return new NormalizedSnapshotSpanCollection(
-                    Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), this.TagComparer));
+                    Difference(latestSpans.GetSpans(snapshot), previousSpans.GetSpans(snapshot), _dataSource.TagComparer));
             }
 
             /// <summary>
@@ -732,9 +717,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // Safe to access _cachedTagTrees here.  We're on the UI thread.
                     var oldTagTrees = this.CachedTagTrees;
+                    var caretPoint = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
 
                     var context = new TaggerContext<TTag>(
-                        this.State, spansToTag, GetCaretPoint(), this.AccumulatedTextChanges, oldTagTrees, cancellationToken);
+                        this.State, spansToTag, caretPoint, this.AccumulatedTextChanges, oldTagTrees, cancellationToken);
                     ProduceTagsAsync(context).Wait();
 
                     ProcessContext(spansToTag, oldTagTrees, context);

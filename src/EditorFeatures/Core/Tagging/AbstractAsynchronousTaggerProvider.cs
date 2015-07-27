@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -19,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     /// </summary>
     internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where TTag : ITag
     {
-        private readonly object uniqueKey = new object();
-        private readonly IAsynchronousOperationListener asyncListener;
-        private readonly IForegroundNotificationService notificationService;
+        private readonly object _uniqueKey = new object();
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IForegroundNotificationService _notificationService;
 
         /// <summary>
         /// The behavior the tagger engine will have when text changes happen to the subject buffer
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// If they are the same, then the UI will not be updated.  If they are different then
         /// the UI will be updated for sets of tags that have been removed or added.
         /// </summary>
-        protected virtual IEqualityComparer<TTag> TagComparer => null;
+        protected virtual IEqualityComparer<TTag> TagComparer => EqualityComparer<TTag>.Default;
 
         /// <summary>
         /// Options controlling this tagger.  The tagger infrastructure will check this option
@@ -63,20 +64,20 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// An empty enumerable, or null, can be returned to indicate that this tagger should 
         /// run unconditionally.
         /// </summary>
-        protected virtual IEnumerable<Option<bool>> Options => null;
-        protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => null;
+        protected virtual IEnumerable<Option<bool>> Options => SpecializedCollections.EmptyEnumerable<Option<bool>>();
+        protected virtual IEnumerable<PerLanguageOption<bool>> PerLanguageOptions => SpecializedCollections.EmptyEnumerable<PerLanguageOption<bool>>();
 
         protected AbstractAsynchronousTaggerProvider(
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService)
         {
-            this.asyncListener = asyncListener;
-            this.notificationService = notificationService;
+            this._asyncListener = asyncListener;
+            this._notificationService = notificationService;
         }
 
         private TagSource CreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            return new TagSource(textViewOpt, subjectBuffer, this, asyncListener, notificationService);
+            return new TagSource(textViewOpt, subjectBuffer, this, _asyncListener, _notificationService);
         }
 
         internal IAccurateTagger<T> GetOrCreateTagger<T>(ITextView textViewOpt, ITextBuffer subjectBuffer) where T : ITag
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             var tagSource = GetOrCreateTagSource(textViewOpt, subjectBuffer);
             return tagSource == null
                 ? null
-                : new Tagger(this.asyncListener, this.notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
+                : new Tagger(this._asyncListener, this._notificationService, tagSource, subjectBuffer) as IAccurateTagger<T>;
         }
 
         private TagSource GetOrCreateTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -113,19 +114,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         private bool TryRetrieveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer, out TagSource tagSource)
         {
             return textViewOpt != null
-                ? textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, uniqueKey, out tagSource)
-                : subjectBuffer.Properties.TryGetProperty(uniqueKey, out tagSource);
+                ? textViewOpt.TryGetPerSubjectBufferProperty(subjectBuffer, _uniqueKey, out tagSource)
+                : subjectBuffer.Properties.TryGetProperty(_uniqueKey, out tagSource);
         }
 
         private void RemoveTagSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
             if (textViewOpt != null)
             {
-                textViewOpt.RemovePerSubjectBufferProperty<TagSource, ITextView>(subjectBuffer, uniqueKey);
+                textViewOpt.RemovePerSubjectBufferProperty<TagSource, ITextView>(subjectBuffer, _uniqueKey);
             }
             else
             {
-                subjectBuffer.Properties.RemoveProperty(uniqueKey);
+                subjectBuffer.Properties.RemoveProperty(_uniqueKey);
             }
         }
 
@@ -133,11 +134,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         {
             if (textViewOpt != null)
             {
-                textViewOpt.AddPerSubjectBufferProperty(subjectBuffer, uniqueKey, tagSource);
+                textViewOpt.AddPerSubjectBufferProperty(subjectBuffer, _uniqueKey, tagSource);
             }
             else
             {
-                subjectBuffer.Properties.AddProperty(uniqueKey, tagSource);
+                subjectBuffer.Properties.AddProperty(_uniqueKey, tagSource);
             }
         }
 
@@ -146,14 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// determine the caret position.  This value will be passed in as the value to 
         /// <see cref="TaggerContext{TTag}.CaretPosition"/> in the call to
         /// <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>.
-        /// 
-        /// Return <code>null</code> to get the default tagger behavior.  This will the caret
-        /// position in the subject buffer this tagger is attached to.
         /// </summary>
         protected virtual SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            // Use 'null' to indicate that the tagger should get the default caret position.
-            return null;
+            return textViewOpt?.GetCaretPoint(subjectBuffer);
         }
 
         /// <summary>
@@ -164,14 +161,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
         /// and will asycnhronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> at some point in
         /// the future to produce tags for these spans.
-        /// 
-        /// Return <code>null</code> to get the default set of spans tagged.  This will normally be 
-        /// the span of the entire text buffer.
         /// </summary>
         protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            // Use 'null' to indicate that the tagger should tag the default set of spans.
-            return null;
+            // For a standard tagger, the spans to tag is the span of the entire snapshot.
+            return new[] { subjectBuffer.CurrentSnapshot.GetFullSpan() };
         }
 
         /// <summary>
