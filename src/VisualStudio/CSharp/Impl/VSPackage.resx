@@ -208,4 +208,8 @@
     <value>Style;Qualify;This;Code Style</value>
     <comment>C# Code Style options page keywords</comment>
   </data>
+  <data name="115" xml:space="preserve">
+    <value>Visual C#</value>
+    <comment>Code Snippets Manager Language Name</comment>
+  </data>
 </root>
