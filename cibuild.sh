@@ -6,7 +6,7 @@ usage()
     echo "usage: cibuild.sh [options]"
     echo ""
     echo "Options"
-    echo "  --mono-path <path>  Path to the mono installation to use for the run" 
+    echo "  --mono-path <path>  Path to the mono installation to use for the run"
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
@@ -39,7 +39,7 @@ do
         shift 1
         ;;
         *)
-        usage 
+        usage
         exit 1
         ;;
     esac
@@ -54,8 +54,8 @@ run_xbuild()
     fi
 }
 
-# NuGet crashes on occasion during restore.  This isn't a fatal action so 
-# we re-run it a number of times.  
+# NuGet crashes on occasion during restore.  This isn't a fatal action so
+# we re-run it a number of times.
 run_nuget()
 {
     i=5
@@ -146,7 +146,7 @@ install_mono_toolset()
 }
 
 # This function will update the PATH variable to put the desired
-# version of Mono ahead of the system one. 
+# version of Mono ahead of the system one.
 set_mono_path()
 {
     if [ "$CUSTOM_MONO_PATH" != "" ]; then
@@ -154,7 +154,7 @@ set_mono_path()
             echo "Not a valid directory $CUSTOM_MONO_PATH"
             exit 1
         fi
-  
+
         echo "Using mono path $CUSTOM_MONO_PATH"
         PATH=$CUSTOM_MONO_PATH:$PATH
         return
@@ -199,13 +199,10 @@ test_roslyn()
 }
 
 # NuGet on mono crashes about every 5th time we run it.  This is causing
-# Linux runs to fail frequently enough that we need to employ a 
-# temporary work around.  
+# Linux runs to fail frequently enough that we need to employ a
+# temporary work around.
 echo Restoring NuGet packages
 run_nuget restore Roslyn.sln
-# Mark DNU restore tool as executable
-chmod +x packages/dnx-mono.1.0.0-beta5-12101/bin/dnu
-chmod +x packages/dnx-mono.1.0.0-beta5-12101/bin/dnx
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 set_mono_path
@@ -215,4 +212,3 @@ save_toolset
 clean_roslyn
 build_roslyn
 test_roslyn
-
