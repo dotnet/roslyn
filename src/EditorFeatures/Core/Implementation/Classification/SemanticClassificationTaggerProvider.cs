@@ -108,10 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // there was top level edit, check whether that edit updated top level element
             var document = spanToTag.Document;
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            if (service == null)
-            {
-                return false;
-            }
 
             // perf optimization. Check whether all edits since the last update has happened within
             // a member. If it did, it will find the member that contains the changes and only refresh
