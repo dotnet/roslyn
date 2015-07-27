@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var lastSemanticVersion = (VersionStamp?)context.State;
             if (lastSemanticVersion != null)
             {
-                var currentSemanticVersion = await document.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                var currentSemanticVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 if (lastSemanticVersion.Value != currentSemanticVersion)
                 {
                     // A top level change was made.  We can't perform this optimization.
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
 
-                    var version = await document.GetTopLevelChangeTextVersionAsync(cancellationToken).ConfigureAwait(false);
+                    var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
                     // Let the context know that this was the span we actually tried to tag.
                     context.SetSpansTagged(SpecializedCollections.SingletonEnumerable(spanToTag));
