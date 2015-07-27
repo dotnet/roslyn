@@ -198,7 +198,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        D d=  new D
+        D d=  new D(
     }
 }";
             VerifyProviderCommit(markup, "D", expected, '(', "");
@@ -281,7 +281,7 @@ class C
 {
     void M1()
     {
-        object o = new object
+        object o = new object(
     }
 }";
 
@@ -308,7 +308,7 @@ class C
 {
     void M1()
     {
-        M2(new object
+        M2(new object(
     }
 
     void M2(object o) { }
@@ -335,7 +335,7 @@ class C
 {
     void M1()
     {
-        object o = new 
+        object o = new {
     }
 }";
 
@@ -362,7 +362,7 @@ class C
 {
     void M1()
     {
-        M2(new 
+        M2(new {
     }
 
     void M2(object o) { }

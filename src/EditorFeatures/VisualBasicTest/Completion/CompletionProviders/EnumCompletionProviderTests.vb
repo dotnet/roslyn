@@ -446,7 +446,7 @@ End Enum
  
 Class C
     Sub M()
-        Const e As E = E.A
+        Const e As E = E.A,
     End Sub
 End Class
 ]]></Text>.Value
