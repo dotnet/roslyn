@@ -78,15 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return;
             }
 
-            if (_classificationService == null)
-            {
-                _classificationService = document.Project.LanguageServices.GetService<IEditorClassificationService>();
-            }
-
-            if (_classificationService == null)
-            {
-                return;
-            }
+            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
 
             var cancellationToken = context.CancellationToken;
             await ProduceTagsAsync(context, spanToTag).ConfigureAwait(false);
@@ -166,13 +158,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var cancellationToken = context.CancellationToken;
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
-                    var textSpan = snapshotSpan.Span.ToTextSpan();
-                    var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
-
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
                     await _classificationService.AddSemanticClassificationsAsync(
-                        document, textSpan, classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);

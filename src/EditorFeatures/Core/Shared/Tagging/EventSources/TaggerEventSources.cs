@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// Reports an event any time the semantics have changed such that this subjectBuffer should
         /// be retagged.  Semantics are considered changed for a buffer if an edit happens directly
         /// in that buffer, or if a top level visible change happens in any sibling document or in 
-        /// any dependent documents.
+        /// any dependent projects' documents.
         /// </summary>
         public static ITaggerEventSource OnSemanticChanged(ITextBuffer subjectBuffer, TaggerDelay delay, ISemanticChangeNotificationService notificationService)
         {

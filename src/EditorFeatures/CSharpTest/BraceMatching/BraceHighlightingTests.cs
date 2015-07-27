@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             ITextBuffer buffer,
             int position)
         {
-            var producer = new BraceHighlightingViewTaggerProvider(
+            var provider = new BraceHighlightingViewTaggerProvider(
                 workspace.GetService<IBraceMatchingService>(),
                 workspace.GetService<IForegroundNotificationService>(),
                 AggregateAsynchronousOperationListener.EmptyListeners);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching
             var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
             var context = new TaggerContext<BraceHighlightTag>(
                 document, buffer.CurrentSnapshot,
-                new SnapshotPoint(buffer.CurrentSnapshot, position), null, CancellationToken.None);
-            producer.ProduceTagsAsync(context).Wait();
+                new SnapshotPoint(buffer.CurrentSnapshot, position));
+            provider.ProduceTagsAsync(context).Wait();
 
             return context.tagSpans;
         }
