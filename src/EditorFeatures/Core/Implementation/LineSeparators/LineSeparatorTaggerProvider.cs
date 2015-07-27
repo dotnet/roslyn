@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 return;
             }
 
-            // note: we are not directly using the syntax tree root here, we are holding onto it so that the 
-            // line separator service won't block trying to get it.
-
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
             {
                 var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
