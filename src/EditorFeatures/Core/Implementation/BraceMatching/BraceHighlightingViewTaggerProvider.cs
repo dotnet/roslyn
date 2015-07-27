@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 
         private async Task ProduceTagsForBracesAsync(TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position, bool rightBrace)
         {
-            if (position >= 0 && position < snapshot.Length)
+            if (position >= 0 && position <= snapshot.Length)
             {
                 var braces = await _braceMatcherService.GetMatchingBracesAsync(document, position, context.CancellationToken).ConfigureAwait(false);
                 if (braces.HasValue)

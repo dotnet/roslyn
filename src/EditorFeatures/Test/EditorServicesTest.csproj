@@ -203,6 +203,7 @@
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AbstractAutomaticLineEnderTests.cs" />
+    <Compile Include="BraceHighlighting\AbstractBraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\AbstractBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTestState.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureTests.cs" />
