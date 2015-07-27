@@ -136,8 +136,8 @@
     <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
 
     <DnxVersion>1.0.0-beta5-12101</DnxVersion>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'!='Unix'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)' == 'Windows_NT'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
+    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)' != 'Windows_NT'">dnx-mono.$(DnxVersion)</DnxPackageName>
 
     <NuGetToolPath Condition="'$(NuGetToolPath)' == ''">$(NuGetPackagesPath)\..\.nuget\</NuGetToolPath>
     <NuGetConfigCommandLine>-ConfigFile "$(NuGetConfigFile)"</NuGetConfigCommandLine>
@@ -148,8 +148,8 @@
     <NugetRestoreCommand>$(NugetRestoreCommand) -Config "$(NuGetToolPath)NuGet.Config"</NugetRestoreCommand>
 
     <DnxPackageDir Condition="'$(DnxPackageDir)'==''">$([System.IO.Path]::GetFullPath('$(NuGetPackagesPath)'))\$(DnxPackageName)\</DnxPackageDir>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' == 'Windows_NT'">$(DnxPackageDir)\bin\dnu.cmd</DnuToolPath>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' != 'Windows_NT'">$(DnxPackageDir)/bin/dnu</DnuToolPath>
+    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' == 'Windows_NT'">$(DnxPackageDir)bin\dnu.cmd</DnuToolPath>
+    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' != 'Windows_NT'">$(DnxPackageDir)bin/dnu</DnuToolPath>
 
     <DnuRestoreCommand>"$(DnuToolPath)"</DnuRestoreCommand>
     <DnuRestoreCommand>$(DnuRestoreCommand) restore</DnuRestoreCommand>
