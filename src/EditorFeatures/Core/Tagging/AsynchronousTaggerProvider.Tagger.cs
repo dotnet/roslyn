@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         _batchChangeNotifier.EnqueueChanges(change.Value);
                     }
 
-                }, TaggerDelay.NearImmediate.ComputeTimeDelayMS(), CancellationToken.None);
+                }, (int)TaggerDelay.NearImmediate.ComputeTimeDelay().TotalMilliseconds, CancellationToken.None);
             }
 
             public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection requestedSpans)

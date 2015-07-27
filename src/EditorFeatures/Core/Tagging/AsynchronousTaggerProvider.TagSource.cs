@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // want to continue it if new changes have come in.
                 this._workQueue.CancelCurrentWork();
 
-                RegisterNotification(RecomputeTagsForeground, e.Delay.ComputeTimeDelayMS(this._subjectBuffer), this._workQueue.CancellationToken);
+                RegisterNotification(RecomputeTagsForeground, (int)e.Delay.ComputeTimeDelay(this._subjectBuffer).TotalMilliseconds, this._workQueue.CancellationToken);
             }
 
             private void Connect()

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
 
                 var currentTick = Environment.TickCount;
-                if (Math.Abs(currentTick - _lastReportTick) > TaggerDelay.NearImmediate.ComputeTimeDelayMS(_subjectBuffer))
+                if (Math.Abs(currentTick - _lastReportTick) > TaggerDelay.NearImmediate.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds)
                 {
                     _lastReportTick = currentTick;
                     this.NotifyEditor();
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // to run at a later point.
                     _notificationRequestEnqueued = false;
                         this.NotifyEditor();
-                    }, delay.ComputeTimeDelayMS(_subjectBuffer), _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
+                    }, (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
                 }
             }
 
