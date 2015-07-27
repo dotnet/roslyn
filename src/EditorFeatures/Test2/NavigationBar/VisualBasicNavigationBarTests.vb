@@ -1,6 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.FormattingOptions
+Imports Microsoft.CodeAnalysis.Options
 
 #Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
 
@@ -1024,6 +1027,60 @@ End Class
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S",
                 expectedVirtualSpace:=4)
+        End Sub
+
+        <WorkItem(2509, "https://github.com/dotnet/roslyn/issues/2509")>
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Sub GenerateEventHandler_WithNoneIndent()
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(New OptionKey(FormattingOptions.SmartIndent, LanguageNames.VisualBasic), IndentStyle.None)
+            AssertGeneratedResultIs(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+Private WithEvents foo As System.Console
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                "foo", "CancelKeyPress",
+                <Result>
+Class C
+Private WithEvents foo As System.Console
+
+Private Sub foo_CancelKeyPress(sender As Object, e As ConsoleCancelEventArgs) Handles foo.CancelKeyPress
+
+End Sub
+End Class
+                </Result>, changingOptions)
+        End Sub
+
+        <WorkItem(2509, "https://github.com/dotnet/roslyn/issues/2509")>
+    <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Sub GenerateEventHandler_WithBlockIndent()
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(New OptionKey(FormattingOptions.SmartIndent, LanguageNames.VisualBasic), IndentStyle.Block)
+            AssertGeneratedResultIs(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Private WithEvents foo As System.Console
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                "foo", "CancelKeyPress",
+                <Result>
+Class C
+    Private WithEvents foo As System.Console
+
+    Private Sub foo_CancelKeyPress(sender As Object, e As ConsoleCancelEventArgs) Handles foo.CancelKeyPress
+
+    End Sub
+End Class
+                </Result>, changingOptions)
         End Sub
     End Class
 End Namespace

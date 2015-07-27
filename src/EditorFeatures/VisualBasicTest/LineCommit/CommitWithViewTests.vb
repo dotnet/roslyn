@@ -6,6 +6,9 @@ Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.FormattingOptions
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
@@ -1053,6 +1056,72 @@ Module M1
 
 End Module
 </Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        <WorkItem(2509, "https://github.com/dotnet/roslyn/issues/2509")>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub CommitAfterTypingWithNoneIndent()
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(New OptionKey(FormattingOptions.SmartIndent, LanguageNames.VisualBasic), IndentStyle.None)
+            Using testData = New CommitTestData(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>Class Program
+    Sub Main(args As String())
+    $$
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>, changingOptions)
+
+                Dim expected = <Code>Class Program
+    Sub Main(args As String())
+    Dim s = 1
+Dim ss = 2
+    End Sub
+End Class
+</Code>
+
+                testData.EditorOperations.InsertText("Dim s = 1")
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.InsertText("Dim ss = 2")
+
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        <WorkItem(2509, "https://github.com/dotnet/roslyn/issues/2509")>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub CommitAfterTypingWithBlockIndent()
+            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
+            changingOptions.Add(New OptionKey(FormattingOptions.SmartIndent, LanguageNames.VisualBasic), IndentStyle.Block)
+            Using testData = New CommitTestData(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>Class Program
+    Sub Main(args As String())
+    $$
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>, changingOptions)
+
+                Dim expected = <Code>Class Program
+    Sub Main(args As String())
+    Dim s = 1
+    Dim ss = 2
+    End Sub
+End Class
+</Code>
+
+                testData.EditorOperations.InsertText("Dim s = 1")
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.InsertText("Dim ss = 2")
+
                 Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub

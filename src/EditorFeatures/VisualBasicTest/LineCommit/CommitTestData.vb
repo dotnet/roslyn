@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -25,8 +26,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _formatter As FormatterMock
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
-        Public Sub New(test As XElement)
+        Public Sub New(test As XElement, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing)
             Workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            If changedOptionSet IsNot Nothing Then
+                Dim optionSet = Workspace.Options
+
+                For Each entry In changedOptionSet
+                    optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
+                Next
+
+                Workspace.Services.GetService(Of IOptionService)().SetOptions(optionSet)
+            End If
+
             View = Workspace.Documents.Single().GetTextView()
             EditorOperations = Workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(View)
 
