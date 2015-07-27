@@ -217,7 +217,11 @@ test_roslyn()
         Roslyn.Compilers.CSharp.Syntax.UnitTests
         Roslyn.Compilers.CSharp.Semantic.UnitTests
         Roslyn.Compilers.CSharp.Symbol.UnitTests
-        Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
+        Roslyn.Compilers.VisualBasic.Syntax.UnitTests
+        Microsoft.CodeAnalysis.Scripting.UnitTests
+        Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
+        Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests)
+
     local any_failed=false
 
     for i in "${test_binaries[@]}"
