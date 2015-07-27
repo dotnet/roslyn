@@ -562,10 +562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' do not include the new line character since that would confuse code handling
                 ' implicit line continuations. (See Scanner::EatLineContinuation.) Otherwise,
                 ' include the new line and any additional spaces as trivia.
-                If startComment = 0 AndAlso
-                    CanGet(Here) AndAlso
-                    Not IsNewLine(Peek(Here)) Then
-
+                If startComment = 0 AndAlso Peep(Here, ch) AndAlso Not IsNewLine(Peek(Here)) Then
                     tList.Add(MakeEndOfLineTrivia(GetText(newLine)))
                     If spaces > 0 Then
                         tList.Add(MakeWhiteSpaceTrivia(GetText(spaces)))
@@ -941,7 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' eat all chars until EoL]
                 Dim ch As Char
-                While Peep(length, ch) AndAlso Not IsNewLine(Peek(length))
+                While Peep(length, ch) AndAlso Not IsNewLine(ch)
                     length += 1
                 End While
 
@@ -1461,10 +1458,7 @@ FullWidthRepeat:
 
             ' check if we can start an ident.
             If Not IsIdentifierStartCharacter(ch) OrElse
-                (IsConnectorPunctuation(ch) AndAlso
-                    Not (Peep(Here + 1, cx) AndAlso
-                         IsIdentifierPartCharacter(cx))) Then
-
+                (IsConnectorPunctuation(ch) AndAlso Not (Peep(Here + 1, cx) AndAlso IsIdentifierPartCharacter(cx))) Then
                 InvalidIdentifier = True
             End If
 
@@ -1480,13 +1474,7 @@ FullWidthRepeat:
 
                         ' TODO: consider interning.
                         Dim baseText = spelling.Substring(1, IdStringLength)
-                        Dim id As SyntaxToken = MakeIdentifier(
-                            spelling,
-                            SyntaxKind.IdentifierToken,
-                            True,
-                            baseText,
-                            TypeCharacter.None,
-                            precedingTrivia)
+                        Dim id As SyntaxToken = MakeIdentifier(spelling, SyntaxKind.IdentifierToken, True, baseText, TypeCharacter.None, precedingTrivia)
                         Return id
                     Else
                         ' // The sequence "[]" does not define a valid identifier.
@@ -1578,11 +1566,8 @@ FullWidthRepeat:
             ' // read the rest of a float literal.
             If Base = LiteralBase.Decimal AndAlso Peep(Here, ch) Then
                 ' // First read a '.' followed by a sequence of one or more digits.
-                If (ch = "."c Or ch = FULLWIDTH_FULL_STOP) AndAlso
-                       Peep(Here + 1, cx) AndAlso IsDecimalDigit(cx) Then
-
+                If (ch = "."c Or ch = FULLWIDTH_FULL_STOP) AndAlso Peep(Here + 1, cx) AndAlso IsDecimalDigit(cx) Then
                     Here += 2   ' skip dot and first digit
-
                     ' all following decimal digits belong to the literal (fractional part)
                     While Peep(Here, ch) AndAlso IsDecimalDigit(ch)
                         Here += 1
@@ -1893,16 +1878,12 @@ FullWidthRepeat2:
 
             Dim IntegralValue As Integer = IntegralLiteralCharacterValue(ch)
             Here += 1
-
-            While Peep(Here, ch)
-
-                If Not IsDecimalDigit(ch) Then
-                    Exit While
-                End If
+            Const xxx As Integer = 214748364
+            While Peep(Here, ch) AndAlso Not IsDecimalDigit(ch)
 
                 Dim nextDigit = IntegralLiteralCharacterValue(ch)
-                If IntegralValue < 214748364 OrElse
-                    (IntegralValue = 214748364 AndAlso nextDigit < 8) Then
+                If (IntegralValue < xxx) OrElse
+                    (IntegralValue = xxx AndAlso nextDigit < 8) Then
 
                     IntegralValue = IntegralValue * 10 + nextDigit
                     Here += 1
