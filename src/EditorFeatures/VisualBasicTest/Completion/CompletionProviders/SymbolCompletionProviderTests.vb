@@ -6495,5 +6495,24 @@ End Class
             VerifyItemIsAbsent(text, "X")
         End Sub
 
+        <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ColorColorInstanceSharedRegression()
+            Dim text =
+<code><![CDATA[
+Class Instance
+    Public Shared x as Integer
+    Public y as Integer
+End Class
+
+Class Program
+    Sub Foo()
+        Instance.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "y")
+            VerifyItemExists(text, "x")
+        End Sub
     End Class
 End Namespace
