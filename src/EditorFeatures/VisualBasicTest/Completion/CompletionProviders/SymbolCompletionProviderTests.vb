@@ -6497,7 +6497,7 @@ End Class
 
         <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub ColorColorInstanceSharedRegression()
+        Public Sub NoInstanceMembersWhenDottingIntoType()
             Dim text =
 <code><![CDATA[
 Class Instance
@@ -6514,5 +6514,27 @@ End Class
             VerifyItemIsAbsent(text, "y")
             VerifyItemExists(text, "x")
         End Sub
+
+        <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoSharedMemberWhenDottingIntoInstance()
+            Dim text =
+<code><![CDATA[
+Class Instance
+    Public Shared x as Integer
+    Public y as Integer
+End Class
+
+Class Program
+    Sub Foo()
+        Dim x = new Instance()
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "x")
+            VerifyItemExists(text, "y")
+        End Sub
+
     End Class
 End Namespace
