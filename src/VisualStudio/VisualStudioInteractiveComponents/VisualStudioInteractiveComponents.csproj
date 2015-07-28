@@ -149,18 +149,22 @@
   </ItemGroup>
   <!--
     The VsSdk specifically excludes System.Collections.Immutable and System.Reflection.Metadata from
-    the output vsix, so we'll have to mark them with ForceIncludeInVSIX=true.  This is necessary so
-    that the InteractiveHost.exe process can load these assemblies (different from other extensions,
+    the output vsix, so we'll have to mark them with "ForceIncludeInVSIX=true".  In addition, these
+    references need to be marked "Private=true" in case they are resolved from the GAC (in that case,
+    ForceIncludeInVSIX will not be sufficient).  All of this is necessary so the InteractiveHost.exe
+    process can load these assemblies from the extensions folder (different from other extensions,
     which are loaded into VS and get the versions of the dlls that VS has loaded).
   -->
   <ItemGroup>
     <Reference Include="System.Collections.Immutable">
       <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll"</HintPath>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX> <!-- REQUIRED - see comment above -->
+      <Private>true</Private> <!-- REQUIRED - see comment above -->
     </Reference>
     <Reference Include="System.Reflection.Metadata">
       <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX> <!-- REQUIRED - see comment above -->
+      <Private>true</Private> <!-- REQUIRED - see comment above -->
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
