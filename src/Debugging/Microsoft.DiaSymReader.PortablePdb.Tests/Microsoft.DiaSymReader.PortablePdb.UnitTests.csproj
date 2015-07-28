@@ -26,13 +26,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
+      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
+      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
     <Reference Include="..\..\..\packages\System.IO.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.dll">
       <Private>False</Private>
@@ -49,10 +58,19 @@
     <Reference Include="..\..\..\packages\System.Runtime.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.dll">
       <Private>False</Private>
     </Reference>
+    <Reference Include="..\..\..\packages\System.Runtime.Loader.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Loader.dll">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="..\..\..\packages\System.Reflection.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.dll">
       <Private>False</Private>
     </Reference>
     <Reference Include="..\..\..\packages\System.Reflection.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Primitives.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Reflection.Extensions.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Extensions.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Resources.ResourceManager.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Resources.ResourceManager.dll">
       <Private>False</Private>
     </Reference>
     <Reference Include="..\..\..\packages\System.Runtime.InteropServices.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.InteropServices.dll">
@@ -64,10 +82,36 @@
     <Reference Include="..\..\..\packages\System.Linq.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Linq.dll">
       <Private>False</Private>
     </Reference>
-    <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
-      <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
-      <Name>Microsoft.DiaSymReader.PortablePdb</Name>
-    </ProjectReference>
+    <Reference Include="..\..\..\packages\System.Diagnostics.Debug.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Debug.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Diagnostics.Tools.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Globalization.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Globalization.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Text.Encoding.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Text.Encoding.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Threading.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.dll">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="..\..\..\packages\System.Threading.Tasks.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.Tasks.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </Content>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
@@ -82,28 +126,39 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Async.pdbx" />
+    <EmbeddedResource Include="Resources\Async.dll">
+      <LogicalName>Async.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.pdbx">
+      <LogicalName>Async.pdbx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.dll">
+      <LogicalName>Documents.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.pdbx">
+      <LogicalName>Documents.pdbx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Scopes.dll">
+      <LogicalName>Scopes.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Scopes.pdbx">
+      <LogicalName>Scopes.pdbx</LogicalName>
+    </EmbeddedResource>
     <None Include="Resources\build.cmd" />
-    <EmbeddedResource Include="Resources\Async.dll" />
-    <Content Include="Resources\Documents.cs" />
-    <EmbeddedResource Include="Resources\Documents.dll" />
-    <EmbeddedResource Include="Resources\Documents.pdbx" />
     <None Include="Resources\Scopes.cs" />
-    <EmbeddedResource Include="Resources\Scopes.dll" />
-    <EmbeddedResource Include="Resources\Scopes.pdbx" />
     <None Include="Resources\Async.cs" />
-    <Compile Include="Resources\TestResources.cs" />
+    <Content Include="Resources\Documents.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
+      <Link>TestHelpers\ComStreamWrapper.cs</Link>
+    </Compile>
+    <Compile Include="ResourceLoader.cs" />
+    <Compile Include="SymBinderTests.cs" />
+    <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers\AssertEx.cs" />
     <Compile Include="Utilities\EnumerableHelpersTests.cs" />
-    <Compile Include="SymMetadataImport.cs" />
+    <Compile Include="Utilities\SymMetadataImport.cs" />
     <Compile Include="SymReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
