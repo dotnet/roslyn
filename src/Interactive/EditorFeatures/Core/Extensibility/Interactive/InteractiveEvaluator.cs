@@ -13,7 +13,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -28,6 +27,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
 using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {

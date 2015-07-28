@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
     // TODO(cyrusn): Use a predefined name here.
     [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
 
         private ICurrentWorkingDirectoryDiscoveryService GetFileSystemDiscoveryService(ITextSnapshot textSnapshot)
         {
-            return PathCompletionUtilities.GetCurrentWorkingDirectoryDiscoveryService(textSnapshot);
+            return CurrentWorkingDirectoryDiscoveryService.GetService(textSnapshot);
         }
 
         private TextSpan GetTextChangeSpan(SyntaxToken stringLiteral, int position)
