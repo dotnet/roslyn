@@ -58,6 +58,31 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Method_WithVerbatimParams()
+        {
+            var code =
+@"class C
+{
+    //$$
+    int M<@T>(int @foo) { return 0; }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""foo""></param>
+    /// <returns></returns>
+    int M<@T>(int @foo) { return 0; }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_AutoProperty()
         {
             var code =
@@ -160,6 +185,30 @@ class C
     /// <typeparam name=""T""></typeparam>
     /// <param name=""foo""></param>
     void M<T>(int foo) {  }
+}";
+
+            VerifyTypingCharacter(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_VoidMethod_WithVerbatimParams()
+        {
+            var code =
+@"class C
+{
+    //$$
+    void M<@T>(int @foo) {  }
+}";
+
+            var expected =
+@"class C
+{
+    /// <summary>
+    /// $$
+    /// </summary>
+    /// <typeparam name=""T""></typeparam>
+    /// <param name=""foo""></param>
+    void M<@T>(int @foo) {  }
 }";
 
             VerifyTypingCharacter(code, expected);
