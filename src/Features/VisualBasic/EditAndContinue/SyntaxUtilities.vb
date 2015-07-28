@@ -141,8 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    Not DirectCast(propertyDeclaration, PropertyStatementSyntax).Modifiers.Any(SyntaxKind.MustOverrideKeyword)
         End Function
 
-        Public Shared Function IsAsyncMethodOrLambda(declaration As SyntaxNode) As Boolean
-            Return GetModifiers(declaration).Any(SyntaxKind.AsyncKeyword)
+        Public Shared Function IsAsyncMethodOrLambda(declarationOrBody As SyntaxNode) As Boolean
+            Return GetModifiers(declarationOrBody).Any(SyntaxKind.AsyncKeyword)
         End Function
 
         Public Shared Function IsIteratorMethodOrLambda(declaration As SyntaxNode) As Boolean
@@ -162,21 +162,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         End Function
 
-        Public Shared Function GetModifiers(declaration As SyntaxNode) As SyntaxTokenList
-            Select Case declaration.Kind
+        Public Shared Function GetModifiers(declarationOrBody As SyntaxNode) As SyntaxTokenList
+            Select Case declarationOrBody.Kind
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock
-                    Return DirectCast(declaration, MethodBlockBaseSyntax).BlockStatement.Modifiers
+                    Return DirectCast(declarationOrBody, MethodBlockBaseSyntax).BlockStatement.Modifiers
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
-                    Return DirectCast(declaration, LambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
+                    Return DirectCast(declarationOrBody, LambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
 
                 Case SyntaxKind.FunctionLambdaHeader,
                      SyntaxKind.SubLambdaHeader
-                    Return DirectCast(declaration, LambdaHeaderSyntax).Modifiers
+                    Return DirectCast(declarationOrBody, LambdaHeaderSyntax).Modifiers
             End Select
 
             Return Nothing
