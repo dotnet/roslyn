@@ -14,7 +14,7 @@ The Roslyn source code targets the latest public build of Visual Studio 2015.  A
 ## Running Unit Tests
 To run the unit tests:
 
-> msbuild /v:m /m BuildAndTest.proj /p:PublicBuild=true
+> msbuild /v:m /m BuildAndTest.proj /p:PublicBuild=true /p:DeployExtension=false
 
 This command will build and run all of the code / tests which are supported on the current public build of Visual Studio 2015.  
 
