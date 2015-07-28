@@ -127,7 +127,7 @@
 
   <PropertyGroup Condition="'$(TargetCoreClr)' == 'True'">
 
-    <BuildToolsVersion>1.0.25-prerelease-00063</BuildToolsVersion>
+    <BuildToolsVersion>1.0.25-prerelease-00064</BuildToolsVersion>
 
     <!-- fix this to be not hacky -->
     <BuildToolsDir>$(NuGetPackagesPath)\Microsoft.DotNet.BuildTools.$(BuildToolsVersion)\lib\</BuildToolsDir>
