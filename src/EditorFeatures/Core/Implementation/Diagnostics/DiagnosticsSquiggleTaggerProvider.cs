@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [TagType(typeof(IErrorTag))]
     internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsTaggerProvider<IErrorTag>
     {
-        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions = new[] { EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider };
         private readonly bool _blueSquiggleForBuildDiagnostic;
 
-        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions = new[] { EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider };
+        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsSquiggleTaggerProvider(
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             _blueSquiggleForBuildDiagnostic = optionService.GetOption(InternalDiagnosticsOptions.BlueSquiggleForBuildDiagnostic);
         }
 
-        protected override bool IsEnabled => true;
+        protected internal override bool IsEnabled => true;
 
-        protected override bool IncludeDiagnostic(DiagnosticData diagnostic)
+        protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             var isUnnecessary = (diagnostic.Severity == DiagnosticSeverity.Hidden && diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override ITagSpan<IErrorTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data)
+        protected internal override ITagSpan<IErrorTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
         {
             var errorTag = CreateErrorTag(data);
             if (errorTag == null)
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            // Error squiggles have to be at least 1 character long.
-            var minimumLength = 1;
+            // Live update squiggles have to be at least 1 character long.
+            var minimumLength = isLiveUpdate ? 1 : 0;
             var adjustedSpan = AdjustSnapshotSpan(span, minimumLength);
             if (adjustedSpan.Length == 0)
             {

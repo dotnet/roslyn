@@ -366,6 +366,8 @@
     <Compile Include="Implementation\Debugging\IBreakpointResolutionService.cs" />
     <Compile Include="Implementation\Debugging\ILanguageDebugInfoService.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsTaggerProvider.cs" />
+    <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsTaggerProvider.AggregatingTagger.cs" />
+    <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsTaggerProvider.TaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSquiggleTaggerProvider.cs" />

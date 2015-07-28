@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
 
-        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         public DiagnosticsClassificationTaggerProvider(
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         // if we are under high contrast mode, don't return anything.
         // this basically will make us not fade out in high contrast mode (ex, unused usings)
-        protected override bool IsEnabled => !HighContrastChecker.IsHighContrast;
+        protected internal override bool IsEnabled => !HighContrastChecker.IsHighContrast;
 
-        protected override bool IncludeDiagnostic(DiagnosticData data) =>
+        protected internal override bool IncludeDiagnostic(DiagnosticData data) =>
             data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
-        protected override ITagSpan<ClassificationTag> CreateTagSpan(SnapshotSpan span, DiagnosticData data) =>
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
             new TagSpan<ClassificationTag>(span, _classificationTag);
     }
 }

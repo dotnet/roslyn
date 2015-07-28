@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void ReportChangedSpan(SnapshotSpan changeSpan)
             {
+                _batchChangeNotifier.AssertIsForeground();
+
                 var tagsChanged = TagsChanged;
                 if (tagsChanged != null)
                 {

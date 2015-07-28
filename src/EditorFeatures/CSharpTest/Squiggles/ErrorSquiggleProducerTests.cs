@@ -170,10 +170,10 @@ class Program
 
                 var spans = GetErrorsFromUpdateSource(workspace, document, updateArgs);
 
-                // Make sure the diagnostic span has been appropriately widened.
-                Assert.Equal(2, spans.Count());
-                Assert.Equal(1, spans[0].Span.Span.Length);
-                Assert.Equal(1, spans[1].Span.Span.Length);
+                Assert.Equal(1, spans.Count());
+                var first = spans.First();
+
+                Assert.Equal(1, first.Span.Span.Length);
             }
         }
 

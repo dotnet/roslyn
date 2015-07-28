@@ -202,6 +202,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void NotifyEditorNow(NormalizedSnapshotSpanCollection normalizedSpans)
             {
+                this.AssertIsForeground();
+
                 using (Logger.LogBlock(FunctionId.Tagger_BatchChangeNotifier_NotifyEditorNow, CancellationToken.None))
                 {
                     if (normalizedSpans.Count == 0)
