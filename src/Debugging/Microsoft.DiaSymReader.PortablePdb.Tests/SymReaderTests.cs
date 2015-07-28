@@ -3,22 +3,26 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Reflection.Metadata;
 using Xunit;
+using System.IO;
+using System.Collections.Generic;
 
 namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 {
     public class SymReaderTests
     {
-        private static SymReader CreateSymReaderFromResource(string name)
+        #region Helpers
+
+        private static SymReader CreateSymReaderFromResource(KeyValuePair<byte[], byte[]> peAndPdb)
         {
             MetadataReader mdReader;
-            return CreateSymReaderFromResource(name, out mdReader);
+            return CreateSymReaderFromResource(peAndPdb, out mdReader);
         }
 
-        private static SymReader CreateSymReaderFromResource(string name, out MetadataReader mdReader)
+        private static SymReader CreateSymReaderFromResource(KeyValuePair<byte[], byte[]> peAndPdb, out MetadataReader mdReader)
         {
-            var importer = new SymMetadataImport(TestResources.ResourceHelper.GetResourceStream(name + ".dll"));
+            var importer = new SymMetadataImport(new MemoryStream(peAndPdb.Key));
             mdReader = importer.MetadataReader;
-            return new SymReader(new PortablePdbReader(TestResources.ResourceHelper.GetResourceStream(name + ".pdbx"), importer));
+            return new SymReader(new PortablePdbReader(peAndPdb.Value, peAndPdb.Value.Length, importer));
         }
 
         private void ValidateDocumentUrl(ISymUnmanagedDocument document, string url)
@@ -236,12 +240,14 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             }
         }
 
+        #endregion
+
         [Fact]
         public unsafe void TestMetadataHeaders1()
         {
-            fixed (byte* pdbPtr = TestResources.Documents.pdb)
+            fixed (byte* pdbPtr = TestResources.Documents.Pdb)
             {
-                var pdbReader = new MetadataReader(pdbPtr, TestResources.Documents.pdb.Length);
+                var pdbReader = new MetadataReader(pdbPtr, TestResources.Documents.Pdb.Length);
                 Assert.Equal("PDB v0.1", pdbReader.MetadataVersion);
                 Assert.Equal(MetadataKind.Ecma335, pdbReader.MetadataKind);
                 Assert.False(pdbReader.IsAssembly);
@@ -252,7 +258,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestGetDocuments1()
         {
-            var symReader = CreateSymReaderFromResource("Documents");
+            var symReader = CreateSymReaderFromResource(TestResources.Documents.DllAndPdb);
 
             int actualCount;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(0, out actualCount, null));
@@ -283,7 +289,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestGetDocument1()
         {
-            var symReader = CreateSymReaderFromResource("Documents");
+            var symReader = CreateSymReaderFromResource(TestResources.Documents.DllAndPdb);
             TestGetDocument(symReader, @"x.cs", expectedUrl: @"C:\a\b\c\d\x.cs");
             TestGetDocument(symReader, @"X.CS", expectedUrl: @"C:\a\b\c\d\x.cs");
             TestGetDocument(symReader, @"1.cs", expectedUrl: @"C:\a\b\c\d\1.cs");
@@ -316,7 +322,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestSymGetAttribute()
         {
-            var symReader = CreateSymReaderFromResource("Documents");
+            var symReader = CreateSymReaderFromResource(TestResources.Documents.DllAndPdb);
 
             int actualCount;
             int actualCount2;
@@ -326,13 +332,13 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             Assert.Equal(HResult.S_OK, symReader.GetSymAttribute(0, "<PortablePdbImage>", actualCount, out actualCount2, image));
             Assert.Equal(actualCount, actualCount2);
 
-            AssertEx.Equal(TestResources.Documents.pdb, image);
+            AssertEx.Equal(TestResources.Documents.Pdb, image);
         }
 
         [Fact]
         public void TestMethods1()
         {
-            var symReader = CreateSymReaderFromResource("Scopes");
+            var symReader = CreateSymReaderFromResource(TestResources.Scopes.DllAndPdb);
             int count;
 
             //
@@ -459,7 +465,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestAsyncMethods()
         {
-            var symReader = CreateSymReaderFromResource("Async");
+            var symReader = CreateSymReaderFromResource(TestResources.Async.DllAndPdb);
 
             ValidateAsyncMethod(
                 symReader, 
@@ -481,7 +487,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestAsyncMethods_GetAsyncStepInfo()
         {
-            var symReader = CreateSymReaderFromResource("Async");
+            var symReader = CreateSymReaderFromResource(TestResources.Async.DllAndPdb);
 
             ISymUnmanagedMethod method;
             Assert.Equal(HResult.S_OK, symReader.GetMethod(0x06000005, out method));
@@ -526,7 +532,7 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         [Fact]
         public void TestAsyncMethods_Errors()
         {
-            var symReader = CreateSymReaderFromResource("Scopes");
+            var symReader = CreateSymReaderFromResource(TestResources.Scopes.DllAndPdb);
 
             ISymUnmanagedMethod method;
             Assert.Equal(HResult.S_OK, symReader.GetMethod(0x06000002, out method));

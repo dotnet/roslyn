@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -23,14 +21,8 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         private int _version;
 
-        /// <summary>
-        /// Creates <see cref="SymReader"/>.
-        /// </summary>
-        /// <param name="pdbReader"></param>
-        /// <remarks>
-        /// Takes ownership of <paramref name="pdbReader"/>.
-        /// </remarks>
-        public SymReader(PortablePdbReader pdbReader)
+        // Takes ownership of <paramref name="pdbReader"/>.
+        internal SymReader(PortablePdbReader pdbReader)
         {
             Debug.Assert(pdbReader != null);
 
@@ -47,8 +39,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int Destroy()
         {
+            if (_pdbReader.IsDisposed)
+            {
+                return HResult.S_OK;
+            }
+
             _pdbReader.Dispose();
-            return HResult.S_OK;
+            return HResult.S_FALSE;
         }
 
         private bool IsVisualBasicAssembly()
@@ -239,14 +236,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             if (name == "<PortablePdbImage>")
             {
-                count = _pdbReader.Image.Length;
+                count = _pdbReader.ImageSize;
 
                 if (bufferLength == 0)
                 {
                     return HResult.S_FALSE;
                 }
 
-                Buffer.BlockCopy(_pdbReader.Image, 0, customDebugInformation, 0, bufferLength);
+                Marshal.Copy(_pdbReader.ImagePtr, customDebugInformation, 0, bufferLength);
                 return HResult.S_OK;
             }
 

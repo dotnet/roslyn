@@ -51,7 +51,13 @@ namespace Roslyn.Test.PdbUtilities
 
             if (isPortable)
             {
-                return new PortablePdb.SymReader(new PortablePdb.PortablePdbReader(pdbStream, metadataImporter));
+                var binder = new PortablePdb.SymBinder();
+
+                ISymUnmanagedReader reader;
+                int hr = binder.GetReaderFromStream(metadataImporter, new ComStreamWrapper(pdbStream), out reader);
+                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+
+                return reader;
             }
             else
             {
