@@ -7081,6 +7081,68 @@ public class Methods2
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void SharedProjectFieldAndPropertiesTreatedAsIdentical()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if ONE
+    public int x;
+#endif
+#if TWO
+    public int x {get; set;}
+#endif
+    void foo()
+    {
+        x$$
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"(field) int C.x";
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void SharedProjectFieldAndPropertiesTreatedAsIdentical2()
+        {
+            var markup = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+class C
+{
+#if TWO
+    public int x;
+#endif
+#if ONE
+    public int x {get; set;}
+#endif
+    void foo()
+    {
+        x$$
+    }
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
+    </Project>
+</Workspace>";
+
+            var expectedDescription = $"(property) int C.x";
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ConditionalAccessWalkUp()
         {
             var markup = @"
