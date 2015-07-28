@@ -4913,6 +4913,35 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub MethodToAsyncMethod_WithActiveStatementInLambda4()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim a = Function() <AS:0>Task.FromResult(1)</AS:0>
+        Return
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Sub F()
+        Dim a = Async Function() <AS:0>1</AS:0>
+        Return
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function()"))
+        End Sub
+
+        <Fact>
         Public Sub MethodToAsyncMethod_WithoutActiveStatement1()
             Dim src1 = "
 Imports System

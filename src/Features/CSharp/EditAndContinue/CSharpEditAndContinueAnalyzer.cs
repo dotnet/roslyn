@@ -2869,11 +2869,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body);
                 kind = StateMachineKind.Async;
-                return;
             }
-
-            suspensionPoints = SyntaxUtilities.GetYieldStatements(body);
-            kind = suspensionPoints.IsEmpty ? StateMachineKind.None : StateMachineKind.Iterator;
+            else
+            {
+                suspensionPoints = SyntaxUtilities.GetYieldStatements(body);
+                kind = suspensionPoints.IsEmpty ? StateMachineKind.None : StateMachineKind.Iterator;
+            }
         }
 
         internal override void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
