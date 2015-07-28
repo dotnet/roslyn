@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -16,8 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <param name="project">The project from which the symbol to generate source for came
         /// from.</param>
         /// <param name="symbol">The symbol whose interface to generate source for</param>
+        /// <param name="optionSet">The optionset to describe how the generated file should look like</param>
         /// <param name="cancellationToken">To cancel project and document operations</param>
-        Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken));
+        Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken));
 
         bool TryAddDocumentToWorkspace(string filePath, ITextBuffer buffer);
 
