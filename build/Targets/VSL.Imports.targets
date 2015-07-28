@@ -165,14 +165,14 @@
 
  </PropertyGroup>
 
-  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
-
   <Target Name="MarkDnuExecutable"
           Condition="'$(TargetCoreClr)' == 'True' and '$(OS)' != 'Windows_NT'"
-          AfterTargets="EnsureGlobalNugets">
+          BeforeTargets="RestorePackages">
     <Exec Command="chmod a+x &quot;$(DnxPackageDir)bin/dnu&quot;" />
     <Exec Command="chmod a+x &quot;$(DnxPackageDir)bin/dnx&quot;" />
   </Target>
+
+  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
 
   <!-- ====================================================================================
 
