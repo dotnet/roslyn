@@ -6536,5 +6536,58 @@ End Class
             VerifyItemExists(text, "y")
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Sub SharedProjectFieldAndPropertiesTreatedAsIdentical()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if ONE Then
+    Public  x As Integer
+#endif
+#if TWO Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"(field) C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedProjectFieldAndPropertiesTreatedAsIdentical2()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if TWO Then
+    Public  x As Integer
+#endif
+#if ONE Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"Property C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
     End Class
 End Namespace
