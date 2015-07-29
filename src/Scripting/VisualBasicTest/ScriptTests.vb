@@ -62,9 +62,16 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
         <Fact>
         Public Sub TestRunVoidScript()
-            Dim result = VisualBasicScript.RunAsync("Console.WriteLine(0)", DefaultOptions)
+            Dim result = VisualBasicScript.RunAsync("System.Console.WriteLine(0)", DefaultOptions)
             Dim task = result.ReturnValue
             Assert.Null(task.Result)
+        End Sub
+
+        <Fact>
+        Public Sub TestDefaultNamespaces()
+            ' If this ever changes, it is important to ensure that the 
+            ' IDE is also updated with the same default namespaces.
+            Assert.Empty(ScriptOptions.Default.Namespaces)
         End Sub
 
         Public Class Globals
