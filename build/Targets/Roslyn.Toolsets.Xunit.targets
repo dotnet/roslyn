@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
-    <StartProgram Condition="'$(StartProgram)' == ''">$(MSBuildThisFileDirectory)\..\..\..\Closed\Tools\xUnit\xunit.gui.custom.exe</StartProgram>
+    <StartProgram Condition="'$(StartProgram)' == ''">$(MSBuildThisFileDirectory)\..\..\..\packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.console.x86.exe</StartProgram>
     <StartArguments Condition="'$(StartArguments)' == ''">$(AssemblyName).dll</StartArguments>
     <StartWorkingDirectory Condition="'$(StartWorkingDirectory)' == ''">$(OutDir)</StartWorkingDirectory>
   </PropertyGroup>
