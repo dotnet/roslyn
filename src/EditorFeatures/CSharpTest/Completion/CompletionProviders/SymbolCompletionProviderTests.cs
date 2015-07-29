@@ -6914,40 +6914,6 @@ class C
             VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
         }
 
-        [WorkItem(1063403)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void WarningForSymbolsOfDifferingKind()
-        {
-            var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
-        <Document FilePath=""CurrentDocument.cs""><![CDATA[
-class C
-{
-#if ONE
-    void Do(int x){}
-#endif
-#if TWO
-    int Do;
-#endif
-
-    void Shared()
-    {
-        $$
-    }
-
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
-    </Project>
-</Workspace>";
-
-            var expectedDescription = $"void C.Do(int x) (+ 1 {FeaturesResources.Overload})\r\n\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources.ProjectAvailability, "Proj2", FeaturesResources.NotAvailable)}\r\n\r\n{FeaturesResources.UseTheNavigationBarToSwitchContext}";
-            VerifyItemInLinkedFiles(markup, "Do", expectedDescription);
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MethodOverloadDifferencesIgnored_ExtensionMethod()
         {
@@ -7138,7 +7104,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"(property) int C.x";
+            var expectedDescription = "int C.x { get; set; }";
             VerifyItemInLinkedFiles(markup, "x", expectedDescription);
         }
 
