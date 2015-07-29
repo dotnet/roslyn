@@ -1990,7 +1990,8 @@ new object[] { x, y, z }
         [WorkItem(949559)]
         [WorkItem(540237)]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact(Skip = "949559")]
+        [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
+        [Fact]
         public void PrivateImplementationDetailsType()
         {
             var engine = new CSharpScriptEngine();
