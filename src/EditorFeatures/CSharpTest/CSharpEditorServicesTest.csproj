@@ -278,7 +278,6 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
-    <Compile Include="Interactive\CommandArgumentsParsingTest.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
     <Compile Include="KeywordHighlighting\AbstractCSharpKeywordHighlighterTests.cs" />
     <Compile Include="KeywordHighlighting\AsyncAnonymousMethodHighlighterTests.cs" />
