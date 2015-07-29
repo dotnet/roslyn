@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
         }
 
-#region Open Solution & Project
+        #region Open Solution & Project
         /// <summary>
         /// Open a solution file and all referenced projects.
         /// </summary>
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.ClearSolution();
 
-            var solutionInfo = await _loader.LoadSolutionAsync(solutionFilePath, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // construct workspace from loaded project infos
             this.OnSolutionAdded(solutionInfo);
@@ -183,18 +183,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            var loadedProjects = new Dictionary<ProjectId, ProjectInfo>();
-            var projectId = await _loader.LoadProjectsAsync(projectFilePath, loadedProjects, cancellationToken).ConfigureAwait(false);
+            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, GetCurrentProjectMap(), cancellationToken).ConfigureAwait(false);
 
             // add projects to solution
-            foreach (var project in loadedProjects.Values)
+            foreach (var project in projects)
             {
                 this.OnProjectAdded(project);
             }
 
             this.UpdateReferencesAfterAdd();
 
-            return this.CurrentSolution.GetProject(projectId);
+            return this.CurrentSolution.GetProject(projects[0].Id);
+        }
+
+        private Dictionary<string, ProjectId> GetCurrentProjectMap()
+        {
+            return this.CurrentSolution.Projects
+                .Where(p => !string.IsNullOrEmpty(p.FilePath))
+                .ToDictionary(p => p.FilePath, p => p.Id);
         }
 
         #endregion
