@@ -317,62 +317,145 @@ namespace Microsoft.CodeAnalysis.Semantics
         IExpression Thrown { get; }
     }
 
+    /// <summary>
+    /// Represents a C# return of a VB Return statement.
+    /// </summary>
     public interface IReturn : IStatement
     {
+        /// <summary>
+        /// Value to be returned.
+        /// </summary>
         IExpression Returned { get; }
     }
 
+    /// <summary>
+    /// Represents a C# lock or a VB SyncLock statement.
+    /// </summary>
     public interface ILock : IStatement
     {
+        /// <summary>
+        /// Value to be locked.
+        /// </summary>
         IExpression Locked { get; }
+        /// <summary>
+        /// Body of the lock, to be executed while holding the lock.
+        /// </summary>
+        IStatement Body { get; }
     }
 
+    /// <summary>
+    /// Represents a C# try or a VB Try statement.
+    /// </summary>
     public interface ITry: IStatement
     {
+        /// <summary>
+        /// Body of the try, over which the handlers are active.
+        /// </summary>
         IBlock Body { get; }
+        /// <summary>
+        /// Catch clauses of the try.
+        /// </summary>
         ImmutableArray<ICatch> Catches { get; }
+        /// <summary>
+        /// Finally handler of the try.
+        /// </summary>
         IBlock FinallyHandler { get; }
     }
 
+    /// <summary>
+    /// Represents a C# catch or VB Catch clause.
+    /// </summary>
     public interface ICatch : IOperation
     {
+        /// <summary>
+        /// Body of the exception handler.
+        /// </summary>
         IBlock Handler { get; }
+        /// <summary>
+        /// Type of exception to be handled.
+        /// </summary>
         ITypeSymbol CaughtType { get; }
+        /// <summary>
+        /// Filter expression to be executed to determine whether to handle the exception.
+        /// </summary>
         IExpression Filter { get; }
+        /// <summary>
+        /// Symbol for the local catch variable bound to the caught exception.
+        /// </summary>
         ILocalSymbol ExceptionLocal { get; }
     }
 
+    /// <summary>
+    /// Represents a C# using or VB Using statement.
+    /// </summary>
     public interface IUsing: IStatement
     {
+        /// <summary>
+        /// Body of the using, over which the resources of the using are maintained.
+        /// </summary>
         IStatement Body { get; }
     }
 
+    /// <summary>
+    /// Represents a C# using or VB Using statement that declares one or more local variables for the resources held by the using.
+    /// </summary>
     public interface IUsingWithDeclaration : IUsing
     {
-        ImmutableArray<ILocalSymbol> UsingLocals { get; }
+        /// <summary>
+        /// Variables declared by the using.
+        /// </summary>
         IVariableDeclaration Variables { get; }
     }
 
+    /// <summary>
+    /// Represents a C# using or VB Using statement that uses an expression for the resource held by the using.
+    /// </summary>
     public interface IUsingWithExpression : IUsing
     {
+        /// <summary>
+        /// Resource held by the using.
+        /// </summary>
         IExpression Value { get; }
     }
 
+    /// <summary>
+    /// Represents a C# fixed staement.
+    /// </summary>
     public interface IFixed : IStatement
     {
-        ImmutableArray<ILocalSymbol> FixedLocals { get; }
+        /// <summary>
+        /// Variables to be fixed.
+        /// </summary>
         IVariableDeclaration Variables { get; }
+        /// <summary>
+        /// Body of the fixed, over which the variables are fixed.
+        /// </summary>
         IStatement Body { get; }
     }
 
+    /// <summary>
+    /// Represents a C# or VB statement that consists solely of an expression.
+    /// </summary>
     public interface IExpressionStatement : IStatement
     {
+        /// <summary>
+        /// Expression of the statement.
+        /// </summary>
         IExpression Expression { get; }
     }
 
+    /// <summary>
+    /// Represents a VB With statement.
+    /// </summary>
     public interface IWith : IStatement
     {
+        /// <summary>
+        /// Body of the with.
+        /// </summary>
         IStatement Body { get; }
+        /// <summary>
+        /// Value to whose members leading-dot-qualified references within the with body bind.
+        /// </summary>
         IExpression Value { get; }
     }
 }

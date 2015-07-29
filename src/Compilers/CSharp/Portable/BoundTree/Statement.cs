@@ -406,11 +406,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundFixedStatement : IFixed
     {
-        ImmutableArray<ILocalSymbol> IFixed.FixedLocals
-        {
-            get { return this.Locals.As<ILocalSymbol>(); }
-        }
-
         IVariableDeclaration IFixed.Variables
         {
             get { return this.Declarations; }
@@ -429,11 +424,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundUsingStatement: IUsingWithDeclaration, IUsingWithExpression
     {
-        ImmutableArray<ILocalSymbol> IUsingWithDeclaration.UsingLocals
-        {
-            get { return this.Locals.As<ILocalSymbol>(); }
-        }
-
         IVariableDeclaration IUsingWithDeclaration.Variables
         {
             get { return this.DeclarationsOpt; }
@@ -499,6 +489,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IExpression ILock.Locked
         {
             get { return this.Argument; }
+        }
+
+        IStatement ILock.Body
+        {
+            get { return this.Body; }
         }
 
         protected override OperationKind StatementKind

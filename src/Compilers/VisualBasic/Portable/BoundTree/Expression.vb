@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IInvocationClass As InvocationKind Implements IInvocation.InvocationClass
+        Private ReadOnly Property IInvocationKind As InvocationKind Implements IInvocation.InvocationKind
             Get
                 If Me.Method.IsShared Then
                     Return InvocationKind.Static
@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._Value = value
             End Sub
 
-            Public ReadOnly Property ArgumentClass As ArgumentKind Implements IArgument.ArgumentClass
+            Public ReadOnly Property Kind As ArgumentKind Implements IArgument.Kind
                 Get
                     ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return ArgumentKind.Positional
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Class BoundByRefArgumentWithCopyBack
         Implements IArgument
 
-        Private ReadOnly Property IArgumentClass As ArgumentKind Implements IArgument.ArgumentClass
+        Private ReadOnly Property IKind As ArgumentKind Implements IArgument.Kind
             Get
                 ' Do the VB bound trees encode named arguments?
                 Return ArgumentKind.Positional

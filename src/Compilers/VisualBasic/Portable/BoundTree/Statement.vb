@@ -847,6 +847,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IBody As IStatement Implements ILock.Body
+            Get
+                Return Me.Body
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.LockStatement
         End Function
@@ -909,11 +915,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Class BoundUsingStatement
-        Implements IUsingWithExpression
+        Implements IUsingWithExpression, IUsingWithDeclaration
 
         Private ReadOnly Property IValue As IExpression Implements IUsingWithExpression.Value
             Get
                 Return Me.ResourceExpressionOpt
+            End Get
+        End Property
+
+        Private ReadOnly Property IVariables As IVariableDeclaration Implements IUsingWithDeclaration.Variables
+            Get
+                Return New Variables(Me.ResourceList.As(Of IVariable))
             End Get
         End Property
 
@@ -924,8 +936,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.UsingWithExpressionStatement
+            Return If(Me._ResourceExpressionOpt Is Nothing, OperationKind.UsingWithDeclarationStatement, OperationKind.UsingWithExpressionStatement)
         End Function
+
+        Private Class Variables
+            Implements IVariableDeclaration
+
+            Private ReadOnly _variables As ImmutableArray(Of IVariable)
+
+            Public Sub New(variables As ImmutableArray(Of IVariable))
+                _variables = variables
+            End Sub
+
+            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
+                Get
+                    Return OperationKind.VariableDeclarationStatement
+                End Get
+            End Property
+
+            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
+                Get
+                    Return Nothing
+                End Get
+            End Property
+
+            Private ReadOnly Property IVariableDeclaration_Variables As ImmutableArray(Of IVariable) Implements IVariableDeclaration.Variables
+                Get
+                    Return _variables
+                End Get
+            End Property
+        End Class
     End Class
 
     Partial Class BoundExpressionStatement
