@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         object ConstantValue { get; }
 
         /// <summary>
-        /// Returns custom modifiers associated with the field, or an empty array if there are none.
+        /// Returns custom modifiers associated with the field's type, or an empty array if there are none.
         /// </summary>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
 

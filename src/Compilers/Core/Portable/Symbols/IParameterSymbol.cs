@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         /// <summary>
-        /// Custom modifiers associated with the parameter, or an empty array if there are none.
+        /// Custom modifiers associated with the parameter's type, or an empty array if there are none.
         /// </summary>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ElementType { get; }
 
         /// <summary>
-        /// Custom modifiers associated with the array type, or an empty array if there are none.
+        /// Custom modifiers associated with the array's element type, or an empty array if there are none.
         /// </summary>
         ImmutableArray<CustomModifier> CustomModifiers { get; }
 
