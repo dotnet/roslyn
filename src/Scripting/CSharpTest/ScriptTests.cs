@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.Test
         [Fact]
         public void TestRunVoidScript()
         {
-            var result = CSharpScript.RunAsync("Console.WriteLine(0);");
+            var result = CSharpScript.RunAsync("System.Console.WriteLine(0);");
             var task = result.ReturnValue;
             Assert.Null(task.Result);
         }
