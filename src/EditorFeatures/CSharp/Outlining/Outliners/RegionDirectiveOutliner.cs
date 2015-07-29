@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
         private static string GetBannerText(DirectiveTriviaSyntax simpleDirective)
         {
             var kw = simpleDirective.DirectiveNameToken;
-            var prefixLength = simpleDirective.HashToken.Span.Length + kw.Span.Length;
+            var prefixLength = kw.Span.End - simpleDirective.Span.Start;
             var text = simpleDirective.ToString().Substring(prefixLength).Trim();
 
             if (text.Length == 0)

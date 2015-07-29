@@ -460,8 +460,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         /// <param name="code">The code to execute.</param>
         /// <remarks>
-        /// This method is thread safe. References can be added and source code executed in parallel. 
-        /// The operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteAsync(string code)
         {
@@ -475,7 +475,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <param name="path">The file to execute.</param>
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         /// <remarks>
-        /// This method is thread safe. All session operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<RemoteExecutionResult> ExecuteFileAsync(string path)
         {
@@ -492,7 +493,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// </summary>
         /// <param name="reference">The reference to add.</param>
         /// <remarks>
-        /// This method is thread safe. All session operations are serialized to UI thread in the remote process in first come first served order.
+        /// This method is thread safe but operations are sent to the remote process
+        /// asynchronously so tasks should be executed serially if order is important.
         /// </remarks>
         public Task<bool> AddReferenceAsync(string reference)
         {

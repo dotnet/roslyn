@@ -3046,7 +3046,6 @@ Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions
 Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions.ToVisualBasicString(constant As Microsoft.CodeAnalysis.TypedConstant) -> String
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser
-Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.New(isInteractive As Boolean = False) -> Void
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.Parse(args As System.Collections.Generic.IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, additionalReferenceDirectories As String = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.AddReferences(ParamArray references As Microsoft.CodeAnalysis.MetadataReference()) -> Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
@@ -4354,8 +4353,6 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax.Accept(Of TRes
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.XmlTextSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
 Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.YieldStatementSyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.RegularFileExtension() -> String
-Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineParser.ScriptFileExtension() -> String
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ContainsSymbolsWithName(predicate As System.Func(Of String, Boolean), filter As Microsoft.CodeAnalysis.SymbolFilter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, cancellationToken As System.Threading.CancellationToken = Nothing) -> Boolean
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateErrorTypeSymbol(container As Microsoft.CodeAnalysis.INamespaceOrTypeSymbol, name As String, arity As Integer) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DirectiveReferences() -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.MetadataReference)

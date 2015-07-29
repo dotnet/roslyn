@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             Dim diagnostics = New List(Of RudeEditDiagnostic)()
             Dim needsSyntaxMap As Boolean
-            Dim match = Analyzer.ComputeBodyMatch(m1, m2, {New AbstractEditAndContinueAnalyzer.ActiveNode}, diagnostics, needsSyntaxMap)
+            Dim match = Analyzer.ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, needsSyntaxMap)
 
             Assert.Equal(stateMachine <> StateMachineKind.None, needsSyntaxMap)
 

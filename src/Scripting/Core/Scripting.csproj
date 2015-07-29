@@ -174,9 +174,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <!-- GAC helpers -->

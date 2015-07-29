@@ -26,8 +26,8 @@
       <PlayBackTyping TypingInputFile="PerfTests\Sources\BasicGoldilocksInput.txt" />
       <DelayTracker Action="Stop"/>
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />-->
+      <!--<VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />-->
     </Scenario>
 
   </ScenarioList>

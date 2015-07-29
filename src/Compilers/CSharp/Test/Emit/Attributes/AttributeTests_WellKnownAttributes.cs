@@ -2560,12 +2560,10 @@ abstract class C
                         case "InternalCallStatic":
                         case "InternalCallInstance":
                         case "InternalCallAbstract":
-                            // workaround for a bug in ref.emit:
                             expectedFlags = MethodImplAttributes.InternalCall;
                             break;
 
                         case "ForwardRef":
-                            // workaround for a bug in ref.emit:
                             expectedFlags = MethodImplAttributes.ForwardRef;
                             break;
 

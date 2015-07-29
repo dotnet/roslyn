@@ -247,7 +247,7 @@ class C { }
 
             var expected = @"
 using System.Collections.Generic;
-/// <see cref=""List{T}.Enumerator""/>
+/// <see cref=""List{T}.Enumerator ""/>
 class C { }
 ";
             VerifyProviderCommit(text, "Enumerator", expected, ' ', "Enum");
@@ -314,7 +314,7 @@ class @void { }
 ";
 
             var expected = @"using System;
-/// <see cref=""@void""/>
+/// <see cref=""@void ""/>
 class @void { }
 ";
             VerifyProviderCommit(text, "@void", expected, ' ', "@vo");
@@ -380,7 +380,7 @@ class C { }
 
             var expected = @"
 using System.Collections.Generic;
-/// <see cref=""List""/>
+/// <see cref=""List{""/>
 class C { }
 ";
             VerifyProviderCommit(text, "List{T}", expected, '{', "List");
@@ -401,7 +401,7 @@ class C
 
             var expected = @"
 using System.Collections.Generic;
-/// <see cref=""foo""/>
+/// <see cref=""foo(""/>
 class C 
 { 
     public void foo(int x) { }

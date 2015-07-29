@@ -339,7 +339,7 @@ End Class
 
             Dim expected = <File><![CDATA[
 ''' <summary>
-''' <see cref="C."/>
+''' <see cref="C.("/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)
@@ -366,7 +366,7 @@ End Class
             Dim expected = <File><![CDATA[
 Imports System.Collections.Generic
 ''' <summary>
-''' <see cref=""/>
+''' <see cref=" "/>
 ''' </summary>
 Class C
 Sub bar(x As Integer, y As Integer)

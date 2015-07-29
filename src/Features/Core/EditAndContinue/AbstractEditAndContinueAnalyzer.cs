@@ -229,12 +229,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract string GetLambdaDisplayName(SyntaxNode lambda);
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf);
-        protected abstract ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body);
+        protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, SyntaxNode newStatement);
-        internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldBody, SyntaxNode newBody, SyntaxNode oldStatement, SyntaxNode newStatement, bool isLeaf);
+        internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isLeaf);
         internal abstract void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
         internal abstract void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol);
         internal abstract void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
@@ -1062,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     // other statements around active statement:
-                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldBody, newBody, oldStatementSyntax, newStatementSyntax, isLeaf);
+                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldStatementSyntax, newStatementSyntax, isLeaf);
                 }
                 else if (match == null)
                 {
@@ -1244,8 +1244,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             List<KeyValuePair<SyntaxNode, SyntaxNode>> lazyKnownMatches = null;
             List<SequenceEdit> lazyRudeEdits = null;
 
-            var oldStateMachineSuspensionPoints = GetStateMachineSuspensionPoints(oldBody);
-            var newStateMachineSuspensionPoints = GetStateMachineSuspensionPoints(newBody);
+            ImmutableArray<SyntaxNode> oldStateMachineSuspensionPoints, newStateMachineSuspensionPoints;
+            StateMachineKind oldStateMachineKind, newStateMachineKind;
+
+            GetStateMachineInfo(oldBody, out oldStateMachineSuspensionPoints, out oldStateMachineKind);
+            GetStateMachineInfo(newBody, out newStateMachineSuspensionPoints, out newStateMachineKind);
 
             AddMatchingActiveNodes(ref lazyKnownMatches, activeNodes);
 
@@ -1257,6 +1260,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // 3) The new method contains yields/awaits but the old doesn't.
             //    a) If the method has active statements report rude edits for each inserted yield/await (insert "around" an active statement).
             //    b) If the method has no active statements then the edit is valid, we don't need to calculate map.
+            // 4) The old method is async/iterator, the new method is not and it contains an active statement.
+            //    Report rude edit since we can't remap IP from MoveNext to the kickoff method.
+            //    Note that iterators in VB don't need to contain yield, so this case is not covered by change in number of yields.
 
             bool creatingStateMachineAroundActiveStatement = oldStateMachineSuspensionPoints.Length == 0 && newStateMachineSuspensionPoints.Length > 0 && activeNodes.Length > 0;
             hasStateMachineSuspensionPoint = oldStateMachineSuspensionPoints.Length > 0 && newStateMachineSuspensionPoints.Length > 0;
@@ -1303,6 +1309,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 for (int i = 0; i < oldStateMachineSuspensionPoints.Length; i++)
                 {
                     ReportStateMachineSuspensionPointRudeEdits(diagnostics, oldStateMachineSuspensionPoints[i], newStateMachineSuspensionPoints[i]);
+                }
+            }
+            else if (activeNodes.Length > 0)
+            {
+                // It is allow to update a regular method to an async method or an iterator.
+                // The only restriction is a presence of an active statement in the method body
+                // since the debugger does not support remapping active statements to a different method.
+                if (oldStateMachineKind == StateMachineKind.None && newStateMachineKind != StateMachineKind.None )
+                {                    
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
+                        GetDiagnosticSpan(IsMethod(newBody) ? newBody : newBody.Parent, EditKind.Update)));
                 }
             }
 

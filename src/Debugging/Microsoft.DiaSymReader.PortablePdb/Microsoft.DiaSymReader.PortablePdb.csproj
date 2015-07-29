@@ -36,9 +36,16 @@
     <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
       <Private>False</Private>
     </Reference>
+    <Reference Include="..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.MemoryMappedFiles.dll">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\net45\System.IO.MemoryMappedFiles.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
     </Content>

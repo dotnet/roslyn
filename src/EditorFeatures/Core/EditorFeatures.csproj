@@ -125,13 +125,13 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
@@ -413,6 +413,11 @@
     <Compile Include="Implementation\GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\MemberInsertingCompletionItemRules.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionProviders\XmlDocCommentCompletion\AbstractXmlDocCommentCompletionItemRules.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\IOUtilities.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FileSystem\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterTagProducer.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
@@ -501,7 +506,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Controller_TypeChar.cs" />
     <Compile Include="Implementation\Intellisense\Completion\DescriptionModifyingCompletionItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet2.cs" />
@@ -834,6 +838,7 @@
     </None>
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

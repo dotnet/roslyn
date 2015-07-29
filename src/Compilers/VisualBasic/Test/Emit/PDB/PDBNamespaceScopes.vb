@@ -477,11 +477,11 @@ End Class
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="10" document="0"/>
-                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="34" document="0"/>
-                <entry offset="0x8" startLine="15" startColumn="9" endLine="15" endColumn="37" document="0"/>
-                <entry offset="0xf" startLine="16" startColumn="9" endLine="16" endColumn="36" document="0"/>
-                <entry offset="0x23" startLine="17" startColumn="5" endLine="17" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="10"/>
+                <entry offset="0x1" startLine="14" startColumn="9" endLine="14" endColumn="34"/>
+                <entry offset="0x8" startLine="15" startColumn="9" endLine="15" endColumn="37"/>
+                <entry offset="0xf" startLine="16" startColumn="9" endLine="16" endColumn="36"/>
+                <entry offset="0x23" startLine="17" startColumn="5" endLine="17" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x24">
                 <namespace name="System" importlevel="file"/>
@@ -544,8 +544,8 @@ End Class
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="9" endLine="6" endColumn="28" document="0"/>
-                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="6" startColumn="9" endLine="6" endColumn="28"/>
+                <entry offset="0x5" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x6">
                 <alias name="X" target="N.B" kind="namespace" importlevel="file"/>

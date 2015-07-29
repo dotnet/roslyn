@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
@@ -32,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         static ScriptOptions()
         {
             Default = new ScriptOptions()
-                        .WithReferences(typeof(int).GetTypeInfo().Assembly)
-                        .WithNamespaces("System");
+                        .WithReferences(typeof(int).GetTypeInfo().Assembly);
         }
 
         private ScriptOptions(
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return this.WithReferences(this.References.AddRange(references.Where(r => r != null && !this.References.Contains(r))));
+                return this.WithReferences(AddMissing(this.References, references));
             }
         }
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return this.WithNamespaces(this.Namespaces.AddRange(namespaces.Where(n => n != null && !this.Namespaces.Contains(n))));
+                return this.WithNamespaces(AddMissing(this.Namespaces, namespaces));
             }
         }
 
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             else
             {
-                return WithSearchPaths(this.SearchPaths.AddRange(searchPaths.Where(s => s != null && !this.SearchPaths.Contains(s))));
+                return WithSearchPaths(AddMissing(this.SearchPaths, searchPaths));
             }
         }
 
@@ -462,6 +462,26 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ScriptOptions WithIsInteractive(bool isInteractive)
         {
             return With(isInteractive: isInteractive);
+        }
+
+        private static ImmutableArray<T> AddMissing<T>(ImmutableArray<T> a, IEnumerable<T> b) where T : class
+        {
+            var builder = ArrayBuilder<T>.GetInstance();
+            var set = PooledHashSet<T>.GetInstance();
+            foreach (var i in a)
+            {
+                set.Add(i);
+                builder.Add(i);
+            }
+            foreach (var i in b)
+            {
+                if ((i != null) && !set.Contains(i))
+                {
+                    builder.Add(i);
+                }
+            }
+            set.Free();
+            return builder.ToImmutableAndFree();
         }
     }
 }
