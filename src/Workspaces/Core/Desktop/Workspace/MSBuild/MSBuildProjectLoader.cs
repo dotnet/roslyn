@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly NonReentrantLock _dataGuard = new NonReentrantLock();
         private ImmutableDictionary<string, string> _properties;
         private readonly Dictionary<string, string> _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, IProjectFileLoader> _projectPathToLoaderMap = new Dictionary<string, IProjectFileLoader>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Create a new instance of an <see cref="MSBuildProjectLoader"/>.
@@ -94,11 +93,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void Clear()
-        {
-            _projectPathToLoaderMap.Clear();
-        }
-
         private const string SolutionDirProperty = "SolutionDir";
 
         private void SetSolutionProperties(string solutionFilePath)
@@ -151,39 +145,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 #if !MSBUILD12
             Microsoft.Build.Construction.SolutionFile solutionFile = Microsoft.Build.Construction.SolutionFile.Parse(absoluteSolutionPath);
             var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
-            var invalidProjects = new List<ProjectInSolution>();
-
-            // seed loaders from known project types
-            using (_dataGuard.DisposableWait(cancellationToken))
-            {
-                foreach (var project in solutionFile.ProjectsInOrder)
-                {
-                    if (project.ProjectType == SolutionProjectType.SolutionFolder)
-                    {
-                        continue;
-                    }
-
-                    var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
-                    if (projectAbsolutePath != null)
-                    {
-                        var extension = Path.GetExtension(projectAbsolutePath);
-                        if (extension.Length > 0 && extension[0] == '.')
-                        {
-                            extension = extension.Substring(1);
-                        }
-
-                        var loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspace, extension);
-                        if (loader != null)
-                        {
-                            _projectPathToLoaderMap[projectAbsolutePath] = loader;
-                        }
-                    }
-                    else
-                    {
-                        invalidProjects.Add(project);
-                    }
-                }
-            }
 
             // a list to accumulate all the loaded projects
             var loadedProjects = new LoadState(null);
@@ -193,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (project.ProjectType != SolutionProjectType.SolutionFolder && !invalidProjects.Contains(project))
+                if (project.ProjectType != SolutionProjectType.SolutionFolder)
                 {
                     var projectAbsolutePath = TryGetAbsolutePath(project.AbsolutePath, reportMode);
                     if (projectAbsolutePath != null)
@@ -219,23 +180,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var solutionFolder = Path.GetDirectoryName(absoluteSolutionPath);
-
-            // seed loaders from known project types
-            using (_dataGuard.DisposableWait())
-            {
-                foreach (var projectBlock in solutionFile.ProjectBlocks)
-                {
-                    string absoluteProjectPath;
-                    if (TryGetAbsoluteProjectPath(projectBlock.ProjectPath, solutionFolder, ReportMode.Ignore, out absoluteProjectPath))
-                    {
-                        var loader = ProjectFileLoader.GetLoaderForProjectTypeGuid(_workspace, projectBlock.ProjectTypeGuid);
-                        if (loader != null)
-                        {
-                            _projectPathToLoaderMap[absoluteProjectPath] = loader;
-                        }
-                    }
-                }
-            }
 
             // a list to accumulate all the loaded projects
             var loadedProjects = new LoadState(null);
@@ -740,43 +684,35 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             using (_dataGuard.DisposableWait())
             {
-                // check to see if we already know the loader
-                if (!_projectPathToLoaderMap.TryGetValue(projectFilePath, out loader))
+                // otherwise try to figure it out from extension
+                var extension = Path.GetExtension(projectFilePath);
+                if (extension.Length > 0 && extension[0] == '.')
                 {
-                    // otherwise try to figure it out from extension
-                    var extension = Path.GetExtension(projectFilePath);
-                    if (extension.Length > 0 && extension[0] == '.')
-                    {
-                        extension = extension.Substring(1);
-                    }
+                    extension = extension.Substring(1);
+                }
 
-                    string language;
-                    if (_extensionToLanguageMap.TryGetValue(extension, out language))
+                string language;
+                if (_extensionToLanguageMap.TryGetValue(extension, out language))
+                {
+                    if (_workspace.Services.SupportedLanguages.Contains(language))
                     {
-                        if (_workspace.Services.SupportedLanguages.Contains(language))
-                        {
-                            loader =  _workspace.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
-                        }
-                        else
-                        {
-                            this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
-                            return false;
-                        }
+                        loader = _workspace.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
                     }
                     else
                     {
-                        loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspace, extension);
-
-                        if (loader == null)
-                        {
-                            this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnrecognizedFileExtension, projectFilePath, Path.GetExtension(projectFilePath)));
-                            return false;
-                        }
+                        loader = null;
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
+                        return false;
                     }
+                }
+                else
+                {
+                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspace, extension);
 
-                    if (loader != null)
+                    if (loader == null)
                     {
-                        _projectPathToLoaderMap[projectFilePath] = loader;
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnrecognizedFileExtension, projectFilePath, Path.GetExtension(projectFilePath)));
+                        return false;
                     }
                 }
 

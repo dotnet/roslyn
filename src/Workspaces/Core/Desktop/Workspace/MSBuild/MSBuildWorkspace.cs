@@ -137,14 +137,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected override void ClearSolutionData()
-        {
-            base.ClearSolutionData();
-
-            // clear project related data
-            _loader.Clear();
-        }
-
         private string GetAbsolutePath(string path, string baseDirectoryPath)
         {
             return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);

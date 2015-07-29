@@ -9,7 +9,6 @@ Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension, TMetada
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension>() -> System.Collections.Generic.IEnumerable<System.Lazy<TExtension>>
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.AssociateFileExtensionWithLanguage(string projectFileExtension, string language) -> void
-Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.Clear() -> void
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.get -> bool
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadMetadataForReferencedProjects.set -> void
 Microsoft.CodeAnalysis.MSBuild.MSBuildProjectLoader.LoadProjectInfoAsync(string projectFilePath, System.Collections.Generic.IReadOnlyDictionary<string, Microsoft.CodeAnalysis.ProjectId> projectPathToProjectIdMap = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ProjectInfo>>
