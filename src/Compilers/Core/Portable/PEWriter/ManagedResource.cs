@@ -48,7 +48,7 @@ namespace Microsoft.Cci
                         var count = (int)(stream.Length - stream.Position);
                         resourceWriter.WriteInt32(count);
 
-                        resourceWriter.Write(stream, count);
+                        resourceWriter.WriteBytes(stream, count);
                         resourceWriter.Align(8);
                     }
                 }

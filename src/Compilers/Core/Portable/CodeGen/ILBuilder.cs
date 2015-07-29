@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             // Now linearize everything with computed offsets.
-            var writer = Cci.BlobBuilder.GetInstance();
+            var writer = Cci.PooledBlobBuilder.GetInstance();
 
             for (var block = leaderBlock; block != null; block = block.NextBlock)
             {
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     }
                 }
 
-                block.RegularInstructions?.WriteTo(writer);
+                block.RegularInstructions?.WriteContentTo(writer);
 
                 switch (block.BranchCode)
                 {

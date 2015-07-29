@@ -669,6 +669,7 @@ Microsoft.CodeAnalysis.MetadataImageKind
 Microsoft.CodeAnalysis.MetadataImageKind.Assembly = 0 -> Microsoft.CodeAnalysis.MetadataImageKind
 Microsoft.CodeAnalysis.MetadataImageKind.Module = 1 -> Microsoft.CodeAnalysis.MetadataImageKind
 Microsoft.CodeAnalysis.MetadataReference
+Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.MetadataReference.Properties.get -> Microsoft.CodeAnalysis.MetadataReferenceProperties
 Microsoft.CodeAnalysis.MetadataReference.WithAliases(System.Collections.Generic.IEnumerable<string> aliases) -> Microsoft.CodeAnalysis.MetadataReference
 Microsoft.CodeAnalysis.MetadataReference.WithAliases(System.Collections.Immutable.ImmutableArray<string> aliases) -> Microsoft.CodeAnalysis.MetadataReference
@@ -888,6 +889,7 @@ Microsoft.CodeAnalysis.SpeculativeBindingOption
 Microsoft.CodeAnalysis.SpeculativeBindingOption.BindAsExpression = 0 -> Microsoft.CodeAnalysis.SpeculativeBindingOption
 Microsoft.CodeAnalysis.SpeculativeBindingOption.BindAsTypeOrNamespace = 1 -> Microsoft.CodeAnalysis.SpeculativeBindingOption
 Microsoft.CodeAnalysis.StrongNameProvider
+Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 Microsoft.CodeAnalysis.SubsystemVersion
 Microsoft.CodeAnalysis.SubsystemVersion.Equals(Microsoft.CodeAnalysis.SubsystemVersion other) -> bool
 Microsoft.CodeAnalysis.SubsystemVersion.IsValid.get -> bool

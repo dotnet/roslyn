@@ -173,6 +173,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.MultiLineSubLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
                     Return DirectCast(declaration, LambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
+
+                Case SyntaxKind.FunctionLambdaHeader,
+                     SyntaxKind.SubLambdaHeader
+                    Return DirectCast(declaration, LambdaHeaderSyntax).Modifiers
             End Select
 
             Return Nothing

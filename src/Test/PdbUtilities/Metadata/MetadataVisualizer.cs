@@ -318,12 +318,12 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string Literal(StringHandle handle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => "'" + r.GetString((StringHandle)h) + "'");
+            return Literal(handle, BlobKind.None, (r, h) => "'" + StringUtilities.EscapeNonPrintableCharacters(r.GetString((StringHandle)h)) + "'");
         }
 
         private string Literal(NamespaceDefinitionHandle handle)
         {
-            return Literal(handle, BlobKind.None, (r, h) => "'" + r.GetString((NamespaceDefinitionHandle)h) + "'");
+            return Literal(handle, BlobKind.None, (r, h) => "'" + StringUtilities.EscapeNonPrintableCharacters(r.GetString((NamespaceDefinitionHandle)h)) + "'");
         }
 
         private string Literal(GuidHandle handle)
@@ -371,7 +371,11 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string LiteralUtf8Blob(BlobHandle handle, BlobKind kind)
         {
-            return Literal(handle, kind, (r, h) => "'" + Encoding.UTF8.GetString(r.GetBlobBytes((BlobHandle)h)) + "'");
+            return Literal(handle, kind, (r, h) =>
+            {
+                var bytes = r.GetBlobBytes((BlobHandle)h);
+                return "'" + Encoding.UTF8.GetString(bytes, 0, bytes.Length) + "'";
+            });
         }
 
         private string Literal(BlobHandle handle, BlobKind kind)
@@ -1256,8 +1260,8 @@ namespace Roslyn.Test.MetadataUtilities
             var handle = MetadataTokens.UserStringHandle(0);
             do
             {
-                string value = _reader.GetUserString(handle);
-                _writer.WriteLine("  {0:x}: '{1}'", _reader.GetHeapOffset(handle), value);
+                string value = StringUtilities.EscapeNonPrintableCharacters(_reader.GetUserString(handle));
+                _writer.WriteLine($"  {_reader.GetHeapOffset(handle):x}: '{value}'");
                 handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);
@@ -1277,8 +1281,8 @@ namespace Roslyn.Test.MetadataUtilities
             var handle = MetadataTokens.StringHandle(0);
             do
             {
-                string value = _reader.GetString(handle);
-                _writer.WriteLine("  {0:x}: '{1}'", _reader.GetHeapOffset(handle), value);
+                string value = StringUtilities.EscapeNonPrintableCharacters(_reader.GetString(handle));
+                _writer.WriteLine($"  {_reader.GetHeapOffset(handle):x}: '{value}'");
                 handle = _reader.GetNextHandle(handle);
             }
             while (!handle.IsNil);

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class StrongNameProvider
     {
-        internal StrongNameProvider()
+        protected StrongNameProvider()
         {
         }
 

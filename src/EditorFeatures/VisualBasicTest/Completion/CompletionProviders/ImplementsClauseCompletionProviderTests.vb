@@ -500,7 +500,7 @@ End Interface
 
 Class C
     Implements [Interface]
-    Public Sub test Implements [Interface]
+    Public Sub test Implements [Interface].
 End Class</text>.Value
 
             VerifyProviderCommit(text, "Interface", expected, "."c, "")

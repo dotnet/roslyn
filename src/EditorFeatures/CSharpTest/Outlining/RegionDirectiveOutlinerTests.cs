@@ -89,5 +89,21 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WorkItem(4105, "https://github.com/dotnet/roslyn/issues/4105")]
+        public void SpacesBetweenPoundAndRegionShouldNotAffectBanner()
+        {
+            TestRegion("Region", @"
+class C
+{
+[|#  region R$$egion
+    static void Main(string[] args)
+    {
+    }
+#  endregion|]
+}
+");
+        }
     }
 }

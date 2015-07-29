@@ -236,6 +236,7 @@
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />
     <Compile Include="EditAndContinue\BidirectionalMap.cs" />
+    <Compile Include="EditAndContinue\StateMachineKind.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>

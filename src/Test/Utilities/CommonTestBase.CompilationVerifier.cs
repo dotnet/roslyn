@@ -203,20 +203,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public CompilationVerifier VerifyPdb(
                 XElement expectedPdb,
                 DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
                 string expectedPdb,
                 DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
@@ -224,27 +226,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string qualifiedMethodName,
                 string expectedPdb,
                 DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
-               string qualifiedMethodName,
-               XElement expectedPdb,
-               DebugInformationFormat format = 0,
-               [CallerLineNumber]int expectedValueSourceLine = 0,
-               [CallerFilePath]string expectedValueSourcePath = null)
+                string qualifiedMethodName,
+                XElement expectedPdb,
+                DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
+                [CallerLineNumber]int expectedValueSourceLine = 0,
+                [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public ISymUnmanagedReader CreateSymReader()
             {
-                return new SymReader(new MemoryStream(EmittedAssemblyPdb.ToArray()));
+                var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
+                return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null);
             }
 
             public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)
@@ -261,7 +266,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var actualPdbXml = PdbToXmlConverter.ToXml(
                         pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
                         peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
-                        options: PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError,
+                        options: PdbToXmlOptions.ResolveTokens | 
+                                 PdbToXmlOptions.ThrowOnError |
+                                 PdbToXmlOptions.ExcludeDocuments |
+                                 PdbToXmlOptions.ExcludeCustomDebugInformation |
+                                 PdbToXmlOptions.ExcludeScopes,
                         methodName: sequencePoints);
 
                     markers = GetMarkers(actualPdbXml);

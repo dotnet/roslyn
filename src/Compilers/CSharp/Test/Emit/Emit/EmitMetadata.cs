@@ -1665,7 +1665,6 @@ class C1<C1T1, C1T2>
             CompileAndVerify(source);
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1()
         {
@@ -1684,7 +1683,6 @@ public class E
 ");
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1_EP()
         {

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
                 var newRoot = OrganizeImportsService.OrganizeImportsAsync(document, specialCaseSystem).Result.GetSyntaxRootAsync().Result;
-                Assert.Equal(final, newRoot.ToFullString());
+                Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());
             }
         }
 
