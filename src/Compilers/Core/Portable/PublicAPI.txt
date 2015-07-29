@@ -1586,11 +1586,11 @@ Microsoft.CodeAnalysis.Semantics.IExpression.ConstantValue.get -> object
 Microsoft.CodeAnalysis.Semantics.IInvocation
 Microsoft.CodeAnalysis.Semantics.IInvocation.TargetMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.Semantics.IInvocation.Instance.get -> Microsoft.CodeAnalysis.Semantics.IExpression
-Microsoft.CodeAnalysis.Semantics.IInvocation.InvocationClass.get -> Microsoft.CodeAnalysis.Semantics.InvocationKind
+Microsoft.CodeAnalysis.Semantics.IInvocation.InvocationKind.get -> Microsoft.CodeAnalysis.Semantics.InvocationKind
 Microsoft.CodeAnalysis.Semantics.IInvocation.Arguments.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IArgument>
 Microsoft.CodeAnalysis.Semantics.IInvocation.ArgumentMatchingParameter(Microsoft.CodeAnalysis.IParameterSymbol parameter) -> Microsoft.CodeAnalysis.Semantics.IArgument
 Microsoft.CodeAnalysis.Semantics.IArgument
-Microsoft.CodeAnalysis.Semantics.IArgument.ArgumentClass.get -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
+Microsoft.CodeAnalysis.Semantics.IArgument.Kind.get -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.IArgument.Mode.get -> Microsoft.CodeAnalysis.Semantics.ArgumentMode
 Microsoft.CodeAnalysis.Semantics.IArgument.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IArgument.InConversion.get -> Microsoft.CodeAnalysis.Semantics.IExpression
@@ -2036,6 +2036,7 @@ Microsoft.CodeAnalysis.Semantics.IReturn
 Microsoft.CodeAnalysis.Semantics.IReturn.Returned.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.ILock
 Microsoft.CodeAnalysis.Semantics.ILock.Locked.get -> Microsoft.CodeAnalysis.Semantics.IExpression
+Microsoft.CodeAnalysis.Semantics.ILock.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.ITry
 Microsoft.CodeAnalysis.Semantics.ITry.Body.get -> Microsoft.CodeAnalysis.Semantics.IBlock
 Microsoft.CodeAnalysis.Semantics.ITry.Catches.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ICatch>
@@ -2048,12 +2049,10 @@ Microsoft.CodeAnalysis.Semantics.ICatch.ExceptionLocal.get -> Microsoft.CodeAnal
 Microsoft.CodeAnalysis.Semantics.IUsing
 Microsoft.CodeAnalysis.Semantics.IUsing.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.IUsingWithDeclaration
-Microsoft.CodeAnalysis.Semantics.IUsingWithDeclaration.UsingLocals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.IUsingWithDeclaration.Variables.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclaration
 Microsoft.CodeAnalysis.Semantics.IUsingWithExpression
 Microsoft.CodeAnalysis.Semantics.IUsingWithExpression.Value.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IFixed
-Microsoft.CodeAnalysis.Semantics.IFixed.FixedLocals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Semantics.IFixed.Variables.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclaration
 Microsoft.CodeAnalysis.Semantics.IFixed.Body.get -> Microsoft.CodeAnalysis.Semantics.IStatement
 Microsoft.CodeAnalysis.Semantics.IExpressionStatement

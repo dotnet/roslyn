@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ReceiverOpt; }
         }
 
-        InvocationKind IInvocation.InvocationClass
+        InvocationKind IInvocation.InvocationKind
         {
             get
             {
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.ArgumentValue = value;
             }
 
-            public ArgumentKind ArgumentClass
+            public ArgumentKind Kind
             {
                 get { return ArgumentKind.Positional; }
             }
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.ArgumentMode = mode;
             }
 
-            public ArgumentKind ArgumentClass
+            public ArgumentKind Kind
             {
                 get { return this.ArgumentKind; }
             }

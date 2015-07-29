@@ -2,28 +2,114 @@
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
+    /// <summary>
+    /// Represents a C# or VB expression.
+    /// </summary>
     public interface IExpression : IOperation
     {
+        /// <summary>
+        /// Result type of the expression.
+        /// </summary>
         ITypeSymbol ResultType { get; }
+        /// <summary>
+        /// If the expression evaluates to a constant value, the value of the expression, and otherwise null.
+        /// </summary>
         object ConstantValue { get; }
     }
 
+    /// <summary>
+    /// Represents a C# or VB method invocation.
+    /// </summary>
     public interface IInvocation : IExpression
     {
+        /// <summary>
+        /// Method to be invoked.
+        /// </summary>
         IMethodSymbol TargetMethod { get; }
+        /// <summary>
+        /// 'This' or 'Me' argument to be supplied to the method.
+        /// </summary>
         IExpression Instance { get; }
-        InvocationKind InvocationClass { get; }
+        /// <summary>
+        /// Kind of the invocation.
+        /// </summary>
+        InvocationKind InvocationKind { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument.
+        /// </summary>
         ImmutableArray<IArgument> Arguments { get; }
+        /// <summary>
+        /// Find the argument supplied for a given parameter of the target method.
+        /// </summary>
+        /// <param name="parameter">Parameter of the target method.</param>
+        /// <returns>Argument corresponding to the parameter.</returns>
         IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
     }
 
+    /// <summary>
+    /// Kinds of invocations.
+    /// </summary>
+    public enum InvocationKind
+    {
+        /// <summary>
+        /// Virtual invocation.
+        /// </summary>
+        Virtual,
+        /// <summary>
+        /// Static or shared invocation with no instance value.
+        /// </summary>
+        Static,
+        /// <summary>
+        /// Non-virtual invocation with an instance value.
+        /// </summary>
+        NonVirtualInstance
+    }
+
+    /// <summary>
+    /// Represents an argument in a method invocation.
+    /// </summary>
     public interface IArgument
     {
-        ArgumentKind ArgumentClass { get; }
+        /// <summary>
+        /// Kind of argument.
+        /// </summary>
+        ArgumentKind Kind { get; }
+        /// <summary>
+        /// Mode of argument.
+        /// </summary>
         ArgumentMode Mode { get; }
+        /// <summary>
+        /// Value supplied for the argument.
+        /// </summary>
         IExpression Value { get; }
+        /// <summary>
+        /// Conversion applied to the argument value passing it into the target method. Applicable only to In or Reference arguments.
+        /// </summary>
         IExpression InConversion { get; }
+        /// <summary>
+        /// Conversion applied to the argument value after the invocation. Applicable only to Out or Reference arguments.
+        /// </summary>
         IExpression OutConversion { get; }
+    }
+
+    /// <summary>
+    /// Kinds of arguments.
+    /// </summary>
+    public enum ArgumentKind
+    {
+        Positional,
+        Named,
+        ParamArray
+    }
+
+    /// <summary>
+    /// Modes of arguments.
+    /// </summary>
+    public enum ArgumentMode
+    {
+        In,
+        Out,
+        Reference
     }
 
     public interface INamedArgument : IArgument
@@ -325,27 +411,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         Basic,                  // Basic specific.
         CSharp,                 // C# specific.
         Operator                // Implemented by conversion operator.
-    }
-
-    public enum InvocationKind
-    {
-        Virtual,
-        Static,
-        NonVirtualInstance
-    }
-
-    public enum ArgumentKind
-    {
-        Positional,
-        Named,
-        ParamArray
-    }
-
-    public enum ArgumentMode
-    {
-        In,
-        Out,
-        Reference
     }
 
     public enum UnaryOperatorCode
