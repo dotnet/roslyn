@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -35,6 +38,26 @@ public class [|C|]
 Public Class [|C|]
     Public Sub New()
 End Class");
+        }
+
+        [WorkItem(4019, "https://github.com/dotnet/roslyn/issues/4019")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void TestClassWithTabs()
+        {
+            var metadataSource = "public class C {}";
+            var symbolName = "C";
+
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|C|]
+{{
+	public C();
+}}", compareTokens: false, includeXmlDocComments: false, changedOptionSet: optionSet);
         }
 
         [WorkItem(546241)]

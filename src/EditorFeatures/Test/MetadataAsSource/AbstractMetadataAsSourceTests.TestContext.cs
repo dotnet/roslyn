@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -25,8 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             private readonly TestWorkspace _workspace;
             private readonly IMetadataAsSourceFileService _metadataAsSourceService;
             private readonly ITextBufferFactoryService _textBufferFactoryService;
+            private readonly OptionSet _options;
 
-            public TestContext(string projectLanguage = null, IEnumerable<string> metadataSources = null, bool includeXmlDocComments = false, string sourceWithSymbolReference = null)
+            public TestContext(string projectLanguage = null,
+                IEnumerable<string> metadataSources = null,
+                bool includeXmlDocComments = false,
+                string sourceWithSymbolReference = null,
+                Dictionary<OptionKey, object> changedOptionSet = null)
             {
                 projectLanguage = projectLanguage ?? LanguageNames.CSharp;
                 metadataSources = metadataSources ?? SpecializedCollections.EmptyEnumerable<string>();
@@ -37,6 +43,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 _workspace = CreateWorkspace(projectLanguage, metadataSources, includeXmlDocComments, sourceWithSymbolReference);
                 _metadataAsSourceService = _workspace.GetService<IMetadataAsSourceFileService>();
                 _textBufferFactoryService = _workspace.GetService<ITextBufferFactoryService>();
+
+                if (changedOptionSet != null)
+                {
+                    _options = _workspace.Options;
+                    foreach (var entry in changedOptionSet)
+                    {
+                        _options = _options.WithChangedOption(entry.Key, entry.Value);
+                    }
+                }
             }
 
             public Solution CurrentSolution
@@ -54,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 project = project ?? this.DefaultProject;
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var file = _metadataAsSourceService.GetGeneratedFileAsync(project, symbol).Result;
+                var file = _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, _options).Result;
 
                 return file;
             }
@@ -71,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var symbol = ResolveSymbol(symbolMetadataName, compilation);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = _metadataAsSourceService.GetGeneratedFileAsync(project, symbol).Result;
+                var result = _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, _options).Result;
 
                 return result;
             }

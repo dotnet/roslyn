@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, OptionSet optionSet = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (project == null)
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                InitializeWorkspace(project);
+                InitializeWorkspace(project, optionSet);
 
                 var infoKey = await GetUniqueDocumentKey(project, topLevelNamedType, cancellationToken).ConfigureAwait(false);
                 fileInfo = _keyToInformation.GetOrAdd(infoKey, _ => new MetadataAsSourceGeneratedFileInfo(GetRootPathWithGuid_NoLock(), project, topLevelNamedType));
@@ -253,11 +253,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
         }
 
-        private void InitializeWorkspace(Project project)
+        private void InitializeWorkspace(Project project, OptionSet option)
         {
             if (_workspace == null)
             {
                 _workspace = new MetadataAsSourceWorkspace(this, project.Solution.Workspace.Services.HostServices);
+            }
+
+            if (option != null)
+            {
+                _workspace.Options = option;
             }
         }
 
