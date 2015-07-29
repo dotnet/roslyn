@@ -120,9 +120,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
-    <Reference Include="$(FrameworkPathOverride)\mscorlib.dll">
-      <Private>False</Private>
-    </Reference>
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
 
   <PropertyGroup>
