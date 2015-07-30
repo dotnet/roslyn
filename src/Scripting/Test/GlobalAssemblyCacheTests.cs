@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Immutable;
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(0, names.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void AssemblyAndGacLocation()
         {
             var names = GlobalAssemblyCache.GetAssemblyObjects(partialNameFilter: null, architectureFilter: default(ImmutableArray<ProcessorArchitecture>)).ToArray();

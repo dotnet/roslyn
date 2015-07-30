@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis
             return FusionAssemblyIdentity.ToAssemblyIdentity(bestMatch);
         }
 
+        // Internal for testing
         internal static unsafe string GetAssemblyLocation(FusionAssemblyIdentity.IAssemblyName nameObject)
         {
             // NAME | VERSION | CULTURE | PUBLIC_KEY_TOKEN | RETARGET | PROCESSORARCHITECTURE
