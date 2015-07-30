@@ -158,6 +158,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /*
+        Note: `var` return types are currently very broken in subtle ways, in particular in the IDE scenario when random things are being bound.
+        The basic problem is that a LocalFunctionSymbol needs to compute its return type, and to do that it needs access to its BoundBlock.
+        However, the BoundBlock needs access to the local function's return type. Recursion detection is tricky, because this property (.ReturnType)
+        doesn't have access to the binder where it is being accessed from (i.e. either from inside the local function, where it should report an error,
+        or from outside, where it should attempt to infer the return type from the block).
+
+        The current (broken) system assumes that Binder_Statements.cs BindLocalFunctionStatement will always be called (and so a block will be provided)
+        before any (valid) uses of the local function are bound that require knowing the return type. This assumption breaks in the IDE, where
+        a use of a local function may be bound before BindLocalFunctionStatement is called on the corresponding local function.
+        */
         internal TypeSymbol ComputeReturnType(BoundBlock body, bool returnNullIfUnknown, bool isIterator)
         {
             if (_returnType != null)

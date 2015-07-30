@@ -37,4 +37,4 @@ TODO:
 	- `LocalScopeBinder.ReportConflictWithLocal()` (twice)
 - `LocalScopeBinder.EnsureSingleDefinition()`, handle case where 'name' exists in both `localsMap` and `localFunctionsMap`. Might be related to `LocalFunctionTests.NameConflictLocalVarLast()`
 - Defining a local function with a dynamic parameter doesn't work at runtime.
-- Return type of `var` is strange - when normally compiling, it works fine, but intellisense/etc doesn't work.
+- Return type of `var` is broken - see LocalFunctionSymbol.cs for an explanation. Fixing it will require a large rewrite of much of return type analysis, as the current system assumes that all return types are known (mostly) without examining the method body.
