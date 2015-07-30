@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        public static BinaryOperatorCode DeriveAdditionCode(ITypeSymbol type)
+        public static BinaryOperationKind DeriveAdditionKind(ITypeSymbol type)
         {
             switch (type.SpecialType)
             {
@@ -52,27 +52,27 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case SpecialType.System_Int64:
                 case SpecialType.System_Int16:
                 case SpecialType.System_SByte:
-                    return BinaryOperatorCode.IntegerAdd;
+                    return BinaryOperationKind.IntegerAdd;
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
                 case SpecialType.System_UInt16:
                 case SpecialType.System_Byte:
                 case SpecialType.System_Char:
                 case SpecialType.System_Boolean:
-                    return BinaryOperatorCode.UnsignedAdd;
+                    return BinaryOperationKind.UnsignedAdd;
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
-                    return BinaryOperatorCode.FloatingAdd;
+                    return BinaryOperationKind.FloatingAdd;
                 case SpecialType.System_Object:
-                    return BinaryOperatorCode.ObjectAdd;
+                    return BinaryOperationKind.ObjectAdd;
             }
 
             if (type.TypeKind == TypeKind.Enum)
             {
-                return Semantics.BinaryOperatorCode.EnumAdd;
+                return Semantics.BinaryOperationKind.EnumAdd;
             }
 
-            return Semantics.BinaryOperatorCode.None;
+            return Semantics.BinaryOperationKind.None;
         }
 
         public static LiteralKind DeriveLiteralKind(ITypeSymbol type)
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public class Relational : IRelational
     {
-        public Relational(RelationalOperatorCode relationalCode, IExpression left, IExpression right, ITypeSymbol resultType, IMethodSymbol operatorMethod, SyntaxNode syntax)
+        public Relational(RelationalOperationKind relationalKind, IExpression left, IExpression right, ITypeSymbol resultType, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
-            this.RelationalCode = relationalCode;
+            this.RelationalKind = relationalKind;
             this.Left = left;
             this.Right = right;
             this.ResultType = resultType;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             this.Syntax = syntax;
         }
 
-        public RelationalOperatorCode RelationalCode { get; set; }
+        public RelationalOperationKind RelationalKind { get; set; }
         
         public IExpression Left { get; set; }
         
@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         CompoundAssignmentExpression compoundAssignment;
 
-        public CompoundAssignment(IReference target, IExpression value, BinaryOperatorCode operation, IMethodSymbol operatorMethod, SyntaxNode syntax)
+        public CompoundAssignment(IReference target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
         {
-            this.compoundAssignment = new CompoundAssignmentExpression(target, value, operation, operatorMethod, syntax);
+            this.compoundAssignment = new CompoundAssignmentExpression(target, value, binaryKind, operatorMethod, syntax);
             this.Syntax = syntax;
         }
 
@@ -259,11 +259,11 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         class CompoundAssignmentExpression : ICompoundAssignment
         {
-            public CompoundAssignmentExpression(IReference target, IExpression value, BinaryOperatorCode operation, IMethodSymbol operatorMethod, SyntaxNode syntax)
+            public CompoundAssignmentExpression(IReference target, IExpression value, BinaryOperationKind binaryKind, IMethodSymbol operatorMethod, SyntaxNode syntax)
             {
                 this.Target = target;
                 this.Value = value;
-                this.Operation = operation;
+                this.BinaryKind = binaryKind;
                 this.Operator = operatorMethod;
                 this.Syntax = syntax;
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             public IExpression Value { get; set; }
 
-            public BinaryOperatorCode Operation { get; set; }
+            public BinaryOperationKind BinaryKind { get; set; }
 
             public IMethodSymbol Operator { get; set; }
 
@@ -338,16 +338,16 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     public class Binary : IBinary
     {
-        public Binary(BinaryOperatorCode operation, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
+        public Binary(BinaryOperationKind binaryKind, IExpression left, IExpression right, ITypeSymbol resultType, SyntaxNode syntax)
         {
-            this.Operation = operation;
+            this.BinaryKind = binaryKind;
             this.Left = left;
             this.Right = right;
             this.ResultType = resultType;
             this.Syntax = syntax;
         }
 
-        public BinaryOperatorCode Operation { get; set; }
+        public BinaryOperationKind BinaryKind { get; set; }
 
         public IExpression Left { get; set; }
 
