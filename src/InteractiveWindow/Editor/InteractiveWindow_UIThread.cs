@@ -277,7 +277,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             public void InsertCode(string text)
             {
-                if (_window._stdInputStart == null)
+                if (_window._stdInputStart != null)
                 {
                     return;
                 }
