@@ -6536,6 +6536,44 @@ End Class
             VerifyItemExists(text, "y")
         End Sub
 
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoEnum()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        E.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "A")
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoLocalOfEnumType()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        Dim x = E.A
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Sub SharedProjectFieldAndPropertiesTreatedAsIdentical()
             Dim markup = <Workspace>
