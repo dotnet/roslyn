@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _classifierAggregator = classifierAggregator;
             _contentTypeRegistry = contentTypeRegistry;
             _vsWorkspace = workspace;
-            _commands = FilterCommands(commands, contentType: "code");
+            _commands = FilterCommands(commands, contentType: PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
             _vsInteractiveWindowFactory = interactiveWindowFactory;
             _commandsFactory = commandsFactory;
         }

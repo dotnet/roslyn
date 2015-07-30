@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -34,6 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             }
 
             return new CompletionList(items);
+        }
+
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        {
+            var document = context.Document;
+            var position = context.Position;
+            var triggerInfo = context.TriggerInfo;
+            var cancellationToken = context.CancellationToken;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var items = GetItems(text, position, triggerInfo, cancellationToken);
+
+            context.AddItems(items);
         }
 
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
@@ -87,9 +99,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return ImmutableArray<CompletionItem>.Empty;
             }
 
-            var fileSystem = PathCompletionUtilities.GetCurrentWorkingDirectoryDiscoveryService(snapshot);
+            var fileSystem = CurrentWorkingDirectoryDiscoveryService.GetService(snapshot);
 
-            var searchPaths = ImmutableArray.Create<string>(fileSystem.CurrentDirectory);
+            var searchPaths = ImmutableArray.Create(fileSystem.CurrentDirectory);
 
             var helper = new FileSystemCompletionHelper(
                 this,
@@ -104,12 +116,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var pathThroughLastSlash = this.GetPathThroughLastSlash(text, position, quotedPathGroup);
 
             return helper.GetItems(pathThroughLastSlash, documentPath: null);
-        }
-
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return GetItems(text, position, triggerInfo, cancellationToken);
         }
     }
 }

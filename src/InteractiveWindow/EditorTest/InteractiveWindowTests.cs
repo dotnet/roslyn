@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallBackspaceOnNonUIThread()
         {
-            Window.Operations.BreakLine(); // Something to backspace.
+            Window.InsertCode("1"); // Something to backspace.
             Task.Run(() => Window.Operations.Backspace()).PumpingWait();
         }
 
@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallClearViewOnNonUIThread()
         {
-            Window.Operations.BreakLine(); // Something to clear.
+            Window.InsertCode("1"); // Something to clear.
             Task.Run(() => Window.Operations.ClearView()).PumpingWait();
         }
 
@@ -357,7 +357,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         [Fact]
         public void CallSelectAllOnNonUIThread()
         {
-            Window.Operations.BreakLine(); // Something to select.
+            Window.InsertCode("1"); // Something to select.
             Task.Run(() => Window.Operations.SelectAll()).PumpingWait();
         }
 

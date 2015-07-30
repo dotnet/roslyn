@@ -2,13 +2,10 @@
 
 using System;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem
 {
     internal static class PathCompletionUtilities
     {
@@ -106,14 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             return -1;
-        }
-
-        internal static ICurrentWorkingDirectoryDiscoveryService GetCurrentWorkingDirectoryDiscoveryService(ITextSnapshot textSnapshot)
-        {
-            ICurrentWorkingDirectoryDiscoveryService result;
-            return textSnapshot.TextBuffer.Properties.TryGetProperty(typeof(ICurrentWorkingDirectoryDiscoveryService), out result)
-                ? result
-                : CurrentWorkingDirectoryDiscoveryService.Instance;
         }
     }
 }

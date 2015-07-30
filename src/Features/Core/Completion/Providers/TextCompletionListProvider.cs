@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class TextCompletionProvider : AbstractCompletionProvider
+    internal abstract class TextCompletionProvider : CompletionListProvider
     {
         /// <summary>
         /// Returns a CompletionItemGroup for the specified position in the text.

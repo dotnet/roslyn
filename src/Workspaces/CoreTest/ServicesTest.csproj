@@ -168,7 +168,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
-    <Reference Include="System.Collections" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.AttributedModel">
       <SpecificVersion>False</SpecificVersion>
