@@ -1748,13 +1748,12 @@ class F
 }";
             var tree = SyntaxFactory.ParseCompilationUnit(code);
 
-            var text = DefaultWorkspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp);
-            var newLine = SyntaxFactory.ElasticEndOfLine(text);
+            var newLineText = SyntaxFactory.ElasticEndOfLine(DefaultWorkspace.Options.GetOption(FormattingOptions.NewLine, LanguageNames.CSharp));
 
             tree = tree.ReplaceTokens(tree.DescendantTokens(descendIntoTrivia: true)
-                .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(newLine))
-                                                                                    .WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                                                                    .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
+                                          .Where(tr => tr.IsKind(SyntaxKind.EndOfDirectiveToken)), (o, r) => o.WithTrailingTrivia(o.LeadingTrivia.Add(newLineText))
+                                                                                                              .WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                                                              .WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation));
 
             var formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, true));
 
