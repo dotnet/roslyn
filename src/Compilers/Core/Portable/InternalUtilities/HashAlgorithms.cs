@@ -12,128 +12,44 @@ namespace Roslyn.Utilities
 
     internal abstract class HashAlgorithm : IDisposable
     {
-        private static readonly MethodInfo s_ComputeHash_bytes_Method;
-        private static readonly MethodInfo s_ComputeHash_bytesOffsetCount_Method;
-        private static readonly MethodInfo s_ComputeHash_stream_Method;
-        private static readonly MethodInfo s_TransformBlock_Method;
-        private static readonly MethodInfo s_TransformFinalBlock_Method;
-        private static readonly MethodInfo s_Hash_PropertyGetter;
+        private static readonly MethodInfo s_transformBlock = PortableShim.HashAlgorithm.Type
+            .GetTypeInfo()
+            .GetDeclaredMethod(nameof(TransformBlock), new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]), typeof(int) });
+
+        private static readonly MethodInfo s_transformFinalBlock = PortableShim.HashAlgorithm.Type
+            .GetTypeInfo()
+            .GetDeclaredMethod(nameof(TransformFinalBlock), new[] { typeof(byte[]), typeof(int), typeof(int) });
+
+        private static readonly PropertyInfo s_hash = PortableShim.HashAlgorithm.Type
+            .GetTypeInfo()
+            .GetDeclaredProperty(nameof(Hash));
 
         private readonly IDisposable _hashInstance;
-
-        private const string MscorlibAssembly = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089";
-        private const string HashingAssembly = "System.Security.Cryptography.Hashing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-        private const string HashingAlgorithmsAssembly = "System.Security.Cryptography.Hashing.Algorithms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
-
-        static HashAlgorithm()
-        {
-            Type type = GetType("System.Security.Cryptography.HashAlgorithm", new[] { HashingAssembly, MscorlibAssembly });
-            Debug.Assert(type != null, "Could not find HashingAlgorithm");
-            if (type != null)
-            {
-                var methods = type.GetTypeInfo().GetDeclaredMethods("ComputeHash");
-
-                // https://msdn.microsoft.com/en-us/library/s02tk69a(v=vs.110).aspx
-                s_ComputeHash_bytes_Method = (from m in methods
-                                              let ps = m.GetParameters()
-                                              where ps.Length == 1 && ps[0].ParameterType == typeof(byte[])
-                                              select m).Single();
-
-                // https://msdn.microsoft.com/en-us/library/1e59xaaz(v=vs.110).aspx
-                s_ComputeHash_bytesOffsetCount_Method = (from m in methods
-                                                         let ps = m.GetParameters()
-                                                         where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
-                                                         select m).Single();
-
-                // https://msdn.microsoft.com/en-us/library/xa627k19(v=vs.110).aspx
-                s_ComputeHash_stream_Method = (from m in methods
-                                               let ps = m.GetParameters()
-                                               where ps.Length == 1 && ps[0].ParameterType == typeof(Stream)
-                                               select m).Single();
-
-                // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.transformblock(v=vs.110).aspx
-                s_TransformBlock_Method = (from m in type.GetTypeInfo().GetDeclaredMethods("TransformBlock")
-                                           let ps = m.GetParameters()
-                                           where ps.Length == 5 && ps[0].ParameterType == typeof(byte[]) &&
-                                                                   ps[1].ParameterType == typeof(int) &&
-                                                                   ps[2].ParameterType == typeof(int) &&
-                                                                   ps[3].ParameterType == typeof(byte[]) &&
-                                                                   ps[4].ParameterType == typeof(int)
-                                           select m).SingleOrDefault();
-
-                // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.transformblock(v=vs.110).aspx
-                s_TransformFinalBlock_Method = (from m in type.GetTypeInfo().GetDeclaredMethods("TransformFinalBlock")
-                                                let ps = m.GetParameters()
-                                                where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) &&
-                                                                        ps[1].ParameterType == typeof(int) &&
-                                                                        ps[2].ParameterType == typeof(int)
-                                                select m).SingleOrDefault();
-
-                // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.hash(v=vs.110).aspx
-                s_Hash_PropertyGetter = type.GetTypeInfo().GetDeclaredProperty("Hash")?.GetMethod;
-            }
-        }
-
-        protected static MethodInfo LoadAlgorithmCreate(string name)
-        {
-            Type t = GetType("System.Security.Cryptography." + name, new[] { HashingAlgorithmsAssembly, MscorlibAssembly });
-            if (t != null)
-            {
-                return (from m in t.GetTypeInfo().GetDeclaredMethods("Create")
-                        where m.IsStatic && m.GetParameters().Length == 0
-                        select m).Single();
-            }
-
-            Debug.Assert(false, "Could not find algorithm " + name);
-            return null;
-        }
-
-        private static Type GetType(string typeName, string[] assemblyNames)
-        {
-            foreach (string assemblyName in assemblyNames)
-            {
-                Type t;
-                try
-                {
-                    t = Type.GetType(typeName + ", " + assemblyName, throwOnError: false);
-                }
-                catch
-                {
-                    t = null;
-                }
-
-                if (t != null && t.GetTypeInfo().IsPublic)
-                {
-                    return t;
-                }
-            }
-            return null;
-        }
 
         protected HashAlgorithm(IDisposable hashInstance)
         {
             _hashInstance = hashInstance;
         }
 
-        public byte[] ComputeHash(byte[] bytes)
+        public byte[] ComputeHash(byte[] buffer)
         {
-            return (byte[])s_ComputeHash_bytes_Method.Invoke(_hashInstance, new object[] { bytes });
+            return PortableShim.HashAlgorithm.ComputeHash(_hashInstance, buffer);
         }
 
-        public byte[] ComputeHash(byte[] bytes, int offset, int count)
+        public byte[] ComputeHash(byte[] buffer, int offset, int count)
         {
-            return (byte[])s_ComputeHash_bytesOffsetCount_Method.Invoke(_hashInstance, new object[] { bytes, offset, count });
+            return PortableShim.HashAlgorithm.ComputeHash(_hashInstance, buffer, offset, count);
         }
 
-        public byte[] ComputeHash(Stream stream)
+        public byte[] ComputeHash(Stream inputStream)
         {
-            return (byte[])s_ComputeHash_stream_Method.Invoke(_hashInstance, new object[] { stream });
+            return PortableShim.HashAlgorithm.ComputeHash(_hashInstance, inputStream);
         }
 
         public bool SupportsTransform =>
-            s_TransformBlock_Method != null &&
-            s_TransformFinalBlock_Method != null &&
-            s_Hash_PropertyGetter != null;
+            s_transformBlock != null &&
+            s_transformFinalBlock != null &&
+            s_hash != null;
 
         /// <summary>
         /// Invoke the underlying HashAlgorithm's TransformBlock operation on the provided data.
@@ -142,7 +58,7 @@ namespace Roslyn.Utilities
         {
             while (inputCount > 0)
             {
-                int written = (int)s_TransformBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
+                int written = (int)s_transformBlock.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
                 Debug.Assert(inputCount == written); // does the TransformBlock method always consume the complete data given to it?
                 inputCount -= written;
                 inputOffset += written;
@@ -151,10 +67,10 @@ namespace Roslyn.Utilities
 
         public void TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            s_TransformFinalBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount });
+            s_transformFinalBlock.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount });
         }
 
-        public byte[] Hash => (byte[])s_Hash_PropertyGetter.Invoke(_hashInstance, new object[] { });
+        public byte[] Hash => (byte[])s_hash.GetMethod.Invoke(_hashInstance, new object[] { });
 
         public void Dispose()
         {
@@ -164,50 +80,40 @@ namespace Roslyn.Utilities
 
     internal sealed class SHA1CryptoServiceProvider : HashAlgorithm
     {
-        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA1");
-
         public SHA1CryptoServiceProvider()
-            : base((IDisposable)s_create.Invoke(null, null))
+            : base(PortableShim.SHA1.Create())
         {
         }
     }
 
     internal sealed class SHA256CryptoServiceProvider : HashAlgorithm
     {
-        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA256");
-
         public SHA256CryptoServiceProvider()
-            : base((IDisposable)s_create.Invoke(null, null))
+            : base(PortableShim.SHA256.Create())
         {
         }
     }
 
     internal sealed class SHA384CryptoServiceProvider : HashAlgorithm
     {
-        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA384");
-
         public SHA384CryptoServiceProvider()
-            : base((IDisposable)s_create.Invoke(null, null))
+            : base(PortableShim.SHA384.Create())
         {
         }
     }
 
     internal sealed class SHA512CryptoServiceProvider : HashAlgorithm
     {
-        private static readonly MethodInfo s_create = LoadAlgorithmCreate("SHA512");
-
         public SHA512CryptoServiceProvider()
-            : base((IDisposable)s_create.Invoke(null, null))
+            : base(PortableShim.SHA512.Create())
         {
         }
     }
 
     internal sealed class MD5CryptoServiceProvider : HashAlgorithm
     {
-        private static readonly MethodInfo s_create = LoadAlgorithmCreate("MD5");
-
         public MD5CryptoServiceProvider()
-            : base((IDisposable)s_create.Invoke(null, null))
+            : base(PortableShim.MD5.Create())
         {
         }
     }
