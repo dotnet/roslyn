@@ -97,8 +97,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ArgumentKind
     {
+        /// <summary>
+        /// Argument is specified positionally and matches the parameter of the same ordinality.
+        /// </summary>
         Positional,
+        /// <summary>
+        /// Argument is specified by name and matches the parameter of the same name.
+        /// </summary>
         Named,
+        /// <summary>
+        /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
+        /// </summary>
         ParamArray
     }
 
@@ -107,19 +116,64 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     public enum ArgumentMode
     {
+        /// <summary>
+        /// Argument is passed as an input value only.
+        /// </summary>
         In,
+        /// <summary>
+        /// Argument is passed without an input value and is assigned a value by the time the invoked method returns.
+        /// </summary>
         Out,
+        /// <summary>
+        /// Argument is passed by reference.
+        /// </summary>
         Reference
     }
 
+    /// <summary>
+    /// Represents a named argument.
+    /// </summary>
     public interface INamedArgument : IArgument
     {
+        /// <summary>
+        /// Name of the parameter that the argument matches.
+        /// </summary>
         string Name { get; }
     }
 
+    /// <summary>
+    /// Represents a reference, which refers to a symbol or an element of a collection.
+    /// </summary>
     public interface IReference : IExpression
     {
-        ReferenceKind ReferenceClass { get; }
+        /// <summary>
+        /// Kind of the reference.
+        /// </summary>
+        ReferenceKind ReferenceKind { get; }
+    }
+
+    /// <summary>
+    /// Kinds of references.
+    /// </summary>
+    public enum ReferenceKind
+    {
+        Local,
+        Parameter,
+        Temporary,
+        ArrayElement,
+        PointerIndirection,
+        StaticField,
+        InstanceField,
+        StaticMethod,
+        InstanceMethod,
+        StaticPropertyGet,
+        InstancePropertyGet,
+        StaticPropertySet,
+        InstancePropertySet,
+        StaticProperty,
+        InstanceProperty,
+        ConstantField,
+        LateBoundMember
     }
 
     public interface IArrayElementReference : IReference
@@ -149,11 +203,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         IStatement ContainingStatement { get; }
     }
 
+    /// <summary>
+    /// Kinds of temporary references.
+    /// </summary>
     public enum TemporaryKind
     {
         None,
 
+        /// <summary>
+        /// Temporary created for the step value of a for loop.
+        /// </summary>
         StepValue,
+        /// <summary>
+        /// Temporary created for the limit value of a for loop.
+        /// </summary>
         LimitValue
     }
 
@@ -192,228 +255,39 @@ namespace Microsoft.CodeAnalysis.Semantics
         IPropertySymbol Property { get; }
     }
 
-    public enum ReferenceKind
-    {
-        Local,
-        Parameter,
-        Temporary,
-        ArrayElement,
-        PointerIndirection,
-        StaticField,
-        InstanceField,
-        StaticMethod,
-        InstanceMethod,
-        StaticPropertyGet,
-        InstancePropertyGet,
-        StaticPropertySet,
-        InstancePropertySet,
-        StaticProperty,
-        InstanceProperty,
-        ConstantField,
-        LateBoundMember
-    }
-
     public interface IConditionalAccess : IExpression
     {
         IExpression Access { get; }
     }
 
-    public interface IOperator : IExpression
+    /// <summary>
+    /// Represents a unary, binary, relational, or conversion operation that can use an operator method.
+    /// </summary>
+    public interface IWithOperator : IExpression
     {
+        /// <summary>
+        /// True if and only if the operation is performed by an operator method.
+        /// </summary>
         bool UsesOperatorMethod { get; }
+        /// <summary>
+        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
         IMethodSymbol Operator { get; }
     }
 
-    public interface IUnary : IOperator
+    /// <summary>
+    /// Represents an operation with one operand.
+    /// </summary>
+    public interface IUnary : IWithOperator
     {
-        UnaryOperatorCode Operation { get; }
+        UnaryOperationKind UnaryKind { get; }
         IExpression Operand { get; }
     }
 
-    public interface IBinary : IOperator
-    {
-        BinaryOperatorCode Operation { get; }
-        IExpression Left { get; }
-        IExpression Right { get; }
-    }
-
-    public interface IConditionalChoice : IExpression
-    {
-        IExpression Condition { get; }
-        IExpression IfTrue { get; }
-        IExpression IfFalse { get; }
-    }
-    
-    public interface INullCoalescing : IExpression
-    {
-        IExpression Primary { get; }
-        IExpression Secondary { get; }
-    }
-
-    public interface IRelational : IOperator
-    {
-        RelationalOperatorCode RelationalCode { get; }
-        IExpression Left { get; }
-        IExpression Right { get; }
-    }
-
-    public interface IConversion : IOperator
-    {
-        IExpression Operand { get; }
-        ConversionKind Conversion { get; }
-        bool IsExplicit { get; }
-    }
-
-    public interface IIs : IExpression
-    {
-        IExpression Operand { get; }
-        ITypeSymbol IsType { get; }
-    }
-
-    public interface ITypeOperation : IExpression
-    {
-        TypeOperationKind TypeOperationClass { get; }
-        ITypeSymbol TypeOperand { get; }
-    }
-
-    public enum TypeOperationKind
-    {
-        None,
-
-        SizeOf,
-        TypeOf
-    }
-
-    public interface ILambda : IExpression
-    {
-        IMethodSymbol Signature { get; }
-        IBlock Body { get; }
-    }
-
-    public interface ILiteral : IExpression
-    {
-        LiteralKind LiteralClass { get; }
-        string Spelling { get; }
-    }
-
-    public enum LiteralKind
-    {
-        None,
-        Boolean,
-        DateTime,
-        Integer,
-        Floating,
-        Character,
-        Decimal,
-        String
-    }
-
-    public interface IAwait : IExpression
-    {
-        IExpression Upon { get; }
-    }
-
-    public interface IAddressOf : IExpression
-    {
-        IReference Addressed { get; }
-    }
-
-    public interface IObjectCreation : IExpression
-    {
-        IMethodSymbol Constructor { get; }
-        ImmutableArray<IArgument> ConstructorArguments { get; }
-        IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
-        ImmutableArray<IMemberInitializer> MemberInitializers { get; }
-    }
-
-    public interface IMemberInitializer
-    {
-        MemberInitializerKind MemberClass { get; }
-        IExpression Value { get; }
-    }
-
-    public interface IFieldInitializer : IMemberInitializer
-    {
-        IFieldSymbol Field { get; }
-    }
-
-    public interface IPropertyInitializer : IMemberInitializer
-    {
-        IMethodSymbol Setter { get; }
-    }
-
-    public interface IArrayCreation : IExpression
-    {
-        ITypeSymbol ElementType { get; }
-        ImmutableArray<IExpression> DimensionSizes { get; }
-        IArrayInitializer ElementValues { get; }
-    }
-
-    public interface IArrayInitializer
-    {
-        ArrayInitializerKind ArrayClass { get; }
-    }
-
-    public interface IExpressionArrayInitializer : IArrayInitializer
-    {
-        IExpression ElementValue { get; }
-    }
-
-    public interface IDimensionArrayInitializer : IArrayInitializer
-    {
-        ImmutableArray<IArrayInitializer> ElementValues { get; }
-    }
-
-    public enum ArrayInitializerKind
-    {
-        Expression,
-        Dimension
-    }
-
-    public enum MemberInitializerKind
-    {
-        Field,
-        Property
-    }
-
-    public interface IAssignment : IExpression
-    {
-        IReference Target { get; }
-        IExpression Value { get; }
-    }
-
-    public interface ICompoundAssignment : IAssignment, IOperator
-    {
-        BinaryOperatorCode Operation { get; }
-    }
-
-    public interface IIncrement : ICompoundAssignment
-    {
-        UnaryOperatorCode IncrementOperation { get; }
-    }
-
-    public interface IParenthesized: IExpression
-    {
-        IExpression Operand { get; }
-    }
-
-    public interface ILateBoundMemberReference : IReference
-    {
-        IExpression Instance { get; }
-        string MemberName { get; }
-    }
-
-    public enum ConversionKind
-    {
-        None,
-        Cast,                   // Defined by underlying type system.
-        AsCast,                 // Defined by the underlying type system.
-        Basic,                  // Basic specific.
-        CSharp,                 // C# specific.
-        Operator                // Implemented by conversion operator.
-    }
-
-    public enum UnaryOperatorCode
+    /// <summary>
+    /// Kinds of unary operations.
+    /// </summary>
+    public enum UnaryOperationKind
     {
         None,
 
@@ -484,7 +358,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         ObjectNot
     }
 
-    public enum BinaryOperatorCode
+    /// <summary>
+    /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
+    /// </summary>
+    public interface IBinary : IWithOperator
+    {
+        BinaryOperationKind BinaryKind { get; }
+        IExpression Left { get; }
+        IExpression Right { get; }
+    }
+
+    /// <summary>
+    /// Kinds of binary operations.
+    /// </summary>
+    public enum BinaryOperationKind
     {
         None,
 
@@ -582,7 +469,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         StringConcatenation
     }
 
-    public enum RelationalOperatorCode
+    /// <summary>
+    /// Represents an operation that compares two operands and produces a boolean result.
+    /// </summary>
+    public interface IRelational : IWithOperator
+    {
+        RelationalOperationKind RelationalKind { get; }
+        IExpression Left { get; }
+        IExpression Right { get; }
+    }
+
+    /// <summary>
+    /// Kinds of relational operations.
+    /// </summary>
+    public enum RelationalOperationKind
     {
         None,
 
@@ -661,5 +561,216 @@ namespace Microsoft.CodeAnalysis.Semantics
         DynamicLessEqual,
         DynamicGreaterEqual,
         DynamicGreater
+    }
+
+    /// <summary>
+    /// Represents a conversion operation.
+    /// </summary>
+    public interface IConversion : IWithOperator
+    {
+        IExpression Operand { get; }
+        ConversionKind Conversion { get; }
+        /// <summary>
+        /// True if and only if the conversion is indicated explicity by a cast operation in the source code.
+        /// </summary>
+        bool IsExplicit { get; }
+    }
+
+    /// <summary>
+    /// Kinds of conversions.
+    /// </summary>
+    public enum ConversionKind
+    {
+        None,
+        /// <summary>
+        /// Conversion is defined by the underlying type system and throws an exception if it fails.
+        /// </summary>
+        Cast,
+        /// <summary>
+        /// Conversion is defined by the underlying type system and produces a null result if it fails.
+        /// </summary>
+        AsCast,
+        /// <summary>
+        /// Conversion has VB-specific semantics.
+        /// </summary>
+        Basic,
+        /// <summary>
+        /// Conversion has C#-specific semantics.
+        /// </summary>
+        CSharp,
+        /// <summary>
+        /// Conversion is implemented by a conversion operator method.
+        /// </summary>
+        Operator
+    }
+
+    public interface IConditionalChoice : IExpression
+    {
+        IExpression Condition { get; }
+        IExpression IfTrue { get; }
+        IExpression IfFalse { get; }
+    }
+
+    public interface INullCoalescing : IExpression
+    {
+        IExpression Primary { get; }
+        IExpression Secondary { get; }
+    }
+
+    public interface IIs : IExpression
+    {
+        IExpression Operand { get; }
+        ITypeSymbol IsType { get; }
+    }
+
+    public interface ITypeOperation : IExpression
+    {
+        TypeOperationKind TypeOperationClass { get; }
+        ITypeSymbol TypeOperand { get; }
+    }
+
+    /// <summary>
+    /// Kinds of type operations.
+    /// </summary>
+    public enum TypeOperationKind
+    {
+        None,
+
+        SizeOf,
+        TypeOf
+    }
+
+    public interface ILambda : IExpression
+    {
+        IMethodSymbol Signature { get; }
+        IBlock Body { get; }
+    }
+
+    public interface ILiteral : IExpression
+    {
+        LiteralKind LiteralClass { get; }
+        string Spelling { get; }
+    }
+
+    /// <summary>
+    /// Kinds of literals.
+    /// </summary>
+    public enum LiteralKind
+    {
+        None,
+        Boolean,
+        DateTime,
+        Integer,
+        Floating,
+        Character,
+        Decimal,
+        String
+    }
+
+    public interface IAwait : IExpression
+    {
+        IExpression Upon { get; }
+    }
+
+    public interface IAddressOf : IExpression
+    {
+        IReference Addressed { get; }
+    }
+
+    public interface IObjectCreation : IExpression
+    {
+        IMethodSymbol Constructor { get; }
+        ImmutableArray<IArgument> ConstructorArguments { get; }
+        IArgument ArgumentMatchingParameter(IParameterSymbol parameter);
+        ImmutableArray<IMemberInitializer> MemberInitializers { get; }
+    }
+
+    public interface IMemberInitializer
+    {
+        MemberInitializerKind MemberClass { get; }
+        IExpression Value { get; }
+    }
+
+    /// <summary>
+    /// Kinds of member initializers.
+    /// </summary>
+    public enum MemberInitializerKind
+    {
+        Field,
+        Property
+    }
+
+    public interface IFieldInitializer : IMemberInitializer
+    {
+        IFieldSymbol Field { get; }
+    }
+
+    public interface IPropertyInitializer : IMemberInitializer
+    {
+        IMethodSymbol Setter { get; }
+    }
+
+    public interface IArrayCreation : IExpression
+    {
+        ITypeSymbol ElementType { get; }
+        ImmutableArray<IExpression> DimensionSizes { get; }
+        IArrayInitializer ElementValues { get; }
+    }
+
+    public interface IArrayInitializer
+    {
+        ArrayInitializerKind ArrayClass { get; }
+    }
+
+    /// <summary>
+    /// Kinds of array initializers.
+    /// </summary>
+    public enum ArrayInitializerKind
+    {
+        /// <summary>
+        /// Initializer specifies a single element value.
+        /// </summary>
+        Expression,
+        /// <summary>
+        /// Initializer specifies multiple elements of a dimension of the array. 
+        /// </summary>
+        Dimension
+    }
+
+    public interface IExpressionArrayInitializer : IArrayInitializer
+    {
+        IExpression ElementValue { get; }
+    }
+
+    public interface IDimensionArrayInitializer : IArrayInitializer
+    {
+        ImmutableArray<IArrayInitializer> ElementValues { get; }
+    }
+
+    public interface IAssignment : IExpression
+    {
+        IReference Target { get; }
+        IExpression Value { get; }
+    }
+
+    public interface ICompoundAssignment : IAssignment, IWithOperator
+    {
+        BinaryOperationKind BinaryKind { get; }
+    }
+
+    public interface IIncrement : ICompoundAssignment
+    {
+        UnaryOperationKind IncrementKind { get; }
+    }
+
+    public interface IParenthesized: IExpression
+    {
+        IExpression Operand { get; }
+    }
+
+    public interface ILateBoundMemberReference : IReference
+    {
+        IExpression Instance { get; }
+        string MemberName { get; }
     }
 }

@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ExpressionOpt; }
         }
 
-        RelationalOperatorCode ISingleValueCaseClause.Equality
+        RelationalOperationKind ISingleValueCaseClause.Equality
         {
             get
             {
@@ -323,22 +323,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SpecialType.System_SByte:
                         case SpecialType.System_Byte:
                         case SpecialType.System_Char:
-                            return RelationalOperatorCode.IntegerEqual;
+                            return RelationalOperationKind.IntegerEqual;
 
                         case SpecialType.System_Boolean:
-                            return RelationalOperatorCode.BooleanEqual;
+                            return RelationalOperationKind.BooleanEqual;
 
                         case SpecialType.System_String:
-                            return RelationalOperatorCode.StringEqual;
+                            return RelationalOperationKind.StringEqual;
                     }
 
                     if (caseValue.Type.TypeKind == TypeKind.Enum)
                     {
-                        return RelationalOperatorCode.EnumEqual;
+                        return RelationalOperationKind.EnumEqual;
                     }
                 }
 
-                return RelationalOperatorCode.None;
+                return RelationalOperationKind.None;
             }
         }
 

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Performance
                                                  {
                                                      IExpression advanceExpression = ((IExpressionStatement)advance).Expression;
                                                      IExpression advanceIncrement = null;
-                                                     BinaryOperatorCode advanceOperationCode = BinaryOperatorCode.None;
+                                                     BinaryOperationKind advanceOperationCode = BinaryOperationKind.None;
 
                                                      if (advanceExpression.Kind == OperationKind.Assignment)
                                                      {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Performance
                                                              {
                                                                  // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                                  advanceIncrement = advanceOperation.Right;
-                                                                 advanceOperationCode = advanceOperation.Operation;
+                                                                 advanceOperationCode = advanceOperation.BinaryKind;
                                                              }
                                                          }
                                                      }
@@ -113,26 +113,26 @@ namespace Microsoft.CodeAnalysis.Performance
                                                          {
                                                              // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                              advanceIncrement = advanceAssignment.Value;
-                                                             advanceOperationCode = advanceAssignment.Operation;
+                                                             advanceOperationCode = advanceAssignment.BinaryKind;
                                                          }
                                                      }
 
                                                      if (advanceIncrement != null)
                                                      {
                                                          int incrementValue = (int)advanceIncrement.ConstantValue;
-                                                         if (advanceOperationCode == BinaryOperatorCode.IntegerSubtract)
+                                                         if (advanceOperationCode == BinaryOperationKind.IntegerSubtract)
                                                          {
-                                                             advanceOperationCode = BinaryOperatorCode.IntegerAdd;
+                                                             advanceOperationCode = BinaryOperationKind.IntegerAdd;
                                                              incrementValue = -incrementValue;
                                                          }
 
-                                                         if (advanceOperationCode == BinaryOperatorCode.IntegerAdd &&
+                                                         if (advanceOperationCode == BinaryOperationKind.IntegerAdd &&
                                                              incrementValue != 0 &&
-                                                             (condition.RelationalCode == RelationalOperatorCode.IntegerLess ||
-                                                              condition.RelationalCode == RelationalOperatorCode.IntegerLessEqual ||
-                                                              condition.RelationalCode == RelationalOperatorCode.IntegerNotEqual ||
-                                                              condition.RelationalCode == RelationalOperatorCode.IntegerGreater ||
-                                                              condition.RelationalCode == RelationalOperatorCode.IntegerGreaterEqual))
+                                                             (condition.RelationalKind == RelationalOperationKind.IntegerLess ||
+                                                              condition.RelationalKind == RelationalOperationKind.IntegerLessEqual ||
+                                                              condition.RelationalKind == RelationalOperationKind.IntegerNotEqual ||
+                                                              condition.RelationalKind == RelationalOperationKind.IntegerGreater ||
+                                                              condition.RelationalKind == RelationalOperationKind.IntegerGreaterEqual))
                                                          {
                                                              int iterationCount = (testValue - initialValue) / incrementValue;
                                                              if (iterationCount >= 1000000)
@@ -249,25 +249,25 @@ namespace Microsoft.CodeAnalysis.Performance
                                              int relationalValue = (int)relationalValueExpression.ConstantValue;
                                              switch (relationalClause.Relation)
                                              {
-                                                 case RelationalOperatorCode.IntegerEqual:
+                                                 case RelationalOperationKind.IntegerEqual:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case RelationalOperatorCode.IntegerNotEqual:
+                                                 case RelationalOperationKind.IntegerNotEqual:
                                                      return;
-                                                 case RelationalOperatorCode.IntegerLess:
+                                                 case RelationalOperationKind.IntegerLess:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue - 1;
                                                      break;
-                                                 case RelationalOperatorCode.IntegerLessEqual:
+                                                 case RelationalOperationKind.IntegerLessEqual:
                                                      rangeMinValue = int.MinValue;
                                                      rangeMaxValue = relationalValue;
                                                      break;
-                                                 case RelationalOperatorCode.IntegerGreaterEqual:
+                                                 case RelationalOperationKind.IntegerGreaterEqual:
                                                      rangeMinValue = relationalValue;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;
-                                                 case RelationalOperatorCode.IntegerGreater:
+                                                 case RelationalOperationKind.IntegerGreater:
                                                      rangeMinValue = relationalValue + 1;
                                                      rangeMaxValue = int.MaxValue;
                                                      break;
