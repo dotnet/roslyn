@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Inherits EnumCompletionProvider
 
         Protected Overrides Function GetPreselectedSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
-            If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) Then
+            If context.SyntaxTree.IsObjectCreationTypeContext(position, cancellationToken) OrElse
+                context.SyntaxTree.IsInNonUserCode(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
             End If
 
