@@ -42,6 +42,7 @@ namespace Roslyn.Utilities
             // surface area, be sure to "touch" the Type field here.
 
             Touch(Assembly.Type);
+            Touch(AssemblyName.Type);
             Touch(Directory.Type);
             Touch(Encoding.Type);
             Touch(Environment.Type);
@@ -502,6 +503,25 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod("GetType", typeof(string), typeof(bool), typeof(bool))
                 .CreateDelegate<Func<System.Reflection.Assembly, string, bool, bool, Type>>();
+
+            internal static readonly Func<Type, System.Reflection.Assembly> GetAssembly = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod("GetAssembly", typeof(Type))
+                .CreateDelegate<Func<Type, System.Reflection.Assembly>>();
+        }
+
+        internal static class AssemblyName
+        {
+            private const string TypeName = "System.Reflection.AssemblyName";
+
+            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
+                contractName: $"{TypeName}, {CoreNames.System_Reflection}",
+                desktopName: TypeName);
+
+            internal static readonly Func<string, System.Reflection.AssemblyName> GetAssemblyName = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod("GetAssemblyName", typeof(string))
+                .CreateDelegate<Func<string, System.Reflection.AssemblyName>>();
         }
 
         internal static class HashAlgorithm
