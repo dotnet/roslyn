@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis
         public override string ResolveReference(string path, string baseFilePath)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
-
-            if (!FileExists(resolvedPath))
+            if (resolvedPath == null)
             {
                 return null;
             }

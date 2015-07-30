@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// <summary>
     /// Options for creating and running scripts.
     /// </summary>
-    public class ScriptOptions
+    public sealed class ScriptOptions
     {
         private readonly ImmutableArray<MetadataReference> _references;
         private readonly ImmutableArray<string> _namespaces;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ScriptOptions()
             : this(ImmutableArray<MetadataReference>.Empty,
                   ImmutableArray<string>.Empty,
-                  new AssemblyReferenceResolver(GacFileResolver.Default, MetadataFileReferenceProvider.Default),
+                  new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default),
                   isInteractive: true)
         {
         }
@@ -342,25 +342,10 @@ namespace Microsoft.CodeAnalysis.Scripting
             else
             {
                 // TODO:
-                var gacResolver = _referenceResolver.PathResolver as GacFileResolver;
-                if (gacResolver != null)
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new GacFileResolver(
-                            searchPaths,
-                            gacResolver.BaseDirectory,
-                            gacResolver.Architectures,
-                            gacResolver.PreferredCulture),
-                        _referenceResolver.Provider));
-                }
-                else
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new MetadataFileReferenceResolver(
-                            searchPaths,
-                            _referenceResolver.PathResolver.BaseDirectory),
-                        _referenceResolver.Provider));
-                }
+                var resolver = new AssemblyReferenceResolver(
+                    _referenceResolver.PathResolver.WithSearchPaths(searchPaths.AsImmutableOrEmpty()),
+                    _referenceResolver.Provider);
+                return With(resolver: resolver);
             }
         }
 
@@ -407,25 +392,10 @@ namespace Microsoft.CodeAnalysis.Scripting
             else
             {
                 // TODO:
-                var gacResolver = _referenceResolver.PathResolver as GacFileResolver;
-                if (gacResolver != null)
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new GacFileResolver(
-                            _referenceResolver.PathResolver.SearchPaths,
-                            baseDirectory,
-                            gacResolver.Architectures,
-                            gacResolver.PreferredCulture),
-                        _referenceResolver.Provider));
-                }
-                else
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new MetadataFileReferenceResolver(
-                            _referenceResolver.PathResolver.SearchPaths,
-                            baseDirectory),
-                        _referenceResolver.Provider));
-                }
+                var resolver = new AssemblyReferenceResolver(
+                    _referenceResolver.PathResolver.WithBaseDirectory(baseDirectory),
+                    _referenceResolver.Provider);
+                return With(resolver: resolver);
             }
         }
 
@@ -434,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         internal ScriptOptions WithReferenceResolver(MetadataFileReferenceResolver resolver)
         {
-            if (resolver == _referenceResolver.PathResolver)
+            if (resolver.Equals(_referenceResolver.PathResolver))
             {
                 return this;
             }
@@ -447,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         internal ScriptOptions WithReferenceProvider(MetadataFileReferenceProvider provider)
         {
-            if (provider == _referenceResolver.Provider)
+            if (provider.Equals(_referenceResolver.Provider))
             {
                 return this;
             }

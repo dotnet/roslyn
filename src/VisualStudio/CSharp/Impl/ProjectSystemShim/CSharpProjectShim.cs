@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             if (this.Workspace != null)
             {
                 referenceResolver = new AssemblyReferenceResolver(
-                    new MetadataFileReferenceResolver(referenceSearchPaths, projectDirectory),
+                    new RelativePathReferenceResolver(referenceSearchPaths, projectDirectory),
                     this.Workspace.CurrentSolution.Services.MetadataService.GetProvider());
             }
             else

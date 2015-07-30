@@ -246,6 +246,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\MetadataFileReferenceResolver.cs">
       <Link>InternalUtilities\MetadataFileReferenceResolver.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\RelativePathReferenceResolver.cs">
+      <Link>InternalUtilities\RelativePathReferenceResolver.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>

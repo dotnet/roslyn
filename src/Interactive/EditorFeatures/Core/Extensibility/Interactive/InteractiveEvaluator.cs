@@ -13,10 +13,12 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -24,10 +26,10 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
-using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
+using DesktopMetadataReferenceResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.DesktopMetadataReferenceResolver;
 using GacFileResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.GacFileResolver;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.FileSystem;
+using NuGetPackageResolver = WORKSPACES::Microsoft.CodeAnalysis.Scripting.NuGetPackageResolver;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly InteractiveWorkspace _workspace;
         private IInteractiveWindow _currentWindow;
         private ImmutableHashSet<MetadataReference> _references;
-        private GacFileResolver _metadataReferenceResolver;
+        private MetadataFileReferenceResolver _metadataReferenceResolver;
         private ImmutableArray<string> _sourceSearchPaths;
 
         private ProjectId _previousSubmissionProjectId;
@@ -201,12 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 referencePaths = rspArguments.ReferencePaths;
 
                 // the base directory for references specified in the .rsp file is the .rsp file directory:
-                var rspMetadataReferenceResolver = new GacFileResolver(
-                    referencePaths,
-                    baseDirectory: rspArguments.BaseDirectory,
-                    architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
-                    preferredCulture: System.Globalization.CultureInfo.CurrentCulture); // TODO (tomat)
-
+                var rspMetadataReferenceResolver = CreateFileResolver(referencePaths, rspArguments.BaseDirectory);
                 var metadataProvider = metadataService.GetProvider();
 
                 // ignore unresolved references, they will be reported in the interactive window:
@@ -234,12 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             }
 
             // reset search paths, working directory:
-            _metadataReferenceResolver = new GacFileResolver(
-                referencePaths,
-                baseDirectory: _initialWorkingDirectory,
-                architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
-                preferredCulture: System.Globalization.CultureInfo.CurrentCulture); // TODO (tomat)
-
+            _metadataReferenceResolver = CreateFileResolver(referencePaths, _initialWorkingDirectory);
             _sourceSearchPaths = InteractiveHost.Service.DefaultSourceSearchPaths;
 
             // create the first submission project in the workspace after reset:
@@ -252,6 +244,16 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private Dispatcher Dispatcher
         {
             get { return ((FrameworkElement)GetInteractiveWindow().TextView).Dispatcher; }
+        }
+
+        private static MetadataFileReferenceResolver CreateFileResolver(ImmutableArray<string> referencePaths, string baseDirectory)
+        {
+            return new DesktopMetadataReferenceResolver(
+                new RelativePathReferenceResolver(referencePaths, baseDirectory),
+                NuGetPackageResolver.Instance,
+                new GacFileResolver(
+                    architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
+                    preferredCulture: System.Globalization.CultureInfo.CurrentCulture)); // TODO (tomat)
         }
 
         #endregion
@@ -563,11 +565,9 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var changed = false;
             if (newReferenceSearchPaths != null || newBaseDirectory != null)
             {
-                _metadataReferenceResolver = new GacFileResolver(
+                _metadataReferenceResolver = CreateFileResolver(
                     (newReferenceSearchPaths == null) ? _metadataReferenceResolver.SearchPaths : newReferenceSearchPaths.AsImmutable(),
-                    baseDirectory: newBaseDirectory ?? _metadataReferenceResolver.BaseDirectory,
-                    architectures: GacFileResolver.Default.Architectures,  // TODO (tomat)
-                    preferredCulture: System.Globalization.CultureInfo.CurrentCulture); // TODO (tomat)
+                    newBaseDirectory ?? _metadataReferenceResolver.BaseDirectory);
 
                 changed = true;
             }

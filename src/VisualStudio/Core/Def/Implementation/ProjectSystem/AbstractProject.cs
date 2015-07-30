@@ -1259,7 +1259,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 assemblySearchPaths = ImmutableArray.Create(outputDirectory);
             }
 
-            return new MetadataFileReferenceResolver(assemblySearchPaths, baseDirectory: projectDirectory);
+            return new RelativePathReferenceResolver(assemblySearchPaths, baseDirectory: projectDirectory);
         }
 
         private bool TryGetOutputPathFromBuildManager(out string binOutputPath)

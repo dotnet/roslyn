@@ -373,6 +373,7 @@
     <Compile Include="FileSystem\PathKind.cs" />
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
+    <Compile Include="RelativePathReferenceResolver.cs" />
     <Compile Include="PEWriter\Blob.cs" />
     <Compile Include="PEWriter\BlobWriter.cs" />
     <Compile Include="PEWriter\BlobWriterImpl.cs" />
