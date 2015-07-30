@@ -89,11 +89,29 @@ namespace Microsoft.CodeAnalysis
 
         public static readonly ImmutableArray<string> RootLocations;
 
+        private static bool isRunningOnMono;
+
         static GlobalAssemblyCache()
         {
+            isRunningOnMono = Type.GetType("Mono.Runtime") != null;
+            if (isRunningOnMono) {
+                RootLocations = ImmutableArray.Create<string>(
+                        GetMonoCachePath());
+                return;
+            }
+
             RootLocations = ImmutableArray.Create<string>(
                 GetLocation(ASM_CACHE.ROOT),
                 GetLocation(ASM_CACHE.ROOT_EX));
+        }
+
+        private static string GetMonoCachePath()
+        {
+            string file = PortableShim.Assembly.GetAssembly(typeof(Uri)).ManifestModule.FullyQualifiedName;
+            if (!File.Exists(file))
+                throw new FileNotFoundException(file);
+
+            return Directory.GetParent(Path.GetDirectoryName(file)).Parent.FullName;
         }
 
         private static unsafe string GetLocation(ASM_CACHE gacId)
@@ -120,6 +138,104 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        static IEnumerable<string> GetCorlibPaths(Version version)
+        {
+            var corlibPath = PortableShim.Assembly.GetAssembly(typeof(object)).ManifestModule.FullyQualifiedName;
+            var corlibParentDir = Directory.GetParent(corlibPath).Parent;
+
+            var corlibPaths = new List<string>();
+
+            foreach (var corlibDir in corlibParentDir.GetDirectories()) {
+                var path = Path.Combine(corlibDir.FullName, "mscorlib.dll");
+                if (!File.Exists(path))
+                    continue;
+
+                var aname =  new AssemblyName (path);
+                if (version != null && aname.Version != version)
+                    continue;
+
+                corlibPaths.Add(path);
+            }
+
+            return corlibPaths;
+        }
+
+        static IEnumerable<string> GetGacAssemblyPaths(string gacPath, string name, Version version, string publicKeyToken)
+        {
+            if (version != null && publicKeyToken != null) {
+                var sb = new System.Text.StringBuilder();
+                sb.Append(Path.Combine(gacPath, name, version.ToString()));
+                sb.Append("__");
+                sb.Append(publicKeyToken);
+                return new string[] { Path.Combine(sb.ToString(), name + ".dll") };
+            }
+
+            var gacAssemblyRootDir = new DirectoryInfo(Path.Combine(gacPath, name));
+            if (!gacAssemblyRootDir.Exists)
+                return new string []{};
+
+            var assemblyPaths = new List<string>();
+
+            foreach (var assemblyDir in gacAssemblyRootDir.GetDirectories()) {
+                if (version != null && !assemblyDir.Name.StartsWith(version.ToString()))
+                    continue;
+                if (publicKeyToken != null && !assemblyDir.Name.EndsWith(publicKeyToken))
+                    continue;
+
+                var assemblyPath = Path.Combine(assemblyDir.ToString(), name + ".dll");
+                if (File.Exists(assemblyPath))
+                   assemblyPaths.Add(assemblyPath);
+            }
+
+            return assemblyPaths;
+        }
+
+        static IEnumerable<Tuple<AssemblyIdentity,string>> GetAssemblyIdentitiesAndPaths(AssemblyName aname, ImmutableArray<ProcessorArchitecture> architectureFilter)
+        {
+            if (aname == null)
+                return GetAssemblyIdentitiesAndPaths(null, null, null, architectureFilter);
+
+            string publicKeyToken = null;
+            if (aname.GetPublicKeyToken() != null) {
+                var sb = new System.Text.StringBuilder();
+                foreach (var b in aname.GetPublicKeyToken())
+                    sb.AppendFormat("{0:x2}", b);
+
+                publicKeyToken = sb.ToString();
+            }
+
+            return GetAssemblyIdentitiesAndPaths(aname.Name, aname.Version, publicKeyToken, architectureFilter);
+        }
+
+        static IEnumerable<Tuple<AssemblyIdentity,string>> GetAssemblyIdentitiesAndPaths(string name, Version version, string publicKeyToken, ImmutableArray<ProcessorArchitecture> architectureFilter)
+        {
+            foreach (string gacPath in RootLocations) {
+                var assemblyPaths = (name == "mscorlib")?
+                    GetCorlibPaths(version) :
+                    GetGacAssemblyPaths(gacPath, name, version, publicKeyToken);
+
+                foreach(var assemblyPath in assemblyPaths) {
+                    if (!File.Exists(assemblyPath))
+                        continue;
+
+                    var gacAssemblyName = PortableShim.AssemblyName.GetAssemblyName(assemblyPath);
+
+                    if (gacAssemblyName.ProcessorArchitecture != ProcessorArchitecture.None &&
+                            architectureFilter != default(ImmutableArray<ProcessorArchitecture>) &&
+                            architectureFilter.Length > 0 &&
+                            !architectureFilter.Contains(gacAssemblyName.ProcessorArchitecture))
+                        continue;
+
+                    var assemblyIdentity = new AssemblyIdentity(gacAssemblyName.Name,
+                                 gacAssemblyName.Version,
+                                 gacAssemblyName.CultureName,
+                                 ImmutableArray.Create(gacAssemblyName.GetPublicKeyToken ()));
+
+                    yield return new Tuple<AssemblyIdentity,string>(assemblyIdentity, assemblyPath);
+                }
+            }
+        }
+
         /// <summary>
         /// Enumerates assemblies in the GAC returning those that match given partial name and
         /// architecture.
@@ -128,7 +244,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="architectureFilter">Optional architecture filter.</param>
         public static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(AssemblyName partialName, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
-            return GetAssemblyIdentities(FusionAssemblyIdentity.ToAssemblyNameObject(partialName), architectureFilter);
+            if (isRunningOnMono) {
+                foreach(var tuple in GetAssemblyIdentitiesAndPaths(partialName, architectureFilter))
+                    yield return tuple.Item1;
+                yield break;
+            }
+
+            foreach (var identity in GetAssemblyIdentities(FusionAssemblyIdentity.ToAssemblyNameObject(partialName), architectureFilter))
+                yield return identity;
         }
 
         /// <summary>
@@ -139,21 +262,32 @@ namespace Microsoft.CodeAnalysis
         /// <param name="architectureFilter">The optional architecture filter.</param>
         public static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName = null, ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
+            if (isRunningOnMono) {
+                AssemblyName aname;
+                try {
+                    aname = partialName == null ? null : new AssemblyName(partialName);
+                } catch {
+                   yield break;
+                }
+                foreach(var tuple in GetAssemblyIdentitiesAndPaths(aname, architectureFilter))
+                    yield return tuple.Item1;
+                yield break;
+            }
+
             FusionAssemblyIdentity.IAssemblyName nameObj;
             if (partialName != null)
             {
                 nameObj = FusionAssemblyIdentity.ToAssemblyNameObject(partialName);
                 if (nameObj == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<AssemblyIdentity>();
-                }
+                    yield break;
             }
             else
             {
                 nameObj = null;
             }
 
-            return GetAssemblyIdentities(nameObj, architectureFilter);
+            foreach (var identity in GetAssemblyIdentities(nameObj, architectureFilter))
+                yield return identity;
         }
 
         /// <summary>
@@ -163,6 +297,14 @@ namespace Microsoft.CodeAnalysis
         /// <returns>Unique simple names of GAC assemblies.</returns>
         public static IEnumerable<string> GetAssemblySimpleNames(ImmutableArray<ProcessorArchitecture> architectureFilter = default(ImmutableArray<ProcessorArchitecture>))
         {
+            if (isRunningOnMono) {
+                var simpleNames = new HashSet<string>();
+                foreach (var tuple in GetAssemblyIdentitiesAndPaths(null, null, null, architectureFilter))
+                    simpleNames.Add(tuple.Item1.ToString());
+
+                return simpleNames;
+            }
+
             var q = from nameObject in GetAssemblyObjects(partialNameFilter: null, architectureFilter: architectureFilter)
                     select FusionAssemblyIdentity.GetName(nameObject);
             return q.Distinct();
@@ -291,6 +433,41 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(displayName));
             }
 
+            string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
+
+            if (isRunningOnMono) {
+                var aname = new AssemblyName(displayName);
+                AssemblyIdentity assemblyIdentity = null;
+
+                location = null;
+                var isBestMatch = false;
+
+                foreach(var tuple in GetAssemblyIdentitiesAndPaths(aname, architectureFilter)) {
+                    var assemblyPath = tuple.Item2;
+
+                    if (!File.Exists(assemblyPath))
+                        continue;
+
+                    var gacAssemblyName = new AssemblyName(assemblyPath);
+
+                    isBestMatch = cultureName == null || gacAssemblyName.CultureName == cultureName;
+                    var isBetterMatch = location == null || isBestMatch;
+
+                    if (isBetterMatch) {
+                        location = assemblyPath;
+                        assemblyIdentity = tuple.Item1;
+                    }
+
+                    if (isBestMatch)
+                        break;
+                }
+
+                if (location == null)
+                    throw new Exception("Could not find assembly in GAC: " + aname.ToString ());
+
+                return assemblyIdentity;
+            }
+
             location = null;
             FusionAssemblyIdentity.IAssemblyName nameObject = FusionAssemblyIdentity.ToAssemblyNameObject(displayName);
             if (nameObject == null)
@@ -299,8 +476,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             var candidates = GetAssemblyObjects(nameObject, architectureFilter);
-            string cultureName = (preferredCulture != null && !preferredCulture.IsNeutralCulture) ? preferredCulture.Name : null;
-
             var bestMatch = FusionAssemblyIdentity.GetBestMatch(candidates, cultureName);
             if (bestMatch == null)
             {
