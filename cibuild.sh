@@ -10,7 +10,7 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.1.0-beta3-build3029
+XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
@@ -183,7 +183,7 @@ set_mono_path()
 
 test_roslyn()
 {
-    local xunit_runner=packages/xunit.runner.console.$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local xunit_runner=packages/xunit.runners.$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
         Roslyn.Compilers.CSharp.Syntax.UnitTests
@@ -211,6 +211,7 @@ test_roslyn()
 # temporary work around.  
 echo Restoring NuGet packages
 run_nuget restore Roslyn.sln
+run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 set_mono_path
 which mono
