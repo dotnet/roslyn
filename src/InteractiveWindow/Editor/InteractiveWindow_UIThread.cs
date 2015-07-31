@@ -348,7 +348,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
 
                 FinishCurrentSubmissionInput();
-                _window._history.Add(_window._currentLanguageBuffer.CurrentSnapshot.GetExtent());
+                _window._history.Add(_window._currentLanguageBuffer.CurrentSnapshot.GetExtent().TrimEnd());
             }
 
             private void AppendUncommittedInput(string text)
