@@ -869,7 +869,7 @@ class Attr: System.Attribute
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
 
             source = GetNoCS1980String(typeName: @"Gen<dynamic>");
-            comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
+            comp = CreateCompilationWithMscorlib45(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
         }
@@ -894,7 +894,7 @@ class Attr: System.Attribute
 
             // NO ERROR CASES
             string source = aliasDecl + GetNoCS1980String(typeName: "X");
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
+            var comp = CreateCompilationWithMscorlib45(source, parseOptions: parseOptions);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp);
 

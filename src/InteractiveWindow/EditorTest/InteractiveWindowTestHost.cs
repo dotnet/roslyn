@@ -19,18 +19,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         private readonly IInteractiveWindow _window;
         private readonly CompositionContainer _exportProvider;
 
-        public InteractiveWindowTestHost()
+        private static readonly Lazy<AggregateCatalog> _lazyCatalog = new Lazy<AggregateCatalog>(() =>
+        {
+            var types = new[] { typeof(TestInteractiveEngine), typeof(InteractiveWindow) }.Concat(GetVisualStudioTypes());
+            return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
+        });
+
+        internal InteractiveWindowTestHost(Action<InteractiveWindow.State> stateChangedHandler = null)
         {
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
 
-            var types = new[] { typeof(TestInteractiveEngine), typeof(InteractiveWindow) }.Concat(GetVisualStudioTypes());
             _exportProvider = new CompositionContainer(
-                new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly))),
+                _lazyCatalog.Value,
                 CompositionOptions.DisableSilentRejection | CompositionOptions.IsThreadSafe);
 
             var contentTypeRegistryService = _exportProvider.GetExport<IContentTypeRegistryService>().Value;
             _window = _exportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(new TestInteractiveEngine(contentTypeRegistryService));
-
+            ((InteractiveWindow)_window).StateChanged += stateChangedHandler;
             _window.InitializeAsync().PumpingWait();
         }
 

@@ -154,8 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         default:
-                            Debug.Assert(false);
-                            break;
+                            throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                     }
                 }
             }
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void EnterParameter(ParameterSymbol parameter)
         {
-            // parameters are NOT intitially assigned here - if that is a problem, then
+            // parameters are NOT initially assigned here - if that is a problem, then
             // the parameters must be captured.
             GetOrCreateSlot(parameter);
         }

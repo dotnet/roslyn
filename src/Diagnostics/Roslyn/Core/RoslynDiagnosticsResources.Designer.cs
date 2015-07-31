@@ -10,6 +10,7 @@
 
 namespace Roslyn.Diagnostics.Analyzers {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Roslyn.Diagnostics.Analyzers.RoslynDiagnosticsResources", typeof(RoslynDiagnosticsResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Roslyn.Diagnostics.Analyzers.RoslynDiagnosticsResources", typeof(RoslynDiagnosticsResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -484,7 +485,7 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use of cref tags with prefixes should be avoided, since it prevents the compiler from verifying references and the IDE from updating references during refactorings. It is permissible to suppress this error at a single documentation site if the cref must use a prefix because the type being mentioned is not findable by the compiler. For example, if a cref is mentioning a special attribute in the full framework but you’re in a file that compiles against the portable framework, or if you want to reference a typ [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Use of cref tags with prefixes should be avoided, since it prevents the compiler from verifying references and the IDE from updating references during refactorings. It is permissible to suppress this error at a single documentation site if the cref must use a prefix because the type being mentioned is not findable by the compiler. For example, if a cref is mentioning a special attribute in the full framework but you&apos;re in a file that compiles against the portable framework, or if you want to reference a typ [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string UseProperCrefTagsDescription {
             get {

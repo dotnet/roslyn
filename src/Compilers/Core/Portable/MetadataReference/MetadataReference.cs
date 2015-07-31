@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     {
         public MetadataReferenceProperties Properties { get; }
 
-        internal MetadataReference(MetadataReferenceProperties properties)
+        protected MetadataReference(MetadataReferenceProperties properties)
         {
             this.Properties = properties;
         }
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.CantCreateModuleReferenceToAssembly, nameof(properties));
             }
 
-            string location = AssemblyLocationLightUp.GetAssemblyLocation(assembly);
+            string location = CorLightup.Desktop.GetAssemblyLocation(assembly);
             Stream peStream = FileUtilities.OpenFileStream(location);
 
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 

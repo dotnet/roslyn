@@ -7188,51 +7188,76 @@ public class Color
 Color Color;
 dynamic x = Color.F((dynamic)1);
 ";
-            var script = CreateCompilationWithMscorlib(Parse(sourceScript, options: TestOptions.Script), new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef });
+            var script = CreateCompilationWithMscorlib45(
+                new[] { Parse(sourceScript, options: TestOptions.Script) },
+                new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef });
 
-            CompileAndVerify(script).VerifyIL(".ctor", @"
-{
-  // Code size      110 (0x6e)
+            var verifier = CompileAndVerify(script);
+            verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
+@"{
+  // Code size      158 (0x9e)
   .maxstack  10
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""object..ctor()""
-  IL_0006:  ldarg.0
-  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
-  IL_000c:  brtrue.s   IL_0048
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldstr      ""F""
-  IL_0014:  ldnull
-  IL_0015:  ldtoken    ""Script""
-  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_001f:  ldc.i4.2
-  IL_0020:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
-  IL_0025:  dup
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldc.i4.1
-  IL_0028:  ldnull
-  IL_0029:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_002e:  stelem.ref
-  IL_002f:  dup
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldc.i4.0
-  IL_0032:  ldnull
-  IL_0033:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
-  IL_0038:  stelem.ref
-  IL_0039:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_003e:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_0043:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
-  IL_0048:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
-  IL_004d:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>>.Target""
-  IL_0052:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
-  IL_0057:  ldarg.0
-  IL_0058:  ldfld      """"
-  IL_005d:  ldc.i4.1
-  IL_005e:  box        ""int""
-  IL_0063:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, Color, object)""
-  IL_0068:  stfld      """"
-  IL_006d:  ret
-}
-", realIL: true);
+  .locals init (System.Exception V_0)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""Script Script.<<Initialize>>d__0.<>4__this""
+    IL_0006:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__0.<>p__0""
+    IL_000b:  brtrue.s   IL_0047
+    IL_000d:  ldc.i4.0
+    IL_000e:  ldstr      ""F""
+    IL_0013:  ldnull
+    IL_0014:  ldtoken    ""Script""
+    IL_0019:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_001e:  ldc.i4.2
+    IL_001f:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+    IL_0024:  dup
+    IL_0025:  ldc.i4.0
+    IL_0026:  ldc.i4.1
+    IL_0027:  ldnull
+    IL_0028:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+    IL_002d:  stelem.ref
+    IL_002e:  dup
+    IL_002f:  ldc.i4.1
+    IL_0030:  ldc.i4.0
+    IL_0031:  ldnull
+    IL_0032:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+    IL_0037:  stelem.ref
+    IL_0038:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+    IL_003d:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+    IL_0042:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__0.<>p__0""
+    IL_0047:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__0.<>p__0""
+    IL_004c:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>>.Target""
+    IL_0051:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__0.<>p__0""
+    IL_0056:  ldarg.0
+    IL_0057:  ldfld      ""Script Script.<<Initialize>>d__0.<>4__this""
+    IL_005c:  ldfld      ""Color Script.Color""
+    IL_0061:  ldc.i4.1
+    IL_0062:  box        ""int""
+    IL_0067:  callvirt   ""object System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>.Invoke(System.Runtime.CompilerServices.CallSite, Color, object)""
+    IL_006c:  stfld      ""dynamic Script.x""
+    IL_0071:  leave.s    IL_008a
+  }
+  catch System.Exception
+  {
+    IL_0073:  stloc.0
+    IL_0074:  ldarg.0
+    IL_0075:  ldc.i4.s   -2
+    IL_0077:  stfld      ""int Script.<<Initialize>>d__0.<>1__state""
+    IL_007c:  ldarg.0
+    IL_007d:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Script.<<Initialize>>d__0.<>t__builder""
+    IL_0082:  ldloc.0
+    IL_0083:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_0088:  leave.s    IL_009d
+  }
+  IL_008a:  ldarg.0
+  IL_008b:  ldc.i4.s   -2
+  IL_008d:  stfld      ""int Script.<<Initialize>>d__0.<>1__state""
+  IL_0092:  ldarg.0
+  IL_0093:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Script.<<Initialize>>d__0.<>t__builder""
+  IL_0098:  call       ""void System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_009d:  ret
+}", realIL: true);
         }
 
         [Fact, WorkItem(649805, "DevDiv")]
@@ -7254,8 +7279,8 @@ void Foo()
     dynamic x = Color.F((dynamic)1);
 }
 ";
-            var script = CreateCompilationWithMscorlib(
-                Parse(sourceScript, options: TestOptions.Script),
+            var script = CreateCompilationWithMscorlib45(
+                new[] { Parse(sourceScript, options: TestOptions.Script) },
                 new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef },
                 TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
@@ -7263,7 +7288,7 @@ void Foo()
 {
   // Code size       99 (0x63)
   .maxstack  9
-  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__1.<>p__0""
+  IL_0000:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
   IL_0005:  brtrue.s   IL_0041
   IL_0007:  ldc.i4.0
   IL_0008:  ldstr      ""F""
@@ -7286,10 +7311,10 @@ void Foo()
   IL_0031:  stelem.ref
   IL_0032:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0037:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_003c:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__1.<>p__0""
-  IL_0041:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__1.<>p__0""
+  IL_003c:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
+  IL_0041:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
   IL_0046:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>>.Target""
-  IL_004b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__1.<>p__0""
+  IL_004b:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, Color, object, object>> Script.<>o__2.<>p__0""
   IL_0050:  ldarg.0
   IL_0051:  ldfld      ""Color Script.Color""
   IL_0056:  ldc.i4.1

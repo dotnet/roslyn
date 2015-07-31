@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -10,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Overrides Sub VerifyWorker(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?)
             ' Script/interactive support removed for now.
             ' TODO: Reenable these when interactive is back in the product.
-            If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
+            If sourceCodeKind <> SourceCodeKind.Regular Then
                 Return
             End If
 
@@ -287,7 +288,7 @@ End Class</a>.Value
 
         <WorkItem(545844)>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub DoNotShowParamterizedPropertiesWithSomeMandatoryArguments()
+        Public Sub DoNotShowParameterizedPropertiesWithSomeMandatoryArguments()
             Dim text = <a>Imports System
 Public Class AImpl
     Property P(x As Integer, Optional y As Integer = 2) As Object
@@ -365,21 +366,65 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            Const code = "
+Public Class C
+    Public bar as Integer
+End Class
+
+Class Program
+    Sub foo()
+        Dim a as C = new C With { .$$
+    End Sub
+End Program"
+
+            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsExclusive()
-            Dim group = completionProvider.GetGroupAsync(Nothing, 0, Nothing).Result
-            Assert.True(group Is Nothing OrElse group.IsExclusive, "Expected always exclusive")
+            Dim text = <Workspace>
+                           <Project Language="Visual Basic" CommonReferences="true">
+                               <Document FilePath="VBDocument">
+Public Class C
+    Public bar as Integer
+End Class
+
+Class Program
+    Sub foo()
+        Dim a as C = new C With { .$$
+    End Sub
+End Program</Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(text)
+                Dim hostDocument = workspace.Documents.First()
+                Dim caretPosition = hostDocument.CursorPosition.Value
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
+
+                Dim completionList = GetCompletionList(document, caretPosition, triggerInfo)
+                Assert.True(completionList Is Nothing OrElse completionList.IsExclusive, "Expected always exclusive")
+            End Using
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SendEnterThroughToEditorTest()
-            Assert.False(completionProvider.SendEnterThroughToEditor(Nothing, Nothing), "Expected hardcoded false")
+            Const code = "
+Public Class C
+    Public bar as Integer
+End Class
+
+Class Program
+    Sub foo()
+        Dim a as C = new C With { .$$
+    End Sub
+End Program"
+
+            VerifySendEnterThroughToEditor(code, "bar", expected:=False)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New ObjectInitializerCompletionProvider()
         End Function
     End Class

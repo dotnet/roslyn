@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -281,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return Conversion.PointerToPointer;
 
                     default:
-                        Debug.Assert(false, "Unexpected conversion kind returned by ClassifyStandardImplicitConversion");
-                        return Conversion.NoConversion;
+                        throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                 }
             }
 
@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // System.ValueType, and to any interface type variance-compatible with one implemented
             // by the non-nullable value type.  
 
-            // Futhermore, an enum type can be converted to the type System.Enum.
+            // Furthermore, an enum type can be converted to the type System.Enum.
 
             // We set the base class of the structs to System.ValueType, System.Enum, etc, so we can
             // just check here.

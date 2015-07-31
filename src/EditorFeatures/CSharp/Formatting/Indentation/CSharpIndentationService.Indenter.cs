@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             {
                 if (currentLine == null)
                 {
-                    throw new ArgumentNullException("currentLine");
+                    throw new ArgumentNullException(nameof(currentLine));
                 }
 
                 var text = currentLine.GetText();

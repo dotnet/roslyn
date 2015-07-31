@@ -35,7 +35,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences)
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences)
             Dim options As VisualBasicCompilationOptions
 
             options = TestOptions.ReleaseExe
@@ -2169,7 +2169,7 @@ Class CLAZZ
     End Function
 End Class
     </file>
-</compilation>, references:=Me.LatestReferences).VerifyDiagnostics()
+</compilation>, references:=LatestReferences).VerifyDiagnostics()
 
             Using stream As New MemoryStream()
                 Dim emitResult = compilation.Emit(stream, options:=New EmitOptions(metadataOnly:=True))
@@ -3185,7 +3185,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Spilling_ExpceptionInArrayAccess()
+        Public Sub Spilling_ExceptionInArrayAccess()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3235,7 +3235,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Spilling_ExpceptionInFieldAccess()
+        Public Sub Spilling_ExceptionInFieldAccess()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3288,7 +3288,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Capture_ExpceptionInArrayAccess()
+        Public Sub Capture_ExceptionInArrayAccess()
             Dim source = <compilation>
                              <file name="a.vb">
 Imports System
@@ -3340,7 +3340,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Capture_ExpceptionInFieldAccess()
+        Public Sub Capture_ExceptionInFieldAccess()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3393,7 +3393,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Spilling_ExpceptionInArrayAccess2()
+        Public Sub Spilling_ExceptionInArrayAccess2()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3449,7 +3449,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Capture_ExpceptionInArrayAccess2()
+        Public Sub Capture_ExceptionInArrayAccess2()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -5202,7 +5202,7 @@ End Module
         End Sub
 
         <Fact()>
-        Public Sub Imported_NextedExpressionInArrayInitializer()
+        Public Sub Imported_NestedExpressionInArrayInitializer()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -8404,7 +8404,7 @@ End Class
             Dim expectedOutput = <![CDATA[Before 12
 After 12]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=Me.LatestReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)

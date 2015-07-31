@@ -8031,12 +8031,12 @@ class C
 
 
         [Fact]
-        public void FixedBuffersNoDefinateAssignmentCheck()
+        public void FixedBuffersNoDefiniteAssignmentCheck()
         {
             var text = @"
-    unsafe struct struct_ForTestingDefinateAssignmentChecking        
+    unsafe struct struct_ForTestingDefiniteAssignmentChecking        
     {
-        //Definate Assignment Checking
+        //Definite Assignment Checking
         public fixed int FixedbuffInt[1024];
     }
 ";
@@ -8047,7 +8047,7 @@ class C
         public void FixedBuffersNoErorsOnValidTypes()
         {
             var text = @"
-    unsafe struct struct_ForTestingDefinateAssignmentChecking        
+    unsafe struct struct_ForTestingDefiniteAssignmentChecking        
     {
     public fixed bool _Type1[10]; 
     public fixed byte _Type12[10]; 
@@ -8234,7 +8234,7 @@ class Program
 }
 ";
             //IL Baseline rather than execute because I'm intentionally writing outside of bounds of buffer
-            // This will compile without warning but runtime behaviour is unpredictable.
+            // This will compile without warning but runtime behavior is unpredictable.
 
             var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyIL("Program.Load", @"
@@ -8308,7 +8308,7 @@ using System;
 unsafe struct s
     {
         private fixed ushort _e_res[4]; 
-        void Error_UsingFixedBuffersWiththis()
+        void Error_UsingFixedBuffersWithThis()
         {
             fixed (ushort* abc = this._e_res)
             {
@@ -8481,7 +8481,7 @@ unsafe struct FixedBufferExampleForSizes3
 
 class Program
 {
-    // Reference to struct containing a fixed bugg
+    // Reference to struct containing a fixed buffer
     static FixedBufferExampleForSizes1 _fixedBufferExample1 = new FixedBufferExampleForSizes1();
     static FixedBufferExampleForSizes2 _fixedBufferExample2 = new FixedBufferExampleForSizes2();
     static FixedBufferExampleForSizes3 _fixedBufferExample3 = new FixedBufferExampleForSizes3();  
@@ -8525,7 +8525,7 @@ unsafe struct FixedBufferExampleForSizes3
 
 class Program
 {
-    // Reference to struct containing a fixed bugg
+    // Reference to struct containing a fixed buffer
     static FixedBufferExampleForSizes1 _fixedBufferExample1 = new FixedBufferExampleForSizes1();
     static FixedBufferExampleForSizes2 _fixedBufferExample2 = new FixedBufferExampleForSizes2();
     static FixedBufferExampleForSizes3 _fixedBufferExample3 = new FixedBufferExampleForSizes3();  

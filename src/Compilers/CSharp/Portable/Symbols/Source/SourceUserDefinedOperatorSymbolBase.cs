@@ -306,13 +306,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Those are the easy ones. Now we come to:
 
             // SPEC: 
-            // Exluding user-defined conversions, a conversion does not exist from 
+            // Excluding user-defined conversions, a conversion does not exist from 
             // S to T or T to S. For the purposes of these rules, any type parameters
             // associated with S or T are considered to be unique types that have
             // no inheritance relationship with other types, and any constraints on
             // those type parameters are ignored.
 
-            // A counter-intuative consequence of this rule is that:
+            // A counter-intuitive consequence of this rule is that:
             //
             // class X<U> where U : X<U>
             // {
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
-        
+
         public sealed override ImmutableArray<Location> Locations
         {
             get

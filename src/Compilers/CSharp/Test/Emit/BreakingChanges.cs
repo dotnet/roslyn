@@ -307,7 +307,7 @@ public class Test { }
 // <Area> Lexical - Unicode Characters</Area>
 // <Title>
 // Compiler considers identifiers, which differ only in formatting-character, as different ones;
-// This is not actually correct behaviour but for the time being this is what we expect
+// This is not actually correct behavior but for the time being this is what we expect
 //</Title>
 //<RelatedBugs>DDB:133151</RelatedBugs>
 // <Expects Status=Success></Expects>
@@ -589,7 +589,7 @@ public class GenC<T, U> where T : struct, U
             // Dev10 compiler only checks Alpha and Delta, not Beta and Gamma.
             //
             // Unfortunately, real-world code both in devdiv and in the wild depends on this
-            // behaviour, so we are replicating the bug in Roslyn.
+            // behavior, so we are replicating the bug in Roslyn.
 
             string source = @"using System;
 
@@ -698,7 +698,7 @@ class Program
         {
             string source = @"using System;
 
-class NullCoallescingTest
+class NullCoalescingTest
 {
     public static void Main()
     {
@@ -1071,7 +1071,7 @@ public class Test
     {
         var b1 = new Derived(); // Both Warning CS0219
         var b2 = (Base)new Derived(); // Both NO Warn (reference type)
-        var b3 = (Derived)((Base)new Derived()); // Rolsyn Warning CS0219
+        var b3 = (Derived)((Base)new Derived()); // Roslyn Warning CS0219
     }
 }
 ";
@@ -1081,7 +1081,7 @@ public class Test
     //         var b1 = new Derived(); // Both Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1"),
     // (10,13): warning CS0219: The variable 'b3' is assigned but its value is never used
-    //         var b3 = (Derived)((Base)new Derived()); // Rolsyn Warning CS0219
+    //         var b3 = (Derived)((Base)new Derived()); // Roslyn Warning CS0219
     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b3").WithArguments("b3"));
         }
 
@@ -1254,7 +1254,7 @@ static int Main()
         }
 
         [Fact, WorkItem(530696, "DevDiv")]
-        public void CS0121Err_AmbigiousMethodCall()
+        public void CS0121Err_AmbiguousMethodCall()
         {
             string source = @"
     class G<T> { }
@@ -1291,15 +1291,15 @@ static int Main()
             // var y = ObsoleteType.field1;
             //
             // then the native compiler reports ObsoleteType as obsolete only once. This is because the native compiler caches
-            // the lookup of typenames for certain cases and doesn’t report errors on the second lookup as that just comes 
+            // the lookup of type names for certain cases and doesn't report errors on the second lookup as that just comes 
             // from the cache. Note how I said caches sometimes. If you simply say -
             //
             // var x= new ObsoleteType();
             // var y = new ObsoleteType();
             //
-            // Then the native compiler reports the error twice. I don’t think we should replicate this in Roslyn. Note however
+            // Then the native compiler reports the error twice. I don't think we should replicate this in Roslyn. Note however
             // that this is a breaking change because if the first line had been #pragma disabled, then the code would compile
-            // without warnings in Dev11 but we will report warnings. I think it’s a corner enough scenario and the native
+            // without warnings in Dev11 but we will report warnings. I think it's a corner enough scenario and the native
             // behavior is quirky enough to warrant a break.
             // </quote>
             CompileAndVerify(@"
@@ -1370,7 +1370,7 @@ public class Class1
     internal class A4 { internal class B { } internal static string F() { return ""A4""; } }
     internal class A5 { internal class B { } internal static string F() { return ""A5""; } }
     internal class A6 { internal class B { } internal static string F() { return ""A6""; } }
-    internal delegate void D();        // Check the wierd E.M cases.
+    internal delegate void D();        // Check the weird E.M cases.
     internal class Outer2
     {
         internal static void F(A4 A4)

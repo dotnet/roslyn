@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void InClassDelaration()
+        public void InClassDeclaration()
         {
             VerifyKeyword(@"
 namespace foo
@@ -31,7 +31,7 @@ namespace foo
 
         [WorkItem(543628)]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void NotInEnumDelaration()
+        public void NotInEnumDeclaration()
         {
             VerifyAbsence(@"enum Foo { $$ }");
         }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -151,8 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.True: return WellKnownMemberNames.TrueOperatorName;
                 case UnaryOperatorKind.False: return WellKnownMemberNames.FalseOperatorName;
                 default:
-                    Debug.Assert(false, "Unexpected postfix operator kind for user-defined unary operator");
-                    return WellKnownMemberNames.UnaryPlusOperatorName;
+                    throw ExceptionUtilities.UnexpectedValue(kind & UnaryOperatorKind.OpMask);
             }
         }
 
@@ -177,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Subtraction: return WellKnownMemberNames.SubtractionOperatorName;
                 case BinaryOperatorKind.Xor: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 default:
-                    Debug.Assert(false, "Unexpected postfix operator kind for user-defined binary operator");
-                    return WellKnownMemberNames.AdditionOperatorName;
+                    throw ExceptionUtilities.UnexpectedValue(kind & BinaryOperatorKind.OpMask);
             }
         }
     }

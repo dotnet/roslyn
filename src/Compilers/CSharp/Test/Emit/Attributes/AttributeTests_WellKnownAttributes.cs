@@ -1517,7 +1517,7 @@ class Program
         [Fact, WorkItem(544438, "DevDiv"), WorkItem(538206, "DevDiv")]
         public void DefaultParameterValueIntToObj()
         {
-            // The native compiler's behaviour:
+            // The native compiler's behavior:
             // It does honour int default values in attributes whether the parameter 
             // is int or object, and whether the attributes appear in source or metadata.
             // The native compiler does NOT honor decimal and datetime attributes in source
@@ -2315,7 +2315,7 @@ public class C
                     }
 
                     // This throws if we visit one entry point name twice.
-                    // We used to incorrectly share entyr point name among event accessors.
+                    // We used to incorrectly share entry point name among event accessors.
                     visitedEntryPoints.Add(entryPointName, true);
                 }
 
@@ -2560,12 +2560,10 @@ abstract class C
                         case "InternalCallStatic":
                         case "InternalCallInstance":
                         case "InternalCallAbstract":
-                            // workaround for a bug in ref.emit:
                             expectedFlags = MethodImplAttributes.InternalCall;
                             break;
 
                         case "ForwardRef":
-                            // workaround for a bug in ref.emit:
                             expectedFlags = MethodImplAttributes.ForwardRef;
                             break;
 

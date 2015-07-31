@@ -1687,7 +1687,7 @@ foo:
 
             <WorkItem(542859)>
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Sub IndentifierInCallStatement()
+            Public Sub IdentifierInCallStatement()
                 Dim code = <text>
         Dim v3 = {|r:CInt({|b:S|})|}
 </text>

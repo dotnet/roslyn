@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    from node in root.DescendantNodesAndSelf()
                    where node.IsKind(SyntaxKind.IdentifierName)
                    let nameSyntax = (IdentifierNameSyntax)node
-                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name && 
+                   where (string)nameSyntax.Identifier.Value == localOrParameter.Name &&
                          (model.GetSymbolInfo(nameSyntax, cancellationToken).Symbol?.Equals(localOrParameter) ?? false)
                    select node;
         }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Constructor initializer with lambda:  public C() : base(() => { [|...|] }) <<{ }>>
                 // Field initializers:                   [|public int a = <<expr>>|], [|b = <<expr>>|];
 
-                // No need to special case property initializers here, the actiave statement always spans the initializer expression.
+                // No need to special case property initializers here, the active statement always spans the initializer expression.
 
                 if (declarationBody.Parent.Kind() == SyntaxKind.ConstructorDeclaration)
                 {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
         {
-            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) && 
+            return propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration) &&
                    SyntaxUtilities.HasBackingField((PropertyDeclarationSyntax)propertyOrIndexerDeclaration);
         }
 
@@ -2346,6 +2346,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex);
                 }
 
+                // 'async' keyword is allowed to add, but not to remove.
+                if (oldAsyncIndex >= 0 && newAsyncIndex < 0)
+                {
+                    return false;
+                }
+
                 return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers);
             }
 
@@ -2857,15 +2863,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                    SyntaxUtilities.IsIteratorMethod(declaration);
         }
 
-        protected override ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body)
+        protected override void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKind kind)
         {
             if (SyntaxUtilities.IsAsyncMethodOrLambda(body.Parent))
             {
-                return SyntaxUtilities.GetAwaitExpressions(body);
+                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body);
+                kind = StateMachineKind.Async;
             }
             else
             {
-                return SyntaxUtilities.GetYieldStatements(body);
+                suspensionPoints = SyntaxUtilities.GetYieldStatements(body);
+                kind = suspensionPoints.IsEmpty ? StateMachineKind.None : StateMachineKind.Iterator;
             }
         }
 
@@ -2889,7 +2897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 var oldContainingStatementPart = FindContainingStatementPart(oldNode);
                 var newContainingStatementPart = FindContainingStatementPart(newNode);
 
-                // If the old statememnt has spilled state and the new doesn't the edit is ok. We'll just not use the spilled state.
+                // If the old statement has spilled state and the new doesn't the edit is ok. We'll just not use the spilled state.
                 if (!SyntaxFactory.AreEquivalent(oldContainingStatementPart, newContainingStatementPart) &&
                     !HasNoSpilledState(newNode, newContainingStatementPart))
                 {
@@ -3051,7 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static CheckedStatementSyntax TryGetCheckedStatementAncestor(SyntaxNode node)
         {
-            // Ignoring lambda boundaries since checked context flows thru.
+            // Ignoring lambda boundaries since checked context flows through.
 
             while (node != null)
             {

@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -214,16 +213,21 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.CSharp.Repl" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
+    <InternalsVisibleToTypeScript Include="CodeAnalysis" />
+    <InternalsVisibleToTypeScript Include="StanCore" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -725,7 +729,6 @@
     <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioSymbolNavigationServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioTextUndoHistoryWorkspaceServiceFactory.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="Progression\GraphNodeCreation.cs" />
     <Compile Include="RoslynDocumentProvider.cs" />
     <Compile Include="Utilities\SpanExtensions.cs" />
@@ -775,8 +778,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

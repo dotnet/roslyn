@@ -220,7 +220,7 @@ class C
 
         // With multidimensional arrays, you can use one loop to iterate through the elements
         [Fact]
-        public void TestMultimensionArray()
+        public void TestMultiDimensionalArray()
         {
             var text =
 @"class T
@@ -417,7 +417,7 @@ public class Test
             CompileAndVerify(text).VerifyIL("Test.Main", expectedIL);
         }
 
-        // Traversing items in ‘Dictionary’
+        // Traversing items in 'Dictionary'
         [Fact]
         public void TestDictionary()
         {
@@ -590,7 +590,7 @@ Z";
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
 
-        // ‘Return’  in foreach
+        // 'Return' in foreach
         [Fact]
         public void TestReturn()
         {

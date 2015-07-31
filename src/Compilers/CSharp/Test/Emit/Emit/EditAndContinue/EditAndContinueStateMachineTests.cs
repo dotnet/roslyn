@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class EditAndContinueStateMachineTests : EditAndContinueTestBase
     {
-        [Fact(Skip = "1068894"), WorkItem(1137300, "DevDiv")]
+        [Fact]
+        [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "DevDiv")]
         public void AddIteratorMethod()
         {
             var source0 =
@@ -25,9 +26,6 @@ class C
     static IEnumerable<object> F()
     {
         yield return 0;
-    }
-    static void M()
-    {
     }
 }";
             var source1 =
@@ -41,9 +39,6 @@ class C
     static IEnumerable<int> G()
     {
         yield return 1;
-    }
-    static void M()
-    {
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(Parse(source0, "a.cs"), options: TestOptions.DebugDll);
@@ -87,9 +82,8 @@ class C
                     Row(26, TableIndex.TypeRef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
+                    Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.PropertyMap, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
@@ -99,6 +93,8 @@ class C
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                     Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                    Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -114,13 +110,11 @@ class C
                     Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                     Row(3, TableIndex.Property, EditAndContinueOperation.Default),
                     Row(2, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty),
                     Row(4, TableIndex.Property, EditAndContinueOperation.Default),
-                    Row(13, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                    Row(12, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                     Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                     Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -145,6 +139,7 @@ class C
                     Row(8, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
                     Row(9, TableIndex.InterfaceImpl, EditAndContinueOperation.Default),
                     Row(10, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
+
                 CheckEncMap(reader1,
                     Handle(16, TableIndex.TypeRef),
                     Handle(17, TableIndex.TypeRef),
@@ -161,6 +156,7 @@ class C
                     Handle(4, TableIndex.Field),
                     Handle(5, TableIndex.Field),
                     Handle(6, TableIndex.Field),
+                    Handle(11, TableIndex.MethodDef),
                     Handle(12, TableIndex.MethodDef),
                     Handle(13, TableIndex.MethodDef),
                     Handle(14, TableIndex.MethodDef),
@@ -169,7 +165,6 @@ class C
                     Handle(17, TableIndex.MethodDef),
                     Handle(18, TableIndex.MethodDef),
                     Handle(19, TableIndex.MethodDef),
-                    Handle(20, TableIndex.MethodDef),
                     Handle(2, TableIndex.Param),
                     Handle(6, TableIndex.InterfaceImpl),
                     Handle(7, TableIndex.InterfaceImpl),
@@ -197,9 +192,8 @@ class C
                     Handle(17, TableIndex.CustomAttribute),
                     Handle(18, TableIndex.CustomAttribute),
                     Handle(19, TableIndex.CustomAttribute),
+                    Handle(3, TableIndex.StandAloneSig),
                     Handle(4, TableIndex.StandAloneSig),
-                    Handle(5, TableIndex.StandAloneSig),
-                    Handle(6, TableIndex.StandAloneSig),
                     Handle(2, TableIndex.PropertyMap),
                     Handle(3, TableIndex.Property),
                     Handle(4, TableIndex.Property),
@@ -221,16 +215,15 @@ class C
             diff1.VerifyPdb(Enumerable.Range(0x06000001, 0x20), @"
 <symbols>
   <files>
-    <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""6E, 19, 36, 2B, 9A, 28, AB, E3, A2, DA, EB, 51, C1, 37,  1, 10, B0, 4F, CA, 84, "" />
+    <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""61, E4, 46, A3, DE, 2B, DE, 69, 1A, 31,  7, F6, EA,  2, CE, B0, 5F, 38,  3, 79, "" />
   </files>
   <methods>
-    <method token=""0x600000c"">
+    <method token=""0x600000b"">
       <customDebugInfo>
         <forwardIterator name=""&lt;G&gt;d__1#1"" />
       </customDebugInfo>
-      <sequencePoints />
     </method>
-    <method token=""0x600000f"">
+    <method token=""0x600000e"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""1"" />
@@ -238,12 +231,12 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x21"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x22"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x34"" hidden=""true"" document=""1"" />
-        <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x20"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x30"" hidden=""true"" document=""1"" />
+        <entry offset=""0x37"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x3f"">
+      <scope startOffset=""0x0"" endOffset=""0x39"">
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
@@ -614,8 +607,6 @@ class C
     {
         return await Task.FromResult(1);
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System.Threading.Tasks;
@@ -636,8 +627,6 @@ class C
     {
         return await Task.FromResult(4);
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -677,9 +666,9 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1075,15 +1064,15 @@ class C
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x7"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" document=""0"" />
-        <entry offset=""0x1b"" hidden=""true"" document=""0"" />
-        <entry offset=""0x74"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""0"" />
-        <entry offset=""0x78"" hidden=""true"" document=""0"" />
-        <entry offset=""0x92"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x9a"" hidden=""true"" document=""0"" />
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x7"" hidden=""true"" />
+        <entry offset=""0xe"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
+        <entry offset=""0xf"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""34"" />
+        <entry offset=""0x1b"" hidden=""true"" />
+        <entry offset=""0x74"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" />
+        <entry offset=""0x78"" hidden=""true"" />
+        <entry offset=""0x92"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
+        <entry offset=""0x9a"" hidden=""true"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0xa8"">
         <namespace name=""System.Threading.Tasks"" />
@@ -1113,8 +1102,6 @@ class C
         int x = p;
         yield return 1;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System.Collections.Generic;
@@ -1126,8 +1113,6 @@ class C
         int x = p;
         yield return 2;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -1157,8 +1142,8 @@ class C
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1222,8 +1207,6 @@ class C
         int x = p;
         yield return x;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System;
@@ -1238,8 +1221,6 @@ class C
         yield return y;
         Console.WriteLine(x);
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -1266,8 +1247,8 @@ class C
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1339,8 +1320,6 @@ class C
         int x = p;
         yield return x;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System;
@@ -1354,8 +1333,6 @@ class C
         yield return y;
         Console.WriteLine(p);
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -1382,8 +1359,8 @@ class C
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1452,8 +1429,6 @@ class C
         yield return 1;
         Console.WriteLine(x);
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System;
@@ -1467,8 +1442,6 @@ class C
         yield return 2;
         Console.WriteLine(x);
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -1495,8 +1468,8 @@ class C
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(5, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1562,8 +1535,6 @@ class C
     {
         foreach (object item in new[] { 1 }) { yield return 1; }
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System;
@@ -1575,8 +1546,6 @@ class C
     {
         foreach (object item in new[] { 1.0 }) { yield return 1; }
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             // Rude edit but the compiler should handle it.
 
@@ -1617,8 +1586,8 @@ class C
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -1737,8 +1706,6 @@ class C
         await Task.Delay(0);
         return 1;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source1 = @"
 using System.Threading.Tasks;
@@ -1768,8 +1735,6 @@ class C
         await Task.Delay(0);
         return 1;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source2 = @"
 using System.Threading.Tasks;
@@ -1799,8 +1764,6 @@ class C
         await Task.Delay(0);
         return 1;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var source3 = @"
 using System.Threading.Tasks;
@@ -1830,8 +1793,6 @@ class C
         await Task.Delay(0);
         return 1;
     }
-
-    public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
 
             // Rude edit but the compiler should handle it.
@@ -1919,8 +1880,8 @@ class C
                 Row(16, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -2028,7 +1989,7 @@ class C
                 Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                 Row(18, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
@@ -2137,8 +2098,8 @@ class C
                 Row(20, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -2160,8 +2121,6 @@ class C
         yield return 1;
         Console.WriteLine((int)x + <<VALUE>>);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
@@ -2288,8 +2247,6 @@ class C
         yield return d;
         Console.WriteLine(0);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source1 = MarkedSource(@"
@@ -2304,8 +2261,6 @@ class C
         yield return d.ToString();
         Console.WriteLine(1);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source2 = MarkedSource(@"
@@ -2320,8 +2275,6 @@ class C
         yield return d;
         Console.WriteLine(2);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
@@ -2359,7 +2312,7 @@ class C
                 "C.<>o__0#2: {<>p__0}",
                 "C.<F>d__0: {<>1__state, <>2__current, <>l__initialThreadId, <d>5__1, System.IDisposable.Dispose, MoveNext, System.Collections.Generic.IEnumerator<System.String>.get_Current, System.Collections.IEnumerator.Reset, System.Collections.IEnumerator.get_Current, System.Collections.Generic.IEnumerable<System.String>.GetEnumerator, System.Collections.IEnumerable.GetEnumerator, System.Collections.Generic.IEnumerator<System.String>.Current, System.Collections.IEnumerator.Current}");
         }
-        
+
         [Fact]
         public void Awaiters1()
         {
@@ -3220,8 +3173,6 @@ class C
         yield return 1;
         Console.WriteLine(x.A + 1);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source1 = MarkedSource(@"
@@ -3236,8 +3187,6 @@ class C
         yield return 1;
         Console.WriteLine(x.A + 2);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source2 = MarkedSource(@"
@@ -3252,8 +3201,6 @@ class C
         yield return 1;
         Console.WriteLine(x.A + 3);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
@@ -3361,8 +3308,6 @@ class C
         yield return 1;
         Console.WriteLine(x[0].A.B + 1);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source1 = MarkedSource(@"
@@ -3377,8 +3322,6 @@ class C
         yield return 1;
         Console.WriteLine(x[0].A.B + 2);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source2 = MarkedSource(@"
@@ -3393,8 +3336,6 @@ class C
         yield return 1;
         Console.WriteLine(x[0].A.B + 3);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
@@ -3497,7 +3438,7 @@ class C
 
             diff2.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext()", baselineIL.Replace("<<VALUE>>", "3"));
         }
-        
+
         [Fact, WorkItem(3192)]
         public void HoistedGenericTypes()
         {
@@ -3518,8 +3459,6 @@ class C
         yield return 1;
         Console.WriteLine(x.a + x.b + 1);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source1 = MarkedSource(@"
@@ -3539,8 +3478,6 @@ class C
         yield return 1;
         Console.WriteLine(x.a + x.b + 2);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source2 = MarkedSource(@"
@@ -3560,8 +3497,6 @@ class C
         yield return 1;
         Console.WriteLine(x.a + x.b + 3);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
@@ -3671,8 +3606,6 @@ class C
         yield return 1;
         Console.WriteLine(x.B + <<VALUE>>);
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
@@ -3751,7 +3684,7 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.VerifySynthesizedMembers(
-                "C: {<F>d__0}",                
+                "C: {<F>d__0}",
                 "C.<F>d__0: {<>1__state, <>2__current, <>l__initialThreadId, <>4__this, <x>5__1, System.IDisposable.Dispose, MoveNext, System.Collections.Generic.IEnumerator<System.Int32>.get_Current, System.Collections.IEnumerator.Reset, System.Collections.IEnumerator.get_Current, System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator, System.Collections.IEnumerable.GetEnumerator, System.Collections.Generic.IEnumerator<System.Int32>.Current, System.Collections.IEnumerator.Current}",
                 "<>f__AnonymousType0<<A>j__TPar, <B>j__TPar>: {Equals, GetHashCode, ToString}");
 
@@ -3784,8 +3717,6 @@ class C
         var <N:1>x = from b in new[] { 1, 2, 3 } <N:0>select new { A = b }</N:0></N:1>;
         return <N:2>await Task.FromResult(1)</N:2>;
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source1 = MarkedSource(@"
@@ -3800,8 +3731,6 @@ class C
         var y = x.First();
         return <N:2>await Task.FromResult(1)</N:2>;
     }
-
-    void X() {} // needs to be present to work around SymWriter bug #1068894
 }
 ");
             var source2 = source0;

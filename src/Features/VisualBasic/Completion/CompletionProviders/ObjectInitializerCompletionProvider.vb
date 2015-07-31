@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            ' We have the right tokens. Get the containing object intitializer. Will we be able to walk
+            ' We have the right tokens. Get the containing object intializer. Will we be able to walk
             ' up and determine the type?
             Dim containingInitializer = commaOrBrace.Parent
             If containingInitializer Is Nothing OrElse
@@ -82,16 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return CompletionUtilities.GetTextChangeSpan(text, position)
         End Function
 
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
-
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = "."c
-        End Function
-
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return False
         End Function
 
         Protected Overrides Function IsExclusiveAsync(documentOpt As Document, caretPosition As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of Boolean)

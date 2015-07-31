@@ -126,7 +126,7 @@ public class C
       }}
     }}
   ]
-}}", sourceFile);
+}}", AnalyzerForErrorLogTest.EscapeDirectorySeparatorChar(sourceFile));
 
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
@@ -145,12 +145,12 @@ public class C
             var sourceFile = Temp.CreateFile().WriteAllText(source).Path;
             var outputDir = Temp.CreateDirectory();
             var errorLogFile = Path.Combine(outputDir.Path, "ErrorLog.txt");
-            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");            
+            var outputFilePath = Path.Combine(outputDir.Path, "test.dll");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] {
                 "/nologo", "/t:library", $"/out:{outputFilePath}", sourceFile, "/preferreduilang:en", $"/errorlog:{errorLogFile}" },
                analyzer: new AnalyzerForErrorLogTest());
-            
+
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
 
             var exitCode = cmd.Run(outWriter);
@@ -163,7 +163,7 @@ public class C
             var actualOutput = File.ReadAllText(errorLogFile).Trim();
 
             var expectedHeader = GetExpectedErrorLogHeader(actualOutput, cmd);
-            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogIssuesText(cmd.Compilation, outputFilePath);
+            var expectedIssues = AnalyzerForErrorLogTest.GetExpectedErrorLogIssuesText(cmd.Compilation);
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
 

@@ -74,7 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var commonToken1 = this.Token1;
                 var commonToken2 = this.Token2;
 
-                var span = TextSpan.FromBounds(commonToken1.Span.End, commonToken2.Span.Start);
+                var formatSpanEnd = commonToken2.Kind() == SyntaxKind.None ? commonToken1.Span.End : commonToken2.Span.Start;
+                var span = TextSpan.FromBounds(commonToken1.Span.End, formatSpanEnd);
                 if (context.IsSpacingSuppressed(span))
                 {
                     return false;

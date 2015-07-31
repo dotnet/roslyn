@@ -2367,7 +2367,7 @@ class Test2
 
         [WorkItem(542747, "DevDiv")]
         [Fact()]
-        public void IndexerAceessorParameterIsSynthesized()
+        public void IndexerAccessorParameterIsSynthesized()
         {
             var text = @"
 struct Test

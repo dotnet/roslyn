@@ -2285,7 +2285,7 @@ class Derived : Base2<int>
         {
             // Tests:
             // Hide base virtual member with a virtual new / abstract new member 
-            // Test that we don’t override the hidden base member on further derived classes
+            // Test that we don't override the hidden base member on further derived classes
 
             var source = @"
 using System;
@@ -3082,7 +3082,7 @@ partial class Test
                 new string[] { text1, text2 },
                 references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
-                assemblyName: "OHI_BridgeMethodFomrBaseVB007");
+                assemblyName: "OHI_BridgeMethodFromBaseVB007");
 
             var verifier = CompileAndVerify(
                 comp,

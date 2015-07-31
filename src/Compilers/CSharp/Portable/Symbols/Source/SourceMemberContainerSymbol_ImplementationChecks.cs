@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // CONSIDER: We know that no one will ask for NotOverriddenAbstractMembers again
+            // CONSIDER: We know that no-one will ask for NotOverriddenAbstractMembers again
             // (since this class is concrete), so we could just call the construction method
             // directly to avoid storing the result.
             foreach (var abstractMember in this.AbstractMembers)
@@ -262,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
         {
-            // We ideally want to identify the interface location in the baselist with an exact match but
+            // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
-            // this is the similar logic as the VB Implementation.
+            // this is the similar logic as the VB implementation.
             Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface));
             HashSet<DiagnosticInfo> unuseddiagnostics = null;
 
@@ -354,8 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 default:
-                    Debug.Assert(false, "Unexpected named type kind " + this.TypeKind);
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(this.TypeKind);
             }
 
             foreach (var member in this.GetMembersUnordered())
@@ -375,9 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else
                             {
-                                // synthesized constructors are the exception, but they should have been weeded out by the caller
-                                var isNew = ((SourceMethodSymbol)method).IsNew;
-                                CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                var sourceMethod = method as SourceMethodSymbol;
+                                if ((object)sourceMethod != null) // skip submission initializer
+                                {
+                                    var isNew = sourceMethod.IsNew;
+                                    CheckNonOverrideMember(method, isNew, method.OverriddenOrHiddenMembers, diagnostics, out suppressAccessors);
+                                }
                             }
                         }
                         else if (method.MethodKind == MethodKind.Destructor)
@@ -505,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // Do not give warnings about missing 'new' modifier for impicitly declared members,
+            // Do not give warnings about missing 'new' modifier for implicitly declared members,
             // e.g. backing fields for auto-properties
             if (symbol.IsImplicitlyDeclared)
             {
@@ -919,8 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 default:
-                    Debug.Assert(false, $"Unexpected accessibility {hidingMember.DeclaredAccessibility}");
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(hidingMember.DeclaredAccessibility);
             }
             return false;
         }
@@ -1095,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If C# picks a different implementation than the CLR (see IsPossibleImplementationUnderClrRules), then we might
-        /// still be okay, but dynamic dispath might result in C#'s choice getting called anyway.
+        /// still be okay, but dynamic dispatch might result in C#'s choice getting called anyway.
         /// </summary>
         /// <remarks>
         /// This is based on SymbolPreparer::IsCLRMethodImplSame in the native compiler.

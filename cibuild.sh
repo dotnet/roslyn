@@ -13,6 +13,7 @@ usage()
 XUNIT_VERSION=2.0.0-alpha-build2576
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
+USE_CACHE=true
 
 while [[ $# > 0 ]]
 do
@@ -38,6 +39,10 @@ do
         BUILD_CONFIGURATION=Release
         shift 1
         ;;
+        --nocache)
+        USE_CACHE=false
+        shift 1
+        ;;
         *)
         usage 
         exit 1
@@ -60,7 +65,7 @@ run_nuget()
 {
     i=5
     while [ $i -gt 0 ]; do
-        mono src/.nuget/NuGet.exe "$@"
+        mono .nuget/NuGet.exe "$@"
         if [ $? -eq 0 ]; then
             i=0
         else
@@ -110,7 +115,7 @@ save_toolset()
 clean_roslyn()
 {
     echo Cleaning the enlistment
-    xbuild /v:m /t:Clean src/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
+    xbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=$BUILD_CONFIGURATION
     rm -rf Binaries/$BUILD_CONFIGURATION
 }
 
@@ -119,7 +124,7 @@ build_roslyn()
     BOOTSTRAP_ARG=/p:BootstrapBuildPath=$(pwd)/Binaries/Bootstrap
 
     echo Building CrossPlatform.sln
-    run_xbuild $BOOTSTRAP_ARG src/CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
+    run_xbuild $BOOTSTRAP_ARG CrossPlatform.sln /p:Configuration=$BUILD_CONFIGURATION
 }
 
 # Install the specified Mono toolset from our Azure blob storage.
@@ -128,13 +133,16 @@ install_mono_toolset()
     TARGET=/tmp/$1
     echo "Installing Mono toolset $1"
     if [ -d $TARGET ]; then
-        echo "Already installed"
-        return
+        if [ "$USE_CACHE" = "true" ]; then
+            echo "Already installed"
+            return
+        fi
     fi
 
     pushd /tmp
 
-    rm $TARGET 2>/dev/null
+    rm -r $TARGET 2>/dev/null
+    rm $1.tar.bz2 2>/dev/null
     curl -O https://dotnetci.blob.core.windows.net/roslyn/$1.tar.bz2
     tar -jxf $1.tar.bz2
     if [ $? -ne 0 ]; then
@@ -202,7 +210,7 @@ test_roslyn()
 # Linux runs to fail frequently enough that we need to employ a 
 # temporary work around.  
 echo Restoring NuGet packages
-run_nuget restore src/Roslyn.sln
+run_nuget restore Roslyn.sln
 run_nuget install xunit.runners -PreRelease -Version $XUNIT_VERSION -OutputDirectory packages
 
 set_mono_path

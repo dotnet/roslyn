@@ -41,7 +41,10 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -51,7 +54,10 @@ End Class</File>
         Dim a as [|Foa|]
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char"),
+                 String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -60,7 +66,10 @@ End Class</File>
     Sub Bar(a as Func(Of [|Foa|]))
     End Sub
 End Class</File>
-            TestExactActionSetOffered(text.NormalizedValue, {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global"), String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char")})
+            TestExactActionSetOffered(text.NormalizedValue,
+                {String.Format(VBFeaturesResources.ChangeTo, "Foa", "Foo"),
+                String.Format(VBFeaturesResources.ChangeTo, "Foa", "Char"),
+                String.Format(VBFeaturesResources.ChangeTo, "Foa", "Global")})
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -313,7 +322,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub KeepEscapedIdentifiersEscaped()
             Dim text = <File>
 Module Program
@@ -341,7 +350,7 @@ End Module</File>
         End Sub
 
         <WorkItem(547166)>
-<Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         Public Sub NoDuplicateCorrections()
             Dim text = <File>
 Module Program
@@ -375,7 +384,7 @@ End Module</File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
@@ -389,13 +398,13 @@ End Module</File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
 
     Sub Main(args As String())
-        Dim x as Integer
+        Dim x as [Integer]
     End Sub
 End Module</File>
 
@@ -403,13 +412,13 @@ End Module</File>
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-                           
+
 Module Program
     Class [Integer]
     End Class
 
     Sub Main(args As String())
-        Dim x as [Integer]
+        Dim x as Integer
     End Sub
 End Module</File>
 

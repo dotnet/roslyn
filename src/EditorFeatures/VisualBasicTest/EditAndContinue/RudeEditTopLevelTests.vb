@@ -1898,16 +1898,32 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_AsyncModifier()
+        Public Sub MethodUpdate_AsyncModifier1()
+            Dim src1 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Function F() As Task(Of String) : End Function]@11 -> [Async Function F() As Task(Of String) : End Function]@11",
+                "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub MethodUpdate_AsyncModifier2()
             Dim src1 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
             Dim src2 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
+                "Update [Async Function F() As Task(Of String) : End Function]@11 -> [Function F() As Task(Of String) : End Function]@11",
                 "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
 
-            edits.VerifyRudeDiagnostics()
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Function F()", FeaturesResources.Method))
         End Sub
 
         <Fact>
@@ -4069,9 +4085,22 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PropertyRename()
+        Public Sub PropertyRename1()
             Dim src1 = "Class C : ReadOnly Property P As Integer" & vbLf & "Get : End Get : End Property : End Class"
             Dim src2 = "Class C : ReadOnly Property Q As Integer" & vbLf & "Get : End Get : End Property : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [ReadOnly Property P As Integer]@10 -> [ReadOnly Property Q As Integer]@10")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "ReadOnly Property Q", FeaturesResources.Property))
+        End Sub
+
+        <Fact>
+        Public Sub PropertyRename2()
+            Dim src1 = "Class C : ReadOnly Property P As Integer : End Class"
+            Dim src2 = "Class C : ReadOnly Property Q As Integer : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -4775,7 +4804,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PeopertyUpdate_InstanceCtorInsertExplicit()
+        Public Sub PropertyUpdate_InstanceCtorInsertExplicit()
             Dim src1 = "Class C : Private Property a As Integer : End Class"
             Dim src2 = "Class C : Private Property a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -4865,7 +4894,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4875,7 +4904,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4885,7 +4914,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4895,7 +4924,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -4905,7 +4934,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.Field))
         End Sub
 
         <Fact>
@@ -4915,7 +4944,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2"))
+                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.AutoProperty))
         End Sub
 
         <Fact>
@@ -5469,7 +5498,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda1()
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda1()
             Dim src1 = "
 Imports System
 
@@ -5517,7 +5546,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithLambda_Trivia1()
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithLambda_Trivia1()
             Dim src1 = "
 Imports System
 
@@ -5565,7 +5594,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditContructorWithoutLambda1()
+        Public Sub FieldInitializerUpdate_Lambdas_MultipleCtorsIncludingInitializersContainingLambdas_EditConstructorWithoutLambda1()
             Dim src1 = "
 Imports System
 
@@ -5613,7 +5642,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInitializerUpdate_Lambdas_EditContructorNotIncludingInitializers()
+        Public Sub FieldInitializerUpdate_Lambdas_EditConstructorNotIncludingInitializers()
             Dim src1 = "
 Imports System
 

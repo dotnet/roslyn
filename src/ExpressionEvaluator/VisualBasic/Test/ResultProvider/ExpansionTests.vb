@@ -397,14 +397,14 @@ End Class"
                 EvalResult(rootExpr, "{A}", "A", rootExpr, DkmEvaluationResultFlags.Expandable))
             Dim children = GetChildren(result)
             Verify(children,
-                EvalResult("1<>", "Nothing", "Object", "(New A()).1<>"),
-                EvalResult("@", "Nothing", "Object", "(New A()).@"),
-                EvalResult("CS<>7__8", "Nothing", "Object", "(New A()).CS<>7__8"),
+                EvalResult("1<>", "Nothing", "Object", fullName:=Nothing),
+                EvalResult("@", "Nothing", "Object", fullName:=Nothing),
+                EvalResult("CS<>7__8", "Nothing", "Object", fullName:=Nothing),
                 EvalResult("Shared members", Nothing, "", "A", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", "A.[>]"),
-                EvalResult("><", "Nothing", "Object", "A.><"))
+                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing),
+                EvalResult("><", "Nothing", "Object", fullName:=Nothing))
 
             type = assembly.GetType("B")
             rootExpr = "New B()"
@@ -414,14 +414,14 @@ End Class"
                 EvalResult(rootExpr, "{B}", "B", rootExpr, DkmEvaluationResultFlags.Expandable))
             children = GetChildren(result)
             Verify(children,
-                EvalResult("1<>", "Nothing", "Object", "(New B()).1<>", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("@", "Nothing", "Object", "(New B()).@", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("VB<>7__8", "Nothing", "Object", "(New B()).VB<>7__8", DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("1<>", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("@", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("VB<>7__8", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("Shared members", Nothing, "", "B", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", "B.[>]", DkmEvaluationResultFlags.ReadOnly),
-                EvalResult("><", "Nothing", "Object", "B.><", DkmEvaluationResultFlags.ReadOnly))
+                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
+                EvalResult("><", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly))
         End Sub
 
         <Fact, WorkItem(965892)>
@@ -673,7 +673,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub NameConflictsWithVirualPropertiesAcrossDeclaredType()
+        Public Sub NameConflictsWithVirtualPropertiesAcrossDeclaredType()
             Dim source = "
 Class A 
     Public Overridable Property P As Integer = 1

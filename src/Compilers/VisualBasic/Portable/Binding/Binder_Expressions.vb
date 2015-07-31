@@ -405,7 +405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function BindNameOfExpression(node As NameOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
-            ' Suppress diagnostocs if argument has syntax errors
+            ' Suppress diagnostics if argument has syntax errors
             If node.Argument.HasErrors Then
                 diagnostics = New DiagnosticBag()
             End If
@@ -856,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            [call].ConstantValueOpt, [call].SuppressObjectClone, [call].Type, [call].HasErrors)
 
                 Case Else
-                    Debug.Assert(False)
+                    Throw ExceptionUtilities.UnexpectedValue(result.Kind)
             End Select
 
             Return result
@@ -968,7 +968,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Select Case propertyAccess.AccessKind
                     Case PropertyAccessKind.Set
-                        Debug.Assert(False)
                         ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                         Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
 
@@ -1004,7 +1003,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ElseIf expr.IsLateBound() Then
                 If (expr.GetLateBoundAccessKind() And (LateBoundAccessKind.Set Or LateBoundAccessKind.Call)) <> 0 Then
-                    Debug.Assert(False)
                     ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                     Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
                 End If
@@ -1605,7 +1603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case Else
                         ' What else can it be?
-                        Debug.Assert(False)
+                        Throw ExceptionUtilities.UnexpectedValue(containingMember.Kind)
                 End Select
             End If
 
@@ -2073,7 +2071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If parent IsNot Nothing Then
                 Select Case parent.Kind
-                    Case SyntaxKind.SimpleMemberAccessExpression ' intentionally NOT SyntaxKind.DictionaryAcess
+                    Case SyntaxKind.SimpleMemberAccessExpression ' intentionally NOT SyntaxKind.DictionaryAccess
                         If DirectCast(parent, MemberAccessExpressionSyntax).Expression Is nameSyntax Then
                             Return False
                         End If
@@ -3197,7 +3195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub CheckMemberTypeAccessibility(diagnostics As DiagnosticBag, node As VisualBasicSyntaxNode, member As Symbol)
             ' We are not doing this check during lookup due to a performance impact it has on IDE scenarios.
-            ' In any case, an accessible member with inaccassible type is beyond language spec, so we have
+            ' In any case, an accessible member with inaccessible type is beyond language spec, so we have
             ' some freedom how to deal with it.
 
             Dim memberType As TypeSymbol

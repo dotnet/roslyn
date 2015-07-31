@@ -1,6 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -165,6 +168,458 @@ End Class
             root = FormatResult("Namespace", CreateDkmClrValue(New Object()))
             Verify(root,
                 EvalResult("Namespace", "{Object}", "Object", "Namespace"))
+        End Sub
+
+
+
+        <Fact>
+        Public Sub MangledNames_CastRequired()
+            Const il = "
+.class public auto ansi beforefieldinit '<>Mangled' extends [mscorlib]System.Object
+{
+  .field public int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit 'NotMangled' extends '<>Mangled'
+{
+  .field public int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void '<>Mangled'::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Verify(GetChildren(root),
+                EvalResult("x (<>Mangled)", "0", "Integer", Nothing),
+                EvalResult("x", "0", "Integer", "o.x"))
+        End Sub
+
+        <Fact>
+        Public Sub MangledNames_StaticMembers()
+            Const il = "
+.class public auto ansi beforefieldinit '<>Mangled' extends [mscorlib]System.Object
+{
+  .field public static int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit 'NotMangled' extends '<>Mangled'
+{
+  .field public static int32 y
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void '<>Mangled'::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim baseValue = CreateDkmClrValue(assembly.GetType("<>Mangled").Instantiate())
+
+            Dim root = FormatResult("o", baseValue)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", Nothing, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", Nothing))
+
+
+            Dim derivedValue = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate())
+
+            root = FormatResult("o", derivedValue)
+            children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", "NotMangled", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", Nothing, DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public),
+                EvalResult("y", "0", "Integer", "NotMangled.y", DkmEvaluationResultFlags.None, DkmEvaluationResultCategory.Data, DkmEvaluationResultAccessType.Public))
+        End Sub
+
+        <Fact>
+        Public Sub MangledNames_ExplicitInterfaceImplementation()
+            Const il = "
+.class interface public abstract auto ansi 'I<>Mangled'
+{
+  .method public hidebysig newslot specialname abstract virtual 
+          instance int32  get_P() cil managed
+  {
+  }
+
+  .property instance int32 P()
+  {
+    .get instance int32 'I<>Mangled'::get_P()
+  }
+} // end of class 'I<>Mangled'
+
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+       implements 'I<>Mangled'
+{
+  .method private hidebysig newslot specialname virtual final 
+          instance int32  'I<>Mangled.get_P'() cil managed
+  {
+    .override 'I<>Mangled'::get_P
+    ldc.i4.1
+    ret
+  }
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+
+  .property instance int32 'I<>Mangled.P'()
+  {
+    .get instance int32 C::'I<>Mangled.get_P'()
+  }
+
+  .property instance int32 P()
+  {
+    .get instance int32 C::'I<>Mangled.get_P'()
+  }
+} // end of class C
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("C").Instantiate())
+
+            Dim root = FormatResult("instance", value)
+            Verify(GetChildren(root),
+                EvalResult("I<>Mangled.P", "1", "Integer", Nothing, DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private),
+                EvalResult("P", "1", "Integer", "instance.P", DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Property, DkmEvaluationResultAccessType.Private))
+        End Sub
+
+        <Fact>
+        Public Sub MangledNames_ArrayElement()
+            Const il = "
+.class public auto ansi beforefieldinit '<>Mangled'
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit NotMangled
+       extends [mscorlib]System.Object
+{
+  .field public class [mscorlib]System.Collections.Generic.IEnumerable`1<class '<>Mangled'> 'array'
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    ldc.i4.1
+    newarr     '<>Mangled'
+    stfld      class [mscorlib]System.Collections.Generic.IEnumerable`1<class '<>Mangled'> NotMangled::'array'
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("array", "{Length=1}", "System.Collections.Generic.IEnumerable(Of <>Mangled) {<>Mangled()}", "o.array", DkmEvaluationResultFlags.Expandable))
+            Verify(GetChildren(children.Single()),
+                EvalResult("(0)", "Nothing", "<>Mangled", Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub MangledNames_Namespace()
+            Const il = "
+.class public auto ansi beforefieldinit '<>Mangled.C' extends [mscorlib]System.Object
+{
+  .field public static int32 x
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim baseValue = CreateDkmClrValue(assembly.GetType("<>Mangled.C").Instantiate())
+
+            Dim root = FormatResult("o", baseValue)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", Nothing, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub MangledNames_DebuggerTypeProxy()
+            Const il = "
+.class public auto ansi beforefieldinit Type
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerTypeProxyAttribute::.ctor(class [mscorlib]System.Type)
+           = {type('<>Mangled')}
+  .field public bool x
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    ldc.i4.0
+    stfld      bool Type::x
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  } // end of method Type::.ctor
+
+} // end of class Type
+
+.class public auto ansi beforefieldinit '<>Mangled'
+       extends [mscorlib]System.Object
+{
+  .field public bool y
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(class Type s) cil managed
+  {
+    ldarg.0
+    ldc.i4.1
+    stfld      bool '<>Mangled'::y
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  } // end of method '<>Mangled'::.ctor
+
+} // end of class '<>Mangled'
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("Type").Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("y", "True", "Boolean", Nothing, DkmEvaluationResultFlags.Boolean Or DkmEvaluationResultFlags.BooleanTrue),
+                EvalResult("Raw View", Nothing, "", "o, raw", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data))
+
+            Dim grandChildren = GetChildren(children.Last())
+            Verify(grandChildren,
+                EvalResult("x", "False", "Boolean", "o.x", DkmEvaluationResultFlags.Boolean))
+        End Sub
+
+        <Fact>
+        Public Sub GenericTypeWithoutBacktick()
+            Const il = "
+.class public auto ansi beforefieldinit C<T> extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("C").MakeGenericType(GetType(Integer)).Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", "C(Of Integer)", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", "C(Of Integer).x"))
+        End Sub
+
+        <Fact>
+        Public Sub BackTick_NonGenericType()
+            Const il = "
+.class public auto ansi beforefieldinit 'C`1' extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("C`1").Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", Nothing, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub BackTick_GenericType()
+            Const il = "
+.class public auto ansi beforefieldinit 'C`1'<T> extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("C`1").MakeGenericType(GetType(Integer)).Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", "C(Of Integer)", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", "C(Of Integer).x"))
+        End Sub
+
+        <Fact>
+        Public Sub BackTick_Member()
+            ' IL doesn't support using generic methods as property accessors so
+            ' there's no way to test a "legitimate" backtick in a member name.
+            Const il = "
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+  .field public static int32 'x`1'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("C").Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", "C", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x`1", "0", "Integer", fullName:=Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub BackTick_FirstCharacter()
+            Const il = "
+.class public auto ansi beforefieldinit '`1'<T> extends [mscorlib]System.Object
+{
+  .field public static int32 'x'
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+}
+"
+
+            Dim assemblyBytes As ImmutableArray(Of Byte) = Nothing
+            Dim pdbBytes As ImmutableArray(Of Byte) = Nothing
+            BasicTestBase.EmitILToArray(il, appendDefaultHeader:=True, includePdb:=False, assemblyBytes:=assemblyBytes, pdbBytes:=pdbBytes)
+            Dim assembly = ReflectionUtilities.Load(assemblyBytes)
+
+            Dim value = CreateDkmClrValue(assembly.GetType("`1").MakeGenericType(GetType(Integer)).Instantiate())
+
+            Dim root = FormatResult("o", value)
+            Dim children = GetChildren(root)
+            Verify(children,
+                EvalResult("Shared members", Nothing, "", Nothing, DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
+            Verify(GetChildren(children.Single()),
+                EvalResult("x", "0", "Integer", fullName:=Nothing))
         End Sub
 
     End Class

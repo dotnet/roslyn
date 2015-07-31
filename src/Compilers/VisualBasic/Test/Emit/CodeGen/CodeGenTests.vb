@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1611,7 +1610,7 @@ End Module
 
         <WorkItem(546853, "DevDiv")>
         <Fact()>
-        Public Sub CallingVistualFinalMethod()
+        Public Sub CallingVirtualFinalMethod()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit B
        extends [mscorlib]System.Object
@@ -3370,24 +3369,24 @@ Namespace TernaryAndVarianceConversion
     Delegate Sub ContravariantDelegateWithValidInParm(Of In T)(inVal As T)
 
     Interface ICovariantInterface(Of Out T)
-        Sub CovariantInterfaceMathodWithVoidReturn()
-        Function CovariantInterfaceMathodWithValidReturn() As T
+        Sub CovariantInterfaceMethodWithVoidReturn()
+        Function CovariantInterfaceMethodWithValidReturn() As T
         ReadOnly Property CovariantInterfacePropertyWithValidGetter As T
         Sub Test()
     End Interface
 
     Interface IContravariantInterface(Of In T)
-        Sub ContravariantInterfaceMathodWithVoidReturn()
-        Sub ContravariantInterfaceMathodWithValidInParm(inVal As T)
+        Sub ContravariantInterfaceMethodWithVoidReturn()
+        Sub ContravariantInterfaceMethodWithValidInParm(inVal As T)
         WriteOnly Property ContravariantInterfacePropertyWithValidSetter As T
         Sub Test()
     End Interface
 
     Class CovariantInterfaceImpl(Of T) : Implements ICovariantInterface(Of T)
-        Public Sub CovariantInterfaceMathodWithVoidReturn() Implements ICovariantInterface(Of T).CovariantInterfaceMathodWithVoidReturn
+        Public Sub CovariantInterfaceMethodWithVoidReturn() Implements ICovariantInterface(Of T).CovariantInterfaceMethodWithVoidReturn
 
         End Sub
-        Public Function CovariantInterfaceMathodWithValidReturn() As T Implements ICovariantInterface(Of T).CovariantInterfaceMathodWithValidReturn
+        Public Function CovariantInterfaceMethodWithValidReturn() As T Implements ICovariantInterface(Of T).CovariantInterfaceMethodWithValidReturn
             Return Nothing
         End Function
 
@@ -3403,11 +3402,11 @@ Namespace TernaryAndVarianceConversion
     End Class
 
     Class ContravariantInterfaceImpl(Of T) : Implements IContravariantInterface(Of T)
-        Public Sub ContravariantInterfaceMathodWithVoidReturn() Implements IContravariantInterface(Of T).ContravariantInterfaceMathodWithVoidReturn
+        Public Sub ContravariantInterfaceMethodWithVoidReturn() Implements IContravariantInterface(Of T).ContravariantInterfaceMethodWithVoidReturn
 
         End Sub
 
-        Public Sub ContravariantInterfaceMathodWithValidInParm(inVal As T) Implements IContravariantInterface(Of T).ContravariantInterfaceMathodWithValidInParm
+        Public Sub ContravariantInterfaceMethodWithValidInParm(inVal As T) Implements IContravariantInterface(Of T).ContravariantInterfaceMethodWithValidInParm
 
         End Sub
 
@@ -9552,7 +9551,7 @@ End Class
 
             ' CONSIDER: This is the dev10 behavior.
             ' Shouldn't there be an error for trying to call an inaccessible ctor?
-            ' NOTE: Current behaviour is to skip private constructor and use 'initobj'
+            ' NOTE: Current behavior is to skip private constructor and use 'initobj'
             CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
                 VerifyIL("C.Main",
             <![CDATA[
@@ -9916,7 +9915,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
@@ -9933,7 +9932,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -9974,7 +9973,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateCompilationWithReferences(
                 <compilation>
@@ -10001,7 +10000,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 

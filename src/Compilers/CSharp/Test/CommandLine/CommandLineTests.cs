@@ -23,9 +23,9 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -1230,15 +1230,23 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug:full", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:pdbonly", "/debug-", "/debug+", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.EmitPdb);
+            Assert.Equal(DebugInformationFormat.Pdb, parsedArgs.EmitOptions.DebugInformationFormat);
 
             parsedArgs = DefaultParse(new[] { "/debug:", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<text>", "debug"));
@@ -2705,8 +2713,8 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.System).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.System).Path;
 
             // Test linking two appconfig dlls with simple src
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -3961,7 +3969,7 @@ public class CS1698_a {}
             var cs1698 = folder.CreateFile("CS1698.cs");
             cs1698.WriteAllText(text);
 
-            var snkFile = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.General.snKey);
+            var snkFile = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
             var kfile = "/keyfile:" + snkFile.Path;
 
             CSharpCommandLineArguments parsedArgs = DefaultParse(new[] { "/t:library", kfile, "CS1698a.cs" }, _baseDirectory);
@@ -4018,7 +4026,7 @@ public class CS1698_a {}
         [Fact]
         public void BinaryFileErrorTest()
         {
-            var binaryPath = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).Path;
+            var binaryPath = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib).Path;
             var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", "/preferreduilang:en", binaryPath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -5521,7 +5529,7 @@ public class C
         [Fact, WorkItem(530359, "DevDiv")]
         public void NoStdLib02()
         {
-            #region "source"
+#region "source"
             var source = @"
 // <Title>A collection initializer can be declared with a user-defined IEnumerable that is declared in a user-defined System.Collections</Title>
 using System.Collections;
@@ -5640,7 +5648,7 @@ namespace System
     }
 }
 ";
-            #endregion
+#endregion
 
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
@@ -6096,7 +6104,7 @@ public class Test
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
-            string badres = Temp.CreateFile().WriteAllBytes(TestResources.DiagnosticTests.DiagnosticTests.badresfile).Path;
+            string badres = Temp.CreateFile().WriteAllBytes(TestResources.DiagnosticTests.badresfile).Path;
 
             var baseDir = Path.GetDirectoryName(source);
             var fileName = Path.GetFileName(source);
@@ -6214,7 +6222,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -6225,7 +6233,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path);
+                SharedCompilationUtils.ValidateDebugDirectory(peFile, pdb.Path, isPortable: false);
             }
         }
 
@@ -6351,7 +6359,7 @@ class Program
                 // whenever an unrecognized warning code was supplied in a #pragma directive
                 // (or via /nowarn /warnaserror flags on the command line).
                 // Going forward, we won't generate any warning in such cases. This will make
-                // maintainance of backwards compatibility easier (we no longer need to worry
+                // maintenance of backwards compatibility easier (we no longer need to worry
                 // about breaking existing projects / command lines if we deprecate / remove
                 // an old warning code).
                 Test(source, startErrorCode, endErrorCode);
@@ -6614,6 +6622,31 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(1759, "https://github.com/dotnet/roslyn/issues/1759")]
+        public void AnalyzerDiagnosticThrowsInGetMessage()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", srcFile.Path },
+               analyzer: new AnalyzerThatThrowsInGetMessage());
+
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+
+            // Verify that the diagnostic reported by AnalyzerThatThrowsInGetMessage is reported, though it doesn't have the message.
+            Assert.Contains(AnalyzerThatThrowsInGetMessage.Rule.Id, output, StringComparison.Ordinal);
+
+            // Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal);
+            Assert.Contains(nameof(NotImplementedException), output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         public void ErrorPathsFromLineDirectives()
         {
             string sampleProgram = @"
@@ -6852,19 +6885,9 @@ using System.Diagnostics; // Unused.
             args.Errors.Verify();
             Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "false" }, { "Key", "value" } }));
 
-            // We don't do any rigorous validation of / features arguments...
-
-            args = DefaultParse(new[] { "/features", "a.vb" }, _baseDirectory);
-            args.Errors.Verify();
-            Assert.Empty(args.ParseOptions.Features);
-
-            args = DefaultParse(new[] { "/features:,", "a.vb" }, _baseDirectory);
-            args.Errors.Verify();
-            Assert.Equal("", args.ParseOptions.Features.Single().Key);
-
             args = DefaultParse(new[] { "/features:Test,", "a.vb" }, _baseDirectory);
             args.Errors.Verify();
-            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" }, { "", "true" } }));
+            Assert.True(args.ParseOptions.Features.SetEquals(new Dictionary<string, string> { { "Test", "true" } }));
         }
 
         [Fact]

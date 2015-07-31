@@ -47,7 +47,7 @@ class Program
             // When doing overload resolution, we must find the best applicable method.
             //
             // When tiebreaking between two applicable candidate methods, we examine each conversion from the
-            // argument to the corresponding parameter type to detemine which method is better *in that parameter*.
+            // argument to the corresponding parameter type to determine which method is better *in that parameter*.
             // If a method is *not worse* in every parameter and better in at least one, then that method
             // wins. Under what circumstances is one conversion better than another?
             //
@@ -64,9 +64,9 @@ class Program
             // types that are more specific than others. We did not correctly update the C# 4 compiler to handle this 
             // situation.
             // 
-            // Unfortunately, real-world code exists that depends on this bad behaviour, so we are going to preserve it.
+            // Unfortunately, real-world code exists that depends on this bad behavior, so we are going to preserve it.
             //
-            // The essence of the bug is: the correct behaviour is to do the first tiebreaker first, and the second tiebreaker
+            // The essence of the bug is: the correct behavior is to do the first tiebreaker first, and the second tiebreaker
             // if necessary. The native compiler, and now Roslyn, does this wrong. It says "is the argument a lambda?" If so,
             // then it applies the second tiebreaker and ignores the first. Otherwise, it applies the first tiebreaker and 
             // ignores the second.
@@ -76,11 +76,11 @@ class Program
             // On the first call, the native compiler and Roslyn agree that overload 2 is better. (Remember, Action<T> is 
             // contravariant, so Action<object> is more specific than Action<string>. Every action that takes an object 
             // is also an action that takes a string, so an action that takes an object is more specific.) This is the correct
-            // behaviour. The compiler uses the first tiebreaker.
+            // behavior. The compiler uses the first tiebreaker.
 
             // On the second call, the native compiler incorrectly believes that overload 3 is better, because it 
             // does not correctly determine that Action<object> is more specific than Action<string> when the argument is 
-            // a lambda. The correct behaviour according to the spec would be to produce an ambiguity error. (Why? 
+            // a lambda. The correct behavior according to the spec would be to produce an ambiguity error. (Why? 
             // because overload 3 is more specific in its first parameter type, and less specific in its second parameter type.
             // And vice-versa for overload 4. No overload is not-worse in all parameters.)
 
@@ -116,7 +116,7 @@ class P
 
             // Now let's look at some ambiguity errors:
             //
-            // On the first call, the native compiler incorrectly produces an ambiguity error. The correct behaviour according
+            // On the first call, the native compiler incorrectly produces an ambiguity error. The correct behavior according
             // to the specification is to choose overload 2, because it is more specific. Because the argument is a lambda
             // we incorrectly skip the first tiebreaker entirely and go straight to the second tiebreaker. We are now in a situation
             // where we have two delegate types that are both void returning, and so by the second tiebreaker, neither is better.
@@ -164,7 +164,7 @@ Diagnostic(ErrorCode.ERR_AmbigCall, "M4").WithArguments("P.M4(System.Func<object
 Diagnostic(ErrorCode.ERR_AmbigCall, "M6").WithArguments("P.M6(System.Action<object>, string, object)", "P.M6(System.Action<string>, object, string)")
                 );
 
-            // By comparing these two programs, it becomes clear how unfortunate this is. M(q=>null) is ambiguious,
+            // By comparing these two programs, it becomes clear how unfortunate this is. M(q=>null) is ambiguous,
             // M(null) is unambiguous. But M((string)null, q=>{}) is unambiguous, M((string)null, null) is ambiguous!
 
             string source3 = @"
@@ -5692,15 +5692,14 @@ class baz
     }
 }
 ";
-            // TODO: We could do a better job of choosing which two methods are the ambiguous ones.
-
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-// (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(sbyte, bar)'
-//         overload1(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(sbyte, bar)"),
-// (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(sbyte, bar)'
-//         overload2(1, 1);
-Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(sbyte, bar)"));
+    // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload1(byte, foo)' and 'Ambig.overload1(int, baz)'
+    //         overload1(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload1").WithArguments("Ambig.overload1(byte, foo)", "Ambig.overload1(int, baz)").WithLocation(6, 9),
+    // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Ambig.overload2(int, baz)' and 'Ambig.overload2(byte, foo)'
+    //         overload2(1, 1);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "overload2").WithArguments("Ambig.overload2(int, baz)", "Ambig.overload2(byte, foo)").WithLocation(7, 9)
+                );
         }
 
         [WorkItem(545382, "DevDiv")]
@@ -5794,7 +5793,7 @@ public class Q
 
             // ERICLI: This test illustrates an unfortunate situation where neither Roslyn nor the
             // native compiler are compliant with the specification, and the native compiler's 
-            // behaviour is unusual. In this particular situation, the native compiler is 
+            // behavior is unusual. In this particular situation, the native compiler is 
             // getting the right answer completely by accident; it is the confluence of two incorrect
             // decisions adding up accidentally to a correct decision.
             //
@@ -5804,7 +5803,7 @@ public class Q
             // converted to the parameter type of the user-defined implicit conversion. Unfortunately, the
             // specification does not say that null literal conversions, constant numeric conversions,
             // method group conversions, or lambda conversions are "standard" conversions. It seems reasonable
-            // that these be allowed; we will probably emend the specification to allow them.
+            // that these be allowed; we will probably amend the specification to allow them.
             //
             // Now we get to the unusual part. The native compiler allows null literal and constant numeric
             // conversions to be counted as standard conversions; this is contrary to the exact wording of 
@@ -5840,7 +5839,7 @@ public class Q
             // for the wrong reason.  Suppose we have a simplified version of the code below: r = r + (x=>x);
             // What happens?
             //
-            // The correct behaviour according to the spec is to say that there are two possible operators,
+            // The correct behavior according to the spec is to say that there are two possible operators,
             // MC + EXPR and MC + MC.  Are either of them *applicable*? Clearly both are good in their left
             // hand operand. Can the right-hand operand, a lambda, be converted via implicit conversion to 
             // the expression tree type? Obviously yes. Can the lambda be converted to MainClass?  
@@ -5863,7 +5862,7 @@ public class Q
             //
             // In Roslyn, there are now two operators in the candidate set of applicable operators. Which one wins?
             //
-            // The correct behaviour is to say that the more specific one wins. Since there is an implicit conversion
+            // The correct behavior is to say that the more specific one wins. Since there is an implicit conversion
             // from EXPR to MC but not from MC to EXPR, the MC + EXPR candidate must be better, so it wins.
             //
             // But that is not what Roslyn does; remember, Roslyn is being bug-compatible with the native compiler.
@@ -7896,7 +7895,7 @@ public class Test
         }
 
         [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
-        public void BetterErrorMessage()
+        public void BetterErrorMessage_01()
         {
             string source1 = @"
 class C
@@ -8099,5 +8098,54 @@ class C
             compilation.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(1171723, "DevDiv"), WorkItem(2985, "https://github.com/dotnet/roslyn/issues/2985")]
+        public void BetterErrorMessage_02()
+        {
+            string source1 = @"
+using FluentAssertions;
+using Extensions;
+using System;
+using System.Collections.Generic;
+using System.Collections;
+
+namespace FluentAssertions
+{
+    public static class AssertionExtensions
+    {
+        public static object Should(this object actualValue) { throw null; }
+        public static object Should(this IEnumerable actualValue) { throw null; }
+        public static object Should<T>(this IEnumerable<T> actualValue) { throw null; }
+        public static object Should<TKey, TValue>(this IDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace Extensions
+{
+    public static class TestExtensions
+    {
+        public static object Should<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> actualValue) { throw null; }
+    }
+}
+
+namespace ClassLibraryOverloadResolution
+{    
+    public class Class1
+    {
+        void foo()
+        {
+            Dictionary<String, String> dict = null;
+            dict.Should();
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(source1);
+
+            compilation.VerifyDiagnostics(
+    // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
+    //             dict.Should();
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
+                );
+        }
     }
 }

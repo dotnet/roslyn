@@ -72,7 +72,7 @@ End Module
 
         End Sub
 
-        ' Can’t declare variable in argument
+        ' Can't declare variable in argument
         <Fact>
         Public Sub DeclVarInArgument()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -193,7 +193,7 @@ End Module
                                              AlwaysAssignedSymbol:="", DataFlowsInSymbol:="a0, a1, a2", DataFlowsOutSymbol:="", index:=2)
         End Sub
 
-        ' ‘Goto‘ is Invalid in expression
+        ' 'Goto' is Invalid in expression
         <Fact>
         Public Sub GotoInConditionalOperator()
             Dim compilation1 = CreateCompilationWithMscorlib(
@@ -397,7 +397,7 @@ End Module
             '1
             Dim semanticInfos = GetSemanticInfos(compilation1, 1)
             SemanticInfoTypeTest(semanticInfos, "Boolean", "System.Func(Of Integer, Integer)", "Integer")
-            'SemanticInfoConvetedTypeTest(semanticInfos, "Boolean", "Object", "Integer")
+            'SemanticInfoConvertedTypeTest(semanticInfos, "Boolean", "Object", "Integer")
             Assert.Equal(ConversionKind.Identity, semanticInfos(0).ImplicitConversion.Kind)
             Assert.Equal(ConversionKind.WideningReference Or ConversionKind.DelegateRelaxationLevelWideningToNonLambda, semanticInfos(1).ImplicitConversion.Kind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfos(2).ImplicitConversion.Kind)

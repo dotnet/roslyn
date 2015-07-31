@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
 
-            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols accross all generations,
+            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
             Dim metadataSymbols = GetMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
 
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' both need to be completely lowered (translated). Standard translation only goes one level deep. 
             ' Generic arguments are not translated until they are needed by metadata writer. 
             '
-            ' In order to get the fully lowered form we run the type symbols of stashed variables thru a deep translator
+            ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             ' that translates the symbol recursively.
             _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
         End Sub

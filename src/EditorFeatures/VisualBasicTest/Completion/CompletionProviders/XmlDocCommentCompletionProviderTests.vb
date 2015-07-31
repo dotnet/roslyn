@@ -1,6 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Completio
 Public Class XmlDocCommentCompletionProviderTests
     Inherits AbstractVisualBasicCompletionProviderTests
 
-    Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+    Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
         Return New XmlDocCommentCompletionProvider()
     End Function
 
@@ -360,7 +360,7 @@ End Module]]></File>.Value
     End Sub
 
     <WorkItem(638653)>
-<Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AllowTypingDoubleQuote()
         Dim text = <File>
 Class C(Of T)

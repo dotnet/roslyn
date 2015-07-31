@@ -1628,13 +1628,19 @@ Imports VB6 = Microsoft.VisualBasic
     </file>
 </compilation>, options)
 
+            compilation.AssertTheseDiagnostics(<expected>
+BC40056: Namespace or type specified in the Imports 'Microsoft.VisualBasic' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
+Imports VB6 = Microsoft.VisualBasic
+              ~~~~~~~~~~~~~~~~~~~~~
+                                               </expected>)
+
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
             Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("VB6", StringComparison.Ordinal)).Parent.Parent
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
 
             Assert.Equal(SyntaxKind.SimpleImportsClause, node.Kind)
-            Assert.Null(symbol)
+            Assert.Equal("VB6=Microsoft.VisualBasic", symbol.ToTestDisplayString())
 
         End Sub
 
@@ -2828,7 +2834,7 @@ End Module
         End Sub
 
         <Fact(), WorkItem(545106, "DevDiv")>
-        Public Sub GetDeclaedSymbolForDeclaredControlVariable()
+        Public Sub GetDeclaredSymbolForDeclaredControlVariable()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[

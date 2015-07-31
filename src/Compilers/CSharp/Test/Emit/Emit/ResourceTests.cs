@@ -129,7 +129,7 @@ class C
 
             using (FileStream output = exe.Open())
             {
-                var memStream = new MemoryStream(TestResources.SymbolsTests.General.nativeCOFFResources);
+                var memStream = new MemoryStream(TestResources.General.nativeCOFFResources);
                 c1.Emit(output, win32Resources: memStream);
             }
 

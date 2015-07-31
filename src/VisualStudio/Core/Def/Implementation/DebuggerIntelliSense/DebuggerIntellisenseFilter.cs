@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             switch ((VSConstants.VSStd2KCmdID)commandId)
             {
                 // HACK: If you look at EditCtlStatementCompletion.cpp, they translate CANCEL to
-                // SCROLLUP to do some hacking around their own command infrastucture and the
+                // SCROLLUP to do some hacking around their own command infrastructure and the
                 // legacy stuff they interfaced with. That means we get SCROLLUP if the user
                 // types escape, so treat SCROLLUP like CANCEL. It's actually a CANCEL.
                 case VSConstants.VSStd2KCmdID.SCROLLUP:

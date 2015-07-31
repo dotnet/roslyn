@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // We're exclusive if this context could only be an object initializer and not also a
             // collection initializer. If we're initializing something that could be initialized as
             // an object or as a collection, say we're not exclusive. That way the rest of
-            // intellisense can be used in the collection intitializer.
+            // intellisense can be used in the collection intializer.
             // 
             // Consider this case:
 
@@ -83,16 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return true;
         }
 
-        public override bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar);
-        }
-
-        public override bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            return false;
-        }
-
         public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
@@ -145,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Nested: new Foo { bar = { $$
             if (token.Parent.Parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
-                // Use the type inferrer to get the type being initialzied.
+                // Use the type inferrer to get the type being initialized.
                 var typeInferenceService = document.Project.LanguageServices.GetService<ITypeInferenceService>();
                 var parentInitializer = token.GetAncestor<InitializerExpressionSyntax>();
                 var expectedType = typeInferenceService.InferType(semanticModel, parentInitializer, objectAsDefault: false, cancellationToken: cancellationToken);
@@ -194,11 +184,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return base.IsInitializable(member, containingType);
-        }
-
-        protected override CompletionItem CreateItem(Workspace workspace, string displayText, TextSpan textSpan, Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory, Glyph? glyph)
-        {
-            return new CSharpCompletionItem(workspace, this, displayText, textSpan, descriptionFactory, glyph);
         }
     }
 }

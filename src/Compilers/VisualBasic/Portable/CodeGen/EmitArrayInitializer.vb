@@ -264,15 +264,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' the initial size is a guess.
             ' there is no point to be precise here as MemoryStream always has N + 1 storage 
             ' and will need to be trimmed regardless
-            Dim stream As New Cci.MemoryStream(CUInt(initializers.Length * 4))
-            Dim writer As New Cci.BinaryWriter(stream)
+            Dim writer = Cci.PooledBlobBuilder.GetInstance(initializers.Length * 4)
 
             SerializeArrayRecursive(writer, initializers)
 
-            Return ImmutableArray.Create(stream.Buffer, 0, CInt(stream.Position))
+            Dim result = writer.ToImmutableArray()
+            writer.Free()
+            Return result
         End Function
 
-        Private Sub SerializeArrayRecursive(bw As Cci.BinaryWriter, inits As ImmutableArray(Of BoundExpression))
+        Private Sub SerializeArrayRecursive(bw As Cci.BlobBuilder, inits As ImmutableArray(Of BoundExpression))
             If inits.Length <> 0 Then
                 If inits(0).Kind = BoundKind.ArrayInitialization Then
                     For Each init In inits

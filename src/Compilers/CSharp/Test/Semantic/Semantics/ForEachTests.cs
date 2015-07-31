@@ -3051,6 +3051,5 @@ class Program
     Diagnostic(ErrorCode.ERR_NoTypeDef, "foreach").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
                 );
         }
-
     }
 }

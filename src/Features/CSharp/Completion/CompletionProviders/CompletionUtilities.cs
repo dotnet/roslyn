@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
@@ -28,19 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public static bool IsTextChangeSpanStartCharacter(char ch)
         {
             return ch == '@' || IsWordCharacter(ch);
-        }
-
-        internal static bool IsCommitCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            // TODO(cyrusn): Don't hardcode this in.  Suck this out of the user options.
-            var commitCharacters = new[]
-            {
-                ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
-                ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
-                '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'
-            };
-
-            return commitCharacters.Contains(ch);
         }
 
         internal static bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
@@ -94,30 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             return CommonCompletionUtilities.IsStartingNewWord(
                 text, characterPosition, IsWordStartCharacter, IsWordCharacter);
-        }
-
-        internal static bool SendEnterThroughToEditor(CompletionItem completionItem, string textTypedSoFar)
-        {
-            // If the text doesn't match, no reason to even check the options
-            if (completionItem.DisplayText != textTypedSoFar)
-            {
-                return false;
-            }
-
-            Workspace workspace = null;
-            var csharpCompletionItem = completionItem as CSharpCompletionItem;
-
-            if (csharpCompletionItem != null)
-            {
-                workspace = csharpCompletionItem.Workspace;
-            }
-            else
-            {
-                workspace = ((SymbolCompletionItem)completionItem).Context.Workspace;
-            }
-
-            var optionService = workspace.Services.GetService<IOptionService>();
-            return optionService.GetOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord);
         }
     }
 }

@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' set the value of the property
                 ' if it is overriding, call the base
-                ' otherwise assing to associated field.
+                ' otherwise assign to associated field.
                 Dim valueSettingExpression As BoundExpression
                 If isOverride Then
                     Dim baseSet = accessor.OverriddenMethod

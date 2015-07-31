@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         // if we still have a client alive.
         //
         // NOTE: This is _NOT_ AddRef'd.  We use it just to store the integer value of the
-        // IUnkown for comparison purposes.
+        // IUnknown for comparison purposes.
         private readonly WeakReference _managedObjectWeakReference;
         private readonly IntPtr _pUnkOfInnerUnknownWhenAlive;
 

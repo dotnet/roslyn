@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var memberType = candidate.MemberType;
                 if (memberType != member.MemberType) continue;
 
-                switch(memberType)
+                switch (memberType)
                 {
                     case MemberTypes.Field:
                         return candidate;

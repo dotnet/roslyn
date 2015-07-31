@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             VisualBasicCompile = 0x44532522,
         }
 
-        // Arugments for CSharp and VB Compiler
+        // Arguments for CSharp and VB Compiler
         public enum ArgumentId
         {
             // The current directory of the client

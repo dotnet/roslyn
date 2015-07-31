@@ -2,9 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -27,13 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(useSiteError, NoLocation.Singleton);
             }
 
-            // resolve return type:
-            TypeSymbol returnType = compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics);
-
             _parameters = ImmutableArray.Create<ParameterSymbol>(
-                new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"),
-                new SynthesizedParameterSymbol(this, returnType, 1, RefKind.Ref, "submissionResult")
-            );
+                new SynthesizedParameterSymbol(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

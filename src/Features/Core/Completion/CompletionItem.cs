@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The ICompletionProvider that this CompletionItem was created from.
         /// </summary>
-        public virtual ICompletionProvider CompletionProvider { get; }
+        public virtual CompletionListProvider CompletionProvider { get; }
 
         /// <summary>
         /// The text for the completion item should be presented to the user (for example, in a
@@ -90,8 +90,10 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool ShouldFormatOnCommit { get; internal set; }
 
+        public CompletionItemRules Rules { get; }
+
         public CompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
@@ -101,15 +103,16 @@ namespace Microsoft.CodeAnalysis.Completion
             bool preselect = false,
             bool isBuilder = false,
             bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false)
+            bool shouldFormatOnCommit = false,
+            CompletionItemRules rules = null)
             : this(completionProvider, displayText, filterSpan,
                    description.IsDefault ? (Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>>)null : c => Task.FromResult(description),
-                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
+                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }
 
         public CompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
@@ -119,24 +122,27 @@ namespace Microsoft.CodeAnalysis.Completion
             bool preselect = false,
             bool isBuilder = false,
             bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false) :
-                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit)
+            bool shouldFormatOnCommit = false,
+            CompletionItemRules rules = null) :
+                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText, 
+                     filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
         {
         }
 
         private CompletionItem(
-            ICompletionProvider completionProvider,
+            CompletionListProvider completionProvider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
             Glyph? glyph,
             bool hasAsyncDescription,
-            string sortText = null,
-            string filterText = null,
-            bool preselect = false,
-            bool isBuilder = false,
-            bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false)
+            string sortText,
+            string filterText,
+            bool preselect,
+            bool isBuilder,
+            bool showsWarningIcon,
+            bool shouldFormatOnCommit,
+            CompletionItemRules rules)
         {
             this.CompletionProvider = completionProvider;
             this.DisplayText = displayText;
@@ -149,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.ShowsWarningIcon = showsWarningIcon;
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
             this.HasAsyncDescription = hasAsyncDescription;
+            this.Rules = rules ?? CompletionItemRules.DefaultRules;
 
             if (descriptionFactory != null)
             {

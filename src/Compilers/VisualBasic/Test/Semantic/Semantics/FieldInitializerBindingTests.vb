@@ -586,7 +586,7 @@ End Class
             Dim secondMeSymbol = model.GetSemanticInfoSummary(CType(secondMe.AsNode(), ExpressionSyntax)).Symbol
             Dim thirdMeSymbol = model.GetSemanticInfoSummary(CType(thirdMe.AsNode(), ExpressionSyntax)).Symbol
 
-            'Assert.Equal(1, firstMeSymbols.Count)   returnd 0 symbols
+            'Assert.Equal(1, firstMeSymbols.Count)   returned 0 symbols
             'Assert.Equal(1, secondMeSymbols.Count)
             'Assert.Equal(1, thirdMeSymbols.Count)
         End Sub
@@ -655,7 +655,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub StaticLocalFields()
-            'As we cant easily get at fields wich are non callable by user code such as
+            'As we can't easily get at fields which are non callable by user code such as
             'the $STATIC$Foo$001$a  we can simply determine that the count of items which
             'we expect is present
             Dim source = <compilation name="StaticLocals">
@@ -1473,14 +1473,14 @@ End Class
     </file>
 </compilation>,
 verify:=False,
-expectedOutput:="Initializing for System.Int64
+expectedOutput:=<![CDATA[Initializing for System.Int64
 Initializing for System.Int32
 
 Int64
 Initializing for System.String
 
 String
-")
+]]>)
         End Sub
 
 #Region "Helpers"
@@ -1527,7 +1527,7 @@ String
 
         Private Shared Sub CheckBoundInitializers(expectedInitializers As IEnumerable(Of ExpectedInitializer), syntaxTree As SyntaxTree, boundInitializers As ImmutableArray(Of BoundInitializer), isStatic As Boolean)
             If expectedInitializers Is Nothing Then
-                Assert.[True](boundInitializers.IsDefault)
+                Assert.[True](boundInitializers.IsEmpty)
             Else
                 Assert.[True](Not boundInitializers.IsDefault)
                 Dim numInitializers As Integer = expectedInitializers.Count()
@@ -1571,14 +1571,13 @@ String
 
         Private Shared Function BindInitializersWithoutDiagnostics(typeSymbol As SourceNamedTypeSymbol, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of BoundInitializer)
             Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Dim processedFieldInitializers = Binder.ProcessedFieldOrPropertyInitializers.Empty
-            Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, processedFieldInitializers, diagnostics)
+            Dim processedFieldInitializers = Binder.BindFieldAndPropertyInitializers(typeSymbol, initializers, Nothing, diagnostics)
             Dim sealedDiagnostics = diagnostics.ToReadOnlyAndFree()
             For Each d In sealedDiagnostics
                 Console.WriteLine(d)
             Next
             Assert.False(sealedDiagnostics.Any())
-            Return processedFieldInitializers.BoundInitializers
+            Return processedFieldInitializers
         End Function
 
         Public Class ExpectedInitializer

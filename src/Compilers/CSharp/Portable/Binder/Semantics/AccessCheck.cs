@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsNestedWithinOriginalContainingType(withinType, originalContainingType);
         }
 
-        // Is the type "withinType" nested withing the original type "originalContainingType".
+        // Is the type "withinType" nested within the original type "originalContainingType".
         private static bool IsNestedWithinOriginalContainingType(
             NamedTypeSymbol withinType,
             NamedTypeSymbol originalContainingType)
@@ -431,8 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)withinType != null);
             Debug.Assert((object)originalContainingType != null);
 
-            // Walk up my parent chain and see if I eventually hit the owner.  If so then i'm a
-            // nested type of that owner and i'm allowed access to everything inside of it.
+            // Walk up my parent chain and see if I eventually hit the owner.  If so then I'm a
+            // nested type of that owner and I'm allowed access to everything inside of it.
             var current = withinType.OriginalDefinition;
             while ((object)current != null)
             {

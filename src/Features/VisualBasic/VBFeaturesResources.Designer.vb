@@ -1939,9 +1939,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         '''<summary>
         '''  Looks up a localized string similar to next statement control variable doesn&apos;t have matching declaration statement.
         '''</summary>
-        Friend ReadOnly Property NextStatementControlVariabl() As String
+        Friend ReadOnly Property NextStatementControlVariable() As String
             Get
-                Return ResourceManager.GetString("NextStatementControlVariabl", resourceCulture)
+                Return ResourceManager.GetString("NextStatementControlVariable", resourceCulture)
             End Get
         End Property
         

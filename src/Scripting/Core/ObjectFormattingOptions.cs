@@ -4,7 +4,6 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
-    [Serializable]
     public sealed class ObjectFormattingOptions
     {
         public static readonly ObjectFormattingOptions Default = new ObjectFormattingOptions();

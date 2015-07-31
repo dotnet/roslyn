@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    ... the value might be retained in the internal representation
                 //   for future use, if it is reloaded from the storage location without having been modified ...
                 //
-                // Unfortunately, the above means that precision is not guranteed even when loading from storage.
+                // Unfortunately, the above means that precision is not guaranteed even when loading from storage.
                 //
                 //case BoundKind.FieldAccess:
                 //case BoundKind.ArrayAccess:
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static readonly bool[,] s_needsChecked =
             {   //         chri08u08i16u16i32u32i64u64
-                /* chr */
+            /* chr */
                           { n, y, y, y, n, n, n, n, n },
             /* i08 */
                           { y, n, y, n, y, n, y, n, y },
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // However, it is possible that we have cached a conversion (for example, to be used
             // in an increment or decrement operator) and are only just realizing it now.
             //
-            // Due to an odditity in the way we create a non-lifted user-defined conversion from A to D? 
+            // Due to an oddity in the way we create a non-lifted user-defined conversion from A to D? 
             // (required backwards compatibility with the native compiler) we can end up in a situation 
             // where we have:
             //

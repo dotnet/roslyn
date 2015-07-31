@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var moduleInstance = instructionAddress.ModuleInstance;
                 var runtimeInstance = instructionAddress.RuntimeInstance;
-                var aliases = argumentsOnly 
+                var aliases = argumentsOnly
                     ? ImmutableArray<Alias>.Empty
                     : GetAliases(runtimeInstance, inspectionContext); // NB: Not affected by retrying.
                 string error;
@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract void RemoveDataItem(DkmClrAppDomain appDomain);
 
         private EvaluationContextBase CreateMethodContext(
-            DkmClrInstructionAddress instructionAddress, 
-            ImmutableArray<MetadataBlock> metadataBlocks, 
+            DkmClrInstructionAddress instructionAddress,
+            ImmutableArray<MetadataBlock> metadataBlocks,
             bool useReferencedModulesOnly)
         {
             var moduleInstance = instructionAddress.ModuleInstance;
@@ -322,6 +322,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             PooledHashSet<AssemblyIdentity> assembliesLoadedInRetryLoop = null;
             bool tryAgain;
+            var linqLibrary = EvaluationContextBase.SystemLinqIdentity;
             do
             {
                 errorMessage = null;
@@ -338,8 +339,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         diagnostics,
                         formatter,
                         preferredUICulture: null,
+                        linqLibrary: linqLibrary,
                         useReferencedModulesOnly: out useReferencedModulesOnly,
                         missingAssemblyIdentities: out missingAssemblyIdentities);
+                    // If there were LINQ-related errors, we'll initially add System.Linq (set above).
+                    // If that doesn't work, we'll fall back to System.Core for subsequent retries.
+                    linqLibrary = EvaluationContextBase.SystemCoreIdentity;
+
                     if (useReferencedModulesOnly)
                     {
                         Debug.Assert(missingAssemblyIdentities.IsEmpty);
@@ -379,11 +385,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private static DkmClrLocalVariableInfo ToLocalVariableInfo(LocalAndMethod local)
         {
             return DkmClrLocalVariableInfo.Create(
-                local.LocalDisplayName, 
+                local.LocalDisplayName,
                 local.LocalName,
-                local.MethodName, 
-                local.Flags, 
-                DkmEvaluationResultCategory.Data, 
+                local.MethodName,
+                local.Flags,
+                DkmEvaluationResultCategory.Data,
                 local.GetCustomTypeInfo().ToDkmClrCustomTypeInfo());
         }
 

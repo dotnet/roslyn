@@ -1,15 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp
 {
@@ -21,15 +15,10 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         {
         }
 
-        public override object VoidDisplayString
-        {
-            get { return "<void>"; }
-        }
-
-        public override string NullLiteral
-        {
-            get { return ObjectDisplay.NullLiteral; }
-        }
+        public override object VoidDisplayString => "<void>";
+        public override string NullLiteral => ObjectDisplay.NullLiteral;
+        public override string GenericParameterOpening => "<";
+        public override string GenericParameterClosing => ">";
 
         public override string FormatLiteral(bool value)
         {
@@ -43,10 +32,12 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             {
                 options |= ObjectDisplayOptions.UseQuotes;
             }
+
             if (useHexadecimalNumbers)
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
             }
+
             return ObjectDisplay.FormatLiteral(value, options);
         }
 
@@ -57,14 +48,17 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             {
                 options |= ObjectDisplayOptions.UseQuotes;
             }
+
             if (includeCodePoints)
             {
                 options |= ObjectDisplayOptions.IncludeCodePoints;
             }
+
             if (useHexadecimalNumbers)
             {
                 options |= ObjectDisplayOptions.UseHexadecimalNumbers;
             }
+
             return ObjectDisplay.FormatLiteral(c, options);
         }
 
@@ -123,148 +117,49 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             return ObjectDisplay.FormatLiteral(value, ObjectDisplayOptions.None);
         }
 
-        public override string FormatTypeName(Type type, ObjectFormattingOptions options)
+        public override string FormatLiteral(DateTime value)
         {
-            return GetPrimitiveTypeName(type) ?? AppendComplexTypeName(new StringBuilder(), type, options).ToString();
+            // DateTime is not primitive in C#
+            return null;
         }
 
-        private static string GetPrimitiveTypeName(Type type)
+        public override string GetPrimitiveTypeName(SpecialType type)
         {
-            switch (Type.GetTypeCode(type))
+            switch (type)
             {
-                case TypeCode.Boolean: return "bool";
-                case TypeCode.Byte: return "byte";
-                case TypeCode.Char: return "char";
-                case TypeCode.Decimal: return "decimal";
-                case TypeCode.Double: return "double";
-                case TypeCode.Int16: return "short";
-                case TypeCode.Int32: return "int";
-                case TypeCode.Int64: return "long";
-                case TypeCode.SByte: return "sbyte";
-                case TypeCode.Single: return "float";
-                case TypeCode.String: return "string";
-                case TypeCode.UInt16: return "ushort";
-                case TypeCode.UInt32: return "uint";
-                case TypeCode.UInt64: return "ulong";
+                case SpecialType.System_Boolean: return "bool";
+                case SpecialType.System_Byte: return "byte";
+                case SpecialType.System_Char: return "char";
+                case SpecialType.System_Decimal: return "decimal";
+                case SpecialType.System_Double: return "double";
+                case SpecialType.System_Int16: return "short";
+                case SpecialType.System_Int32: return "int";
+                case SpecialType.System_Int64: return "long";
+                case SpecialType.System_SByte: return "sbyte";
+                case SpecialType.System_Single: return "float";
+                case SpecialType.System_String: return "string";
+                case SpecialType.System_UInt16: return "ushort";
+                case SpecialType.System_UInt32: return "uint";
+                case SpecialType.System_UInt64: return "ulong";
+                case SpecialType.System_Object: return "object";
 
-                case TypeCode.Object:
-                case TypeCode.Empty:
-                case TypeCode.DBNull:
-                case TypeCode.DateTime:
                 default:
-                    if (type == typeof(object))
-                    {
-                        return "object";
-                    }
                     return null;
             }
         }
 
-        private StringBuilder AppendComplexTypeName(StringBuilder builder, Type type, ObjectFormattingOptions options)
+        public override string FormatGeneratedTypeName(Type type)
         {
-            if (type.IsArray)
-            {
-                builder.Append(FormatArrayTypeName(type, arrayOpt: null, options: options));
-                return builder;
-            }
-
-            // compiler generated (e.g. iterator/async)
             string stateMachineName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(type.Name, GeneratedNameKind.StateMachineType, out stateMachineName))
             {
-                builder.Append(stateMachineName);
-                return builder;
+                return stateMachineName;
             }
 
-            if (type.IsGenericType)
-            {
-                // consolidated generic arguments (includes arguments of all declaring types):
-                Type[] genericArguments = type.GetGenericArguments();
-
-                if (type.DeclaringType != null)
-                {
-                    List<Type> nestedTypes = new List<Type>();
-                    do
-                    {
-                        nestedTypes.Add(type);
-                        type = type.DeclaringType;
-                    }
-                    while (type != null);
-
-                    int typeArgumentIndex = 0;
-                    for (int i = nestedTypes.Count - 1; i >= 0; i--)
-                    {
-                        AppendTypeInstantiation(builder, nestedTypes[i], genericArguments, ref typeArgumentIndex, options);
-                        if (i > 0)
-                        {
-                            builder.Append('.');
-                        }
-                    }
-                }
-                else
-                {
-                    int typeArgumentIndex = 0;
-                    return AppendTypeInstantiation(builder, type, genericArguments, ref typeArgumentIndex, options);
-                }
-            }
-            else if (type.DeclaringType != null)
-            {
-                builder.Append(type.Name.Replace('+', '.'));
-            }
-            else
-            {
-                builder.Append(type.Name);
-            }
-
-            return builder;
+            return null;
         }
 
-        private StringBuilder AppendTypeInstantiation(StringBuilder builder, Type type, Type[] genericArguments, ref int genericArgIndex,
-            ObjectFormattingOptions options)
-        {
-            // generic arguments of all the outer types and the current type;
-            Type[] currentGenericArgs = type.GetGenericArguments();
-            int currentArgCount = currentGenericArgs.Length - genericArgIndex;
-
-            if (currentArgCount > 0)
-            {
-                int backtick = type.Name.IndexOf('`');
-                if (backtick > 0)
-                {
-                    builder.Append(type.Name.Substring(0, backtick));
-                }
-                else
-                {
-                    builder.Append(type.Name);
-                }
-
-                builder.Append('<');
-
-                for (int i = 0; i < currentArgCount; i++)
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(", ");
-                    }
-                    builder.Append(FormatTypeName(genericArguments[genericArgIndex++], options));
-                }
-
-                builder.Append('>');
-            }
-            else
-            {
-                builder.Append(type.Name);
-            }
-
-            return builder;
-        }
-
-        public override string FormatArrayTypeName(Array array, ObjectFormattingOptions options)
-        {
-            return FormatArrayTypeName(array.GetType(), array, options);
-        }
-
-        private string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options)
+        public override string FormatArrayTypeName(Type arrayType, Array arrayOpt, ObjectFormattingOptions options)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -300,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     for (int i = 0; i < rank; i++)
                     {
                         int lowerBound = arrayOpt.GetLowerBound(i);
-                        long length = arrayOpt.GetLongLength(i);
+                        int length = arrayOpt.GetLength(i);
 
                         if (i > 0)
                         {
@@ -336,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
 
         private void AppendArrayBound(StringBuilder sb, long bound, bool useHexadecimalNumbers)
         {
-            if (bound <= Int32.MaxValue)
+            if (bound <= int.MaxValue)
             {
                 sb.Append(FormatLiteral((int)bound, useHexadecimalNumbers));
             }

@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -77,13 +76,13 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />    
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />    
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
@@ -134,22 +133,29 @@
     <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="CodeStyle\CSharpCodeStyleOptionsProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />
-    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.CrefCompletionItem.cs" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.Item.cs" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SnippetCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CSharpCompletionRules.cs" />
+    <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
-    <Compile Include="Completion\CSharpCompletionItem.cs" />
     <Compile Include="Completion\CSharpCompletionOptions.cs" />
     <Compile Include="Completion\CSharpCompletionOptionsProvider.cs" />
     <Compile Include="Completion\CSharpCompletionService.cs" />
@@ -385,8 +391,7 @@
   </ItemGroup>
   <Import Project="..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

@@ -2,7 +2,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.Text
@@ -938,7 +937,7 @@ class Foo
             End Using
         End Sub
 
-        Private Function CreateTriggeredCompletionProvider(e As ManualResetEvent) As ICompletionProvider
+        Private Function CreateTriggeredCompletionProvider(e As ManualResetEvent) As CompletionListProvider
             Return New MockCompletionProvider(getItems:=Function(t, p, c)
                                                             e.WaitOne()
                                                             Return Nothing

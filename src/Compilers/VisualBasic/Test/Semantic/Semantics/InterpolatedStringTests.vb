@@ -1140,7 +1140,7 @@ BC30491: Expression does not produce a value.
         End Sub
 
         <Fact>
-        Public Sub FlowAnalysis_Warning_InterpoledVariableUsedBeforeBeingAssigned()
+        Public Sub FlowAnalysis_Warning_InterpolatedVariableUsedBeforeBeingAssigned()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>

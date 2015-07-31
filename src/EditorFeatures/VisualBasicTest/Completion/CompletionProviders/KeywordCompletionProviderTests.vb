@@ -1,19 +1,19 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class KeywordCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New KeywordCompletionProvider()
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            VerifyCommonCommitCharacters("$$", textTypedSoFar:="")
         End Sub
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -25,9 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SendEnterThroughToEditorTest()
-            TestCommonSendEnterThroughToEditor()
+            VerifySendEnterThroughToEditor("$$", "Class", expected:=True)
         End Sub
-
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InEmptyFile()

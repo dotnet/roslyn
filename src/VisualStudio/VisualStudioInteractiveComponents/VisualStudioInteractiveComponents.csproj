@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -98,7 +97,6 @@
     <ProjectReference Include="..\..\Interactive\Features\InteractiveFeatures.csproj">
       <Project>{8E2A252E-A140-45A6-A81A-2652996EA589}</Project>
       <Name>InteractiveFeatures</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -106,7 +104,6 @@
     <ProjectReference Include="..\InteractiveServices\VisualStudioInteractiveServices.csproj">
       <Project>{A31228BB-F05C-4D4A-B98A-0E681D876B7C}</Project>
       <Name>VisualStudioInteractiveServices</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -115,27 +112,32 @@
       <Project>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</Project>
       <Name>VisualStudioInteractiveWindow</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Private>False</Private>
+      <IncludeOutputGroupsInVSIX>
+      </IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>
+      </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Features\Core\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
       <Name>Workspaces</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Project>{201EC5B7-F91E-45E5-B9F2-67A266CCE6FC}</Project>
@@ -148,15 +150,24 @@
       </IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
   </ItemGroup>
+  <!--
+    The VsSdk specifically excludes System.Collections.Immutable and System.Reflection.Metadata from
+    the output vsix, so we'll have to mark them with "ForceIncludeInVSIX=true".  In addition, these
+    references need to be marked "Private=true" in case they are resolved from the GAC (in that case,
+    ForceIncludeInVSIX will not be sufficient).  All of this is necessary so the InteractiveHost.exe
+    process can load these assemblies from the extensions folder (different from other extensions,
+    which are loaded into VS and get the versions of the dlls that VS has loaded).
+  -->
   <ItemGroup>
     <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll"</HintPath>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX> <!-- REQUIRED - see comment above -->
+      <Private>true</Private> <!-- REQUIRED - see comment above -->
     </Reference>
     <Reference Include="System.Reflection.Metadata">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX> <!-- REQUIRED - see comment above -->
+      <Private>true</Private> <!-- REQUIRED - see comment above -->
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -177,9 +188,18 @@
       <VSIXSubPath>$(PkgdefVSIXSubPath)</VSIXSubPath>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
+      <IncludeInVsix>true</IncludeInVsix>
+      <VSIXSubPath>.</VSIXSubPath>
+    </Content>
+    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
+      <IncludeInVsix>true</IncludeInVsix>
+      <VSIXSubPath>.</VSIXSubPath>
+    </Content>
+  </ItemGroup>
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

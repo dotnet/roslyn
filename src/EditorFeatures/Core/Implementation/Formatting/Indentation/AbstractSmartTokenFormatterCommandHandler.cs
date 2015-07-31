@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
         {
             var lineInSubjectBuffer = view.GetCaretPoint(subjectBuffer).Value.GetContainingLine();
 
-            // first set the caret at the begining of the text on the line
+            // first set the caret at the beginning of the text on the line
             view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(lineInSubjectBuffer.Snapshot, lineInSubjectBuffer.Start + firstNonWhitespaceIndex));
 
             var document = lineInSubjectBuffer.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             // get containing line in view from start position of the caret in view
             var containingLineView = startPositionCaret.Value.GetContainingLine();
 
-            // make sure line start at the begining of the line
+            // make sure line start at the beginning of the line
             if (containingLineView.Start != startPositionCaret.Value)
             {
                 return false;
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             // when undo, make sure it undo the caret movement I did below
             using (var transaction = CreateEditTransaction(view, EditorFeaturesResources.SmartIndenting))
             {
-                // if caret position is before the token, make sure we put caret at the begining of the token so that caret
+                // if caret position is before the token, make sure we put caret at the beginning of the token so that caret
                 // is at the right position after formatting
                 var currentSnapshot = line.Snapshot;
                 if (position.Position < token.SpanStart)

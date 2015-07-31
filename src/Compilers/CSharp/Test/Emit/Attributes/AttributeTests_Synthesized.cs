@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -397,8 +398,8 @@ class C
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
                     var foo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Foo");
-                    AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ? 
-                                        new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } : 
+                    AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
+                                        new[] { "AsyncStateMachineAttribute", "DebuggerStepThroughAttribute" } :
                                         new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
 
                     var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Foo>d__0");
@@ -1259,7 +1260,6 @@ public class Test
 
         #region UnverifiableCode, SecurityPermission(SkipVerification)
 
-        // Verify via CCI
         [Fact]
         public void CheckUnsafeAttributes1()
         {
@@ -1282,7 +1282,6 @@ class C
             VerifyUnverifiableCodeAttribute(moduleAttribute, compilation);
         }
 
-        // Verify via CCI (module case)
         [Fact]
         public void CheckUnsafeAttributes2()
         {
@@ -1314,8 +1313,8 @@ class C
 
             var assemblyAttributeArgument = assemblyAttribute.CommonConstructorArguments.Single();
             Assert.Equal(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction), assemblyAttributeArgument.Type);
-            Assert.Equal(Cci.SecurityAction.RequestMinimum, securityAttribute.Action);
-            Assert.Equal(Cci.SecurityAction.RequestMinimum, (Cci.SecurityAction)assemblyAttributeArgument.Value);
+            Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action);
+            Assert.Equal(DeclarativeSecurityAction.RequestMinimum, (DeclarativeSecurityAction)(int)assemblyAttributeArgument.Value);
 
             var assemblyAttributeNamedArgument = assemblyAttribute.CommonNamedArguments.Single();
             Assert.Equal("SkipVerification", assemblyAttributeNamedArgument.Key);
@@ -1606,7 +1605,7 @@ public class Test
 }
 ";
 
-            foreach (var options in new [] { TestOptions.ReleaseDll, TestOptions.DebugDll })
+            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
             {
                 var reference = CreateCompilationWithMscorlib45(source, options: options).
                     EmitToImageReference(new EmitOptions(metadataOnly: true));
@@ -1622,5 +1621,37 @@ public class Test
         }
 
         #endregion
+
+        [Fact, WorkItem(431)]
+        public void BaseMethodWrapper()
+        {
+            string source = @"
+using System.Threading.Tasks;
+
+class A
+{
+    public virtual async Task<int> GetIntAsync()
+    {
+        return 42;
+    }
+}
+class B : A
+{
+    public override async Task<int> GetIntAsync()
+    {
+        return await base.GetIntAsync();
+    }
+}
+";
+            foreach (var options in new[] { TestOptions.ReleaseDll, TestOptions.DebugDll })
+            {
+                var reference = CreateCompilationWithMscorlib45(source, options: options).EmitToImageReference();
+                var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+                var baseMethodWrapper = comp.GetMember<MethodSymbol>("B.<>n__0");
+
+                AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
+            }
+        }
     }
 }

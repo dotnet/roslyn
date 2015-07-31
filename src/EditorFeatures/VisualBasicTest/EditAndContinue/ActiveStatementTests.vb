@@ -2619,7 +2619,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock G(Function(a) a)", "SyncLock statement"))
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock G(Function(a) a)", VBFeaturesResources.SyncLockStatement))
         End Sub
 
 #End Region
@@ -2907,7 +2907,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "For Each a In G(Function(a) a)", "For Each statement"))
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "For Each a In G(Function(a) a)", VBFeaturesResources.ForEachStatement))
         End Sub
 
 #End Region
@@ -4738,7 +4738,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub MethodToAsyncMethod_WithActiveStatement()
+        Public Sub MethodToAsyncMethod_WithActiveStatement1()
             Dim src1 = "
 Imports System
 Imports System.Threading.Tasks
@@ -4767,14 +4767,71 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub MethodToAsyncMethod_WithActiveStatementInLambda()
+        Public Sub MethodToAsyncMethod_WithActiveStatement2()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    <AS:0>Function F() As Task(Of Integer)</AS:0>
+        Console.WriteLine(1)
+        Return Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    <AS:0>Async Function F() As Task(Of Integer)</AS:0>
+        Console.WriteLine(1)
+        Return 1
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodToAsyncMethod_WithActiveStatement3()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Function F() As Task(Of Integer)
+        <AS:0>Console.WriteLine(1)</AS:0>
+        Return Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Function F() As Task(Of Integer)
+        <AS:0>Console.WriteLine(1)</AS:0>
+        Return 1
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodToAsyncMethod_WithActiveStatementInLambda1()
             Dim src1 = "
 Imports System
 Imports System.Threading.Tasks
 Class C
     Function F() As Task(Of Integer)
         Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
-        a()
         Return Task.FromResult(1)
     End Function
 End Class
@@ -4785,7 +4842,6 @@ Imports System.Threading.Tasks
 Class C
     Async Function F() As Task(Of Integer)
         Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
-        a()
         Return Await Task.FromResult(1)
     End Function
 End Class
@@ -4797,7 +4853,96 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub MethodToAsyncMethod_WithoutActiveStatement()
+        Public Sub MethodToAsyncMethod_WithActiveStatementInLambda2()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Function F() As Task(Of Integer)
+        Dim a = Sub() <AS:1>Console.WriteLine(1)</AS:1>
+        <AS:0>a()</AS:0>
+        Return Task.FromResult(1)
+    End Function
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Function F() As Task(Of Integer)
+        Dim a = Sub() <AS:1>Console.WriteLine(1)</AS:1>
+        <AS:0>a()</AS:0>
+        Return 1
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodToAsyncMethod_WithActiveStatementInLambda3()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim a = Sub() <AS:0>Console.WriteLine(1)</AS:0>
+        Return
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Sub F()
+        Dim a = Async Sub() <AS:0>Console.WriteLine(1)</AS:0>
+        Return
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub()"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodToAsyncMethod_WithActiveStatementInLambda4()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Dim a = Function() <AS:0>Task.FromResult(1)</AS:0>
+        Return
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Sub F()
+        Dim a = Async Function() <AS:0>1</AS:0>
+        Return
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function()"))
+        End Sub
+
+        <Fact>
+        Public Sub MethodToAsyncMethod_WithoutActiveStatement1()
             Dim src1 = "
 Imports System
 Imports System.Threading.Tasks
@@ -4816,6 +4961,34 @@ Class C
         Console.WriteLine(1)
         Return Await Task.FromResult(1)
     End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub MethodToAsyncMethod_WithoutActiveStatement2()
+            Dim src1 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Sub F()
+        Console.WriteLine(1)
+        Return
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Async Sub F()
+        Console.WriteLine(1)
+        Return
+    End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)

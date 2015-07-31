@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement(";", ";");
             TestNormalizeStatement("{;;}", "{\r\n  ;\r\n  ;\r\n}");
 
-            // labelled statemetns
+            // labelled statements
             TestNormalizeStatement("foo:;", "foo:\r\n  ;");
             TestNormalizeStatement("foo:a;", "foo:\r\n  a;");
 

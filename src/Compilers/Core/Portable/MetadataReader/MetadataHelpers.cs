@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis
                     List<IGrouping<string, TypeDefinitionHandle>> typesInLastChildNamespace = null;
 
                     // if there are any types in this namespace,
-                    // they will be in the first several groups if if their key length 
+                    // they will be in the first several groups if their key length 
                     // is equal to namespaceNameLength.
                     while (pair.Key.Length == namespaceNameLength)
                     {
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis
             //     uint32_t SigAlgId;      // Signature algorithm ID
             //     uint32_t HashAlgId;     // Hash algorithm ID
             //     uint32_t PublicKeySize; // Size of public key data in bytes, not including the header
-            //     uint8_t  PublicKey[0];  // PublicKeySize bytes of publc key data
+            //     uint8_t  PublicKey[0];  // PublicKeySize bytes of public key data
             // }
             //
             // The offsets of each relevant field are recorded below.
@@ -1050,16 +1050,17 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given an input string changes it to be acceptable as a part of a type name.
-        /// For now we will simply replace '.' with '_'as the most common case.
         /// </summary>
         internal static string MangleForTypeNameIfNeeded(string moduleName)
         {
-            // TODO: it may make sense to strenthen this algorithm 
-            //       to result in 1-1 mapping to reduce chances of
-            //       producing matching results for distinct original strings
-            var result = moduleName.Replace('.', '_');
+            var pooledStrBuilder = PooledStringBuilder.GetInstance();
+            var s = pooledStrBuilder.Builder;
+            s.Append(moduleName);
+            s.Replace("Q", "QQ");
+            s.Replace("_", "Q_");
+            s.Replace('.', '_');
 
-            return result;
+            return pooledStrBuilder.ToStringAndFree();
         }
     }
 }

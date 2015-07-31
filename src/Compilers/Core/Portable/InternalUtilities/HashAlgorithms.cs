@@ -35,39 +35,39 @@ namespace Roslyn.Utilities
 
                 // https://msdn.microsoft.com/en-us/library/s02tk69a(v=vs.110).aspx
                 s_ComputeHash_bytes_Method = (from m in methods
-                                 let ps = m.GetParameters()
-                                 where ps.Length == 1 && ps[0].ParameterType == typeof(byte[])
-                                 select m).Single();
+                                              let ps = m.GetParameters()
+                                              where ps.Length == 1 && ps[0].ParameterType == typeof(byte[])
+                                              select m).Single();
 
                 // https://msdn.microsoft.com/en-us/library/1e59xaaz(v=vs.110).aspx
                 s_ComputeHash_bytesOffsetCount_Method = (from m in methods
-                                            let ps = m.GetParameters()
-                                            where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
-                                            select m).Single();
+                                                         let ps = m.GetParameters()
+                                                         where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) && ps[1].ParameterType == typeof(int) && ps[2].ParameterType == typeof(int)
+                                                         select m).Single();
 
                 // https://msdn.microsoft.com/en-us/library/xa627k19(v=vs.110).aspx
                 s_ComputeHash_stream_Method = (from m in methods
-                                  let ps = m.GetParameters()
-                                  where ps.Length == 1 && ps[0].ParameterType == typeof(Stream)
-                                  select m).Single();
+                                               let ps = m.GetParameters()
+                                               where ps.Length == 1 && ps[0].ParameterType == typeof(Stream)
+                                               select m).Single();
 
                 // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.transformblock(v=vs.110).aspx
                 s_TransformBlock_Method = (from m in type.GetTypeInfo().GetDeclaredMethods("TransformBlock")
-                                          let ps = m.GetParameters()
-                                          where ps.Length == 5 && ps[0].ParameterType == typeof(byte[]) &&
-                                                                  ps[1].ParameterType == typeof(int) &&
-                                                                  ps[2].ParameterType == typeof(int) &&
-                                                                  ps[3].ParameterType == typeof(byte[]) &&
-                                                                  ps[4].ParameterType == typeof(int)
-                                          select m).SingleOrDefault();
+                                           let ps = m.GetParameters()
+                                           where ps.Length == 5 && ps[0].ParameterType == typeof(byte[]) &&
+                                                                   ps[1].ParameterType == typeof(int) &&
+                                                                   ps[2].ParameterType == typeof(int) &&
+                                                                   ps[3].ParameterType == typeof(byte[]) &&
+                                                                   ps[4].ParameterType == typeof(int)
+                                           select m).SingleOrDefault();
 
                 // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.transformblock(v=vs.110).aspx
                 s_TransformFinalBlock_Method = (from m in type.GetTypeInfo().GetDeclaredMethods("TransformFinalBlock")
-                                          let ps = m.GetParameters()
-                                          where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) &&
-                                                                  ps[1].ParameterType == typeof(int) &&
-                                                                  ps[2].ParameterType == typeof(int)
-                                          select m).SingleOrDefault();
+                                                let ps = m.GetParameters()
+                                                where ps.Length == 3 && ps[0].ParameterType == typeof(byte[]) &&
+                                                                        ps[1].ParameterType == typeof(int) &&
+                                                                        ps[2].ParameterType == typeof(int)
+                                                select m).SingleOrDefault();
 
                 // https://msdn.microsoft.com/en-us/library/system.security.cryptography.hashalgorithm.hash(v=vs.110).aspx
                 s_Hash_PropertyGetter = type.GetTypeInfo().GetDeclaredProperty("Hash")?.GetMethod;
@@ -138,9 +138,8 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Invoke the underlying HashAlgorithm's TransformBlock operation on the provided data.
         /// </summary>
-        public void TransformBlock(byte[] inputBuffer, int inputCount)
+        public void TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            int inputOffset = 0;
             while (inputCount > 0)
             {
                 int written = (int)s_TransformBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
@@ -150,9 +149,9 @@ namespace Roslyn.Utilities
             }
         }
 
-        public void TransformFinalBlock(byte[] inputBuffer, int inputCount)
+        public void TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            s_TransformFinalBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, 0, inputCount });
+            s_TransformFinalBlock_Method.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount });
         }
 
         public byte[] Hash => (byte[])s_Hash_PropertyGetter.Invoke(_hashInstance, new object[] { });

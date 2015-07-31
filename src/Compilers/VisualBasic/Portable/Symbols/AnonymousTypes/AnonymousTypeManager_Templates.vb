@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -199,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         moduleId = moduleId.Substring(0, moduleId.Length - extension.Length)
                     End If
 
-                    moduleId = "<" & moduleId.Replace("."c, "_"c) & ">"
+                    moduleId = "<" & MetadataHelpers.MangleForTypeNameIfNeeded(moduleId) & ">"
                 Else
                     moduleId = String.Empty
                 End If

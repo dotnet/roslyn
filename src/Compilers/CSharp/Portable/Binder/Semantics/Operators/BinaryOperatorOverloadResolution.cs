@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BinaryOperatorKind.Addition:
-                    // Addtion only accepts a single enum type, so operations on non-equal identity-convertible types are not ambiguous. 
+                    // Addition only accepts a single enum type, so operations on non-equal identity-convertible types are not ambiguous. 
                     //   E operator +(E x, U y)
                     //   E operator +(U x, E y)
                     useIdentityConversion = true;

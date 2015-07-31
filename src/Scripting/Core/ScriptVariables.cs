@@ -3,12 +3,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -95,14 +91,30 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private static void AddVariables(Dictionary<string, ScriptVariable> map, object instance)
         {
-            var members = instance.GetType().GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            foreach (var member in members.Where(m => m.MemberType == MemberTypes.Field || m.MemberType == MemberTypes.Property))
+            var typeInfo = instance.GetType().GetTypeInfo();
+
+            foreach (var field in typeInfo.DeclaredFields)
             {
-                if (member.Name.Length > 0 && Char.IsLetterOrDigit(member.Name[0])
-                    && !map.ContainsKey(member.Name))
+                if (field.IsPublic)
                 {
-                    map.Add(member.Name, new ScriptVariable(instance, member));
+                    AddVariable(map, instance, field);
                 }
+            }
+
+            foreach (var property in typeInfo.DeclaredProperties)
+            {
+                if (property.GetMethod.IsPublic)
+                {
+                    AddVariable(map, instance, property);
+                }
+            }
+        }
+
+        private static void AddVariable(Dictionary<string, ScriptVariable> map, object instance, MemberInfo member)
+        {
+            if (member.Name.Length > 0 && char.IsLetterOrDigit(member.Name[0]) && !map.ContainsKey(member.Name))
+            {
+                map.Add(member.Name, new ScriptVariable(instance, member));
             }
         }
     }

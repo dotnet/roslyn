@@ -23,10 +23,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static IEnumerable<DkmClrModuleInstance> GetModulesInAppDomain(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)
         {
+            if (appDomain.IsUnloaded)
+            {
+                return SpecializedCollections.EmptyEnumerable<DkmClrModuleInstance>();
+            }
+
             var appDomainId = appDomain.Id;
             return runtime.GetModuleInstances().
                 Cast<DkmClrModuleInstance>().
-                Where(module => module.AppDomain.Id == appDomainId);
+                Where(module =>
+                {
+                    var moduleAppDomain = module.AppDomain;
+                    return !moduleAppDomain.IsUnloaded && (moduleAppDomain.Id == appDomainId);
+                });
         }
 
         internal unsafe static ImmutableArray<MetadataBlock> GetMetadataBlocks(this DkmClrRuntimeInstance runtime, DkmClrAppDomain appDomain)

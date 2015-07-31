@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -113,8 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private Task<IEnumerable<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            return document.Project.LanguageServices.GetService<IReferenceHighlightingAdditionalReferenceProvider>()
-                .GetAdditionalReferencesAsync(document, symbol, cancellationToken);
+            var additionalReferenceProvider = document.Project.LanguageServices.GetService<IReferenceHighlightingAdditionalReferenceProvider>();
+            if (additionalReferenceProvider != null)
+            {
+                return additionalReferenceProvider.GetAdditionalReferencesAsync(document, symbol, cancellationToken);
+            }
+
+            return Task.FromResult<IEnumerable<Location>>(SpecializedCollections.EmptyEnumerable<Location>());
         }
 
         private async Task<IEnumerable<DocumentHighlights>> CreateSpansAsync(

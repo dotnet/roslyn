@@ -20,9 +20,9 @@ namespace Microsoft.Cci
         private readonly DefinitionIndex<IParameterDefinition> _parameterDefs;
         private readonly DefinitionIndex<IGenericParameter> _genericParameters;
 
-        private readonly Dictionary<ITypeDefinition, uint> _fieldDefIndex;
-        private readonly Dictionary<ITypeDefinition, uint> _methodDefIndex;
-        private readonly Dictionary<IMethodDefinition, uint> _parameterListIndex;
+        private readonly Dictionary<ITypeDefinition, int> _fieldDefIndex;
+        private readonly Dictionary<ITypeDefinition, int> _methodDefIndex;
+        private readonly Dictionary<IMethodDefinition, int> _parameterListIndex;
 
         private readonly HeapOrReferenceIndex<IAssemblyReference> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
@@ -30,27 +30,45 @@ namespace Microsoft.Cci
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
         private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
-        private readonly HeapOrReferenceIndex<uint> _standAloneSignatureIndex;
+        private readonly HeapOrReferenceIndex<BlobIdx> _standAloneSignatureIndex;
 
         public static MetadataWriter Create(
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
+            bool hasPdbStream,
             CancellationToken cancellationToken)
         {
             var heaps = new MetadataHeapsBuilder();
-            return new FullMetadataWriter(context, heaps, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            MetadataHeapsBuilder debugHeapsOpt;
+            switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
+            {
+                case DebugInformationFormat.PortablePdb:
+                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
+                    break;
+
+                case DebugInformationFormat.Embedded:
+                    debugHeapsOpt = heaps;
+                    break;
+
+                default:
+                    debugHeapsOpt = null;
+                    break;
+            }
+
+            return new FullMetadataWriter(context, heaps, debugHeapsOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
             MetadataHeapsBuilder heaps,
+            MetadataHeapsBuilder debugHeapsOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(heaps, debugHeapsOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -66,9 +84,9 @@ namespace Microsoft.Cci
             _parameterDefs = new DefinitionIndex<IParameterDefinition>(numMethods);
             _genericParameters = new DefinitionIndex<IGenericParameter>(0);
 
-            _fieldDefIndex = new Dictionary<ITypeDefinition, uint>(numTypeDefsGuess);
-            _methodDefIndex = new Dictionary<ITypeDefinition, uint>(numTypeDefsGuess);
-            _parameterListIndex = new Dictionary<IMethodDefinition, uint>(numMethods);
+            _fieldDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
+            _methodDefIndex = new Dictionary<ITypeDefinition, int>(numTypeDefsGuess);
+            _parameterListIndex = new Dictionary<IMethodDefinition, int>(numMethods);
 
             _assemblyRefIndex = new HeapOrReferenceIndex<IAssemblyReference>(this, AssemblyReferenceComparer.Instance);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this);
@@ -76,7 +94,7 @@ namespace Microsoft.Cci
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
             _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
-            _standAloneSignatureIndex = new HeapOrReferenceIndex<uint>(this);
+            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobIdx>(this);
         }
 
         protected override ushort Generation
@@ -94,17 +112,12 @@ namespace Microsoft.Cci
             get { return Guid.Empty; }
         }
 
-        protected override bool CompressMetadataStream
-        {
-            get { return true; }
-        }
-
-        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out uint index)
+        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out int index)
         {
             return _typeDefs.TryGetValue(def, out index);
         }
 
-        protected override uint GetTypeDefIndex(ITypeDefinition def)
+        protected override int GetTypeDefIndex(ITypeDefinition def)
         {
             return _typeDefs[def];
         }
@@ -119,7 +132,7 @@ namespace Microsoft.Cci
             return _typeDefs.Rows;
         }
 
-        protected override uint GetEventDefIndex(IEventDefinition def)
+        protected override int GetEventDefIndex(IEventDefinition def)
         {
             return _eventDefs[def];
         }
@@ -129,7 +142,7 @@ namespace Microsoft.Cci
             return _eventDefs.Rows;
         }
 
-        protected override uint GetFieldDefIndex(IFieldDefinition def)
+        protected override int GetFieldDefIndex(IFieldDefinition def)
         {
             return _fieldDefs[def];
         }
@@ -139,12 +152,12 @@ namespace Microsoft.Cci
             return _fieldDefs.Rows;
         }
 
-        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out uint index)
+        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out int index)
         {
             return _methodDefs.TryGetValue(def, out index);
         }
 
-        protected override uint GetMethodDefIndex(IMethodDefinition def)
+        protected override int GetMethodDefIndex(IMethodDefinition def)
         {
             return _methodDefs[def];
         }
@@ -159,7 +172,7 @@ namespace Microsoft.Cci
             return _methodDefs.Rows;
         }
 
-        protected override uint GetPropertyDefIndex(IPropertyDefinition def)
+        protected override int GetPropertyDefIndex(IPropertyDefinition def)
         {
             return _propertyDefs[def];
         }
@@ -169,7 +182,7 @@ namespace Microsoft.Cci
             return _propertyDefs.Rows;
         }
 
-        protected override uint GetParameterDefIndex(IParameterDefinition def)
+        protected override int GetParameterDefIndex(IParameterDefinition def)
         {
             return _parameterDefs[def];
         }
@@ -184,22 +197,22 @@ namespace Microsoft.Cci
             return _genericParameters.Rows;
         }
 
-        protected override uint GetFieldDefIndex(INamedTypeDefinition typeDef)
+        protected override int GetFieldDefIndex(INamedTypeDefinition typeDef)
         {
             return _fieldDefIndex[typeDef];
         }
 
-        protected override uint GetMethodDefIndex(INamedTypeDefinition typeDef)
+        protected override int GetMethodDefIndex(INamedTypeDefinition typeDef)
         {
             return _methodDefIndex[typeDef];
         }
 
-        protected override uint GetParameterDefIndex(IMethodDefinition methodDef)
+        protected override int GetParameterDefIndex(IMethodDefinition methodDef)
         {
             return _parameterListIndex[methodDef];
         }
 
-        protected override uint GetOrAddAssemblyRefIndex(IAssemblyReference reference)
+        protected override int GetOrAddAssemblyRefIndex(IAssemblyReference reference)
         {
             return _assemblyRefIndex.GetOrAdd(reference);
         }
@@ -209,7 +222,7 @@ namespace Microsoft.Cci
             return _assemblyRefIndex.Rows;
         }
 
-        protected override uint GetOrAddModuleRefIndex(string reference)
+        protected override int GetOrAddModuleRefIndex(string reference)
         {
             return _moduleRefIndex.GetOrAdd(reference);
         }
@@ -219,7 +232,7 @@ namespace Microsoft.Cci
             return _moduleRefIndex.Rows;
         }
 
-        protected override uint GetOrAddMemberRefIndex(ITypeMemberReference reference)
+        protected override int GetOrAddMemberRefIndex(ITypeMemberReference reference)
         {
             return _memberRefIndex.GetOrAdd(reference);
         }
@@ -229,7 +242,7 @@ namespace Microsoft.Cci
             return _memberRefIndex.Rows;
         }
 
-        protected override uint GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
+        protected override int GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
         {
             return _methodSpecIndex.GetOrAdd(reference);
         }
@@ -239,12 +252,12 @@ namespace Microsoft.Cci
             return _methodSpecIndex.Rows;
         }
 
-        protected override bool TryGetTypeRefIndex(ITypeReference reference, out uint index)
+        protected override bool TryGetTypeRefIndex(ITypeReference reference, out int index)
         {
             return _typeRefIndex.TryGetValue(reference, out index);
         }
 
-        protected override uint GetOrAddTypeRefIndex(ITypeReference reference)
+        protected override int GetOrAddTypeRefIndex(ITypeReference reference)
         {
             return _typeRefIndex.GetOrAdd(reference);
         }
@@ -254,7 +267,7 @@ namespace Microsoft.Cci
             return _typeRefIndex.Rows;
         }
 
-        protected override uint GetOrAddTypeSpecIndex(ITypeReference reference)
+        protected override int GetOrAddTypeSpecIndex(ITypeReference reference)
         {
             return _typeSpecIndex.GetOrAdd(reference);
         }
@@ -264,12 +277,12 @@ namespace Microsoft.Cci
             return _typeSpecIndex.Rows;
         }
 
-        protected override uint GetOrAddStandAloneSignatureIndex(uint blobIndex)
+        protected override int GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
         {
             return _standAloneSignatureIndex.GetOrAdd(blobIndex);
         }
 
-        protected override IReadOnlyList<uint> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
         {
             return _standAloneSignatureIndex.Rows;
         }
@@ -311,10 +324,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = eventDef.ContainingTypeDefinition;
-                uint eventIndex = this.GetEventDefIndex(eventDef);
+                int eventIndex = this.GetEventDefIndex(eventDef);
                 EventMapRow r = new EventMapRow();
-                r.Parent = this.GetTypeDefIndex(lastParent);
-                r.EventList = eventIndex;
+                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
+                r.EventList = (uint)eventIndex;
                 table.Add(r);
             }
         }
@@ -330,10 +343,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = propertyDef.ContainingTypeDefinition;
-                uint propertyIndex = this.GetPropertyDefIndex(propertyDef);
+                int propertyIndex = this.GetPropertyDefIndex(propertyDef);
                 PropertyMapRow r = new PropertyMapRow();
-                r.Parent = this.GetTypeDefIndex(lastParent);
-                r.PropertyList = propertyIndex;
+                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
+                r.PropertyList = (uint)propertyIndex;
                 table.Add(r);
             }
         }
@@ -405,21 +418,21 @@ namespace Microsoft.Cci
 
         private struct DefinitionIndex<T> where T : IReference
         {
-            private readonly Dictionary<T, uint> _index;
+            private readonly Dictionary<T, int> _index;
             private readonly List<T> _rows;
 
             public DefinitionIndex(int capacity)
             {
-                _index = new Dictionary<T, uint>(capacity);
+                _index = new Dictionary<T, int>(capacity);
                 _rows = new List<T>(capacity);
             }
 
-            public bool TryGetValue(T item, out uint index)
+            public bool TryGetValue(T item, out int index)
             {
                 return _index.TryGetValue(item, out index);
             }
 
-            public uint this[T item]
+            public int this[T item]
             {
                 get { return _index[item]; }
             }
@@ -434,9 +447,9 @@ namespace Microsoft.Cci
                 get { return _rows; }
             }
 
-            public uint NextRowId
+            public int NextRowId
             {
-                get { return (uint)_rows.Count + 1; }
+                get { return _rows.Count + 1; }
             }
 
             public void Add(T item)

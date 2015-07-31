@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend Module CompletionUtilities
 
-        Private ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c, "?"c}
         Private ReadOnly s_defaultTriggerChars As Char() = {"."c, "["c, "#"c, " "c, "="c, "<"c, "{"c}
 
         Public Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
@@ -38,10 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ch = "]"c OrElse IsWordCharacter(ch)
         End Function
 
-        Public Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            Return s_commitChars.Contains(ch)
-        End Function
-
         Public Function IsDefaultTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim ch = text(characterPosition)
             If s_defaultTriggerChars.Contains(ch) Then
@@ -65,11 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim ch = text(characterPosition)
 
             Return ch = " "c OrElse IsStartingNewWord(text, characterPosition, options)
-        End Function
-
-        Public Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            ' In VB we always send enter through to the editor.
-            Return True
         End Function
 
         Private Function IsStartingNewWord(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

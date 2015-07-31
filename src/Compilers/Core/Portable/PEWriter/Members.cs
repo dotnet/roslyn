@@ -407,13 +407,13 @@ namespace Microsoft.Cci
         /// </summary>
         ushort MaxStack { get; }
 
-        byte[] IL { get; }
+        ImmutableArray<byte> IL { get; }
         bool HasAnySequencePoints { get; }
         ImmutableArray<SequencePoint> GetSequencePoints();
         ImmutableArray<SequencePoint> GetLocations();
 
         /// <summary>
-        /// Returns true if there is atleast one dynamic local within the MethodBody
+        /// Returns true if there is at least one dynamic local within the MethodBody
         /// </summary>
         bool HasDynamicLocalVariables { get; }
 

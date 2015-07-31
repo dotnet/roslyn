@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis
             get { return _messageProvider; }
         }
 
-        internal bool IsInteractive
+        public bool IsInteractive
         {
             get { return _isInteractive; }
         }
 
-        internal abstract string RegularFileExtension { get; }
-        internal abstract string ScriptFileExtension { get; }
+        protected abstract string RegularFileExtension { get; }
+        protected abstract string ScriptFileExtension { get; }
 
         // internal for testing
         internal virtual TextReader CreateTextFileReader(string fullPath)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="baseDirectory">The base directory used for qualifying file locations.</param>
         /// <param name="sdkDirectory">The directory to search for mscorlib.</param>
         /// <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
-        /// <returns>a commandlinearguments object representing the parsed command line.</returns>
+        /// <returns>a <see cref="CommandLineArguments"/> object representing the parsed command line.</returns>
         public CommandLineArguments Parse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
             return CommonParse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Trims all '.' and whitespaces from the end of the path
+        /// Trims all '.' and whitespace from the end of the path
         /// </summary>
         internal static string RemoveTrailingSpacesAndDots(string path)
         {
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis
             bool inQuotes = false;
             int backslashCount = 0;
 
-            // separate the line into multiple arguments on whitespaces. 
+            // separate the line into multiple arguments on whitespace. 
             // we maintain the inQuotes state to ensure we do not break line while in a quoted text.
             // we also need to count slashes since odd number of slashes before a quote 
             // makes that quote just a regular char
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // the behavior of unpaired quote seems to be not well defined
-            // Exprimentally I can see the following behaviors:
+            // Experimentally I can see the following behaviors:
             // 1) command arg parsing fails (Main is not called)
             // 2) the text following the last quote is appended to the last argv as-is
             // We will use strategy #2 for unpaired quote. 
@@ -956,31 +956,6 @@ namespace Microsoft.CodeAnalysis
                     enumerator.Dispose();
                 }
             }
-        }
-
-        internal static ImmutableDictionary<string, string> ParseFeatures(List<string> values)
-        {
-            var set = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var commaFeatures in values)
-            {
-                foreach (var feature in commaFeatures.Split(','))
-                {
-                    int equals = feature.IndexOf('=');
-                    if (equals > 0)
-                    {
-                        string name = feature.Substring(0, equals);
-                        string value = feature.Substring(equals + 1);
-                        set[name] = value;
-                    }
-                    else
-                    {
-                        set[feature] = "true";
-                    }
-                }
-            }
-
-            return set.ToImmutable();
         }
 
         internal abstract void GenerateErrorForNoFilesFoundInRecurse(string path, IList<Diagnostic> errors);

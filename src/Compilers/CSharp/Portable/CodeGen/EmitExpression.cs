@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (!used)
                 {
-                    // unused constants have no sideeffects.
+                    // unused constants have no side-effects.
                     return;
                 }
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Parameter:
-                    if (used)  // unused parameter has no sideeffects
+                    if (used)  // unused parameter has no side-effects
                     {
                         EmitParameterLoad((BoundParameter)expression);
                     }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    if (used) // unused this has no sideeffects
+                    if (used) // unused this has no side-effects
                     {
                         EmitThisReferenceExpression((BoundThisReference)expression);
                     }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
 
                 case BoundKind.BaseReference:
-                    if (used) // unused base has no sideeffects
+                    if (used) // unused base has no side-effects
                     {
                         var thisType = _method.ContainingType;
                         _builder.EmitOpCode(ILOpCode.Ldarg_0);
@@ -154,14 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.TypeOfOperator:
-                    if (used) // unused typeof has no sideeffects
+                    if (used) // unused typeof has no side-effects
                     {
                         EmitTypeOfExpression((BoundTypeOfOperator)expression);
                     }
                     break;
 
                 case BoundKind.SizeOfOperator:
-                    if (used) // unused sizeof has no sideeffects
+                    if (used) // unused sizeof has no side-effects
                     {
                         EmitSizeOfExpression((BoundSizeOfOperator)expression);
                     }
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             var receiverType = receiver.Type;
             LocalDefinition receiverTemp = null;
-            Debug.Assert(!receiverType.IsValueType || 
+            Debug.Assert(!receiverType.IsValueType ||
                 (receiverType.IsNullableType() && expression.HasValueMethodOpt != null), "conditional receiver cannot be a struct");
 
             var receiverConstant = receiver.ConstantValue;
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     // unconstrained case needs to handle case where T is actually a struct.
                     // such values are never nulls
-                    // we will emit a check for such case, but the check is realy a JIT-time 
+                    // we will emit a check for such case, but the check is really a JIT-time 
                     // constant since JIT will know if T is a struct or not.
 
                     // if ((object)default(T) != null) 
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             else
                             {
                                 // no need to read whole element of nontrivial type/size here
-                                // just take a reference to an element for array access sideeffects 
+                                // just take a reference to an element for array access side-effects 
                                 if (elementType.TypeKind == TypeKind.TypeParameter)
                                 {
                                     _builder.EmitOpCode(ILOpCode.Readonly);
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             var field = fieldAccess.FieldSymbol;
 
-            //TODO: For static field access this may require ..ctor to run. Is this a sideeffect?
+            //TODO: For static field access this may require ..ctor to run. Is this a side-effect?
             // Accessing unused instance field on a struct is a noop. Just emit the receiver.
             if (!used && !field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue())
             {
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var temp = EmitFieldLoadReceiver(receiver);
                     if (temp != null)
                     {
-                        Debug.Assert(FieldLoadMustUseRef(receiver), "only only clr-ambiguous structs use temps here");
+                        Debug.Assert(FieldLoadMustUseRef(receiver), "only clr-ambiguous structs use temps here");
                         FreeTemp(temp);
                     }
 
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    // do nothing. Unused local load has no sideeffects.
+                    // do nothing. Unused local load has no side-effects.
                     return;
                 }
             }
@@ -1364,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (callKind == CallKind.CallVirt)
             {
                 // NOTE: we check that we call method in same module just to be sure
-                // that it cannot be recompiled as not final and make our call not verfiable. 
+                // that it cannot be recompiled as not final and make our call not verifiable. 
                 // such change by adversarial user would arguably be a compat break, but better be safe...
                 // In reality we would typically have one method calling another method in the same class (one GetEnumerator calling another).
                 // Other scenarios are uncommon since base class cannot be sealed and 
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 EmitArrayInitializers(arrayType, expression.InitializerOpt);
             }
 
-            // newarr has sideeffects (negative bounds etc) so always emitted.
+            // newarr has side-effects (negative bounds etc) so always emitted.
             EmitPopIfUnused(used);
         }
 
@@ -1655,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (!used &&
                     expression.Constructor.OriginalDefinition == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
                 {
-                    // creating nullable has no sideeffects, so we will just evaluate the arg
+                    // creating nullable has no side-effects, so we will just evaluate the arg
                     EmitExpression(expression.Arguments[0], used: false);
                 }
                 else
@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // 1) initobj 
         //    is used when assigning default value to T that is not a verifier reference.
         //
-        // 2) inplace ctor call 
+        // 2) in-place ctor call 
         //    is used when assigning a freshly created struct. "x = new S(arg)" can be
         //    replaced by x.S(arg) as long as partial assignment cannot be observed -
         //    i.e. target must not be on the heap and we should not be in a try block.
@@ -1780,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (right.Kind == BoundKind.ObjectCreationExpression)
             {
                 // It is desirable to do in-place ctor call if possible.
-                // we could do newobj/stloc, but inplace call 
+                // we could do newobj/stloc, but in-place call 
                 // produces same or better code in current JITs 
                 if (PartialCtorResultCannotEscape(left))
                 {
@@ -1823,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void InPlaceInit(BoundExpression target, bool used)
         {
             var temp = EmitAddress(target, AddressKind.Writeable);
-            Debug.Assert(temp == null, "inplace init target should not create temps");
+            Debug.Assert(temp == null, "in-place init target should not create temps");
 
             _builder.EmitOpCode(ILOpCode.Initobj);    //  intitobj  <MyStruct>
             EmitSymbolToken(target.Type, target.Syntax);
@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void InPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
         {
             var temp = EmitAddress(target, AddressKind.Writeable);
-            Debug.Assert(temp == null, "inplace ctor target should not create temps");
+            Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
             EmitArguments(objCreation.Arguments, constructor.Parameters);
@@ -2069,9 +2069,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // LEAKING A TEMP IS OK HERE 
-                // generally taking a ref for the purpose of ref assignmnt should not be done on homeless values
+                // generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a copy in synthetic code and we have to leak those.
-                // fortunately these are very shortlived temps that should not cause value sharing.
+                // fortunately these are very short-lived temps that should not cause value sharing.
                 var temp = EmitAddress(assignmentOperator.Right, AddressKind.Writeable);
 #if DEBUG
                 Debug.Assert(temp == null || ((SynthesizedLocal)assignmentOperator.Left.ExpressionSymbol).SynthesizedKind == SynthesizedLocalKind.LoweringTemp);
@@ -2402,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert((object)operand.Type != null);
                 if (!operand.Type.IsVerifierReference())
                 {
-                    // box the operand for isint if it is not a verifier reference
+                    // box the operand for isinst if it is not a verifier reference
                     EmitBox(operand.Type, operand.Syntax);
                 }
                 _builder.EmitOpCode(ILOpCode.Isinst);
@@ -2426,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 Debug.Assert((object)targetType != null);
                 if ((object)operandType != null && !operandType.IsVerifierReference())
                 {
-                    // box the operand for isint if it is not a verifier reference
+                    // box the operand for isinst if it is not a verifier reference
                     EmitBox(operandType, operand.Syntax);
                 }
                 _builder.EmitOpCode(ILOpCode.Isinst);
@@ -2469,7 +2469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, CSharpSyntaxNode syntaxNode)
         {
-            if (used)  // unused constant has no sideeffects
+            if (used)  // unused constant has no side-effects
             {
                 // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
                 if (((object)type != null) && (type.TypeKind == TypeKind.TypeParameter) && constantValue.IsNull)
@@ -2642,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitBranch(ILOpCode.Br, doneLabel);
             if (used)
             {
-                // If we get to consequenceLabel, we should not have Aternative on stack, adjust for that.
+                // If we get to consequenceLabel, we should not have Alternative on stack, adjust for that.
                 _builder.AdjustStack(-1);
             }
 
@@ -2798,7 +2798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // It appears that verifier/JIT gets easily confused. 
         // So to not rely on whether that should work or not we will flag potentially 
         // "complicated" casts and make them static casts to ensure we are all on 
-        // the same page with what type shoud be tracked.
+        // the same page with what type should be tracked.
         private static bool IsVarianceCast(TypeSymbol to, TypeSymbol from)
         {
             if (to == from)
@@ -2828,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(to.IsVerifierReference());
 
             // From ILGENREC::GenQMark
-            // See VSWhideby Bugs #49619 and 108643. If the destination type is an interface we need
+            // See VSWhidbey Bugs #49619 and 108643. If the destination type is an interface we need
             // to force a static cast to be generated for any cast result expressions. The static cast
             // should be done before the unifying jump so the code is verifiable and to allow the JIT to
             // optimize it away. NOTE: Since there is no staticcast instruction, we implement static cast

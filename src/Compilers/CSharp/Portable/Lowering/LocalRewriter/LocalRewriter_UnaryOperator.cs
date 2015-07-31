@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var conditionalLeft = loweredOperand as BoundLoweredConditionalAccess;
 
-            // NOTE: we could in theory handle sideeffecting loweredRight here too
+            // NOTE: we could in theory handle side-effecting loweredRight here too
             //       by including it as a part of whenNull, but there is a concern 
             //       that it can lead to code duplication
             var optimize = conditionalLeft != null &&
@@ -445,11 +445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  instead of 
             //    Seq{.... temp = operand + 1, operand = temp, ...}              
             //
-            // Such rewrite will nest reads of boundTemp realtive to reads of operand so both 
+            // Such rewrite will nest reads of boundTemp relative to reads of operand so both 
             // operand and boundTemp could be optimizable (subject to all other conditions of course).
             //
             // In a case of the non-byref operand we use a single-sequence strategy as it results in shorter 
-            // overal life time of temps and as such more appropriate. (problem of crossed reads does not affect that case)
+            // overall life time of temps and as such more appropriate. (problem of crossed reads does not affect that case)
             //
             if (IsIndirectOrInstanceField(transformedLHS))
             {
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantOne.SpecialType != SpecialType.None);
             Debug.Assert(binaryOperatorKind.OperandTypes() != 0);
 
-            // The intput/output type of the binary operand. "int" in the example. 
+            // The input/output type of the binary operand. "int" in the example. 
             TypeSymbol binaryOperandType = _compilation.GetSpecialType(constantOne.SpecialType);
 
             // 1
@@ -768,8 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.Addition: member = SpecialMember.System_Decimal__op_Increment; break;
                 case BinaryOperatorKind.Subtraction: member = SpecialMember.System_Decimal__op_Decrement; break;
                 default:
-                    Debug.Assert(false); // Cannot reach here
-                    return null;
+                    throw ExceptionUtilities.UnexpectedValue(oper.Operator());
             }
 
             var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
@@ -907,9 +906,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return node.Type;
                 case UnaryOperatorKind.UserDefined:
                 case UnaryOperatorKind.Bool:
-                    Debug.Assert(false, "Unexpected unary operator kind");
-                    goto default;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

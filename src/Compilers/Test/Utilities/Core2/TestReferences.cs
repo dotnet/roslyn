@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 public static class TestReferences
 {
@@ -151,7 +150,7 @@ public static class TestReferences
                 {
                     if (s_system == null)
                     {
-                        s_system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll");
+                        s_system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll");
                     }
 
                     return s_system;
@@ -168,7 +167,7 @@ public static class TestReferences
                 {
                     if (s_mscorlib == null)
                     {
-                        s_mscorlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib).GetReference(display: "mscorlib.dll");
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(display: "mscorlib.dll");
                     }
 
                     return s_mscorlib;
@@ -185,7 +184,7 @@ public static class TestReferences
                 {
                     if (s_mscorlib == null)
                     {
-                        s_mscorlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib, v2.0.50727");
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.mscorlib).GetReference(display: "mscorlib, v2.0.50727");
                     }
 
                     return s_mscorlib;
@@ -199,7 +198,7 @@ public static class TestReferences
                 {
                     if (s_system == null)
                     {
-                        s_system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.System).GetReference(display: "System.dll");
+                        s_system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.System).GetReference(display: "System.dll");
                     }
 
                     return s_system;
@@ -213,7 +212,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_VisualBasic == null)
                     {
-                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v2_0_50727.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll");
+                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v2_0_50727.Microsoft_VisualBasic).GetReference(display: "Microsoft.VisualBasic.dll");
                     }
 
                     return s_microsoft_VisualBasic;
@@ -230,7 +229,7 @@ public static class TestReferences
                 {
                     if (s_systemCore == null)
                     {
-                        s_systemCore = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v3_5_30729.System_Core_v3_5_30729.AsImmutableOrNull()).GetReference(display: "System.Core, v3.5.30729");
+                        s_systemCore = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v3_5_30729.System_Core_v3_5_30729.AsImmutableOrNull()).GetReference(display: "System.Core, v3.5.30729");
                     }
 
                     return s_systemCore;
@@ -247,7 +246,7 @@ public static class TestReferences
                 {
                     if (s_mscorlib == null)
                     {
-                        s_mscorlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll");
+                        s_mscorlib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib).GetReference(filePath: @"R:\v4_0_30319\mscorlib.dll");
                     }
 
                     return s_mscorlib;
@@ -261,7 +260,7 @@ public static class TestReferences
                 {
                     if (s_system_Core == null)
                     {
-                        s_system_Core = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"R:\v4_0_30319\System.Core.dll");
+                        s_system_Core = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(filePath: @"R:\v4_0_30319\System.Core.dll");
                     }
 
                     return s_system_Core;
@@ -275,7 +274,7 @@ public static class TestReferences
                 {
                     if (s_system_Configuration == null)
                     {
-                        s_system_Configuration = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Configuration).GetReference(filePath: @"R:\v4_0_30319\System.Configuration.dll");
+                        s_system_Configuration = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Configuration).GetReference(filePath: @"R:\v4_0_30319\System.Configuration.dll");
                     }
 
                     return s_system_Configuration;
@@ -289,7 +288,7 @@ public static class TestReferences
                 {
                     if (s_system == null)
                     {
-                        s_system = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System).GetReference(filePath: @"R:\v4_0_30319\System.dll", display: "System.dll");
+                        s_system = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(filePath: @"R:\v4_0_30319\System.dll", display: "System.dll");
                     }
 
                     return s_system;
@@ -303,7 +302,7 @@ public static class TestReferences
                 {
                     if (s_system_Data == null)
                     {
-                        s_system_Data = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Data).GetReference(filePath: @"R:\v4_0_30319\System.Data.dll");
+                        s_system_Data = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Data).GetReference(filePath: @"R:\v4_0_30319\System.Data.dll");
                     }
 
                     return s_system_Data;
@@ -317,7 +316,7 @@ public static class TestReferences
                 {
                     if (s_system_Xml == null)
                     {
-                        s_system_Xml = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml).GetReference(filePath: @"R:\v4_0_30319\System.Xml.dll");
+                        s_system_Xml = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Xml).GetReference(filePath: @"R:\v4_0_30319\System.Xml.dll");
                     }
 
                     return s_system_Xml;
@@ -331,7 +330,7 @@ public static class TestReferences
                 {
                     if (s_system_Xml_Linq == null)
                     {
-                        s_system_Xml_Linq = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Xml_Linq).GetReference(filePath: @"R:\v4_0_30319\System.Xml.Linq.dll");
+                        s_system_Xml_Linq = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Xml_Linq).GetReference(filePath: @"R:\v4_0_30319\System.Xml.Linq.dll");
                     }
 
                     return s_system_Xml_Linq;
@@ -345,7 +344,7 @@ public static class TestReferences
                 {
                     if (s_system_Windows_Forms == null)
                     {
-                        s_system_Windows_Forms = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Windows_Forms).GetReference(filePath: @"R:\v4_0_30319\System.Windows.Forms.dll");
+                        s_system_Windows_Forms = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Windows_Forms).GetReference(filePath: @"R:\v4_0_30319\System.Windows.Forms.dll");
                     }
 
                     return s_system_Windows_Forms;
@@ -359,7 +358,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_CSharp == null)
                     {
-                        s_microsoft_CSharp = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(filePath: @"R:\v4_0_30319\Microsoft.CSharp.dll");
+                        s_microsoft_CSharp = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(filePath: @"R:\v4_0_30319\Microsoft.CSharp.dll");
                     }
 
                     return s_microsoft_CSharp;
@@ -373,7 +372,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_VisualBasic == null)
                     {
-                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_VisualBasic).GetReference(filePath: @"R:\v4_0_30319\Microsoft.VisualBasic.dll");
+                        s_microsoft_VisualBasic = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_VisualBasic).GetReference(filePath: @"R:\v4_0_30319\Microsoft.VisualBasic.dll");
                     }
 
                     return s_microsoft_VisualBasic;
@@ -387,7 +386,7 @@ public static class TestReferences
                 {
                     if (s_microsoft_JScript == null)
                     {
-                        s_microsoft_JScript = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.Microsoft_JScript).GetReference(display: "Microsoft.JScript.dll");
+                        s_microsoft_JScript = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_JScript).GetReference(display: "Microsoft.JScript.dll");
                     }
 
                     return s_microsoft_JScript;
@@ -401,7 +400,7 @@ public static class TestReferences
                 {
                     if (s_system_ComponentModel_Composition == null)
                     {
-                        s_system_ComponentModel_Composition = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_ComponentModel_Composition).GetReference(display: "System.ComponentModel.Composition.dll");
+                        s_system_ComponentModel_Composition = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_ComponentModel_Composition).GetReference(display: "System.ComponentModel.Composition.dll");
                     }
 
                     return s_system_ComponentModel_Composition;
@@ -415,7 +414,7 @@ public static class TestReferences
                 {
                     if (s_system_Web_Services == null)
                     {
-                        s_system_Web_Services = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_Web_Services).GetReference(display: "System.Web.Services.dll");
+                        s_system_Web_Services = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Web_Services).GetReference(display: "System.Web.Services.dll");
                     }
 
                     return s_system_Web_Services;
@@ -432,7 +431,7 @@ public static class TestReferences
                     {
                         if (s_system_EnterpriseServices == null)
                         {
-                            s_system_EnterpriseServices = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.System_EnterpriseServices).GetReference(display: "System.EnterpriseServices.dll");
+                            s_system_EnterpriseServices = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_EnterpriseServices).GetReference(display: "System.EnterpriseServices.dll");
                         }
 
                         return s_system_EnterpriseServices;
@@ -447,7 +446,7 @@ public static class TestReferences
                 {
                     if (s_system_Runtime_Serialization == null)
                     {
-                        s_system_Runtime_Serialization = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization).GetReference(display: "System.Runtime.Serialization.dll");
+                        s_system_Runtime_Serialization = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_Serialization).GetReference(display: "System.Runtime.Serialization.dll");
                     }
 
                     return s_system_Runtime_Serialization;
@@ -467,7 +466,7 @@ public static class TestReferences
                 {
                     if (s_errTestLib01 == null)
                     {
-                        s_errTestLib01 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestLib01).GetReference(display: "ErrTestLib01.dll");
+                        s_errTestLib01 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestLib01).GetReference(display: "ErrTestLib01.dll");
                     }
 
                     return s_errTestLib01;
@@ -484,7 +483,7 @@ public static class TestReferences
                 {
                     if (s_errTestLib02 == null)
                     {
-                        s_errTestLib02 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestLib02).GetReference(display: "ErrTestLib02.dll");
+                        s_errTestLib02 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestLib02).GetReference(display: "ErrTestLib02.dll");
                     }
 
                     return s_errTestLib02;
@@ -501,7 +500,7 @@ public static class TestReferences
                 {
                     if (s_errTestLib11 == null)
                     {
-                        s_errTestLib11 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestLib11).GetReference(display: "ErrTestLib11.dll");
+                        s_errTestLib11 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestLib11).GetReference(display: "ErrTestLib11.dll");
                     }
 
                     return s_errTestLib11;
@@ -518,7 +517,7 @@ public static class TestReferences
                 {
                     if (s_errTestMod01 == null)
                     {
-                        s_errTestMod01 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestMod01).GetReference(display: "ErrTestMod01.dll");
+                        s_errTestMod01 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestMod01).GetReference(display: "ErrTestMod01.dll");
                     }
 
                     return s_errTestMod01;
@@ -535,7 +534,7 @@ public static class TestReferences
                 {
                     if (s_errTestMod02 == null)
                     {
-                        s_errTestMod02 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.ErrTestMod02).GetReference(display: "ErrTestMod02.dll");
+                        s_errTestMod02 = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.ErrTestMod02).GetReference(display: "ErrTestMod02.dll");
                     }
 
                     return s_errTestMod02;
@@ -552,7 +551,7 @@ public static class TestReferences
                 {
                     if (s_badresfile == null)
                     {
-                        s_badresfile = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.DiagnosticTests.badresfile).GetReference(display: "badresfile.res");
+                        s_badresfile = AssemblyMetadata.CreateFromImage(TestResources.DiagnosticTests.badresfile).GetReference(display: "badresfile.res");
                     }
 
                     return s_badresfile;
@@ -570,7 +569,7 @@ public static class TestReferences
             {
                 if (s_mdTestLib1 == null)
                 {
-                    s_mdTestLib1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.MDTestLib1).GetReference(display: "MDTestLib1.dll");
+                    s_mdTestLib1 = AssemblyMetadata.CreateFromImage(TestResources.General.MDTestLib1).GetReference(display: "MDTestLib1.dll");
                 }
 
                 return s_mdTestLib1;
@@ -584,7 +583,7 @@ public static class TestReferences
             {
                 if (s_mdTestLib2 == null)
                 {
-                    s_mdTestLib2 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.MDTestLib2).GetReference(display: "MDTestLib2.dll");
+                    s_mdTestLib2 = AssemblyMetadata.CreateFromImage(TestResources.General.MDTestLib2).GetReference(display: "MDTestLib2.dll");
                 }
 
                 return s_mdTestLib2;
@@ -598,7 +597,7 @@ public static class TestReferences
             {
                 if (s_VBConversions == null)
                 {
-                    s_VBConversions = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.VBConversions).GetReference(display: "VBConversions.dll");
+                    s_VBConversions = AssemblyMetadata.CreateFromImage(TestResources.General.VBConversions).GetReference(display: "VBConversions.dll");
                 }
 
                 return s_VBConversions;
@@ -612,7 +611,7 @@ public static class TestReferences
             {
                 if (s_withSpaces == null)
                 {
-                    s_withSpaces = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.With_Spaces).GetReference(display: "With Spaces.dll");
+                    s_withSpaces = AssemblyMetadata.CreateFromImage(TestResources.General.With_Spaces).GetReference(display: "With Spaces.dll");
                 }
 
                 return s_withSpaces;
@@ -626,7 +625,7 @@ public static class TestReferences
             {
                 if (s_withSpacesModule == null)
                 {
-                    s_withSpacesModule = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.With_SpacesModule).GetReference(display: "With Spaces.netmodule");
+                    s_withSpacesModule = ModuleMetadata.CreateFromImage(TestResources.General.With_SpacesModule).GetReference(display: "With Spaces.netmodule");
                 }
 
                 return s_withSpacesModule;
@@ -640,7 +639,7 @@ public static class TestReferences
             {
                 if (s_inheritIComparable == null)
                 {
-                    s_inheritIComparable = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.InheritIComparable).GetReference(display: "InheritIComparable.dll");
+                    s_inheritIComparable = AssemblyMetadata.CreateFromImage(TestResources.General.InheritIComparable).GetReference(display: "InheritIComparable.dll");
                 }
 
                 return s_inheritIComparable;
@@ -654,7 +653,7 @@ public static class TestReferences
             {
                 if (s_bigVisitor == null)
                 {
-                    s_bigVisitor = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.BigVisitor).GetReference(display: "BigVisitor.dll");
+                    s_bigVisitor = AssemblyMetadata.CreateFromImage(TestResources.General.BigVisitor).GetReference(display: "BigVisitor.dll");
                 }
 
                 return s_bigVisitor;
@@ -668,7 +667,7 @@ public static class TestReferences
             {
                 if (s_properties == null)
                 {
-                    s_properties = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Properties).GetReference(display: "Properties.dll");
+                    s_properties = AssemblyMetadata.CreateFromImage(TestResources.General.Properties).GetReference(display: "Properties.dll");
                 }
 
                 return s_properties;
@@ -682,7 +681,7 @@ public static class TestReferences
             {
                 if (s_propertiesWithByRef == null)
                 {
-                    s_propertiesWithByRef = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.PropertiesWithByRef).GetReference(display: "PropertiesWithByRef.dll");
+                    s_propertiesWithByRef = AssemblyMetadata.CreateFromImage(TestResources.General.PropertiesWithByRef).GetReference(display: "PropertiesWithByRef.dll");
                 }
 
                 return s_propertiesWithByRef;
@@ -696,7 +695,7 @@ public static class TestReferences
             {
                 if (s_indexers == null)
                 {
-                    s_indexers = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Indexers).GetReference(display: "Indexers.dll");
+                    s_indexers = AssemblyMetadata.CreateFromImage(TestResources.General.Indexers).GetReference(display: "Indexers.dll");
                 }
 
                 return s_indexers;
@@ -710,7 +709,7 @@ public static class TestReferences
             {
                 if (s_events == null)
                 {
-                    s_events = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Events).GetReference(display: "Events.dll");
+                    s_events = AssemblyMetadata.CreateFromImage(TestResources.General.Events).GetReference(display: "Events.dll");
                 }
 
                 return s_events;
@@ -1044,7 +1043,7 @@ public static class TestReferences
                     if (s_assembly == null)
                     {
                         s_assembly = AssemblyMetadata.Create(
-                            ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModule),
+                            ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.MultiModuleDll),
                             ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod2),
                             ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.MultiModule.mod3)).GetReference(display: "MultiModule.dll");
                     }
@@ -1380,7 +1379,7 @@ public static class TestReferences
                         {
                             if (s_classA == null)
                             {
-                                s_classA = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.RetV1.ClassA).GetReference(display: "ClassA.dll");
+                                s_classA = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.RetargetingCycle.RetV1.ClassA).GetReference(display: "ClassA.dll");
                             }
 
                             return s_classA;
@@ -1397,7 +1396,7 @@ public static class TestReferences
                         {
                             if (s_classB == null)
                             {
-                                s_classB = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.RetV1.ClassB).GetReference(display: "ClassB.netmodule");
+                                s_classB = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.RetargetingCycle.RetV1.ClassB).GetReference(display: "ClassB.netmodule");
                             }
 
                             return s_classB;
@@ -1417,7 +1416,7 @@ public static class TestReferences
                         {
                             if (s_classA == null)
                             {
-                                s_classA = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.RetV2.ClassA).GetReference(display: "ClassA.dll");
+                                s_classA = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.RetargetingCycle.RetV2.ClassA).GetReference(display: "ClassA.dll");
                             }
 
                             return s_classA;
@@ -1434,7 +1433,7 @@ public static class TestReferences
                         {
                             if (s_classB == null)
                             {
-                                s_classB = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.RetV2.ClassB).GetReference(display: "ClassB.dll");
+                                s_classB = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.RetargetingCycle.RetV2.ClassB).GetReference(display: "ClassB.dll");
                             }
 
                             return s_classB;
@@ -1777,7 +1776,7 @@ public static class TestReferences
                 {
                     if (s_stdOle == null)
                     {
-                        s_stdOle = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.SymbolsTests.NoPia.stdole).GetReference(display: "stdole.dll");
+                        s_stdOle = AssemblyMetadata.CreateFromImage(TestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll");
                     }
 
                     return s_stdOle;
@@ -2080,7 +2079,7 @@ public static class TestReferences
                 {
                     if (s_staticMethodInInterface == null)
                     {
-                        s_staticMethodInInterface = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests._Interface.StaticMethodInInterface).GetReference(display: "StaticMethodInInterface.dll");
+                        s_staticMethodInInterface = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Interface.StaticMethodInInterface).GetReference(display: "StaticMethodInInterface.dll");
                     }
 
                     return s_staticMethodInInterface;
@@ -2094,7 +2093,7 @@ public static class TestReferences
                 {
                     if (s_MDInterfaceMapping == null)
                     {
-                        s_MDInterfaceMapping = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests._Interface.MDInterfaceMapping).GetReference(display: "MDInterfaceMapping.dll");
+                        s_MDInterfaceMapping = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Interface.MDInterfaceMapping).GetReference(display: "MDInterfaceMapping.dll");
                     }
 
                     return s_MDInterfaceMapping;
@@ -2111,7 +2110,7 @@ public static class TestReferences
                 {
                     if (s_MDTestLib1 == null)
                     {
-                        s_MDTestLib1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.MDTestLib1).GetReference(display: "MDTestLib1.dll");
+                        s_MDTestLib1 = AssemblyMetadata.CreateFromImage(TestResources.General.MDTestLib1).GetReference(display: "MDTestLib1.dll");
                     }
 
                     return s_MDTestLib1;
@@ -2144,7 +2143,7 @@ public static class TestReferences
                     {
                         if (s_CSharp == null)
                         {
-                            s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.CSharpExplicitInterfaceImplementation).GetReference(display: "CSharpExplicitInterfaceImplementation.dll");
+                            s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.General.CSharpExplicitInterfaceImplementation).GetReference(display: "CSharpExplicitInterfaceImplementation.dll");
                         }
 
                         return s_CSharp;
@@ -2158,7 +2157,7 @@ public static class TestReferences
                     {
                         if (s_IL == null)
                         {
-                            s_IL = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.ILExplicitInterfaceImplementation).GetReference(display: "ILExplicitInterfaceImplementation.dll");
+                            s_IL = AssemblyMetadata.CreateFromImage(TestResources.General.ILExplicitInterfaceImplementation).GetReference(display: "ILExplicitInterfaceImplementation.dll");
                         }
 
                         return s_IL;
@@ -2175,7 +2174,7 @@ public static class TestReferences
                     {
                         if (s_CSharp == null)
                         {
-                            s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.CSharpExplicitInterfaceImplementationProperties).GetReference(display: "CSharpExplicitInterfaceImplementationProperties.dll");
+                            s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.General.CSharpExplicitInterfaceImplementationProperties).GetReference(display: "CSharpExplicitInterfaceImplementationProperties.dll");
                         }
 
                         return s_CSharp;
@@ -2189,7 +2188,7 @@ public static class TestReferences
                     {
                         if (s_IL == null)
                         {
-                            s_IL = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.ILExplicitInterfaceImplementationProperties).GetReference(display: "ILExplicitInterfaceImplementationProperties.dll");
+                            s_IL = AssemblyMetadata.CreateFromImage(TestResources.General.ILExplicitInterfaceImplementationProperties).GetReference(display: "ILExplicitInterfaceImplementationProperties.dll");
                         }
 
                         return s_IL;
@@ -2206,7 +2205,7 @@ public static class TestReferences
                     {
                         if (s_CSharp == null)
                         {
-                            s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.CSharpExplicitInterfaceImplementationEvents).GetReference(display: "CSharpExplicitInterfaceImplementationEvents.dll");
+                            s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.General.CSharpExplicitInterfaceImplementationEvents).GetReference(display: "CSharpExplicitInterfaceImplementationEvents.dll");
                         }
 
                         return s_CSharp;
@@ -2222,7 +2221,7 @@ public static class TestReferences
             {
                 if (s_regress40025 == null)
                 {
-                    s_regress40025 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Regress40025DLL).GetReference(display: "Regress40025DLL.dll");
+                    s_regress40025 = AssemblyMetadata.CreateFromImage(TestResources.General.Regress40025DLL).GetReference(display: "Regress40025DLL.dll");
                 }
 
                 return s_regress40025;
@@ -2238,7 +2237,7 @@ public static class TestReferences
                 {
                     if (s_simpleWithEvents == null)
                     {
-                        s_simpleWithEvents = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests._WithEvents.SimpleWithEvents).GetReference(display: "SimpleWithEvents.dll");
+                        s_simpleWithEvents = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.WithEvents.SimpleWithEvents).GetReference(display: "SimpleWithEvents.dll");
                     }
 
                     return s_simpleWithEvents;
@@ -2255,7 +2254,7 @@ public static class TestReferences
                 {
                     if (s_delegatesWithoutInvoke == null)
                     {
-                        s_delegatesWithoutInvoke = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.DelegatesWithoutInvoke).GetReference(display: "DelegatesWithoutInvoke.dll");
+                        s_delegatesWithoutInvoke = AssemblyMetadata.CreateFromImage(TestResources.General.DelegatesWithoutInvoke).GetReference(display: "DelegatesWithoutInvoke.dll");
                     }
 
                     return s_delegatesWithoutInvoke;
@@ -2269,7 +2268,7 @@ public static class TestReferences
                 {
                     if (s_delegateByRefParamArray == null)
                     {
-                        s_delegateByRefParamArray = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.DelegateByRefParamArray).GetReference(display: "DelegateByRefParamArray.dll");
+                        s_delegateByRefParamArray = AssemblyMetadata.CreateFromImage(TestResources.General.DelegateByRefParamArray).GetReference(display: "DelegateByRefParamArray.dll");
                     }
 
                     return s_delegateByRefParamArray;
@@ -2401,7 +2400,7 @@ public static class TestReferences
                 {
                     if (s_unavailable == null)
                     {
-                        s_unavailable = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Unavailable).GetReference(display: "Unavailable.dll");
+                        s_unavailable = AssemblyMetadata.CreateFromImage(TestResources.General.Unavailable).GetReference(display: "Unavailable.dll");
                     }
 
                     return s_unavailable;
@@ -2415,7 +2414,7 @@ public static class TestReferences
                 {
                     if (s_CSharp == null)
                     {
-                        s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.CSharpErrors).GetReference(display: "CSharpErrors.dll");
+                        s_CSharp = AssemblyMetadata.CreateFromImage(TestResources.General.CSharpErrors).GetReference(display: "CSharpErrors.dll");
                     }
 
                     return s_CSharp;
@@ -2429,7 +2428,7 @@ public static class TestReferences
                 {
                     if (s_IL == null)
                     {
-                        s_IL = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.ILErrors).GetReference(display: "ILErrors.dll");
+                        s_IL = AssemblyMetadata.CreateFromImage(TestResources.General.ILErrors).GetReference(display: "ILErrors.dll");
                     }
 
                     return s_IL;
@@ -2446,7 +2445,7 @@ public static class TestReferences
                 {
                     if (s_AR_SA == null)
                     {
-                        s_AR_SA = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Culture_AR_SA).GetReference(display: "AR-SA");
+                        s_AR_SA = AssemblyMetadata.CreateFromImage(TestResources.General.Culture_AR_SA).GetReference(display: "AR-SA");
                     }
 
                     return s_AR_SA;
@@ -2460,7 +2459,7 @@ public static class TestReferences
                 {
                     if (s_EN_US == null)
                     {
-                        s_EN_US = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.General.Culture_EN_US).GetReference(display: "EN-US");
+                        s_EN_US = AssemblyMetadata.CreateFromImage(TestResources.General.Culture_EN_US).GetReference(display: "EN-US");
                     }
 
                     return s_EN_US;

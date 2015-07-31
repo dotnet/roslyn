@@ -198,16 +198,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newBody =
                 F.SequencePoint(
-                    body.Syntax, 
+                    body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(), 
+                        locals.ToImmutableAndFree(),
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)
             {
                 newBody = MakeStateMachineScope(rootScopeHoistedLocals, newBody);
             }
-            
+
             F.CloseMethod(newBody);
         }
 

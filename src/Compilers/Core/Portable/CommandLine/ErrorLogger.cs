@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Runtime.Serialization.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis
         private const char listEndChar = ']';
 
         private readonly StreamWriter _writer;
+        private readonly DataContractJsonSerializer _jsonStringSerializer;
+
         private string _currentIndent;
         private bool _reportedAnyIssues;
 
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(stream.Position == 0);
 
             _writer = new StreamWriter(stream);
+            _jsonStringSerializer = new DataContractJsonSerializer(typeof(string));
             _currentIndent = string.Empty;
             _reportedAnyIssues = false;
 
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             builder.Add(CreateSimpleKeyValuePair(WellKnownStrings.ToolFileVersion, GetToolFileVersionSubStr(toolFileVersion)));
             return Value.Create(builder.ToImmutableAndFree(), this);
         }
-        
+
         private string GetToolFileVersionSubStr(string toolFileVersion)
         {
             // Our log format specifies that fileVersion can have at most 3 fields.
@@ -272,7 +276,8 @@ namespace Microsoft.CodeAnalysis
 
         private void WriteValue(string value)
         {
-            _writer.Write($"\"{value}\"");
+            _writer.Flush();
+            _jsonStringSerializer.WriteObject(_writer.BaseStream, value);
         }
 
         private void WriteValue(int value)

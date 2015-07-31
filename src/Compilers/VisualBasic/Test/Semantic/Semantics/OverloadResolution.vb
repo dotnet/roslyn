@@ -1956,7 +1956,7 @@ End Class
             Assert.Same(ext_M13_1_Candidate.OriginalDefinition, result.Candidates(0).Candidate.UnderlyingSymbol.OriginalDefinition)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
-            ' Extension method presedence
+            ' Extension method precedence
             Dim derived_M11_Candidate_0 = (derived_M11.ReduceExtensionMethod(derived, 0))
             Dim derived_M11_Candidate_1 = (derived_M11.ReduceExtensionMethod(derived, 1))
 

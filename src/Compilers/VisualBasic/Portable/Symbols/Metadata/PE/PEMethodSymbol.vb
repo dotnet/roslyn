@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             ' e = obsolete attribute populated. 1 bit
             ' f = custom attributes populated. 1 bit
             ' g = use site diagnostic populated. 1 bit
-            ' h = conditional attributes populted. 1 bit
+            ' h = conditional attributes populated. 1 bit
 
             Private _bits As Integer
 
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End If
 
-            ' do not cache the result, the compiler doesn't use this (it's only exposed thru public API):
+            ' do not cache the result, the compiler doesn't use this (it's only exposed through public API):
             Return _containingType.ContainingPEModule.Module.GetDllImportData(Me._handle)
         End Function
 

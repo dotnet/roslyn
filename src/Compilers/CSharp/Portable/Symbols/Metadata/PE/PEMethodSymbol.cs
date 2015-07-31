@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private Symbol _associatedPropertyOrEventOpt;
         private PackedFlags _packedFlags;
         private readonly ushort _flags;     // MethodAttributes
-        private readonly ushort _implFlags; // MethoImplAttributes
+        private readonly ushort _implFlags; // MethodImplAttributes
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
         private SignatureData _lazySignature;
         private ImmutableArray<MethodSymbol> _lazyExplicitMethodImplementations;
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool RequiresSecurityObject => HasFlag(MethodAttributes.RequireSecObject);
 
-        // do not cache the result, the compiler doesn't use this (it's only exposed thru public API):
+        // do not cache the result, the compiler doesn't use this (it's only exposed through public API):
         public override DllImportData GetDllImportData() => HasFlag(MethodAttributes.PinvokeImpl)
             ? _containingType.ContainingPEModule.Module.GetDllImportData(_handle)
             : null;

@@ -9373,23 +9373,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to &apos;{0}.{1}&apos; is already implemented by the base class &apos;{2}&apos;. Re-implementation of Windows Runtime Interface &apos;{3}&apos; is not allowed.
         '''</summary>
-        Friend ReadOnly Property ERR_ReImplementatingWinRTInterface4() As String
+        Friend ReadOnly Property ERR_ReImplementingWinRTInterface4() As String
             Get
-                Return ResourceManager.GetString("ERR_ReImplementatingWinRTInterface4", resourceCulture)
+                Return ResourceManager.GetString("ERR_ReImplementingWinRTInterface4", resourceCulture)
             End Get
         End Property
         
         '''<summary>
         '''  Looks up a localized string similar to &apos;{0}.{1}&apos; from &apos;implements {2}&apos; is already implemented by the base class &apos;{3}&apos;. Re-implementation of Windows Runtime Interface &apos;{4}&apos; is not allowed.
         '''</summary>
-        Friend ReadOnly Property ERR_ReImplementatingWinRTInterface5() As String
+        Friend ReadOnly Property ERR_ReImplementingWinRTInterface5() As String
             Get
-                Return ResourceManager.GetString("ERR_ReImplementatingWinRTInterface5", resourceCulture)
+                Return ResourceManager.GetString("ERR_ReImplementingWinRTInterface5", resourceCulture)
             End Get
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to In a Windows Runtime event, the type of the ‘RemoveHandler’ method parameter must be &apos;EventRegistrationToken&apos;.
+        '''  Looks up a localized string similar to In a Windows Runtime event, the type of the &apos;RemoveHandler&apos; method parameter must be &apos;EventRegistrationToken&apos;.
         '''</summary>
         Friend ReadOnly Property ERR_RemoveParamWrongForWinRT() As String
             Get

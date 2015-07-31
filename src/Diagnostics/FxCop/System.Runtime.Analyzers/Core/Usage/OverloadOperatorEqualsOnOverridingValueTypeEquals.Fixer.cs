@@ -83,7 +83,6 @@ namespace System.Runtime.Analyzers
             }
 
             return editor.GetChangedDocument();
-
         }
 
         private class MyCodeAction : DocumentChangeAction

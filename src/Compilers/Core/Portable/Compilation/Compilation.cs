@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
         }
 
-        IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        private IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
             IReadOnlyDictionary<string, string> set = null;
 
@@ -377,32 +378,32 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="hasValue"/> is false in the former case and true
         /// in the latter.
         /// </remarks>
-        internal ITypeSymbol GetSubmissionResultType(out bool hasValue)
+        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
         {
             return CommonGetSubmissionResultType(out hasValue);
         }
 
-        internal abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
+        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
 
         /// <summary>
         /// The previous submission compilation, or null if either this
         /// compilation doesn't represent a submission or the submission is the
         /// first submission in a submission chain.
         /// </summary>
-        internal Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
+        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
 
-        internal abstract Compilation CommonPreviousSubmission { get; }
+        protected abstract Compilation CommonPreviousSubmission { get; }
 
         /// <summary>
         /// Returns a new compilation with the given compilation set as the
         /// previous submission.
         /// </summary>
-        internal Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
+        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
         {
             return CommonWithPreviousSubmission(newPreviousSubmission);
         }
 
-        internal abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
 
         #endregion
 
@@ -839,8 +840,8 @@ namespace Microsoft.CodeAnalysis
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        internal INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
-        internal abstract INamedTypeSymbol CommonScriptClass { get; }
+        public INamedTypeSymbol ScriptClass { get { return CommonScriptClass; } }
+        protected abstract INamedTypeSymbol CommonScriptClass { get; }
 
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
@@ -913,13 +914,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="incoming">Diagnostics to be filtered.</param>
         /// <returns>True if there were no errors or warnings-as-errors.</returns>
         internal abstract bool FilterAndAppendAndFreeDiagnostics(DiagnosticBag accumulator, ref DiagnosticBag incoming);
-
-        /// <summary>
-        /// Modifies the incoming diagnostic, for example escalating its severity, or discarding it (returning null).
-        /// </summary>
-        /// <param name="diagnostic"></param>
-        /// <returns>The modified diagnostic, or null</returns>
-        internal abstract Diagnostic FilterDiagnostic(Diagnostic diagnostic);
 
         #endregion
 
@@ -1148,80 +1142,123 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        #region Emit
+
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
         /// </summary>
-        internal ModulePropertiesForSerialization ConstructModuleSerializationProperties(
+        internal Cci.ModulePropertiesForSerialization ConstructModuleSerializationProperties(
             EmitOptions emitOptions,
             string targetRuntimeVersion,
             Guid moduleVersionId = default(Guid))
         {
             CompilationOptions compilationOptions = this.Options;
             Platform platform = compilationOptions.Platform;
+            OutputKind outputKind = compilationOptions.OutputKind;
 
             if (!platform.IsValid())
             {
                 platform = Platform.AnyCpu;
             }
 
-            bool requires64bits = platform.Requires64Bit();
+            if (!outputKind.IsValid())
+            {
+                outputKind = OutputKind.DynamicallyLinkedLibrary;
+            }
+
+            bool requires64Bit = platform.Requires64Bit();
+            bool requires32Bit = platform.Requires32Bit();
 
             ushort fileAlignment;
             if (emitOptions.FileAlignment == 0 || !CompilationOptions.IsValidFileAlignment(emitOptions.FileAlignment))
             {
-                fileAlignment = requires64bits
-                    ? ModulePropertiesForSerialization.DefaultFileAlignment64Bit
-                    : ModulePropertiesForSerialization.DefaultFileAlignment32Bit;
+                fileAlignment = requires64Bit
+                    ? Cci.ModulePropertiesForSerialization.DefaultFileAlignment64Bit
+                    : Cci.ModulePropertiesForSerialization.DefaultFileAlignment32Bit;
             }
             else
             {
                 fileAlignment = (ushort)emitOptions.FileAlignment;
             }
 
-            ulong baseAddress = unchecked(emitOptions.BaseAddress + 0x8000) & (requires64bits ? 0xffffffffffff0000 : 0x00000000ffff0000);
+            ulong baseAddress = unchecked(emitOptions.BaseAddress + 0x8000) & (requires64Bit ? 0xffffffffffff0000 : 0x00000000ffff0000);
 
             // cover values smaller than 0x8000, overflow and default value 0):
             if (baseAddress == 0)
             {
-                OutputKind outputKind = compilationOptions.OutputKind;
-
                 if (outputKind == OutputKind.ConsoleApplication ||
                     outputKind == OutputKind.WindowsApplication ||
                     outputKind == OutputKind.WindowsRuntimeApplication)
                 {
-                    baseAddress = (requires64bits) ? ModulePropertiesForSerialization.DefaultExeBaseAddress64Bit : ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit;
+                    baseAddress = (requires64Bit) ? Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress64Bit : Cci.ModulePropertiesForSerialization.DefaultExeBaseAddress32Bit;
                 }
                 else
                 {
-                    baseAddress = (requires64bits) ? ModulePropertiesForSerialization.DefaultDllBaseAddress64Bit : ModulePropertiesForSerialization.DefaultDllBaseAddress32Bit;
+                    baseAddress = (requires64Bit) ? Cci.ModulePropertiesForSerialization.DefaultDllBaseAddress64Bit : Cci.ModulePropertiesForSerialization.DefaultDllBaseAddress32Bit;
                 }
             }
 
-            ulong sizeOfHeapCommit = requires64bits
-                ? ModulePropertiesForSerialization.DefaultSizeOfHeapCommit64Bit
-                : ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit;
+            ulong sizeOfHeapCommit = requires64Bit
+                ? Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit64Bit
+                : Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapCommit32Bit;
 
             // Dev10 always uses the default value for 32bit for sizeOfHeapReserve.
             // check with link -dump -headers <filename>
-            const ulong sizeOfHeapReserve = ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit;
+            const ulong sizeOfHeapReserve = Cci.ModulePropertiesForSerialization.DefaultSizeOfHeapReserve32Bit;
 
-            ulong sizeOfStackReserve = requires64bits
-                ? ModulePropertiesForSerialization.DefaultSizeOfStackReserve64Bit
-                : ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit;
+            ulong sizeOfStackReserve = requires64Bit
+                ? Cci.ModulePropertiesForSerialization.DefaultSizeOfStackReserve64Bit
+                : Cci.ModulePropertiesForSerialization.DefaultSizeOfStackReserve32Bit;
 
-            ulong sizeOfStackCommit = requires64bits
-                ? ModulePropertiesForSerialization.DefaultSizeOfStackCommit64Bit
-                : ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit;
+            ulong sizeOfStackCommit = requires64Bit
+                ? Cci.ModulePropertiesForSerialization.DefaultSizeOfStackCommit64Bit
+                : Cci.ModulePropertiesForSerialization.DefaultSizeOfStackCommit32Bit;
 
-            SubsystemVersion subsystemVer = (emitOptions.SubsystemVersion.Equals(SubsystemVersion.None) || !emitOptions.SubsystemVersion.IsValid)
-                ? SubsystemVersion.Default(compilationOptions.OutputKind.IsValid() ? compilationOptions.OutputKind : OutputKind.DynamicallyLinkedLibrary, platform)
-                : emitOptions.SubsystemVersion;
+            SubsystemVersion subsystemVersion;
+            if (emitOptions.SubsystemVersion.Equals(SubsystemVersion.None) || !emitOptions.SubsystemVersion.IsValid)
+            {
+                subsystemVersion = SubsystemVersion.Default(outputKind, platform);
+            }
+            else
+            {
+                subsystemVersion = emitOptions.SubsystemVersion;
+            }
 
-            return new ModulePropertiesForSerialization(
+            Machine machine;
+            switch (platform)
+            {
+                case Platform.Arm:
+                    machine = Machine.ArmThumb2;
+                    break;
+
+                case Platform.X64:
+                    machine = Machine.Amd64;
+                    break;
+
+                case Platform.Itanium:
+                    machine = Machine.IA64;
+                    break;
+
+                case Platform.X86:
+                    machine = Machine.I386;
+                    break;
+
+                case Platform.AnyCpu:
+                case Platform.AnyCpu32BitPreferred:
+                    machine = Machine.Unknown;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(platform);
+            }
+
+            return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: moduleVersionId,
                 fileAlignment: fileAlignment,
+                sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: targetRuntimeVersion,
-                platform: platform,
+                machine: machine,
+                prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
                 trackDebugData: false,
                 baseAddress: baseAddress,
                 sizeOfHeapReserve: sizeOfHeapReserve,
@@ -1230,11 +1267,80 @@ namespace Microsoft.CodeAnalysis
                 sizeOfStackCommit: sizeOfStackCommit,
                 enableHighEntropyVA: emitOptions.HighEntropyVirtualAddressSpace,
                 strongNameSigned: HasStrongName,
+                imageCharacteristics: GetCharacteristics(outputKind, requires32Bit),
                 configureToExecuteInAppContainer: compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication,
-                subsystemVersion: subsystemVer);
+                subsystem: GetSubsystem(outputKind),
+                majorSubsystemVersion: (ushort)subsystemVersion.Major,
+                minorSubsystemVersion: (ushort)subsystemVersion.Minor,
+                linkerMajorVersion: this.LinkerMajorVersion,
+                linkerMinorVersion: 0);
         }
 
-        #region Emit
+        private static Characteristics GetCharacteristics(OutputKind outputKind, bool requires32Bit)
+        {
+            var characteristics = Characteristics.ExecutableImage;
+
+            if (requires32Bit)
+            {
+                // 32 bit machine (The standard says to always set this, the linker team says otherwise)
+                // The loader team says that this is not used for anything in the OS. 
+                characteristics |= Characteristics.Bit32Machine;
+            }
+            else
+            {
+                // Large address aware (the standard says never to set this, the linker team says otherwise).
+                // The loader team says that this is not overridden for managed binaries and will be respected if set.
+                characteristics |= Characteristics.LargeAddressAware;
+            }
+
+            switch (outputKind)
+            {
+                case OutputKind.WindowsRuntimeMetadata:
+                case OutputKind.DynamicallyLinkedLibrary:
+                case OutputKind.NetModule:
+                    characteristics |= Characteristics.Dll;
+                    break;
+
+                case OutputKind.ConsoleApplication:
+                case OutputKind.WindowsRuntimeApplication:
+                case OutputKind.WindowsApplication:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(outputKind);
+            }
+
+            return characteristics;
+        }
+
+        private static Subsystem GetSubsystem(OutputKind outputKind)
+        {
+            switch (outputKind)
+            {
+                case OutputKind.ConsoleApplication:
+                case OutputKind.DynamicallyLinkedLibrary:
+                case OutputKind.NetModule:
+                case OutputKind.WindowsRuntimeMetadata:
+                    return Subsystem.WindowsCui;
+
+                case OutputKind.WindowsRuntimeApplication:
+                case OutputKind.WindowsApplication:
+                    return Subsystem.WindowsGui;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(outputKind);
+            }
+        }
+
+        /// <summary>
+        /// The value is not used by Windows loader, but the OS appcompat infrastructure uses it to identify apps. 
+        /// It is useful for us to have a mechanism to identify the compiler that produced the binary. 
+        /// This is the appropriate value to use for that. That is what it was invented for. 
+        /// We don't want to have the high bit set for this in case some users perform a signed comparison to 
+        /// determine if the value is less than some version. The C++ linker is at 0x0B. 
+        /// We'll start our numbering at 0x30 for C#, 0x50 for VB.
+        /// </summary>
+        internal abstract byte LinkerMajorVersion { get; }
 
         internal bool HasStrongName
         {
@@ -1583,7 +1689,16 @@ namespace Microsoft.CodeAnalysis
 
             if (diagnostics.HasAnyErrors())
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+            }
+
+            // Do not waste a slot in the submission chain for submissions that contain no executable code
+            // (they may only contain #r directives, usings, etc.)
+            if (IsSubmission && !HasCodeToEmit())
+            {
+                // Still report diagnostics since downstream submissions will assume there are no errors.
+                diagnostics.AddRange(this.GetDiagnostics());
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             var moduleBeingBuilt = this.CreateModuleBuilder(
@@ -1595,7 +1710,7 @@ namespace Microsoft.CodeAnalysis
 
             if (moduleBeingBuilt == null)
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             var win32Resources = win32ResourcesStreamProvider?.GetOrCreateStream(diagnostics);
@@ -1609,7 +1724,7 @@ namespace Microsoft.CodeAnalysis
                 filterOpt: null,
                 cancellationToken: cancellationToken))
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             var hostDiagnostics = getHostDiagnostics?.Invoke() ?? ImmutableArray<Diagnostic>.Empty;
@@ -1617,7 +1732,7 @@ namespace Microsoft.CodeAnalysis
             diagnostics.AddRange(hostDiagnostics);
             if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
             {
-                return ToEmitResultAndFree(diagnostics, success: false);
+                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
             }
 
             bool success = SerializeToPeStream(
@@ -1629,12 +1744,12 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly: options.EmitMetadataOnly,
                 cancellationToken: cancellationToken);
 
-            return ToEmitResultAndFree(diagnostics, success);
+            return ToEmitResultAndFree(diagnostics, success, (IMethodSymbol)moduleBeingBuilt.EntryPoint);
         }
 
-        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
+        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success, IMethodSymbol entryPointOpt)
         {
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+            return new EmitResult(success, diagnostics.ToReadOnlyAndFree(), entryPointOpt);
         }
 
         internal bool SerializeToPeStream(
@@ -1653,21 +1768,57 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag metadataDiagnostics = null;
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
+            Stream portablePdbStream = null;
+            Stream portablePdbTempStream = null;
             Stream peTempStream = null;
 
             bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+            bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
             try
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
 
-                if (pdbStreamProvider != null)
+                if (!emitPortablePdb && pdbStreamProvider != null)
                 {
                     // The calls ISymUnmanagedWriter2.GetDebugInfo require a file name in order to succeed.  This is 
                     // frequently used during PDB writing.  Ensure a name is provided here in the case we were given
                     // only a Stream value.
                     nativePdbWriter = new Cci.PdbWriter(pdbPath, testSymWriterFactory, deterministic);
+                }
+
+                Func<Stream> getPortablePdbStream;
+                if (emitPortablePdb && pdbStreamProvider != null)
+                {
+                    getPortablePdbStream = () =>
+                    {
+                        if (metadataDiagnostics.HasAnyErrors())
+                        {
+                            return null;
+                        }
+
+                        portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                        if (portablePdbStream == null)
+                        {
+                            Debug.Assert(metadataDiagnostics.HasAnyErrors());
+                            return null;
+                        }
+
+                        // When in deterministic mode, we need to seek and read the stream to compute a deterministic PDB ID.
+                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                        var retStream = portablePdbStream;
+                        if (!retStream.CanSeek || deterministic && !retStream.CanRead)
+                        {
+                            retStream = portablePdbTempStream = new MemoryStream();
+                        }
+
+                        return retStream;
+                    };
+                }
+                else
+                {
+                    getPortablePdbStream = null;
                 }
 
                 Func<Stream> getPeStream = () =>
@@ -1711,7 +1862,7 @@ namespace Microsoft.CodeAnalysis
                         retStream = peStream;
                     }
 
-                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                    // When in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
                     // If the underlying stream isn't readable and seekable, we need to use a temp stream.
                     if (!retStream.CanSeek || deterministic && !retStream.CanRead)
                     {
@@ -1728,6 +1879,7 @@ namespace Microsoft.CodeAnalysis
                         new EmitContext((Cci.IModule)moduleBeingBuilt, null, metadataDiagnostics),
                         this.MessageProvider,
                         getPeStream,
+                        getPortablePdbStream,
                         nativePdbWriter,
                         pdbPath,
                         metadataOnly,
@@ -1740,14 +1892,20 @@ namespace Microsoft.CodeAnalysis
                             peTempStream.CopyTo(peStream);
                         }
 
+                        if (portablePdbTempStream != null)
+                        {
+                            portablePdbTempStream.Position = 0;
+                            portablePdbTempStream.CopyTo(portablePdbStream);
+                        }
+
                         if (nativePdbWriter != null)
                         {
-                            var pdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                            Debug.Assert(pdbStream != null || metadataDiagnostics.HasAnyErrors());
+                            var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
+                            Debug.Assert(nativePdbStream != null || metadataDiagnostics.HasAnyErrors());
 
-                            if (pdbStream != null)
+                            if (nativePdbStream != null)
                             {
-                                nativePdbWriter.WriteTo(pdbStream);
+                                nativePdbWriter.WriteTo(nativePdbStream);
                             }
                         }
                     }
@@ -1799,6 +1957,7 @@ namespace Microsoft.CodeAnalysis
             {
                 nativePdbWriter?.Dispose();
                 peTempStream?.Dispose();
+                portablePdbTempStream?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();

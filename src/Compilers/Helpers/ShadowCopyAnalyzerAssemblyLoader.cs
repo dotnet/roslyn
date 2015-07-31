@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
                 Mutex mutex = null;
                 try
                 {
-                    // We only want to try deleting the directory if no one else is currently
+                    // We only want to try deleting the directory if no-one else is currently
                     // using it. That is, if there is no corresponding mutex.
                     if (!Mutex.TryOpenExisting(name, out mutex))
                     {
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods",
             MessageId = "System.Reflection.Assembly.LoadFrom",
             Justification = @"We need to call Assembly.LoadFrom in order to load analyzer assemblies. 
-We can’t use Assembly.Load(AssemblyName) because we need to be able to load assemblies outside of the csc/vbc/vbcscompiler/VS binding paths.
-We can’t use Assembly.Load(byte[]) because VS won’t load resource assemblies for those due to an assembly binding optimization.
+We can't use Assembly.Load(AssemblyName) because we need to be able to load assemblies outside of the csc/vbc/vbcscompiler/VS binding paths.
+We can't use Assembly.Load(byte[]) because VS won't load resource assemblies for those due to an assembly binding optimization.
 That leaves Assembly.LoadFrom(string) as the only option that works everywhere.")]
         protected override Assembly LoadCore(string fullPath)
         {

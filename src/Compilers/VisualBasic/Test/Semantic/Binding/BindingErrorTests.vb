@@ -764,7 +764,7 @@ Class Program
     Shared Sub Main()
         Dim obj As Object = New cls1
         obj.P1 = 42                         ' assignment    (Set)
-        obj.P1()                            ' sideeffect    (Call)
+        obj.P1()                            ' side-effect   (Call)
         Console.WriteLine(obj.P1)           ' value         (Get)
     End Sub
 
@@ -790,7 +790,7 @@ BC35000: Requested operation is not available because the runtime library functi
         obj.P1 = 42                         ' assignment    (Set)
         ~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall' is not defined.
-        obj.P1()                            ' sideeffect    (Call)
+        obj.P1()                            ' side-effect   (Call)
         ~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet' is not defined.
         Console.WriteLine(obj.P1)           ' value         (Get)
@@ -5121,7 +5121,7 @@ BC30333: Value of type 'Integer()' cannot be converted to 'Object()' because 'In
         Public Sub BC30311ERR_WithArray_ParseAndDeclarationErrors()
             'This test is because previously in native command line compiler we would produce errors for both parsing and binding errors,  now 
             ' we won't produce the binding if parsing was not successful from the command line.  However, the diagnostics will display both messages and 
-            ' hence the need for two tests to verify this behaviour.
+            ' hence the need for two tests to verify this behavior.
 
             Dim source =
 <compilation>

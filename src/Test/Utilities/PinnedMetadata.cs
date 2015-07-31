@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {

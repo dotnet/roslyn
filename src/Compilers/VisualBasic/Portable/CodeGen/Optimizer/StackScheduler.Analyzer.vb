@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return prevAsLocal.LocalSymbol Is curAsLocal.LocalSymbol
                 End If
 
-                ' prameters
+                ' parameters
                 Dim prevAsParam = TryCast(prevNode, BoundParameter)
                 Dim curAsParam = TryCast(curNode, BoundParameter)
                 If prevAsParam IsNot Nothing AndAlso curAsParam IsNot Nothing Then
@@ -333,10 +333,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 '      postfix: Seq{var temp, ref operand; operand initializers; *operand = Seq{temp = operand;        ;  (T)(temp + 1);} result: temp}
                 '
                 '  1) temp is used as the result of the sequence (and that is the only reason why it is declared in the outer sequence).
-                '  2) all sideeffects except the last one do not use the temp.
-                '  3) last sideeffect is an indirect assignment of a sequence (and target does not involve the temp).
+                '  2) all side-effects except the last one do not use the temp.
+                '  3) last side-effect is an indirect assignment of a sequence (and target does not involve the temp).
                 '            
-                '  Note that in a case of Sideeffects context, the result value will be ignored and therefore
+                '  Note that in a case of side-effects context, the result value will be ignored and therefore
                 '  all usages of the nested temp will be confined to the nested sequence that is executed at +1 stack.
                 '
                 '  We will detect such case and indicate +1 as the desired stack depth at local accesses.
@@ -420,14 +420,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             '        if (lastSideeffect != null)
             '        {
-            '            // last sideeffect must be an indirect assignment of a sequence.
+            '            // last side-effect must be an indirect assignment of a sequence.
             '            if (lastSideeffect.Kind == BoundKind.AssignmentOperator)
             '            {
             '                var assignment = (BoundAssignmentOperator)lastSideeffect;
             '                if (IsIndirectAssignment(assignment) &&
             '                    assignment.Right.Kind == BoundKind.Sequence)
             '                {
-            '                    // and no other sideeffects should use the variable
+            '                    // and no other side-effects should use the variable
             '                    var localUsedWalker = new LocalUsedWalker(local);
             '                    for (int i = 0; i < sideeffects.Count - 1; i++)
             '                    {

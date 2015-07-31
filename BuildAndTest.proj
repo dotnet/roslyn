@@ -10,8 +10,7 @@
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
        use a 2013 compatible solution. -->
   <PropertyGroup>
-    <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
-    <RoslynSolution Condition="'$(PublicBuild)' == 'true'">$(MSBuildThisFileDirectory)\Src\RoslynLight.sln</RoslynSolution>
+    <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs></RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
@@ -22,8 +21,8 @@
   </PropertyGroup>
 
   <Target Name="RestorePackages">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="RestorePackages">
@@ -50,14 +49,14 @@
   <Target Name="Test">
 
     <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+      <TestAssemblies
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
         Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+      <TestAssemblies
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
@@ -65,8 +64,8 @@
 
     <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
     <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
-      <TestAssemblies 
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)" 
+      <TestAssemblies
+        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
         Exclude="
         Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
         Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;

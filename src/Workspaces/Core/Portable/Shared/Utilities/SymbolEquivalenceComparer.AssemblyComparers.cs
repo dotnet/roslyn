@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
-    partial class SymbolEquivalenceComparer
+    internal partial class SymbolEquivalenceComparer
     {
         private sealed class SimpleNameAssemblyComparer : IEqualityComparer<IAssemblySymbol>
         {

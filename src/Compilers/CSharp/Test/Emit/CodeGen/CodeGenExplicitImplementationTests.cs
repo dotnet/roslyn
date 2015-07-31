@@ -379,7 +379,7 @@ class Test
         }
 
         [Fact]
-        public void TestExplicitImplSigntureMismatches_ParamsAndOptionals()
+        public void TestExplicitImplSignatureMismatches_ParamsAndOptionals()
         {
             // Tests:
             // Replace params with non-params in signature of implemented member (and vice-versa)
@@ -692,7 +692,7 @@ Derived1.Method`2",
             // Tests:
             // Implement I<string> explicitly in base class and I<int> explicitly in derived class –
             // assuming I<string> and I<int> have members with same signature (i.e. members 
-            // that don’t depend on generic-ness of the interface) test which (base / derived class) 
+            // that don't depend on generic-ness of the interface) test which (base / derived class) 
             // members are invoked when calling through each interface
 
             var source = @"
@@ -758,7 +758,7 @@ Derived`2.Method()");
         public void TestExplicitImplementationInBaseGenericType2()
         {
             // Tests:
-            // Variation of TestExplciitImplementationInBaseGenericType with re-implementation
+            // Variation of TestExplicitImplementationInBaseGenericType with re-implementation
 
             var source = @"
 using System;
@@ -936,7 +936,7 @@ I1.P").VerifyDiagnostics(); // No errors
         public void TestExplicitlyImplementInterfaceNestedInGenericType()
         {
             // Tests:
-            // Variation of TestExplciitImplementationInBaseGenericType with re-implementation
+            // Variation of TestExplicitImplementationInBaseGenericType with re-implementation
 
             var source = @"
 class Outer<T>

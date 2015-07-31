@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -179,17 +178,24 @@
     <Compile Include="CodeRefactorings\RemoveStatementCodeAction.vb" />
     <Compile Include="Completion\CompletionProviders\CompletionListTagCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\CompletionUtilities.vb" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\EnumCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\EnumCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\HandlesClauseCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\HandlesClauseCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\ImplementsClauseCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\ImplementsClauseCompletionProvider.vb" />
-    <Compile Include="Completion\CompletionProviders\ImplementsInheritsStatementCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.ItemRules.vb" />
     <Compile Include="Completion\CompletionProviders\PartialTypeCompletionProvider.vb" />
-    <Compile Include="Completion\CompletionProviders\SuggestionModeCompletionProvider.vb" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.vb" />
+    <Compile Include="Completion\SuggestionMode\VisualBasicSuggestionModeCompletionProvider.vb" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.vb" />
     <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.vb" />
     <Compile Include="Completion\KeywordRecommenders\ArrayStatements\EraseKeywordRecommender.vb" />
@@ -429,8 +435,7 @@
   </ItemGroup>
   <Import Project="..\..\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

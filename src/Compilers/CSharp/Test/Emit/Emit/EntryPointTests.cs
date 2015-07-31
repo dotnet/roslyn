@@ -212,7 +212,7 @@ public static int Main = 1;
 System.Console.WriteLine(Main);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -233,7 +233,7 @@ int Main(string[] x) { return 2; }
 System.Console.WriteLine(Main());
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -566,7 +566,7 @@ public class G
 System.Console.WriteLine(1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script) },
                 options: TestOptions.ReleaseExe);
 
@@ -587,7 +587,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -621,7 +621,7 @@ public class D
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateCompilationWithMscorlib45(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -782,7 +782,7 @@ class C
         }
 
         [Fact]
-        public void WRN_InvalidMainSig_MultiDementionalArray()
+        public void WRN_InvalidMainSig_MultiDimensionalArray()
         {
             string source = @"
 class B

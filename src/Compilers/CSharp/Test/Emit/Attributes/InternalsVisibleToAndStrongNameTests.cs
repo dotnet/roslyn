@@ -255,7 +255,7 @@ public class Test
             var other = CreateCompilationWithMscorlib(s,
                 options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider));
             other.VerifyDiagnostics();
-            Assert.True(ByteSequenceComparer.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
+            Assert.True(ByteSequenceComparer.Equals(TestResources.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
         }
 
         [Fact]
@@ -425,7 +425,7 @@ public class C {}
             string source = @"public class C {}";
 
             var c = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.
-                WithCryptoPublicKey(ImmutableArray.Create<byte>(1,2,3)).
+                WithCryptoPublicKey(ImmutableArray.Create<byte>(1, 2, 3)).
                 WithCryptoKeyContainer("roslynTestContainer").
                 WithCryptoKeyFile("file.snk").
                 WithStrongNameProvider(s_defaultProvider));
@@ -861,7 +861,7 @@ public class Z
 {
 }";
 
-                //now that the module checks out, ensure that adding it to a compilation outputing a dll
+                //now that the module checks out, ensure that adding it to a compilation outputting a dll
                 //results in a signed assembly.
                 var assemblyComp = CreateCompilationWithMscorlib(source,
                     new[] { metadata.GetReference() },

@@ -1,12 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports System.Globalization
-Imports System.IO
-Imports System.Linq
-Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
     ''' <summary> 
@@ -15,12 +9,12 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
     Friend NotInheritable Class VisualBasicScriptEngine
         Inherits ScriptEngine
 
-        Public Sub New(Optional metadataReferenceProvider As MetadataFileReferenceProvider = Nothing, Optional assemblyLoader As AssemblyLoader = Nothing)
-            MyBase.New(metadataReferenceProvider, assemblyLoader)
+        Public Sub New(Optional metadataReferenceProvider As MetadataFileReferenceProvider = Nothing)
+            MyBase.New(ScriptOptions.Default.WithReferences(BasicTestBase.LatestReferences), metadataReferenceProvider)
         End Sub
 
-        Friend Overrides Function Create(code As String, options As ScriptOptions, globalsType As Type, returnType As Type) As Script
-            Return VisualBasicScript.Create(code, options).WithGlobalsType(globalsType).WithReturnType(returnType).WithBuilder(Me.Builder)
+        Friend Overrides Function Create(Of T)(code As String, options As ScriptOptions, globalsType As Type) As Script(Of T)
+            Return VisualBasicScript.Create(Of T)(code, options).WithGlobalsType(globalsType).WithBuilder(Me.Builder)
         End Function
     End Class
 End Namespace

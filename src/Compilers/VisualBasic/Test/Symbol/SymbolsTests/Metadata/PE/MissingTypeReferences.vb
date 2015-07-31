@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact, WorkItem(910594, "DevDiv")>
         Public Sub Test1()
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib2)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.General.MDTestLib2)
 
             TestMissingTypeReferencesHelper1(assembly)
 

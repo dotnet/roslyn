@@ -577,11 +577,6 @@ class Program
         // Since the platform type System.FormattableString is not yet in our platforms (at the
         // time of writing), we explicitly include the required platform types into the sources under test.
         private const string formattableString = @"
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
 /*============================================================
 **
 ** Class:  FormattableString
@@ -661,11 +656,6 @@ namespace System
 }
 
 
-// ==++==
-// 
-//   Copyright (c) Microsoft Corporation.  All rights reserved.
-// 
-// ==--==
 /*============================================================
 **
 ** Class:  FormattableStringFactory

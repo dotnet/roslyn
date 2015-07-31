@@ -108,8 +108,8 @@ internal static class PdbToXmlApp
     {
         using (var deltaPdb = new FileStream(pdbPath, FileMode.Open, FileAccess.Read))
         {
-		    // There is no easy way to enumerate all method tokens that are present in the PDB.
-		    // So dump the first 255 method tokens (the ones that are not present will be skipped):
+            // There is no easy way to enumerate all method tokens that are present in the PDB.
+            // So dump the first 255 method tokens (the ones that are not present will be skipped):
             File.WriteAllText(outPath, PdbToXmlConverter.DeltaPdbToXml(deltaPdb, Enumerable.Range(0x06000001, 255)));
         }
     }

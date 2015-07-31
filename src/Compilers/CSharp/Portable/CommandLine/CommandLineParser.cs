@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
 
-        internal static CSharpCommandLineParser Interactive { get; } = new CSharpCommandLineParser(isInteractive: true);
+        public static CSharpCommandLineParser Interactive { get; } = new CSharpCommandLineParser(isInteractive: true);
 
         internal CSharpCommandLineParser(bool isInteractive = false)
             : base(CSharp.MessageProvider.Instance, isInteractive)
         {
         }
 
-        internal override string RegularFileExtension { get { return ".cs"; } }
-        internal override string ScriptFileExtension { get { return ".csx"; } }
+        protected override string RegularFileExtension { get { return ".cs"; } }
+        protected override string ScriptFileExtension { get { return ".csx"; } }
 
         internal sealed override CommandLineArguments CommonParse(IEnumerable<string> args, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories)
         {
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "resource":
                             if (value == null)
                             {
-                                break; // Dev11 reports inrecognized option
+                                break; // Dev11 reports unrecognized option
                             }
 
                             var embeddedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: true);
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "linkresource":
                             if (value == null)
                             {
-                                break; // Dev11 reports inrecognized option
+                                break; // Dev11 reports unrecognized option
                             }
 
                             var linkedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: false);
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "m":
                         case "main":
-                            // Remove any quotes for consistent behaviour as MSBuild can return quoted or 
+                            // Remove any quotes for consistent behavior as MSBuild can return quoted or 
                             // unquoted main.    
                             unquoted = RemoveAllQuotes(value);
                             if (string.IsNullOrEmpty(unquoted))
@@ -1022,12 +1022,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 keyFileSearchPaths.Add(outputDirectory);
             }
 
-            if (!emitPdb)
+            var parsedFeatures = CompilerOptionParseUtilities.ParseFeatures(features);
+
+            var debugInfoFormat = DebugInformationFormat.Pdb;
+            string pdbFormatStr;
+            if (emitPdb && parsedFeatures.TryGetValue("pdb", out pdbFormatStr))
             {
-                if (pdbPath != null)
+                if (pdbFormatStr == "portable")
                 {
-                    // Can't give a PDB file name and turn off debug information
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_MissingDebugSwitch);
+                    debugInfoFormat = DebugInformationFormat.PortablePdb;
+                }
+                else if (pdbFormatStr == "embedded")
+                {
+                    debugInfoFormat = DebugInformationFormat.Embedded;
+                    emitPdb = false;
                 }
             }
 
@@ -1040,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 preprocessorSymbols: defines.ToImmutableAndFree(),
                 documentationMode: parseDocumentationComments ? DocumentationMode.Diagnose : DocumentationMode.None,
                 kind: SourceCodeKind.Regular,
-                features: ParseFeatures(features)
+                features: parsedFeatures
             );
 
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
@@ -1068,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var emitOptions = new EmitOptions
             (
                 metadataOnly: false,
-                debugInformationFormat: DebugInformationFormat.Pdb,
+                debugInformationFormat: debugInfoFormat,
                 pdbFilePath: null, // to be determined later
                 outputNameOverride: null, // to be determined later
                 baseAddress: baseAddress,

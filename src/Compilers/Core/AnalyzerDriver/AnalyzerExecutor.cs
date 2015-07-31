@@ -18,8 +18,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalyzerExecutor
     {
-        private const string AnalyzerExceptionDiagnosticId = "AD0001";
         private const string DiagnosticCategory = "Compiler";
+
+        // internal for testing purposes only.
+        internal const string AnalyzerExceptionDiagnosticId = "AD0001";
 
         private readonly Compilation _compilation;
         private readonly AnalyzerOptions _analyzerOptions;

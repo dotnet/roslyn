@@ -1,15 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -19,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     [ExportLanguageService(typeof(ICompletionService), LanguageNames.CSharp), Shared]
     internal class CSharpCompletionService : AbstractCompletionService
     {
-        private readonly IEnumerable<ICompletionProvider> _defaultCompletionProviders =
-            new ICompletionProvider[]
+        private readonly IEnumerable<CompletionListProvider> _defaultCompletionProviders =
+            new CompletionListProvider[]
             {
                 new AttributeNamedParameterCompletionProvider(),
                 new NamedParameterCompletionProvider(),
@@ -31,14 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new ObjectCreationCompletionProvider(),
                 new ObjectInitializerCompletionProvider(),
                 new SpeculativeTCompletionProvider(),
-                new SuggestionModeCompletionProvider(),
+                new CSharpSuggestionModeCompletionProvider(),
                 new EnumAndCompletionListTagCompletionProvider(),
                 new CrefCompletionProvider(),
                 new SnippetCompletionProvider(),
                 new ExternAliasCompletionProvider(),
             }.ToImmutableArray();
 
-        public override IEnumerable<ICompletionProvider> GetDefaultCompletionProviders()
+        public override IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
         {
             return _defaultCompletionProviders;
         }
@@ -52,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         protected override bool TriggerOnBackspace(SourceText text, int position, CompletionTriggerInfo triggerInfo, OptionSet options)
         {
             return false;
+        }
+
+        public override CompletionRules GetCompletionRules()
+        {
+            return new CSharpCompletionRules(this);
         }
 
         protected override string GetLanguageName()

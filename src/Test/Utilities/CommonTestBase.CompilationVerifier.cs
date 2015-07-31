@@ -202,45 +202,54 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public CompilationVerifier VerifyPdb(
                 XElement expectedPdb,
+                DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
                 string expectedPdb,
+                DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
                 string qualifiedMethodName,
                 string expectedPdb,
+                DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
                 [CallerLineNumber]int expectedValueSourceLine = 0,
                 [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public CompilationVerifier VerifyPdb(
-               string qualifiedMethodName,
-               XElement expectedPdb,
-               [CallerLineNumber]int expectedValueSourceLine = 0,
-               [CallerFilePath]string expectedValueSourcePath = null)
+                string qualifiedMethodName,
+                XElement expectedPdb,
+                DebugInformationFormat format = 0,
+                PdbToXmlOptions options = 0,
+                [CallerLineNumber]int expectedValueSourceLine = 0,
+                [CallerFilePath]string expectedValueSourcePath = null)
             {
-                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, format, options, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 
             public ISymUnmanagedReader CreateSymReader()
             {
-                return new SymReader(new MemoryStream(EmittedAssemblyPdb.ToArray()));
+                var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
+                return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null);
             }
 
             public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, bool useRefEmitter = false)
@@ -257,7 +266,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     var actualPdbXml = PdbToXmlConverter.ToXml(
                         pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
                         peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
-                        options: PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError,
+                        options: PdbToXmlOptions.ResolveTokens | 
+                                 PdbToXmlOptions.ThrowOnError |
+                                 PdbToXmlOptions.ExcludeDocuments |
+                                 PdbToXmlOptions.ExcludeCustomDebugInformation |
+                                 PdbToXmlOptions.ExcludeScopes,
                         methodName: sequencePoints);
 
                     markers = GetMarkers(actualPdbXml);
@@ -268,8 +281,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
                 }
 
-                var module = this.GetModuleSymbolForEmittedImage();
-                return module != null ? _test.VisualizeRealIL(module, methodData, markers) : null;
+                if (_lazyModuleSymbol == null)
+                {
+                    _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
+                }
+
+                return _lazyModuleSymbol != null ? _test.VisualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
             }
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
@@ -286,28 +303,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             public IModuleSymbol GetModuleSymbolForEmittedImage()
             {
-                return GetModuleSymbolForEmittedImage(ref _lazyModuleSymbol, EmittedAssemblyData);
+                return GetModuleSymbolForEmittedImage(EmittedAssemblyData, _compilation.Options.MetadataImportOptions);
             }
 
-            private IModuleSymbol GetModuleSymbolForEmittedImage(ref IModuleSymbol moduleSymbol, ImmutableArray<byte> peImage)
+            private IModuleSymbol GetModuleSymbolForEmittedImage(ImmutableArray<byte> peImage, MetadataImportOptions importOptions)
             {
                 if (peImage.IsDefault)
                 {
                     return null;
                 }
 
-                if (moduleSymbol == null)
-                {
-                    Debug.Assert(!peImage.IsDefault);
-
-                    var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-                    var references = _compilation.References.Concat(new[] { targetReference });
-                    var assemblies = _test.ReferencesToModuleSymbols(references, _compilation.Options.MetadataImportOptions);
-                    var module = assemblies.Last();
-                    moduleSymbol = module;
-                }
-
-                return moduleSymbol;
+                var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+                var references = _compilation.References.Concat(new[] { targetReference });
+                var assemblies = _test.ReferencesToModuleSymbols(references, importOptions);
+                return assemblies.Last();
             }
 
             private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(

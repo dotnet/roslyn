@@ -1,8 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class GlobalKeywordRecommenderTests
 
@@ -141,6 +138,30 @@ End Module
 
 
             VerifyRecommendationsMissing(code, "Global")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub GlobalAfterInherits()
+            Dim code =
+<File>
+Class C
+    Inherits |
+End Class
+</File>
+
+            VerifyRecommendationsContain(code, "Global")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub GlobalAfterImplements()
+            Dim code =
+<File>
+Class C
+    Implements |
+End Class
+</File>
+
+            VerifyRecommendationsContain(code, "Global")
         End Sub
 
     End Class

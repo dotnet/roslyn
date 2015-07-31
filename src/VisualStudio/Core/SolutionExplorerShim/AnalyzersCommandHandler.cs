@@ -155,7 +155,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 return _analyzerContextMenuController;
             }
-
         }
 
         private bool ShouldShowAnalyzerContextMenu(IEnumerable<object> items)

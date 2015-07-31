@@ -9,6 +9,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Scripting;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Services.UnitTests
 {
@@ -16,9 +19,15 @@ namespace Roslyn.Services.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
+                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
+                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+
         public MetadataShadowCopyProviderTests()
         {
-            _provider = new MetadataShadowCopyProvider(TempRoot.Root);
+            _provider = new MetadataShadowCopyProvider(TempRoot.Root, s_systemNoShadowCopyDirectories);
         }
 
         public override void Dispose()
@@ -120,7 +129,7 @@ namespace Roslyn.Services.UnitTests
         {
             // modules: { MultiModule.dll, mod2.netmodule, mod3.netmodule }
             var dir = Temp.CreateDirectory();
-            string path0 = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModule).Path;
+            string path0 = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
             string path1 = dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2).Path;
             string path2 = dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3).Path;
 
@@ -168,7 +177,7 @@ namespace Roslyn.Services.UnitTests
             var modifiedMetadata3 = reference2.GetMetadata() as AssemblyMetadata;
             Assert.NotSame(modifiedMetadata3, metadata2);
 
-            // a new reference is created, again we get the modified image (which is copied to the shadow copy driectory):
+            // a new reference is created, again we get the modified image (which is copied to the shadow copy directory):
             var reference4 = _provider.GetReference(path0);
             Assert.NotNull(reference4);
             Assert.Equal(path0, reference4.FilePath);
@@ -190,7 +199,7 @@ namespace Roslyn.Services.UnitTests
             var r0 = _provider.GetReference(f0);
             Assert.Throws<BadImageFormatException>(() => r0.GetMetadata());
 
-            string f1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModule).Path;
+            string f1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
             var r1 = _provider.GetReference(f1);
             Assert.Throws<FileNotFoundException>(() => r1.GetMetadata());
         }

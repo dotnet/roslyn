@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
@@ -11,14 +11,14 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Completio
 Public Class OverrideCompletionProviderTests
     Inherits AbstractVisualBasicCompletionProviderTests
 
-    Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+    Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
         Return New OverrideCompletionProvider(TestWaitIndicator.Default)
     End Function
 
 #Region "CompletionItem tests"
 
     <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Sub NotOfferedBaseClassMemeber()
+    Public Sub NotOfferedBaseClassMember()
         Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Foo()
 End Class
@@ -1745,8 +1745,9 @@ public class C
             Dim caretPosition = hostDocument.CursorPosition.Value
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
-            Dim group = CompletionProvider.GetGroupAsync(document, caretPosition, triggerInfo).Result
-            Assert.False(group.Items.Any(Function(c) c.DisplayText = "e"))
+
+            Dim completionList = GetCompletionList(document, caretPosition, triggerInfo)
+            Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
         End Using
     End Sub
 End Class

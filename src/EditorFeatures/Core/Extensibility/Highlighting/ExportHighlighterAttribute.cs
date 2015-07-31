@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Language = language;

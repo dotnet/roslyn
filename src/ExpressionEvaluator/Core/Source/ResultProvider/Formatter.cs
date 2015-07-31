@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.Debugger.Metadata;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -39,7 +38,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo typeInfo, ReadOnlyCollection<string> formatSpecifiers)
         {
-            return GetTypeName(new TypeAndCustomInfo(type.GetLmrType(), typeInfo));
+            bool unused;
+            return GetTypeName(new TypeAndCustomInfo(type.GetLmrType(), typeInfo), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused);
         }
 
         bool IDkmClrFormatter.HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)
@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // It seems more natural to ask these questions of the ResultProvider, but adding such a component
         // for these few methods seemed a bit overly elaborate given the current internal usage.
         #region Language-specific syntax helpers
+
+        internal abstract bool IsValidIdentifier(string name);
 
         internal abstract bool IsIdentifierPartCharacter(char c);
 

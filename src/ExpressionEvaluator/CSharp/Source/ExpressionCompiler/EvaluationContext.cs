@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
+                    getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,
@@ -310,33 +311,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             DiagnosticBag diagnostics,
             out ReadOnlyCollection<string> formatSpecifiers)
         {
-            if (treatAsExpression)
+            if (!treatAsExpression)
             {
-                return expr.ParseExpression(diagnostics, allowFormatSpecifiers: true, formatSpecifiers: out formatSpecifiers);
-            }
-            else
-            {
-                // Try to parse as an expression. If that fails, parse as a statement.
-                var exprDiagnostics = DiagnosticBag.GetInstance();
-                ReadOnlyCollection<string> exprFormatSpecifiers;
-                CSharpSyntaxNode syntax = expr.ParseExpression(exprDiagnostics, allowFormatSpecifiers: true, formatSpecifiers: out exprFormatSpecifiers);
-                Debug.Assert((syntax == null) || !exprDiagnostics.HasAnyErrors());
-                exprDiagnostics.Free();
-                if (syntax != null)
+                // Try to parse as a statement. If that fails, parse as an expression.
+                var statementDiagnostics = DiagnosticBag.GetInstance();
+                var statementSyntax = expr.ParseStatement(statementDiagnostics);
+                Debug.Assert((statementSyntax == null) || !statementDiagnostics.HasAnyErrors());
+                statementDiagnostics.Free();
+
+                if (statementSyntax != null && !statementSyntax.IsKind(SyntaxKind.ExpressionStatement)) // Prefer to parse expression statements as expressions.
                 {
-                    Debug.Assert(!diagnostics.HasAnyErrors());
-                    formatSpecifiers = exprFormatSpecifiers;
-                    return syntax;
-                }
-                formatSpecifiers = null;
-                syntax = expr.ParseStatement(diagnostics);
-                if ((syntax != null) && (syntax.Kind() != SyntaxKind.LocalDeclarationStatement))
-                {
+                    formatSpecifiers = null;
+
+                    if (statementSyntax.IsKind(SyntaxKind.LocalDeclarationStatement))
+                    {
+                        return statementSyntax;
+                    }
+
                     diagnostics.Add(ErrorCode.ERR_ExpressionOrDeclarationExpected, Location.None);
                     return null;
                 }
-                return syntax;
             }
+
+            return expr.ParseExpression(diagnostics, allowFormatSpecifiers: true, formatSpecifiers: out formatSpecifiers);
         }
 
         internal override CompileResult CompileAssignment(
@@ -369,6 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                     context.MessageProvider,
                     () => stream,
+                    getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
                     allowMissingMethodBodies: false,
@@ -411,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         new EmitContext((Cci.IModule)moduleBuilder, null, diagnostics),
                         context.MessageProvider,
                         () => stream,
+                        getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         pdbPathOpt: null,
                         allowMissingMethodBodies: false,
@@ -551,16 +550,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        internal override ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic)
+        internal override ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentities(Diagnostic diagnostic, AssemblyIdentity linqLibrary)
         {
-            return GetMissingAssemblyIdentitiesHelper((ErrorCode)diagnostic.Code, diagnostic.Arguments);
+            return GetMissingAssemblyIdentitiesHelper((ErrorCode)diagnostic.Code, diagnostic.Arguments, linqLibrary);
         }
 
         /// <remarks>
         /// Internal for testing.
         /// </remarks>
-        internal static ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentitiesHelper(ErrorCode code, IReadOnlyList<object> arguments)
+        internal static ImmutableArray<AssemblyIdentity> GetMissingAssemblyIdentitiesHelper(ErrorCode code, IReadOnlyList<object> arguments, AssemblyIdentity linqLibrary)
         {
+            Debug.Assert(linqLibrary != null);
+
             switch (code)
             {
                 case ErrorCode.ERR_NoTypeDef:
@@ -598,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // MSDN says these might come from System.Dynamic.Runtime
                 case ErrorCode.ERR_QueryNoProviderStandard:
                 case ErrorCode.ERR_ExtensionAttrNotFound: // Probably can't happen.
-                    return ImmutableArray.Create(SystemCoreIdentity);
+                    return ImmutableArray.Create(linqLibrary);
                 case ErrorCode.ERR_BadAwaitArg_NeedSystem:
                     Debug.Assert(false, "Roslyn no longer produces ERR_BadAwaitArg_NeedSystem");
                     break;

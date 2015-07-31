@@ -894,5 +894,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                    Hash.Combine(Me.SuppressEmbeddedDeclarations,
                    Hash.Combine(Me.ParseOptions, 0))))))))))
         End Function
+
+        Friend Overrides Function FilterDiagnostic(diagnostic As Diagnostic) As Diagnostic
+            Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
+        End Function
     End Class
 End Namespace

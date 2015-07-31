@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private class YieldsInTryAnalysis : LabelCollector
         {
-            // all try blocks with yields in them and complete set of lables inside those trys
-            // NOTE: non-yielding Trys are transparently ignored - i.e. their labels are included
+            // all try blocks with yields in them and complete set of labels inside those try blocks
+            // NOTE: non-yielding try blocks are transparently ignored - i.e. their labels are included
             //       in the label set of the nearest yielding-try parent  
             private Dictionary<BoundTryStatement, HashSet<LabelSymbol>> _labelsInYieldingTrys;
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Returns true if given try or any of its nested trys contain yields
+            /// Returns true if given try or any of its nested try blocks contain yields
             /// </summary>
             public bool ContainsYields(BoundTryStatement statement)
             {
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var origSeenYield = _seenYield;
                 var origLabels = this.currentLabels;
 
-                // sibling Trys do not see each other's yields
+                // sibling try blocks do not see each other's yields
                 _seenYield = false;
                 this.currentLabels = null;
 

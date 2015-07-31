@@ -17,14 +17,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public void AddProject(AbstractProject project)
         {
-            var provider = (IProjectCodeModelProvider)project;
-            var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
-
-            foreach (var fcm in fcms)
+            var provider = project as IProjectCodeModelProvider;
+            if (provider != null)
             {
-                var globalNodeKeys = fcm.Object.GetCurrentNodeKeys();
+                var fcms = provider.ProjectCodeModel.GetCachedFileCodeModelInstances();
 
-                _nodeKeysMap.Add(fcm, globalNodeKeys);
+                foreach (var fcm in fcms)
+                {
+                    var globalNodeKeys = fcm.Object.GetCurrentNodeKeys();
+
+                    _nodeKeysMap.Add(fcm, globalNodeKeys);
+                }
             }
         }
 

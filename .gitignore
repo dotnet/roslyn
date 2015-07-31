@@ -22,6 +22,10 @@ x64/
 [Bb]uild[Ll]og.*
 UnitTestResults.html
 
+# NuGet V3 artifacts
+*lock.json
+*-packages.config
+
 *_i.c
 *_p.c
 *.ilk

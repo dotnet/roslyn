@@ -1933,12 +1933,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' is no most specific narrowing conversion, then the conversion is undefined and a compile-time error occurs.
             ' When collecting the candidate user-defined conversions for a type T?, the user-defined conversion operators
             ' defined by T are used instead. If the type being converted to is also a nullable value type, then any of
-            ' T’s user-defined conversions operators that involve only non-nullable value types are lifted. A conversion
+            ' T's user-defined conversions operators that involve only non-nullable value types are lifted. A conversion
             ' operator from T to S is lifted to be a conversion from T? to S? 
             '
             ' !!! Dev10 implementation doesn't match the spec here (the behavior is duplicated):
             ' !!! 1) If there were applicable Widening CType operators applicable according to the
-            ' !!!    "Most Specific Widening Conversion" section, Narrowing CType opeartors are not considered at all.
+            ' !!!    "Most Specific Widening Conversion" section, Narrowing CType operators are not considered at all.
             ' !!!    Nullable lifting isn't considered too.
             ' !!! 2) With "Most Specific Narrowing Conversion" behavior is slightly different. If there is a conversion
             ' !!!    operator that converts from the most specific source type to the most specific target type, then
@@ -1988,7 +1988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not (sourceUnderlying.IsErrorType() OrElse destinationUnderlying.IsErrorType()) Then
                     ' All candidates applicable to the underlying types should be applicable to the original types, no reason to 
-                    ' do viability checks for the secont time.
+                    ' do viability checks for the second time.
 
                     If DetermineMostSpecificWideningConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteDiagnostics:=useSiteDiagnostics) Then
                         If bestMatch IsNot Nothing Then
@@ -2078,12 +2078,12 @@ Done:
             ' -	The most encompassing type in a set of types is the one type that encompasses
             '   all other types in the set. If no single type encompasses all other types, then
             '   the set has no most encompassing type. In intuitive terms, the most encompassing
-            '   type is the “largest” type in the set—the one type to which each of the other
+            '   type is the "largest" type in the set—the one type to which each of the other
             '   types can be converted through a widening conversion.
             ' -	The most encompassed type in a set of types is the one type that is encompassed
             '   by all other types in the set. If no single type is encompassed by all other types,
             '   then the set has no most encompassed type. In intuitive terms, the most encompassed
-            '   type is the “smallest” type in the set—the one type that can be converted from each
+            '   type is the "smallest" type in the set—the one type that can be converted from each
             '   of the other types through a narrowing conversion.
 
             Dim viableCandidates As Integer = 0
@@ -2338,7 +2338,7 @@ Done:
             End If
 
             ' Ignore user defined conversions between types that already have intrinsic conversions.
-            ' This could happen for generics after generic param substituion.
+            ' This could happen for generics after generic param substitution.
             If Not method.ContainingType.IsDefinition Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnostics)) OrElse
@@ -2419,12 +2419,12 @@ Done:
             ' -	The most encompassing type in a set of types is the one type that encompasses
             '   all other types in the set. If no single type encompasses all other types, then
             '   the set has no most encompassing type. In intuitive terms, the most encompassing
-            '   type is the “largest” type in the set—the one type to which each of the other
+            '   type is the "largest" type in the set—the one type to which each of the other
             '   types can be converted through a widening conversion.
             ' -	The most encompassed type in a set of types is the one type that is encompassed
             '   by all other types in the set. If no single type is encompassed by all other types,
             '   then the set has no most encompassed type. In intuitive terms, the most encompassed
-            '   type is the “smallest” type in the set—the one type that can be converted from each
+            '   type is the "smallest" type in the set—the one type that can be converted from each
             '   of the other types through a narrowing conversion.
 
             Dim haveWideningInConversions As Integer = 0
@@ -2522,8 +2522,8 @@ Done:
                             ' Note that {Narrowing in, Widening (non-identity) out} operator is not considered as an applicable candidate.
                             ' In fact, an operator like this cannot exist unless nullable in/out conversions are involved.
                             ' Basically we would be dealing with an operator that converts from type derived from source to type derived from destination,
-                            ' it would have to be difined in one of those types. When we collect operators we only visit source, destination and their
-                            ' bases. So, in order for such an operator to be found, there must be an inheritense relationship between source and
+                            ' it would have to be defined in one of those types. When we collect operators we only visit source, destination and their
+                            ' bases. So, in order for such an operator to be found, there must be an inheritance relationship between source and
                             ' destination and the operator must be defined in a type that is in between of them in the inheritance hierarchy. Thus,
                             ' there would be an inheritance relationship between parameter type ant return type of the operator, which makes the operator
                             ' inapplicable - there would be a predefined conversion between the types.
@@ -2662,7 +2662,7 @@ Done:
         ''' The most encompassed type in a set of types is the one type that is encompassed
         ''' by all other types in the set. If no single type is encompassed by all other types,
         ''' then the set has no most encompassed type. In intuitive terms, the most encompassed
-        ''' type is the “smallest” type in the set—the one type that can be converted from each
+        ''' type is the "smallest" type in the set—the one type that can be converted from each
         ''' of the other types through a narrowing conversion.
         ''' </summary>
         Private Shared Function MostEncompassed(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
@@ -2707,7 +2707,7 @@ Next_i:
         ''' The most encompassing type in a set of types is the one type that encompasses
         ''' all other types in the set. If no single type encompasses all other types, then
         ''' the set has no most encompassing type. In intuitive terms, the most encompassing
-        ''' type is the “largest” type in the set—the one type to which each of the other
+        ''' type is the "largest" type in the set—the one type to which each of the other
         ''' types can be converted through a widening conversion.
         ''' </summary>
         Private Shared Function MostEncompassing(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol

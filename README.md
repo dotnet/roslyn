@@ -18,33 +18,23 @@ that are used by Visual Studio.
 Just want to provide feedback on new [language features](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14) 
 and [IDE features](http://blogs.msdn.com/b/visualstudio/archive/2014/11/12/the-c-and-visual-basic-code-focused-ide-experience.aspx)? 
 
-* Try out [Visual Studio 2015 RC](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
+* Try out [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
 which has the latest features built-in.
 
-    Want to keep your box clean? You can use 
+* Want to keep your box clean? You can use 
 [prebuilt Azure VM images](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx) 
-with VS 2015 RC already installed.
-
-* Roslyn is no longer available for Visual Studio 2013.
+with VS 2015 already installed.
 
 ### Build tools that understand C# and Visual Basic
 
 Get started building diagnostics, code fixes, refactorings, and other code-aware tools!
 
-Click on the version of Visual Studio you are using for installation instructions.
-
-- [**Visual Studio 2015 RC**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-RC)
-
-- [**Visual Studio 2015 CTP 6**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-6)
-
-- [**Visual Studio 2015 CTP 5**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-CTP-5)
-
-- [**Visual Studio 2015 Preview**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015-Preview)
+- [**Getting Started On Visual Studio 2015**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015)
 
 Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
 From the NuGet package manager console:
 
-    Install-Package Microsoft.CodeAnalysis -Pre
+    Install-Package Microsoft.CodeAnalysis
 
 ### Source code
 

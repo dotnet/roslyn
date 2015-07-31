@@ -2,8 +2,7 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -711,6 +710,7 @@
     <Compile Include="Symbols\Synthesized\SynthesizedStaticConstructor.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedStringHashFunctionSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubmissionConstructor.cs" />
+    <Compile Include="Symbols\Synthesized\SynthesizedInteractiveInitializerMethod.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedSubstitutedTypeParameterSymbol.cs" />
     <Compile Include="Symbols\Synthesized\TypeSubstitutedLocalSymbol.cs" />
     <Compile Include="Symbols\TypedConstantExtensions.cs" />
@@ -898,8 +898,7 @@
   </ItemGroup>
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

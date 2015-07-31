@@ -1540,10 +1540,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return FeaturesResources.Constructor
 
                 Case SyntaxKind.PropertyBlock
+
                     Return FeaturesResources.Property
 
                 Case SyntaxKind.PropertyStatement
-                    Return FeaturesResources.AutoProperty
+                    Return If(node.IsParentKind(SyntaxKind.PropertyBlock),
+                        FeaturesResources.Property,
+                        FeaturesResources.AutoProperty)
 
                 Case SyntaxKind.EventBlock,
                      SyntaxKind.EventStatement
@@ -1699,7 +1702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #End Region
 
-#Region "Top-level Syntaxtic Rude Edits"
+#Region "Top-level Syntatic Rude Edits"
         Private Structure EditClassifier
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
@@ -2591,6 +2594,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     newModifiers = newModifiers.RemoveAt(newAsyncIndex)
                 End If
 
+                ' 'async' keyword is allowed to add, but not to remove
+                If oldAsyncIndex >= 0 AndAlso newAsyncIndex < 0 Then
+                    Return False
+                End If
+
                 Dim oldIteratorIndex = oldModifiers.IndexOf(SyntaxKind.IteratorKeyword)
                 Dim newIteratorIndex = newModifiers.IndexOf(SyntaxKind.IteratorKeyword)
 
@@ -2600,6 +2608,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                 If newIteratorIndex >= 0 Then
                     newModifiers = newModifiers.RemoveAt(newIteratorIndex)
+                End If
+
+                ' 'iterator' keyword is allowed to add, but not to remove
+                If oldIteratorIndex >= 0 AndAlso newIteratorIndex < 0 Then
+                    Return False
                 End If
 
                 Return SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
@@ -2966,14 +2979,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
         End Function
 
-        Protected Overrides Function GetStateMachineSuspensionPoints(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Sub GetStateMachineInfo(body As SyntaxNode, ByRef suspensionPoints As ImmutableArray(Of SyntaxNode), ByRef kind As StateMachineKind)
             ' In VB declaration and body are represented by the same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
-                Return SyntaxUtilities.GetAwaitExpressions(body)
+                suspensionPoints = SyntaxUtilities.GetAwaitExpressions(body)
+                kind = StateMachineKind.Async
+            ElseIf SyntaxUtilities.IsIteratorMethodOrLambda(body) Then
+                suspensionPoints = SyntaxUtilities.GetYieldStatements(body)
+                kind = StateMachineKind.Iterator
             Else
-                Return SyntaxUtilities.GetYieldStatements(body)
+                suspensionPoints = ImmutableArray(Of SyntaxNode).Empty
+                kind = StateMachineKind.None
             End If
-        End Function
+        End Sub
 
         Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As List(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
@@ -3019,7 +3037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Shared Function HasNoSpilledState(awaitExpression As SyntaxNode, containingStatementPart As SyntaxNode) As Boolean
             Debug.Assert(awaitExpression.IsKind(SyntaxKind.AwaitExpression))
 
-            ' There is nothing within the statement part surrouding the await expression.
+            ' There is nothing within the statement part surrounding the await expression.
             If containingStatementPart Is awaitExpression Then
                 Return True
             End If
@@ -3149,6 +3167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
+
 #End Region
     End Class
 End Namespace

@@ -17,8 +17,8 @@ namespace System.Runtime.Analyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
     public class AvoidUnsealedAttributesFixer : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AvoidUnsealedAttributesAnalyzer.RuleId); 
-        
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(AvoidUnsealedAttributesAnalyzer.RuleId);
+
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             DocumentEditor editor = await DocumentEditor.CreateAsync(context.Document, context.CancellationToken).ConfigureAwait(false);

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        throw ExceptionUtilities.UnexpectedValue(declarationSyntax.Parent.Kind());
                 }
             }
             else

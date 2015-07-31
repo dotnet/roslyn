@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' 
                 ' when I tested some typing scenarios in VB compiler, it seems that when this 
                 ' number in 30-50 range the time spent in GetExtensionMethods and EnsureExtensionMethodsAreCollected
-                ' are on the same order. Overal perf is not very sensitive to the threshold. 
+                ' are on the same order. Overall perf is not very sensitive to the threshold. 
                 '
                 ' "=" because we want only one thread to do collecting.
                 If cnt = 40 Then

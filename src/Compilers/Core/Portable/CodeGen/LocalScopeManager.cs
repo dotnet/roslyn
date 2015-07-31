@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     }
                 }
 
-                // not recoreded in scopes, could be a temp
+                // not recorded in scopes, could be a temp
                 // we cannot tell anything.
                 return true;
             }
@@ -542,8 +542,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             private BasicBlock _lastFilterConditionBlock;
 
-            // branches mey become "blocked by finally" if finally does not terminate (throws or contains infinite loop)
-            // we cannot guarantee that the original lable will be emitted (it might be unreachable).
+            // branches may become "blocked by finally" if finally does not terminate (throws or contains infinite loop)
+            // we cannot guarantee that the original label will be emitted (it might be unreachable).
             // on the other hand, it does not matter what blocked branches target as long as it is still blocked by same finally
             // so we provide this "special" block that is located right after finally that any blocked branch can safely target
             // We do guarantee that special block will be emitted as long as something uses it as a target of a branch.
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 return block;
             }
 
-            public ExceptionHandlerLeaderBlock LeaderBlock => (ExceptionHandlerLeaderBlock) Blocks?[0];
+            public ExceptionHandlerLeaderBlock LeaderBlock => (ExceptionHandlerLeaderBlock)Blocks?[0];
 
             private BlockType GetLeaderBlockType()
             {

@@ -6781,7 +6781,7 @@ class MyDerived : MyClass
         }
 
         [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
-        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation01()
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation01()
         {
             var text =
 @"public static class Foo<T>
@@ -6812,7 +6812,7 @@ class MyDerived : MyClass
         }
 
         [Fact, WorkItem(990, "https://github.com/dotnet/roslyn/issues/990")]
-        public void WriteOfReadonlyStaticMemberOfAnotherInstatiation02()
+        public void WriteOfReadonlyStaticMemberOfAnotherInstantiation02()
         {
             var text =
 @"using System;
@@ -8054,7 +8054,7 @@ public class MemberInitializerTest
         }
 
         [Fact]
-        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializerr()
+        public void CS0236ERR_FieldInitRefNonstatic_AnotherInitializer()
         {
             CreateCompilationWithMscorlib(
 @"
@@ -11038,29 +11038,28 @@ class Test
         var v = M(); // CS0815
     }
     static void M() {}
-}", parseOptions: TestOptions.Script).VerifyDiagnostics(
-    // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-    //         var m = Main; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-    // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-    //         var d = s => -1; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-    // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-    //         var e = (string s) => 0; // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
-    // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
-    //         var p = null;//CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-    // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-    //         var del = delegate(string a) { return -1; };// CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
-    // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
-    //         var v = M(); // CS0815
-    Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-    // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-    //         var p = null;//CS0815
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p")
-                );
+}").VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
+                //         var m = Main; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
+                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var d = s => -1; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
+                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                //         var e = (string s) => 0; // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
+                //         var p = null;//CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
+                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
+                //         var del = delegate(string a) { return -1; };// CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
+                //         var v = M(); // CS0815
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
+                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
+                //         var p = null;//CS0815
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p"));
         }
 
         [Fact]
@@ -20957,10 +20956,10 @@ class C
 }
 ";
             CompileAndVerify(source, expectedOutput: "True", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics(
-    // Do not report the following warning:
-    // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
-    //         System.Console.WriteLine(default(string).IsNull());
-    // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
+                // Do not report the following warning:
+                // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
+                //         System.Console.WriteLine(default(string).IsNull());
+                // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
         }
 
@@ -22476,7 +22475,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
-            // queriied via an API (command line compile would exit after parse errors were reported). 
+            // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();

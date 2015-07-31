@@ -169,7 +169,7 @@ namespace N.Foo;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "ro").WithArguments("N.X.ro"));
         }
 
-        // Check that EmitMetadaOnly works
+        // Check that EmitMetadataOnly works
         [Fact]
         public void EmitMetadataOnly()
         {
@@ -1765,7 +1765,7 @@ public sealed class ContentType
 {       
 	public void M(System.Collections.Generic.Dictionary<object, object> p)
 	{   
-		foreach (object paramterKey in p.Keys)
+		foreach (object parameterKey in p.Keys)
 		{
 		}
 	}
@@ -2862,7 +2862,7 @@ class C6
 {
     object F = new { Ab = 5 };
 }";
-            var compilation = CreateCompilationWithMscorlib(source, options:TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {

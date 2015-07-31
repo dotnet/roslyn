@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using Xunit;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using System.Xml;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BuildTasks;
@@ -444,7 +443,7 @@ End Module")
         /// <summary>
         /// This method tests that when a 64-bit compiler server loads a 
         /// 64-bit mscorlib with /platform:x86 enabled no warning about
-        /// emitting a refence to a 64-bit assembly is produced.
+        /// emitting a reference to a 64-bit assembly is produced.
         /// The test should pass on x86 or amd64, but can only fail on
         /// amd64.
         /// </summary>
@@ -521,7 +520,7 @@ class Hello
 
             var result = RunCommandLineCompiler(_csharpCompilerClientExecutable, "hello.cs", _tempDirectory, files);
 
-            // Should output errors, but not create output file.                  
+            // Should output errors, but not create output file.
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
@@ -1298,7 +1297,7 @@ End Class
             using (var resultFile = GetResultFile(_tempDirectory, @"bin\debug\helloproj.exe"))
             {
                 // once we stop issuing BC40998 (NYI), we can start making stronger assertions
-                // about our ouptut in the general case
+                // about our output in the general case
                 if (result.ExitCode != 0)
                 {
                     Assert.Equal("", result.Output);
@@ -1730,8 +1729,8 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AssemblyIdentityComparer1()
         {
-            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(ProprietaryTestResources.NetFX.v2_0_50727.mscorlib);
-            _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(ProprietaryTestResources.NetFX.v4_0_21006.mscorlib);
+            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestResources.NetFX.v2_0_50727.mscorlib);
+            _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(TestResources.NetFX.v4_0_21006.mscorlib);
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =

@@ -10,15 +10,10 @@ namespace Roslyn.Test.MetadataUtilities
 {
     public static class MethodILExtensions
     {
-        public static string GetMethodIL(this ImmutableArray<byte> il)
-        {
-            return il.ToArray().GetMethodIL();
-        }
-
-        public static unsafe string GetMethodIL(this byte[] ilArray)
+        public static unsafe string GetMethodIL(this ImmutableArray<byte> ilArray)
         {
             var result = new StringBuilder();
-            fixed (byte* ilPtr = ilArray)
+            fixed (byte* ilPtr = ilArray.ToArray())
             {
                 int offset = 0;
                 while (true)
@@ -47,7 +42,7 @@ namespace Roslyn.Test.MetadataUtilities
                         ILVisualizerAsTokens.Instance.DumpMethod(
                             result,
                             methodIL.MaxStack,
-                            methodIL.GetILBytes(),
+                            methodIL.GetILContent(),
                             ImmutableArray.Create<ILVisualizer.LocalInfo>(),
                             ImmutableArray.Create<ILVisualizer.HandlerSpan>());
 

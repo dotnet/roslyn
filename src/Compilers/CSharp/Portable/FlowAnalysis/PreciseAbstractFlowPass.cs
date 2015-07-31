@@ -829,8 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     default:
                         // there are no other kinds of labels
-                        Debug.Assert(false);
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
             }
 
@@ -1931,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ReceiverOpt != null)
             {
-                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is condidered to be read.
+                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
                 VisitRvalue(node.ReceiverOpt);
             }
 

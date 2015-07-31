@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -73,10 +72,10 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
@@ -94,6 +93,10 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
+    <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
@@ -148,12 +151,13 @@
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Common\Glyph.cs" />
-    <Compile Include="Completion\AbstractCompletionService.CompletionRules.cs" />
     <Compile Include="Completion\AbstractCompletionService.cs" />
     <Compile Include="Completion\CommonCompletionUtilities.cs" />
     <Compile Include="Completion\CompletionFilterReason.cs" />
     <Compile Include="Completion\CompletionItem.cs" />
-    <Compile Include="Completion\CompletionItemGroup.cs" />
+    <Compile Include="Completion\CompletionItemRules.cs" />
+    <Compile Include="Completion\CompletionList.cs" />
+    <Compile Include="Completion\CompletionListContext.cs" />
     <Compile Include="Completion\CompletionOptions.cs" />
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\CompletionTriggerInfo.cs" />
@@ -166,15 +170,17 @@
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectInitializerCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractSymbolCompletionProvider.cs" />
-    <Compile Include="Completion\Providers\CurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Completion\Providers\FileSystemCompletionHelper.cs" />
-    <Compile Include="Completion\Providers\ICompletionProvider.cs" />
-    <Compile Include="Completion\Providers\ICurrentWorkingDirectoryDiscoveryService.cs" />
+    <Compile Include="Completion\CompletionListProvider.cs" />
     <Compile Include="Completion\Providers\IKeywordRecommender.cs" />
-    <Compile Include="Completion\Providers\IOUtilities.cs" />
-    <Compile Include="Completion\Providers\ITextCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\ISnippetCompletionProvider.cs" />
+    <Compile Include="Completion\Providers\KeywordCompletionItemRules.cs" />
+    <Compile Include="Completion\Providers\ObjectInitializerCompletionItemRules.cs" />
+    <Compile Include="Completion\Providers\AbstractSymbolCompletionItemRules.cs" />
+    <Compile Include="Completion\Providers\TextCompletionListProvider.cs" />
     <Compile Include="Completion\Providers\KeywordCompletionItem.cs" />
     <Compile Include="Completion\Providers\RecommendedKeyword.cs" />
+    <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionItemRules.cs" />
+    <Compile Include="Completion\SuggestionMode\SuggestionModeCompletionProvider.cs" />
     <Compile Include="Diagnostics\AnalyzerDriverResources.cs" />
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
@@ -226,6 +232,7 @@
     <Compile Include="EditAndContinue\EncDebuggingSessionInfo.cs" />
     <Compile Include="EditAndContinue\EncEditSessionInfo.cs" />
     <Compile Include="EditAndContinue\BidirectionalMap.cs" />
+    <Compile Include="EditAndContinue\StateMachineKind.cs" />
     <Compile Include="EditAndContinue\TraceLog.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -248,7 +255,7 @@
     <Compile Include="Shared\Utilities\LinkedFilesSymbolEquivalenceComparer.cs" />
     <Compile Include="Shared\Utilities\SupportedPlatformData.cs" />
     <Compile Include="Completion\Providers\SymbolCompletionItem.cs" />
-    <Compile Include="Completion\Rules\ICompletionRules.cs" />
+    <Compile Include="Completion\CompletionRules.cs" />
     <Compile Include="Diagnostics\EngineV1\AbstractSyntaxNodeAnalyzerService.cs" />
     <Compile Include="Diagnostics\Analyzers\RudeEditUserDiagnosticAnalyzer.cs" />
     <Compile Include="Diagnostics\Analyzers\UnboundIdentifiersDiagnosticAnalyzerBase.cs" />
@@ -411,7 +418,6 @@
     <Compile Include="ImplementInterface\IImplementInterfaceService.cs" />
     <Compile Include="IncrementalCaches\SymbolTreeInfoIncrementalAnalyzerProvider.cs" />
     <Compile Include="IncrementalCaches\SyntaxTreeInfoIncrementalAnalyzerProvider.cs" />
-    <Compile Include="InternalsVisibleTo.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.CodeAction.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.cs" />
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.State.cs" />
@@ -551,10 +557,10 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
-    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
-    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

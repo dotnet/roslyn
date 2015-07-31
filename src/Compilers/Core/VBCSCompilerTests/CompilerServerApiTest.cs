@@ -259,7 +259,7 @@ class Hello
         }
 
         [Fact]
-        public async Task FailedConnectionShoudlCreateFailedConnectionData()
+        public async Task FailedConnectionShouldCreateFailedConnectionData()
         {
             var tcs = new TaskCompletionSource<NamedPipeServerStream>();
             var handler = new Mock<IRequestHandler>(MockBehavior.Strict);

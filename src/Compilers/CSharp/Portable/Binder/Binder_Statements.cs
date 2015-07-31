@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(System.Linq.Enumerable.Contains(result.Syntax.AncestorsAndSelf(), node), @"Bound statement (or one of its parents) 
                                                                             should have same syntax as the given syntax node. 
-                                                                            Otherwise it may be confusung to the binder cache that uses syntax node as keys.");
+                                                                            Otherwise it may be confusing to the binder cache that uses syntax node as keys.");
 
             return result;
         }
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = new BoundExpressionStatement(node, expression);
             }
 
-            CheckForUnobservedAwaitable(expressionStatement, diagnostics);
+            CheckForUnobservedAwaitable(expression, diagnostics);
 
             return expressionStatement;
         }
@@ -441,46 +441,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// The checks here are equivalent to StatementBinder::CheckForUnobservedAwaitable() in the native compiler.
         /// </remarks>
-        private void CheckForUnobservedAwaitable(BoundExpressionStatement expressionStatement, DiagnosticBag diagnostics)
+        private void CheckForUnobservedAwaitable(BoundExpression expression, DiagnosticBag diagnostics)
         {
-            if (expressionStatement == null)
-            {
-                return;
-            }
-
-            BoundExpression expression = expressionStatement.Expression;
-
-            // If we don't have an expression or it doesn't have a type, just bail out
-            // now. Also, the dynamic type is always awaitable in an async method and
-            // could generate a lot of noise if we warned on it. Finally, we only want
-            // to warn on method calls, not other kinds of expressions.
-
-            if (expression == null
-                || expression.Kind != BoundKind.Call
-                || (object)expression.Type == null
-                || expression.Type.IsDynamic()
-                || expression.Type.SpecialType == SpecialType.System_Void)
-            {
-                return;
-            }
-
-            var call = (BoundCall)expression;
-
-            // First check if the target method is async.
-            if ((object)call.Method != null && call.Method.IsAsync)
-            {
-                Error(diagnostics, ErrorCode.WRN_UnobservedAwaitableExpression, expression.Syntax);
-                return;
-            }
-
-            // Then check if the method call returns a WinRT async type.
-            if (ImplementsWinRTAsyncInterface(call.Type))
-            {
-                Error(diagnostics, ErrorCode.WRN_UnobservedAwaitableExpression, expression.Syntax);
-                return;
-            }
-
-            // Finally, if we're in an async method, and the expression could be be awaited, report that it is instead discarded.
             if (CouldBeAwaited(expression))
             {
                 Error(diagnostics, ErrorCode.WRN_UnobservedAwaitableExpression, expression.Syntax);
@@ -1015,8 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (kind)
             {
                 default:
-                    Debug.Assert(false, "bad BindValueKind");
-                    goto case BindValueKind.Assignment;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignment:
                     return ErrorCode.ERR_AssgReadonlyLocal;
@@ -1042,8 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
                 default:
-                    Debug.Assert(false, "bad BindValueKind");
-                    goto case BindValueKind.Assignment;
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -1600,9 +1560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     eventSyntax = syntax;
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected syntax: " + syntax.Kind());
-                    eventSyntax = syntax;
-                    break;
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
 
             BoundEventAccess eventAccess = (BoundEventAccess)expr;
@@ -1965,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
         {
-            return  (member as MethodSymbol)?.MethodKind == (isStatic ?
+            return (member as MethodSymbol)?.MethodKind == (isStatic ?
                                                                 MethodKind.StaticConstructor :
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
@@ -2202,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var delegateType = targetType.GetDelegateType();
 
-            // The target type is a vaid delegate or expression tree type. Is there something wrong with the 
+            // The target type is a valid delegate or expression tree type. Is there something wrong with the 
             // parameter list?
 
             // First off, is there a parameter list at all?
@@ -3199,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Don't mark compiler generated so that the rewriter generates sequence points
                     var expressionStatement = new BoundExpressionStatement(syntax, expression, errors);
 
-                    CheckForUnobservedAwaitable(expressionStatement, diagnostics);
+                    CheckForUnobservedAwaitable(expression, diagnostics);
                     statement = expressionStatement;
                 }
                 else

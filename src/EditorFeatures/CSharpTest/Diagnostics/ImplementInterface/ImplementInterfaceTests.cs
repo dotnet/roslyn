@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public void TestImplementGenericTypeWithGenericMethodWithUnexpressableConstraint()
+        public void TestImplementGenericTypeWithGenericMethodWithUnexpressibleConstraint()
         {
             Test(
 @"interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : T ; } class Class : [|IInterface1 < int >|] { } ",

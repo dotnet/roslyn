@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CompoundAssignmentForDelegate : EmitMetadataTestBase
     {
-        // The method  to removal or concatenation with ‘optional’ parameter
+        // The method to removal or concatenation with 'optional' parameter
         [Fact]
         public void OptionalParaInCompAssignOperator()
         {
@@ -467,9 +467,9 @@ class C
             CompileAndVerify(text, expectedOutput: expectedOutPut);
         }
 
-        // Removal and concatenation woks on both static and instance methods 
+        // Removal and concatenation works on both static and instance methods 
         [Fact]
-        public void RemovebothStaticAndInstanceMethod()
+        public void RemoveBothStaticAndInstanceMethod()
         {
             var text =
 @"

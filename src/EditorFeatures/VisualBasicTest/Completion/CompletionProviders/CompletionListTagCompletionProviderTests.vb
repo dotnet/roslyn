@@ -1,6 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -342,7 +342,33 @@ End Class
             VerifyItemIsAbsent(markup, "e As E")
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotInTrivia()
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub Test()
+        M(Type2.A)
+        ' $$
+    End Sub
+
+    Private Sub M(a As Type1)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+''' <completionlist cref="Type2"/>
+Public Class Type1
+End Class
+
+Public Class Type2
+    Public Shared A As Type1
+    Public Shared B As Type1
+End Class
+]]></Text>.Value
+            VerifyNoItemsExist(markup)
+        End Sub
+
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New CompletionListTagCompletionProvider()
         End Function
     End Class

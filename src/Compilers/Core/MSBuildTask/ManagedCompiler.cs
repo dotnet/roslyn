@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CompilerServer;
@@ -34,26 +35,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Please keep these alphabetized.
         public string[] AdditionalLibPaths
         {
-            set { _store["AdditionalLibPaths"] = value; }
-            get { return (string[])_store["AdditionalLibPaths"]; }
+            set { _store[nameof(AdditionalLibPaths)] = value; }
+            get { return (string[])_store[nameof(AdditionalLibPaths)]; }
         }
 
         public string[] AddModules
         {
-            set { _store["AddModules"] = value; }
-            get { return (string[])_store["AddModules"]; }
+            set { _store[nameof(AddModules)] = value; }
+            get { return (string[])_store[nameof(AddModules)]; }
         }
 
         public ITaskItem[] AdditionalFiles
         {
-            set { _store["AdditionalFiles"] = value; }
-            get { return (ITaskItem[])_store["AdditionalFiles"]; }
+            set { _store[nameof(AdditionalFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(AdditionalFiles)]; }
         }
 
         public ITaskItem[] Analyzers
         {
-            set { _store["Analyzers"] = value; }
-            get { return (ITaskItem[])_store["Analyzers"]; }
+            set { _store[nameof(Analyzers)] = value; }
+            get { return (ITaskItem[])_store[nameof(Analyzers)]; }
         }
 
         // We do not support BugReport because it always requires user interaction,
@@ -61,38 +62,38 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public string CodeAnalysisRuleSet
         {
-            set { _store["CodeAnalysisRuleSet"] = value; }
-            get { return (string)_store["CodeAnalysisRuleSet"]; }
+            set { _store[nameof(CodeAnalysisRuleSet)] = value; }
+            get { return (string)_store[nameof(CodeAnalysisRuleSet)]; }
         }
 
         public int CodePage
         {
-            set { _store["CodePage"] = value; }
-            get { return _store.GetOrDefault("CodePage", 0); }
+            set { _store[nameof(CodePage)] = value; }
+            get { return _store.GetOrDefault(nameof(CodePage), 0); }
         }
 
         public string DebugType
         {
-            set { _store["DebugType"] = value; }
-            get { return (string)_store["DebugType"]; }
+            set { _store[nameof(DebugType)] = value; }
+            get { return (string)_store[nameof(DebugType)]; }
         }
 
         public string DefineConstants
         {
-            set { _store["DefineConstants"] = value; }
-            get { return (string)_store["DefineConstants"]; }
+            set { _store[nameof(DefineConstants)] = value; }
+            get { return (string)_store[nameof(DefineConstants)]; }
         }
 
         public bool DelaySign
         {
-            set { _store["DelaySign"] = value; }
-            get { return _store.GetOrDefault("DelaySign", false); }
+            set { _store[nameof(DelaySign)] = value; }
+            get { return _store.GetOrDefault(nameof(DelaySign), false); }
         }
 
         public bool EmitDebugInformation
         {
-            set { _store["EmitDebugInformation"] = value; }
-            get { return _store.GetOrDefault("EmitDebugInformation", false); }
+            set { _store[nameof(EmitDebugInformation)] = value; }
+            get { return _store.GetOrDefault(nameof(EmitDebugInformation), false); }
         }
 
         public string ErrorLog
@@ -101,89 +102,95 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(ErrorLog)]; }
         }
 
+        public string Features
+        {
+            set { _store[nameof(Features)] = value; }
+            get { return (string)_store[nameof(Features)]; }
+        }
+
         public int FileAlignment
         {
-            set { _store["FileAlignment"] = value; }
-            get { return _store.GetOrDefault("FileAlignment", 0); }
+            set { _store[nameof(FileAlignment)] = value; }
+            get { return _store.GetOrDefault(nameof(FileAlignment), 0); }
         }
 
         public bool HighEntropyVA
         {
-            set { _store["HighEntropyVA"] = value; }
-            get { return _store.GetOrDefault("HighEntropyVA", false); }
+            set { _store[nameof(HighEntropyVA)] = value; }
+            get { return _store.GetOrDefault(nameof(HighEntropyVA), false); }
         }
 
         public string KeyContainer
         {
-            set { _store["KeyContainer"] = value; }
-            get { return (string)_store["KeyContainer"]; }
+            set { _store[nameof(KeyContainer)] = value; }
+            get { return (string)_store[nameof(KeyContainer)]; }
         }
 
         public string KeyFile
         {
-            set { _store["KeyFile"] = value; }
-            get { return (string)_store["KeyFile"]; }
+            set { _store[nameof(KeyFile)] = value; }
+            get { return (string)_store[nameof(KeyFile)]; }
         }
 
         public ITaskItem[] LinkResources
         {
-            set { _store["LinkResources"] = value; }
-            get { return (ITaskItem[])_store["LinkResources"]; }
+            set { _store[nameof(LinkResources)] = value; }
+            get { return (ITaskItem[])_store[nameof(LinkResources)]; }
         }
 
         public string MainEntryPoint
         {
-            set { _store["MainEntryPoint"] = value; }
-            get { return (string)_store["MainEntryPoint"]; }
+            set { _store[nameof(MainEntryPoint)] = value; }
+            get { return (string)_store[nameof(MainEntryPoint)]; }
         }
 
         public bool NoConfig
         {
-            set { _store["NoConfig"] = value; }
-            get { return _store.GetOrDefault("NoConfig", false); }
+            set { _store[nameof(NoConfig)] = value; }
+            get { return _store.GetOrDefault(nameof(NoConfig), false); }
         }
 
         public bool NoLogo
         {
-            set { _store["NoLogo"] = value; }
-            get { return _store.GetOrDefault("NoLogo", false); }
+            set { _store[nameof(NoLogo)] = value; }
+            get { return _store.GetOrDefault(nameof(NoLogo), false); }
         }
 
         public bool NoWin32Manifest
         {
-            set { _store["NoWin32Manifest"] = value; }
-            get { return _store.GetOrDefault("NoWin32Manifest", false); }
+            set { _store[nameof(NoWin32Manifest)] = value; }
+            get { return _store.GetOrDefault(nameof(NoWin32Manifest), false); }
         }
 
         public bool Optimize
         {
-            set { _store["Optimize"] = value; }
-            get { return _store.GetOrDefault("Optimize", false); }
+            set { _store[nameof(Optimize)] = value; }
+            get { return _store.GetOrDefault(nameof(Optimize), false); }
         }
 
         [Output]
         public ITaskItem OutputAssembly
         {
-            set { _store["OutputAssembly"] = value; }
-            get { return (ITaskItem)_store["OutputAssembly"]; }
+            set { _store[nameof(OutputAssembly)] = value; }
+            get { return (ITaskItem)_store[nameof(OutputAssembly)]; }
         }
 
         public string Platform
         {
-            set { _store["Platform"] = value; }
-            get { return (string)_store["Platform"]; }
+            set { _store[nameof(Platform)] = value; }
+            get { return (string)_store[nameof(Platform)]; }
         }
 
         public bool Prefer32Bit
         {
-            set { _store["Prefer32Bit"] = value; }
-            get { return _store.GetOrDefault("Prefer32Bit", false); }
+            set { _store[nameof(Prefer32Bit)] = value; }
+            get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
         public ITaskItem[] References
         {
-            set { _store["References"] = value; }
-            get { return (ITaskItem[])_store["References"]; }
+            set { _store[nameof(References)] = value; }
+            get { return (ITaskItem[])_store[nameof(References)]; }
         }
 
         public bool ReportAnalyzer
@@ -194,14 +201,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public ITaskItem[] Resources
         {
-            set { _store["Resources"] = value; }
-            get { return (ITaskItem[])_store["Resources"]; }
+            set { _store[nameof(Resources)] = value; }
+            get { return (ITaskItem[])_store[nameof(Resources)]; }
         }
 
         public ITaskItem[] ResponseFiles
         {
-            set { _store["ResponseFiles"] = value; }
-            get { return (ITaskItem[])_store["ResponseFiles"]; }
+            set { _store[nameof(ResponseFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
         }
 
         public ITaskItem[] Sources
@@ -213,51 +220,51 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     NormalizePaths(value);
                 }
 
-                _store["Sources"] = value;
+                _store[nameof(Sources)] = value;
             }
-            get { return (ITaskItem[])_store["Sources"]; }
+            get { return (ITaskItem[])_store[nameof(Sources)]; }
         }
 
         public string SubsystemVersion
         {
-            set { _store["SubsystemVersion"] = value; }
-            get { return (string)_store["SubsystemVersion"]; }
+            set { _store[nameof(SubsystemVersion)] = value; }
+            get { return (string)_store[nameof(SubsystemVersion)]; }
         }
 
         public string TargetType
         {
-            set { _store["TargetType"] = value.ToLower(CultureInfo.InvariantCulture); }
-            get { return (string)_store["TargetType"]; }
+            set { _store[nameof(TargetType)] = value.ToLower(CultureInfo.InvariantCulture); }
+            get { return (string)_store[nameof(TargetType)]; }
         }
 
         public bool TreatWarningsAsErrors
         {
-            set { _store["TreatWarningsAsErrors"] = value; }
-            get { return _store.GetOrDefault("TreatWarningsAsErrors", false); }
+            set { _store[nameof(TreatWarningsAsErrors)] = value; }
+            get { return _store.GetOrDefault(nameof(TreatWarningsAsErrors), false); }
         }
 
         public bool Utf8Output
         {
-            set { _store["Utf8Output"] = value; }
-            get { return _store.GetOrDefault("Utf8Output", false); }
+            set { _store[nameof(Utf8Output)] = value; }
+            get { return _store.GetOrDefault(nameof(Utf8Output), false); }
         }
 
         public string Win32Icon
         {
-            set { _store["Win32Icon"] = value; }
-            get { return (string)_store["Win32Icon"]; }
+            set { _store[nameof(Win32Icon)] = value; }
+            get { return (string)_store[nameof(Win32Icon)]; }
         }
 
         public string Win32Manifest
         {
-            set { _store["Win32Manifest"] = value; }
-            get { return (string)_store["Win32Manifest"]; }
+            set { _store[nameof(Win32Manifest)] = value; }
+            get { return (string)_store[nameof(Win32Manifest)]; }
         }
 
         public string Win32Resource
         {
-            set { _store["Win32Resource"] = value; }
-            get { return (string)_store["Win32Resource"]; }
+            set { _store[nameof(Win32Resource)] = value; }
+            get { return (string)_store[nameof(Win32Resource)]; }
         }
 
         /// <summary>
@@ -328,7 +335,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     if (response != null)
                     {
                         ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
-                }
+                    }
                     else
                     {
                         ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
@@ -362,7 +369,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return null;
 
             var uri = new Uri(assembly.CodeBase);
-            string assemblyPath = uri.IsFile 
+            string assemblyPath = uri.IsFile
                 ? uri.LocalPath
                 : Assembly.GetCallingAssembly().Location;
             return Path.GetDirectoryName(assemblyPath);
@@ -436,16 +443,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+                    LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
 
-                if (LogStandardErrorAsError)
-                {
-                    LogErrorOutput(completedResponse.ErrorOutput);
-                }
-                else
-                {
-                    LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
-                }
+                    if (LogStandardErrorAsError)
+                    {
+                        LogErrorOutput(completedResponse.ErrorOutput);
+                    }
+                    else
+                    {
+                        LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                    }
 
                     return completedResponse.ReturnCode;
 
@@ -479,6 +486,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </remarks>
         internal abstract void LogMessages(string output, MessageImportance messageImportance);
 
+        public string GenerateResponseFileContents()
+        {
+            return GenerateResponseFileCommands();
+        }
+
         /// <summary>
         /// Get the command line arguments to pass to the compiler.
         /// </summary>
@@ -499,7 +511,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Will only be called if the task returned a non empty string from GetResponseFileCommands
         /// Called after ValidateParameters, SkipTaskExecution and GetResponseFileCommands
         /// </summary>
-        override protected string GenerateResponseFileCommands()
+        protected override string GenerateResponseFileCommands()
         {
             CommandLineBuilderExtension commandLineBuilder = new CommandLineBuilderExtension();
             AddResponseFileCommands(commandLineBuilder);
@@ -594,14 +606,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/win32icon:", this.Win32Icon);
             commandLine.AppendSwitchIfNotNull("/win32manifest:", this.Win32Manifest);
 
-            // Append the analyzers.
+            this.AddFeatures(commandLine);
             this.AddAnalyzersToCommandLine(commandLine);
-
-            // Append additional files.
             this.AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
             commandLine.AppendFileNamesIfNotNull(Sources, " ");
+        }
+
+        /// <summary>
+        /// Adds a "/features:" switch to the command line for each provided feature.
+        /// </summary>
+        /// <param name="commandLine"></param>
+        private void AddFeatures(CommandLineBuilderExtension commandLine)
+        {
+            var features = Features;
+            if (string.IsNullOrEmpty(features))
+            {
+                return;
+            }
+
+            foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
+            { 
+                commandLine.AppendSwitchIfNotNull("/features:", feature.Trim());
+            }
         }
 
         /// <summary>
@@ -641,7 +669,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// Configure the debug switches which will be placed on the compiler commandline.
+        /// Configure the debug switches which will be placed on the compiler command-line.
         /// The matrix of debug type and symbol inputs and the desired results is as follows:
         /// 
         /// Debug Symbols              DebugType   Desired Results

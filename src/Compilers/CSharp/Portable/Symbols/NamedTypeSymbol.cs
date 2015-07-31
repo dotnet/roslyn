@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// For delegate types, gets the delegate's invoke method.  Returns null on
-        /// all other kinds of types.  Note that is is possible to have an ill-formed
+        /// all other kinds of types.  Note that it is possible to have an ill-formed
         /// delegate type imported from metadata which does not have an Invoke method.
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
@@ -414,6 +414,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
+        }
+
+        internal bool IsSubmissionClass
+        {
+            get
+            {
+                return TypeKind == TypeKind.Submission;
+            }
+        }
+
+        internal SynthesizedInstanceConstructor GetScriptConstructor()
+        {
+            Debug.Assert(IsScriptClass);
+            return (SynthesizedInstanceConstructor)InstanceConstructors.Single();
+        }
+
+        internal SynthesizedInteractiveInitializerMethod GetScriptInitializer()
+        {
+            Debug.Assert(IsScriptClass);
+            return (SynthesizedInteractiveInitializerMethod)GetMembers(SynthesizedInteractiveInitializerMethod.InitializerName).Single();
+        }
+
+        internal SynthesizedEntryPointSymbol GetScriptEntryPoint()
+        {
+            Debug.Assert(IsScriptClass);
+            var name = (TypeKind == TypeKind.Submission) ? SynthesizedEntryPointSymbol.FactoryName : SynthesizedEntryPointSymbol.MainName;
+            return (SynthesizedEntryPointSymbol)GetMembers(name).Single();
         }
 
         /// <summary>

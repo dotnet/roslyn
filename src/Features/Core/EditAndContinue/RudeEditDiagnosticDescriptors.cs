@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.CapturingVariable,                         FeaturesResources.CapturingVariable) },
             { GetDescriptorPair(RudeEditKind.NotCapturingVariable,                      FeaturesResources.NotCapturingVariable) },
             { GetDescriptorPair(RudeEditKind.DeletingCapturedVariable,                  FeaturesResources.DeletingCapturedVariable) },
-            { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableType,              FeaturesResources.ChangingCapturedVariableType) },            
+            { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableType,              FeaturesResources.ChangingCapturedVariableType) },
             { GetDescriptorPair(RudeEditKind.ChangingCapturedVariableScope,             FeaturesResources.ChangingCapturedVariableScope) },
             { GetDescriptorPair(RudeEditKind.ChangingLambdaParameters,                  FeaturesResources.ChangingLambdaParameters) },
             { GetDescriptorPair(RudeEditKind.ChangingLambdaReturnType,                  FeaturesResources.ChangingLambdaReturnType) },
@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             { GetDescriptorPair(RudeEditKind.PartiallyExecutedActiveStatementUpdate,    FeaturesResources.UpdatingAnActiveStatement) },
             { GetDescriptorPair(RudeEditKind.PartiallyExecutedActiveStatementDelete,    FeaturesResources.AnActiveStatementHasBeenRemoved) },
             { GetDescriptorPair(RudeEditKind.InsertFile,                                FeaturesResources.AddingANewFile) },
+            { GetDescriptorPair(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, FeaturesResources.UpdatingStateMachineMethodAroundActive) },
 
             { GetDescriptorPair(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION,        FeaturesResources.ModifyingAWhichContainsComplexQuery) },
 

@@ -162,9 +162,9 @@ namespace RunTests
                 errorOutput = string.Format("Command: {0} {1}", _xunitConsolePath, builder.ToString())
                     + Environment.NewLine
                     + errorOutput;
-                    
+
                 // If the results are html, use Process.Start to open in the browser.
-                
+
                 if (_useHtml && !noResultsData)
                 {
                     Process.Start(resultsPath);

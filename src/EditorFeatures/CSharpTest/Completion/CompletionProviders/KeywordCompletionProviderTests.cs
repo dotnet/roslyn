@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Roslyn.Test.Utilities;
@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 {
     public class KeywordCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new KeywordCompletionProvider();
         }
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsCommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            VerifyCommonCommitCharacters("$$", textTypedSoFar: "");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("int", "int", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("int", "int", sendThroughEnterEnabled: true, expected: true);
+            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "class", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

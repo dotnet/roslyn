@@ -7,74 +7,12 @@ using System.Diagnostics;
 using System.Reflection;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
+using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {
-    /// <summary>
-    /// Target CPU types.
-    /// </summary>
-    internal enum Machine : ushort
-    {
-        // TODO: Should consider unifying this enum with MetadataReader.PEFileFlags.Machine !!!
-
-        /// <summary>
-        /// The target CPU is unknown or not specified.
-        /// </summary>
-        Unknown = 0x0000,
-        /// <summary>
-        /// Intel 386.
-        /// </summary>
-        I386 = 0x014C,
-        /// <summary>
-        /// ARM Thumb-2 little-endian.
-        /// </summary>
-        ARMThumb2 = 0x01c4,
-        /// <summary>
-        /// Intel 64
-        /// </summary>
-        IA64 = 0x0200,
-        /// <summary>
-        /// AMD64 (K8)
-        /// </summary>
-        AMD64 = 0x8664,
-    }
-
-    /// <summary>
-    /// The kind of metadata stored in the module. For example whether the module is an executable or a manifest resource file.
-    /// </summary>
-    internal enum ModuleKind
-    {
-        /// <summary>
-        /// The module is an executable with an entry point and has a console.
-        /// </summary>
-        ConsoleApplication,
-
-        /// <summary>
-        /// The module is an executable with an entry point and does not have a console.
-        /// </summary>
-        WindowsApplication,
-
-        /// <summary>
-        /// The module is a library of executable code that is dynamically linked into an application and called via the application.
-        /// </summary>
-        DynamicallyLinkedLibrary,
-
-        /// <summary>
-        /// The module is a .winmdobj file.
-        /// </summary>
-        WindowsRuntimeMetadata,
-
-        /// <summary>
-        /// The module contains no executable code. Its contents is a resource stream for the modules that reference it.
-        /// </summary>
-        ManifestResourceFile,
-
-        /// <summary>
-        /// The module is a library of executable code but contains no .NET metadata and is specific to a processor instruction set.
-        /// </summary>
-        UnmanagedDynamicallyLinkedLibrary
-    }
-
     /// <summary>
     /// Represents a .NET assembly.
     /// </summary>
@@ -83,7 +21,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of the files that constitute the assembly. These are not the source language files that may have been
         /// used to compile the assembly, but the files that contain constituent modules of a multi-module assembly as well
-        /// as any external resources. It corresonds to the File table of the .NET assembly file format.
+        /// as any external resources. It corresponds to the File table of the .NET assembly file format.
         /// </summary>
         IEnumerable<IFileReference> GetFiles(EmitContext context);
 
@@ -148,6 +86,8 @@ namespace Microsoft.Cci
     /// </summary>
     internal interface IModule : IUnit, IModuleReference
     {
+        ModulePropertiesForSerialization Properties { get; }
+
         /// <summary>
         /// Used to distinguish which style to pick while writing native PDB information.
         /// </summary>
@@ -195,23 +135,9 @@ namespace Microsoft.Cci
         IAssemblyReference GetCorLibrary(EmitContext context);
 
         /// <summary>
-        /// The preferred memory address at which the module is to be loaded at runtime.
-        /// </summary>
-        ulong BaseAddress
-        {
-            get;
-            // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
-        }
-
-        /// <summary>
         /// The Assembly that contains this module. If this module is main module then this returns this.
         /// </summary>
         new IAssembly GetContainingAssembly(EmitContext context);
-
-        /// <summary>
-        /// Flags that control the behavior of the target operating system. CLI implementations are supposed to ignore this, but some operating system pay attention.
-        /// </summary>
-        ushort DllCharacteristics { get; }
 
         /// <summary>
         /// The method that will be called to start execution of this executable module. 
@@ -221,11 +147,6 @@ namespace Microsoft.Cci
             get;
             // ^ requires this.Kind == ModuleKind.ConsoleApplication || this.Kind == ModuleKind.WindowsApplication;
         }
-
-        /// <summary>
-        /// The alignment of sections in the module's image file.
-        /// </summary>
-        uint FileAlignment { get; }
 
         /// <summary>
         /// Returns zero or more strings used in the module. If the module is produced by reading in a CLR PE file, then this will be the contents
@@ -241,39 +162,9 @@ namespace Microsoft.Cci
         IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
 
         /// <summary>
-        /// True if the module contains only IL and is processor independent.
-        /// </summary>
-        bool ILOnly { get; }
-
-        /// <summary>
         /// The kind of metadata stored in this module. For example whether this module is an executable or a manifest resource file.
         /// </summary>
-        ModuleKind Kind { get; }
-
-        /// <summary>
-        /// The first part of a two part version number indicating the version of the linker that produced this module. For example, the 8 in 8.0.
-        /// </summary>
-        byte LinkerMajorVersion { get; }
-
-        /// <summary>
-        /// The first part of a two part version number indicating the version of the linker that produced this module. For example, the 0 in 8.0.
-        /// </summary>
-        byte LinkerMinorVersion { get; }
-
-        /// <summary>
-        /// Specifies the target CPU. 
-        /// </summary>
-        Machine Machine { get; }
-
-        /// <summary>
-        /// The first part of a two part version number indicating the version of the format used to persist this module. For example, the 1 in 1.0.
-        /// </summary>
-        byte MetadataFormatMajorVersion { get; }
-
-        /// <summary>
-        /// The second part of a two part version number indicating the version of the format used to persist this module. For example, the 0 in 1.0.
-        /// </summary>
-        byte MetadataFormatMinorVersion { get; }
+        OutputKind Kind { get; }
 
         /// <summary>
         /// A list of objects representing persisted instances of types that extend System.Attribute. Provides an extensible way to associate metadata
@@ -290,89 +181,6 @@ namespace Microsoft.Cci
         /// A list of the modules that are referenced by this module.
         /// </summary>
         IEnumerable<IModuleReference> ModuleReferences { get; }
-
-        /// <summary>
-        /// A globally unique persistent identifier for this module.
-        /// </summary>
-        Guid PersistentIdentifier { get; }
-
-        bool StrongNameSigned { get; }
-
-        /// <summary>
-        /// If set, the module contains instructions or assumptions that are specific to the AMD 64 bit instruction set. Setting this flag to
-        /// true also sets Requires64bits to true.
-        /// </summary>
-        bool RequiresAmdInstructionSet { get; }
-
-        /// <summary>
-        /// If set, the module must include a machine code stub that transfers control to the virtual execution system.
-        /// </summary>
-        bool RequiresStartupStub { get; }
-
-        /// <summary>
-        /// If set, the module contains instructions that assume a 32 bit instruction set. For example it may depend on an address being 32 bits.
-        /// This may be true even if the module contains only IL instructions because of PlatformInvoke and COM interop.
-        /// </summary>
-        bool Requires32bits { get; }
-
-        /// <summary>
-        /// True if the module contains only IL and is processor independent. Should there be a choice between launching as a 64-bit or 32-bit
-        /// process, this setting will cause the host to launch it as a 32-bit process. 
-        /// </summary>
-        bool Prefers32bits { get; }
-
-        /// <summary>
-        /// If set, the module contains instructions that assume a 64 bit instruction set. For example it may depend on an address being 64 bits.
-        /// This may be true even if the module contains only IL instructions because of PlatformInvoke and COM interop.
-        /// </summary>
-        bool Requires64bits { get; }
-
-        /// <summary>
-        /// The size of the virtual memory initially committed for the initial process heap.
-        /// </summary>
-        ulong SizeOfHeapCommit
-        {
-            get;
-            // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
-        }
-
-        /// <summary>
-        /// The size of the virtual memory to reserve for the initial process heap.
-        /// </summary>
-        ulong SizeOfHeapReserve
-        {
-            get;
-            // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
-        }
-
-        /// <summary>
-        /// The size of the virtual memory initially committed for the initial thread's stack.
-        /// </summary>
-        ulong SizeOfStackCommit
-        {
-            get;
-            // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
-        }
-
-        /// <summary>
-        /// The size of the virtual memory to reserve for the initial thread's stack.
-        /// </summary>
-        ulong SizeOfStackReserve
-        {
-            get;
-            // ^ ensures result > uint.MaxValue ==> this.Requires64bits;
-        }
-
-        /// <summary>
-        /// Identifies the version of the CLR that is required to load this module or assembly.
-        /// </summary>
-        string TargetRuntimeVersion { get; }
-
-        /// <summary>
-        /// True if the instructions in this module must be compiled in such a way that the debugging experience is not compromised.
-        /// To set the value of this property, add an instance of System.Diagnostics.DebuggableAttribute to the MetadataAttributes list.
-        /// </summary>
-        bool TrackDebugData { get; }
 
         /// <summary>
         /// A list of named byte sequences persisted with the module and used during execution, typically via the Win32 API.
@@ -420,9 +228,6 @@ namespace Microsoft.Cci
         /// Default namespace (VB only).
         /// </summary>
         string DefaultNamespace { get; }
-
-        ushort MajorSubsystemVersion { get; }
-        ushort MinorSubsystemVersion { get; }
 
         // An approximate number of method definitions that can
         // provide a basis for approximating the capacities of

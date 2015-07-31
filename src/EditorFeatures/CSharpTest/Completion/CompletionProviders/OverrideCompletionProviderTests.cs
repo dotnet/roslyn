@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new OverrideCompletionProvider(TestWaitIndicator.Default);
         }
@@ -527,7 +526,7 @@ class SomeClass : Derived
 
         [WorkItem(543748)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void NotOfferedBaseClassMemeber()
+        public void NotOfferedBaseClassMember()
         {
             var markup = @"abstract class Base
 {
@@ -2124,20 +2123,19 @@ End Class
 
             using (var testWorkspace = TestWorkspaceFactory.CreateWorkspace(xmlString))
             {
-                int cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
+                var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                DocumentId docId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
-                Document doc = solution.GetDocument(docId);
+                var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
+                var document = solution.GetDocument(documentId);
+                var triggerInfo = new CompletionTriggerInfo();
 
-                CompletionTriggerInfo completionTriggerInfo = new CompletionTriggerInfo();
-                var completions = CompletionProvider.GetGroupAsync(doc, cursorPosition, completionTriggerInfo).Result;
-
-                var completionItem = completions.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
-                    var textView = testWorkspace.GetTestDocument(docId).GetTextView();
+                    var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2384,20 +2382,19 @@ int bar;
 
             using (var testWorkspace = TestWorkspaceFactory.CreateWorkspace(xmlString))
             {
-                int cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
+                var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                DocumentId docId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
-                Document doc = solution.GetDocument(docId);
+                var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
+                var document = solution.GetDocument(documentId);
+                var triggerInfo = new CompletionTriggerInfo();
 
-                CompletionTriggerInfo completionTriggerInfo = new CompletionTriggerInfo();
-                var completions = CompletionProvider.GetGroupAsync(doc, cursorPosition, completionTriggerInfo).Result;
-
-                var completionItem = completions.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
-                    var textView = testWorkspace.GetTestDocument(docId).GetTextView();
+                    var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2443,20 +2440,19 @@ int bar;
 
             using (var testWorkspace = TestWorkspaceFactory.CreateWorkspace(xmlString))
             {
-                int cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
+                var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                DocumentId docId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
-                Document doc = solution.GetDocument(docId);
+                var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
+                var document = solution.GetDocument(documentId);
+                var triggerInfo = new CompletionTriggerInfo();
 
-                CompletionTriggerInfo completionTriggerInfo = new CompletionTriggerInfo();
-                var completions = CompletionProvider.GetGroupAsync(doc, cursorPosition, completionTriggerInfo).Result;
-
-                var completionItem = completions.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
+                var completionList = GetCompletionList(document, cursorPosition, triggerInfo);
+                var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
-                    var textView = testWorkspace.GetTestDocument(docId).GetTextView();
+                    var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2534,7 +2530,7 @@ class C : Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void LeaveTrailingTrviaAlone()
+        public void LeaveTrailingTriviaAlone()
         {
             var text = @"
 namespace ConsoleApplication46
@@ -2552,12 +2548,11 @@ namespace ConsoleApplication46
             var provider = new OverrideCompletionProvider(TestWaitIndicator.Default);
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            var items = provider.GetGroupAsync(document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CancellationToken.None)
-                                .WaitAndGetResult(CancellationToken.None);
+            var completionList = GetCompletionList(provider, document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
 
             var oldTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            provider.Commit(items.Items.First(i => i.DisplayText == "ToString()"), testDocument.GetTextView(), testDocument.GetTextBuffer(), testDocument.TextBuffer.CurrentSnapshot, ' ');
+            provider.Commit(completionList.Items.First(i => i.DisplayText == "ToString()"), testDocument.GetTextView(), testDocument.GetTextBuffer(), testDocument.TextBuffer.CurrentSnapshot, ' ');
             var newTree = workspace.CurrentSolution.GetDocument(testDocument.Id).GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
             var changes = newTree.GetChanges(oldTree);
 

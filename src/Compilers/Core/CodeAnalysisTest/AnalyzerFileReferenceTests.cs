@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static readonly SimpleAnalyzerAssemblyLoader _analyzerLoader = new SimpleAnalyzerAssemblyLoader();
+        private static readonly SimpleAnalyzerAssemblyLoader s_analyzerLoader = new SimpleAnalyzerAssemblyLoader();
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
-            return new AnalyzerFileReference(fullPath, _analyzerLoader);
+            return new AnalyzerFileReference(fullPath, s_analyzerLoader);
         }
 
         [Fact]
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestLoadErrors3()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
@@ -229,7 +229,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             remoteTest.TestSuccess(analyzerFile.Path);
             AppDomain.Unload(loadDomain);
         }
-        
+
         [Fact]
         public void TestAnalyzerLoading_Error()
         {
@@ -290,7 +290,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void ValidAnalyzerReference_DisplayName()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             Assert.Equal(expected: "Alpha", actual: reference.Display);
@@ -302,7 +302,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void ValidAnalyzerReference_Id()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             AssemblyIdentity expectedIdentity = null;
@@ -328,7 +328,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
             var directory = Temp.CreateDirectory();
-            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.AnalyzerTests.FaultyAnalyzer);
+            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(analyzerDll.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();

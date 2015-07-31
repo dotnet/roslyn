@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            // if operator does not have sideeffects itself and is not shortcircuiting
-            // we can simply emit sideefects from the first operand and then from the second one
+            // if operator does not have side-effects itself and is not short-circuiting
+            // we can simply emit side-effects from the first operand and then from the second one
             if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
             {
                 EmitExpression(expression.Left, false);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitCondBranch(condition.Left, ref lazyFallThrough, stopSense);
             EmitCondExpr(condition.Right, sense);
 
-            // if fallthrough was not initialized, no one is going to take that branch
+            // if fall-through was not initialized, no-one is going to take that branch
             // and we are done with Right on stack
             if (lazyFallThrough == null)
             {

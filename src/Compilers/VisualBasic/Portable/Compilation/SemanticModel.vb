@@ -1459,7 +1459,7 @@ _Default:
                             resultKind = LookupResult.WorseResultKind(resultKind, boundBadExpression.ResultKind)
 
                         Case Else
-                            Debug.Assert(False)
+                            Throw ExceptionUtilities.UnexpectedValue(boundNodeOfSyntacticParent.Kind)
                     End Select
 
                     AdjustSymbolsForObjectCreation(lowestBoundNode, namedTypeSymbol, constructor, binderOpt, bindingSymbols, memberGroupBuilder, resultKind)

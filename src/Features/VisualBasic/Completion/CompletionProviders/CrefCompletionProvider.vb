@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    Friend Class CrefCompletionProvider
+    Partial Friend Class CrefCompletionProvider
         Inherits AbstractCompletionProvider
 
         Private ReadOnly _crefFormat2 As SymbolDisplayFormat =
@@ -18,28 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle:=SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions:=
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
-
-        Public Overrides Function IsCommitCharacter(completionItem As CompletionItem, ch As Char, textTypedSoFar As String) As Boolean
-            If ch = "("c AndAlso completionItem.DisplayText.IndexOf("("c) <> -1 Then
-                Return False
-            End If
-
-            If ch = " " Then
-                Dim textSoFar = textTypedSoFar.TrimEnd()
-                Return Not (textSoFar.Length >= 2 AndAlso Char.ToUpper(textSoFar(textSoFar.Length - 2)) = "O"c AndAlso Char.ToUpper(textSoFar(textSoFar.Length - 1)) = "F"c)
-            End If
-
-            Return CompletionUtilities.IsCommitCharacter(completionItem, ch, textTypedSoFar)
-        End Function
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
-        End Function
-
-        Public Overrides Function SendEnterThroughToEditor(completionItem As CompletionItem, textTypedSoFar As String) As Boolean
-            Return False
         End Function
 
         Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As CompletionTriggerInfo, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CompletionItem))
@@ -187,7 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                       End If
 
                                       Return New CompletionItem(Me, displayString, span, glyph:=s.GetGlyph(),
-                                                                descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s))
+                                                                descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, s),
+                                                                rules:=ItemRules.Instance)
                                   End Function)
         End Function
 

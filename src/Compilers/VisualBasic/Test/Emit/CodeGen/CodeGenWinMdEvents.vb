@@ -4,14 +4,13 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
-Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenWinMdEvents
         Inherits BasicTestBase
 
         <Fact()>
-        Public Sub MissingReferences_SyntehesizedAccessors()
+        Public Sub MissingReferences_SynthesizedAccessors()
             Dim source =
                 <compilation name="MissingReferences">
                     <file name="a.vb">

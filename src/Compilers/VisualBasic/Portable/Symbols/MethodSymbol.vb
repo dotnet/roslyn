@@ -397,6 +397,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overridable ReadOnly Property IsScriptInitializer As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Friend ReadOnly Property IsSubmissionConstructor As Boolean
             Get
                 Return IsScriptConstructor AndAlso ContainingAssembly.IsInteractive
