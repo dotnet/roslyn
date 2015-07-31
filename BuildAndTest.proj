@@ -12,12 +12,9 @@
   <PropertyGroup>
     <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <RunTestArgs></RunTestArgs>
-    <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
+    <RunTestArgs>$(RunTestArgs) -xml</RunTestArgs>
+    <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
-
-    <!-- Emit XML in a CIBuild in order to get structured test results -->
-    <RunTestArgs Condition="'$(CIBuild)' == 'true'">$(RunTestArgs) -xml</RunTestArgs>
   </PropertyGroup>
 
   <Target Name="RestorePackages">
