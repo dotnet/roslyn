@@ -15,14 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             {
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.WorkspaceRegistrationChanged;
-                }
-            }
-
             protected override void ConnectToWorkspace(Workspace workspace)
             {
                 this.RaiseChanged();

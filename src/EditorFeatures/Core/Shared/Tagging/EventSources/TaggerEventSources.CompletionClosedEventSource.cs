@@ -32,14 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _sessionStack = sessionStack;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.CompletionClosed;
-                }
-            }
-
             public override void Connect()
             {
                 _sessionStack.Sessions.OfType<ICompletionSession>().Do(HookCompletionSessionEvents);

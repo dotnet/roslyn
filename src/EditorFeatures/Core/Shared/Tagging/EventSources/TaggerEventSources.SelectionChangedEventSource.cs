@@ -18,14 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _textView = textView;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.SelectionChanged;
-                }
-            }
-
             public override void Connect()
             {
                 _textView.Selection.SelectionChanged += OnSelectionChanged;
