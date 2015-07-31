@@ -173,5 +173,23 @@ End Class
 
             VerifyNoItemsExist(code)
         End Sub
+
+        <WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub ImplementsAfterSub()
+            Dim code = "
+Interface I
+End Interface
+
+Class C
+    Implements I
+
+    Sub M() $$
+    End Sub
+End Class
+"
+
+            VerifyItemExists(code, "Implements")
+        End Sub
     End Class
 End Namespace
