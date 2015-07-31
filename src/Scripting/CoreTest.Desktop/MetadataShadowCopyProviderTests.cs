@@ -20,11 +20,21 @@ namespace Roslyn.Services.UnitTests
     {
         private readonly MetadataShadowCopyProvider _provider;
 
-        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories = ImmutableArray.Create(
-                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.Windows)),
-                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)),
-                FileUtilities.NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86)),
-                FileUtilities.NormalizeDirectoryPath(RuntimeEnvironment.GetRuntimeDirectory()));
+        private static readonly ImmutableArray<string> s_systemNoShadowCopyDirectories;
+
+        static MetadataShadowCopyProviderTests()
+        {
+            IEnumerable<string> list = new List<string>() {
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                RuntimeEnvironment.GetRuntimeDirectory()};
+
+            // On Mono special folders can be empty strings.
+            list = list.Where(e => e != string.Empty).Select(e => FileUtilities.NormalizeDirectoryPath(e));
+
+            s_systemNoShadowCopyDirectories = ImmutableArray.Create(list.ToArray());
+        }
 
         public MetadataShadowCopyProviderTests()
         {
