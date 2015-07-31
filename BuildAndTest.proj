@@ -47,34 +47,8 @@
   </Target>
 
   <Target Name="Test">
-
-    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
-      <TestAssemblies
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
-        Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
-      <TestAssemblies
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
-        Exclude="
-        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
-    </ItemGroup>
-
-    <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
-    <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
-      <TestAssemblies
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
-        Exclude="
-        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests2.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.VisualBasic.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.CSharp.UnitTests.dll;" />
+    <ItemGroup>
+      <TestAssemblies Include="Binaries\$(Configuration)\**\$(IncludePattern)" />
     </ItemGroup>
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
